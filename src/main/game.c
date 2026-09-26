@@ -483,7 +483,10 @@ loop_1:
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B088);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B10C);
+s32 func_80014A48();
+void func_8001B10C(s32 arg0, s32 arg1) {
+    func_80014A48(arg1, func_80015848(arg0) == 0 ? 1 : -1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B144);
 
