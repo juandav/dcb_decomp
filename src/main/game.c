@@ -60,6 +60,12 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
+    /* 0x0000 */ u8 unk0[0x24];
+    /* 0x0024 */ s32 unk24;
+    /* 0x0028 */ u8 unk28[0x274C];
+} Unk8006E050;
+
+typedef struct {
     s16 id;
     s16 sub;
     s32 size;
@@ -254,7 +260,19 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80014AC8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014C08);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014CF0);
+extern s32 D_8006E050;
+extern s32 D_800794EC;
+
+void func_80014CF0(void) {
+    s32 i;
+
+    if (D_8006E050 != 0) {
+        for (i = 0; i < 2; i++) {
+            ((Unk8006E050 *)D_8006E050)[i].unk24++;
+        }
+    }
+    D_800794EC++;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014D64);
 
@@ -1837,7 +1855,17 @@ void func_80022DBC(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80022E58);
+void func_80022E58(void) {
+    s32 i;
+
+    for (i = 0; i < 0x20; i++) {
+        if ((D_801D6A4C->unk19C[i].key & 0x0FFFFF00) >= 0x3E80) {
+            D_801D6A4C->unk19C[i].key = 0;
+            D_801D6A4C->unk19C[i].value = 0;
+        }
+    }
+    func_8001AFF0(0x82);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80022ED0);
 
@@ -2340,7 +2368,16 @@ void func_8002B688(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B6E4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B7DC);
+void func_8002B6E4();
+
+void func_8002B7DC(s32 arg0) {
+    s16 *p = (s16 *)&D_801D8128;
+
+    if (p[1] >= 0) {
+        func_80014A00(0x1C);
+        func_800149B8(0x1C, -1, 0, 0x1000, &func_8002B6E4, p[1], arg0);
+    }
+}
 
 void func_8002B850(void) {
 }
@@ -2661,7 +2698,6 @@ s32 func_8002D51C();
 s32 func_800457FC();
 
 extern void *D_8006E054;
-extern s32 D_8006E050;
 void func_8002D404(void) {
     void *p;
 
@@ -3965,7 +4001,16 @@ s32 func_80041364(s32 arg0) {
     return ((s8 *)D_801D8348[arg0])[0x1CD] == -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041390);
+s32 func_80041390(s32 id, s32 player) {
+    if ((s8)D_801D8348[player][0x1CD] == id) {
+        return -1;
+    }
+    if ((s8)D_801D8348[player][0x1CD] == -1) {
+        D_801D8348[player][0x1CD] = id;
+        return 0;
+    }
+    return -1;
+}
 
 s32 func_80041408(s32 arg0) {
     s8 *p = (s8 *)D_801D8348[arg0];
@@ -4063,7 +4108,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80045B18);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045E1C);
 
-extern s32 D_8006E050;
 
 s32 func_80045F5C(s32 arg0, s32 arg1) {
     return (*(u8 *)((s8 *)(((arg0 * 0x2774) + D_8006E050 + arg1)) + 0x14B2)) & 7;
