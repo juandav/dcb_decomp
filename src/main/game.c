@@ -118,9 +118,11 @@ typedef struct {
 } Unk110;
 
 typedef struct {
-    /* 0x000 */ u8 unk0;
-    /* 0x001 */ u8 unk1[3];
-    /* 0x004 */ s8 unk4[0x294];
+    /* 0x000 */ s32 unk0[0xA2];
+    /* 0x288 */ u8 unk288;
+    /* 0x289 */ u8 unk289;
+    /* 0x28A */ u8 unk28A[2];
+    /* 0x28C */ s8 unk28C[0xC];
 } Deck;
 
 typedef struct {
@@ -128,9 +130,9 @@ typedef struct {
     /* 0x0012 */ u16 unk12;
     /* 0x0014 */ u8 unk14[0x10];
     /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ u8 unk28[0x2E0];
-    /* 0x0308 */ Deck unk308[6];
-    /* 0x1298 */ u8 unk1298[0x21A];
+    /* 0x0028 */ u8 unk28[0x58];
+    /* 0x0080 */ Deck unk80[3];
+    /* 0x0848 */ u8 unk848[0xC6A];
     /* 0x14B2 */ u8 unk14B2[0x12D];
     /* 0x15DF */ u8 unk15DF[0xE59];
     /* 0x2438 */ Unk110 unk2438[3];
@@ -138,6 +140,11 @@ typedef struct {
     /* 0x276E */ s8 unk276E[3];
     /* 0x2771 */ u8 unk2771[3];
 } Unk8006E050;
+
+typedef struct {
+    /* 0x000 */ u8 unk0[0x78];
+    /* 0x078 */ Deck unk78[2][3];
+} Unk8006E054;
 
 typedef struct {
     s16 vx;
@@ -4819,7 +4826,14 @@ s32 func_800471F4(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047248);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047364);
+void func_80047364(s32 a) {
+    s32 j;
+
+    for (j = 0; j < 3; j++) {
+        ((Unk8006E050 *)D_8006E050)[a].unk80[j] =
+            ((Unk8006E054 *)D_8006E054)->unk78[a][j];
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047438);
 
@@ -4844,7 +4858,19 @@ s32 func_80047A58(s32 arg0) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047A98);
+s32 func_80047A98(s32 a, s32 b) {
+    s32 i;
+
+    if (((Unk8006E050 *)D_8006E050)[a].unk80[b].unk288 == 0) {
+        return -1;
+    }
+    for (i = 0; i < 6; i++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[b].unk288 == D_8006E518[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047B84);
 
@@ -4867,13 +4893,13 @@ void func_80048230(s32, s32);
 
 void func_800493EC(s32 a, s32 b, s32 c, s32 v) {
     if (func_800496E4(a, v) == 1) {
-        ((Unk8006E050 *)D_8006E050)[a].unk308[b].unk4[c] = v;
+        ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk28C[c] = v;
         func_80048230(a, b);
     }
 }
 
 void func_8004949C(s32 arg0, s32 arg1, s32 arg2) {
-    ((Unk8006E050 *)D_8006E050)[arg0].unk308[arg1].unk4[arg2] = -1;
+    ((Unk8006E050 *)D_8006E050)[arg0].unk80[arg1].unk28C[arg2] = -1;
     func_80048230(arg0, arg1);
 }
 
@@ -4893,7 +4919,7 @@ s32 func_80049934(s32 arg0) {
 s32 rand(void);
 
 s32 func_8004994C(s32 a, s32 b) {
-    if ((s8)((s8)((Unk8006E050 *)D_8006E050)[a].unk308[b].unk1[0] % 5) != 0) {
+    if ((s8)((s8)((Unk8006E050 *)D_8006E050)[a].unk80[b].unk289 % 5) != 0) {
         return -1;
     }
     return rand() % 4;
