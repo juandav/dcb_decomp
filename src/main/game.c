@@ -154,6 +154,14 @@ typedef struct {
 } Model2220;
 
 typedef struct {
+    /* 0x00 */ u32 mode;
+    /* 0x04 */ Rect16 *crect;
+    /* 0x08 */ u32 *caddr;
+    /* 0x0C */ Rect16 *prect;
+    /* 0x10 */ u32 *paddr;
+} TIM_IMAGE;
+
+typedef struct {
     /* 0x0 */ s16 value;
     /* 0x2 */ u8 type;
     /* 0x3 */ u8 timer;
@@ -1177,7 +1185,42 @@ void func_8001B358(s32 arg0, s32 *arg1, s32 arg2) {
     D_8006DEF0 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B438);
+extern TIM_IMAGE D_801D4850;
+s32 OpenTIM(u32 *);
+TIM_IMAGE *ReadTIM(TIM_IMAGE *);
+
+void func_8001B438(u32 *tim, s16 px, s16 py, s16 cx, s16 cy) {
+    Rect16 r;
+
+    OpenTIM(tim);
+    ReadTIM(&D_801D4850);
+    if (px == -1) {
+        px = D_801D4850.prect->x;
+        py = D_801D4850.prect->y;
+    } else {
+        D_801D4850.prect->x = px;
+        D_801D4850.prect->y = py;
+    }
+    if (cx == -1) {
+        cx = D_801D4850.crect->x;
+        cy = D_801D4850.crect->y;
+    } else if (cx != -2) {
+        D_801D4850.crect->x = cx;
+        D_801D4850.crect->y = cy;
+    }
+    r.x = px;
+    r.y = py;
+    r.w = D_801D4850.prect->w;
+    r.h = D_801D4850.prect->h;
+    LoadImage((s16 *)&r, (s32)D_801D4850.paddr);
+    if ((D_801D4850.mode & 8) && cx != -2) {
+        r.x = cx;
+        r.y = cy;
+        r.w = D_801D4850.crect->w;
+        r.h = D_801D4850.crect->h;
+        LoadImage((s16 *)&r, (s32)D_801D4850.caddr);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B5BC);
 
@@ -5139,7 +5182,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80041A1C);
 
 extern s32 D_8006E294;
 extern s32 D_801D8344;
-void func_8001B438(u8 *, s16, s16, s32, s16);
+void func_8001B438(u32 *, s16, s16, s16, s16);
 void func_8001B144();
 
 void func_80041CA8(u8 *s, s32 row, s32 arg2) {
@@ -5152,7 +5195,7 @@ void func_80041CA8(u8 *s, s32 row, s32 arg2) {
     func_800149B8(0, -1, 0, 0x800, &func_8001B144, "B:\\FONT.ARC", func_800148B0());
     arc = (u8 *)func_80014C08(0x7FFFFFFF);
     for (i = 0; *s != 0;) {
-        func_8001B438(arc + ((s32 *)arc)[*s - 0x20], i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
+        func_8001B438((u32 *)(arc + ((s32 *)arc)[*s - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
                       row + 0x1D7);
         DrawSync(0);
         s++;
