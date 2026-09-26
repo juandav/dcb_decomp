@@ -36,7 +36,7 @@ options:
 
   ld_bss_is_noload: True
 
-  migrate_rodata_to_functions: False
+  migrate_rodata_to_functions: True
   create_data_pads: False
 
 segments:
@@ -53,8 +53,8 @@ segments:
     subalign: 4
     subsegments:
       # psylink places .rdata ahead of .text
-      - [0x800, rodata, game]
-      - [0x37BC, rodata, psyq]
+      - [0x800, .rodata, game]
+      - [0x37BC, .rodata, psyq]
       - [0x464C, c, game]
       - [0x3AE10, c, psyq]
       - [0x5E53C, data, game]

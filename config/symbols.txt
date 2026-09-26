@@ -1,6 +1,13 @@
 // Game
 main = 0x80013E4C; // type:func
 
+// Strings used by functions already decompiled to C; kept as INCLUDE_RODATA
+D_80010598 = 0x80010598; // force_not_migration:True
+D_800105A8 = 0x800105A8; // force_not_migration:True
+D_800107F8 = 0x800107F8; // force_not_migration:True
+D_80010884 = 0x80010884; // force_not_migration:True
+D_800108A4 = 0x800108A4; // force_not_migration:True
+
 // Game functions only reached through function pointers
 func_800141B8 = 0x800141B8; // type:func
 func_8001491C = 0x8001491C; // type:func

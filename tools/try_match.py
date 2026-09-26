@@ -35,9 +35,10 @@ for i,(off,name) in enumerate(syms):
     if not os.path.exists(asm): print(name,'?'); continue
     t=open(asm).read()
     size=int(re.search(r'nonmatching \w+, 0x([0-9A-F]+)',t).group(1),16)
-    addr=int(re.search(r'/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)
+    addr=int(re.search(r'glabel '+name+r'\n\s+/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)
     end=syms[i+1][0] if i+1<len(syms) else len(text)
-    tl=[re.sub(r'\s+',' ',re.sub(r'.*\*/\s+','',l)).strip() for l in t.splitlines() if re.match(r'\s+/\*',l)]
+    body=t[t.index('glabel '+name):] if 'glabel '+name in t else t
+    tl=[re.sub(r'\s+',' ',re.sub(r'.*\*/\s+','',l)).strip() for l in body.splitlines() if re.match(r'\s+/\*',l)]
     nd=0; rows=[]
     for k in range(max(size,end-off)//4):
         o=off+4*k

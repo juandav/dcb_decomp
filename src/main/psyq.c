@@ -8,6 +8,8 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _err_math);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuClearReverbWorkArea);
 
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80012FBC);
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_init);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004AC20);
@@ -458,7 +460,19 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", StCdInterrupt);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058A10);
 
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013394);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013398);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_8001339C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800133B8);
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058A3C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013538);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013548);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058BE4);
 
@@ -796,6 +810,8 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsLinkObject4);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSortObject4);
 
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_8001389C);
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetGraph);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
@@ -822,6 +838,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", StoreImage);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage);
 
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139D4);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139E0);
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTag);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTagR);
@@ -829,6 +849,8 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTagR);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawPrim);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTag);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013A1C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", PutDrawEnv);
 
@@ -1101,6 +1123,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _putchar_flash);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", putchar);
 
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D5C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D70);
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", sprintf);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", memmove);
@@ -1298,3 +1324,5 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D580);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D62C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D748);
+
+INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013E3C);
