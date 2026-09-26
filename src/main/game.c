@@ -181,11 +181,14 @@ typedef struct {
 } Unk110;
 
 typedef struct {
-    /* 0x000 */ s32 unk0[0xA2];
+    /* 0x000 */ s32 unk0[0x9F];
+    /* 0x27C */ u8 *unk27C;
+    /* 0x280 */ s32 unk280[2];
     /* 0x288 */ u8 unk288;
     /* 0x289 */ u8 unk289;
     /* 0x28A */ u8 unk28A[2];
-    /* 0x28C */ s8 unk28C[6];
+    /* 0x28C */ s8 unk28C[3];
+    /* 0x28F */ u8 unk28F[3];
     /* 0x292 */ u8 unk292[6];
 } Deck;
 
@@ -288,6 +291,8 @@ typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 s32 VSync(s32);
 s32 rand(void);
+void func_80048230(s32, s32);
+extern u8 D_8006E520[6][3];
 s32 DrawSync(s32);
 s32 LoadImage(s16 *, s32);
 s32 func_80014A90();
@@ -5279,9 +5284,25 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80047C38);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047D5C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047E64);
+void func_80047E64(s32 a, s32 b, s32 c) {
+    s32 j;
+    s32 k;
 
-extern u8 D_8006E520[6][3];
+    if (b != -1 && D_8006E520[b][c] != 0) {
+        for (j = 0; j < 3; j++) {
+            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
+                for (k = 0; k < 3; k++) {
+                    if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[k] == D_8006E520[b][c]) {
+                        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] = D_8006E520[b][c];
+                        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + D_8006E520[b][c] * 0x13C;
+                        func_80048230(a, j);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
 
 s32 func_80048014(s32 a, s32 b) {
     s32 j;
@@ -5330,8 +5351,6 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_800119CC);
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80048230);
 
 s32 func_800496E4(s32, s32);
-void func_80048230(s32, s32);
-
 void func_800493EC(s32 a, s32 b, s32 c, s32 v) {
     if (func_800496E4(a, v) == 1) {
         ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk28C[c] = v;
