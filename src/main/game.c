@@ -266,7 +266,29 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001705C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800170F0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800176E4);
+typedef struct {
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 h;
+} Rect16;
+
+void func_800176E4(Rect16 *a, Rect16 *b) {
+    if (a->x < b->x) {
+        a->w -= b->x - a->x;
+        a->x = b->x;
+    }
+    if (a->y < b->y) {
+        a->h -= b->y - a->y;
+        a->y = b->y;
+    }
+    if (a->x + a->w > b->x + b->w) {
+        a->w = b->x + b->w - a->x;
+    }
+    if (a->y + a->h > b->y + b->h) {
+        a->h = b->y + b->h - a->y;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800177E8);
 
@@ -2381,7 +2403,30 @@ s32 func_80033D9C(void) {
     return 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80033E7C);
+void func_80033E7C(void) {
+    s32 n;
+
+    (*(s32 *)((s8 *)D_801D8340 + 0x7FC)) = 0;
+    while (1) {
+        if ((*(s8 *)((s8 *)D_801D8340 + 0x815)) != 0) {
+            (*(s8 *)((s8 *)D_801D8340 + 0x815)) = 0;
+            func_80014A90();
+            return;
+        }
+        func_80014C08(D_800794F0);
+        if ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) != 0) {
+            (*(s8 *)((s8 *)D_801D8340 + 0x816)) = 0;
+            return;
+        }
+        if ((*(s8 *)((s8 *)D_801D8340 + 0x816)) == 0) {
+            return;
+        }
+        n = (*(s32 *)((s8 *)D_801D8340 + 0x7FC))++;
+        if (n >= 0xF1) {
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80033F34);
 
