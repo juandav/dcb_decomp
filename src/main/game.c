@@ -4,10 +4,12 @@ typedef struct {
     /* 0x00 */ char unk0[0x14];
     /* 0x14 */ int unk14;
 } Unk80077A0C;
+
 typedef struct {
     /* 0x0000 */ int unk0;
     /* 0x0004 */ char unk4[0x102C];
 } Unk80081710;
+
 typedef struct {
     /* 0x0000 */ u8 unk0[0x70];
     /* 0x0070 */ u32 ot[0x1000];
@@ -15,18 +17,21 @@ typedef struct {
     /* 0x40B8 */ s32 unk40B8;
     /* 0x40BC */ s32 unk40BC;
 } Unk800793A0;
+
 typedef struct {
     s16 x;
     s16 y;
     s16 w;
     s16 h;
 } Rect16;
+
 typedef struct {
     /* 0x000 */ u8 unk0[0x28];
     /* 0x028 */ u8 unk28[0xEC];
     /* 0x114 */ s8 unk114[0x28];
     /* 0x13C */ void *unk13C[88];
 } Unk801D6A4C;
+
 typedef struct {
     u8 pad0[0x54];
     s16 unk54;
@@ -45,6 +50,7 @@ typedef struct {
     s16 unk92;
     s16 unk94;
 } Unk800794F8;
+
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 INCLUDE_ASM("asm/main/nonmatchings/game", main);
