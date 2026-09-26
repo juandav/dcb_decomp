@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""try.py file.c [func...]: compile with the project toolchain, compare each function byte-wise
-against SLUS_013.28 (relocated fields masked) and show a side-by-side diff for mismatches."""
-import sys,subprocess,struct,re,os
+"""Compile a C file with the project toolchain and compare every function in it
+byte-wise against SLUS_013.28, with relocated fields masked.
+
+usage: tools/try_match.py draft.c [func ...]
+
+Functions that differ are printed side by side (ours | original) with the
+differing instructions marked with **.
+"""
+import sys,subprocess,struct,re,os,tempfile
 from elftools.elf.elffile import ELFFile
-D='/home/juandav/code/dcb_decomp'
+D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
 src=sys.argv[1]; want=set(sys.argv[2:])
-hdr=f'{D}/include/common.h'
-w='/tmp/claude-1000/-home-juandav-code-dw-decomp/d2b36c10-5503-4300-af75-672dcd3b6641/scratchpad/trybuild'
+w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
 cmd=f"mipsel-linux-gnu-cpp -P -undef -I{D}/include -DSKIP_ASM {src} > {w}.i && {D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused -o {w}.s {w}.i && python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86 < {w}.s > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
 if r.returncode: print(r.stderr); sys.exit(1)
