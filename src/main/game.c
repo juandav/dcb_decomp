@@ -266,6 +266,7 @@ typedef struct {
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 s32 VSync(s32);
+s32 rand(void);
 s32 DrawSync(s32);
 s32 LoadImage(s16 *, s32);
 s32 func_80014A90();
@@ -3587,7 +3588,18 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003035C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030440);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003058C);
+void func_8003058C(u8 *p) {
+    s32 x;
+    s32 y;
+    s32 z;
+
+    x = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
+    y = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
+    z = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
+    *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4) + x;
+    *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6) + y;
+    *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8) + z;
+}
 
 long SquareRoot0(long);
 
@@ -4162,7 +4174,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E4F0);
 
 s32 func_801F8200();
 s32 func_801F8854();
-s32 rand();
 extern void *D_801D833C;
 
 s32 func_8003FB3C();
@@ -5138,8 +5149,6 @@ s32 func_80049934(s32 arg0) {
     arg0++;
     return (arg0 + 2) * arg0;
 }
-
-s32 rand(void);
 
 s32 func_8004994C(s32 a, s32 b) {
     if ((s8)((s8)((Unk8006E050 *)D_8006E050)[a].unk80[b].unk289 % 5) != 0) {
