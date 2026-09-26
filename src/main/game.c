@@ -167,11 +167,19 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800168C4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016948);
 
-extern s32 *D_800793A0;
+typedef struct {
+    /* 0x0000 */ u8 unk0[0x70];
+    /* 0x0070 */ u32 ot[0x1000];
+    /* 0x4070 */ u8 unk4070[0x48];
+    /* 0x40B8 */ s32 unk40B8;
+    /* 0x40BC */ s32 unk40BC;
+} Unk800793A0;
+
+extern Unk800793A0 *D_800793A0;
 extern s32 D_800897E8;
 
 void func_80016BEC(void) {
-    D_800897E8 = (*(s32 *)((s8 *)D_800793A0 + 0x40BC));
+    D_800897E8 = D_800793A0->unk40BC;
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016C08);
@@ -198,7 +206,7 @@ extern char D_80010008[];
 extern int printf(const char *, ...);
 
 int func_80019084(void) {
-    if (D_800897E8 == D_800793A0[0x40BC / 4] + D_800897EC * 0x294) {
+    if (D_800897E8 == D_800793A0->unk40BC + D_800897EC * 0x294) {
         printf(D_80010008);
         return -1;
     }
@@ -523,7 +531,6 @@ s32 AddPrim(s32 *, s32);
 s32 RotAverageNclip3(s32, s32, s32, s32, s32, s32, s32 *, s32 *, s32 *);
 s32 RotTransPers3(s32, s32, s32, s32, s32, s32, s32 *, s32 *);
 
-typedef struct { u8 unk0[0x70]; u32 ot[0x1000]; } Unk800793A0;
 
 void func_8001D6D0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
     s32 sp28;
@@ -538,10 +545,10 @@ void func_8001D6D0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
 block_3:
         if ((u32) (sp30 - 2) < 0xFFFU) {
             if (arg5 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg0);
+                AddPrim(&D_800793A0->ot[sp30], arg0);
                 return;
             }
-            AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg5], arg0);
+            AddPrim(&D_800793A0->ot[arg5], arg0);
         }
     }
 }
@@ -562,10 +569,10 @@ void func_8001D7DC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, s3
 block_3:
         if ((u32) (sp38 - 2) < 0xFFFU) {
             if (arg6 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg0);
+                AddPrim(&D_800793A0->ot[sp38], arg0);
                 return;
             }
-            AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg6], arg0);
+            AddPrim(&D_800793A0->ot[arg6], arg0);
         }
     }
 }
@@ -583,10 +590,10 @@ void func_8001D900(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, s3
 block_3:
         if ((u32) (sp38 - 2) < 0xFFFU) {
             if (arg6 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg0);
+                AddPrim(&D_800793A0->ot[sp38], arg0);
                 return;
             }
-            AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg6], arg0);
+            AddPrim(&D_800793A0->ot[arg6], arg0);
         }
     }
 }
@@ -604,14 +611,14 @@ void func_8001DA24(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, u8
 block_3:
         if ((u32) (sp30 - 2) < 0xFFFU) {
             if (arg7 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg0);
+                AddPrim(&D_800793A0->ot[sp30], arg0);
                 if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg1);
+                    AddPrim(&D_800793A0->ot[sp30], arg1);
                 }
             } else {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg7], arg0);
+                AddPrim(&D_800793A0->ot[arg7], arg0);
                 if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg7], arg1);
+                    AddPrim(&D_800793A0->ot[arg7], arg1);
                 }
             }
         }
@@ -631,14 +638,14 @@ void func_8001DBAC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u
 block_3:
         if ((u32) (sp38 - 2) < 0xFFFU) {
             if (arg8 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg0);
+                AddPrim(&D_800793A0->ot[sp38], arg0);
                 if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg1);
+                    AddPrim(&D_800793A0->ot[sp38], arg1);
                 }
             } else {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg8], arg0);
+                AddPrim(&D_800793A0->ot[arg8], arg0);
                 if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg8], arg1);
+                    AddPrim(&D_800793A0->ot[arg8], arg1);
                 }
             }
         }
@@ -658,10 +665,10 @@ void func_8001DD4C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
 block_3:
         if ((u32) (sp30 - 2) < 0xFFFU) {
             if (arg5 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg0);
+                AddPrim(&D_800793A0->ot[sp30], arg0);
                 return;
             }
-            AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg5], arg0);
+            AddPrim(&D_800793A0->ot[arg5], arg0);
         }
     }
 }
@@ -679,14 +686,14 @@ void func_8001DE58(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, u8
 block_3:
         if ((u32) (sp30 - 2) < 0xFFFU) {
             if (arg7 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg0);
+                AddPrim(&D_800793A0->ot[sp30], arg0);
                 if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp30], arg1);
+                    AddPrim(&D_800793A0->ot[sp30], arg1);
                 }
             } else {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg7], arg0);
+                AddPrim(&D_800793A0->ot[arg7], arg0);
                 if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg7], arg1);
+                    AddPrim(&D_800793A0->ot[arg7], arg1);
                 }
             }
         }
@@ -706,14 +713,14 @@ void func_8001DFE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u
 block_3:
         if ((u32) (sp38 - 2) < 0xFFFU) {
             if (arg8 == 0) {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg0);
+                AddPrim(&D_800793A0->ot[sp38], arg0);
                 if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[sp38], arg1);
+                    AddPrim(&D_800793A0->ot[sp38], arg1);
                 }
             } else {
-                AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg8], arg0);
+                AddPrim(&D_800793A0->ot[arg8], arg0);
                 if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&((Unk800793A0 *)D_800793A0)->ot[arg8], arg1);
+                    AddPrim(&D_800793A0->ot[arg8], arg1);
                 }
             }
         }
@@ -1283,7 +1290,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80027044);
 extern s32 D_801D6B24;
 
 void func_800271D0(void) {
-    D_801D6B24 = (*(s32 *)((s8 *)D_800793A0 + 0x40B8));
+    D_801D6B24 = D_800793A0->unk40B8;
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800271EC);
