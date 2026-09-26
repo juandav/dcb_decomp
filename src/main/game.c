@@ -2399,7 +2399,38 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C6EC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C784);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C9E8);
+s32 func_8006A824(char *, s32);
+s32 func_8006A834(s32, s32, s32);
+s32 func_8006A844(s32, void *, s32);
+s32 func_8006A864(s32);
+extern u8 *D_801D81A0;
+extern char D_800105E4;
+
+s32 sprintf(char *, const char *, ...);
+s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
+    char name[32];
+    s32 fd;
+
+    sprintf(name, &D_800105E4, arg0, arg2);
+    fd = func_8006A824(name, 1);
+    if (fd == -1) {
+        return 1;
+    }
+    if (func_8006A844(fd, D_801D81A0, 0x80) == -1) {
+        func_8006A864(fd);
+        return 1;
+    }
+    if (func_8006A834(fd, ((*(u8 *)((s8 *)D_801D81A0 + 2)) - 0x10) << 7, 1) == -1) {
+        func_8006A864(fd);
+        return 1;
+    }
+    if (func_8006A844(fd, arg1, 0x80) == -1) {
+        func_8006A864(fd);
+        return 1;
+    }
+    func_8006A864(fd);
+    return 0;
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105E4);
 
@@ -2481,7 +2512,7 @@ void *func_8002DBEC(s32 arg0) {
 }
 
 s32 func_8001B248(s32 *, s32, s32);
-s32 sprintf(s32 *, s32 *, s32);
+s32 sprintf(char *, const char *, ...);
 extern s32 D_800107F8;
 
 s32 func_8002DC30(s32 arg0, s32 arg1) {
