@@ -3507,11 +3507,27 @@ void func_80030BA4(void *arg0) {
     func_8001AE90(arg0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030BC4);
+void VectorNormal(VECTOR *, VECTOR *);
+
+s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out) {
+    VECTOR d;
+
+    d.vx = b->vx - a->vx;
+    d.vy = b->vy - a->vy;
+    d.vz = b->vz - a->vz;
+    if (SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz) < 20000) {
+        VectorNormal(&d, out);
+        return 1;
+    }
+    d.vx >>= 4;
+    d.vy >>= 4;
+    d.vz >>= 4;
+    VectorNormal(&d, out);
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030CA8);
 
-s32 func_80030BC4(void *, void *, void *);
 s32 func_80030CA8(void *);
 
 void *func_80030E3C(void *arg0) {
