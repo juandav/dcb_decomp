@@ -81,7 +81,11 @@ typedef struct {
     /* 0x030C */ s8 unk30C[6][0x298];
     /* 0x129C */ u8 unk129C[0x216];
     /* 0x14B2 */ u8 unk14B2[0x12D];
-    /* 0x15DF */ u8 unk15DF[0x1195];
+    /* 0x15DF */ u8 unk15DF[0xE59];
+    /* 0x2438 */ u8 unk2438[3][0x110];
+    /* 0x2768 */ s16 unk2768[3];
+    /* 0x276E */ s8 unk276E[3];
+    /* 0x2771 */ u8 unk2771[3];
 } Unk8006E050;
 
 typedef struct {
@@ -4015,11 +4019,59 @@ s32 func_80040518(s32 arg0, s32 arg1) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040570);
+s32 func_80040570(s32 player) {
+    u8 *p;
+    s8 *slots;
+    s32 i;
+    s32 c;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040614);
+    i = 0;
+    p = D_801D8348[player];
+    slots = (s8 *)p + 0x1B9;
+    for (; i < 4; i++) {
+        c = slots[i];
+        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 0) {
+            return 0;
+        }
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800406BC);
+s32 func_80040614(s32 player) {
+    u8 *p;
+    s8 *slots;
+    s32 i;
+    s32 c;
+
+    i = 0;
+    p = D_801D8348[player];
+    slots = (s8 *)p + 0x1B9;
+    for (; i < 4; i++) {
+        c = slots[i];
+        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 1) {
+            return 0;
+        }
+    }
+    return -1;
+}
+
+s32 func_800406BC(s32 player) {
+    u8 *p;
+    s8 *slots;
+    s32 i;
+    s32 c;
+
+    i = 0;
+    p = D_801D8348[player];
+    slots = (s8 *)p + 0x1B9;
+    for (; i < 4; i++) {
+        c = slots[i];
+        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 2) {
+            return 0;
+        }
+    }
+    return -1;
+}
 
 s32 func_80040764(s32 arg0) {
     s32 i;
@@ -4323,7 +4375,16 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800461C0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004635C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046864);
+s8 func_80045B18(s32, s32, s32);
+
+void func_80046864(s32 a) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        ((Unk8006E050 *)D_8006E050)[a].unk276E[i] =
+            func_80045B18(a, ((Unk8006E050 *)D_8006E050)[a].unk2768[i], 1);
+    }
+}
 
 void func_80046908(s32 i) {
     s32 j;
@@ -4336,7 +4397,15 @@ void func_80046908(s32 i) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800469A4);
+void func_80046A38(s32, u8 *);
+
+void func_800469A4(s32 a) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        func_80046A38(a, ((Unk8006E050 *)D_8006E050)[a].unk2438[i]);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046A38);
 
