@@ -727,9 +727,51 @@ block_3:
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E180);
+s32 RotTransPers(s32, s32, s32 *, s32 *);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E2A4);
+void func_8001E180(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
+    s32 sp10;
+    s32 sp14;
+    s32 temp_v0;
+
+    RotTransPers(arg2, arg0 + 8, &sp10, &sp14);
+    temp_v0 = RotTransPers(arg3, arg0 + 0xC, &sp10, &sp14);
+    if ((u32) (temp_v0 - 2) < 0xFFFU) {
+        if (arg5 == 0) {
+            AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg0);
+            if ((arg4 != 0) && (arg1 != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg1);
+            }
+        } else {
+            AddPrim((s32 *) &D_800793A0->ot[arg5], arg0);
+            if ((arg4 != 0) && (arg1 != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[arg5], arg1);
+            }
+        }
+    }
+}
+
+void func_8001E2A4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
+    s32 sp10;
+    s32 sp14;
+    s32 temp_v0;
+
+    RotTransPers(arg2, arg0 + 8, &sp10, &sp14);
+    temp_v0 = RotTransPers(arg3, arg0 + 0x10, &sp10, &sp14);
+    if ((u32) (temp_v0 - 2) < 0xFFFU) {
+        if (arg5 == 0) {
+            AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg0);
+            if ((arg4 != 0) && (arg1 != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg1);
+            }
+        } else {
+            AddPrim((s32 *) &D_800793A0->ot[arg5], arg0);
+            if ((arg4 != 0) && (arg1 != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[arg5], arg1);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E3C8);
 
