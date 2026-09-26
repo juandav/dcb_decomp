@@ -2897,7 +2897,25 @@ void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80027674);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800276C8);
+void func_800276C8(s32 x, s32 y, u8 c, s32 n, u8 *rgb, s32 z, s32 w, s32 h, s32 bu, s32 bv) {
+    if (c > 0x20 && func_80029990() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = bu + (c & 0xF) * 8;
+        CUR_SPRT->sp.v0 = bv + (((c - 0x20) & 0xF0) >> 1);
+        CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+        CUR_SPRT->sp.w = w;
+        CUR_SPRT->sp.h = h;
+        setSemiTrans(&CUR_SPRT->sp, 1);
+        CUR_SPRT->sp.r0 = rgb[0];
+        CUR_SPRT->sp.g0 = rgb[1];
+        CUR_SPRT->sp.b0 = rgb[2];
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+}
 
 void func_8002793C(s32, s32, s32, s32, s32 *, s32);
 
