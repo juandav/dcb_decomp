@@ -276,7 +276,38 @@ s32 func_80014614(s32 arg0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014748);
+void func_800142D0(void *);
+
+void func_80014748(void) {
+    void *t;
+    void *prev;
+    void *next;
+    void **cur;
+
+    t = D_80077A0C;
+    prev = (*(void **)((s8 *)t + 8));
+    next = (*(void **)((s8 *)t + 0xC));
+    (*(void **)((s8 *)prev + 0xC)) = next;
+    (*(void **)((s8 *)next + 8)) = prev;
+    if (D_80077A08 != 0) {
+        cur = (void **)&D_80077AE0;
+        if (cur[3] == t) {
+            cur[3] = next;
+        }
+    }
+    if ((D_80077A1A > 0) && (t == D_80077A10)) {
+        D_80077A10 = next;
+        D_80077A1A = (*(u16 *)((s8 *)next + 0));
+    }
+    if ((D_80077A1C >= 0) && (t == D_80077A14)) {
+        D_80077A14 = next;
+        D_80077A1C = (*(u16 *)((s8 *)next + 0));
+    }
+    func_8001AFF0((*(s32 *)((s8 *)t + 0x14)));
+    func_8001AE90((*(void **)((s8 *)t + 0x1C)));
+    (*(s32 *)((s8 *)t + 0)) = 0;
+    func_800142D0(t);
+}
 
 extern int func_80014A00(int);
 
