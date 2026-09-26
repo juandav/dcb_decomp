@@ -5048,7 +5048,34 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800416D8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80041A1C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041CA8);
+extern s32 D_8006E294;
+extern s32 D_801D8344;
+void func_8001B438(u8 *, s16, s16, s32, s16);
+void func_8001B144();
+
+void func_80041CA8(u8 *s, s32 row, s32 arg2) {
+    char path[64]; /* unused, but it is in the original stack frame */
+    u8 *arc;
+    s32 i;
+
+    D_8006E294 = 1;
+    D_801D8344 = 0;
+    func_800149B8(0, -1, 0, 0x800, &func_8001B144, "B:\\FONT.ARC", func_800148B0());
+    arc = (u8 *)func_80014C08(0x7FFFFFFF);
+    for (i = 0; *s != 0;) {
+        func_8001B438(arc + ((s32 *)arc)[*s - 0x20], i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
+                      row + 0x1D7);
+        DrawSync(0);
+        s++;
+        func_80014C08(D_800794F0);
+        if (++i >= 12) {
+            break;
+        }
+    }
+    func_8001AE90(arc);
+    D_8006E294 = 0;
+    func_80014A48(arg2);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80041E00);
 
