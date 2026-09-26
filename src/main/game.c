@@ -1692,7 +1692,36 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ACC4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AD58);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ADEC);
+s32 SsSetMVol(s32, s32);
+s32 SsSetTableSize(s32 *, s32, s32);
+s32 SsSetTickMode(s32);
+s32 SsStart();
+s32 func_8002AEA4(s32);
+s32 func_8002B258(s32);
+s32 func_80055740();
+extern s32 D_801D6B28;
+
+extern s32 D_801D8128;
+void func_8002ADEC(void) {
+    s8 *p;
+
+    SsSetTableSize(&D_801D6B28, 0x20, 1);
+    SsSetMVol(0, 0);
+    SsSetTickMode(1);
+    SsStart();
+    func_8002B258(1);
+    func_80055740();
+    p = (s8 *)&D_801D8128;
+    *(void **)(p + 0x1C) = func_8001ABCC(0x2100, -2);
+    *(void **)(p + 0x28) = func_8001ABCC(0x9300, -2);
+    *(void **)(p + 0x34) = func_8001ABCC(0x9300, -2);
+    *(s16 *)(p + 0x2C) = 0xFF;
+    *(s16 *)(p + 0x20) = 0xFF;
+    *(s16 *)(p + 0x14) = 0xFF;
+    *(s16 *)(p + 2) = -1;
+    func_8002AEA4(1);
+    SsSetMVol(0x7F, 0x7F);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AEA4);
 
