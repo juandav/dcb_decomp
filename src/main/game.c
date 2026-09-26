@@ -73,6 +73,12 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
+    /* 0x000 */ u8 unk0[0x11C];
+    /* 0x11C */ s16 unk11C[5];
+    /* 0x126 */ s16 unk126[5];
+} Player;
+
+typedef struct {
     /* 0x000 */ u8 unk0;
     /* 0x001 */ u8 unk1[3];
     /* 0x004 */ s8 unk4[0x294];
@@ -1390,15 +1396,15 @@ void func_8001E804(void *arg0, u8 r, u8 g, u8 b) {
     }
 }
 
-s32 func_8001E8F4();
-s32 func_8001E9AC();
+void func_8001E8F4(u8 *p, u8 *c);
+void func_8001E9AC(u8 *p, u8 *c);
 
-void func_8001E850(void *arg0) {
-    if ((*(u8 *)((s8 *)arg0 + 7)) & 4) {
-        func_8001E9AC();
-        return;
+void func_8001E850(u8 *p, u8 *c) {
+    if (p[7] & 4) {
+        func_8001E9AC(p, c);
+    } else {
+        func_8001E8F4(p, c);
     }
-    func_8001E8F4();
 }
 
 void func_8001E894(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
@@ -1437,9 +1443,35 @@ void func_8001E8E4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
     (*(s8 *)((s8 *)arg0 + 0x2A)) = arg3;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E8F4);
+void func_8001E8F4(u8 *p, u8 *c) {
+    p[0x4] = *c++;
+    p[0x5] = *c++;
+    p[0x6] = *c++;
+    p[0xC] = *c++;
+    p[0xD] = *c++;
+    p[0xE] = *c++;
+    p[0x14] = *c++;
+    p[0x15] = *c++;
+    p[0x16] = *c++;
+    p[0x1C] = *c++;
+    p[0x1D] = *c++;
+    p[0x1E] = *c;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E9AC);
+void func_8001E9AC(u8 *p, u8 *c) {
+    p[0x4] = *c++;
+    p[0x5] = *c++;
+    p[0x6] = *c++;
+    p[0x10] = *c++;
+    p[0x11] = *c++;
+    p[0x12] = *c++;
+    p[0x1C] = *c++;
+    p[0x1D] = *c++;
+    p[0x1E] = *c++;
+    p[0x28] = *c++;
+    p[0x29] = *c++;
+    p[0x2A] = *c;
+}
 
 void func_8001EBF4(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
 void func_8001EB64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
@@ -3507,7 +3539,24 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010C9C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80034260);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003917C);
+void func_8003917C(void) {
+    s32 diff;
+    s32 p;
+    s32 i;
+
+    do {
+        func_80014C08(D_800794F0);
+        diff = 0;
+        for (p = 0; p < 2; p++) {
+            for (i = 0; i < 5; i++) {
+                if (((Player *)D_801D8348[p])->unk11C[i] !=
+                    ((Player *)D_801D8348[p])->unk126[i]) {
+                    diff = 1;
+                }
+            }
+        }
+    } while (diff);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80039220);
 
