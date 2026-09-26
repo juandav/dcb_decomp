@@ -170,7 +170,8 @@ typedef struct {
 typedef struct {
     /* 0x000 */ u8 unk0[0x14];
     /* 0x014 */ CardSlot cards[30];
-    /* 0x104 */ u8 unk104[0x18];
+    /* 0x104 */ u8 unk104[0x16];
+    /* 0x11A */ s16 unk11A;
     /* 0x11C */ s16 unk11C[5];
     /* 0x126 */ s16 unk126[5];
     /* 0x130 */ Popup unk130[5];
@@ -5036,9 +5037,49 @@ s32 func_80041408(s32 arg0) {
     return v;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041430);
+s32 func_80040220(s32);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041584);
+void func_80041430(s32 player) {
+    s32 n;
+    s32 k;
+    s32 i;
+    s32 j;
+    s8 t;
+
+    n = func_80040220(player);
+    if (n >= 2) {
+        for (k = 0; k < ((Player *)D_801D8348[player])->unk11A; k++) {
+            for (i = 30 - n; i < 30; i++) {
+                j = rand() % n + (30 - n);
+                t = ((Player *)D_801D8348[player])->unk17D[i];
+                ((Player *)D_801D8348[player])->unk17D[i] = ((Player *)D_801D8348[player])->unk17D[j];
+                ((Player *)D_801D8348[player])->unk17D[j] = t;
+            }
+        }
+        ((Player *)D_801D8348[player])->unk11A = 0;
+    }
+}
+
+void func_80041584(s32 player) {
+    s32 n;
+    s32 k;
+    s32 i;
+    s32 j;
+    s8 t;
+
+    n = func_80040124(player);
+    if (n >= 2) {
+        for (k = 0; k < ((Player *)D_801D8348[player])->unk11A; k++) {
+            for (i = 30 - n; i < 30; i++) {
+                j = rand() % n + (30 - n);
+                t = ((Player *)D_801D8348[player])->unk19B[i];
+                ((Player *)D_801D8348[player])->unk19B[i] = ((Player *)D_801D8348[player])->unk19B[j];
+                ((Player *)D_801D8348[player])->unk19B[j] = t;
+            }
+        }
+        ((Player *)D_801D8348[player])->unk11A = 0;
+    }
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113C0);
 
