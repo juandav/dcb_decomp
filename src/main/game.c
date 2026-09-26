@@ -73,6 +73,12 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
+    /* 0x00 */ s32 key;
+    /* 0x04 */ u8 unk4[0xC];
+    /* 0x10 */ s32 name[4];
+} FileEntry;
+
+typedef struct {
     /* 0x000 */ u8 unk0[0x11C];
     /* 0x11C */ s16 unk11C[5];
     /* 0x126 */ s16 unk126[5];
@@ -437,7 +443,29 @@ s32 func_80015848(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800158B0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80015A3C);
+FileEntry *func_80015A3C(char *name, s32 key) {
+    FileEntry *e;
+    s32 n;
+    s32 i;
+
+    e = (FileEntry *)&D_800857E0;
+    for (n = 0x1FF; n >= 0; n--, e++) {
+        if (e->key == 0) {
+            return 0;
+        }
+        if (e->key == key) {
+            for (i = 0; i < 4; i++) {
+                if (e->name[i] != *(s32 *)(name + (i << 2))) {
+                    break;
+                }
+            }
+            if (i == 4) {
+                return e;
+            }
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80015AD8);
 
