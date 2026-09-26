@@ -2957,9 +2957,37 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800457FC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045968);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045A58);
+void func_80045A58(s32 arg0) {
+    s32 row;
+    s32 i;
+    s32 *base;
+    u8 *p;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045AB8);
+    i = 0;
+    do {
+        base = &D_8006E050;
+        row = arg0 * 0x2774 + *base + 0x14B2;
+        p = (u8 *)(row + i);
+        *p &= 0x7F;
+        i++;
+    } while (i < 0x12D);
+}
+
+void func_80045AB8(s32 arg0) {
+    s32 row;
+    s32 i;
+    s32 *base;
+    u8 *p;
+
+    i = 0;
+    do {
+        base = &D_8006E050;
+        row = arg0 * 0x2774 + *base + 0x14B2;
+        p = (u8 *)(row + i);
+        *p &= 0xDF;
+        i++;
+    } while (i < 0x12D);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045B18);
 
