@@ -1,5 +1,10 @@
 #include "common.h"
 
+typedef struct {
+    /* 0x00 */ char unk0[0x14];
+    /* 0x14 */ int unk14;
+} Unk80077A0C;
+
 INCLUDE_ASM("asm/main/nonmatchings/game", main);
 
 s32 func_8006A804();
@@ -39,18 +44,59 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800142D0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014364);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014614);
+extern void *D_80077A10;
+extern void *D_80077A14;
+extern s16 D_80077A1A;
+extern s16 D_80077A1C;
+extern s32 D_80077AE0;
+
+s32 func_8001AE90(void *);
+s32 func_8001AFF0(s32 arg0);
+extern Unk80077A0C *D_80077A0C;
+s32 func_80014614(s32 arg0) {
+    void *t;
+    void *prev;
+    void *next;
+    void **cur;
+
+    t = (s8 *)&D_80077BA0 + arg0 * 0xC0;
+    if ((*(s32 *)((s8 *)t + 0)) >= 0) {
+        return -0x83;
+    }
+    if (t == D_80077A0C) {
+        return -4;
+    }
+    if (t == &D_80077BA0) {
+        return -5;
+    }
+    prev = (*(void **)((s8 *)t + 8));
+    next = (*(void **)((s8 *)t + 0xC));
+    (*(void **)((s8 *)prev + 0xC)) = next;
+    (*(void **)((s8 *)next + 8)) = prev;
+    if (D_80077A08 != 0) {
+        cur = (void **)&D_80077AE0;
+        if (cur[3] == t) {
+            cur[3] = next;
+        }
+    }
+    if ((D_80077A1A > 0) && (t == D_80077A10)) {
+        D_80077A10 = next;
+        D_80077A1A = (*(u16 *)((s8 *)next + 0));
+    }
+    if ((D_80077A1C >= 0) && (t == D_80077A14)) {
+        D_80077A14 = next;
+        D_80077A1C = (*(u16 *)((s8 *)next + 0));
+    }
+    func_8001AFF0((*(s32 *)((s8 *)t + 0x14)));
+    func_8001AE90((*(void **)((s8 *)t + 0x1C)));
+    (*(s32 *)((s8 *)t + 0)) = 0;
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014748);
 
 extern int func_80014A00(int);
 
-typedef struct {
-    /* 0x00 */ char unk0[0x14];
-    /* 0x14 */ int unk14;
-} Unk80077A0C;
-
-extern Unk80077A0C *D_80077A0C;
 
 int func_80014840(void) {
     int n = D_80077A0C->unk14;
@@ -2335,7 +2381,42 @@ void func_8002F79C(void) {
     D_801D8260 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F7A8);
+s32 SetTexWindow(void *, s16 *);
+s32 func_8001E6EC(s32, void *, s32, s32);
+extern s32 D_800108A4;
+extern s32 D_801D81F8;
+extern s32 D_801D8220;
+
+void func_8002F7A8(void) {
+    s16 r[4];
+    s32 i;
+    s8 *p;
+    s8 *e;
+
+    p = (s8 *)&D_801D81F8;
+    if ((*(s32 *)(p + 0x68)) != 0) {
+        return;
+    }
+    (*(s8 *)(p + 0x6C)) = -1;
+    (*(s8 *)(p + 0x6D)) = -1;
+    (*(s16 *)(p + 0x72)) = 0;
+    (*(s16 *)(p + 0x70)) = 0;
+    (*(s8 *)(p + 0x6E)) = 0;
+    (*(s8 *)(p + 0x6F)) = 5;
+    for (i = 0; i < 2; i++) {
+        e = (s8 *)&D_801D81F8 + i * 0x34;
+        func_8001E6EC(0xE, e, 0, 0);
+        (*(s16 *)(e + 0x10)) = 0x141;
+        (*(s16 *)(e + 0x12)) = 0xF0;
+        r[0] = 0;
+        r[1] = 0;
+        r[2] = 0;
+        r[3] = 0;
+        SetTexWindow((s8 *)&D_801D8220 + i * 0x34, r);
+    }
+    func_800149B8(0, -1, 0, 0x800, func_8001B248, &D_800108A4, func_800148B0(), -2);
+    D_801D8260 = func_80014C08(0x7FFFFFFF);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F8E8);
 
