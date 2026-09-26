@@ -106,9 +106,25 @@ typedef struct {
 } FileEntry;
 
 typedef struct {
-    /* 0x000 */ u8 unk0[0x11C];
+    /* 0x0 */ u8 state;
+    /* 0x1 */ u8 unk1[3];
+    /* 0x4 */ s8 *card;
+} CardSlot;
+
+typedef struct {
+    /* 0x000 */ u8 unk0[0x14];
+    /* 0x014 */ CardSlot cards[30];
+    /* 0x104 */ u8 unk104[0x18];
     /* 0x11C */ s16 unk11C[5];
     /* 0x126 */ s16 unk126[5];
+    /* 0x130 */ u8 unk130[0x4D];
+    /* 0x17D */ s8 unk17D[30];
+    /* 0x19B */ s8 unk19B[30];
+    /* 0x1B9 */ s8 unk1B9[4];
+    /* 0x1BD */ u8 unk1BD[5];
+    /* 0x1C2 */ s8 unk1C2[8];
+    /* 0x1CA */ s8 unk1CA[3];
+    /* 0x1CD */ s8 unk1CD;
 } Player;
 
 typedef struct {
@@ -4365,17 +4381,15 @@ s32 func_80040518(s32 arg0, s32 arg1) {
 }
 
 s32 func_80040570(s32 player) {
-    u8 *p;
-    s8 *slots;
+    Player *p;
     s32 i;
     s32 c;
 
     i = 0;
-    p = D_801D8348[player];
-    slots = (s8 *)p + 0x1B9;
+    p = (Player *)D_801D8348[player];
     for (; i < 4; i++) {
-        c = slots[i];
-        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 0) {
+        c = p->unk1B9[i];
+        if (c != -1 && p->cards[c % 30].state == 0) {
             return 0;
         }
     }
@@ -4383,17 +4397,15 @@ s32 func_80040570(s32 player) {
 }
 
 s32 func_80040614(s32 player) {
-    u8 *p;
-    s8 *slots;
+    Player *p;
     s32 i;
     s32 c;
 
     i = 0;
-    p = D_801D8348[player];
-    slots = (s8 *)p + 0x1B9;
+    p = (Player *)D_801D8348[player];
     for (; i < 4; i++) {
-        c = slots[i];
-        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 1) {
+        c = p->unk1B9[i];
+        if (c != -1 && p->cards[c % 30].state == 1) {
             return 0;
         }
     }
@@ -4401,17 +4413,15 @@ s32 func_80040614(s32 player) {
 }
 
 s32 func_800406BC(s32 player) {
-    u8 *p;
-    s8 *slots;
+    Player *p;
     s32 i;
     s32 c;
 
     i = 0;
-    p = D_801D8348[player];
-    slots = (s8 *)p + 0x1B9;
+    p = (Player *)D_801D8348[player];
     for (; i < 4; i++) {
-        c = slots[i];
-        if (c != -1 && (p + ((c % 30) << 3))[0x14] == 2) {
+        c = p->unk1B9[i];
+        if (c != -1 && p->cards[c % 30].state == 2) {
             return 0;
         }
     }
@@ -4476,7 +4486,26 @@ s32 func_800410B4(s32 arg0, s32 arg1) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004110C);
+s32 func_8004110C(s32 player) {
+    Player *p;
+    s32 i;
+    s32 sum;
+    s32 c;
+
+    i = 0;
+    sum = 0;
+    p = (Player *)D_801D8348[player];
+    for (; i < 8; i++) {
+        c = p->unk1C2[i];
+        if (c != -1) {
+            sum += p->cards[c % 30].card[0x1C];
+        }
+    }
+    if (sum > 90) {
+        sum = 90;
+    }
+    return sum;
+}
 
 s32 func_800411C4(s32 arg0) {
     s32 i;
