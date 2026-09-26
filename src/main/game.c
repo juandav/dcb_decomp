@@ -2,7 +2,34 @@
 
 INCLUDE_ASM("asm/main/nonmatchings/game", main);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80013F04);
+s32 func_8006A804();
+s32 func_8006A814();
+extern s32 D_80077A08;
+extern s16 *D_80077AEC;
+extern s16 D_80077BA0;
+
+void func_80013F04(s32 arg0) {
+    s16 *p;
+    s32 i;
+
+    func_8006A804();
+    if (arg0 != 0) {
+        if (D_80077A08 == 0) {
+            D_80077A08 = 1;
+            p = &D_80077BA0;
+            for (i = 0x1F; i >= 0; i--, p += 0x60) {
+                if (*p > 0) {
+                    D_80077AEC = p;
+                    break;
+                }
+            }
+        }
+    } else if (D_80077A08 != 0) {
+        D_80077A08 = 0;
+        D_80077AEC = &D_80077BA0;
+    }
+    func_8006A814();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80013FA4);
 
@@ -46,7 +73,6 @@ s32 func_800148B0(void) {
     return (*(s32 *)((s8 *)D_80077A0C + 0x14));
 }
 
-extern s32 D_80077BA0;
 s32 func_800148C8(s32 arg0, s32 arg1) {
     void *temp_v1;
 
@@ -62,7 +88,6 @@ s32 func_800148C8(s32 arg0, s32 arg1) {
     return 0;
 }
 
-extern s32 D_80077BA0;
 
 s32 func_8001491C(s32 arg0) {
     void *temp_v1;
@@ -2154,7 +2179,51 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E4F0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E844);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E94C);
+s32 func_80024460(s32);
+extern s32 D_800794F8;
+extern s32 func_800250F4;
+
+typedef struct {
+    u8 pad0[0x54];
+    s16 unk54;
+    s16 unk56;
+    s16 unk58;
+    u8 pad5A[0x1A];
+    s32 unk74;
+    u8 pad78[0x4];
+    s32 unk7C;
+    s32 unk80;
+    s32 unk84;
+    u8 pad88[0x4];
+    s16 unk8C;
+    s16 unk8E;
+    s16 unk90;
+    s16 unk92;
+    s16 unk94;
+} Unk800794F8;
+
+void func_8003E94C(void) {
+    Unk800794F8 *p;
+
+    func_80024460(0);
+    func_800149B8(0x19, -1, 0, 0x800, &func_800250F4, 0);
+    func_80014C08(2);
+    p = (Unk800794F8 *)&D_800794F8;
+    p->unk54 = 0;
+    p->unk56 = 0;
+    p->unk58 = 0;
+    p->unk7C = 0;
+    p->unk80 = 0;
+    p->unk84 = 0;
+    p->unk8E = 0;
+    p->unk90 = 0x1C0;
+    p->unk92 = 0;
+    p->unk94 = 0;
+    p->unk8C = -1;
+    p->unk74 = 1;
+    (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
+    func_80014C08(2);
+}
 
 s32 func_801F8998(s32, s32, s32, s32, s32);
 extern s32 D_80038F68;
