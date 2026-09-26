@@ -2933,13 +2933,60 @@ void func_80027DB8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80027DE8);
 
-void func_80028258(s32, s32, s32, s32, s32 *, s32);
+void func_80028258(s32, s32, u8 *, s32, u8 *, s32);
 
 void func_80028228(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80028258(arg0, arg1, arg2, arg3, &D_8006DF98, arg4);
+    func_80028258(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80028258);
+void func_80028258(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+    s16 clut;
+    s32 top;
+    s32 c;
+
+    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+    top = y - 5;
+    y = top;
+    while (*s != 0) {
+        switch (*s) {
+        case '\f':
+            s++;
+            n = *s++;
+            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            break;
+        case '\n':
+            x += 6;
+            y = top;
+            s++;
+            break;
+        case ' ':
+            y -= 5;
+            s++;
+            break;
+        default:
+            c = *s++;
+            if (func_80029990() != 0) {
+                return;
+            }
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            y -= 5;
+            CUR_SPRT->sp.u0 = (c & 0xF) * 6;
+            CUR_SPRT->sp.v0 = ((c - 0x20) >> 4) * 4 - 0x26;
+            CUR_SPRT->sp.clut = clut;
+            CUR_SPRT->sp.w = 5;
+            CUR_SPRT->sp.h = 4;
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+            break;
+        }
+    }
+}
 
 void func_80028588(s32, s32, s32, s32, s32 *, s32);
 
