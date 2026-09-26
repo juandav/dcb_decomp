@@ -36,7 +36,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y binutils-mipsel-linux-gnu gcc-mipsel-linux-gnu
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.12'
         cache: pip
@@ -52,7 +52,7 @@ jobs:
 
     - run: make report
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: SLUS_013.28_report
         path: build/report.json
