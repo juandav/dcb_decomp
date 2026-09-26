@@ -1079,10 +1079,10 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E6A4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E6EC);
 
-void func_8001E75C(void *arg0, s8 arg1, s8 arg2, s8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 4)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 5)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 6)) = arg3;
+void func_8001E75C(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
+    (*(u8 *)((s8 *)arg0 + 4)) = arg1;
+    (*(u8 *)((s8 *)arg0 + 5)) = arg2;
+    (*(u8 *)((s8 *)arg0 + 6)) = arg3;
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E76C);
