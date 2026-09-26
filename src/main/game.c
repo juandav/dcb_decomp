@@ -2372,7 +2372,17 @@ s8 *func_8002A8D4(s8 *arg0, s8 *arg1, s32 arg2) {
     return p;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A9D4);
+u16 func_8002A9D4(u8 **ps) {
+    u8 *s = *ps;
+
+    if (s[0] > 0x80 && (s[0] < 0xA0 || (s[0] >= 0xE0 && s[0] < 0xF0))) {
+        if (s[1] >= 0x40 && (s[1] < 0x7F || (s[1] >= 0x80 && s[1] < 0xFD))) {
+            *ps += 2;
+            return ((*ps)[-2] << 8) | (*ps)[-1];
+        }
+    }
+    return *(*ps)++;
+}
 
 u16 func_8002AA8C(u8 *s) {
     if (s[0] > 0x80 && (s[0] < 0xA0 || (s[0] >= 0xE0 && s[0] < 0xF0))) {
