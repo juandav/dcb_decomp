@@ -1684,7 +1684,37 @@ void func_8002A7CC(s8 *arg0, s32 arg1, s32 arg2) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A820);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A8D4);
+s32 strlen(u8 *);
+
+s8 *func_8002A8D4(s8 *arg0, s8 *arg1, s32 arg2) {
+    s32 pad;
+    s32 i;
+    s8 *p;
+
+    pad = arg2 - strlen(arg1);
+    if (pad < 0) {
+        p = arg0;
+        for (i = 0; i < arg2; i++) {
+            *p++ = '*';
+        }
+    } else {
+        pad /= 2;
+        p = arg0;
+        while (pad-- > 0) {
+            *p++ = ' ';
+            arg2--;
+        }
+        while ((*p = *arg1++) != 0) {
+            p++;
+            arg2--;
+        }
+        while (arg2-- > 0) {
+            *p++ = ' ';
+        }
+    }
+    *p = 0;
+    return p;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A9D4);
 
