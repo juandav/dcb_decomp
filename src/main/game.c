@@ -2815,18 +2815,37 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C30C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C468);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C6EC);
+s32 func_8006A824(char *, s32);
+extern char D_800105E4;
+s32 sprintf(char *, const char *, ...);
+extern s32 D_801D8180;
+extern s32 D_801D8184;
+extern s32 D_801D8188;
+
+s32 func_8002C6EC(s32 slot, s32 arg1, s32 arg2) {
+    char name[32];
+    s32 fd;
+
+    sprintf(name, &D_800105E4, slot, arg2);
+    D_801D8184 = fd = func_8006A824(name, 0x8001);
+    if (fd == -1) {
+        return -1;
+    }
+    D_801D8180 = 0;
+    D_801D8188 = arg1;
+    if (func_8002C0EC(slot) != 0) {
+        return -1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C784);
 
-s32 func_8006A824(char *, s32);
 s32 func_8006A834(s32, s32, s32);
 s32 func_8006A844(s32, void *, s32);
 s32 func_8006A864(s32);
 extern u8 *D_801D81A0;
-extern char D_800105E4;
 
-s32 sprintf(char *, const char *, ...);
 s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
     char name[32];
     s32 fd;
