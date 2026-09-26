@@ -492,7 +492,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B248);
 extern s32 D_8006DEF0;
 extern s32 D_801D4848;
 
-s32 func_80014A48(s32);
+s32 func_80014A48();
 extern s32 D_800794F0;
 void func_8001B358(s32 arg0, s32 *arg1, s32 arg2) {
     s32 temp_v0;
@@ -1646,7 +1646,17 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AB84);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ABAC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AC70);
+s32 func_8002ABAC(void *, s32, s32, s32);
+
+void func_8002AC70(s16 *arg0, s32 arg1, s32 arg2) {
+    if (arg1 >= 0) {
+        *arg0++ = -0x2B;
+    } else {
+        *arg0++ = -0x2D;
+        arg1 = -arg1;
+    }
+    func_8002ABAC(arg0, 0x30, arg1, arg2 - 1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ACC4);
 
@@ -1679,7 +1689,7 @@ void func_8002B3DC(void) {
 void func_8002B3E4(void) {
 }
 
-s32 func_80014A48(s32);
+s32 func_80014A48();
 s32 func_801DFBAC(s32 *);
 s32 func_801E055C(s32);
 extern s32 D_80010598;
@@ -1963,7 +1973,25 @@ void func_8002DB58(s32 arg0, s32 arg1) {
     func_80023148(arg0, arg1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002DBEC);
+extern void *D_801D8408;
+
+void *func_8002DBEC(s32 arg0) {
+    u8 *p;
+    s32 i;
+
+    p = D_801D8408;
+    if (p[0xE5] != arg0) {
+        i = 0;
+        do {
+            i++;
+            p += 0x13C;
+            if (i >= 0xBF) {
+                break;
+            }
+        } while (p[0xE5] != arg0);
+    }
+    return p;
+}
 
 s32 func_8001B248(s32 *, s32, s32);
 s32 sprintf(s32 *, s32 *, s32);
@@ -2887,7 +2915,17 @@ s32 func_80045F5C(s32 arg0, s32 arg1) {
     return (*(u8 *)((s8 *)(((arg0 * 0x2774) + D_8006E050 + arg1)) + 0x14B2)) & 7;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045F94);
+s32 func_80045F94(s32 arg0, s32 arg1) {
+    switch (arg0) {
+    case 0:
+        return arg1;
+    case 1:
+        return arg1 + 0xBF;
+    case 2:
+        return arg1 + 0x125;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045FE8);
 
