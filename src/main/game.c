@@ -2968,7 +2968,20 @@ void func_8002B2C0(void) {
     VSync(0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B300);
+s16 SsVabOpenHeadSticky(u8 *, s16, s32);
+
+s32 func_8002B300(void *arg0, s16 arg1, s32 arg2) {
+    u8 *vh;
+
+    vh = func_8001BB44(*(Chunk **)((s8 *)arg0 + 8), 7, (*(s16 *)((s8 *)arg0 + 0)));
+    if (vh != 0) {
+        (*(s32 *)((s8 *)arg0 + 4)) = (*(s32 *)(vh - 4));
+        if (((*(s16 *)((s8 *)arg0 + 2)) = SsVabOpenHeadSticky(vh, arg1, arg2)) != -1) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 s32 SsVabTransBody(s32, s16);
 s32 SsVabTransCompleted(s32);
