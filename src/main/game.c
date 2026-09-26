@@ -2884,17 +2884,239 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DA64);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DB64);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DBBC);
+extern u8 *D_801D83EC;
+s32 func_8003D9C0(void *, s16, s16, s32);
+s32 func_8003DA64();
+s32 func_8003DB64();
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DD9C);
+void func_8003DBBC(s32 arg0) {
+    void *p;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DF48);
+    p = D_801D83EC + (arg0 * 0xD8 + 0x90);
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)p + 0x10)) = 0x20;
+        (*(s16 *)((s8 *)p + 0x12)) = arg0 * -0x12F + 0xF0;
+        break;
+    case 1:
+        (D_801D83EC + arg0 * 0xD8)[0x55] = 1;
+        (D_801D83EC + arg0 * 0xD8)[0xD] = 5;
+        (*(u8 *)((s8 *)p + 0xD)) += 1;
+        break;
+    case 2:
+        func_8003D9C0(p, 0x20, -(arg0 * 0x7D) + 0x99, 0x10);
+        break;
+    case 3:
+        func_8003DA64(p);
+        break;
+    case 4:
+        func_8003DB64(p);
+        break;
+    case 7:
+        (D_801D83EC + arg0 * 0xD8)[0x55] = 6;
+        (D_801D83EC + arg0 * 0xD8)[0xD] = 5;
+        (*(u8 *)((s8 *)p + 0xD)) = 2;
+        break;
+    case 11:
+        func_8003D9C0(p, 0xE8, -(arg0 * 0x7D) + 0x99, 0x10);
+        break;
+    case 12:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E11C);
+void func_8003DD9C(s32 arg0) {
+    void *p;
+    s32 y;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E298);
+    p = D_801D83EC + (arg0 * 0xD8 + 0xB4);
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)p + 0x10)) = 0x164;
+        y = 0x31 - arg0 * 0x31;
+        (*(s16 *)((s8 *)p + 0x12)) = y;
+        func_8003D9C0(p, 0x164, y, 0);
+        func_8003DA64(p);
+        (*(u8 *)((s8 *)p + 0xD)) = 0;
+        break;
+    case 1:
+        func_8003D9C0(p, 0x100, 0x31 - arg0 * 0x31, 8);
+        break;
+    case 2:
+        if (func_8003DA64(p) == 0) {
+            func_8002B498(0xA7);
+        }
+        break;
+    case 3:
+        func_8003D9C0(p, 0xF9, 0x31 - arg0 * 0x31, 8);
+        break;
+    case 4:
+        func_8003DA64(p);
+        break;
+    case 5:
+        func_8003DB64(p);
+        break;
+    case 6:
+        func_8003D9C0(p, 0x164, 0x31 - arg0 * 0x31, 8);
+        break;
+    case 7:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E3C8);
+void func_8003DF48(s32 arg0) {
+    void *p;
+
+    p = D_801D83EC + (arg0 * 0xD8 + 0x48);
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)p + 0x10)) = arg0 * 0x2A0 - 0xEC;
+        (*(s16 *)((s8 *)p + 0x12)) = 0x5C;
+        break;
+    case 1:
+        func_8003D9C0(p, arg0 * 0x7C + 0x28, 0x5C, 0x10);
+        (D_801D83EC + arg0 * 0xD8)[0x79] = 4;
+        break;
+    case 2:
+        func_8003DA64(p);
+        break;
+    case 3:
+        func_8003DB64(p);
+        break;
+    case 4:
+        func_8003D9C0(p, arg0 * 0x2A0 - 0xEC, 0x5C, 0x10);
+        break;
+    case 5:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    case 6:
+        func_8003D9C0(p, arg0 * 0xCC, 0x5C, 0x10);
+        break;
+    case 7:
+        if (func_8003DA64(p) == 0) {
+            (D_801D83EC + arg0 * 0xD8)[0x79] = 1;
+        }
+        break;
+    case 8:
+        func_8003DB64(p);
+        break;
+    }
+}
+
+void func_8003E11C(s32 arg0) {
+    void *p;
+    s32 x;
+    s32 y;
+
+    p = D_801D83EC + (arg0 * 0xD8 + 0x6C);
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        x = -(arg0 * 0x41) + 0x44;
+        (*(s16 *)((s8 *)p + 0x10)) = x;
+        y = arg0 * 0x1E + 0xA;
+        (*(s16 *)((s8 *)p + 0x12)) = y;
+        func_8003D9C0(p, x, y, 0);
+        func_8003DA64(p);
+        (*(u8 *)((s8 *)p + 0xD)) = 0;
+        break;
+    case 1:
+        func_8003D9C0(p, -(arg0 * 0xA1) + 0x74, arg0 * 0x1E + 0xA, 8);
+        break;
+    case 2:
+        if (func_8003DA64(p) == 0) {
+            func_8002B498(0xA7);
+        }
+        break;
+    case 3:
+        func_8003DB64(p);
+        break;
+    case 4:
+        func_8003D9C0(p, -(arg0 * 0x41) + 0x44, arg0 * 0x1E + 0xA, 8);
+        break;
+    case 5:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    }
+}
+
+void func_8003E298(s32 arg0) {
+    void *p;
+
+    p = D_801D83EC + (arg0 * 0xD8 + 0x24);
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)p + 0x10)) = 0x38;
+        (*(s16 *)((s8 *)p + 0x12)) = arg0 * -0x12F + 0xF0;
+        break;
+    case 1:
+        func_8003D9C0(p, 0x38, arg0 * -0x7F + 0x99, 0x10);
+        break;
+    case 2:
+        func_8003DA64(p);
+        break;
+    case 3:
+        func_8003DB64(p);
+        break;
+    case 4:
+        func_8003D9C0(p, 0x38, arg0 * -0x12F + 0xF0, 0x10);
+        break;
+    case 5:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    }
+}
+
+void func_8003E3C8(s32 arg0) {
+    void *p;
+
+    p = D_801D83EC + arg0 * 0xD8;
+    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    case 0:
+        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)p + 0x10)) = -0xFF;
+        (*(s16 *)((s8 *)p + 0x12)) = arg0 * 0x7E + 0x16;
+        break;
+    case 1:
+        func_8003D9C0(p, 0x22, 0x16, 0xC);
+        (*(u8 *)((s8 *)p + 0xD)) = 3;
+        break;
+    case 2:
+        func_8003D9C0(p, 0x22, 0x94, 0xA);
+        (*(u8 *)((s8 *)p + 0xD)) = 3;
+        break;
+    case 3:
+        func_8003DA64(p);
+        break;
+    case 4:
+        func_8003DB64(p);
+        break;
+    case 5:
+        func_8003D9C0(p, -0xFF, (*(s16 *)((s8 *)p + 0x12)), 0xC);
+        break;
+    case 6:
+        if (func_8003DA64(p) == 0) {
+            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E4F0);
 

@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Lay out GCC jump tables where the original ones are.
+
+GCC aligns each jump table to 8 bytes relative to the start of its file's
+rodata. src/main/game.c holds many of the original source files, so that
+start is not where it was in the original build. This filter reads maspsx
+output on stdin and, for each jump table of a function whose original table
+sits at an address that is 4 modulo 8, emits `.align 2` instead of
+`.align 3` and pads the table with zero words up to the size splat gave the
+original table (the padding the original file needed before its next
+table).
+"""
+
+import os
+import re
+import sys
+
+ASM_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "asm", "main", "nonmatchings",
+)
+
+_cache = {}
+
+
+def jump_tables(func):
+    """Original (address, size in words) of each jump table of func."""
+    if func not in _cache:
+        tables = []
+        if os.path.isdir(ASM_DIR):
+            for seg in os.listdir(ASM_DIR):
+                path = os.path.join(ASM_DIR, seg, func + ".s")
+                if not os.path.exists(path):
+                    continue
+                text = open(path).read()
+                for m in re.finditer(r"dlabel jtbl_([0-9A-F]{8})\n(.*?)enddlabel", text, re.S):
+                    tables.append((int(m.group(1), 16), m.group(2).count(".word")))
+                break
+        _cache[func] = sorted(tables)
+    return _cache[func]
+
+
+def main():
+    lines = sys.stdin.readlines()
+    out = []
+    func = None
+    seen = 0
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"\s*\.ent\s+(\w+)", line)
+        if m:
+            func = m.group(1)
+            seen = 0
+        if func is not None and re.match(r"\s*\.align\s+3\s*$", line):
+            tables = jump_tables(func)
+            if seen < len(tables) and tables[seen][0] % 8 == 4:
+                out.append(re.sub(r"\.align\s+3", ".align 2", line))
+                i += 1
+                # label, then the table's .word entries
+                while i < len(lines) and not re.match(r"\s*\.word\s", lines[i]):
+                    out.append(lines[i])
+                    i += 1
+                words = 0
+                while i < len(lines) and re.match(r"\s*\.word\s", lines[i]):
+                    out.append(lines[i])
+                    words += 1
+                    i += 1
+                out.extend("\t.word\t0\n" for _ in range(tables[seen][1] - words))
+                seen += 1
+                continue
+            seen += 1
+        out.append(line)
+        i += 1
+    sys.stdout.writelines(out)
+
+
+if __name__ == "__main__":
+    main()
