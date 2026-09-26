@@ -2967,7 +2967,60 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80028D48);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800293FC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002961C);
+void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
+    s16 clut;
+    s32 g;
+
+    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+    while (*s != 0) {
+        switch (*s) {
+        case ' ':
+            x += 0x10;
+            s++;
+            break;
+        case 'c':
+            s++;
+            n = *s++ & 0xF;
+            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            break;
+        default:
+            g = *s++;
+            switch (g) {
+            case '+':
+                g = 10;
+                break;
+            case '-':
+                g = 11;
+                break;
+            case '=':
+                g = 12;
+                break;
+            default:
+                g -= '0';
+                break;
+            }
+            if (func_80029990() != 0) {
+                return;
+            }
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            x += 0xC;
+            CUR_SPRT->sp.u0 = (g % 8) * 16 - 0x80;
+            CUR_SPRT->sp.v0 = (g / 8) * 0x15;
+            CUR_SPRT->sp.clut = clut;
+            CUR_SPRT->sp.w = 0x10;
+            CUR_SPRT->sp.h = 0x15;
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+            break;
+        }
+    }
+}
 
 extern u16 D_801D6B10;
 
@@ -4509,7 +4562,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80039220);
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80039354);
 
 extern s32 D_8006E298;
-void func_8002961C(s32, s32, char *, s32 *, s32, s32);
+void func_8002961C(s32, s32, u8 *, u8 *, s32, s32);
 
 void func_800395A0(void) {
     char buf[24];
@@ -4535,7 +4588,7 @@ void func_800395A0(void) {
                 }
                 sprintf(buf, "%s%d", sign, ((Player *)D_801D8348[p])->unk130[k].value);
                 func_8002961C(((Player *)D_801D8348[p])->unk130[k].x + (0x30 - size),
-                              ((Player *)D_801D8348[p])->unk130[k].y - (0x30 - size) * 2, buf, &D_8006E298,
+                              ((Player *)D_801D8348[p])->unk130[k].y - (0x30 - size) * 2, (u8 *)buf, (u8 *)&D_8006E298,
                               ((Player *)D_801D8348[p])->unk130[k].type, 0);
             }
         }
