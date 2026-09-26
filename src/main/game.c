@@ -3612,7 +3612,29 @@ s32 func_80030694(SVECTOR *a, SVECTOR *b) {
     return SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030718);
+s32 func_80030718(SVECTOR *a, SVECTOR *b, SVECTOR *c) {
+    VECTOR ab;
+    VECTOR cb;
+    VECTOR ca;
+    s32 d0;
+    s32 d1;
+
+    ab.vx = b->vx - a->vx;
+    ab.vy = b->vy - a->vy;
+    ab.vz = b->vz - a->vz;
+    cb.vx = b->vx - c->vx;
+    cb.vy = b->vy - c->vy;
+    cb.vz = b->vz - c->vz;
+    ca.vx = a->vx - c->vx;
+    ca.vy = a->vy - c->vy;
+    ca.vz = a->vz - c->vz;
+    d0 = (cb.vx * ab.vx + cb.vy * ab.vy + cb.vz * ab.vz) >> 12;
+    d1 = (ca.vx * ab.vx + ca.vy * ab.vy + ca.vz * ab.vz) >> 12;
+    if ((d0 <= 0 && d1 >= 0) || (d0 >= 0 && d1 <= 0)) {
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030828);
 
