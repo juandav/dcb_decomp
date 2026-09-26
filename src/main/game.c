@@ -250,8 +250,9 @@ typedef struct {
 
 typedef struct {
     /* 0x0 */ s16 id;
-    /* 0x2 */ u8 unk2[6];
-    /* 0x8 */ void *buf;
+    /* 0x2 */ s16 vab;
+    /* 0x4 */ s32 unk4;
+    /* 0x8 */ u8 *buf;
 } SndSlot;
 
 typedef struct {
@@ -307,6 +308,7 @@ typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 s32 VSync(s32);
 s32 rand(void);
+s32 sprintf(char *, const char *, ...);
 void func_80048230(s32, s32);
 extern u8 D_8006E520[6][3];
 s32 DrawSync(s32);
@@ -2923,7 +2925,7 @@ s32 SsSetMVol(s32, s32);
 s32 SsSetTableSize(s32 *, s32, s32);
 s32 SsSetTickMode(s32);
 s32 SsStart();
-s32 func_8002AEA4(s32);
+void func_8002AEA4(s32);
 void func_8002B258(s32 arg0);
 s32 func_80055740();
 extern s32 D_801D6B28;
@@ -2950,7 +2952,50 @@ void func_8002ADEC(void) {
     SsSetMVol(0x7F, 0x7F);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AEA4);
+extern s32 D_8006DFFC;
+extern s8 *D_8006E000[];
+extern s16 D_8006E048;
+void SsVabClose(s16);
+void bcopy(void *, void *, s32);
+s32 func_8001B248(s32 *, s32, s32);
+void func_8002B668(void);
+s32 func_8002B300(void *, s16, s32);
+void func_8002B38C(void *, s32, s32);
+
+void func_8002AEA4(s32 id) {
+    char name[32];
+    u8 *pak;
+    SndSlot *se;
+
+    se = &((SndState *)&D_801D8128)->unk14;
+    if (se->id != id) {
+        while (D_8006DFFC != 0) {
+            func_80014C08(D_800794F0);
+        }
+        D_8006DFFC = 1;
+        if (se->id != 0xFF) {
+            func_8002B668();
+            SsVabClose(se->vab);
+        }
+        se->id = id;
+        /* written as a word here, read as a halfword by the SFX players */
+        *(s32 *)&D_8006E048 = D_8006E000[id][0xF];
+        sprintf(name, "A:\\SE%d.PAK", id);
+        pak = (u8 *)func_8001B248((s32 *)name, func_800148B0(), -2);
+        if (pak == 0) {
+            se->id = 0xFF;
+        } else {
+            bcopy(pak, se->buf, 0x2030);
+            if (func_8002B300(se, 0, 0x1010) != 0) {
+                func_8002B38C(se, (s32)func_8001BB44((Chunk *)pak, 8, se->id), se->vab);
+            } else {
+                se->id = 0xFF;
+            }
+            func_8001AE90(pak);
+        }
+        D_8006DFFC = 0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B024);
 
@@ -3003,7 +3048,7 @@ s32 func_8002B300(void *arg0, s16 arg1, s32 arg2) {
 s32 SsVabTransBody(s32, s16);
 s32 SsVabTransCompleted(s32);
 
-void func_8002B38C(void *arg0, s32 arg1) {
+void func_8002B38C(void *arg0, s32 arg1, s32 vab) {
     if ((arg1 == 0) || (SsVabTransBody(arg1, (*(s16 *)((s8 *)arg0 + 2))) == (*(s16 *)((s8 *)arg0 + 2)))) {
         SsVabTransCompleted(1);
     }
@@ -3403,7 +3448,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C468);
 
 s32 func_8006A824(char *, s32);
 extern char D_800105E4;
-s32 sprintf(char *, const char *, ...);
 extern s32 D_801D8180;
 extern s32 D_801D8184;
 extern s32 D_801D8188;
@@ -3560,7 +3604,6 @@ void *func_8002DBEC(s32 arg0) {
 }
 
 s32 func_8001B248(s32 *, s32, s32);
-s32 sprintf(char *, const char *, ...);
 extern s32 D_800107F8;
 
 s32 func_8002DC30(s32 arg0, s32 arg1) {
