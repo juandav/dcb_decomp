@@ -323,7 +323,21 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800192FC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001963C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800197AC);
+s32 func_8001705C(void *, s32, s32);
+s32 func_80019280(s32, s16 *);
+
+void func_800197AC(void *arg0) {
+    s16 r[4];
+    void *img;
+
+    img = (*(void **)((s8 *)arg0 + 0));
+    func_8001705C(img, 0, (*(s16 *)((s8 *)arg0 + 0x14)) * (*(u8 *)((s8 *)arg0 + 0x25)) - ((*(s16 *)((s8 *)arg0 + 0xE)) - (*(u8 *)((s8 *)arg0 + 0x25))) / 2);
+    r[0] = ((*(u16 *)((s8 *)img + 0xC)) - (*(u16 *)((s8 *)img + 0x34))) + (*(u8 *)((s8 *)arg0 + 0x22)) + (*(s16 *)((s8 *)arg0 + 0x10)) * (*(u8 *)((s8 *)arg0 + 0x24));
+    r[1] = ((*(u16 *)((s8 *)img + 0xE)) - (*(u16 *)((s8 *)img + 0x36))) + (*(u8 *)((s8 *)arg0 + 0x23)) + (*(s16 *)((s8 *)arg0 + 0x14)) * (*(u8 *)((s8 *)arg0 + 0x25));
+    r[2] = (*(u16 *)((s8 *)arg0 + 0x1A));
+    r[3] = (*(u16 *)((s8 *)arg0 + 0x1C));
+    func_80019280((*(s32 *)((s8 *)arg0 + 4)), r);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800198A8);
 
@@ -1136,7 +1150,40 @@ void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EDE0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EEA0);
+s32 MulMatrix2(s32, void *);
+s32 RotTrans(u16 *, void *, s32 *);
+s32 func_8001EDE0(void *, void *, void *, void *, s32);
+
+s32 ScaleMatrix(void *, void *);
+void func_8001EFB0(s32 arg0);
+void func_8001EEA0(void *arg0, s32 arg1) {
+    s16 v[4];
+    s32 flag;
+    s32 axis;
+    s32 sx;
+    s32 sy;
+    void *rot;
+
+    axis = arg1 & 0xFF;
+    if ((*(s32 *)((s8 *)arg0 + 0x48)) == 0) {
+        func_8001EDE0((s8 *)arg0 + 0x30, (s8 *)arg0 + 0x20, (s8 *)arg0 + 0x38, arg0, axis);
+        return;
+    }
+    rot = (s8 *)arg0 + 0x30;
+    func_8001EFB0((*(s32 *)((s8 *)arg0 + 0x48)));
+    RotMatrix(rot, arg0);
+    MulMatrix2((*(s32 *)((s8 *)arg0 + 0x48)), arg0);
+    func_8001ED30(axis, rot, arg0);
+    v[0] = (*(u16 *)((s8 *)arg0 + 0x20));
+    v[1] = (*(u16 *)((s8 *)arg0 + 0x24));
+    v[2] = (*(u16 *)((s8 *)arg0 + 0x28));
+    RotTrans(v, (s8 *)arg0 + 0x14, &flag);
+    sx = (*(s32 *)((s8 *)arg0 + 0x38));
+    if ((sx != 0x1000 || (sy = (*(s32 *)((s8 *)arg0 + 0x3C))) != sx || (*(s32 *)((s8 *)arg0 + 0x40)) != sy) && axis != 4) {
+        ScaleMatrix(arg0, (s8 *)arg0 + 0x38);
+    }
+    func_8001EFB0((s32) arg0);
+}
 
 s32 SetRotMatrix(s32);
 s32 func_8005C444();
