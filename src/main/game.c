@@ -2352,9 +2352,29 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A5B4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A5DC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A710);
+s8 *func_8002A710(s8 *buf, s8 pad, s32 n, s32 width) {
+    s8 *q;
+    s8 *r;
 
-s32 func_8002A710(void *, s32, s32, s32);
+    buf += width;
+    q = buf;
+    *buf = 0;
+    do {
+        *--q = n % 10 + '0';
+        n /= 10;
+        if (--width <= 0 && n != 0) {
+            buf++;
+            for (r = buf; q < r; r--) {
+                *r = r[-1];
+            }
+            q++;
+        }
+    } while (n != 0);
+    while (--width >= 0) {
+        *--q = pad;
+    }
+    return buf;
+}
 
 void func_8002A7CC(s8 *arg0, s32 arg1, s32 arg2) {
     if (arg1 >= 0) {
@@ -2427,9 +2447,31 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AB5C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AB84);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ABAC);
+s16 *func_8002ABAC(s16 *buf, u8 pad, s32 n, s32 width) {
+    s16 *q;
+    s16 *r;
+    s32 fill;
 
-s32 func_8002ABAC(void *, s32, s32, s32);
+    fill = -pad;
+    buf += width;
+    q = buf;
+    *buf = 0;
+    do {
+        *--q = -'0' - n % 10;
+        n /= 10;
+        if (--width <= 0 && n != 0) {
+            buf++;
+            for (r = buf; q < r; r--) {
+                *r = r[-1];
+            }
+            q++;
+        }
+    } while (n != 0);
+    while (--width >= 0) {
+        *--q = fill;
+    }
+    return buf;
+}
 
 void func_8002AC70(s16 *arg0, s32 arg1, s32 arg2) {
     if (arg1 >= 0) {
