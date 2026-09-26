@@ -1083,7 +1083,34 @@ void func_8001ED04(void *arg0) {
     (*(s16 *)((s8 *)arg0 + 0x10)) = 0x1000;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001ED30);
+s32 RotMatrix(void *, void *);
+
+void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
+    s32 axis;
+
+    axis = arg0 & 0xFF;
+    if (axis == 0) {
+        return;
+    }
+    func_8001ED04(arg2);
+    switch (axis) {
+    case 4:
+        return;
+    case 3:
+        arg1[1] = 0;
+        arg1[2] = 0;
+        break;
+    case 2:
+        arg1[0] = 0;
+        arg1[2] = 0;
+        break;
+    case 1:
+        arg1[0] = 0;
+        arg1[1] = 0;
+        break;
+    }
+    RotMatrix(arg1, arg2);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EDE0);
 
