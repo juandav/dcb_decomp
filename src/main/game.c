@@ -1584,7 +1584,66 @@ void func_8001E2A4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E3C8);
+s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb) {
+    s16 vr;
+    s16 vg;
+    s16 vb;
+    s32 done;
+
+    vr = *r;
+    vg = *g;
+    vb = *b;
+    done = 0;
+    if (vr < tr) {
+        vr += step;
+        if (vr > tr) {
+            vr = tr;
+            done++;
+        }
+    } else if (vr > tr) {
+        vr -= step;
+        if (vr < tr) {
+            vr = tr;
+            done++;
+        }
+    } else {
+        done++;
+    }
+    if (vg < tg) {
+        vg += step;
+        if (vg > tg) {
+            vg = tg;
+            done++;
+        }
+    } else if (vg > tg) {
+        vg -= step;
+        if (vg < tg) {
+            vg = tg;
+            done++;
+        }
+    } else {
+        done++;
+    }
+    if (vb < tb) {
+        vb += step;
+        if (vb > tb) {
+            vb = tb;
+            done++;
+        }
+    } else if (vb > tb) {
+        vb -= step;
+        if (vb < tb) {
+            vb = tb;
+            done++;
+        }
+    } else {
+        done++;
+    }
+    *r = vr;
+    *g = vg;
+    *b = vb;
+    return done == 3;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E4E8);
 
@@ -3566,14 +3625,14 @@ void func_800301D0(void *arg0) {
             *(s32 *)((s8 *)arg0 + 0x100) / 56;
 }
 
-s32 rsin(s32, s32);
+s32 rsin(s32);
 
 void func_80030264(void *arg0) {
     s32 temp_a1;
 
     func_80030130(arg0);
     temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
-    (*(s32 *)((s8 *)arg0 + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)), temp_a1)) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x20)));
+    (*(s32 *)((s8 *)arg0 + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x20)));
 }
 
 void func_800302E0(void *arg0) {
@@ -3581,12 +3640,30 @@ void func_800302E0(void *arg0) {
 
     func_80030130(arg0);
     temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
-    (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)), temp_a1)) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x24)));
+    (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x24)));
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003035C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030440);
+s32 rcos(s32);
+
+void func_80030440(u8 *p) {
+    s32 d;
+    s32 h;
+    s32 sx;
+    s32 cz;
+
+    d = *(s16 *)(p + 0x120) * *(s32 *)(p + 0x100);
+    *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4) + (d * *(s32 *)(p + 0x9C) >> 12);
+    *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6) + (d * *(s32 *)(p + 0xA0) >> 12);
+    *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8) + (d * *(s32 *)(p + 0xA4) >> 12);
+    h = -*(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) +
+        *(s16 *)(p + 0x122) * *(s32 *)(p + 0x100) * *(s32 *)(p + 0x100) / 56;
+    sx = h * rsin(*(s16 *)(p + 0xE8)) >> 12;
+    cz = h * rcos(*(s16 *)(p + 0xE8)) >> 12;
+    *(s32 *)(p + 0x20) -= sx;
+    *(s32 *)(p + 0x24) += cz;
+}
 
 void func_8003058C(u8 *p) {
     s32 x;
