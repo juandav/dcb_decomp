@@ -806,7 +806,28 @@ void func_800192E0(void *arg0, Bytes4 *arg1) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800192FC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001963C);
+void func_80016C08(void *, void *, s32, s16 *, s32, s32, s32, s32);
+
+void func_8001963C(void *arg0, void *arg1, Unk800190F4 *arg2, Bytes4 *arg3) {
+    s16 r[4];
+
+    (*(void **)((s8 *)arg0 + 0)) = arg1;
+    (*(Unk800190F4 **)((s8 *)arg0 + 4)) = arg2;
+    (*(s16 *)((s8 *)arg0 + 0x12)) = -1;
+    (*(s16 *)((s8 *)arg0 + 0x16)) = -1;
+    (*(s8 *)((s8 *)arg0 + 0x26)) = 1;
+    (*(s8 *)((s8 *)arg0 + 0x27)) = 0;
+    r[0] = 0;
+    r[1] = (*(s16 *)((s8 *)arg0 + 0x14)) * (*(u8 *)((s8 *)arg0 + 0x25)) - ((*(s16 *)((s8 *)arg0 + 0xE)) - (*(u8 *)((s8 *)arg0 + 0x25))) / 2;
+    r[2] = (*(u8 *)((s8 *)arg0 + 0x24)) * (*(s16 *)((s8 *)arg0 + 0x1E));
+    r[3] = (*(u8 *)((s8 *)arg0 + 0x25)) * (*(s16 *)((s8 *)arg0 + 0x20));
+    func_80016C08(arg1, (s8 *)arg0 + 8, -1, r, (*(u8 *)((s8 *)arg0 + 0x18)), (*(u8 *)((s8 *)arg0 + 0x19)), 0x80, 0xC);
+    r[0] = (*(u8 *)((s8 *)arg0 + 0x22)) + (*(u16 *)((s8 *)arg1 + 0));
+    r[1] = (*(u8 *)((s8 *)arg0 + 0x23)) + (*(u16 *)((s8 *)arg1 + 2)) + (*(s16 *)((s8 *)arg0 + 0x14)) * (*(u8 *)((s8 *)arg0 + 0x25));
+    r[2] = (*(u16 *)((s8 *)arg0 + 0x1A));
+    r[3] = (*(u16 *)((s8 *)arg0 + 0x1C));
+    func_800190F4(arg2, (Rect16 *)r, arg3);
+}
 
 s32 func_8001705C(void *, s32, s32);
 
