@@ -9,35 +9,44 @@ sits at an address that is 4 modulo 8, emits `.align 2` instead of
 `.align 3` and pads the table with zero words up to the size splat gave the
 original table (the padding the original file needed before its next
 table).
+
+The original tables are read from splat's full disassembly of each C
+segment (asm/main/<segment>.s).
 """
 
+import glob
 import os
 import re
 import sys
 
 ASM_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "asm", "main", "nonmatchings",
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "asm", "main"
 )
 
-_cache = {}
+_tables = None
+
+
+def load_tables():
+    """Map each function to the (address, size in words) of its jump tables."""
+    by_func = {}
+    for path in glob.glob(os.path.join(ASM_DIR, "*.s")):
+        text = open(path).read()
+        sizes = {
+            m.group(1): m.group(2).count(".word")
+            for m in re.finditer(r"dlabel jtbl_([0-9A-F]{8})\n(.*?)enddlabel", text, re.S)
+        }
+        for m in re.finditer(r"glabel (\w+)\n(.*?)endlabel \1", text, re.S):
+            refs = sorted(set(re.findall(r"%hi\(jtbl_([0-9A-F]{8})\)", m.group(2))))
+            if refs:
+                by_func[m.group(1)] = [(int(a, 16), sizes.get(a, 0)) for a in refs]
+    return by_func
 
 
 def jump_tables(func):
-    """Original (address, size in words) of each jump table of func."""
-    if func not in _cache:
-        tables = []
-        if os.path.isdir(ASM_DIR):
-            for seg in os.listdir(ASM_DIR):
-                path = os.path.join(ASM_DIR, seg, func + ".s")
-                if not os.path.exists(path):
-                    continue
-                text = open(path).read()
-                for m in re.finditer(r"dlabel jtbl_([0-9A-F]{8})\n(.*?)enddlabel", text, re.S):
-                    tables.append((int(m.group(1), 16), m.group(2).count(".word")))
-                break
-        _cache[func] = sorted(tables)
-    return _cache[func]
+    global _tables
+    if _tables is None:
+        _tables = load_tables()
+    return _tables.get(func, [])
 
 
 def main():
