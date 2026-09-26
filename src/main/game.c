@@ -998,13 +998,69 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E9AC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EA64);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EB1C);
+void func_8001EB1C(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    s32 x1;
+    s32 y1;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EB64);
+    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
+    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
+    x1 = arg1 + arg3;
+    (*(s16 *)((s8 *)arg0 + 0xC)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0xE)) = arg2;
+    (*(s16 *)((s8 *)arg0 + 0x10)) = arg1;
+    y1 = arg2 + arg4;
+    (*(s16 *)((s8 *)arg0 + 0x12)) = y1;
+    (*(s16 *)((s8 *)arg0 + 0x14)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x16)) = y1;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EBAC);
+void func_8001EB64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    s32 x1;
+    s32 y1;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EBF4);
+    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
+    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
+    x1 = arg1 + arg3;
+    (*(s16 *)((s8 *)arg0 + 0x10)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x12)) = arg2;
+    (*(s16 *)((s8 *)arg0 + 0x18)) = arg1;
+    y1 = arg2 + arg4;
+    (*(s16 *)((s8 *)arg0 + 0x1A)) = y1;
+    (*(s16 *)((s8 *)arg0 + 0x20)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
+}
+
+void func_8001EBAC(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    s32 x1;
+    s32 y1;
+
+    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
+    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
+    x1 = arg1 + arg3;
+    (*(s16 *)((s8 *)arg0 + 0x10)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x12)) = arg2;
+    (*(s16 *)((s8 *)arg0 + 0x18)) = arg1;
+    y1 = arg2 + arg4;
+    (*(s16 *)((s8 *)arg0 + 0x1A)) = y1;
+    (*(s16 *)((s8 *)arg0 + 0x20)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
+}
+
+void func_8001EBF4(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    s32 x1;
+    s32 y1;
+
+    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
+    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
+    x1 = arg1 + arg3;
+    (*(s16 *)((s8 *)arg0 + 0x14)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x16)) = arg2;
+    (*(s16 *)((s8 *)arg0 + 0x20)) = arg1;
+    y1 = arg2 + arg4;
+    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
+    (*(s16 *)((s8 *)arg0 + 0x2C)) = x1;
+    (*(s16 *)((s8 *)arg0 + 0x2E)) = y1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EC3C);
 
@@ -1422,7 +1478,11 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002371C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002386C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023DA4);
+s32 func_8002386C(s32, s32, s32, s32, s32);
+
+void func_80023DA4(s32 arg0, s32 arg1, s32 arg2) {
+    func_8002386C(arg0, arg1, arg2, 0, 0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80023DC8);
 
