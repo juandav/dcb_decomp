@@ -59,6 +59,35 @@ typedef struct {
     s16 unk94;
 } Unk800794F8;
 
+typedef struct {
+    s16 left;
+    s16 right;
+} SpuVolume;
+
+typedef struct {
+    u32 voice;
+    u32 mask;
+    SpuVolume volume;
+    SpuVolume volmode;
+    SpuVolume volumex;
+    u16 pitch;
+    u16 note;
+    u16 sample_note;
+    s16 envx;
+    u32 addr;
+    u32 loop_addr;
+    s32 a_mode;
+    s32 s_mode;
+    s32 r_mode;
+    u16 ar;
+    u16 dr;
+    u16 sr;
+    u16 rr;
+    u16 sl;
+    u16 adsr1;
+    u16 adsr2;
+} SpuVoiceAttr;
+
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 INCLUDE_ASM("asm/main/nonmatchings/game", main);
@@ -1922,7 +1951,12 @@ void func_800271D0(void) {
     D_801D6B24 = D_800793A0->unk40B8;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800271EC);
+extern s32 D_8006DF98;
+void func_80027228(s32, s32, s32, s32 *, u16, s32, s32);
+
+void func_800271EC(s32 arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
+    func_80027228(arg0, arg1, arg2, &D_8006DF98, arg3, arg4, arg5);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80027228);
 
@@ -1934,7 +1968,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80027674);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800276C8);
 
-extern s32 D_8006DF98;
 void func_8002793C(s32, s32, s32, s32, s32 *, s32);
 
 void func_8002790C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
@@ -1975,7 +2008,6 @@ void func_800289A0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800289D0);
 
-extern s32 D_8006DF98;
 extern void func_80028D48(s32, s32, s32, s32 *, s32, s32);
 
 void func_80028D18(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
@@ -1998,7 +2030,11 @@ void func_800299DC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80029A0C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80029EC4);
+void func_80029EFC(s32, s32, s32, s32, s32 *, s32, s32);
+
+void func_80029EC4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5) {
+    func_80029EFC(arg0, arg1, arg2, arg3, &D_8006DF98, arg4, arg5);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80029EFC);
 
@@ -2136,7 +2172,18 @@ void func_8002B258(s32 arg0) {
     SsUtSetReverbDepth(0x64, 0x64);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B2C0);
+void SpuSetVoiceAttr(SpuVoiceAttr *);
+s32 VSync(s32);
+
+void func_8002B2C0(void) {
+    SpuVoiceAttr attr;
+
+    attr.mask = 0x4000;
+    attr.voice = 0xFFFFFF;
+    attr.rr = 0;
+    SpuSetVoiceAttr(&attr);
+    VSync(0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B300);
 
@@ -2529,7 +2576,19 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CAC8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CBA0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CC04);
+void func_8002CC04(s32 len, u8 *p) {
+    s32 i;
+    u8 x = 0;
+    u8 sum = 0;
+
+    for (i = 0; i < len; i++) {
+        x ^= *p;
+        sum += *p;
+        p++;
+    }
+    p[0] = x;
+    p[1] = sum;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CC44);
 
@@ -4068,7 +4127,18 @@ void func_80047A38(s32 arg0, s32 arg1) {
     func_80047620(arg0, arg1, 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047A58);
+extern u8 D_8006E518[];
+
+s32 func_80047A58(s32 arg0) {
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        if (arg0 == D_8006E518[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047A98);
 
