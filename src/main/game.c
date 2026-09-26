@@ -171,6 +171,11 @@ typedef struct {
 
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
+s32 VSync(s32);
+s32 DrawSync(s32);
+s32 LoadImage(s16 *, s32);
+s32 func_80014A90();
+
 INCLUDE_ASM("asm/main/nonmatchings/game", main);
 
 s32 func_8006A804();
@@ -868,7 +873,26 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B5BC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B634);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B734);
+void func_8001B734(u32 *p) {
+    u32 *top;
+    u32 *b;
+    s32 n;
+
+    n = *p++;
+    top = p;
+    if ((n & 0xFFFF) == 0x7054) {
+        n >>= 16;
+        do {
+            b = top + p[n - 1];
+            if (*b++ & 8) {
+                LoadImage((s16 *)(b + 1), (s32)(b + 3));
+                b += *b >> 2;
+            }
+            LoadImage((s16 *)(b + 1), (s32)(b + 3));
+            DrawSync(0);
+        } while (--n > 0);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B7F4);
 
@@ -1343,8 +1367,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E3C8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E4E8);
 
-s32 DrawSync(s32);
-s32 LoadImage(s16 *, s32);
 
 void func_8001E6A4(s32 arg0, s16 arg1, s16 arg2) {
     s16 r[4];
@@ -2472,7 +2494,6 @@ void func_8002B258(s32 arg0) {
 }
 
 void SpuSetVoiceAttr(SpuVoiceAttr *);
-s32 VSync(s32);
 
 void func_8002B2C0(void) {
     SpuVoiceAttr attr;
@@ -3478,7 +3499,6 @@ void func_80033D08(s32 n) {
     }
 }
 
-s32 func_80014A90();
 
 extern u8 *D_801D8348[];
 s32 func_80033D9C(void) {
