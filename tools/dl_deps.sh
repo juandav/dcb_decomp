@@ -1,0 +1,30 @@
+#!/bin/sh
+# Download the prebuilt tools into bin/ and check them against tools/deps.sha256
+
+set -e
+
+TOP="$(dirname "$(dirname "$(readlink -f -- "$0")")")"
+BIN_DIR="$TOP/bin"
+
+mkdir -p "$BIN_DIR"
+cd "$BIN_DIR"
+
+fetch() {
+	rm -f "$1"
+	wget -q -O "$1" "$2"
+	grep " $1\$" "$TOP/tools/deps.sha256" | sha256sum -c -
+}
+
+fetch gcc-2.95.2-psx.tar.gz https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.95.2-psx.tar.gz
+rm -rf gcc-2.95.2-psx
+mkdir gcc-2.95.2-psx
+tar -xzf gcc-2.95.2-psx.tar.gz -C gcc-2.95.2-psx
+rm gcc-2.95.2-psx.tar.gz
+
+fetch objdiff-cli-linux-x86_64 https://github.com/encounter/objdiff/releases/download/v3.8.1/objdiff-cli-linux-x86_64
+chmod a+x objdiff-cli-linux-x86_64
+
+fetch mkpsxiso-2.20-Linux.zip https://github.com/Lameguy64/mkpsxiso/releases/download/v2.20/mkpsxiso-2.20-Linux.zip
+rm -rf mkpsxiso-2.20-Linux
+unzip -q mkpsxiso-2.20-Linux.zip
+rm mkpsxiso-2.20-Linux.zip

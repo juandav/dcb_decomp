@@ -1,0 +1,9 @@
+[submodule "external/maspsx"]
+	path = external/maspsx
+	url = https://github.com/mkst/maspsx.git
+[submodule "external/m2c"]
+	path = external/m2c
+	url = https://github.com/matt-kempster/m2c.git
+[submodule "external/decomp-permuter"]
+	path = external/decomp-permuter
+	url = https://github.com/simonlindholm/decomp-permuter.git
