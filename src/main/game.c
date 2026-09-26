@@ -2122,7 +2122,51 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010598);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105A8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BB58);
+extern s16 D_801D813C;
+
+void func_8002BB58(u32 arg0) {
+    s32 var_a0;
+
+    var_a0 = 0;
+    if (D_801D813C == 0) {
+        switch (arg0) {
+        case 0:
+            var_a0 = 0xA1;
+            break;
+        case 1:
+            var_a0 = 0xA0;
+            break;
+        case 2:
+            var_a0 = 0xA2;
+            break;
+        case 3:
+            var_a0 = 0xA3;
+            break;
+        case 4:
+            var_a0 = 0xA4;
+            break;
+        }
+    } else {
+        switch (arg0) {
+        case 0:
+            var_a0 = 1;
+            break;
+        case 1:
+            var_a0 = 0;
+            break;
+        case 2:
+            var_a0 = 2;
+            break;
+        case 3:
+            var_a0 = 3;
+            break;
+        case 4:
+            var_a0 = 4;
+            break;
+        }
+    }
+    func_8002B498(var_a0);
+}
 
 extern s32 D_8006E03C;
 extern s32 D_8006E040;
@@ -3407,7 +3451,43 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80046FB8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004707C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800471F4);
+extern u8 D_8006E50C[];
+
+s32 func_800471F4(s32 arg0) {
+    s32 var_a0;
+
+    var_a0 = arg0;
+    switch (var_a0) {
+    case 0x75:
+    case 0x79:
+    case 0x7A:
+    case 0x7B:
+    case 0x7C:
+    case 0x7D:
+    case 0x7E:
+    case 0x7F:
+        var_a0 = 0x72;
+        break;
+    case 0x80:
+    case 0x81:
+    case 0x82:
+    case 0x83:
+        var_a0 = 0x77;
+        break;
+    case 0x84:
+    case 0x85:
+    case 0x86:
+    case 0x87:
+    case 0x88:
+    case 0x89:
+    case 0x8A:
+    case 0x8B:
+    case 0x8D:
+        var_a0 = D_8006E50C[var_a0 - 0x84];
+        break;
+    }
+    return var_a0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047248);
 
