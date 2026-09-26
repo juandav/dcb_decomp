@@ -29,7 +29,11 @@ typedef struct {
     /* 0x000 */ u8 unk0[0x28];
     /* 0x028 */ u8 unk28[0xEC];
     /* 0x114 */ s8 unk114[0x28];
-    /* 0x13C */ void *unk13C[88];
+    /* 0x13C */ void *unk13C[24];
+    /* 0x19C */ struct {
+        s32 key;
+        s32 value;
+    } unk19C[32];
 } Unk801D6A4C;
 
 typedef struct {
@@ -1709,7 +1713,20 @@ void func_80022D00(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80022D34);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80022DBC);
+void func_80022DBC(s32 arg0) {
+    s32 key;
+    s32 i;
+
+    key = *(s16 *)((s8 *)D_801D6A4C->unk13C[arg0] + 6);
+    func_8001AFF0(arg0 + 0x5A);
+    key = (key << 8) | 0x10000000;
+    for (i = 0; i < 0x20; i++) {
+        if ((D_801D6A4C->unk19C[i].key & ~0xFF) == key) {
+            D_801D6A4C->unk19C[i].key = 0;
+            D_801D6A4C->unk19C[i].value = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80022E58);
 
