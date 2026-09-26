@@ -111,8 +111,12 @@ typedef struct {
 } Unk80016F38;
 
 typedef struct {
-    u8 addr[3];
-    u8 len;
+    u32 addr : 24;
+    u32 len : 8;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 code;
 } P_TAG;
 
 typedef struct {
@@ -120,7 +124,34 @@ typedef struct {
     u32 code[1];
 } DR_MODE;
 
+typedef struct {
+    u32 tag;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 code;
+    s16 x0;
+    s16 y0;
+    u8 u0;
+    u8 v0;
+    u16 clut;
+    s16 w;
+    s16 h;
+} SPRT;
+
+typedef struct {
+    DR_MODE dm;
+    SPRT sp;
+} SprtPacket;
+
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u8)(_len))
+#define setaddr(p, _addr) (((P_TAG *)(p))->addr = (u32)(_addr))
+#define getaddr(p) (u32)(((P_TAG *)(p))->addr)
+#define getcode(p) (u8)(((P_TAG *)(p))->code)
+#define setcode(p, _code) (((P_TAG *)(p))->code = (u8)(_code))
+#define setSemiTrans(p, abe) \
+    ((abe) ? setcode(p, getcode(p) | 0x02) : setcode(p, getcode(p) & ~0x02))
+#define addPrim(ot, p) setaddr(p, getaddr(ot)), setaddr(ot, p)
 #define _get_mode(dfe, dtd, tpage) \
     ((0xe1000000) | ((dtd) ? 0x0200 : 0) | ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff))
 #define setDrawMode(p, dfe, dtd, tpage) \
@@ -163,6 +194,22 @@ typedef struct {
 typedef struct {
     /* 0x00 */ AnimChan ch[9];
 } BoneAnim;
+
+typedef struct {
+    /* 0x00 */ u8 r;
+    /* 0x01 */ u8 g;
+    /* 0x02 */ u8 b;
+    /* 0x03 */ u8 unk3;
+    /* 0x04 */ u16 clut;
+    /* 0x06 */ u16 tpage;
+    /* 0x08 */ u8 u;
+    /* 0x09 */ u8 v;
+    /* 0x0A */ u8 w;
+    /* 0x0B */ u8 h;
+    /* 0x0C */ u8 unkC[4];
+    /* 0x10 */ s16 x;
+    /* 0x12 */ s16 y;
+} SprtInfo;
 
 typedef struct {
     /* 0x00 */ u32 mode;
@@ -5260,7 +5307,27 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80041E00);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042174);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004269C);
+#define CUR_SPRT ((SprtPacket *)D_801D6B24)
+
+void func_8004269C(SprtInfo *info, s32 arg1, s32 z) {
+    if (func_80029990() == 0) {
+        CUR_SPRT->sp.x0 = info->x;
+        CUR_SPRT->sp.y0 = info->y;
+        CUR_SPRT->sp.u0 = info->u;
+        CUR_SPRT->sp.v0 = info->v;
+        CUR_SPRT->sp.clut = info->clut;
+        CUR_SPRT->sp.w = info->w;
+        CUR_SPRT->sp.h = info->h;
+        setSemiTrans(&CUR_SPRT->sp, 1);
+        CUR_SPRT->sp.r0 = info->r;
+        CUR_SPRT->sp.g0 = info->g;
+        CUR_SPRT->sp.b0 = info->b;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, info->tpage);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042824);
 
@@ -5274,7 +5341,25 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80044074);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80044504);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800446A4);
+void func_800446A4(s32 x, s32 y, s32 z) {
+    if (func_80029990() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = 0xD0;
+        CUR_SPRT->sp.v0 = 0x47;
+        CUR_SPRT->sp.clut = 0x7EF0;
+        CUR_SPRT->sp.w = 0x20;
+        CUR_SPRT->sp.h = 0xC;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+}
 
 extern s32 D_801D83F0;
 
