@@ -412,6 +412,10 @@ void func_800197AC(void *arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800198A8);
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010000);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010008);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80019EA4);
 
 s32 func_800149B8();
@@ -1733,6 +1737,10 @@ void func_80024420(void) {
     GsSetLightMode(0);
 }
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001010C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001014C);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80024460);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800246E0);
@@ -1779,6 +1787,8 @@ void func_80026D84(void) {
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80026D8C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010190);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80026E90);
 
@@ -2108,6 +2118,10 @@ void func_8002BA6C(s32 arg0, s32 arg1, s32 arg2) {
     }
 }
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010598);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105A8);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BB58);
 
 extern s32 D_8006E03C;
@@ -2225,6 +2239,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C784);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C9E8);
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105E4);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CAC8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CBA0);
@@ -2323,6 +2339,8 @@ s32 func_8002DC30(s32, s32);
 void func_8002DC90(s32 arg0) {
     func_8002DC30(arg0, 0);
 }
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800107F8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002DCB0);
 
@@ -2616,6 +2634,16 @@ void *func_80030E3C(void *arg0) {
     return arg0;
 }
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010864);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010874);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010884);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010894);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800108A4);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030F90);
 
 void func_80031754(void *arg0) {
@@ -2718,6 +2746,8 @@ void func_800341EC(void) {
     func_8001A164(&D_801D8278, var_a1);
 }
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010C9C);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80034260);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003917C);
@@ -2727,6 +2757,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80039220);
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80039354);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800395A0);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800110F8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80039730);
 
@@ -2878,6 +2910,8 @@ void func_8003EB88(void) {
         func_801EB53C(D_801D83D1);
     }
 }
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80011350);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003EC4C);
 
@@ -3241,6 +3275,10 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80041430);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80041584);
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113C0);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113D0);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800416D8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80041A1C);
@@ -3278,6 +3316,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8004480C);
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80044AB0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045700);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001174C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800457FC);
 
@@ -3399,6 +3439,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80048014);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80048150);
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800119CC);
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80048230);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800493EC);
@@ -3416,6 +3458,14 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80049840);
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80049934);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004994C);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012770);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012D68);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012DB8);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012DF8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80049A14);
 
@@ -3452,5 +3502,7 @@ void func_80049E80(void) {
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80049EF8);
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012F28);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004A2DC);
