@@ -144,6 +144,16 @@ typedef struct {
 } FileEntry;
 
 typedef struct {
+    /* 0x0 */ s32 unk0;
+    /* 0x4 */ void *unk4;
+} Unk2220;
+
+typedef struct {
+    /* 0x0000 */ u8 unk0[0x2220];
+    /* 0x2220 */ Unk2220 unk2220[16];
+} Model2220;
+
+typedef struct {
     /* 0x0 */ s16 value;
     /* 0x2 */ u8 type;
     /* 0x3 */ u8 timer;
@@ -2405,7 +2415,26 @@ void func_80022D00(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80022D34);
+s32 func_80022D34(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+    void *temp_a0;
+    void *temp_v1;
+    s32 temp_v0;
+
+    temp_a0 = D_801D6A4C->unk13C[arg0];
+    temp_v1 = (s8 *)temp_a0 + 0x2200;
+    temp_v0 = ((Model2220 *)temp_a0)->unk2220[arg1].unk0;
+    (*(s32 *)((s8 *)temp_a0 + 0x26D8)) = arg3;
+    (*(s32 *)((s8 *)temp_v1 + 4)) = temp_v0;
+    (*(s32 *)((s8 *)temp_v1 + 0x14)) = temp_v0;
+    (*(s32 *)((s8 *)temp_a0 + 0x2200)) = arg1;
+    if (arg2 == -2) {
+        arg2 = (*(s16 *)((s8 *)((Model2220 *)temp_a0)->unk2220[arg1].unk4 + 0x1A));
+    }
+    (*(s32 *)((s8 *)temp_v1 + 0x18)) = arg2;
+    (*(s32 *)((s8 *)temp_v1 + 0xC)) = 0;
+    (*(s32 *)((s8 *)temp_v1 + 0x1C)) = 0x3F800000;
+    return func_80022100(temp_a0, 0, -1);
+}
 
 void func_80022DBC(s32 arg0) {
     s32 key;
