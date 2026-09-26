@@ -103,6 +103,26 @@ typedef struct {
 } VECTOR;
 
 typedef struct {
+    /* 0x0 */ s16 id;
+    /* 0x2 */ u8 unk2[6];
+    /* 0x8 */ void *buf;
+} SndSlot;
+
+typedef struct {
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 cur;
+    /* 0x04 */ s16 seq[2];
+    /* 0x08 */ u8 vol[2];
+    /* 0x0A */ u8 unkA[0xA];
+    /* 0x14 */ SndSlot unk14;
+    /* 0x20 */ SndSlot slot[2];
+} SndState;
+
+typedef struct {
+    s32 data[0x4F];
+} Unk13C;
+
+typedef struct {
     s16 id;
     s16 sub;
     s32 size;
@@ -2468,7 +2488,15 @@ void func_8002B498(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B530);
+void func_8002B530(s32 arg0, s32 vol) {
+    s32 tone = arg0 & 0xF;
+
+    SsUtKeyOnV(D_8006E044, D_801D813E, arg0 >> 4, tone, D_8006E048,
+               D_8006E04C + tone, vol, vol);
+    if (++D_8006E044 >= 0x16) {
+        D_8006E044 = 0x12;
+    }
+}
 
 void func_8002B5D0(s32 arg0, s32 arg1) {
     s32 tone = arg1 & 0xF;
@@ -2520,7 +2548,21 @@ void func_8002B7DC(s32 arg0) {
 void func_8002B850(void) {
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B858);
+void SsSeqPlay(s16, char, s16);
+void SsSeqSetVol(s16, s16, s16);
+
+void func_8002B858(s32 arg0) {
+    if (((SndState *)&D_801D8128)->slot[arg0].id != 0xFF) {
+        if (((SndState *)&D_801D8128)->cur >= 0) {
+            func_8002B688();
+        }
+        SsSeqPlay(((SndState *)&D_801D8128)->seq[arg0], 1, 0);
+        SsSeqSetVol(((SndState *)&D_801D8128)->seq[arg0],
+                    ((SndState *)&D_801D8128)->vol[arg0],
+                    ((SndState *)&D_801D8128)->vol[arg0]);
+        ((SndState *)&D_801D8128)->cur = arg0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B900);
 
@@ -3186,7 +3228,16 @@ s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030A34);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030AE4);
+void *func_80030E3C(void *arg0);
+
+Unk13C *func_80030AE4(Unk13C *src) {
+    Unk13C *dst;
+
+    dst = func_8001AD0C(0x13C);
+    *dst = *src;
+    func_80030E3C(dst);
+    return dst;
+}
 
 s32 PopMatrix();
 s32 PushMatrix();
