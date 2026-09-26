@@ -2789,7 +2789,25 @@ u16 func_8002AA8C(u8 *s) {
     return s[0];
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AB20);
+s32 func_8002AB20(s16 *s) {
+    s16 *p;
+    s32 w;
+
+    p = s;
+    w = 0;
+loop:
+    p++;
+    if (*p != 0) {
+        if (*p < 0) {
+            w += 1;
+        } else {
+            w += 2;
+        }
+        goto loop;
+    }
+    *s = w;
+    return w;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AB5C);
 
@@ -3364,7 +3382,21 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105E4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CAC8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CBA0);
+s32 func_8002CBA0(s32 len, u8 *p) {
+    s32 i;
+    u8 x = 0;
+    u8 sum = 0;
+
+    for (i = 0; i < len; i++) {
+        x ^= *p;
+        sum += *p;
+        p++;
+    }
+    if (p[0] != x || p[1] != sum) {
+        return 1;
+    }
+    return 0;
+}
 
 void func_8002CC04(s32 len, u8 *p) {
     s32 i;
