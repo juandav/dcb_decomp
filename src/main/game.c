@@ -122,7 +122,8 @@ typedef struct {
     /* 0x288 */ u8 unk288;
     /* 0x289 */ u8 unk289;
     /* 0x28A */ u8 unk28A[2];
-    /* 0x28C */ s8 unk28C[0xC];
+    /* 0x28C */ s8 unk28C[6];
+    /* 0x292 */ u8 unk292[6];
 } Deck;
 
 typedef struct {
@@ -4872,7 +4873,22 @@ s32 func_80047A98(s32 a, s32 b) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047B84);
+s32 func_80047B84(s32 a, s32 id) {
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 6; i++) {
+        if (id == D_8006E518[i]) {
+            for (j = 0; j < 3; j++) {
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == id) {
+                    return j;
+                }
+            }
+            return 3;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047C38);
 
@@ -4882,7 +4898,27 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80047E64);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80048014);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80048150);
+extern u8 D_8006E520[6][3];
+
+s32 func_80048150(s32 a, s32 id) {
+    s32 i;
+    s32 k;
+    s32 j;
+
+    for (i = 0; i < 6; i++) {
+        for (k = 0; k < 3; k++) {
+            if (D_8006E520[i][k] != 0 && id == D_8006E520[i][k]) {
+                for (j = 0; j < 3; j++) {
+                    if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == id) {
+                        return j;
+                    }
+                }
+                return 3;
+            }
+        }
+    }
+    return -1;
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800119CC);
 
