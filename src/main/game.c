@@ -1138,7 +1138,29 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E8F4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E9AC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EA64);
+void func_8001EBF4(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void func_8001EB64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void func_8001EBAC(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void func_8001EB1C(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void func_8001EA64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    s32 temp_v1;
+
+    temp_v1 = (*(u8 *)((s8 *)arg0 + 7)) & 0x14;
+    switch (temp_v1) {                              /* irregular */
+    case 0:
+        func_8001EB1C(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        return;
+    case 4:
+        func_8001EBAC(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        return;
+    case 16:
+        func_8001EB64(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        return;
+    case 20:
+        func_8001EBF4(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        return;
+    }
+}
 
 void func_8001EB1C(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
     s32 x1;
@@ -1677,7 +1699,9 @@ void func_80023DA4(s32 arg0, s32 arg1, s32 arg2) {
     func_8002386C(arg0, arg1, arg2, 0, 0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023DC8);
+void func_80023DC8(s32 arg0, s32 arg1, s32 arg2) {
+    func_8002386C(arg0, arg1, arg2, 0, 1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80023DF0);
 
@@ -1890,7 +1914,7 @@ s32 SsSetTableSize(s32 *, s32, s32);
 s32 SsSetTickMode(s32);
 s32 SsStart();
 s32 func_8002AEA4(s32);
-s32 func_8002B258(s32);
+void func_8002B258(s32 arg0);
 s32 func_80055740();
 extern s32 D_801D6B28;
 
@@ -1920,7 +1944,24 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AEA4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B024);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B258);
+s32 SpuClearReverbWorkArea(s32);
+s32 SsUtSetReverbDepth(s32, s32);
+s32 SsUtSetReverbType(s16);
+s32 func_80051C70();
+s32 func_80051C90();
+
+void func_8002B258(s32 arg0) {
+    if (arg0 == 0) {
+        func_80051C70();
+        SsUtSetReverbType(0);
+        SsUtSetReverbDepth(0, 0);
+        SpuClearReverbWorkArea(0);
+        return;
+    }
+    SsUtSetReverbType((s16) arg0);
+    func_80051C90();
+    SsUtSetReverbDepth(0x64, 0x64);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B2C0);
 
