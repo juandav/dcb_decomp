@@ -62,6 +62,7 @@ all: $(EXE)
 $(GENDIR)/main.ld: .EXTRA_PREREQS :=
 $(GENDIR)/main.ld: config/main.yaml config/symbols.txt
 	$(SPLAT) $< --disassemble-all --make-full-disasm-for-code
+	@touch $@
 
 generate: $(GENDIR)/main.ld
 
