@@ -2702,7 +2702,75 @@ void func_80031754(void *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800317A8);
+s16 func_800317A8(void *arg0, s16 arg1) {
+    u8 *o;
+
+    o = arg0;
+    switch (o[0x137]) {
+    case 1:
+        arg1 = (*(s32 *)(o + 0x38)) / 16;
+        if ((*(s32 *)(o + 0x38)) > 0x1000) {
+            arg1 = 0x100 - ((*(s32 *)(o + 0x38)) - 0x1000) / 16;
+        }
+        break;
+    case 2:
+        arg1 += (*(u16 *)(o + 0x130));
+        break;
+    case 3:
+        if (o[0x138] == 2) {
+            break;
+        }
+        if (o[0x138] == 0) {
+            arg1 += (*(u16 *)(o + 0x130));
+            if (arg1 > 0x100) {
+                arg1 = 0x100;
+                o[0x138] = 1;
+            }
+        } else {
+            arg1 -= (*(u16 *)(o + 0x130));
+            if (arg1 < 0) {
+                arg1 = 0;
+                o[0x138] = 2;
+            }
+        }
+        break;
+    case 4:
+        if (o[0x138] == 0) {
+            arg1 += (*(u16 *)(o + 0x130));
+            if (arg1 > 0x100) {
+                arg1 = 0x100;
+                o[0x138] = 1;
+            }
+        } else {
+            arg1 -= (*(u16 *)(o + 0x130));
+            if (arg1 < 0) {
+                arg1 = 0;
+                o[0x138] = 0;
+            }
+        }
+        break;
+    case 5:
+        o[0x138] += (*(u16 *)(o + 0x130));
+        if ((s8)o[0x138] >= 0) {
+            arg1 = o[0x138] + 0x80;
+        } else {
+            arg1 = 0xFF - (o[0x138] & 0x7F);
+        }
+        break;
+    }
+    if (arg1 < 0) {
+        arg1 = 0;
+    }
+    if (arg1 > 0x100) {
+        arg1 = 0x100;
+    }
+    if ((*(s16 *)(o + 0x12E)) == 0xA) {
+        arg1 = (*(s16 *)(o + 0x132));
+    } else {
+        (*(s16 *)(o + 0x132)) = arg1;
+    }
+    return arg1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80031970);
 
