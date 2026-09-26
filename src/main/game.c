@@ -217,7 +217,31 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80014D64);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014EF0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800152AC);
+s32 func_80014D64();
+
+void SetGraphDebug(s32);
+void InitGeom(void);
+extern s32 D_800794F0;
+extern s32 D_800794F8;
+void func_800152AC(void) {
+    s32 *p;
+    s32 i;
+
+    SetGraphDebug(0);
+    InitGeom();
+    p = (s32 *)0x1F800000;
+    for (i = 0; i < 0x100; i++) {
+        *p++ = 0;
+    }
+    (*(s16 *)((s8 *)(&D_800794F8) + 0)) = 0;
+    (*(s16 *)((s8 *)(&D_800794F8) + 2)) = 0;
+    (*(s16 *)((s8 *)(&D_800794F8) + 4)) = 0x100;
+    (*(s16 *)((s8 *)(&D_800794F8) + 6)) = 0x100;
+    (*(s32 *)((s8 *)(&D_800794F8) + 0x50)) = 2;
+    (*(s32 *)((s8 *)(&D_800794F8) + 0x48)) = 0;
+    D_800794F0 = 1;
+    func_80014D64();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80015328);
 
@@ -442,7 +466,27 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A40C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A600);
+s32 func_8001A6B0();
+
+void *func_8001ACEC(s32);
+s32 PadInitDirect(void *, void *);
+s32 PadStartCom(void);
+extern s32 D_800897F8;
+extern void *D_80089840[];
+extern s32 D_8008983C;
+void func_8001A600(void) {
+    s32 i;
+    u8 *buf;
+
+    D_8008983C = 1;
+    buf = func_8001ACEC(0x3C);
+    for (i = 0; i < 2; i++) {
+        D_80089840[i] = buf + i * 0x1E;
+    }
+    func_8001A6B0();
+    PadInitDirect(&D_800897F8, (s8 *)&D_800897F8 + 0x22);
+    PadStartCom();
+}
 
 extern void *D_80089840[];
 
@@ -2203,7 +2247,43 @@ void func_8002BC58(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BC80);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BE84);
+s32 func_8006A7B4(s32);
+extern s32 D_801D8198;
+extern s32 D_801D8160;
+extern s32 D_801D8164;
+extern s32 D_801D8168;
+extern s32 D_801D816C;
+extern s32 D_801D8170;
+extern s32 D_801D8174;
+extern s32 D_801D8178;
+extern s32 D_801D817C;
+s32 func_8002BE84(s32 arg0) {
+    s32 n;
+
+    n = 0;
+    D_801D8198 = 0;
+    do {
+        if (func_8006A7B4(D_801D8160) == 1) {
+            return 0;
+        }
+        if (func_8006A7B4(D_801D8164) == 1) {
+            return 1;
+        }
+        if (func_8006A7B4(D_801D8168) == 1) {
+            return 2;
+        }
+        if (func_8006A7B4(D_801D816C) == 1) {
+            return 3;
+        }
+        if (arg0 != 0) {
+            if (n++ >= 0x1F) {
+                break;
+            }
+            func_80014C08(arg0);
+        }
+    } while (D_801D8198 < 0x259);
+    return 2;
+}
 
 s32 func_8006A7B4(s32);
 extern s32 D_801D8160;
@@ -2218,7 +2298,33 @@ void func_8002BF60(void) {
     func_8006A7B4(D_801D816C);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BFB8);
+s32 func_8002BFB8(s32 arg0) {
+    s32 n;
+
+    n = 0;
+    D_801D8198 = 0;
+    do {
+        if (func_8006A7B4(D_801D8170) == 1) {
+            return 0;
+        }
+        if (func_8006A7B4(D_801D8174) == 1) {
+            return 1;
+        }
+        if (func_8006A7B4(D_801D8178) == 1) {
+            return 2;
+        }
+        if (func_8006A7B4(D_801D817C) == 1) {
+            return 3;
+        }
+        if (arg0 != 0) {
+            if (n++ >= 0x1F) {
+                break;
+            }
+            func_80014C08(arg0);
+        }
+    } while (D_801D8198 < 0x259);
+    return 2;
+}
 
 s32 func_8006A7B4(s32);
 extern s32 D_801D8170;
