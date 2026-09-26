@@ -1530,7 +1530,17 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A5DC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A710);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A7CC);
+s32 func_8002A710(void *, s32, s32, s32);
+
+void func_8002A7CC(s8 *arg0, s32 arg1, s32 arg2) {
+    if (arg1 >= 0) {
+        *arg0++ = '+';
+    } else {
+        *arg0++ = '-';
+        arg1 = -arg1;
+    }
+    func_8002A710(arg0, '0', arg1, arg2 - 1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A820);
 
@@ -2046,7 +2056,17 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80030718);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030828);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800309F0);
+s32 func_80030694(s32, s32);
+
+s32 func_800309F0(s32 arg0, s32 arg1, s32 arg2) {
+    s32 v;
+
+    v = func_80030694(arg0, arg1);
+    if (-arg2 < v && v < arg2) {
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030A34);
 
