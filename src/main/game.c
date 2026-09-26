@@ -411,7 +411,25 @@ loop:
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001AB64);
+s32 func_8001AB64(void) {
+    s32 *p;
+    s32 i;
+    s32 max;
+
+    max = 0;
+    p = &D_80089848;
+    i = 0x3FF;
+    if (D_80089848 != 0) {
+        do {
+            if (p[0] > 0 && max < p[1]) {
+                max = p[1];
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && p[0] != 0);
+    }
+    return max;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001ABCC);
 
