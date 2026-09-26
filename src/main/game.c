@@ -204,6 +204,11 @@ typedef struct {
 } VECTOR;
 
 typedef struct {
+    s16 m[3][3];
+    s32 t[3];
+} MATRIX;
+
+typedef struct {
     /* 0x0 */ s16 id;
     /* 0x2 */ u8 unk2[6];
     /* 0x8 */ void *buf;
@@ -1086,7 +1091,30 @@ void func_8001B734(u32 *p) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B7F4);
+void func_8001B7F4(u32 *p, s32 dx, s32 dy) {
+    u32 *top;
+    u32 *b;
+    s32 n;
+
+    n = *p++;
+    top = p;
+    if ((n & 0xFFFF) == 0x7054) {
+        n >>= 16;
+        do {
+            b = top + p[n - 1];
+            if (*b++ & 8) {
+                ((Rect16 *)(b + 1))->x += dx;
+                ((Rect16 *)(b + 1))->y += dy;
+                LoadImage((s16 *)(b + 1), (s32)(b + 3));
+                b += *b >> 2;
+            }
+            ((Rect16 *)(b + 1))->x += dx;
+            ((Rect16 *)(b + 1))->y += dy;
+            LoadImage((s16 *)(b + 1), (s32)(b + 3));
+            DrawSync(0);
+        } while (--n > 0);
+    }
+}
 
 s32 func_8001B930();
 extern s32 D_80079500;
@@ -1851,7 +1879,7 @@ void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EDE0);
 
-s32 MulMatrix2(s32, void *);
+MATRIX *MulMatrix2(MATRIX *, MATRIX *);
 s32 RotTrans(u16 *, void *, s32 *);
 s32 func_8001EDE0(void *, void *, void *, void *, s32);
 
@@ -1873,7 +1901,7 @@ void func_8001EEA0(void *arg0, s32 arg1) {
     rot = (s8 *)arg0 + 0x30;
     func_8001EFB0((*(s32 *)((s8 *)arg0 + 0x48)));
     RotMatrix(rot, arg0);
-    MulMatrix2((*(s32 *)((s8 *)arg0 + 0x48)), arg0);
+    MulMatrix2(*(MATRIX **)((s8 *)arg0 + 0x48), arg0);
     func_8001ED30(axis, rot, arg0);
     v[0] = (*(u16 *)((s8 *)arg0 + 0x20));
     v[1] = (*(u16 *)((s8 *)arg0 + 0x24));
@@ -2835,9 +2863,33 @@ void func_8002B688(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B6E4);
+void SsSeqGetVol(s16, s16, s16 *, s16 *);
+s32 SsSeqStop(s16);
+void SsSeqSetVol(s16, s16, s16);
 
-void func_8002B6E4();
+void func_8002B6E4(s32 idx, s32 step) {
+    s16 vl;
+    s16 vr;
+
+    for (;;) {
+        func_80014C08(D_800794F0);
+        if (((SndState *)&D_801D8128)->cur != idx) {
+            func_80014A90();
+        }
+        SsSeqGetVol(((SndState *)&D_801D8128)->seq[idx], 0, &vl, &vr);
+        if (vl == 0) {
+            SsSeqStop(((SndState *)&D_801D8128)->seq[idx]);
+            func_80014C08(4);
+            ((SndState *)&D_801D8128)->cur = -1;
+            func_80014A90();
+        }
+        vl -= step;
+        if (vl < 0) {
+            vl = 0;
+        }
+        SsSeqSetVol(((SndState *)&D_801D8128)->seq[idx], vl, vl);
+    }
+}
 
 void func_8002B7DC(s32 arg0) {
     s16 *p = (s16 *)&D_801D8128;
@@ -4707,7 +4759,35 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8004480C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80044AB0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045700);
+MATRIX *MulMatrix(MATRIX *, MATRIX *);
+MATRIX *MatrixNormal(MATRIX *, MATRIX *);
+MATRIX *TransposeMatrix(MATRIX *, MATRIX *);
+
+MATRIX *func_80045700(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
+    MATRIX tmp;
+    SVECTOR r;
+
+    r.vx = 0;
+    r.vy = rot->vy;
+    r.vz = 0;
+    RotMatrix(&r, m);
+    r.vx = rot->vx;
+    r.vy = 0;
+    r.vz = 0;
+    RotMatrix(&r, &tmp);
+    MulMatrix(m, &tmp);
+    r.vx = 0;
+    r.vy = 0;
+    r.vz = rot->vz;
+    RotMatrix(&r, &tmp);
+    MulMatrix2(&tmp, m);
+    MatrixNormal(m, &tmp);
+    TransposeMatrix(&tmp, m);
+    m->t[0] = pos->vx;
+    m->t[1] = pos->vy;
+    m->t[2] = pos->vz;
+    return m;
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001174C);
 
