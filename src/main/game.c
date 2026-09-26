@@ -3615,21 +3615,117 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012DB8);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012DF8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80049A14);
+extern u8 D_80012D68[];
+extern u8 D_80012DB8[];
+extern u8 D_80012DF8[];
+extern s32 D_801D6B18;
+extern s32 D_801D6B1C;
+extern s32 D_801D8538;
+extern s32 D_801D853C;
+extern s32 D_801D8540;
+extern s32 D_801D8544;
+extern s32 D_801D854C;
+extern s32 D_801D8550;
+extern u8 *D_801D8554;
+extern u8 *D_801D8558;
+s32 func_80016F38(s32 *, s16 *);
+s32 func_80028558(s32, s32, s32, s32, s32);
+s32 func_800293FC(u8 *);
 
-extern s32 D_80012D68;
+extern s32 D_801D8460;
+extern s32 D_801D84F4;
+extern s32 D_801D84B0;
+void func_80049A14(s16 *arg0) {
+    s16 r[4];
+    s32 x;
+    s32 y;
+    s16 z;
+    u8 *p;
+
+    x = arg0[0] + 1;
+    y = arg0[1];
+    if (D_801D8544 >= 12) {
+        y -= (D_801D8544 - 11) * 7;
+    }
+    z = arg0[0x1D];
+    if (D_801D8538 > 0 || D_801D854C != 0) {
+        D_801D8538--;
+    } else {
+        do {
+            switch (*D_801D8558) {
+            case 1:
+                D_801D8540 = 1;
+                break;
+            case 2:
+                p = D_801D8558;
+                D_801D8558 = p + 1;
+                D_801D8538 = p[1];
+                break;
+            case 4:
+                func_800293FC(D_80012D68);
+                r[2] = (D_801D6B18 + 1) / 2 * 2;
+                r[3] = (D_801D6B1C + 1) / 2 * 2;
+                r[0] = 0x28;
+                r[1] = 0x28;
+                func_80016F38(&D_801D84B0, r);
+                func_8002BB58(3);
+                break;
+            case 5:
+                func_800293FC(D_80012DB8);
+                r[2] = (D_801D6B18 + 1) / 2 * 2;
+                r[3] = (D_801D6B1C + 1) / 2 * 2;
+                r[0] = 0x50;
+                r[1] = 0x78;
+                func_80016F38(&D_801D84F4, r);
+                func_8002BB58(3);
+                break;
+            case 6:
+                func_800293FC(D_80012DF8);
+                r[2] = (D_801D6B18 + 1) / 2 * 2;
+                r[3] = (D_801D6B1C + 1) / 2 * 2;
+                r[0] = (0x140 - r[2]) >> 1;
+                r[1] = 0xB4 - r[3] / 2;
+                func_80016F38(&D_801D8460, r);
+                func_8002BB58(3);
+                break;
+            case '>':
+                D_801D8540 = 1;
+                goto copy;
+            case '\n':
+                D_801D8540 = 0;
+                D_801D8538 = 20;
+                D_801D8544++;
+            default:
+            copy:
+                *D_801D8554++ = *D_801D8558;
+                break;
+            }
+            if (*++D_801D8558 == 0) {
+                D_801D854C = 1;
+                break;
+            }
+        } while (D_801D8540 == 0 && D_801D8538 == 0);
+    }
+    if ((D_801D853C & 0x10) || D_801D8538 == 0) {
+        *D_801D8554 = '|';
+    } else {
+        *D_801D8554 = ' ';
+    }
+    D_801D853C++;
+    D_801D8554[1] = 0;
+    func_80028558(x, y, D_801D8550, 4, z);
+}
+
 
 void func_80049DC0(void *arg0) {
     func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012D68, 0, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
 }
 
-extern s32 D_80012DB8;
 
 void func_80049E00(void *arg0) {
     func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012DB8, 7, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
 }
 
-extern s32 D_80012DF8;
 
 void func_80049E40(void *arg0) {
     func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012DF8, 7, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
