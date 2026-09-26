@@ -233,7 +233,15 @@ s8 func_8001A100(void *arg0) {
     return (*(s8 *)((s8 *)arg0 + 0xA5));
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A164);
+s32 func_8001A164(s32 *arg0, s32 arg1) {
+    s32 temp_v0;
+
+    temp_v0 = func_800148B0();
+    (*(s8 *)((s8 *)arg0 + 0xA6)) = (s8) arg1;
+    func_800149B8(0, -1, 0, 0x400, func_8001A1D8, arg0, temp_v0, 0, 0);
+    func_80014C08(0x7FFFFFFF);
+    return (s32) (*(s8 *)((s8 *)arg0 + 0xA5));
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
