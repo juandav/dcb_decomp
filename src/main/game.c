@@ -73,13 +73,19 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
+    /* 0x000 */ u8 unk0;
+    /* 0x001 */ u8 unk1[3];
+    /* 0x004 */ s8 unk4[0x294];
+} Deck;
+
+typedef struct {
     /* 0x0000 */ u8 unk0[0x12];
     /* 0x0012 */ u16 unk12;
     /* 0x0014 */ u8 unk14[0x10];
     /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ u8 unk28[0x2E4];
-    /* 0x030C */ s8 unk30C[6][0x298];
-    /* 0x129C */ u8 unk129C[0x216];
+    /* 0x0028 */ u8 unk28[0x2E0];
+    /* 0x0308 */ Deck unk308[6];
+    /* 0x1298 */ u8 unk1298[0x21A];
     /* 0x14B2 */ u8 unk14B2[0x12D];
     /* 0x15DF */ u8 unk15DF[0xE59];
     /* 0x2438 */ u8 unk2438[3][0x110];
@@ -4589,12 +4595,18 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_800119CC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80048230);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800493EC);
-
+s32 func_800496E4(s32, s32);
 void func_80048230(s32, s32);
 
+void func_800493EC(s32 a, s32 b, s32 c, s32 v) {
+    if (func_800496E4(a, v) == 1) {
+        ((Unk8006E050 *)D_8006E050)[a].unk308[b].unk4[c] = v;
+        func_80048230(a, b);
+    }
+}
+
 void func_8004949C(s32 arg0, s32 arg1, s32 arg2) {
-    ((Unk8006E050 *)D_8006E050)[arg0].unk30C[arg1][arg2] = -1;
+    ((Unk8006E050 *)D_8006E050)[arg0].unk308[arg1].unk4[arg2] = -1;
     func_80048230(arg0, arg1);
 }
 
