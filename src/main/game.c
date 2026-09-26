@@ -73,6 +73,27 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
+    u8 addr[3];
+    u8 len;
+} P_TAG;
+
+typedef struct {
+    u32 tag;
+    u32 code[1];
+} DR_MODE;
+
+#define setlen(p, _len) (((P_TAG *)(p))->len = (u8)(_len))
+#define _get_mode(dfe, dtd, tpage) \
+    ((0xe1000000) | ((dtd) ? 0x0200 : 0) | ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff))
+#define setDrawMode(p, dfe, dtd, tpage) \
+    (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
+
+typedef struct {
+    /* 0x00 */ DR_MODE dm[2];
+    /* 0x10 */ u8 prim[2][0x10];
+} Unk800190F4;
+
+typedef struct {
     /* 0x00 */ s32 key;
     /* 0x04 */ u8 unk4[0xC];
     /* 0x10 */ s32 name[4];
@@ -634,7 +655,19 @@ int func_80019084(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800190F4);
+u32 GetTPage(s32, s32, s32, s32);
+s32 func_8001E6EC(s32, void *, s32, s32);
+void func_800191C0(Unk800190F4 *, s32, s32);
+
+void func_800190F4(Unk800190F4 *p, s32 arg1, s32 arg2) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        setDrawMode(&p->dm[i], 0, 0, GetTPage(0, 1, 0, 0));
+        func_8001E6EC(0x11, p->prim[i], 1, 0);
+    }
+    func_800191C0(p, arg1, arg2);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800191C0);
 
