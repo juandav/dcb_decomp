@@ -1471,7 +1471,23 @@ void func_8002195C(void *arg0, s16 arg1) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80021964);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80021AA8);
+void func_80021AA8(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
+    s32 start;
+    s32 end;
+    s32 d0;
+    s32 d1;
+    s32 mid;
+
+    start = arg4 << 0x14;
+    arg0[0] = start;
+    end = arg5 << 0x14;
+    mid = end - start;
+    d0 = mid / arg1;
+    d1 = (((arg6 - arg5) << 0x14) / arg2 + d0) / 2;
+    mid = d0 * 2 - (d1 + arg0[1]) / 2;
+    arg0[2] = (mid - arg0[1]) / arg3;
+    arg0[3] = (d1 - mid) / arg3;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80021B60);
 
@@ -2494,17 +2510,25 @@ void func_8002FAD8(s8 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002FAE4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030130);
+void func_80030130(void *arg0) {
+    s32 t;
+    s32 sum;
+
+    t = (*(s16 *)((s8 *)arg0 + 0x122)) * (*(s32 *)((s8 *)arg0 + 0x104)) * (*(s32 *)((s8 *)arg0 + 0x104));
+    sum = (*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)) + t;
+    (*(s32 *)((s8 *)arg0 + 0x20)) = (*(s16 *)((s8 *)arg0 + 0xD4)) + ((sum * (*(s32 *)((s8 *)arg0 + 0x9C))) >> 12);
+    (*(s32 *)((s8 *)arg0 + 0x24)) = (*(s16 *)((s8 *)arg0 + 0xD6)) + ((sum * (*(s32 *)((s8 *)arg0 + 0xA0))) >> 12);
+    (*(s32 *)((s8 *)arg0 + 0x28)) = (*(s16 *)((s8 *)arg0 + 0xD8)) + ((sum * (*(s32 *)((s8 *)arg0 + 0xA4))) >> 12);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800301D0);
 
-s32 func_80030130();
 s32 rsin(s32, s32);
 
 void func_80030264(void *arg0) {
     s32 temp_a1;
 
-    func_80030130();
+    func_80030130(arg0);
     temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
     (*(s32 *)((s8 *)arg0 + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)), temp_a1)) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x20)));
 }
@@ -2512,7 +2536,7 @@ void func_80030264(void *arg0) {
 void func_800302E0(void *arg0) {
     s32 temp_a1;
 
-    func_80030130();
+    func_80030130(arg0);
     temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
     (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)), temp_a1)) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x24)));
 }
