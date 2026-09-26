@@ -99,6 +99,18 @@ typedef struct {
 } Entry12;
 
 typedef struct {
+    /* 0x00 */ u8 unk0[0x14];
+    /* 0x14 */ Rect16 cur;
+    /* 0x1C */ u8 unk1C[8];
+    /* 0x24 */ Rect16 delta;
+    /* 0x2C */ u8 unk2C[0x10];
+    /* 0x3C */ u8 unk3C;
+    /* 0x3D */ u8 unk3D;
+    /* 0x3E */ u8 unk3E[3];
+    /* 0x41 */ s8 unk41;
+} Unk80016F38;
+
+typedef struct {
     u8 addr[3];
     u8 len;
 } P_TAG;
@@ -673,7 +685,34 @@ void func_80016BEC(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016C08);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016F38);
+void func_80016F38(Unk80016F38 *p, Rect16 *r) {
+    s32 dx;
+    s32 dy;
+
+    if (r == (Rect16 *)-1) {
+        dx = p->cur.w / 2;
+        p->delta.x = dx;
+        dy = p->cur.h / 2;
+        p->delta.y = dy;
+        p->delta.w = -p->cur.w;
+        p->delta.h = -p->cur.h;
+        p->cur.x += dx;
+        p->cur.y += dy;
+        p->cur.w = 0;
+        p->cur.h = 0;
+    } else {
+        p->delta.x = r->x - p->cur.x;
+        p->delta.y = r->y - p->cur.y;
+        p->delta.w = r->w - p->cur.w;
+        p->delta.h = r->h - p->cur.h;
+        p->cur = *r;
+    }
+    p->unk3D = p->unk3C - p->unk3D;
+    if ((s8)p->unk3D < 0) {
+        p->unk3D = 0;
+    }
+    p->unk41 = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001705C);
 
@@ -5304,7 +5343,6 @@ extern s32 D_801D854C;
 extern s32 D_801D8550;
 extern u8 *D_801D8554;
 extern u8 *D_801D8558;
-s32 func_80016F38(s32 *, s16 *);
 s32 func_800293FC(u8 *);
 
 extern s32 D_801D8460;
@@ -5342,7 +5380,7 @@ void func_80049A14(s16 *arg0) {
                 r[3] = (D_801D6B1C + 1) / 2 * 2;
                 r[0] = 0x28;
                 r[1] = 0x28;
-                func_80016F38(&D_801D84B0, r);
+                func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)r);
                 func_8002BB58(3);
                 break;
             case 5:
@@ -5351,7 +5389,7 @@ void func_80049A14(s16 *arg0) {
                 r[3] = (D_801D6B1C + 1) / 2 * 2;
                 r[0] = 0x50;
                 r[1] = 0x78;
-                func_80016F38(&D_801D84F4, r);
+                func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)r);
                 func_8002BB58(3);
                 break;
             case 6:
@@ -5360,7 +5398,7 @@ void func_80049A14(s16 *arg0) {
                 r[3] = (D_801D6B1C + 1) / 2 * 2;
                 r[0] = (0x140 - r[2]) >> 1;
                 r[1] = 0xB4 - r[3] / 2;
-                func_80016F38(&D_801D8460, r);
+                func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)r);
                 func_8002BB58(3);
                 break;
             case '>':
