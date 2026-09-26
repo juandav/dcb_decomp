@@ -5025,7 +5025,14 @@ s32 func_800471F4(s32 arg0) {
     return var_a0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047248);
+void func_80047248(s32 a) {
+    s32 j;
+
+    for (j = 0; j < 3; j++) {
+        ((Unk8006E054 *)D_8006E054)->unk78[a][j] = ((Unk8006E050 *)D_8006E050)[a].unk80[j];
+        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 = 0;
+    }
+}
 
 void func_80047364(s32 a) {
     s32 j;
@@ -5096,9 +5103,29 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80047D5C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047E64);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80048014);
-
 extern u8 D_8006E520[6][3];
+
+s32 func_80048014(s32 a, s32 b) {
+    s32 j;
+    s32 k;
+
+    if (b == -1) {
+        return -1;
+    }
+    for (j = 0; j < 3; j++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
+            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == 0) {
+                return -1;
+            }
+            for (k = 0; k < 3; k++) {
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == D_8006E520[b][k]) {
+                    return k;
+                }
+            }
+        }
+    }
+    return -1;
+}
 
 s32 func_80048150(s32 a, s32 id) {
     s32 i;
