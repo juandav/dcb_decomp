@@ -692,7 +692,40 @@ void func_8001C1E0(s8 *a, s8 *b, s32 size) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C220);
+s32 MargePrim(void *, void *);
+s32 SetDrawMode(void *, s32, s32, s32, s32 *);
+
+extern s32 D_800794F8;
+void func_8001C220(void *arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9) {
+    s32 u;
+    s32 abr;
+
+    (*(s8 *)((s8 *)arg0 + 0xF)) = 4;
+    (*(u8 *)((s8 *)arg0 + 0x13)) = 0x64;
+    (*(s16 *)((s8 *)arg0 + 0x1A)) = arg3;
+    (*(s16 *)((s8 *)arg0 + 0x1C)) = arg7;
+    (*(s16 *)((s8 *)arg0 + 0x1E)) = arg8;
+    (*(s16 *)((s8 *)arg0 + 0x14)) = arg1;
+    (*(s16 *)((s8 *)arg0 + 0x16)) = arg2;
+    if (arg4 != 0) {
+        u = (arg5 % 64) * 2;
+    } else {
+        u = (arg5 % 64) * 4;
+    }
+    (*(u8 *)((s8 *)arg0 + 0x18)) = u;
+    (*(u8 *)((s8 *)arg0 + 0x19)) = arg6;
+    (*(u8 *)((s8 *)arg0 + 0x10)) = 0x80;
+    (*(u8 *)((s8 *)arg0 + 0x11)) = 0x80;
+    (*(u8 *)((s8 *)arg0 + 0x12)) = 0x80;
+    if (arg9 >= 0) {
+        (*(u8 *)((s8 *)arg0 + 0x13)) |= 2;
+        abr = arg9;
+    } else {
+        abr = 0;
+    }
+    SetDrawMode(arg0, 0, 0, ((arg4 & 3) << 7) | ((abr & 3) << 5) | ((arg6 & 0x100) >> 4) | ((arg5 & 0x3C0) >> 6) | ((arg6 & 0x200) * 4), &D_800794F8);
+    MargePrim(arg0, (s8 *)arg0 + 0xC);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C354);
 
