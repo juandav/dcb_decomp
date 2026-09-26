@@ -728,7 +728,27 @@ void func_80016F38(Unk80016F38 *p, Rect16 *r) {
     p->unk41 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001705C);
+void func_8001705C(s16 *arg0, s32 arg1, s32 arg2) {
+    if (((s8 *)arg0)[0x3E] >= 6) {
+        ((s8 *)arg0)[0x3E] = 0;
+    }
+    if (arg1 > arg0[4] - arg0[8]) {
+        arg1 = arg0[4] - arg0[8];
+    }
+    if (arg2 > arg0[5] - arg0[9]) {
+        arg2 = arg0[5] - arg0[9];
+    }
+    if (arg1 < 0) {
+        arg1 = 0;
+    }
+    if (arg2 < 0) {
+        arg2 = 0;
+    }
+    arg0[0x18] = arg0[2];
+    arg0[0x19] = arg0[3];
+    arg0[0x1A] = arg1;
+    arg0[0x1B] = arg2;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800170F0);
 
@@ -843,7 +863,7 @@ void func_8001963C(void *arg0, void *arg1, Unk800190F4 *arg2, Bytes4 *arg3) {
     func_800190F4(arg2, (Rect16 *)r, arg3);
 }
 
-s32 func_8001705C(void *, s32, s32);
+void func_8001705C(s16 *, s32, s32);
 
 void func_800197AC(void *arg0) {
     s16 r[4];
