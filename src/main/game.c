@@ -2257,7 +2257,18 @@ void func_80021AA8(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, 
     arg0[3] = (d1 - mid) / arg3;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80021B60);
+void func_80021B60(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
+    s32 d1;
+    s32 t;
+
+    t = arg4 << 0x10;
+    arg0[0] = t;
+    t = ((arg5 << 0x10) - t) / arg1;
+    d1 = (((arg6 - arg5) << 0x10) / arg2 + t) / 2;
+    t = t * 2 - (d1 + arg0[1]) / 2;
+    arg0[2] = (t - arg0[1]) / arg3;
+    arg0[3] = (d1 - t) / arg3;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80021C18);
 
