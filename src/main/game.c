@@ -144,6 +144,14 @@ typedef struct {
 } FileEntry;
 
 typedef struct {
+    /* 0x0 */ s16 value;
+    /* 0x2 */ u8 type;
+    /* 0x3 */ u8 timer;
+    /* 0x4 */ s16 x;
+    /* 0x6 */ s16 y;
+} Popup;
+
+typedef struct {
     /* 0x0 */ u8 state;
     /* 0x1 */ u8 unk1[3];
     /* 0x4 */ s8 *card;
@@ -155,7 +163,8 @@ typedef struct {
     /* 0x104 */ u8 unk104[0x18];
     /* 0x11C */ s16 unk11C[5];
     /* 0x126 */ s16 unk126[5];
-    /* 0x130 */ u8 unk130[0x4D];
+    /* 0x130 */ Popup unk130[5];
+    /* 0x158 */ u8 unk158[0x25];
     /* 0x17D */ s8 unk17D[30];
     /* 0x19B */ s8 unk19B[30];
     /* 0x1B9 */ s8 unk1B9[4];
@@ -4079,7 +4088,39 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80039220);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80039354);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800395A0);
+extern s32 D_8006E298;
+void func_8002961C(s32, s32, char *, s32 *, s32, s32);
+
+void func_800395A0(void) {
+    char buf[24];
+    s32 p;
+    s32 k;
+    char *sign;
+    s32 size;
+
+    for (p = 0; p < 2; p++) {
+        for (k = 4; k >= 0; k--) {
+            if (((Player *)D_801D8348[p])->unk130[k].timer != 0) {
+                ((Player *)D_801D8348[p])->unk130[k].timer--;
+                if (((Player *)D_801D8348[p])->unk130[k].type == 7) {
+                    sign = "=";
+                } else if (((Player *)D_801D8348[p])->unk130[k].type == 5) {
+                    sign = "+";
+                } else {
+                    sign = "-";
+                }
+                size = ((Player *)D_801D8348[p])->unk130[k].timer;
+                if (size < 0x2C) {
+                    size = 0x2C;
+                }
+                sprintf(buf, "%s%d", sign, ((Player *)D_801D8348[p])->unk130[k].value);
+                func_8002961C(((Player *)D_801D8348[p])->unk130[k].x + (0x30 - size),
+                              ((Player *)D_801D8348[p])->unk130[k].y - (0x30 - size) * 2, buf, &D_8006E298,
+                              ((Player *)D_801D8348[p])->unk130[k].type, 0);
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800110F8);
 
