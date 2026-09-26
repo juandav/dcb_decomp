@@ -1889,7 +1889,17 @@ void func_800235C8(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002360C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800236B4);
+void *func_800236B4(s32 id) {
+    s32 i;
+
+    for (i = 0; i < 0x18; i++) {
+        if (D_801D6A4C->unk114[i] != 0 &&
+            *(s16 *)((u8 *)D_801D6A4C->unk13C[i] + 6) == id) {
+            return D_801D6A4C->unk13C[i];
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002371C);
 
@@ -1929,7 +1939,19 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800246E0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80024B08);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80024DD4);
+extern void *D_801D6A58[];
+extern void *D_801D6A50;
+extern void *D_801D6A48;
+
+void func_80024DD4(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        func_8001AE90(D_801D6A58[i]);
+    }
+    func_8001AE90(D_801D6A50);
+    func_8001AE90(D_801D6A48);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80024E44);
 
@@ -4106,7 +4128,24 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800469A4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046A38);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046BAC);
+void func_80046BAC(u8 *out, s32 id) {
+    s32 type;
+
+    type = 2;
+    if (id < 0xBF) {
+        type = 0;
+    } else {
+        id -= 0xBF;
+        if (id < 0x66) {
+            type = 1;
+        } else {
+            id -= 0x66;
+        }
+    }
+    out[0] = type;
+    out[1] = id;
+    *(s16 *)(out + 2) = func_80045F94(type, id);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046C0C);
 
