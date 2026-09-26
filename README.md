@@ -91,6 +91,15 @@ replace that line with C, rebuild and run `make compare`. objdiff
 (`make objdiff`, then open the project in objdiff) shows the differences per
 function.
 
+Rodata is migrated into the functions that use it: a function's jump tables and
+strings live in its own `.s` file, so its C version emits them itself (switch
+statements work as usual). Rodata shared by several functions stays behind
+`INCLUDE_RODATA`.
+
+`tools/try_match.py draft.c [func ...]` compiles a draft with the project
+toolchain and compares each function with the original executable, printing
+both side by side when they differ.
+
 ### Where to start
 
 - `src/main/game.c` is a single file for now. splat reports likely file
