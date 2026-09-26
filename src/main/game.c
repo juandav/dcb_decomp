@@ -154,6 +154,17 @@ typedef struct {
 } Model2220;
 
 typedef struct {
+    /* 0x0 */ s32 unk0;
+    /* 0x4 */ s32 val;
+    /* 0x8 */ s32 d0;
+    /* 0xC */ s32 d1;
+} AnimChan;
+
+typedef struct {
+    /* 0x00 */ AnimChan ch[9];
+} BoneAnim;
+
+typedef struct {
     /* 0x00 */ u32 mode;
     /* 0x04 */ Rect16 *crect;
     /* 0x08 */ u32 *caddr;
@@ -2321,7 +2332,43 @@ void func_80021B60(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, 
     arg0[3] = (d1 - t) / arg3;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80021C18);
+void func_80021C18(u8 *m) {
+    BoneAnim *b;
+    s32 i;
+    s32 *t;
+
+    b = (BoneAnim *)(m + 0xD80);
+    t = (s32 *)(m + 0x2200);
+    t[4]--;
+    i = 0;
+    if (*(s32 *)(m + 0x26D8) != 0) {
+        i = *(s16 *)(m + 4);
+        b += i;
+    }
+    for (; i < *(s16 *)(m + 4) + 1; b++, i++) {
+        if (t[4] >= 0) {
+                b->ch[0].val += b->ch[0].d0;
+                b->ch[1].val += b->ch[1].d0;
+                b->ch[2].val += b->ch[2].d0;
+                b->ch[3].val += b->ch[3].d0;
+                b->ch[4].val += b->ch[4].d0;
+                b->ch[5].val += b->ch[5].d0;
+                b->ch[6].val += b->ch[6].d0;
+                b->ch[7].val += b->ch[7].d0;
+                b->ch[8].val += b->ch[8].d0;
+        } else {
+                b->ch[0].val += b->ch[0].d1;
+                b->ch[1].val += b->ch[1].d1;
+                b->ch[2].val += b->ch[2].d1;
+                b->ch[3].val += b->ch[3].d1;
+                b->ch[4].val += b->ch[4].d1;
+                b->ch[5].val += b->ch[5].d1;
+                b->ch[6].val += b->ch[6].d1;
+                b->ch[7].val += b->ch[7].d1;
+                b->ch[8].val += b->ch[8].d1;
+        }
+    }
+}
 
 s32 RotMatrixYXZ(void *, void *);
 s32 ScaleMatrix(void *, void *);
@@ -2404,7 +2451,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80022100);
 
 extern Unk801D6A4C *D_801D6A4C;
 
-s32 func_80021C18(void *);
+void func_80021C18(u8 *);
 s32 func_80021DF8(void *);
 s32 func_80022100(void *, s32, s32);
 extern s32 D_80079544;
