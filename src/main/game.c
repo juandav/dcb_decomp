@@ -91,6 +91,12 @@ typedef struct {
 typedef struct {
     /* 0x00 */ DR_MODE dm[2];
     /* 0x10 */ u8 prim[2][0x10];
+    /* 0x30 */ Rect16 unk30;
+    /* 0x38 */ Rect16 unk38;
+    /* 0x40 */ Rect16 unk40;
+    /* 0x48 */ Bytes4 unk48;
+    /* 0x4C */ u8 unk4C;
+    /* 0x4D */ s8 unk4D;
 } Unk800190F4;
 
 typedef struct {
@@ -657,9 +663,9 @@ int func_80019084(void) {
 
 u32 GetTPage(s32, s32, s32, s32);
 s32 func_8001E6EC(s32, void *, s32, s32);
-void func_800191C0(Unk800190F4 *, s32, s32);
+void func_800191C0(Unk800190F4 *, Rect16 *, Bytes4 *);
 
-void func_800190F4(Unk800190F4 *p, s32 arg1, s32 arg2) {
+void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
@@ -669,14 +675,34 @@ void func_800190F4(Unk800190F4 *p, s32 arg1, s32 arg2) {
     func_800191C0(p, arg1, arg2);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800191C0);
-
-void func_80019280(u8 *p, Rect16 *r) {
-    if ((s8)p[0x4D] >= 6) {
-        p[0x4D] = 0;
+void func_800191C0(Unk800190F4 *p, Rect16 *r, Bytes4 *c) {
+    if (r == (Rect16 *)-1) {
+        p->unk30.x = 0;
+        p->unk30.y = 0;
+        p->unk30.w = 0;
+        p->unk30.h = 0;
+    } else {
+        p->unk30 = *r;
     }
-    *(Rect16 *)(p + 0x30) = *(Rect16 *)(p + 0x40);
-    *(Rect16 *)(p + 0x38) = *r;
+    p->unk38 = p->unk30;
+    p->unk40 = p->unk30;
+    if (c == (Bytes4 *)-1) {
+        p->unk48.b[0] = 0;
+        p->unk48.b[1] = 0;
+        p->unk48.b[2] = 0x80;
+    } else {
+        p->unk48 = *c;
+    }
+    p->unk4C = 0x80;
+    p->unk4D = 0;
+}
+
+void func_80019280(Unk800190F4 *p, Rect16 *r) {
+    if (p->unk4D >= 6) {
+        p->unk4D = 0;
+    }
+    p->unk30 = p->unk40;
+    p->unk38 = *r;
 }
 
 void func_800192E0(void *arg0, Bytes4 *arg1) {
@@ -699,7 +725,7 @@ void func_800197AC(void *arg0) {
     r[1] = ((*(u16 *)((s8 *)img + 0xE)) - (*(u16 *)((s8 *)img + 0x36))) + (*(u8 *)((s8 *)arg0 + 0x23)) + (*(s16 *)((s8 *)arg0 + 0x14)) * (*(u8 *)((s8 *)arg0 + 0x25));
     r[2] = (*(u16 *)((s8 *)arg0 + 0x1A));
     r[3] = (*(u16 *)((s8 *)arg0 + 0x1C));
-    func_80019280(*(u8 **)((s8 *)arg0 + 4), (Rect16 *)r);
+    func_80019280(*(Unk800190F4 **)((s8 *)arg0 + 4), (Rect16 *)r);
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800198A8);
