@@ -46,7 +46,21 @@ s32 func_800148B0(void) {
     return (*(s32 *)((s8 *)D_80077A0C + 0x14));
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800148C8);
+extern s32 D_80077BA0;
+s32 func_800148C8(s32 arg0, s32 arg1) {
+    void *temp_v1;
+
+    temp_v1 = (s8 *)&D_80077BA0 + arg0 * 0xC0;
+    if ((*(s32 *)((s8 *)temp_v1 + 0)) >= 0) {
+        return -3;
+    }
+    if (temp_v1 == D_80077A0C) {
+        return -0x84;
+    }
+    (*(s32 *)((s8 *)temp_v1 + 0x18)) = arg1;
+    (*(s32 *)((s8 *)temp_v1 + 4)) = 0;
+    return 0;
+}
 
 extern s32 D_80077BA0;
 
