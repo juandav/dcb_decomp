@@ -62,8 +62,24 @@ typedef struct {
 typedef struct {
     /* 0x0000 */ u8 unk0[0x24];
     /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ u8 unk28[0x274C];
+    /* 0x0028 */ u8 unk28[0x2E4];
+    /* 0x030C */ s8 unk30C[14][0x298];
+    /* 0x275C */ u8 unk275C[0x18];
 } Unk8006E050;
+
+typedef struct {
+    s16 vx;
+    s16 vy;
+    s16 vz;
+    s16 pad;
+} SVECTOR;
+
+typedef struct {
+    s32 vx;
+    s32 vy;
+    s32 vz;
+    s32 pad;
+} VECTOR;
 
 typedef struct {
     s16 id;
@@ -699,7 +715,30 @@ loop_1:
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B088);
+long catan(long);
+
+s32 func_8001B088(s32 y, s32 x) {
+    s32 a;
+
+    if (x == 0) {
+        if (y > 0) {
+            return 0x400;
+        }
+        if (y < 0) {
+            return -0x400;
+        }
+        return 0;
+    }
+    a = catan((y << 12) / x);
+    if (x < 0) {
+        if (y <= 0) {
+            a -= 0x800;
+        } else {
+            a += 0x800;
+        }
+    }
+    return a;
+}
 
 s32 func_80014A48();
 void func_8001B10C(s32 arg0, s32 arg1) {
@@ -775,11 +814,31 @@ void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BB94);
+void func_8001AD3C(Chunk *, s32);
 
-s32 func_8001BB94(s32, s32, s32);
+void func_8001BB94(Chunk *p, s32 id, s32 sub) {
+    Chunk *base;
+    Chunk *c;
 
-void func_8001BC14(s32 arg0) {
+    base = p;
+    if (p == 0) {
+        return;
+    }
+    for (;;) {
+        c = p++;
+        if (c->id < 0) {
+            return;
+        }
+        if (c->id == id && (sub < 0 || c->sub == sub)) {
+            c->id = -1;
+            func_8001AD3C(base, (u8 *)p - (u8 *)base);
+            return;
+        }
+        p = (Chunk *)((u8 *)p + c->size);
+    }
+}
+
+void func_8001BC14(Chunk *arg0) {
     func_8001BB94(arg0, 5, -1);
 }
 
@@ -3015,15 +3074,22 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80030440);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003058C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030694);
+long SquareRoot0(long);
+
+s32 func_80030694(SVECTOR *a, SVECTOR *b) {
+    VECTOR d;
+
+    d.vx = b->vx - a->vx;
+    d.vy = b->vy - a->vy;
+    d.vz = b->vz - a->vz;
+    return SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030718);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80030828);
 
-s32 func_80030694(s32, s32);
-
-s32 func_800309F0(s32 arg0, s32 arg1, s32 arg2) {
+s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2) {
     s32 v;
 
     v = func_80030694(arg0, arg1);
@@ -4284,7 +4350,12 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80048230);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800493EC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004949C);
+void func_80048230(s32, s32);
+
+void func_8004949C(s32 arg0, s32 arg1, s32 arg2) {
+    ((Unk8006E050 *)D_8006E050)[arg0].unk30C[arg1][arg2] = -1;
+    func_80048230(arg0, arg1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004950C);
 
