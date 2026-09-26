@@ -153,6 +153,9 @@ typedef struct {
     ((abe) ? setcode(p, getcode(p) | 0x02) : setcode(p, getcode(p) & ~0x02))
 #define addPrim(ot, p) setaddr(p, getaddr(ot)), setaddr(ot, p)
 #define getClut(x, y) (((y) << 6) | (((x) >> 4) & 0x3f))
+#define getTPage(tp, abr, x, y)                                                        \
+    ((((tp) & 0x3) << 7) | (((abr) & 0x3) << 5) | (((y) & 0x100) >> 4) | (((x) & 0x3ff) >> 6) | \
+     (((y) & 0x200) << 2))
 #define _get_mode(dfe, dtd, tpage) \
     ((0xe1000000) | ((dtd) ? 0x0200 : 0) | ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff))
 #define setDrawMode(p, dfe, dtd, tpage) \
@@ -2862,14 +2865,35 @@ void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
     }
 }
 
-void func_80027458(s32, s32, s32, s32, s32, s32, s32, s32 *, s32);
+void func_80027458(s32, s32, s32, s32, s32, s32, s32, u8 *, s32);
 
 void func_80027410(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5,
                    s32 arg6, s32 arg7) {
-    func_80027458(arg0, arg1, arg2, arg3, arg4, arg5, arg6, &D_8006DF98, arg7);
+    func_80027458(arg0, arg1, arg2, arg3, arg4, arg5, arg6, (u8 *)&D_8006DF98, arg7);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80027458);
+extern u16 D_801D6B12;
+extern u16 D_801D6B14;
+
+void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32 z) {
+    if (func_80029990() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = u;
+        CUR_SPRT->sp.v0 = v;
+        CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+        CUR_SPRT->sp.w = w;
+        CUR_SPRT->sp.h = h;
+        setSemiTrans(&CUR_SPRT->sp, 1);
+        CUR_SPRT->sp.r0 = rgb[0];
+        CUR_SPRT->sp.g0 = rgb[1];
+        CUR_SPRT->sp.b0 = rgb[2];
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80027674);
 
