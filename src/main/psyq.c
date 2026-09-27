@@ -2076,7 +2076,16 @@ void InitCARD(long val) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StartCARD);
+long StartCARD(void) {
+    int ret = func_8006A804();
+
+    func_800689A4();
+    func_8006A884(0);
+    if (ret == 1) {
+        func_8006A814();
+    }
+    return 0;
+}
 
 long StopCARD(void) {
     func_800689B4();
