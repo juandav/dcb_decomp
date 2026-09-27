@@ -1260,7 +1260,11 @@ void SetDrawArea(DR_AREA *p, RECT *r) {
     p->code[1] = func_80065CEC(r->x + r->w - 1, r->y + r->h - 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawOffset);
+void SetDrawOffset(DR_OFFSET *p, u_short *ofs) {
+    setlen(p, 2);
+    p->code[0] = func_80065D84(ofs[0], ofs[1]);
+    p->code[1] = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawEnv);
 
