@@ -946,7 +946,14 @@ void func_8005B1A4(void) {
     CD_flush();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B1C4);
+long func_8005B1C4(long v) {
+    long old = D_80070C40;
+
+    D_80070C40 = v;
+    return old;
+}
+
+OBJECT_END(3);
 
 int func_8005B1E4(void *madr, int size) {
     return CD_getsector(madr, size) == 0;
