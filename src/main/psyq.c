@@ -375,7 +375,9 @@ void _SsSndReplay(short seq, short sep) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndStop);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSeqStop);
+void SsSeqStop(short seq) {
+    _SsSndStop(seq, 0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSepStop);
 
