@@ -1182,7 +1182,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawSyncCallback);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDispMask);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawSync);
+int DrawSync(int mode) {
+    if (D_80076758.level >= 2) {
+        D_80076754("DrawSync(%d)...\n", mode);
+    }
+    return D_80076750->sync(mode);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800649E8);
 
