@@ -561,7 +561,8 @@ typedef struct {
     /* 0x02 */ s16 cur;
     /* 0x04 */ s16 seq[2];
     /* 0x08 */ u8 vol[2];
-    /* 0x0A */ u8 unkA[0xA];
+    /* 0x0A */ u8 unkA[2];
+    /* 0x0C */ u8 *data[2];
     /* 0x14 */ SndSlot unk14;
     /* 0x20 */ SndSlot slot[2];
 } SndState;
@@ -4890,7 +4891,53 @@ void func_8002AEA4(s32 id) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B024);
+void func_8002B2C0(void);
+void func_8002B688(void);
+s16 SsSeqOpen(u8 *, s16);
+void SsSeqClose(s16);
+
+void func_8002B024(s32 n, s32 id, u8 vol) {
+    char name[32];
+    u8 *pak;
+    SndSlot *sl;
+
+    sl = &((SndState *)&D_801D8128)->slot[n];
+    if (sl->id == id) {
+        return;
+    }
+    while (D_8006DFFC != 0) {
+        func_80014C08(D_800794F0);
+    }
+    D_8006DFFC = 1;
+    func_8002B2C0();
+    if (sl->id != 0xFF) {
+        if (((SndState *)&D_801D8128)->cur == n) {
+            func_8002B688();
+        }
+        SsSeqClose(((SndState *)&D_801D8128)->seq[n]);
+        SsVabClose(sl->vab);
+        func_80014C08(D_800794F0);
+    }
+    sl->id = id;
+    ((SndState *)&D_801D8128)->vol[n] = vol;
+    sprintf(name, "A:\\BGM\\BGM%02d.PAK", id);
+    pak = (u8 *)func_8001B248((s32 *)name, func_800148B0(), -2);
+    if (pak == 0) {
+        sl->id = 0xFF;
+    } else {
+        bcopy(pak, sl->buf, 0x9210);
+        if (func_8002B300(sl, n + 1, n * 0x1A300 + 0x49E90) == 0) {
+            func_8001AE90(pak);
+            sl->id = 0xFF;
+        } else {
+            func_8002B38C(sl, (s32)func_8001BB44((Chunk *)pak, 8, sl->id), sl->vab);
+            ((SndState *)&D_801D8128)->data[n] = func_8001BB44((Chunk *)sl->buf, 6, sl->id);
+            ((SndState *)&D_801D8128)->seq[n] = SsSeqOpen(((SndState *)&D_801D8128)->data[n], sl->vab);
+            func_8001AE90(pak);
+        }
+    }
+    D_8006DFFC = 0;
+}
 
 s32 SpuClearReverbWorkArea(s32);
 s32 SsUtSetReverbDepth(s32, s32);
