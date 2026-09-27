@@ -36,6 +36,12 @@ D_80010760 = 0x80010760;
 D_80010774 = 0x80010774;
 D_80010784 = 0x80010784;
 
+// Hacking screen texts, only referenced from their table in .data
+D_80012770 = 0x80012770;
+D_80012868 = 0x80012868;
+D_80012A40 = 0x80012A40;
+D_80012BA8 = 0x80012BA8;
+
 // Panel pool VRAM position, a halfword the code addresses on its own
 D_800897EE = 0x800897EE; // size:0x2
 
