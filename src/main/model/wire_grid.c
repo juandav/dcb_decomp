@@ -15,6 +15,7 @@
 #include "dcb/model.h"
 #include "dcb/model_load.h"
 #include "dcb/stage.h"
+#include "dcb/scroll_bg.h"
 #include "dcb/tmd_sort.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"

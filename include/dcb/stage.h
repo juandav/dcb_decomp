@@ -17,7 +17,6 @@ extern s32 D_801D8220;
 extern s8 D_801D8264;
 extern s8 D_801D8266;
 
-void resetScrollingBackground(void);
 void runTitleMenu(void);
 void animateStageTexture(u8 *model);
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims);
@@ -28,7 +27,6 @@ void runDuelStageTask(s32 stageId);
 void playPolygonBattle(void);
 void showArenaStage(s16 rotX);
 void openSaveScreenFromMap(s32 saveMode);
-void fadeOutScrollingBackground(void);
 void runTitleMenu();
 void continueSavedGame(void);
 void openPartnerFusion(s8 mode);
@@ -37,10 +35,5 @@ void openDeckEditor(s32 returnTo);
 void openPartnerEquipment(s32 returnTo);
 void func_8002F298(s32 *param);
 void func_8002F3C4(s32 *param);
-void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h);
-void loadScrollingBackground(void);
-void hideScrollingBackground(void);
-void setBackgroundScrollMode(s8 scrollMode);
-void freeScrollingBackground(void);
 
 #endif /* DCB_STAGE_H */

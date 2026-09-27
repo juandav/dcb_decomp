@@ -22,6 +22,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
+#include "dcb/scroll_bg.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 

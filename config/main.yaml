@@ -133,6 +133,7 @@ segments:
       - [0x1D444, c, card/player_rank]
       - [0x1DC04, c, card/player_data]
       - [0x1E4B0, c, model/stage]
+      - [0x1FF9C, c, gfx/scroll_bg]
       - [0x202E4, c, model/effect]
       - [0x24508, c, duel/duel_util]
       - [0x24A60, c, duel/duel]

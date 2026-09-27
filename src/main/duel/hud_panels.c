@@ -20,6 +20,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
+#include "dcb/scroll_bg.h"
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
