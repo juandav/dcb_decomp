@@ -1313,7 +1313,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066148);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066384);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066604);
+void func_80066604(u_long value) {
+    *D_80076860 = value;
+}
 
 void func_80066618(void) {
 }
