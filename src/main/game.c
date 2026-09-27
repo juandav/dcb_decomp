@@ -3984,7 +3984,45 @@ void func_8001C220(void *arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5,
     MargePrim(arg0, (s8 *)arg0 + 0xC);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C354);
+void func_8001C354(s32 x, s32 y, s32 w, s32 h, u32 color) {
+    Rect16 r;
+    u32 *buf;
+    u32 *p;
+    s32 i;
+
+    w /= 4;
+    if (w == 0 || h == 0) {
+        return;
+    }
+    r.x = x;
+    r.w = w;
+    /* x is reused as the fill size in bytes */
+    if (func_8001AB64() < w * (h << 2)) {
+        x = func_8001AB64();
+    } else {
+        x = w * (h << 2);
+    }
+    r.h = (u32)x / (w << 2);
+    if (r.h <= 0) {
+        return;
+    }
+    buf = func_8001AD0C(r.h * (w << 2));
+    if (buf == NULL) {
+        return;
+    }
+    p = buf;
+    for (x -= 4; x >= 0; x -= 4) {
+        *p++ = color;
+    }
+    r.y = y;
+    for (i = 0; i < h; i += r.h, r.y += r.h) {
+        r.h = (h - i < r.h) ? h - i : r.h;
+        LoadImage((s16 *)&r, (s32)buf);
+    }
+    DrawSync(0);
+    func_8001AE90(buf);
+}
+
 
 void func_8001C4DC(s32 x, s32 y, Rect16 *r, u16 tpage, s32 clut, s32 z, u8 c, s8 abr) {
     s32 tp = tpage;
