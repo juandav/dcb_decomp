@@ -83,7 +83,20 @@ void *func_80056B78(void) {
     return &D_8006FA20;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056C18);
+int func_8006A7F4(u_long *);
+void func_8006A814(void);
+
+void *func_80056C18(void) {
+    if (D_8006FA20.inited != 0) {
+        return NULL;
+    }
+    func_8006A7F4(D_8006FA20.buf);
+    D_8006FA20.inited = 1;
+    *D_80070AB0 = D_8006FA20.mask;
+    *D_80070AB4 = D_8006FA20.dpcr;
+    func_8006A814();
+    return &D_8006FA20;
+}
 
 void func_80056C90(long *p, int n) {
     int i = n - 1;

@@ -69,9 +69,13 @@ def delay_slot_hazards(lines):
         la, lb, lc = split(lines[a]), split(lines[b]), split(lines[c])
         if not LOADS.match(la[0]) or not BRANCHES.match(lb[0]) or len(la[1]) != 2:
             continue
-        if re.search(r"\(\$\w+\)$", la[1][1]):
-            continue
         reg = la[1][0]
+        if re.search(r"\(\$\w+\)$", la[1][1]):
+            # a load through a register: only a store of the loaded value
+            # in the slot of a call (func_80056C18)
+            if lb[0] == "jal" and STORES.match(lc[0]) and lc[1][0] == reg:
+                insert.append(a)
+            continue
         # only when the slot uses it as the base of a memory access
         if (LOADS.match(lc[0]) or STORES.match(lc[0])) and lc[1][-1].endswith(
             f"({reg})"
