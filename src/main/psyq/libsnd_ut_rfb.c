@@ -6,7 +6,14 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsUtSetReverbFeedback);
+extern SpuReverbAttr D_801D95E0;
+
+void SsUtSetReverbFeedback(short feedback) {
+    D_801D95E0.mask = SPU_REV_FEEDBACK;
+    D_801D95E0.feedback = feedback;
+    SpuSetReverbModeParam(&D_801D95E0);
+}
+OBJECT_END(1);
 
 void func_80051C70(void) {
     SpuSetReverb(0);
