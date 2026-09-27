@@ -460,7 +460,19 @@ void SsStart2(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004EF10);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004EF5C);
+extern long D_8006F5A8;
+extern void (*D_8006F59C[])();
+
+void func_8004EF5C(void) {
+    if (D_8006F5A8 == 0) {
+        D_8006F5A8 = 1;
+    } else {
+        D_8006F5A8 = 0;
+        D_8006F59C[0]();
+    }
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSeqCalledTbyT);
 
