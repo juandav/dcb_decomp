@@ -157,10 +157,5 @@ Particles *createStreakParticles(u8 *startColor, u8 *endColor, Unk13C *template,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz);
 void renderStreakParticles(Particles *fx);
 void freeStreakParticles(void *fx);
-void waitDuelFrames(s32 frames);
-s32 func_80033D9C(void);
-void waitForCpuDecision(void);
-void renderAttackChoiceIcons(void);
-void runDuelMessageWindow(void);
 
 #endif /* DCB_EFFECT_H */

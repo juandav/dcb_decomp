@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/scene3d.h"
 #include "dcb/effect.h"
+#include "dcb/duel_util.h"
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"

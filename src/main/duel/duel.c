@@ -3,9 +3,14 @@
 #include "game.h"
 #include "dcb/duel.h"
 #include "dcb/battle_hud.h"
+#include "dcb/card_motion.h"
+#include "dcb/hud_panels.h"
+#include "dcb/duel_session.h"
 #include "dcb/card_db.h"
-#include "dcb/duel_rules.h"
+#include "dcb/duel_setup.h"
+#include "dcb/card_zones.h"
 #include "dcb/effect.h"
+#include "dcb/duel_util.h"
 #include "dcb/main.h"
 #include "dcb/menu.h"
 #include "dcb/shell.h"
@@ -1211,5 +1216,3 @@ void runDuelTurnLoop(void) {
         }
     }
 }
-
-INCLUDE_ASM("asm/main/nonmatchings/duel/duel", runCpuDecisionTask);

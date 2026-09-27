@@ -4,6 +4,7 @@
 #include "dcb/system.h"
 #include "dcb/cd_file.h"
 #include "dcb/effect.h"
+#include "dcb/duel_util.h"
 #include "dcb/fade.h"
 #include "dcb/heap.h"
 #include "dcb/loader.h"

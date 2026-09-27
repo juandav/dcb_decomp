@@ -1,7 +1,8 @@
-#ifndef DCB_DUEL_RULES_H
-#define DCB_DUEL_RULES_H
+#ifndef DCB_CARD_ZONES_H
+#define DCB_CARD_ZONES_H
 
 #include "game.h"
+#include "dcb/duel_setup.h"
 
 s32 discardCardToOfflineDeck(s32 cardIndex, s32 player);
 s32 takePartnerCardFromOnlineDeck(s32 player);
@@ -21,8 +22,6 @@ s32 getActiveDigimonCard(s32);
 s32 countOnlineDeckCards(s32);
 s32 countOfflineDeckCards(s32 player);
 s32 countEmptyDpSlots(s32);
-void initDuelPlayers(s32 isCpuDuel);
-void loadPresetDeckForPlayer(s32 player);
 s32 peekOfflineDeckTop(s32 player);
 s32 takeOfflineDeckTopCard(s32 player);
 s32 peekOnlineDeckTop(s32 player);
@@ -41,4 +40,4 @@ s32 setPlayedCard(s32 cardIndex, s32 player);
 void shuffleOnlineDeck(s32 player);
 void shuffleOfflineDeck(s32 player);
 
-#endif /* DCB_DUEL_RULES_H */
+#endif /* DCB_CARD_ZONES_H */
