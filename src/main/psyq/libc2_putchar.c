@@ -1,11 +1,5 @@
 #include "psyq.h"
 
-extern void (*D_8005B850[2])(void);
-
-extern void (*D_8005B850[2])(void);
-
-extern void (*D_8006F59C[])();
-
 extern long D_80077848;
 extern long D_8007784C;
 extern char D_801DDC20[];
@@ -35,10 +29,6 @@ void _putchar(char c) {
     D_801DDC20[D_8007784C++] = c;
 }
 
-extern long D_8007784C;
-
-extern char D_801DDC20[];
-
 void _putchar_flash(void) {
     if (D_8007784C > 0) {
         func_8006A854(1, D_801DDC20, D_8007784C);
@@ -46,27 +36,7 @@ void _putchar_flash(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", putchar);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D5C);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D70);
-
-INCLUDE_ASM("asm/main/nonmatchings/psyq", sprintf);
-
-void *memmove(u_char *dst, u_char *src, int n) {
-    u_char *d = dst;
-
-    if (d >= src) {
-        while (n-- > 0) {
-            d[n] = src[n];
-        }
-    } else {
-        while (n-- > 0) {
-            *d++ = *src++;
-        }
-    }
-    return d;
+void putchar(char c) {
+    _putchar(c);
+    _putchar_flash();
 }
-
-OBJECT_END(1);

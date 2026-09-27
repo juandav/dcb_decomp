@@ -63,6 +63,8 @@ PSYQ_GCC28_OBJ := $(PSYQ_GCC28:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 SN_CC1 := $(BUILDDIR)/cc1-2.8.1-sn
 $(PSYQ_GCC28_OBJ): CC1 := $(SN_CC1)
 $(PSYQ_GCC28_OBJ): CC1FLAGS += -mno-split-addresses
+# putchar() has _putchar() and _putchar_flash() inlined
+$(BUILDDIR)/src/main/psyq/libc2_putchar.c.s: CC1FLAGS += -finline-functions
 $(PSYQ_GCC28_OBJ): CC1_POST := $(PYTHON) tools/unfill_epilogue.py
 $(PSYQ_GCC28_OBJ): $(SN_CC1)
 $(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py

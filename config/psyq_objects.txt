@@ -191,6 +191,7 @@ libc2_printf
 libc2_prnt
 libc2_memchr
 libc2_putchar gcc2.8
+libc2_sprintf gcc2.8
 libc2_puts
 libc2_setjmp
 libpad_func_80024c98
