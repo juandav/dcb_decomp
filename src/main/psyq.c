@@ -1807,7 +1807,15 @@ void *memchr(unsigned char *s, int c, int n) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _putchar);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _putchar_flash);
+extern long D_8007784C;
+extern char D_801DDC20[];
+
+void _putchar_flash(void) {
+    if (D_8007784C > 0) {
+        func_8006A854(1, D_801DDC20, D_8007784C);
+        D_8007784C = 0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", putchar);
 
