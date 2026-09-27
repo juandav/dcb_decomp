@@ -1,0 +1,7 @@
+#include "psyq.h"
+
+u_long SpuSetReverbVoice(long on_off, u_long voice_bit) {
+    return _SpuSetAnyVoice(on_off, voice_bit, 0xCC, 0xCD);
+}
+
+OBJECT_END(3);
