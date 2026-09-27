@@ -45,9 +45,9 @@ void func_8005A7D4(void) {
 }
 
 static __inline__ void cd_read_end(void) {
-    func_8005A3A4(D_80070FD8->oldReady);
+    func_8005A3A4(D_80070FD8[0].oldReady);
     if (D_80070B4C & 1) {
-        func_8005A7A4((void (*)())D_80070FD8->oldData);
+        func_8005A7A4((void (*)())D_80070FD8[0].oldData);
     }
     func_8005B1C4((long)func_8005A7D4);
     CdControlF(CdlPause, NULL);
@@ -163,20 +163,30 @@ __asm__(".section .rodata\n\t.space 12\n\t.section .text\n");
 static __inline__ int cd_read_wait(void) {
     u_long t;
 
-    if (D_80070FD8[0].busy) {
-        t = VSync(-1);
-        while (D_80070FD8[0].busy) {
-            if (VSync(-1) - t > 120) {
-                func_8005B1C4(D_80070FD8[0].oldSync);
-                D_80070FD8->busy = 0;
-                return -1;
-            }
+    if (D_80070FD8[0].busy == 0) {
+        return 1;
+    }
+    t = VSync(-1);
+    while (D_80070FD8[0].busy) {
+        if (VSync(-1) - t > 120) {
+            func_8005B1C4(D_80070FD8[0].oldSync);
+            D_80070FD8->busy = 0;
+            return -1;
         }
     }
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadBreak);
+void CdReadBreak(void) {
+    if (D_80070B4C & 1) {
+        func_8005B414(0);
+    }
+    D_80070FD8->rest = 0;
+    if (cd_read_wait()) {
+        cd_read_end();
+        cd_read_wait();
+    }
+}
 
 int CdRead(int sectors, u_long *buf, int mode) {
     cd_read_wait();
