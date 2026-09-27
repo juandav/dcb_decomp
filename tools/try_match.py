@@ -32,11 +32,11 @@ if gcc28:
     sn=f"{D}/build/cc1-2.8.1-sn"
     if not os.path.exists(sn) or os.path.getmtime(sn)<max(os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"),os.path.getmtime(f"{D}/tools/sn_cc1.py")):
         subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{D}/bin/gcc-2.8.1-psx/cc1",sn],check=True)
-    cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
+    cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
     pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 elif psyq:
-    cc1=f"{D}/bin/gcc-2.7.2-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
+    cc1=f"{D}/bin/gcc-2.7.2-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
     if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:

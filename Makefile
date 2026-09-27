@@ -44,11 +44,13 @@ CC1_POST := cat
 # outputs are assembled together as psyq.c.o, so that splat's alignment of
 # the included rodata still counts from the start of the whole section.
 # They were built with GCC 2.7.2 -O2, and their ASPSX moved the instruction
-# before `j $31` into its delay slot (tools/aspsx_reorder.py)
+# before `j $31` into its delay slot (tools/aspsx_reorder.py). They use
+# -mhard-float: with -msoft-float the FP registers are fixed, which lowers
+# loop.c's threshold and keeps it from hoisting constants the originals hoist.
 PSYQ_OBJECTS := $(shell awk '{print $$1}' config/psyq_objects.txt)
 PSYQ_OBJ := $(PSYQ_OBJECTS:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_OBJ): GCC_VERSION := 2.7.2
-$(PSYQ_OBJ): CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
+$(PSYQ_OBJ): CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float \
 	-fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused
 $(PSYQ_OBJ): ALIGN_FIX := $(PYTHON) tools/aspsx_reorder.py
 $(PSYQ_OBJ): MASPSXFLAGS += --expand-div
