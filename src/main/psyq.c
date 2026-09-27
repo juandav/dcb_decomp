@@ -333,7 +333,18 @@ void SsStart(void) {
     func_8004ECA0(1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsStart2);
+extern long D_8005B85C;
+extern void (*D_8005B850[2])(void);
+
+
+
+
+
+
+
+void SsStart2(void) {
+    func_8004ECA0(0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004EF10);
 
