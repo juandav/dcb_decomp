@@ -148,7 +148,8 @@ $(BUILDDIR)/src/main/psyq/%.c.s: src/main/psyq/%.c
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.s=.d) $< -o $(@:.s=.i)
 	$(CC1) $(CC1FLAGS) -o $(@:.s=.cc1.s) $(@:.s=.i)
 	$(CC1_POST) < $(@:.s=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) \
-		| sed -e 's/\$$L\(C\?[0-9]\)/$$L$*_\1/g' > $@
+		| sed -e 's/\$$L\(C\?[0-9]\)/$$L$*_\1/g' \
+		      -e 's/\.L_\(NOT_DIV_BY_ZERO\|DIV_BY_POSITIVE_SIGN\)_/.L_\1_$*_/g' > $@
 
 $(BUILDDIR)/src/main/psyq.c.o: $(PSYQ_OBJ) config/psyq_objects.txt
 	awk '/^(gcc2_compiled\.|__gnu_compiled_c):$$/ && seen[$$0]++ {next} \
