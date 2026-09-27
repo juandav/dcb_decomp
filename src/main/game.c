@@ -130,6 +130,22 @@ typedef struct {
     s16 x0, y0;
     u8 u0, v0;
     u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+} POLY_GT3;
+
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
     s16 x1, y1;
     u8 u1, v1;
     u16 tpage;
@@ -1886,7 +1902,45 @@ void func_8001C810(POLY_FT3 *p, s32 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *
     dst[7] = ((s32 *)p)[7];
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CA54);
+void func_80067764(POLY_GT3 *);
+
+void func_8001CA54(POLY_GT3 *p, POLY_GT3 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 tpage, s32 clut,
+                   Rect16 *uv, Rect16 *xy, u8 semi) {
+    func_80067764(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    if (uv != 0) {
+        p->u0 = uv->x + uv->w / 2;
+        p->v0 = uv->y;
+        p->u1 = uv->x;
+        p->v1 = uv->y + uv->h;
+        p->u2 = uv->x + uv->w;
+        p->v2 = uv->y + uv->h;
+    }
+    if (xy != 0) {
+        p->x0 = xy->x + xy->w / 2;
+        p->y0 = xy->y;
+        p->x1 = xy->x;
+        p->y1 = xy->y + xy->h;
+        p->x2 = xy->x + xy->w;
+        p->y2 = xy->y + xy->h;
+    }
+    *dst = *p;
+}
 
 void func_800677E4(POLY_GT4 *);
 void func_8001E7B8(void *, u8, u8, u8);
