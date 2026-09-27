@@ -1369,7 +1369,7 @@ s32 func_80033D9C(void) {
         func_80014A90();
         return -1;
     }
-    if ((((u32) (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178)) >> 0x11) & 3) == 1) {
+    if ((((u32) (*(u32 *)((s8 *)(DUEL_PLAYERS[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178)) >> 0x11) & 3) == 1) {
         pad = *PAD_STATES;
     } else {
         pad = PAD_STATES[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
@@ -1422,7 +1422,7 @@ void renderAttackChoiceIcons(void) {
             if (isSpritePoolFull() != 0) {
                 return;
             }
-            if (ATTACK_ICON_TIMER == 0 && ((*(u32 *)(D_801D8348[i] + 0x178) >> 2) & 3) != j) {
+            if (ATTACK_ICON_TIMER == 0 && ((*(u32 *)(DUEL_PLAYERS[i] + 0x178) >> 2) & 3) != j) {
                 continue;
             }
             CUR_SPRT->sp.x0 = x + (x - ATTACK_ICON_ORIGIN_X[j]) * ATTACK_ICON_TIMER / 32;
@@ -1448,7 +1448,7 @@ void runDuelMessageWindow(void) {
     s32 padIndex;
     u32 playerFlags;
 
-    playerFlags = (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178));
+    playerFlags = (*(u32 *)((s8 *)(DUEL_PLAYERS[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178));
     padIndex = (playerFlags >> 0x11) & 1;
     if (((playerFlags >> 0x11) & 3) == 1) {
         padIndex = 0;

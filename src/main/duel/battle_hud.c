@@ -12,137 +12,137 @@
 #include "dcb/stage.h"
 #include "dcb/text.h"
 
-void func_8003917C(void) {
-    s32 diff;
-    s32 p;
+void waitForStatCountersToSettle(void) {
+    s32 unsettled;
+    s32 player;
     s32 i;
 
     do {
         func_80014C08(FRAME_INTERVAL);
-        diff = 0;
-        for (p = 0; p < 2; p++) {
+        unsettled = 0;
+        for (player = 0; player < 2; player++) {
             for (i = 0; i < 5; i++) {
-                if (((Player *)D_801D8348[p])->unk11C[i] !=
-                    ((Player *)D_801D8348[p])->unk126[i]) {
-                    diff = 1;
+                if (((Player *)DUEL_PLAYERS[player])->unk11C[i] !=
+                    ((Player *)DUEL_PLAYERS[player])->unk126[i]) {
+                    unsettled = 1;
                 }
             }
         }
-    } while (diff);
+    } while (unsettled);
 }
 
-void func_80039220(s32 p) {
-    s32 idx;
-    u8 *q;
+void showDpGainPopup(s32 player) {
+    s32 dpCard;
+    u8 *statusPanel;
 
-    idx = func_800411C4(p);
-    if (idx != -1) {
-        q = D_801D83EC + (p * 0xD8 + 0x48);
-        PLAYER(p)->unk130[4].value = (s8)PLAYER(p)->cards[idx % 30].card[0x1C];
-        PLAYER(p)->unk130[4].type = 5;
-        PLAYER(p)->unk130[4].timer = 0x30;
-        PLAYER(p)->unk130[4].x = *(s16 *)(q + 0x10) + (s16)(p * 93 + 0x10);
-        PLAYER(p)->unk130[4].y = *(u16 *)(q + 0x12) + 2;
+    dpCard = peekDpSlotTop(player);
+    if (dpCard != -1) {
+        statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
+        PLAYER(player)->unk130[4].value = (s8)PLAYER(player)->cards[dpCard % 30].card[0x1C];
+        PLAYER(player)->unk130[4].type = 5;
+        PLAYER(player)->unk130[4].timer = 0x30;
+        PLAYER(player)->unk130[4].x = *(s16 *)(statusPanel + 0x10) + (s16)(player * 93 + 0x10);
+        PLAYER(player)->unk130[4].y = *(u16 *)(statusPanel + 0x12) + 2;
     } else {
-        PLAYER(p)->unk130[4].timer = 0;
+        PLAYER(player)->unk130[4].timer = 0;
     }
 }
 
-void func_80039354(s32 p, s32 v, s32 k) {
-    s32 c;
-    u8 *q;
+void showStatChangePopup(s32 player, s32 newValue, s32 stat) {
+    s32 activeCard;
+    u8 *statusPanel;
 
-    PLAYER(p)->unk130[k].value = v - PLAYER(p)->unk11C[k];
-    if (PLAYER(p)->unk130[k].value == 0) {
-        PLAYER(p)->unk130[k].type = 7;
-    } else if (PLAYER(p)->unk130[k].value > 0) {
-        PLAYER(p)->unk130[k].type = 5;
+    PLAYER(player)->unk130[stat].value = newValue - PLAYER(player)->unk11C[stat];
+    if (PLAYER(player)->unk130[stat].value == 0) {
+        PLAYER(player)->unk130[stat].type = 7;
+    } else if (PLAYER(player)->unk130[stat].value > 0) {
+        PLAYER(player)->unk130[stat].type = 5;
     } else {
-        PLAYER(p)->unk130[k].type = 2;
+        PLAYER(player)->unk130[stat].type = 2;
     }
-    PLAYER(p)->unk130[k].value = abs(PLAYER(p)->unk130[k].value);
-    PLAYER(p)->unk130[k].timer = 0x30;
-    if (k == 0) {
-        c = func_80040764(p);
-        projectCardSprite(*(void **)(D_801D833C + c * 36), c);
-        PLAYER(p)->unk130[0].x = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x34) + 0x19;
-        PLAYER(p)->unk130[0].y = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x36) + 0x15;
+    PLAYER(player)->unk130[stat].value = abs(PLAYER(player)->unk130[stat].value);
+    PLAYER(player)->unk130[stat].timer = 0x30;
+    if (stat == 0) {
+        activeCard = getActiveDigimonCard(player);
+        projectCardSprite(*(void **)(D_801D833C + activeCard * 36), activeCard);
+        PLAYER(player)->unk130[0].x = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x34) + 0x19;
+        PLAYER(player)->unk130[0].y = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x36) + 0x15;
     } else {
-        q = D_801D83EC + (p * 0xD8 + 0x48);
-        PLAYER(p)->unk130[k].x = *(u16 *)(q + 0x10) + p * 25 + 0x1C;
-        PLAYER(p)->unk130[k].y = *(s16 *)(q + 0x12) + (s16)((k - 1) * 13 + 3);
+        statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
+        PLAYER(player)->unk130[stat].x = *(u16 *)(statusPanel + 0x10) + player * 25 + 0x1C;
+        PLAYER(player)->unk130[stat].y = *(s16 *)(statusPanel + 0x12) + (s16)((stat - 1) * 13 + 3);
     }
 }
 
-void func_800395A0(void) {
-    char buf[24];
-    s32 p;
-    s32 k;
+void renderStatPopups(void) {
+    char text[24];
+    s32 player;
+    s32 stat;
     char *sign;
-    s32 size;
+    s32 age;
 
-    for (p = 0; p < 2; p++) {
-        for (k = 4; k >= 0; k--) {
-            if (((Player *)D_801D8348[p])->unk130[k].timer != 0) {
-                ((Player *)D_801D8348[p])->unk130[k].timer--;
-                if (((Player *)D_801D8348[p])->unk130[k].type == 7) {
+    for (player = 0; player < 2; player++) {
+        for (stat = 4; stat >= 0; stat--) {
+            if (((Player *)DUEL_PLAYERS[player])->unk130[stat].timer != 0) {
+                ((Player *)DUEL_PLAYERS[player])->unk130[stat].timer--;
+                if (((Player *)DUEL_PLAYERS[player])->unk130[stat].type == 7) {
                     sign = "=";
-                } else if (((Player *)D_801D8348[p])->unk130[k].type == 5) {
+                } else if (((Player *)DUEL_PLAYERS[player])->unk130[stat].type == 5) {
                     sign = "+";
                 } else {
                     sign = "-";
                 }
-                size = ((Player *)D_801D8348[p])->unk130[k].timer;
-                if (size < 0x2C) {
-                    size = 0x2C;
+                age = ((Player *)DUEL_PLAYERS[player])->unk130[stat].timer;
+                if (age < 0x2C) {
+                    age = 0x2C;
                 }
-                sprintf(buf, "%s%d", sign, ((Player *)D_801D8348[p])->unk130[k].value);
-                drawBigDigits(((Player *)D_801D8348[p])->unk130[k].x + (0x30 - size),
-                              ((Player *)D_801D8348[p])->unk130[k].y - (0x30 - size) * 2, (u8 *)buf, (u8 *)&D_8006E298,
-                              ((Player *)D_801D8348[p])->unk130[k].type, 0);
+                sprintf(text, "%s%d", sign, ((Player *)DUEL_PLAYERS[player])->unk130[stat].value);
+                drawBigDigits(((Player *)DUEL_PLAYERS[player])->unk130[stat].x + (0x30 - age),
+                              ((Player *)DUEL_PLAYERS[player])->unk130[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
+                              ((Player *)DUEL_PLAYERS[player])->unk130[stat].type, 0);
             }
         }
     }
 }
 
-void func_80039730(s32 n, s32 z) {
-    s32 p = n / 6;
-    InfoPanel *panel = (InfoPanel *)D_801D83EC + n;
-    char buf[72];
-    u8 rgb[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
-    char buf2[40];
-    u8 *cols[10];
+void drawHudPanelContents(s32 panelIndex, s32 z) {
+    s32 player = panelIndex / 6;
+    InfoPanel *panel = (InfoPanel *)D_801D83EC + panelIndex;
+    char text[72];
+    u8 shades[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
+    char deckText[40];
+    u8 *lineColors[10];
     CardInfo *card;
-    s32 color;
+    s32 valueColor;
     s32 i;
     s32 k;
-    s32 rival;
+    s32 isOpponent;
     s32 x;
     s32 y;
 
-    switch (n) {
+    switch (panelIndex) {
     case 2:
     case 8: {
         s32 idx;
 
-        idx = func_80040764(p);
+        idx = getActiveDigimonCard(player);
         if (idx >= 0) {
-            color = PLAYER(p)->unk178_15 ? 3 : 7;
-            card = (CardInfo *)PLAYER(p)->cards[idx % 30].card;
-            drawSmallText(panel->x - p * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
-            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[1]);
-            drawText(panel->x + 42 + p * 25, panel->y + 11, (s32)buf, color, z);
-            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[2]);
-            drawText(panel->x + 42 + p * 25, panel->y + 24, (s32)buf, color, z);
-            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[3]);
-            drawText(panel->x + 42 + p * 25, panel->y + 37, (s32)buf, color, z);
-            drawSmallText(panel->x + 24 + p * 24, panel->y + 51, (s32)D_8006E47C[card->unkE4], 7, z);
+            valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
+            card = (CardInfo *)PLAYER(player)->cards[idx % 30].card;
+            drawSmallText(panel->x - player * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
+            sprintf(text, "*s0%4d", PLAYER(player)->unk126[1]);
+            drawText(panel->x + 42 + player * 25, panel->y + 11, (s32)text, valueColor, z);
+            sprintf(text, "*s0%4d", PLAYER(player)->unk126[2]);
+            drawText(panel->x + 42 + player * 25, panel->y + 24, (s32)text, valueColor, z);
+            sprintf(text, "*s0%4d", PLAYER(player)->unk126[3]);
+            drawText(panel->x + 42 + player * 25, panel->y + 37, (s32)text, valueColor, z);
+            drawSmallText(panel->x + 24 + player * 24, panel->y + 51, (s32)CROSS_EFFECT_SHORT_NAMES[card->unkE4], 7, z);
         }
-        sprintf(buf, "*s0%2d", PLAYER(p)->unk126[4]);
-        drawText(panel->x + 6 + p * 93, panel->y + 9, (s32)buf, 7, z);
-        k = 8 - func_80041214(p);
+        sprintf(text, "*s0%2d", PLAYER(player)->unk126[4]);
+        drawText(panel->x + 6 + player * 93, panel->y + 9, (s32)text, 7, z);
+        k = 8 - countEmptyDpSlots(player);
         if (k != 0) {
-            CUR_SPRT->sp.x0 = panel->x + 3 + p * 94;
+            CUR_SPRT->sp.x0 = panel->x + 3 + player * 94;
             CUR_SPRT->sp.y0 = panel->y + 50;
             CUR_SPRT->sp.u0 = 0xF0;
             CUR_SPRT->sp.v0 = 0x47;
@@ -164,7 +164,7 @@ void func_80039730(s32 n, s32 z) {
     case 11:
         if (panel->state == 5) {
             CUR_SPRT->sp.x0 = panel->x + 5;
-            CUR_SPRT->sp.y0 = panel->y - 56 + p * 64;
+            CUR_SPRT->sp.y0 = panel->y - 56 + player * 64;
             CUR_SPRT->sp.u0 = 0;
             CUR_SPRT->sp.v0 = 0xBA;
             CUR_SPRT->sp.clut = 0x7CF3;
@@ -182,29 +182,29 @@ void func_80039730(s32 n, s32 z) {
         break;
     case 4:
     case 10:
-        sprintf(buf, "%s Deck", PLAYER(p)->unk0 + 1);
-        drawText(panel->x + 1 + (0x82 - measureText((u8 *)buf)) / 2, panel->y + 0x33 + p * -50, (s32)buf, 7, z);
-        drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(p)->unk1CE)) / 2, panel->y + 0x33 + p * -50,
-                      (s32)PLAYER(p)->unk1CE, 7, z);
-        k = func_80040220(p) >= 8 ? 7 : 2;
-        sprintf(buf, "*s0%2d", func_80040220(p));
-        drawText(panel->x + 4 + p * 0xEC, panel->y + 0x1E + p * 14, (s32)buf, k, z);
-        sprintf(buf, "*s0%2d", func_80040124(p));
-        drawText(panel->x + 4 + p * 0xEC, panel->y + 6 + p * 14, (s32)buf, 7, z);
-        for (k = 0; k < PLAYER(p)->unk17C; k++) {
-            drawWinMarker(panel->x + 0xDF + p * -0xDD, panel->y + 4 + p * 13 + k * 15, 0x4A);
+        sprintf(text, "%s Deck", PLAYER(player)->unk0 + 1);
+        drawText(panel->x + 1 + (0x82 - measureText((u8 *)text)) / 2, panel->y + 0x33 + player * -50, (s32)text, 7, z);
+        drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(player)->unk1CE)) / 2, panel->y + 0x33 + player * -50,
+                      (s32)PLAYER(player)->unk1CE, 7, z);
+        k = countOnlineDeckCards(player) >= 8 ? 7 : 2;
+        sprintf(text, "*s0%2d", countOnlineDeckCards(player));
+        drawText(panel->x + 4 + player * 0xEC, panel->y + 0x1E + player * 14, (s32)text, k, z);
+        sprintf(text, "*s0%2d", countOfflineDeckCards(player));
+        drawText(panel->x + 4 + player * 0xEC, panel->y + 6 + player * 14, (s32)text, 7, z);
+        for (k = 0; k < PLAYER(player)->unk17C; k++) {
+            drawWinMarker(panel->x + 0xDF + player * -0xDD, panel->y + 4 + player * 13 + k * 15, 0x4A);
         }
         break;
     case 0:
     case 6: {
-        s32 back;
-        s32 shift;
+        s32 artLoaded;
+        s32 powerShift;
 
         if (*(s16 *)(DUEL->unk58 + 2) == -1) {
             break;
         }
-        back = DUEL->cache[DUEL->unk826].used;
-        if (back == 1) {
+        artLoaded = DUEL->cache[DUEL->unk826].used;
+        if (artLoaded == 1) {
             if (isSpritePoolFull() != 0) {
                 break;
             }
@@ -224,9 +224,9 @@ void func_80039730(s32 n, s32 z) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
-            drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, 0);
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, 0);
         } else {
-            drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
         }
         if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19) {
             drawText(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
@@ -234,122 +234,122 @@ void func_80039730(s32 n, s32 z) {
         }
         if (DUEL->unk81C == 4) {
             if (DUEL->unk81D == 4) {
-                sprintf(buf2, "*h-1All-or-Nothing\nGamble!\nCards left in the\nOnline Deck are %d.",
-                        func_80040220(DUEL->unk81B));
+                sprintf(deckText, "*h-1All-or-Nothing\nGamble!\nCards left in the\nOnline Deck are %d.",
+                        countOnlineDeckCards(DUEL->unk81B));
             } else {
-                sprintf(buf2, "*h-1Cards left in the\nOnline Deck is %d.", func_80040220(DUEL->unk81B));
+                sprintf(deckText, "*h-1Cards left in the\nOnline Deck is %d.", countOnlineDeckCards(DUEL->unk81B));
             }
-            drawText(panel->x + 0x8E, panel->y + 0x10, (s32)buf2, 7, z);
+            drawText(panel->x + 0x8E, panel->y + 0x10, (s32)deckText, 7, z);
             break;
         }
         for (i = 0; i < 10; i++) {
-            cols[i] = rgb[0];
+            lineColors[i] = shades[0];
         }
         switch (DUEL->unk81D) {
         case 1:
-            cols[0] = rgb[1];
-            cols[1] = rgb[1];
-            cols[7] = rgb[1];
-            cols[8] = rgb[1];
-            cols[9] = rgb[1];
+            lineColors[0] = shades[1];
+            lineColors[1] = shades[1];
+            lineColors[7] = shades[1];
+            lineColors[8] = shades[1];
+            lineColors[9] = shades[1];
             break;
         case 2:
             for (i = 0; i < 10; i++) {
-                cols[i] = rgb[1];
+                lineColors[i] = shades[1];
             }
-            cols[1] = rgb[0];
+            lineColors[1] = shades[0];
             break;
         case 3:
         case 6:
-            cols[1] = rgb[1];
-            cols[7] = rgb[1];
-            cols[8] = rgb[1];
-            cols[9] = rgb[1];
+            lineColors[1] = shades[1];
+            lineColors[7] = shades[1];
+            lineColors[8] = shades[1];
+            lineColors[9] = shades[1];
             break;
         case 4:
             for (i = 0; i < 10; i++) {
-                cols[i] = rgb[1];
+                lineColors[i] = shades[1];
             }
-            cols[7] = rgb[0];
-            cols[8] = rgb[0];
+            lineColors[7] = shades[0];
+            lineColors[8] = shades[0];
             break;
         case 5:
             for (i = 0; i < 10; i++) {
-                cols[i] = rgb[1];
+                lineColors[i] = shades[1];
             }
-            cols[9] = rgb[0];
+            lineColors[9] = shades[0];
             break;
         }
         switch (PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].state) {
         case 0:
             card = (CardInfo *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            sprintf(buf, "*s0%2d", card->unk1B);
-            drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)buf, (s32 *)cols[0], 7, z);
-            sprintf(buf, "*s0%2d", card->level);
-            drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)buf, (s32 *)cols[1], 7, z);
+            sprintf(text, "*s0%2d", card->unk1B);
+            drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)text, (s32 *)lineColors[0], 7, z);
+            sprintf(text, "*s0%2d", card->level);
+            drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)text, (s32 *)lineColors[1], 7, z);
             if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
                 if (DUEL->unk81C < 4 && DUEL->unk81B == DUEL->unk817) {
                     if (DUEL->unk81D == 1) {
-                        shift = card->attr & 0xF;
+                        powerShift = card->attr & 0xF;
                     } else {
-                        shift = PLAYER(p)->unk178_15;
+                        powerShift = PLAYER(player)->unk178_15;
                     }
-                    shift--;
-                    color = 3;
-                    if (shift <= 0) {
-                        color = 7;
-                        shift = 0;
+                    powerShift--;
+                    valueColor = 3;
+                    if (powerShift <= 0) {
+                        valueColor = 7;
+                        powerShift = 0;
                     }
-                    sprintf(buf, "*s0%4d", (card->hp >> shift) / 10 * 10);
-                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], color, z);
+                    sprintf(text, "*s0%4d", (card->hp >> powerShift) / 10 * 10);
+                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)text, (s32 *)lineColors[2], valueColor, z);
                     for (i = 0; i < 3; i++) {
-                        sprintf(buf, "*s0%4d", (card->attack[i].power >> shift) / 10 * 10);
+                        sprintf(text, "*s0%4d", (card->attack[i].power >> powerShift) / 10 * 10);
                         x = panel->x;
                         y = panel->y;
-                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], color, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)text, (s32 *)lineColors[i + 3], valueColor, z);
                     }
                     drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
                 } else if (DUEL->unk81C == 6) {
-                    color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+                    valueColor = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
                     for (i = 0; i < 4; i++) {
-                        sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                        sprintf(text, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
                         x = panel->x;
                         y = panel->y;
-                        drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)text, (s32 *)lineColors[i + 2], valueColor, z);
                     }
                     drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
                 } else {
-                    sprintf(buf, "*s0%4d", card->hp);
-                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                    sprintf(text, "*s0%4d", card->hp);
+                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)text, (s32 *)lineColors[2], 7, z);
                     for (i = 0; i < 3; i++) {
-                        sprintf(buf, "*s0%4d", card->attack[i].power);
+                        sprintf(text, "*s0%4d", card->attack[i].power);
                         x = panel->x;
                         y = panel->y;
-                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)text, (s32 *)lineColors[i + 3], 7, z);
                     }
                     drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
                 }
             } else if (DUEL->unk81C == 6) {
-                color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+                valueColor = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
                 for (i = 0; i < 4; i++) {
-                    sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                    sprintf(text, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
                     x = panel->x;
                     y = panel->y;
-                    drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                    drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)text, (s32 *)lineColors[i + 2], valueColor, z);
                 }
                 drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
             } else {
-                sprintf(buf, "*s0%4d", card->hp);
-                drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                sprintf(text, "*s0%4d", card->hp);
+                drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)text, (s32 *)lineColors[2], 7, z);
                 for (i = 0; i < 3; i++) {
-                    sprintf(buf, "*s0%4d", card->attack[i].power);
+                    sprintf(text, "*s0%4d", card->attack[i].power);
                     x = panel->x;
                     y = panel->y;
-                    drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                    drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)text, (s32 *)lineColors[i + 3], 7, z);
                 }
                 drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
             }
-            drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, D_8006E47C[card->unkE4], 7, cols[6], z);
+            drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, CROSS_EFFECT_SHORT_NAMES[card->unkE4], 7, lineColors[6], z);
             if (D_8006E4FC[card->unkE4] != 0) {
                 drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->unkE4] + 0x14, z);
             }
@@ -359,32 +359,32 @@ void func_80039730(s32 n, s32 z) {
                 drawIcon(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)cols[7], 7, z);
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)lineColors[7], 7, z);
             }
             break;
         case 1: {
-            s8 *opt;
+            s8 *optionCard;
 
-            opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            drawText(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            optionCard = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 5, z);
-            if (opt[0x8C] != 0) {
-                drawIcon(panel->x + 0xE3, panel->y + 2, 0, opt[0x8C] + 0x14, z);
+            if (optionCard[0x8C] != 0) {
+                drawIcon(panel->x + 0xE3, panel->y + 2, 0, optionCard[0x8C] + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x8D + i * 21), (s32 *)cols[8], 7,
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(optionCard + 0x8D + i * 21), (s32 *)lineColors[8], 7,
                               z);
             }
             break;
         }
         case 2: {
-            s8 *opt;
+            s8 *optionCard;
 
-            opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            drawText(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            optionCard = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 6, z);
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x1B + i * 21), (s32 *)cols[9], 7,
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(optionCard + 0x1B + i * 21), (s32 *)lineColors[9], 7,
                               z);
             }
             break;
@@ -394,596 +394,596 @@ void func_80039730(s32 n, s32 z) {
     }
     case 1:
     case 7:
-        card = (CardInfo *)PLAYER(p)->cards[func_80040764(p) % 30].card;
-        color = PLAYER(p)->unk178_15 ? 3 : 7;
+        card = (CardInfo *)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card;
+        valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
         drawText(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
-        sprintf(buf, "*s0%4d", PLAYER(p)->unk11C[0]);
-        drawText(panel->x + 0x82, panel->y + 1, (s32)buf, color, z);
-        drawIconColored(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, rgb[0], z);
-        drawIconColored(panel->x + 0xB6, panel->y + 2, 0, PLAYER(p)->unk178_19, rgb[0], z);
+        sprintf(text, "*s0%4d", PLAYER(player)->unk11C[0]);
+        drawText(panel->x + 0x82, panel->y + 1, (s32)text, valueColor, z);
+        drawIconColored(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, shades[0], z);
+        drawIconColored(panel->x + 0xB6, panel->y + 2, 0, PLAYER(player)->unk178_19, shades[0], z);
         for (k = 0; k < 3; k++) {
             drawText(panel->x + 0x25, panel->y + 13 + k * 12, (s32)card->attack[k].name, 7, z);
-            sprintf(buf, "*s0%4d", PLAYER(p)->unk15C[k]);
-            drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)buf, color, z);
+            sprintf(text, "*s0%4d", PLAYER(player)->unk15C[k]);
+            drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)text, valueColor, z);
         }
-        drawText(panel->x + 0x47, panel->y + 0x32, (s32)D_8006E4BC[card->unkE4], 7, z);
+        drawText(panel->x + 0x47, panel->y + 0x32, (s32)CROSS_EFFECT_NAMES[card->unkE4], 7, z);
         if (D_8006E4FC[card->unkE4] != 0) {
             drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->unkE4] + 0x14, z);
         }
-        if (PLAYER(p)->unk178_2 != 3) {
-            if (PLAYER(p)->unk178_4 != PLAYER(p)->unk178_2) {
-                PLAYER(p)->unk16E = 0;
+        if (PLAYER(player)->unk178_2 != 3) {
+            if (PLAYER(player)->unk178_4 != PLAYER(player)->unk178_2) {
+                PLAYER(player)->unk16E = 0;
             }
-            PLAYER(p)->unk178_4 = PLAYER(p)->unk178_2;
-            if (PLAYER(p)->unk16E < 28) {
-                PLAYER(p)->unk16E++;
-                panel->clut = getClut(784, p * 8 + 0x1F0 + PLAYER(p)->unk16E / 4);
+            PLAYER(player)->unk178_4 = PLAYER(player)->unk178_2;
+            if (PLAYER(player)->unk16E < 28) {
+                PLAYER(player)->unk16E++;
+                panel->clut = getClut(784, player * 8 + 0x1F0 + PLAYER(player)->unk16E / 4);
             } else {
-                panel->clut = getClut(784, p * 8 + 0x1F7);
+                panel->clut = getClut(784, player * 8 + 0x1F7);
             }
         } else {
-            PLAYER(p)->unk178_4 = 3;
-            panel->clut = getClut(784, p * 8 + 0x1F0);
+            PLAYER(player)->unk178_4 = 3;
+            panel->clut = getClut(784, player * 8 + 0x1F0);
         }
-        rival = DUEL->unk817 != p;
-        func_80044504(panel->x + 0xA7, panel->y + 0x32, rival, 0x80, z);
+        isOpponent = DUEL->unk817 != player;
+        func_80044504(panel->x + 0xA7, panel->y + 0x32, isOpponent, 0x80, z);
         break;
     }
 }
 
-void func_8003B210(s32 c, s32 p) {
-    CardAnim *a;
+void tickCardMotion(s32 cardIndex, s32 player) {
+    CardAnim *anim;
 
-    a = (CardAnim *)(D_801D833C + c * 36);
-    a->spr->flags |= 0x80;
-    switch (SPRITE_KIND(c)) {
+    anim = (CardAnim *)(D_801D833C + cardIndex * 36);
+    anim->spr->flags |= 0x80;
+    switch (SPRITE_KIND(cardIndex)) {
     case 0:
-        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x80 + p * 0xBE;
-        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x54 + p * 0xE;
-        a->spr->pos.vz = 0;
-        UNK7F8(c).rx = 0x2000;
-        UNK7F8(c).ry = 0x2800;
-        UNK7F8(c).rz = 0x1C00;
-        a->spr->scale = 0x800;
-        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
-        a->count = 0;
+        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x80 + player * 0xBE;
+        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x54 + player * 0xE;
+        anim->spr->pos.vz = 0;
+        UNK7F8(cardIndex).rx = 0x2000;
+        UNK7F8(cardIndex).ry = 0x2800;
+        UNK7F8(cardIndex).rz = 0x1C00;
+        anim->spr->scale = 0x800;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
+        anim->count = 0;
         break;
     case 1:
     case 21:
     case 26:
-        ANIM_SAVE(a);
-        a->total = 0x10;
-        a->count = 0x10;
+        ANIM_SAVE(anim);
+        anim->total = 0x10;
+        anim->count = 0x10;
         playSoundEffect(0xA5);
-        a->state++;
+        anim->state++;
         break;
     case 2:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x90)->x - 0x80 + p * 0xBE);
-            ty = (s16)(SLOT(p, 0x90)->y - 0x54 + p * 0xE);
+            targetX = (s16)(SLOT(player, 0x90)->x - 0x80 + player * 0xBE);
+            targetY = (s16)(SLOT(player, 0x90)->y - 0x54 + player * 0xE);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x1C00;
-            sc = 0x800;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x800;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state = 0;
+            anim->state = 0;
         }
         break;
     case 3:
-        ANIM_SAVE(a);
-        a->total = 0x10;
-        a->count = 0x10;
+        ANIM_SAVE(anim);
+        anim->total = 0x10;
+        anim->count = 0x10;
         playSoundEffect(0xA5);
-        a->state++;
+        anim->state++;
     case 4:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B);
-            ty = (s16)(SLOT(p, 0x90)->y - 0x69 + p * 0x21);
+            targetX = (s16)(SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B);
+            targetY = (s16)(SLOT(player, 0x90)->y - 0x69 + player * 0x21);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
-            if (a->count != 0) {
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
+            if (anim->count != 0) {
                 break;
             }
         }
-        a->total = 4;
-        a->count = 4;
-        a->state++;
+        anim->total = 4;
+        anim->count = 4;
+        anim->state++;
         playSoundEffect(0xA7);
         break;
     case 5:
     case 13:
-        if (--a->count == 0) {
-            ANIM_SAVE(a);
-            a->total = 0xE;
-            a->count = 0xC;
-            a->state++;
+        if (--anim->count == 0) {
+            ANIM_SAVE(anim);
+            anim->total = 0xE;
+            anim->count = 0xC;
+            anim->state++;
         }
         break;
     case 6:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B);
-            ty = (s16)(SLOT(p, 0x90)->y - 0x61 + p * 0x11);
+            targetX = (s16)(SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B);
+            targetY = (s16)(SLOT(player, 0x90)->y - 0x61 + player * 0x11);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state++;
+            anim->state++;
             playSoundEffect(0xA7);
         }
         break;
     case 7:
-        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B;
-        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x61 + p * 0x11;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2000;
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x1000;
-        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
+        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B;
+        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x61 + player * 0x11;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2000;
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x1000;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
         break;
     case 8:
-        ANIM_SAVE(a);
-        a->total = 0x10;
-        a->count = 0x10;
+        ANIM_SAVE(anim);
+        anim->total = 0x10;
+        anim->count = 0x10;
         playSoundEffect(0xA5);
-        a->state++;
+        anim->state++;
     case 9:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x90)->x - 0x80 + p * 0xBE);
-            ty = (s16)(SLOT(p, 0x90)->y - 0x6C + p * 0xE);
+            targetX = (s16)(SLOT(player, 0x90)->x - 0x80 + player * 0xBE);
+            targetY = (s16)(SLOT(player, 0x90)->y - 0x6C + player * 0xE);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2400;
-            sc = 0x800;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x800;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state++;
+            anim->state++;
             playSoundEffect(0xA7);
         }
         break;
     case 10:
-        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x80 + p * 0xBE;
-        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x6C + p * 0xE;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2000;
-        a->spr->rot.vz = 0x2400;
-        a->spr->scale = 0x800;
-        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
+        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x80 + player * 0xBE;
+        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x6C + player * 0xE;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2000;
+        anim->spr->rot.vz = 0x2400;
+        anim->spr->scale = 0x800;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
         break;
     case 11:
-        ANIM_SAVE(a);
-        a->total = 0x10;
-        a->count = 0x10;
+        ANIM_SAVE(anim);
+        anim->total = 0x10;
+        anim->count = 0x10;
         playSoundEffect(0xA5);
-        a->state++;
+        anim->state++;
     case 12: {
-        s32 n;
+        s32 stackDepth;
         s32 i;
 
-            n = 0;
-            if (a->count != 0) {
-                s32 tx;
-                s32 ty;
+            stackDepth = 0;
+            if (anim->count != 0) {
+                s32 targetX;
+                s32 targetY;
                 s16 rx;
                 s16 ry;
                 s16 rz;
-                s16 sc;
+                s16 scale;
 
                 for (i = 2; i >= 0; i--) {
-                    if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
                         break;
                     }
-                    n++;
+                    stackDepth++;
                 }
-                tx = (s16)(SLOT(p, 0x48)->x + (s16)(n * 2 - 0x46) + (s16)((-0x40 - (n * 2 + 8) * 2) * p + 8));
-                ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+                targetX = (s16)(SLOT(player, 0x48)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - (stackDepth * 2 + 8) * 2) * player + 8));
+                targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
                 rx = 0x2000;
                 ry = 0x2000;
                 rz = 0x2000;
-                sc = 0x1000;
-                ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+                scale = 0x1000;
+                ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
             } else {
                 playSoundEffect(0xA7);
-                a->total = 4;
-                a->count = 4;
-                a->state++;
+                anim->total = 4;
+                anim->count = 4;
+                anim->state++;
             }
             break;
     }
     case 14: {
-        s32 n;
+        s32 stackDepth;
         s32 i;
 
-            n = 0;
-            if (a->count != 0) {
-                s32 tx;
-                s32 ty;
+            stackDepth = 0;
+            if (anim->count != 0) {
+                s32 targetX;
+                s32 targetY;
                 s16 rx;
                 s16 ry;
                 s16 rz;
-                s16 sc;
+                s16 scale;
 
                 for (i = 2; i >= 0; i--) {
-                    if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
                         break;
                     }
-                    n++;
+                    stackDepth++;
                 }
-                tx = (s16)(SLOT(p, 0x48)->x + (s16)(n * 2 - 0x46) + (s16)((-0x40 - n * 4) * p));
-                ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+                targetX = (s16)(SLOT(player, 0x48)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - stackDepth * 4) * player));
+                targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
                 rx = 0x2000;
                 ry = 0x2000;
                 rz = 0x2000;
-                sc = 0x1000;
-                ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+                scale = 0x1000;
+                ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
             } else {
-                a->state++;
+                anim->state++;
                 playSoundEffect(0xA7);
             }
             break;
     }
     case 15: {
-        s32 n;
+        s32 stackDepth;
         s32 i;
 
-            n = 0;
+            stackDepth = 0;
             for (i = 2; i >= 0; i--) {
-                if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
                     break;
                 }
-                n++;
+                stackDepth++;
             }
-            a->spr->pos.vx = SLOT(p, 0x48)->x - 0x46 + n * 2 + (-0x40 - n * 4) * p;
-            a->spr->pos.vy = SLOT(p, 0x48)->y - 0x54;
-            a->spr->pos.vz = 0;
-            a->spr->rot.vx = 0x2000;
-            a->spr->rot.vy = 0x2000;
-            a->spr->rot.vz = 0x2000;
-            a->spr->scale = 0x1000;
-            a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x48)->unkC;
+            anim->spr->pos.vx = SLOT(player, 0x48)->x - 0x46 + stackDepth * 2 + (-0x40 - stackDepth * 4) * player;
+            anim->spr->pos.vy = SLOT(player, 0x48)->y - 0x54;
+            anim->spr->pos.vz = 0;
+            anim->spr->rot.vx = 0x2000;
+            anim->spr->rot.vy = 0x2000;
+            anim->spr->rot.vz = 0x2000;
+            anim->spr->scale = 0x1000;
+            anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->unkC;
             break;
     }
     case 16:
-        ANIM_SAVE(a);
-        a->total = 0x10;
-        a->count = 0x10;
-        if (a->spr->rot.vy == 0x2000) {
+        ANIM_SAVE(anim);
+        anim->total = 0x10;
+        anim->count = 0x10;
+        if (anim->spr->rot.vy == 0x2000) {
             playSoundEffect(0xA5);
         } else {
             playSoundEffect(0xA6);
         }
-        a->state++;
+        anim->state++;
         break;
     case 17:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
-            ty = (s16)(SLOT(p, 0x6C)->y - 0x50 + p * -0x3E);
+            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
+            targetY = (s16)(SLOT(player, 0x6C)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
             playSoundEffect(0xA7);
-            a->total = 4;
-            a->count = 4;
-            a->state++;
+            anim->total = 4;
+            anim->count = 4;
+            anim->state++;
         }
         break;
     case 18:
-        if (--a->count == 0) {
-            ANIM_SAVE(a);
-            a->total = 4;
-            a->count = 4;
-            a->state++;
+        if (--anim->count == 0) {
+            ANIM_SAVE(anim);
+            anim->total = 4;
+            anim->count = 4;
+            anim->state++;
         }
         break;
     case 19:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
-            ty = (s16)(SLOT(p, 0x6C)->y - 0x58 + p * -0x2E);
+            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
+            targetY = (s16)(SLOT(player, 0x6C)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state++;
+            anim->state++;
             playSoundEffect(0xA7);
         }
         break;
     case 20:
-        a->spr->pos.vx = SLOT(p, 0x6C)->x - p - 0x89;
-        a->spr->pos.vy = SLOT(p, 0x6C)->y - p * 0x2E - 0x58;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2000;
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x1000;
-        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x6C)->unkC;
+        anim->spr->pos.vx = SLOT(player, 0x6C)->x - player - 0x89;
+        anim->spr->pos.vy = SLOT(player, 0x6C)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2000;
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x1000;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x6C)->unkC;
         break;
     case 22:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
-            ty = (s16)(SLOT(p, 0x6C)->y - 0x50 + p * -0x3E);
+            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
+            targetY = (s16)(SLOT(player, 0x6C)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->total = 0x20;
-            a->count = 0x20;
-            a->state++;
+            anim->total = 0x20;
+            anim->count = 0x20;
+            anim->state++;
         }
         break;
     case 23:
-        if (a->count != 0) {
-            a->count--;
-            ANIM_SAVE(a);
-            a->total = 4;
-            a->count = 4;
-            a->state++;
+        if (anim->count != 0) {
+            anim->count--;
+            ANIM_SAVE(anim);
+            anim->total = 4;
+            anim->count = 4;
+            anim->state++;
         }
         break;
     case 24:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
-            ty = (s16)(SLOT(p, 0x6C)->y - 0x58 + p * -0x2E);
+            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
+            targetY = (s16)(SLOT(player, 0x6C)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
-            sc = 0x1000;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x1000;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state++;
+            anim->state++;
             playSoundEffect(0xA7);
         }
         break;
     case 25:
-        a->spr->pos.vx = SLOT(p, 0x6C)->x - p - 0x89;
-        a->spr->pos.vy = SLOT(p, 0x6C)->y - p * 0x2E - 0x58;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2800;
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x1000;
+        anim->spr->pos.vx = SLOT(player, 0x6C)->x - player - 0x89;
+        anim->spr->pos.vy = SLOT(player, 0x6C)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2800;
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x1000;
         break;
     case 27:
-        if (a->count != 0) {
-            s32 tx;
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetX;
+            s32 targetY;
             s16 rx;
             s16 ry;
             s16 rz;
-            s16 sc;
+            s16 scale;
 
-            tx = (s16)(SLOT(p, 0x48)->x - 0x94 + p * 0x5D);
-            ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+            targetX = (s16)(SLOT(player, 0x48)->x - 0x94 + player * 0x5D);
+            targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
-            sc = 0x800;
-            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            scale = 0x800;
+            ANIM_STEP(anim, targetX, targetY, rx, ry, rz, scale);
         } else {
-            a->state++;
-            func_80039220(p);
+            anim->state++;
+            showDpGainPopup(player);
             playSoundEffect(0xA7);
         }
         break;
     case 28:
-        a->spr->pos.vx = SLOT(p, 0x48)->x - 0x94 + p * 0x5D;
-        a->spr->pos.vy = SLOT(p, 0x48)->y - 0x54;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2000;
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x800;
-        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x48)->unkC;
+        anim->spr->pos.vx = SLOT(player, 0x48)->x - 0x94 + player * 0x5D;
+        anim->spr->pos.vy = SLOT(player, 0x48)->y - 0x54;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2000;
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x800;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->unkC;
         break;
     case 29:
-        ANIM_SAVE(a);
-        a->total = 0x20;
-        a->count = 0x20;
-        a->state++;
+        ANIM_SAVE(anim);
+        anim->total = 0x20;
+        anim->count = 0x20;
+        anim->state++;
         break;
     case 30:
-        if (a->count != 0) {
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetY;
             s16 r;
 
-            ty = (s16)(0x3C - p * 0x78);
+            targetY = (s16)(0x3C - player * 0x78);
             r = 0x2000;
-            ANIM_STEP(a, 0, ty, r, r, r, r);
+            ANIM_STEP(anim, 0, targetY, r, r, r, r);
         } else {
-            a->state++;
+            anim->state++;
         }
         break;
     case 31:
-        a->spr->pos.vx = 0;
-        a->spr->pos.vy = 0x3C - p * 0x78;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2000;
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x2000;
+        anim->spr->pos.vx = 0;
+        anim->spr->pos.vy = 0x3C - player * 0x78;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2000;
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x2000;
         break;
     case 32:
-        ANIM_SAVE(a);
-        a->total = 0x20;
-        a->count = 0x20;
+        ANIM_SAVE(anim);
+        anim->total = 0x20;
+        anim->count = 0x20;
         playSoundEffect(0xA6);
-        a->state++;
+        anim->state++;
         break;
     case 33:
-        if (a->count != 0) {
-            s32 ty;
+        if (anim->count != 0) {
+            s32 targetY;
             s16 ry;
 
             s16 r;
 
-            ty = (s16)(0xA0 - p * 0x140);
+            targetY = (s16)(0xA0 - player * 0x140);
             r = 0x2000;
-            ry = 0x2800 - (p << 12);
-            ANIM_STEP(a, 0, ty, r, ry, r, r);
+            ry = 0x2800 - (player << 12);
+            ANIM_STEP(anim, 0, targetY, r, ry, r, r);
         } else {
-            a->state++;
+            anim->state++;
         }
         break;
     case 34:
-        a->spr->pos.vx = 0;
-        a->spr->pos.vy = 0xA0 - p * 0x140;
-        a->spr->pos.vz = 0;
-        a->spr->rot.vx = 0x2000;
-        a->spr->rot.vy = 0x2800 - (p << 12);
-        a->spr->rot.vz = 0x2000;
-        a->spr->scale = 0x2000;
+        anim->spr->pos.vx = 0;
+        anim->spr->pos.vy = 0xA0 - player * 0x140;
+        anim->spr->pos.vz = 0;
+        anim->spr->rot.vx = 0x2000;
+        anim->spr->rot.vy = 0x2800 - (player << 12);
+        anim->spr->rot.vz = 0x2000;
+        anim->spr->scale = 0x2000;
         break;
     }
 }
 
-void func_8003D4C4(void) {
-    char buf[8];
-    Rect16 rect;
-    u8 rgb[4] = "@@@";
+void renderBoardCards(void) {
+    char text[8];
+    Rect16 hpLabelRect;
+    u8 labelRgb[4] = "@@@";
     s32 i;
     s32 j;
-    s32 done;
-    s8 c;
-    s32 color;
+    s32 hpLabelDrawn;
+    s8 card;
+    s32 hpColor;
     s32 z;
 
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 30; j++) {
-            func_8003B210(i * 30 + j, i);
+            tickCardMotion(i * 30 + j, i);
         }
     }
     resetCardPolyCount();
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 8; j++) {
-            c = PLAYER(i)->unk1C2[j];
-            if (c >= 0) {
-                renderCardSprite(SPRITE(c), c);
-                if (SPRITE_KIND(c) == 0x1C) {
+            card = PLAYER(i)->unk1C2[j];
+            if (card >= 0) {
+                renderCardSprite(SPRITE(card), card);
+                if (SPRITE_KIND(card) == 0x1C) {
                     break;
                 }
             }
         }
-        c = PLAYER(i)->unk1CD;
-        if (c >= 0) {
-            renderCardSprite(SPRITE(c), c);
+        card = PLAYER(i)->unk1CD;
+        if (card >= 0) {
+            renderCardSprite(SPRITE(card), card);
         }
-        done = 0;
+        hpLabelDrawn = 0;
         for (j = 0; j < 3; j++) {
-            c = PLAYER(i)->unk1CA[j];
-            if (c >= 0) {
-                if (!done) {
-                    ((u8 *)SPRITE(c))[0x14] = PLAYER(i)->unk178_19;
-                    done = 1;
-                    if (SPRITE_KIND(c) < 0x1D) {
-                        color = PLAYER(i)->unk178_15 ? 3 : 7;
-                        projectCardSprite(SPRITE(c), c);
-                        z = *(s32 *)((u8 *)SPRITE(c) + 0x38);
-                        drawIcon(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30, 0,
+            card = PLAYER(i)->unk1CA[j];
+            if (card >= 0) {
+                if (!hpLabelDrawn) {
+                    ((u8 *)SPRITE(card))[0x14] = PLAYER(i)->unk178_19;
+                    hpLabelDrawn = 1;
+                    if (SPRITE_KIND(card) < 0x1D) {
+                        hpColor = PLAYER(i)->unk178_15 ? 3 : 7;
+                        projectCardSprite(SPRITE(card), card);
+                        z = *(s32 *)((u8 *)SPRITE(card) + 0x38);
+                        drawIcon(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30, 0,
                                       0x1A, z);
-                        sprintf(buf, "%4d", PLAYER(i)->unk126[0]);
-                        drawText(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
-                                      (s32)buf, color, z);
-                        rect.x = 0x60;
-                        rect.y = 0xDB;
-                        rect.w = 0x26;
-                        rect.h = 0xC;
-                        drawPageSpriteColored(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
-                                      &rect, rgb, getTPage(0, 2, SYSTEM_TEX_X, SYSTEM_TEX_Y), 0xC, z);
-                        done = 1;
+                        sprintf(text, "%4d", PLAYER(i)->unk126[0]);
+                        drawText(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30,
+                                      (s32)text, hpColor, z);
+                        hpLabelRect.x = 0x60;
+                        hpLabelRect.y = 0xDB;
+                        hpLabelRect.w = 0x26;
+                        hpLabelRect.h = 0xC;
+                        drawPageSpriteColored(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30,
+                                      &hpLabelRect, labelRgb, getTPage(0, 2, SYSTEM_TEX_X, SYSTEM_TEX_Y), 0xC, z);
+                        hpLabelDrawn = 1;
                     }
                 }
-                renderCardSprite(SPRITE(c), c);
+                renderCardSprite(SPRITE(card), card);
             }
         }
         for (j = 0; j < 30; j++) {
-            c = PLAYER(i)->unk19B[j];
-            if (c >= 0) {
-                renderCardSprite(SPRITE(c), c);
-                if (SPRITE_KIND(c) == 10) {
+            card = PLAYER(i)->unk19B[j];
+            if (card >= 0) {
+                renderCardSprite(SPRITE(card), card);
+                if (SPRITE_KIND(card) == 10) {
                     break;
                 }
             }
         }
         for (j = 3; j >= 0; j--) {
-            c = PLAYER(i)->unk1B9[j];
-            if (c >= 0) {
-                renderCardSprite(SPRITE(c), c);
+            card = PLAYER(i)->unk1B9[j];
+            if (card >= 0) {
+                renderCardSprite(SPRITE(card), card);
             }
         }
         for (j = 0; j < 30; j++) {
-            c = PLAYER(i)->unk17D[j];
-            if (c >= 0) {
-                renderCardSprite(SPRITE(c), c);
-                if (SPRITE_KIND(c) == 0) {
+            card = PLAYER(i)->unk17D[j];
+            if (card >= 0) {
+                renderCardSprite(SPRITE(card), card);
+                if (SPRITE_KIND(card) == 0) {
                     break;
                 }
             }
@@ -994,354 +994,354 @@ void func_8003D4C4(void) {
 /* the original file padded its strings with an empty word here */
 __asm__(".section .rodata\n\t.word 0\n\t.section .text\n");
 
-void func_8003D9C0(Panel *p, s16 x, s16 y, s32 speed) {
-    if (speed == 0) {
-        speed = 1;
+void startPanelMove(Panel *panel, s16 targetX, s16 targetY, s32 frames) {
+    if (frames == 0) {
+        frames = 1;
     }
-    p->unkC |= 0x80;
-    if (p->parent != 0) {
-        p->unkC = p->parent->unkC;
-        p->unk18 = p->unk10 - p->parent->unk10;
-        p->unk1A = p->unk12 - p->parent->unk12;
+    panel->unkC |= 0x80;
+    if (panel->parent != 0) {
+        panel->unkC = panel->parent->unkC;
+        panel->unk18 = panel->unk10 - panel->parent->unk10;
+        panel->unk1A = panel->unk12 - panel->parent->unk12;
     } else {
-        p->unk18 = p->unk10;
-        p->unk1A = p->unk12;
+        panel->unk18 = panel->unk10;
+        panel->unk1A = panel->unk12;
     }
-    p->unk14 = x;
-    p->unk16 = y;
-    p->unkE = speed;
-    p->unkF = speed;
-    p->unkD++;
+    panel->unk14 = targetX;
+    panel->unk16 = targetY;
+    panel->unkE = frames;
+    panel->unkF = frames;
+    panel->unkD++;
 }
 
-s32 func_8003DA64(Panel *p) {
-    s16 px;
-    s16 py;
+s32 stepPanelMove(Panel *panel) {
+    s16 parentX;
+    s16 parentY;
 
-    px = 0;
-    py = 0;
-    p->unkF--;
-    if (p->parent != 0) {
-        p->unkC = p->parent->unkC;
-        px = p->parent->unk10;
-        py = p->parent->unk12;
+    parentX = 0;
+    parentY = 0;
+    panel->unkF--;
+    if (panel->parent != 0) {
+        panel->unkC = panel->parent->unkC;
+        parentX = panel->parent->unk10;
+        parentY = panel->parent->unk12;
     }
-    p->unk10 = px + (p->unk14 - (p->unk14 - p->unk18) * p->unkF / p->unkE);
-    p->unk12 = py + (p->unk16 - (p->unk16 - p->unk1A) * p->unkF / p->unkE);
-    if (p->unkF == 0) {
-        p->unkD++;
+    panel->unk10 = parentX + (panel->unk14 - (panel->unk14 - panel->unk18) * panel->unkF / panel->unkE);
+    panel->unk12 = parentY + (panel->unk16 - (panel->unk16 - panel->unk1A) * panel->unkF / panel->unkE);
+    if (panel->unkF == 0) {
+        panel->unkD++;
     }
-    return p->unkF;
+    return panel->unkF;
 }
 
-void func_8003DB64(Panel *p) {
+void holdPanelAtTarget(Panel *panel) {
     s16 x;
     s16 y;
 
-    x = p->unk14;
-    y = p->unk16;
-    if (p->parent != 0) {
-        p->unkC = p->parent->unkC;
-        x += p->parent->unk10;
-        y += p->parent->unk12;
+    x = panel->unk14;
+    y = panel->unk16;
+    if (panel->parent != 0) {
+        panel->unkC = panel->parent->unkC;
+        x += panel->parent->unk10;
+        y += panel->parent->unk12;
     }
-    p->unk10 = x;
-    p->unk12 = y;
+    panel->unk10 = x;
+    panel->unk12 = y;
 }
 
-void func_8003DBBC(s32 arg0) {
-    void *p;
+void tickDeckPanel(s32 player) {
+    void *panel;
 
-    p = D_801D83EC + (arg0 * 0xD8 + 0x90);
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + (player * 0xD8 + 0x90);
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)p + 0x10)) = 0x20;
-        (*(s16 *)((s8 *)p + 0x12)) = arg0 * -0x12F + 0xF0;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)panel + 0x10)) = 0x20;
+        (*(s16 *)((s8 *)panel + 0x12)) = player * -0x12F + 0xF0;
         break;
     case 1:
-        (D_801D83EC + arg0 * 0xD8)[0x55] = 1;
-        (D_801D83EC + arg0 * 0xD8)[0xD] = 5;
-        (*(u8 *)((s8 *)p + 0xD)) += 1;
+        (D_801D83EC + player * 0xD8)[0x55] = 1;
+        (D_801D83EC + player * 0xD8)[0xD] = 5;
+        (*(u8 *)((s8 *)panel + 0xD)) += 1;
         break;
     case 2:
-        func_8003D9C0(p, 0x20, -(arg0 * 0x7D) + 0x99, 0x10);
+        startPanelMove(panel, 0x20, -(player * 0x7D) + 0x99, 0x10);
         break;
     case 3:
-        func_8003DA64(p);
+        stepPanelMove(panel);
         break;
     case 4:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 7:
-        (D_801D83EC + arg0 * 0xD8)[0x55] = 6;
-        (D_801D83EC + arg0 * 0xD8)[0xD] = 5;
-        (*(u8 *)((s8 *)p + 0xD)) = 2;
+        (D_801D83EC + player * 0xD8)[0x55] = 6;
+        (D_801D83EC + player * 0xD8)[0xD] = 5;
+        (*(u8 *)((s8 *)panel + 0xD)) = 2;
         break;
     case 11:
-        func_8003D9C0(p, 0xE8, -(arg0 * 0x7D) + 0x99, 0x10);
+        startPanelMove(panel, 0xE8, -(player * 0x7D) + 0x99, 0x10);
         break;
     case 12:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     }
 }
 
-void func_8003DD9C(s32 arg0) {
-    void *p;
+void func_8003DD9C(s32 player) {
+    void *panel;
     s32 y;
 
-    p = D_801D83EC + (arg0 * 0xD8 + 0xB4);
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + (player * 0xD8 + 0xB4);
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)p + 0x10)) = 0x164;
-        y = 0x31 - arg0 * 0x31;
-        (*(s16 *)((s8 *)p + 0x12)) = y;
-        func_8003D9C0(p, 0x164, y, 0);
-        func_8003DA64(p);
-        (*(u8 *)((s8 *)p + 0xD)) = 0;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)panel + 0x10)) = 0x164;
+        y = 0x31 - player * 0x31;
+        (*(s16 *)((s8 *)panel + 0x12)) = y;
+        startPanelMove(panel, 0x164, y, 0);
+        stepPanelMove(panel);
+        (*(u8 *)((s8 *)panel + 0xD)) = 0;
         break;
     case 1:
-        func_8003D9C0(p, 0x100, 0x31 - arg0 * 0x31, 8);
+        startPanelMove(panel, 0x100, 0x31 - player * 0x31, 8);
         break;
     case 2:
-        if (func_8003DA64(p) == 0) {
+        if (stepPanelMove(panel) == 0) {
             playSoundEffect(0xA7);
         }
         break;
     case 3:
-        func_8003D9C0(p, 0xF9, 0x31 - arg0 * 0x31, 8);
+        startPanelMove(panel, 0xF9, 0x31 - player * 0x31, 8);
         break;
     case 4:
-        func_8003DA64(p);
+        stepPanelMove(panel);
         break;
     case 5:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 6:
-        func_8003D9C0(p, 0x164, 0x31 - arg0 * 0x31, 8);
+        startPanelMove(panel, 0x164, 0x31 - player * 0x31, 8);
         break;
     case 7:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     }
 }
 
-void func_8003DF48(s32 arg0) {
-    void *p;
+void tickStatusPanel(s32 player) {
+    void *panel;
 
-    p = D_801D83EC + (arg0 * 0xD8 + 0x48);
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + (player * 0xD8 + 0x48);
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)p + 0x10)) = arg0 * 0x2A0 - 0xEC;
-        (*(s16 *)((s8 *)p + 0x12)) = 0x5C;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)panel + 0x10)) = player * 0x2A0 - 0xEC;
+        (*(s16 *)((s8 *)panel + 0x12)) = 0x5C;
         break;
     case 1:
-        func_8003D9C0(p, arg0 * 0x7C + 0x28, 0x5C, 0x10);
-        (D_801D83EC + arg0 * 0xD8)[0x79] = 4;
+        startPanelMove(panel, player * 0x7C + 0x28, 0x5C, 0x10);
+        (D_801D83EC + player * 0xD8)[0x79] = 4;
         break;
     case 2:
-        func_8003DA64(p);
+        stepPanelMove(panel);
         break;
     case 3:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 4:
-        func_8003D9C0(p, arg0 * 0x2A0 - 0xEC, 0x5C, 0x10);
+        startPanelMove(panel, player * 0x2A0 - 0xEC, 0x5C, 0x10);
         break;
     case 5:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     case 6:
-        func_8003D9C0(p, arg0 * 0xCC, 0x5C, 0x10);
+        startPanelMove(panel, player * 0xCC, 0x5C, 0x10);
         break;
     case 7:
-        if (func_8003DA64(p) == 0) {
-            (D_801D83EC + arg0 * 0xD8)[0x79] = 1;
+        if (stepPanelMove(panel) == 0) {
+            (D_801D83EC + player * 0xD8)[0x79] = 1;
         }
         break;
     case 8:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     }
 }
 
-void func_8003E11C(s32 arg0) {
-    void *p;
+void func_8003E11C(s32 player) {
+    void *panel;
     s32 x;
     s32 y;
 
-    p = D_801D83EC + (arg0 * 0xD8 + 0x6C);
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + (player * 0xD8 + 0x6C);
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        x = -(arg0 * 0x41) + 0x44;
-        (*(s16 *)((s8 *)p + 0x10)) = x;
-        y = arg0 * 0x1E + 0xA;
-        (*(s16 *)((s8 *)p + 0x12)) = y;
-        func_8003D9C0(p, x, y, 0);
-        func_8003DA64(p);
-        (*(u8 *)((s8 *)p + 0xD)) = 0;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        x = -(player * 0x41) + 0x44;
+        (*(s16 *)((s8 *)panel + 0x10)) = x;
+        y = player * 0x1E + 0xA;
+        (*(s16 *)((s8 *)panel + 0x12)) = y;
+        startPanelMove(panel, x, y, 0);
+        stepPanelMove(panel);
+        (*(u8 *)((s8 *)panel + 0xD)) = 0;
         break;
     case 1:
-        func_8003D9C0(p, -(arg0 * 0xA1) + 0x74, arg0 * 0x1E + 0xA, 8);
+        startPanelMove(panel, -(player * 0xA1) + 0x74, player * 0x1E + 0xA, 8);
         break;
     case 2:
-        if (func_8003DA64(p) == 0) {
+        if (stepPanelMove(panel) == 0) {
             playSoundEffect(0xA7);
         }
         break;
     case 3:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 4:
-        func_8003D9C0(p, -(arg0 * 0x41) + 0x44, arg0 * 0x1E + 0xA, 8);
+        startPanelMove(panel, -(player * 0x41) + 0x44, player * 0x1E + 0xA, 8);
         break;
     case 5:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     }
 }
 
-void func_8003E298(s32 arg0) {
-    void *p;
+void tickAttackPanel(s32 player) {
+    void *panel;
 
-    p = D_801D83EC + (arg0 * 0xD8 + 0x24);
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + (player * 0xD8 + 0x24);
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)p + 0x10)) = 0x38;
-        (*(s16 *)((s8 *)p + 0x12)) = arg0 * -0x12F + 0xF0;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)panel + 0x10)) = 0x38;
+        (*(s16 *)((s8 *)panel + 0x12)) = player * -0x12F + 0xF0;
         break;
     case 1:
-        func_8003D9C0(p, 0x38, arg0 * -0x7F + 0x99, 0x10);
+        startPanelMove(panel, 0x38, player * -0x7F + 0x99, 0x10);
         break;
     case 2:
-        func_8003DA64(p);
+        stepPanelMove(panel);
         break;
     case 3:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 4:
-        func_8003D9C0(p, 0x38, arg0 * -0x12F + 0xF0, 0x10);
+        startPanelMove(panel, 0x38, player * -0x12F + 0xF0, 0x10);
         break;
     case 5:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     }
 }
 
-void func_8003E3C8(s32 arg0) {
-    void *p;
+void tickCardInfoPanel(s32 player) {
+    void *panel;
 
-    p = D_801D83EC + arg0 * 0xD8;
-    switch ((*(u8 *)((s8 *)p + 0xD))) {
+    panel = D_801D83EC + player * 0xD8;
+    switch ((*(u8 *)((s8 *)panel + 0xD))) {
     case 0:
-        (*(u8 *)((s8 *)p + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)p + 0x10)) = -0xFF;
-        (*(s16 *)((s8 *)p + 0x12)) = arg0 * 0x7E + 0x16;
+        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        (*(s16 *)((s8 *)panel + 0x10)) = -0xFF;
+        (*(s16 *)((s8 *)panel + 0x12)) = player * 0x7E + 0x16;
         break;
     case 1:
-        func_8003D9C0(p, 0x22, 0x16, 0xC);
-        (*(u8 *)((s8 *)p + 0xD)) = 3;
+        startPanelMove(panel, 0x22, 0x16, 0xC);
+        (*(u8 *)((s8 *)panel + 0xD)) = 3;
         break;
     case 2:
-        func_8003D9C0(p, 0x22, 0x94, 0xA);
-        (*(u8 *)((s8 *)p + 0xD)) = 3;
+        startPanelMove(panel, 0x22, 0x94, 0xA);
+        (*(u8 *)((s8 *)panel + 0xD)) = 3;
         break;
     case 3:
-        func_8003DA64(p);
+        stepPanelMove(panel);
         break;
     case 4:
-        func_8003DB64(p);
+        holdPanelAtTarget(panel);
         break;
     case 5:
-        func_8003D9C0(p, -0xFF, (*(s16 *)((s8 *)p + 0x12)), 0xC);
+        startPanelMove(panel, -0xFF, (*(s16 *)((s8 *)panel + 0x12)), 0xC);
         break;
     case 6:
-        if (func_8003DA64(p) == 0) {
-            (*(u8 *)((s8 *)p + 0xD)) = 0;
+        if (stepPanelMove(panel) == 0) {
+            (*(u8 *)((s8 *)panel + 0xD)) = 0;
         }
         break;
     }
 }
 
-void func_8003E4F0(void) {
-    s32 p;
+void tickBattleHud(void) {
+    s32 player;
     s32 i;
-    s32 d;
+    s32 delta;
     s32 step;
-    s32 count;
+    s32 rollingCount;
 
     for (i = 0; i < 2; i++) {
-        func_8003DBBC(i);
+        tickDeckPanel(i);
         func_8003DD9C(i);
-        func_8003E298(i);
-        func_8003DF48(i);
+        tickAttackPanel(i);
+        tickStatusPanel(i);
         func_8003E11C(i);
-        func_8003E3C8(i);
+        tickCardInfoPanel(i);
     }
-    for (p = 0; p < 2; p++) {
-        PLAYER(p)->unk11C[4] = func_8004110C(p);
-        if (func_80040764(p) == -1) {
+    for (player = 0; player < 2; player++) {
+        PLAYER(player)->unk11C[4] = sumDigivolvePoints(player);
+        if (getActiveDigimonCard(player) == -1) {
             for (i = 0; i < 4; i++) {
-                PLAYER(p)->unk126[i] = 0;
-                PLAYER(p)->unk11C[i] = 0;
+                PLAYER(player)->unk126[i] = 0;
+                PLAYER(player)->unk11C[i] = 0;
             }
         }
         for (i = 0; i < 5; i++) {
-            d = PLAYER(p)->unk126[i] - PLAYER(p)->unk11C[i];
-            step = (d < 0 ? -d : d) / 16 + 1;
-            if (PLAYER(p)->unk126[i] < PLAYER(p)->unk11C[i]) {
-                PLAYER(p)->unk126[i] += step;
-                if (PLAYER(p)->unk126[i] > PLAYER(p)->unk11C[i]) {
-                    PLAYER(p)->unk126[i] = PLAYER(p)->unk11C[i];
+            delta = PLAYER(player)->unk126[i] - PLAYER(player)->unk11C[i];
+            step = (delta < 0 ? -delta : delta) / 16 + 1;
+            if (PLAYER(player)->unk126[i] < PLAYER(player)->unk11C[i]) {
+                PLAYER(player)->unk126[i] += step;
+                if (PLAYER(player)->unk126[i] > PLAYER(player)->unk11C[i]) {
+                    PLAYER(player)->unk126[i] = PLAYER(player)->unk11C[i];
                 }
-            } else if (PLAYER(p)->unk126[i] > PLAYER(p)->unk11C[i]) {
-                PLAYER(p)->unk126[i] -= step;
-                if (PLAYER(p)->unk126[i] < PLAYER(p)->unk11C[i]) {
-                    PLAYER(p)->unk126[i] = PLAYER(p)->unk11C[i];
+            } else if (PLAYER(player)->unk126[i] > PLAYER(player)->unk11C[i]) {
+                PLAYER(player)->unk126[i] -= step;
+                if (PLAYER(player)->unk126[i] < PLAYER(player)->unk11C[i]) {
+                    PLAYER(player)->unk126[i] = PLAYER(player)->unk11C[i];
                 }
             }
         }
     }
-    count = 0;
-    for (p = 0; p < 2; p++) {
+    rollingCount = 0;
+    for (player = 0; player < 2; player++) {
         for (i = 0; i < 5; i++) {
-            if (PLAYER(p)->unk126[i] != PLAYER(p)->unk11C[i]) {
-                count++;
+            if (PLAYER(player)->unk126[i] != PLAYER(player)->unk11C[i]) {
+                rollingCount++;
             }
         }
     }
-    if (count != 0 && !(((Unk8006E050 *)PLAYER_PROFILES)->unk24 & 3)) {
+    if (rollingCount != 0 && !(((Unk8006E050 *)PLAYER_PROFILES)->unk24 & 3)) {
         playSoundEffect(0xAA);
     }
-    func_800395A0();
+    renderStatPopups();
     for (i = 0; i < 12; i++) {
         if (PANEL(i).flags & 0x80) {
             drawHudSprite((SprtInfo *)&PANEL(i), i, i * 2 + PANEL(i).z + 1);
-            func_80039730(i, i * 2 + PANEL(i).z);
+            drawHudPanelContents(i, i * 2 + PANEL(i).z);
         }
     }
 }
 
-void func_8003E844(s32 arg0) {
-    void *p;
+void initDuelState(s32 isCpuDuel) {
+    void *block;
 
-    D_801D833C = p = allocTaskHeapBlock(0x870);
-    D_801D8340 = p = allocTaskHeapBlock(0x86C);
+    D_801D833C = block = allocTaskHeapBlock(0x870);
+    D_801D8340 = block = allocTaskHeapBlock(0x86C);
     (*(s32 *)((s8 *)D_801D8340 + 0x7F8)) = func_801F8854();
     (*(s8 *)((s8 *)D_801D8340 + 0x817)) = (s8) (rand() % 2);
     (*(s8 *)((s8 *)D_801D8340 + 0x818)) = 0;
@@ -1355,72 +1355,72 @@ void func_8003E844(s32 arg0) {
     (*(s8 *)((s8 *)D_801D8340 + 0x824)) = 0;
     (*(s8 *)((s8 *)D_801D8340 + 0x820)) = 0;
     func_801F8200();
-    func_8003FB3C(arg0);
+    initDuelPlayers(isCpuDuel);
     (*(s8 *)((s8 *)D_801D8340 + 0x81D)) = -1;
 }
 
-void func_8003E94C(void) {
-    Unk800794F8 *p;
+void startDuelScene(void) {
+    Unk800794F8 *camera;
 
     initScene3D(0);
     func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
     func_80014C08(2);
-    p = (Unk800794F8 *)&GRAPHICS;
-    p->unk54 = 0;
-    p->unk56 = 0;
-    p->unk58 = 0;
-    p->unk7C = 0;
-    p->unk80 = 0;
-    p->unk84 = 0;
-    p->unk8E = 0;
-    p->unk90 = 0x1C0;
-    p->unk92 = 0;
-    p->unk94 = 0;
-    p->unk8C = -1;
-    p->unk74 = 1;
+    camera = (Unk800794F8 *)&GRAPHICS;
+    camera->unk54 = 0;
+    camera->unk56 = 0;
+    camera->unk58 = 0;
+    camera->unk7C = 0;
+    camera->unk80 = 0;
+    camera->unk84 = 0;
+    camera->unk8E = 0;
+    camera->unk90 = 0x1C0;
+    camera->unk92 = 0;
+    camera->unk94 = 0;
+    camera->unk8C = -1;
+    camera->unk74 = 1;
     (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
     func_80014C08(2);
 }
 
-void func_8003E9F4(s32 arg0) {
-    s32 var_a0;
-    s32 var_v1;
+void spawnDuelTasks(s32 isCpuDuel) {
+    s32 stageId;
+    s32 stageArg;
 
     (*(s32 *)((s8 *)D_801D8340 + 0x58)) = func_801F8998(0, 0x26, 0x2E, 0xA, 1);
-    func_800149B8(0x1E, -1, 0, 0x800, &func_80034260, 0, 0, 0, 0);
-    if ((arg0 != 0) && ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) == 0)) {
-        func_800149B8(0, -1, 0, 0x800, func_80038F68, 0, 0, 0, 0);
+    func_800149B8(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
+    if ((isCpuDuel != 0) && ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) == 0)) {
+        func_800149B8(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
     }
     func_800149B8(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
-    if (arg0 != 0) {
-        var_a0 = (*(u8 *)((s8 *)D_8006E054 + 0x72));
-        var_v1 = (*(u8 *)((s8 *)D_8006E054 + 0x71));
+    if (isCpuDuel != 0) {
+        stageId = (*(u8 *)((s8 *)D_8006E054 + 0x72));
+        stageArg = (*(u8 *)((s8 *)D_8006E054 + 0x71));
     } else {
-        var_a0 = -1;
-        var_v1 = -1;
+        stageId = -1;
+        stageArg = -1;
     }
-    func_800149B8(0, -1, 0, 0x1000, &runDuelStageTask, var_a0, var_v1, 0, 0);
+    func_800149B8(0, -1, 0, 0x1000, &runDuelStageTask, stageId, stageArg, 0, 0);
 }
 
-void func_8003EB50(void) {
+void teardownDuelScene(void) {
     func_80014A00(0x19);
     func_801F848C();
     func_801F88E8();
     freeHeapBlocksByTag(0x7F);
 }
 
-void func_8003EB88(void) {
-    s16 temp_a0;
+void renderDuelFrame(void) {
+    s16 fadeLevel;
 
-    temp_a0 = (*(s16 *)((s8 *)D_801D8340 + 0x808));
-    if (temp_a0 != 0) {
-        renderDuelBackground(temp_a0);
+    fadeLevel = (*(s16 *)((s8 *)D_801D8340 + 0x808));
+    if (fadeLevel != 0) {
+        renderDuelBackground(fadeLevel);
         renderStatusMessage((*(s16 *)((s8 *)D_801D8340 + 0x808)));
         renderHelpBar((*(s16 *)((s8 *)D_801D8340 + 0x808)));
     }
     renderPhaseBanner();
-    func_8003E4F0();
-    func_8003D4C4();
+    tickBattleHud();
+    renderBoardCards();
     if ((*(s32 *)((s8 *)D_801D8340 + 0x83C)) == 0) {
         if ((*(s32 *)((s8 *)D_801D8340 + 0x828)) != -1) {
             func_801F97F4();
@@ -1429,6 +1429,6 @@ void func_8003EB88(void) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel/battle_hud", D_80011350);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/battle_hud", DUEL_VRAM_CLEAR_RECT);
 
-INCLUDE_ASM("asm/main/nonmatchings/duel/battle_hud", func_8003EC4C);
+INCLUDE_ASM("asm/main/nonmatchings/duel/battle_hud", runDuel);

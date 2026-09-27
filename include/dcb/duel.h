@@ -12,7 +12,7 @@ extern s8 D_801D83D4;
 extern s8 D_801D83D7;
 extern s8 D_801D831D;
 
-void func_80038F68();
-void func_80034260(void);
+void runCpuDecisionTask();
+void runDuelTurnLoop(void);
 
 #endif /* DCB_DUEL_H */

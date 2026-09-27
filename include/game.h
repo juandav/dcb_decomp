@@ -26,7 +26,7 @@
 #define DB(i) (((Unk800794F8 *)&GRAPHICS)->unk98[i])
 #define PLAYER_DATA(p) (((Unk8006E050 *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
-#define PLAYER(p) ((Player *)D_801D8348[p])
+#define PLAYER(p) ((Player *)DUEL_PLAYERS[p])
 #define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
 
 typedef struct {
@@ -924,7 +924,7 @@ extern s32 PENDING_MUSIC_CHANGES;
 extern u8 *DIGIMON_CARDS;
 extern void *D_8006E054;
 extern void *D_801D8340;
-extern u8 *D_801D8348[];
+extern u8 *DUEL_PLAYERS[];
 extern s32 PATH_OPENSEG;
 extern s32 PATH_SAISEG;
 extern s32 PATH_EVOSEG;

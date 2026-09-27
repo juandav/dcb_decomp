@@ -373,8 +373,8 @@ void markDeckCardsSeen(s32 player) {
     s32 i;
 
     for (i = 0; i < 30; i++) {
-        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[getCardId(((Player *)D_801D8348[player])->cards[i].state,
-                                                             ((Player *)D_801D8348[player])->cards[i].unk1)] |= 0x40;
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[getCardId(((Player *)DUEL_PLAYERS[player])->cards[i].state,
+                                                             ((Player *)DUEL_PLAYERS[player])->cards[i].unk1)] |= 0x40;
     }
 }
 
