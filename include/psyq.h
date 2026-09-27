@@ -78,10 +78,17 @@ typedef struct PadActInfo {
     /* 0x4 */ u_char unk4;
 } PadActInfo;
 
+/* one received block: its length and where its data went */
+typedef struct PadRecvBlock {
+    /* 0x0 */ u_char len;
+    /* 0x1 */ u8 unk1[3];
+    /* 0x4 */ u_char *data;
+} PadRecvBlock;
+
 typedef struct PadPort {
     /* 0x00 */ u_short *unk0;
     /* 0x04 */ PadActInfo *unk4;
-    /* 0x08 */ long unk8;
+    /* 0x08 */ PadRecvBlock *unk8;
     /* 0x0C */ struct PadPort *unkC;
     /* 0x10 */ struct PadPort *unk10;
     /* 0x14 */ void (*unk14)();

@@ -294,7 +294,7 @@ int func_8006CD84(PadPort *p, u_char *buf) {
     p->unk47[0] = 0;
     size = mem + ((p->unkE3 + 1) >> 1) * 4;
     p->unk4 = (PadActInfo *)size;
-    p->unk8 = (long)(size + ((p->unkE9 * 5 + 3) & 0xFFC));
+    p->unk8 = (PadRecvBlock *)(size + ((p->unkE9 * 5 + 3) & 0xFFC));
     return 1;
 }
 
@@ -316,7 +316,124 @@ void func_8006CE58(PadPort *port) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CF00);
+extern u_char *D_801DDF20;
+
+int func_8006CF00(PadPort *p) {
+    u_char *res;
+    u_char *buf;
+    PadActInfo *act;
+    PadRecvBlock *blk;
+    u_char *src;
+    int n;
+    int b5;
+
+    switch (p->unk46) {
+    case 2:
+        res = p->unk3C;
+        if (res[2] != 0) {
+            return 0;
+        }
+        if (res[3] != 0) {
+            return 0;
+        }
+        p->unk0[p->unk47[0]] = (res[4] << 8) + res[5];
+        if (p->unkEE != p->unk0[p->unk47[0]]) {
+            p->unkEE = p->unk0[p->unk47[0]];
+            return 0;
+        }
+        p->unkEE = 0;
+        p->unkEB = 0;
+        if (++p->unk47[0] < p->unkE3) {
+            return 0;
+        }
+        p->unk47[0] = 0;
+        break;
+    case 3:
+        buf = p->unk3C;
+        if (buf[2] != 0) {
+            return 0;
+        }
+        if (buf[3] != 0) {
+            return 0;
+        }
+        act = &p->unk4[p->unk47[0]];
+        if (act->unk0 == buf[4] && act->unk1 == (buf[5] & 0x7F) && act->unk2 == buf[6] &&
+            act->power == buf[7] && act->unk4 == (b5 = buf[5]) >> 7) {
+            p->unkEE = 0;
+        } else {
+            p->unkEE = 0xFFFF;
+        }
+        act->unk0 = p->unk3C[4];
+        act->unk1 = p->unk3C[5] & 0x7F;
+        act->unk2 = p->unk3C[6];
+        act->power = p->unk3C[7];
+        b5 = p->unk3C[5];
+        act->unk4 = b5 >> 7;
+        if (p->unkEE != 0) {
+            return 0;
+        }
+        p->unkEB = 0;
+        if (++p->unk47[0] < p->unkE9) {
+            return 0;
+        }
+        p->unk47[0] = 0;
+        p->unk47[1] = 0;
+        break;
+    case 4:
+        buf = p->unk3C;
+        if (buf[2] != 0) {
+            p->unk47[1] = 0;
+            return 0;
+        }
+        blk = &p->unk8[p->unk47[0]];
+        if (p->unk47[1] == 0) {
+            blk->len = p->unk47[1] = buf[4];
+            src = p->unk3C + 5;
+            n = 3;
+            if (p->unk47[0] == 0) {
+                D_801DDF20 = blk->data = (u_char *)&p->unk8[p->unkEA];
+            } else {
+                D_801DDF20 = blk->data = blk[-1].data + ((blk[-1].len + 3) & ~3);
+            }
+        } else {
+            n = 5;
+            src = buf + 3;
+        }
+        while (n--) {
+            if (p->unk47[1] == 0) {
+                break;
+            }
+            if (D_801DDF20 >= p->unk63 + sizeof(p->unk63)) {
+                p->unk47[0] = 0;
+                p->unk47[1] = 0;
+                return 0;
+            }
+            if (*D_801DDF20 != *src) {
+                p->unkEE = 0xFFFF;
+            }
+            *D_801DDF20++ = *src++;
+            p->unk47[1]--;
+        }
+        if (p->unk47[1] != 0) {
+            return 0;
+        }
+        if (p->unkEE != 0) {
+            p->unkEE = 0;
+            p->unk47[1] = 0;
+            return 0;
+        }
+        if (++p->unk47[0] >= p->unkEA) {
+            p->unk49 = 6;
+            p->unk46 = 0xFE;
+            p->unkEB = 0;
+            return 0;
+        }
+        p->unk47[1] = 0;
+        p->unkEB = 0;
+        return 0;
+    }
+    return 1;
+}
 
 void func_8006D2F8(PadPort *port, u_char param) {
     port->cmd = 0x43;
