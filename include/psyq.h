@@ -313,7 +313,7 @@ void func_80056D0C();
 void *func_80056D78();
 void func_80056DA4(long *p, int n);
 void func_80056E20();
-void func_80056FA0();
+void (*func_80056FA0(int index, void (*callback)(void)))(void);
 void func_8005704C(long *p, int n);
 void func_8004C300(short);
 void func_8004ECA0(int);
