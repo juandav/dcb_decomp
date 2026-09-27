@@ -472,7 +472,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetNoiseVoice);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SpuSetAnyVoice);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuGetNoiseVoice);
+u_long SpuGetNoiseVoice(void) {
+    return _SpuGetAnyVoice(0xCA, 0xCB);
+}
+
+OBJECT_END(3);
 
 u_long _SpuGetAnyVoice(int lo, int hi) {
     u_long h = D_8006EF24[hi] & 0xFF;
