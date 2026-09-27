@@ -1769,7 +1769,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C714);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C990);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CA20);
+void func_8006CA20(void) {
+    while (!(D_800779D8->stat & 2)) {
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CA48);
 
