@@ -4,6 +4,7 @@
 #include "game.h"
 #include "dcb/scroll_bg.h"
 #include "dcb/effect_object.h"
+#include "dcb/effect_prims.h"
 #include "dcb/archive.h"
 #include "dcb/decompress.h"
 #include "dcb/sort.h"

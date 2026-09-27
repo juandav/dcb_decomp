@@ -23,12 +23,7 @@ void updateEffectObject(s32 fx);
 void freeEffectObject(void *fx);
 s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir);
 void restartEffectMotion(u8 *fx);
-void buildRingEffectMesh(Obj32 *ring);
 void tickEffectStartDelay(void *fx);
 s16 updateEffectBrightness(void *fxObj, s16 brightness);
-void renderRingEffect(Obj32 *ring);
-void freeRingEffect(Obj32 *ring);
-void renderStreakParticles(Particles *fx);
-void freeStreakParticles(void *fx);
 
 #endif /* DCB_EFFECT_OBJECT_H */
