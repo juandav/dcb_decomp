@@ -217,7 +217,21 @@ u_long func_80065D84(short x, short y) {
     return 0xE5000000 | ((y & 0x7FF) << 11) | (x & 0x7FF);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065DA0);
+u_long func_80065DA0(RECT *tw) {
+    u_long code[4];
+    u_long ret;
+
+    if (tw == NULL) {
+        ret = 0;
+    } else {
+        code[0] = (u_char)tw->x >> 3;
+        code[2] = (-tw->w & 0xFF) >> 3;
+        code[1] = (u_char)tw->y >> 3;
+        code[3] = (-tw->h & 0xFF) >> 3;
+        ret = 0xE2000000 | (code[1] << 15) | (code[0] << 10) | (code[3] << 5) | code[2];
+    }
+    return ret;
+}
 
 extern u_long *D_80076860;
 
