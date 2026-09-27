@@ -1721,7 +1721,58 @@ extern s32 D_801D487C;
 extern u8 *D_801D4874;
 extern u8 D_801D5988[0x1000];
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BDEC);
+void func_8001BDEC(u32 size) {
+    s32 pos;
+    s32 i;
+    s32 k;
+    u32 out;
+    s32 root;
+    s32 sym;
+    s32 off;
+    u8 c;
+
+    D_801D487C = 0x1000;
+    out = 0;
+    root = 0;
+    pos = 0xFEE;
+    for (k = 0; k < pos; k++) {
+        D_801D5988[k] = 0;
+    }
+    while (out < size) {
+        if (D_801D487C == 0x1000) {
+            D_801D4878 = 0x110;
+            root = func_8001BD60();
+            D_801D487C = 0;
+        }
+        sym = root;
+        while (sym >= 0x110) {
+            if (func_8001BC38() != 0) {
+                sym = (&D_801D5108)[sym];
+            } else {
+                sym = (&D_801D4888)[sym];
+            }
+        }
+        D_801D487C++;
+        if (sym < 0x100) {
+            *D_801D4874++ = sym;
+            D_801D5988[pos] = sym;
+            pos++;
+            pos &= 0xFFF;
+            out++;
+        } else {
+            sym -= 0xFD;
+            off = func_8001BCA4(12);
+            for (i = 0; i < sym; i++) {
+                c = D_801D5988[(off + i) & 0xFFF];
+                *D_801D4874++ = c;
+                D_801D5988[pos] = c;
+                pos++;
+            pos &= 0xFFF;
+            }
+            out += sym;
+        }
+    }
+}
 
 void func_8001C078(s32);
 
