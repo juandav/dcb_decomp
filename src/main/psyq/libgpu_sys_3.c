@@ -30,7 +30,46 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTvlcSize2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTvlc2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTvlcBuild);
+extern u_char D_80076A28[];
+
+void DecDCTvlcBuild(u_short *table) {
+    long back;
+    u_char *src;
+    u_char *dst;
+    u_char c;
+    long n;
+    long i;
+
+    back = 0;
+    src = D_80076A28;
+    dst = (u_char *)table;
+    do {
+        c = *src++;
+        n = c;
+        if (c < 0xF0) {
+            if (back != 0) {
+                for (; n >= 0; n--) {
+                    *dst = *(dst - back);
+                    dst++;
+                }
+            } else {
+                for (; n >= 0; n--) {
+                    *dst++ = *src++;
+                }
+            }
+        } else {
+            back = 0;
+            if (c != 0xF0) {
+                back = ((c << 8) | *src++) - 0xF0FF;
+            }
+        }
+    } while (back != 0xF00);
+    for (i = 4; i < 0x8800; i++) {
+        table[i] ^= table[i - 4];
+    }
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068804);
 
