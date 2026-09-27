@@ -355,7 +355,39 @@ int func_80065E38(u_long *addr, int size) {
     return size;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065F18);
+extern u_long D_801DC0E0[10];
+extern u_long D_801DC108[4];
+void func_80066660(u_long addr);
+u_long func_800666A8(u_long cmd);
+
+int func_80065F18(RECT *rect, u_long color) {
+    rect->w = LIMIT(rect->w, 0, D_80076758.w - 1);
+    rect->h = LIMIT(rect->h, 0, D_80076758.h - 1);
+    if ((rect->x & 0x3F) || (rect->w & 0x3F)) {
+        D_801DC0E0[0] = ((u_long)D_801DC108 & 0xFFFFFF) | 0x08000000;
+        D_801DC0E0[1] = 0xE3000000;
+        D_801DC0E0[2] = 0xE4FFFFFF;
+        D_801DC0E0[3] = 0xE5000000;
+        D_801DC0E0[4] = 0xE6000000;
+        D_801DC0E0[5] = (*D_80076860 & 0x7FF) | 0xE1000000 | ((color >> 31) << 10);
+        D_801DC0E0[6] = (color & 0xFFFFFF) | 0x60000000;
+        D_801DC0E0[7] = *(u_long *)&rect->x;
+        D_801DC0E0[8] = *(u_long *)&rect->w;
+        D_801DC108[0] = 0x03FFFFFF;
+        D_801DC108[1] = func_800666A8(3) | 0xE3000000;
+        D_801DC108[2] = func_800666A8(4) | 0xE4000000;
+        D_801DC108[3] = func_800666A8(5) | 0xE5000000;
+    } else {
+        D_801DC0E0[0] = 0x05FFFFFF;
+        D_801DC0E0[1] = 0xE6000000;
+        D_801DC0E0[2] = (*D_80076860 & 0x7FF) | 0xE1000000 | ((color >> 31) << 10);
+        D_801DC0E0[3] = (color & 0xFFFFFF) | 0x02000000;
+        D_801DC0E0[4] = *(u_long *)&rect->x;
+        D_801DC0E0[5] = *(u_long *)&rect->w;
+    }
+    func_80066660((u_long)D_801DC0E0);
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066148);
 
