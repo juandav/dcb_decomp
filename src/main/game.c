@@ -216,6 +216,17 @@ typedef struct {
 } SprtInfo;
 
 typedef struct {
+    /* 0x00 */ u32 *data;
+    /* 0x04 */ u32 *work;
+    /* 0x08 */ u32 *ot;
+    /* 0x0C */ u32 packet;
+    /* 0x10 */ u32 unk10[4];
+    /* 0x20 */ void *unk20;
+} SortWork;
+
+#define SORT_WORK ((SortWork *)0x1F800000)
+
+typedef struct {
     /* 0x00 */ u32 mode;
     /* 0x04 */ Rect16 *crect;
     /* 0x08 */ u32 *caddr;
@@ -2307,9 +2318,53 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F8B0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F94C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800202D8);
+u32 *func_8001F3C0(u32 *, u32 *);
+void func_8001F94C(SortWork *);
+u32 *func_80020440(u32 *, u32 *);
+void func_80020778(SortWork *);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80020370);
+u32 func_800202D8(u32 *data, u32 *ot, u32 packet, void *arg3) {
+    SortWork *w;
+    s32 n;
+
+    w = SORT_WORK;
+    w->data = data;
+    w->ot = ot;
+    w->packet = packet & 0xFFFFFF;
+    w->work = (u32 *)0x1F80007C;
+    w->unk20 = arg3;
+    n = *data++;
+    w->data = data;
+    for (; n > 0; n--) {
+        SORT_WORK->data = func_8001F3C0(SORT_WORK->data, SORT_WORK->work);
+        func_8001F94C(w);
+    }
+    return SORT_WORK->packet;
+}
+
+u32 func_80020370(u32 *data, u32 *ot, u32 packet, void *arg3) {
+    SortWork *w;
+    s32 n;
+
+    w = SORT_WORK;
+    w->data = data;
+    w->ot = ot;
+    w->packet = packet & 0xFFFFFF;
+    w->work = (u32 *)0x1F80007C;
+    w->unk20 = arg3;
+    n = *data++;
+    w->data = data;
+    for (; n > 0; n--) {
+        if (*SORT_WORK->data++ != 0) {
+            SORT_WORK->data = func_80020440(SORT_WORK->data, SORT_WORK->work);
+            func_80020778(w);
+        } else {
+            SORT_WORK->data = func_8001F3C0(SORT_WORK->data, SORT_WORK->work);
+            func_8001F94C(w);
+        }
+    }
+    return SORT_WORK->packet;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80020440);
 
