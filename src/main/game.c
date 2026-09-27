@@ -67,7 +67,15 @@ typedef struct {
 } GsRVIEW2;
 
 typedef struct {
-    /* 0x000 */ u8 unk0[0x28];
+    u32 length;
+    u32 *org;
+    u32 offset;
+    u32 point;
+    u32 *tag;
+} GsOT;
+
+typedef struct {
+    /* 0x000 */ GsOT ot[2];
     /* 0x028 */ u8 unk28[0x9C];
     /* 0x0C4 */ GsRVIEW2 unkC4;
     /* 0x0E4 */ u8 unkE4[0x30];
@@ -4419,11 +4427,50 @@ void func_80024420(void) {
     GsSetLightMode(0);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001010C);
 
-INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001014C);
+void GsInit3D(void);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80024460);
+void func_80023DF0();
+extern MATRIX D_801D6A08;
+extern MATRIX D_801D6A28;
+
+void func_80024460(s32 alloc) {
+    s32 i;
+
+    func_80022C4C();
+    func_8006A804();
+    for (i = 0; i < 2; i++) {
+        if (alloc) {
+            DB(i).unk4070 = func_8001ABCC(0xBB80, 0x7F);
+        }
+        D_801D6A4C->ot[i].length = 12;
+        D_801D6A4C->ot[i].org = DB(i).ot;
+        D_801D6A4C->ot[i].offset = 0;
+        D_801D6A4C->ot[i].point = 0;
+        D_801D6A4C->ot[i].tag = D_801D6A4C->ot[i].org + 0xFFF;
+    }
+    GsInit3D();
+    func_800243B0(0x1C0);
+    func_80024420();
+    func_8006A814();
+    {
+        MATRIX lm[2] = {
+            { { { 0, 0x1800, -0x1800 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
+            { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
+        };
+        MATRIX lc[2] = {
+            { { { 0x800, 0, 0 }, { 0x800, 0, 0 }, { 0x800, 0, 0 } }, { 0, 0, 0 } },
+            { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } },
+        };
+
+        D_801D6A08 = lm[1];
+        D_801D6A28 = lc[1];
+    }
+    if (alloc) {
+        func_8001B10C((s32) "M:", func_800148B0());
+        func_8001683C((s32)func_80023DF0);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800246E0);
 
