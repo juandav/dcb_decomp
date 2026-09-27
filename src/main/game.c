@@ -1015,6 +1015,13 @@ typedef struct {
 } LINE_G2;
 
 typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+} LINE_F2;
+
+typedef struct {
     /* 0x00 */ u8 unk0[0x30];
     /* 0x30 */ s16 unk30;
     /* 0x32 */ s16 unk32;
@@ -6350,8 +6357,6 @@ void func_80024460(s32 alloc) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800246E0);
-
 extern void *D_801D6A58[];
 extern SVECTOR *D_801D6A50;
 extern s32 *D_801D6A48;
@@ -6362,6 +6367,76 @@ extern s16 D_801D69FE;
 extern s16 D_801D6A00;
 extern s32 D_8006DF84;
 void func_800246E0();
+
+extern u8 D_8006DF88;
+s32 RotTransPers(s32, s32, s32 *, s32 *);
+
+#define PULSE(n) (D_8006DF88 + (n) * 12)
+
+void func_800246E0(Unk800793A0 *db, s32 n) {
+    LINE_F2 *l;
+    SVECTOR *v;
+    SVECTOR *vv;
+    s32 *xy;
+    s32 *xx;
+    s32 i;
+    s32 j;
+    u8 c;
+    s32 p;
+    s32 flag;
+
+    l = D_801D6A58[n];
+    if (D_8006DF84 == 0) {
+        return;
+    }
+    v = D_801D6A50;
+    xy = D_801D6A48;
+    for (i = 0; i < D_801D69FC * D_801D69FE; i++, v++, xy++) {
+        if ((v->pad = RotTransPers((s32)v, (s32)xy, &p, &flag)) < 0x3C) {
+            v->pad = -1;
+        }
+    }
+    v = D_801D6A50;
+    xy = D_801D6A48;
+    for (j = 0; j < D_801D69FE; j++, v++, xy++) {
+        for (i = 0; i < D_801D69FC - 1; i++, v++, xy++) {
+            c = PULSE(j + i);
+            if ((s8)PULSE(j + i) < 0) {
+                c = -c;
+            }
+            if ((u16)v[0].pad < 0x1000 && (u16)v[1].pad < 0x1000) {
+                *(s32 *)&l->x0 = xy[0];
+                *(s32 *)&l->x1 = xy[1];
+                l->r0 = c >> 1;
+                l->g0 = c + 0x40;
+                l->b0 = (0x80 - c) / 2;
+                AddPrim((s32 *)&db->ot[v[1].pad < v[0].pad ? v[0].pad : v[1].pad], (s32)l++);
+            }
+        }
+    }
+    v = D_801D6A50;
+    xy = D_801D6A48;
+    for (i = 0; i < D_801D69FC; i++, v++, xy++) {
+        vv = v;
+        xx = xy;
+        for (j = 0; j < D_801D69FE - 1; j++, vv += D_801D69FC, xx += D_801D69FC) {
+            c = PULSE(i + j);
+            if ((s8)PULSE(i + j) < 0) {
+                c = -c;
+            }
+            if ((u16)vv[0].pad < 0x1000 && (u16)vv[D_801D69FC].pad < 0x1000) {
+                *(s32 *)&l->x0 = xx[0];
+                *(s32 *)&l->x1 = xx[D_801D69FC];
+                l->r0 = c >> 1;
+                l->g0 = c + 0x40;
+                l->b0 = (0x80 - c) / 2;
+                AddPrim((s32 *)&db->ot[vv[1].pad < vv[0].pad ? vv[0].pad : vv[1].pad], (s32)l++);
+            }
+        }
+    }
+    D_8006DF88 += 2;
+}
+
 
 void func_80024B08(s32 w, s32 h, s32 cols, s32 rows, s32 unused, s32 vertical) {
     u8 *l;
