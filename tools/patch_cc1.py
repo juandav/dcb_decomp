@@ -59,6 +59,9 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 10. local-alloc ties the register holding a called function pointer to the
    call's result register ($v0), as with GCC 2.8's mips.md, whose call
    patterns take the address as a register operand (libgpu func_800649E8).
+11. combine re-enables volatile MEMs in the recognizer when it ends, as
+   GCC 2.8 does, so sched1 can recognize and schedule insns with volatile
+   MEMs (trapIntr's loop exit test).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -480,6 +483,23 @@ def patch(src, dst):
     start = in_bc(tie_call_address)
     put(0x08147A41, b"\x0f\xb6\x00\x3c\x70",
         b"\xe9" + (start - (0x08147A41 + 5)).to_bytes(4, "little", signed=True))
+
+    # 11. combine_instructions+2332, at its end: call init_recog () first, as
+    #    GCC 2.8's combine does ("Make recognizer allow volatile MEMs again").
+    #    Ours leaves volatile_ok = 0 until regclass, so sched1 can't recognize
+    #    insns with volatile MEMs and doesn't schedule them (trapIntr's loop
+    #    exit test: `lw a0,D_80070AAC; lhu v1,enabled; lw v0,D_80070AB0; lhu;
+    #    lhu` like the copy at the loop entry).
+    site = 0x08125D77
+    replaced = bytes.fromhex("c783c09c000000000000")  # movl $0,0x9cc0(%ebx)
+
+    def recog_volatile(code, jump):
+        jump(b"\xe8", 0x0818390F)                  # call init_recog
+        code += replaced
+        jump(b"\xe9", site + len(replaced))
+
+    start = in_bc(recog_volatile)
+    put(site, replaced, b"\xe9" + (start - (site + 5)).to_bytes(4, "little", signed=True) + b"\x90" * 5)
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
