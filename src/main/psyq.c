@@ -900,7 +900,9 @@ int func_8005B184(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B194);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B1A4);
+void func_8005B1A4(void) {
+    CD_flush();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B1C4);
 
