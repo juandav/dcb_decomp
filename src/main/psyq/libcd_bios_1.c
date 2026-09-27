@@ -6,11 +6,130 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
+typedef struct {
+    u_char sync;
+    u_char ready;
+    u_char c;
+} CD_intr;
+
+extern volatile CD_intr D_80070F1C[1];
+extern u_char D_801DBD20[8];
+extern u_char D_801DBD28[8];
+extern u_char D_801DBD30[8];
+extern int D_801DBD38;
+extern int D_801DBD3C;
+extern char *D_801DBD40;
+extern long D_80070C40, D_80070C44, D_80070C48, D_80070C54;
+extern u_char D_80070C58[4];
+extern u_char D_80070C5C;
+extern u_char D_80070C5D;
+extern char *D_80070C64[];
+extern char *D_80070CE4[];
+extern int D_80070D04[];
+extern int D_80070D84[];
+extern int D_80070E04[];
+extern int D_80070E84[];
+extern volatile u_long *D_80070F0C;
+
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013538);
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013548);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058BE4);
+static inline void _memcpy(u_char *dst, u_char *src, int n) {
+    if (dst != NULL) {
+        while (n--) {
+            *dst++ = *src++;
+        }
+    }
+}
+
+int func_80058BE4(void) {
+    volatile u_char nReg;
+    volatile u_char buf[8];
+    int i, j;
+    int err;
+
+    *D_80070F04 = 1;
+    nReg = *D_80070F08 & 7;
+    if (nReg == 0) {
+        return 0;
+    }
+    err = 0;
+    while (nReg != (*D_80070F08 & 7)) {
+        nReg = *D_80070F08 & 7;
+    }
+    for (i = 0; i < 8; i++) {
+        if (!(*D_80070F04 & 0x20)) {
+            break;
+        }
+        buf[i] = *D_80070F10;
+    }
+    for (j = i; j < 8; j++) {
+        buf[j] = 0;
+    }
+    *D_80070F04 = 1;
+    *D_80070F08 = 7;
+    *D_80070F14 = 7;
+    if (nReg != 3 || D_80070E04[D_80070C5D]) {
+        if (!(D_80070C4C & CdlStatShellOpen) && (buf[0] & CdlStatShellOpen)) {
+            D_80070C54++;
+        }
+        D_80070C4C = buf[0];
+        D_80070C50 = buf[1];
+        err = D_80070C4C & 0x1D;
+    }
+    if (nReg == 5) {
+        if (D_80070C48 > 2) {
+            printf("DiskError: ");
+        }
+        if (D_80070C48 > 2) {
+            printf("com=%s,code=(%02x:%02x)\n", D_80070C64[D_80070C5D], D_80070C4C, D_80070C50);
+        }
+    }
+    switch (nReg) {
+    case 3:
+        if (err) {
+            D_80070F1C->sync = CdlDiskError;
+            _memcpy(D_801DBD20, (u_char *)buf, 8);
+            return 2;
+        }
+        if (D_80070D04[D_80070C5D]) {
+            D_80070F1C->sync = CdlAcknowledge;
+            _memcpy(D_801DBD20, (u_char *)buf, 8);
+            return 1;
+        }
+        D_80070F1C->sync = CdlComplete;
+        _memcpy(D_801DBD20, (u_char *)buf, 8);
+        return 2;
+    case 2:
+        D_80070F1C->sync = err ? CdlDiskError : CdlComplete;
+        _memcpy(D_801DBD20, (u_char *)buf, 8);
+        return 2;
+    case 1:
+        if (err && i == 1) {
+            err = 0;
+        }
+        D_80070F1C->ready = err ? CdlDiskError : CdlDataReady;
+        _memcpy(D_801DBD28, (u_char *)buf, 8);
+        *D_80070F04 = 0;
+        *D_80070F08 = 0;
+        return 4;
+    case 4:
+        D_80070F1C->ready = D_80070F1C->c = CdlDataEnd;
+        _memcpy(D_801DBD30, (u_char *)buf, 8);
+        _memcpy(D_801DBD28, (u_char *)buf, 8);
+        return 4;
+    case 5:
+        D_80070F1C->sync = D_80070F1C->ready = CdlDiskError;
+        _memcpy(D_801DBD20, (u_char *)buf, 8);
+        _memcpy(D_801DBD28, (u_char *)buf, 8);
+        return 6;
+    default:
+        puts("CDROM: unknown intr");
+        printf("(%d)\n", nReg);
+        return 0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_sync);
 
@@ -29,21 +148,15 @@ int CD_vol(CdlATV *vol) {
     return 0;
 }
 
-extern volatile u_long *D_80070F0C;
-extern volatile u_char D_80070F1C[];
-
 void CD_flush(void) {
-    volatile u_char *st;
-
     *D_80070F04 = 1;
     while (*D_80070F08 & 7) {
         *D_80070F04 = 1;
         *D_80070F08 = 7;
         *D_80070F14 = 7;
     }
-    st = D_80070F1C;
-    st[1] = st[2] = 0;
-    st[0] = 2;
+    D_80070F1C->ready = D_80070F1C->c = CdlNoIntr;
+    D_80070F1C->sync = CdlComplete;
     *D_80070F04 = 0;
     *D_80070F08 = 0;
     *D_80070F0C = 0x1325;
