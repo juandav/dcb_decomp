@@ -1940,7 +1940,19 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", strcat);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", strcmp);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", strcpy);
+char *strcpy(char *dst, char *src) {
+    char *r;
+
+    if (dst == NULL || src == NULL) {
+        return NULL;
+    }
+    r = dst;
+    while ((*dst++ = *src++) != 0) {
+    }
+    return r;
+}
+
+OBJECT_END(3);
 
 int strlen(char *s) {
     int n = 0;
