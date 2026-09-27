@@ -4,7 +4,7 @@
 #include "dcb/prim_util.h"
 
 /* the size in bytes of each primitive type */
-u8 D_8006DEF4[24] = {
+u8 PRIM_SIZES[24] = {
     0x10, 0x14, 0x18, 0x20, 0x1C, 0x28, 0x14, 0x1C,
     0x18, 0x24, 0x20, 0x28, 0x28, 0x34, 0x14, 0x10,
     0x10, 0x10, 0xC, 0xC, 0xC, 0,
@@ -13,7 +13,7 @@ u8 D_8006DEF4[24] = {
 typedef void (*PrimInit)(void *);
 
 /* the function that sets up each primitive type */
-PrimInit D_8006DF0C[21] = {
+PrimInit PRIM_INIT_FUNCS[21] = {
     func_800678E4,
     func_80067904,
     func_80067924,
@@ -37,113 +37,113 @@ PrimInit D_8006DF0C[21] = {
     func_800678A4,
 };
 
-s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb) {
+s32 stepColorToward(s32 step, u8 *red, s32 targetRed, u8 *green, s32 targetGreen, u8 *blue, s32 targetBlue) {
     s16 vr;
     s16 vg;
     s16 vb;
-    s32 done;
+    s32 doneCount;
 
-    vr = *r;
-    vg = *g;
-    vb = *b;
-    done = 0;
-    if (vr < tr) {
+    vr = *red;
+    vg = *green;
+    vb = *blue;
+    doneCount = 0;
+    if (vr < targetRed) {
         vr += step;
-        if (vr > tr) {
-            vr = tr;
-            done++;
+        if (vr > targetRed) {
+            vr = targetRed;
+            doneCount++;
         }
-    } else if (vr > tr) {
+    } else if (vr > targetRed) {
         vr -= step;
-        if (vr < tr) {
-            vr = tr;
-            done++;
+        if (vr < targetRed) {
+            vr = targetRed;
+            doneCount++;
         }
     } else {
-        done++;
+        doneCount++;
     }
-    if (vg < tg) {
+    if (vg < targetGreen) {
         vg += step;
-        if (vg > tg) {
-            vg = tg;
-            done++;
+        if (vg > targetGreen) {
+            vg = targetGreen;
+            doneCount++;
         }
-    } else if (vg > tg) {
+    } else if (vg > targetGreen) {
         vg -= step;
-        if (vg < tg) {
-            vg = tg;
-            done++;
+        if (vg < targetGreen) {
+            vg = targetGreen;
+            doneCount++;
         }
     } else {
-        done++;
+        doneCount++;
     }
-    if (vb < tb) {
+    if (vb < targetBlue) {
         vb += step;
-        if (vb > tb) {
-            vb = tb;
-            done++;
+        if (vb > targetBlue) {
+            vb = targetBlue;
+            doneCount++;
         }
-    } else if (vb > tb) {
+    } else if (vb > targetBlue) {
         vb -= step;
-        if (vb < tb) {
-            vb = tb;
-            done++;
+        if (vb < targetBlue) {
+            vb = targetBlue;
+            doneCount++;
         }
     } else {
-        done++;
+        doneCount++;
     }
-    *r = vr;
-    *g = vg;
-    *b = vb;
-    return done == 3;
+    *red = vr;
+    *green = vg;
+    *blue = vb;
+    return doneCount == 3;
 }
 
-void func_8001E4E8(u8 dir, s16 step, u8 *state, u8 *prim) {
-    s16 c;
+void stepPrimFade(u8 fadeOut, s16 step, u8 *state, u8 *prim) {
+    s16 level;
 
     switch (*state) {
     case 0:
-        if (dir == 0) {
-            func_8001E75C(prim, 0, 0, 0);
+        if (fadeOut == 0) {
+            setPrimRgb0(prim, 0, 0, 0);
         } else {
-            func_8001E75C(prim, 0x80, 0x80, 0x80);
+            setPrimRgb0(prim, 0x80, 0x80, 0x80);
         }
         SetSemiTrans(prim, 1);
         *state = 1;
         break;
     case 1:
-        if (dir == 0) {
-            func_8001E75C(prim, 0, 0, 0);
+        if (fadeOut == 0) {
+            setPrimRgb0(prim, 0, 0, 0);
         } else {
-            func_8001E75C(prim, 0x80, 0x80, 0x80);
+            setPrimRgb0(prim, 0x80, 0x80, 0x80);
         }
         SetSemiTrans(prim, 1);
         *state = 2;
         break;
     case 2:
-        c = prim[4];
-        if (dir == 0) {
-            c += step;
-            if (c >= 0x80) {
+        level = prim[4];
+        if (fadeOut == 0) {
+            level += step;
+            if (level >= 0x80) {
                 SetSemiTrans(prim, 0);
-                func_8001E75C(prim, 0x80, 0x80, 0x80);
+                setPrimRgb0(prim, 0x80, 0x80, 0x80);
                 *state = 3;
                 break;
             }
         } else {
-            c -= step;
-            if (c <= 0) {
+            level -= step;
+            if (level <= 0) {
                 SetSemiTrans(prim, 0);
-                func_8001E75C(prim, 0x80, 0x80, 0x80);
+                setPrimRgb0(prim, 0x80, 0x80, 0x80);
                 *state = 3;
                 break;
             }
         }
-        func_8001E75C(prim, c, c, c);
+        setPrimRgb0(prim, level, level, level);
         return;
     case 3:
         SetSemiTrans(prim, 0);
-        func_8001E75C(prim, 0x80, 0x80, 0x80);
+        setPrimRgb0(prim, 0x80, 0x80, 0x80);
         *state = 4;
         break;
     case 4:
@@ -152,249 +152,249 @@ void func_8001E4E8(u8 dir, s16 step, u8 *state, u8 *prim) {
     }
 }
 
-void func_8001E6A4(s32 arg0, s16 arg1, s16 arg2) {
-    s16 r[4];
+void uploadClut256(s32 clutData, s16 x, s16 y) {
+    s16 rect[4];
 
-    r[0] = arg1;
-    r[1] = arg2;
-    r[2] = 0x100;
-    r[3] = 1;
-    LoadImage(r, arg0);
+    rect[0] = x;
+    rect[1] = y;
+    rect[2] = 0x100;
+    rect[3] = 1;
+    LoadImage(rect, clutData);
     DrawSync(0);
 }
 
-void func_8001E6EC(s32 type, void *p, s32 abe, s32 tge) {
-    D_8006DF0C[type](p);
-    SetSemiTrans(p, abe);
-    SetShadeTex(p, tge);
+void initPrimByType(s32 type, void *prim, s32 semiTrans, s32 shadeTex) {
+    PRIM_INIT_FUNCS[type](prim);
+    SetSemiTrans(prim, semiTrans);
+    SetShadeTex(prim, shadeTex);
 }
 
-void func_8001E75C(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(u8 *)((s8 *)arg0 + 4)) = arg1;
-    (*(u8 *)((s8 *)arg0 + 5)) = arg2;
-    (*(u8 *)((s8 *)arg0 + 6)) = arg3;
+void setPrimRgb0(void *prim, u8 r, u8 g, u8 b) {
+    (*(u8 *)((s8 *)prim + 4)) = r;
+    (*(u8 *)((s8 *)prim + 5)) = g;
+    (*(u8 *)((s8 *)prim + 6)) = b;
 }
 
-void func_8001E76C(void *arg0, u8 r, u8 g, u8 b) {
-    if (*((u8 *)arg0 + 7) & 4) {
-        func_8001E8A4(arg0, r, g, b);
+void setPrimRgb1(void *prim, u8 r, u8 g, u8 b) {
+    if (*((u8 *)prim + 7) & 4) {
+        setPolyGTRgb1(prim, r, g, b);
     } else {
-        func_8001E894(arg0, r, g, b);
+        setPolyGRgb1(prim, r, g, b);
     }
 }
 
-void func_8001E7B8(void *arg0, u8 r, u8 g, u8 b) {
-    if (*((u8 *)arg0 + 7) & 4) {
-        func_8001E8C4(arg0, r, g, b);
+void setPrimRgb2(void *prim, u8 r, u8 g, u8 b) {
+    if (*((u8 *)prim + 7) & 4) {
+        setPolyGTRgb2(prim, r, g, b);
     } else {
-        func_8001E8B4(arg0, r, g, b);
+        setPolyGRgb2(prim, r, g, b);
     }
 }
 
-void func_8001E804(void *arg0, u8 r, u8 g, u8 b) {
-    if (*((u8 *)arg0 + 7) & 4) {
-        func_8001E8E4(arg0, r, g, b);
+void setPrimRgb3(void *prim, u8 r, u8 g, u8 b) {
+    if (*((u8 *)prim + 7) & 4) {
+        setPolyGT4Rgb3(prim, r, g, b);
     } else {
-        func_8001E8D4(arg0, r, g, b);
+        setPolyG4Rgb3(prim, r, g, b);
     }
 }
 
-void func_8001E850(u8 *p, u8 *c) {
-    if (p[7] & 4) {
-        func_8001E9AC(p, c);
+void setPrimQuadColors(u8 *prim, u8 *colors) {
+    if (prim[7] & 4) {
+        setPolyGT4Colors(prim, colors);
     } else {
-        func_8001E8F4(p, c);
+        setPolyG4Colors(prim, colors);
     }
 }
 
-void func_8001E894(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0xC)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0xD)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0xE)) = arg3;
+void setPolyGRgb1(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0xC)) = r;
+    (*(s8 *)((s8 *)poly + 0xD)) = g;
+    (*(s8 *)((s8 *)poly + 0xE)) = b;
 }
 
-void func_8001E8A4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0x10)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0x11)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0x12)) = arg3;
+void setPolyGTRgb1(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0x10)) = r;
+    (*(s8 *)((s8 *)poly + 0x11)) = g;
+    (*(s8 *)((s8 *)poly + 0x12)) = b;
 }
 
-void func_8001E8B4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0x14)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0x15)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0x16)) = arg3;
+void setPolyGRgb2(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0x14)) = r;
+    (*(s8 *)((s8 *)poly + 0x15)) = g;
+    (*(s8 *)((s8 *)poly + 0x16)) = b;
 }
 
-void func_8001E8C4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0x1C)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0x1D)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0x1E)) = arg3;
+void setPolyGTRgb2(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0x1C)) = r;
+    (*(s8 *)((s8 *)poly + 0x1D)) = g;
+    (*(s8 *)((s8 *)poly + 0x1E)) = b;
 }
 
-void func_8001E8D4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0x1C)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0x1D)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0x1E)) = arg3;
+void setPolyG4Rgb3(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0x1C)) = r;
+    (*(s8 *)((s8 *)poly + 0x1D)) = g;
+    (*(s8 *)((s8 *)poly + 0x1E)) = b;
 }
 
-void func_8001E8E4(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
-    (*(s8 *)((s8 *)arg0 + 0x28)) = arg1;
-    (*(s8 *)((s8 *)arg0 + 0x29)) = arg2;
-    (*(s8 *)((s8 *)arg0 + 0x2A)) = arg3;
+void setPolyGT4Rgb3(void *poly, u8 r, u8 g, u8 b) {
+    (*(s8 *)((s8 *)poly + 0x28)) = r;
+    (*(s8 *)((s8 *)poly + 0x29)) = g;
+    (*(s8 *)((s8 *)poly + 0x2A)) = b;
 }
 
-void func_8001E8F4(u8 *p, u8 *c) {
-    p[0x4] = *c++;
-    p[0x5] = *c++;
-    p[0x6] = *c++;
-    p[0xC] = *c++;
-    p[0xD] = *c++;
-    p[0xE] = *c++;
-    p[0x14] = *c++;
-    p[0x15] = *c++;
-    p[0x16] = *c++;
-    p[0x1C] = *c++;
-    p[0x1D] = *c++;
-    p[0x1E] = *c;
+void setPolyG4Colors(u8 *poly, u8 *colors) {
+    poly[0x4] = *colors++;
+    poly[0x5] = *colors++;
+    poly[0x6] = *colors++;
+    poly[0xC] = *colors++;
+    poly[0xD] = *colors++;
+    poly[0xE] = *colors++;
+    poly[0x14] = *colors++;
+    poly[0x15] = *colors++;
+    poly[0x16] = *colors++;
+    poly[0x1C] = *colors++;
+    poly[0x1D] = *colors++;
+    poly[0x1E] = *colors;
 }
 
-void func_8001E9AC(u8 *p, u8 *c) {
-    p[0x4] = *c++;
-    p[0x5] = *c++;
-    p[0x6] = *c++;
-    p[0x10] = *c++;
-    p[0x11] = *c++;
-    p[0x12] = *c++;
-    p[0x1C] = *c++;
-    p[0x1D] = *c++;
-    p[0x1E] = *c++;
-    p[0x28] = *c++;
-    p[0x29] = *c++;
-    p[0x2A] = *c;
+void setPolyGT4Colors(u8 *poly, u8 *colors) {
+    poly[0x4] = *colors++;
+    poly[0x5] = *colors++;
+    poly[0x6] = *colors++;
+    poly[0x10] = *colors++;
+    poly[0x11] = *colors++;
+    poly[0x12] = *colors++;
+    poly[0x1C] = *colors++;
+    poly[0x1D] = *colors++;
+    poly[0x1E] = *colors++;
+    poly[0x28] = *colors++;
+    poly[0x29] = *colors++;
+    poly[0x2A] = *colors;
 }
 
-void func_8001EA64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
-    s32 temp_v1;
+void setPrimQuadRect(void *prim, s16 x, s16 y, s16 w, s16 h) {
+    s32 kind;
 
-    temp_v1 = (*(u8 *)((s8 *)arg0 + 7)) & 0x14;
-    switch (temp_v1) {                              /* irregular */
+    kind = (*(u8 *)((s8 *)prim + 7)) & 0x14;
+    switch (kind) {                              /* irregular */
     case 0:
-        func_8001EB1C(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        setPolyF4Rect(prim, x, y, w, (s16) (s32) h);
         return;
     case 4:
-        func_8001EBAC(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        setPolyFT4Rect(prim, x, y, w, (s16) (s32) h);
         return;
     case 16:
-        func_8001EB64(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        setPolyG4Rect(prim, x, y, w, (s16) (s32) h);
         return;
     case 20:
-        func_8001EBF4(arg0, arg1, arg2, arg3, (s16) (s32) arg4);
+        setPolyGT4Rect(prim, x, y, w, (s16) (s32) h);
         return;
     }
 }
 
-void func_8001EB1C(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+void setPolyF4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
     s32 x1;
     s32 y1;
 
-    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
-    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
-    x1 = arg1 + arg3;
-    (*(s16 *)((s8 *)arg0 + 0xC)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0xE)) = arg2;
-    (*(s16 *)((s8 *)arg0 + 0x10)) = arg1;
-    y1 = arg2 + arg4;
-    (*(s16 *)((s8 *)arg0 + 0x12)) = y1;
-    (*(s16 *)((s8 *)arg0 + 0x14)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x16)) = y1;
+    (*(s16 *)((s8 *)poly + 8)) = x;
+    (*(s16 *)((s8 *)poly + 0xA)) = y;
+    x1 = x + w;
+    (*(s16 *)((s8 *)poly + 0xC)) = x1;
+    (*(s16 *)((s8 *)poly + 0xE)) = y;
+    (*(s16 *)((s8 *)poly + 0x10)) = x;
+    y1 = y + h;
+    (*(s16 *)((s8 *)poly + 0x12)) = y1;
+    (*(s16 *)((s8 *)poly + 0x14)) = x1;
+    (*(s16 *)((s8 *)poly + 0x16)) = y1;
 }
 
-void func_8001EB64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+void setPolyG4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
     s32 x1;
     s32 y1;
 
-    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
-    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
-    x1 = arg1 + arg3;
-    (*(s16 *)((s8 *)arg0 + 0x10)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x12)) = arg2;
-    (*(s16 *)((s8 *)arg0 + 0x18)) = arg1;
-    y1 = arg2 + arg4;
-    (*(s16 *)((s8 *)arg0 + 0x1A)) = y1;
-    (*(s16 *)((s8 *)arg0 + 0x20)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
+    (*(s16 *)((s8 *)poly + 8)) = x;
+    (*(s16 *)((s8 *)poly + 0xA)) = y;
+    x1 = x + w;
+    (*(s16 *)((s8 *)poly + 0x10)) = x1;
+    (*(s16 *)((s8 *)poly + 0x12)) = y;
+    (*(s16 *)((s8 *)poly + 0x18)) = x;
+    y1 = y + h;
+    (*(s16 *)((s8 *)poly + 0x1A)) = y1;
+    (*(s16 *)((s8 *)poly + 0x20)) = x1;
+    (*(s16 *)((s8 *)poly + 0x22)) = y1;
 }
 
-void func_8001EBAC(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+void setPolyFT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
     s32 x1;
     s32 y1;
 
-    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
-    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
-    x1 = arg1 + arg3;
-    (*(s16 *)((s8 *)arg0 + 0x10)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x12)) = arg2;
-    (*(s16 *)((s8 *)arg0 + 0x18)) = arg1;
-    y1 = arg2 + arg4;
-    (*(s16 *)((s8 *)arg0 + 0x1A)) = y1;
-    (*(s16 *)((s8 *)arg0 + 0x20)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
+    (*(s16 *)((s8 *)poly + 8)) = x;
+    (*(s16 *)((s8 *)poly + 0xA)) = y;
+    x1 = x + w;
+    (*(s16 *)((s8 *)poly + 0x10)) = x1;
+    (*(s16 *)((s8 *)poly + 0x12)) = y;
+    (*(s16 *)((s8 *)poly + 0x18)) = x;
+    y1 = y + h;
+    (*(s16 *)((s8 *)poly + 0x1A)) = y1;
+    (*(s16 *)((s8 *)poly + 0x20)) = x1;
+    (*(s16 *)((s8 *)poly + 0x22)) = y1;
 }
 
-void func_8001EBF4(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+void setPolyGT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
     s32 x1;
     s32 y1;
 
-    (*(s16 *)((s8 *)arg0 + 8)) = arg1;
-    (*(s16 *)((s8 *)arg0 + 0xA)) = arg2;
-    x1 = arg1 + arg3;
-    (*(s16 *)((s8 *)arg0 + 0x14)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x16)) = arg2;
-    (*(s16 *)((s8 *)arg0 + 0x20)) = arg1;
-    y1 = arg2 + arg4;
-    (*(s16 *)((s8 *)arg0 + 0x22)) = y1;
-    (*(s16 *)((s8 *)arg0 + 0x2C)) = x1;
-    (*(s16 *)((s8 *)arg0 + 0x2E)) = y1;
+    (*(s16 *)((s8 *)poly + 8)) = x;
+    (*(s16 *)((s8 *)poly + 0xA)) = y;
+    x1 = x + w;
+    (*(s16 *)((s8 *)poly + 0x14)) = x1;
+    (*(s16 *)((s8 *)poly + 0x16)) = y;
+    (*(s16 *)((s8 *)poly + 0x20)) = x;
+    y1 = y + h;
+    (*(s16 *)((s8 *)poly + 0x22)) = y1;
+    (*(s16 *)((s8 *)poly + 0x2C)) = x1;
+    (*(s16 *)((s8 *)poly + 0x2E)) = y1;
 }
 
-void func_8001EC3C(u8 *p, u8 x, u8 y, u8 w, u8 h) {
-    if (p[7] & 0x10) {
-        func_8001ECC8(p, x, y, w, h);
+void setPrimQuadUvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
+    if (poly[7] & 0x10) {
+        setPolyGT4UvRect(poly, u, v, w, h);
     } else {
-        func_8001EC8C(p, x, y, w, h);
+        setPolyFT4UvRect(poly, u, v, w, h);
     }
 }
 
-void func_8001EC8C(u8 *p, u8 x, u8 y, u8 w, u8 h) {
-    p[0xC] = x;
-    p[0xD] = y;
-    p[0x14] = x + w;
-    p[0x15] = y;
-    p[0x1C] = x;
-    p[0x1D] = y + h;
-    p[0x24] = x + w;
-    p[0x25] = y + h;
+void setPolyFT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
+    poly[0xC] = u;
+    poly[0xD] = v;
+    poly[0x14] = u + w;
+    poly[0x15] = v;
+    poly[0x1C] = u;
+    poly[0x1D] = v + h;
+    poly[0x24] = u + w;
+    poly[0x25] = v + h;
 }
 
-void func_8001ECC8(u8 *p, u8 x, u8 y, u8 w, u8 h) {
-    p[0xC] = x;
-    p[0xD] = y;
-    p[0x18] = x + w;
-    p[0x19] = y;
-    p[0x24] = x;
-    p[0x25] = y + h;
-    p[0x30] = x + w;
-    p[0x31] = y + h;
+void setPolyGT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
+    poly[0xC] = u;
+    poly[0xD] = v;
+    poly[0x18] = u + w;
+    poly[0x19] = v;
+    poly[0x24] = u;
+    poly[0x25] = v + h;
+    poly[0x30] = u + w;
+    poly[0x31] = v + h;
 }
 
-void func_8001ED04(void *arg0) {
-    (*(s16 *)((s8 *)arg0 + 0)) = 0x1000;
-    (*(s16 *)((s8 *)arg0 + 6)) = 0;
-    (*(s16 *)((s8 *)arg0 + 0xC)) = 0;
-    (*(s16 *)((s8 *)arg0 + 2)) = 0;
-    (*(s16 *)((s8 *)arg0 + 8)) = 0x1000;
-    (*(s16 *)((s8 *)arg0 + 0xE)) = 0;
-    (*(s16 *)((s8 *)arg0 + 4)) = 0;
-    (*(s16 *)((s8 *)arg0 + 0xA)) = 0;
-    (*(s16 *)((s8 *)arg0 + 0x10)) = 0x1000;
+void resetMatrixRotation(void *matrix) {
+    (*(s16 *)((s8 *)matrix + 0)) = 0x1000;
+    (*(s16 *)((s8 *)matrix + 6)) = 0;
+    (*(s16 *)((s8 *)matrix + 0xC)) = 0;
+    (*(s16 *)((s8 *)matrix + 2)) = 0;
+    (*(s16 *)((s8 *)matrix + 8)) = 0x1000;
+    (*(s16 *)((s8 *)matrix + 0xE)) = 0;
+    (*(s16 *)((s8 *)matrix + 4)) = 0;
+    (*(s16 *)((s8 *)matrix + 0xA)) = 0;
+    (*(s16 *)((s8 *)matrix + 0x10)) = 0x1000;
 }

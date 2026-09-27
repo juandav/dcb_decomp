@@ -3,33 +3,33 @@
 
 #include "game.h"
 
-extern void (*D_8006DF0C[])(void *);
+extern void (*PRIM_INIT_FUNCS[])(void *);
 
-void func_8001E76C(void *, u8, u8, u8);
-void func_8001E6EC(s32, void *, s32, s32);
-void func_8001EC3C(u8 *, u8, u8, u8, u8);
-void func_8001EA64(void *, s16, s16, s16, s16);
-void func_8001E7B8(void *, u8, u8, u8);
-void func_8001E804(void *, u8, u8, u8);
-void func_8001E75C(void *, u8, u8, u8);
-s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb);
-void func_8001E4E8(u8 dir, s16 step, u8 *state, u8 *prim);
-void func_8001E6A4(s32 arg0, s16 arg1, s16 arg2);
-void func_8001E894(void *, u8, u8, u8);
-void func_8001E8A4(void *, u8, u8, u8);
-void func_8001E8B4(void *, u8, u8, u8);
-void func_8001E8C4(void *, u8, u8, u8);
-void func_8001E8D4(void *, u8, u8, u8);
-void func_8001E8E4(void *, u8, u8, u8);
-void func_8001E8F4(u8 *p, u8 *c);
-void func_8001E9AC(u8 *p, u8 *c);
-void func_8001E850(u8 *p, u8 *c);
-void func_8001EBF4(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_8001EB64(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_8001EBAC(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_8001EB1C(void *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_8001ECC8(u8 *, u8, u8, u8, u8);
-void func_8001EC8C(u8 *, u8, u8, u8, u8);
-void func_8001ED04(void *arg0);
+void setPrimRgb1(void *prim, u8 r, u8 g, u8 b);
+void initPrimByType(s32 type, void *prim, s32 semiTrans, s32 shadeTex);
+void setPrimQuadUvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h);
+void setPrimQuadRect(void *prim, s16 x, s16 y, s16 w, s16 h);
+void setPrimRgb2(void *prim, u8 r, u8 g, u8 b);
+void setPrimRgb3(void *prim, u8 r, u8 g, u8 b);
+void setPrimRgb0(void *prim, u8 r, u8 g, u8 b);
+s32 stepColorToward(s32 step, u8 *red, s32 targetRed, u8 *green, s32 targetGreen, u8 *blue, s32 targetBlue);
+void stepPrimFade(u8 fadeOut, s16 step, u8 *state, u8 *prim);
+void uploadClut256(s32 clutData, s16 x, s16 y);
+void setPolyGRgb1(void *poly, u8 r, u8 g, u8 b);
+void setPolyGTRgb1(void *poly, u8 r, u8 g, u8 b);
+void setPolyGRgb2(void *poly, u8 r, u8 g, u8 b);
+void setPolyGTRgb2(void *poly, u8 r, u8 g, u8 b);
+void setPolyG4Rgb3(void *poly, u8 r, u8 g, u8 b);
+void setPolyGT4Rgb3(void *poly, u8 r, u8 g, u8 b);
+void setPolyG4Colors(u8 *poly, u8 *colors);
+void setPolyGT4Colors(u8 *poly, u8 *colors);
+void setPrimQuadColors(u8 *prim, u8 *colors);
+void setPolyGT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
+void setPolyG4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
+void setPolyFT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
+void setPolyF4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
+void setPolyGT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h);
+void setPolyFT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h);
+void resetMatrixRotation(void *matrix);
 
 #endif /* DCB_PRIM_UTIL_H */

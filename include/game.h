@@ -1038,7 +1038,7 @@ s32 RotTransPers(s32, s32, s32 *, s32 *);
 s32 RotMatrix(void *, void *);
 s32 TransMatrix(MATRIX *, VECTOR *);
 s32 ScaleMatrix(void *, void *);
-void func_8001EDE0(SVECTOR *, VECTOR *, VECTOR *, MATRIX *, s32);
+void composeTransformMatrix(SVECTOR *, VECTOR *, VECTOR *, MATRIX *, s32);
 MATRIX *MulMatrix2(MATRIX *, MATRIX *);
 s32 RotTrans(u16 *, void *, s32 *);
 s32 SetRotMatrix(s32);

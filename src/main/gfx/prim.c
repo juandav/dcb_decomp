@@ -6,381 +6,381 @@
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
 
-void func_8001C220(void *arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9) {
+void initVramSprite(void *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode) {
     s32 u;
-    s32 abr;
+    s32 blend;
 
-    (*(s8 *)((s8 *)arg0 + 0xF)) = 4;
-    (*(u8 *)((s8 *)arg0 + 0x13)) = 0x64;
-    (*(s16 *)((s8 *)arg0 + 0x1A)) = arg3;
-    (*(s16 *)((s8 *)arg0 + 0x1C)) = arg7;
-    (*(s16 *)((s8 *)arg0 + 0x1E)) = arg8;
-    (*(s16 *)((s8 *)arg0 + 0x14)) = arg1;
-    (*(s16 *)((s8 *)arg0 + 0x16)) = arg2;
-    if (arg4 != 0) {
-        u = (arg5 % 64) * 2;
+    (*(s8 *)((s8 *)packet + 0xF)) = 4;
+    (*(u8 *)((s8 *)packet + 0x13)) = 0x64;
+    (*(s16 *)((s8 *)packet + 0x1A)) = clut;
+    (*(s16 *)((s8 *)packet + 0x1C)) = width;
+    (*(s16 *)((s8 *)packet + 0x1E)) = height;
+    (*(s16 *)((s8 *)packet + 0x14)) = x;
+    (*(s16 *)((s8 *)packet + 0x16)) = y;
+    if (colorMode != 0) {
+        u = (vramX % 64) * 2;
     } else {
-        u = (arg5 % 64) * 4;
+        u = (vramX % 64) * 4;
     }
-    (*(u8 *)((s8 *)arg0 + 0x18)) = u;
-    (*(u8 *)((s8 *)arg0 + 0x19)) = arg6;
-    (*(u8 *)((s8 *)arg0 + 0x10)) = 0x80;
-    (*(u8 *)((s8 *)arg0 + 0x11)) = 0x80;
-    (*(u8 *)((s8 *)arg0 + 0x12)) = 0x80;
-    if (arg9 >= 0) {
-        (*(u8 *)((s8 *)arg0 + 0x13)) |= 2;
-        abr = arg9;
+    (*(u8 *)((s8 *)packet + 0x18)) = u;
+    (*(u8 *)((s8 *)packet + 0x19)) = vramY;
+    (*(u8 *)((s8 *)packet + 0x10)) = 0x80;
+    (*(u8 *)((s8 *)packet + 0x11)) = 0x80;
+    (*(u8 *)((s8 *)packet + 0x12)) = 0x80;
+    if (blendMode >= 0) {
+        (*(u8 *)((s8 *)packet + 0x13)) |= 2;
+        blend = blendMode;
     } else {
-        abr = 0;
+        blend = 0;
     }
-    SetDrawMode(arg0, 0, 0, ((arg4 & 3) << 7) | ((abr & 3) << 5) | ((arg6 & 0x100) >> 4) | ((arg5 & 0x3C0) >> 6) | ((arg6 & 0x200) * 4), &D_800794F8);
-    MargePrim(arg0, (s8 *)arg0 + 0xC);
+    SetDrawMode(packet, 0, 0, ((colorMode & 3) << 7) | ((blend & 3) << 5) | ((vramY & 0x100) >> 4) | ((vramX & 0x3C0) >> 6) | ((vramY & 0x200) * 4), &D_800794F8);
+    MargePrim(packet, (s8 *)packet + 0xC);
 }
 
-void func_8001C354(s32 x, s32 y, s32 w, s32 h, u32 color) {
-    Rect16 r;
+void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
+    Rect16 rect;
     u32 *buf;
-    u32 *p;
+    u32 *cursor;
     s32 i;
 
     w /= 4;
     if (w == 0 || h == 0) {
         return;
     }
-    r.x = x;
-    r.w = w;
+    rect.x = x;
+    rect.w = w;
     /* x is reused as the fill size in bytes */
     if (func_8001AB64() < w * (h << 2)) {
         x = func_8001AB64();
     } else {
         x = w * (h << 2);
     }
-    r.h = (u32)x / (w << 2);
-    if (r.h <= 0) {
+    rect.h = (u32)x / (w << 2);
+    if (rect.h <= 0) {
         return;
     }
-    buf = func_8001AD0C(r.h * (w << 2));
+    buf = func_8001AD0C(rect.h * (w << 2));
     if (buf == NULL) {
         return;
     }
-    p = buf;
+    cursor = buf;
     for (x -= 4; x >= 0; x -= 4) {
-        *p++ = color;
+        *cursor++ = color;
     }
-    r.y = y;
-    for (i = 0; i < h; i += r.h, r.y += r.h) {
-        r.h = (h - i < r.h) ? h - i : r.h;
-        LoadImage((s16 *)&r, (s32)buf);
+    rect.y = y;
+    for (i = 0; i < h; i += rect.h, rect.y += rect.h) {
+        rect.h = (h - i < rect.h) ? h - i : rect.h;
+        LoadImage((s16 *)&rect, (s32)buf);
     }
     DrawSync(0);
     func_8001AE90(buf);
 }
 
-void func_8001C4DC(s32 x, s32 y, Rect16 *r, u16 tpage, s32 clut, s32 z, u8 c, s8 abr) {
-    s32 tp = tpage;
+void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blendMode) {
+    s32 tpageBits = tpage;
 
     if (func_80029990() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
-        CUR_SPRT->sp.u0 = r->x;
-        CUR_SPRT->sp.v0 = r->y;
+        CUR_SPRT->sp.u0 = uvRect->x;
+        CUR_SPRT->sp.v0 = uvRect->y;
         CUR_SPRT->sp.clut = clut;
-        CUR_SPRT->sp.w = r->w;
-        CUR_SPRT->sp.h = r->h;
-        CUR_SPRT->sp.r0 = c;
-        CUR_SPRT->sp.g0 = c;
-        CUR_SPRT->sp.b0 = c;
-        if (abr >= 0) {
-            tp |= (abr & 3) << 5;
+        CUR_SPRT->sp.w = uvRect->w;
+        CUR_SPRT->sp.h = uvRect->h;
+        CUR_SPRT->sp.r0 = brightness;
+        CUR_SPRT->sp.g0 = brightness;
+        CUR_SPRT->sp.b0 = brightness;
+        if (blendMode >= 0) {
+            tpageBits |= (blendMode & 3) << 5;
             setSemiTrans(&CUR_SPRT->sp, 1);
         } else {
             setSemiTrans(&CUR_SPRT->sp, 0);
         }
-        setDrawMode(&CUR_SPRT->dm, 0, 0, tp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        setDrawMode(&CUR_SPRT->dm, 0, 0, tpageBits);
+        addPrim(&D_800793A0->ot[otz], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[otz], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
 
-void func_8001C6A4(POLY_FT4 *p, POLY_FT4 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *uv, Rect16 *xy,
-                   u8 semi, u8 flat) {
-    func_800677A4(p);
-    p->tpage = tpage;
-    p->clut = clut;
-    SetShadeTex(p, flat ^ 1);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyFT4Pair(POLY_FT4 *poly, POLY_FT4 *otherPoly, u8 *color, s32 tpage, s32 clut, Rect16 *uvRect, Rect16 *xyRect,
+                   u8 semiTrans, u8 tinted) {
+    func_800677A4(poly);
+    poly->tpage = tpage;
+    poly->clut = clut;
+    SetShadeTex(poly, tinted ^ 1);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     } else {
-        SetSemiTrans(p, 0);
+        SetSemiTrans(poly, 0);
     }
-    if (rgb != 0) {
-        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    if (color != 0) {
+        setPrimRgb0(poly, color[0], color[1], color[2]);
     }
-    if (uv != 0) {
-        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    if (uvRect != 0) {
+        setPrimQuadUvRect((u8 *)poly, uvRect->x, uvRect->y, uvRect->w, uvRect->h);
     }
-    if (xy != 0) {
-        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    if (xyRect != 0) {
+        setPrimQuadRect(poly, xyRect->x, xyRect->y, xyRect->w, xyRect->h);
     }
-    *dst = *p;
+    *otherPoly = *poly;
 }
 
-void func_8001C810(POLY_FT3 *p, s32 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *uv, Rect16 *xy,
-                   u8 semi, u8 flat) {
-    func_80067724(p);
-    p->tpage = tpage;
-    p->clut = clut;
-    SetShadeTex(p, flat ^ 1);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyFT3Pair(POLY_FT3 *poly, s32 *otherPoly, u8 *color, s32 tpage, s32 clut, Rect16 *uvRect, Rect16 *xyRect,
+                   u8 semiTrans, u8 tinted) {
+    func_80067724(poly);
+    poly->tpage = tpage;
+    poly->clut = clut;
+    SetShadeTex(poly, tinted ^ 1);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     } else {
-        SetSemiTrans(p, 0);
+        SetSemiTrans(poly, 0);
     }
-    if (rgb != 0) {
-        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    if (color != 0) {
+        setPrimRgb0(poly, color[0], color[1], color[2]);
     }
-    if (uv != 0) {
-        p->u0 = uv->x + uv->w / 2;
-        p->v0 = uv->y;
-        p->u1 = uv->x;
-        p->v1 = uv->y + uv->h;
-        p->u2 = uv->x + uv->w;
-        p->v2 = uv->y + uv->h;
+    if (uvRect != 0) {
+        poly->u0 = uvRect->x + uvRect->w / 2;
+        poly->v0 = uvRect->y;
+        poly->u1 = uvRect->x;
+        poly->v1 = uvRect->y + uvRect->h;
+        poly->u2 = uvRect->x + uvRect->w;
+        poly->v2 = uvRect->y + uvRect->h;
     }
-    if (xy != 0) {
-        p->x0 = xy->x + xy->w / 2;
-        p->y0 = xy->y;
-        p->x1 = xy->x;
-        p->y1 = xy->y + xy->h;
-        p->x2 = xy->x + xy->w;
-        p->y2 = xy->y + xy->h;
+    if (xyRect != 0) {
+        poly->x0 = xyRect->x + xyRect->w / 2;
+        poly->y0 = xyRect->y;
+        poly->x1 = xyRect->x;
+        poly->y1 = xyRect->y + xyRect->h;
+        poly->x2 = xyRect->x + xyRect->w;
+        poly->y2 = xyRect->y + xyRect->h;
     }
-    dst[0] = ((s32 *)p)[0];
-    dst[1] = ((s32 *)p)[1];
-    dst[2] = ((s32 *)p)[2];
-    dst[3] = ((s32 *)p)[3];
-    dst[4] = ((s32 *)p)[4];
-    dst[5] = ((s32 *)p)[5];
-    dst[6] = ((s32 *)p)[6];
-    dst[7] = ((s32 *)p)[7];
+    otherPoly[0] = ((s32 *)poly)[0];
+    otherPoly[1] = ((s32 *)poly)[1];
+    otherPoly[2] = ((s32 *)poly)[2];
+    otherPoly[3] = ((s32 *)poly)[3];
+    otherPoly[4] = ((s32 *)poly)[4];
+    otherPoly[5] = ((s32 *)poly)[5];
+    otherPoly[6] = ((s32 *)poly)[6];
+    otherPoly[7] = ((s32 *)poly)[7];
 }
 
-void func_8001CA54(POLY_GT3 *p, POLY_GT3 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 tpage, s32 clut,
-                   Rect16 *uv, Rect16 *xy, u8 semi) {
-    func_80067764(p);
-    p->tpage = tpage;
-    p->clut = clut;
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyGT3Pair(POLY_GT3 *poly, POLY_GT3 *otherPoly, u8 *color0, u8 *color1, u8 *color2, s32 tpage, s32 clut,
+                   Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans) {
+    func_80067764(poly);
+    poly->tpage = tpage;
+    poly->clut = clut;
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     } else {
-        SetSemiTrans(p, 0);
+        SetSemiTrans(poly, 0);
     }
-    if (rgb0 != 0) {
-        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    if (color0 != 0) {
+        setPrimRgb0(poly, color0[0], color0[1], color0[2]);
     }
-    if (rgb1 != 0) {
-        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    if (color1 != 0) {
+        setPrimRgb1(poly, color1[0], color1[1], color1[2]);
     }
-    if (rgb2 != 0) {
-        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    if (color2 != 0) {
+        setPrimRgb2(poly, color2[0], color2[1], color2[2]);
     }
-    if (uv != 0) {
-        p->u0 = uv->x + uv->w / 2;
-        p->v0 = uv->y;
-        p->u1 = uv->x;
-        p->v1 = uv->y + uv->h;
-        p->u2 = uv->x + uv->w;
-        p->v2 = uv->y + uv->h;
+    if (uvRect != 0) {
+        poly->u0 = uvRect->x + uvRect->w / 2;
+        poly->v0 = uvRect->y;
+        poly->u1 = uvRect->x;
+        poly->v1 = uvRect->y + uvRect->h;
+        poly->u2 = uvRect->x + uvRect->w;
+        poly->v2 = uvRect->y + uvRect->h;
     }
-    if (xy != 0) {
-        p->x0 = xy->x + xy->w / 2;
-        p->y0 = xy->y;
-        p->x1 = xy->x;
-        p->y1 = xy->y + xy->h;
-        p->x2 = xy->x + xy->w;
-        p->y2 = xy->y + xy->h;
+    if (xyRect != 0) {
+        poly->x0 = xyRect->x + xyRect->w / 2;
+        poly->y0 = xyRect->y;
+        poly->x1 = xyRect->x;
+        poly->y1 = xyRect->y + xyRect->h;
+        poly->x2 = xyRect->x + xyRect->w;
+        poly->y2 = xyRect->y + xyRect->h;
     }
-    *dst = *p;
+    *otherPoly = *poly;
 }
 
-void func_8001CCB4(POLY_GT4 *p, POLY_GT4 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, u8 *rgb3, s32 tpage,
-                   s32 clut, Rect16 *uv, Rect16 *xy, u8 semi) {
-    func_800677E4(p);
-    p->tpage = tpage;
-    p->clut = clut;
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyGT4Pair(POLY_GT4 *poly, POLY_GT4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 tpage,
+                   s32 clut, Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans) {
+    func_800677E4(poly);
+    poly->tpage = tpage;
+    poly->clut = clut;
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     } else {
-        SetSemiTrans(p, 0);
+        SetSemiTrans(poly, 0);
     }
-    if (rgb0 != 0) {
-        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    if (color0 != 0) {
+        setPrimRgb0(poly, color0[0], color0[1], color0[2]);
     }
-    if (rgb1 != 0) {
-        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    if (color1 != 0) {
+        setPrimRgb1(poly, color1[0], color1[1], color1[2]);
     }
-    if (rgb2 != 0) {
-        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    if (color2 != 0) {
+        setPrimRgb2(poly, color2[0], color2[1], color2[2]);
     }
-    if (rgb3 != 0) {
-        func_8001E804(p, rgb3[0], rgb3[1], rgb3[2]);
+    if (color3 != 0) {
+        setPrimRgb3(poly, color3[0], color3[1], color3[2]);
     }
-    if (uv != 0) {
-        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    if (uvRect != 0) {
+        setPrimQuadUvRect((u8 *)poly, uvRect->x, uvRect->y, uvRect->w, uvRect->h);
     }
-    if (xy != 0) {
-        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    if (xyRect != 0) {
+        setPrimQuadRect(poly, xyRect->x, xyRect->y, xyRect->w, xyRect->h);
     }
-    *dst = *p;
+    *otherPoly = *poly;
 }
 
-void func_8001CE74(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, s16 *r, u8 semi) {
-    func_80067784(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyF4Pair(s32 *poly, s32 *otherPoly, u8 *color, s32 blendMode, void *tpage0, void *tpage1, s16 *xyRect, u8 semiTrans) {
+    func_80067784(poly);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     }
-    if (rgb != 0) {
-        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    if (color != 0) {
+        setPrimRgb0(poly, color[0], color[1], color[2]);
     }
-    if (r != 0) {
-        func_8001EA64(p, r[0], r[1], r[2], r[3]);
+    if (xyRect != 0) {
+        setPrimQuadRect(poly, xyRect[0], xyRect[1], xyRect[2], xyRect[3]);
     }
-    dst[0] = p[0];
-    dst[1] = p[1];
-    dst[2] = p[2];
-    dst[3] = p[3];
-    dst[4] = p[4];
-    dst[5] = p[5];
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    otherPoly[0] = poly[0];
+    otherPoly[1] = poly[1];
+    otherPoly[2] = poly[2];
+    otherPoly[3] = poly[3];
+    otherPoly[4] = poly[4];
+    otherPoly[5] = poly[5];
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
-    }
-}
-
-void func_8001CFDC(POLY_G4 *p, POLY_G4 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, u8 *rgb3, s32 abr,
-                   void *tp0, void *tp1, Rect16 *xy, u8 semi) {
-    func_800677C4(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
-    }
-    if (rgb0 != 0) {
-        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
-    }
-    if (rgb1 != 0) {
-        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
-    }
-    if (rgb2 != 0) {
-        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
-    }
-    if (rgb3 != 0) {
-        func_8001E804(p, rgb3[0], rgb3[1], rgb3[2]);
-    }
-    if (xy != 0) {
-        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
-    }
-    *dst = *p;
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
-    }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
 }
 
-void func_8001D1AC(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 abr, void *tp0, void *tp1,
-                   u8 semi) {
-    func_80067744(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyG4Pair(POLY_G4 *poly, POLY_G4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 blendMode,
+                   void *tpage0, void *tpage1, Rect16 *xyRect, u8 semiTrans) {
+    func_800677C4(poly);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     }
-    if (rgb0 != 0) {
-        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    if (color0 != 0) {
+        setPrimRgb0(poly, color0[0], color0[1], color0[2]);
     }
-    if (rgb1 != 0) {
-        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    if (color1 != 0) {
+        setPrimRgb1(poly, color1[0], color1[1], color1[2]);
     }
-    if (rgb2 != 0) {
-        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    if (color2 != 0) {
+        setPrimRgb2(poly, color2[0], color2[1], color2[2]);
     }
-    dst[0] = p[0];
-    dst[1] = p[1];
-    dst[2] = p[2];
-    dst[3] = p[3];
-    dst[4] = p[4];
-    dst[5] = p[5];
-    dst[6] = p[6];
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    if (color3 != 0) {
+        setPrimRgb3(poly, color3[0], color3[1], color3[2]);
     }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    if (xyRect != 0) {
+        setPrimQuadRect(poly, xyRect->x, xyRect->y, xyRect->w, xyRect->h);
     }
-}
-
-void func_8001D33C(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 semi) {
-    func_80067704(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
+    *otherPoly = *poly;
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
-    if (rgb != 0) {
-        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
-    }
-    dst[0] = p[0];
-    dst[1] = p[1];
-    dst[2] = p[2];
-    dst[3] = p[3];
-    dst[4] = p[4];
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
-    }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
 }
 
-void func_8001D464(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, s32 abr, void *tp0, void *tp1, u8 semi) {
-    func_80067904(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyG3Pair(s32 *poly, s32 *otherPoly, u8 *color0, u8 *color1, u8 *color2, s32 blendMode, void *tpage0, void *tpage1,
+                   u8 semiTrans) {
+    func_80067744(poly);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     }
-    if (rgb0 != 0) {
-        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    if (color0 != 0) {
+        setPrimRgb0(poly, color0[0], color0[1], color0[2]);
     }
-    if (rgb1 != 0) {
-        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    if (color1 != 0) {
+        setPrimRgb1(poly, color1[0], color1[1], color1[2]);
     }
-    dst[0] = p[0];
-    dst[1] = p[1];
-    dst[2] = p[2];
-    dst[3] = p[3];
-    dst[4] = p[4];
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    if (color2 != 0) {
+        setPrimRgb2(poly, color2[0], color2[1], color2[2]);
     }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    otherPoly[0] = poly[0];
+    otherPoly[1] = poly[1];
+    otherPoly[2] = poly[2];
+    otherPoly[3] = poly[3];
+    otherPoly[4] = poly[4];
+    otherPoly[5] = poly[5];
+    otherPoly[6] = poly[6];
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
+    }
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
 }
 
-void func_8001D5B4(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 semi) {
-    func_800678E4(p);
-    if (semi) {
-        SetSemiTrans(p, 1);
+void initPolyF3Pair(s32 *poly, s32 *otherPoly, u8 *color, s32 blendMode, void *tpage0, void *tpage1, u8 semiTrans) {
+    func_80067704(poly);
+    if (semiTrans) {
+        SetSemiTrans(poly, 1);
     }
-    if (rgb != 0) {
-        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    if (color != 0) {
+        setPrimRgb0(poly, color[0], color[1], color[2]);
     }
-    dst[0] = p[0];
-    dst[1] = p[1];
-    dst[2] = p[2];
-    dst[3] = p[3];
-    if (tp0 != 0) {
-        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    otherPoly[0] = poly[0];
+    otherPoly[1] = poly[1];
+    otherPoly[2] = poly[2];
+    otherPoly[3] = poly[3];
+    otherPoly[4] = poly[4];
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
-    if (tp1 != 0) {
-        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
+    }
+}
+
+void initLineG2Pair(s32 *line, s32 *otherLine, u8 *color0, u8 *color1, s32 blendMode, void *tpage0, void *tpage1, u8 semiTrans) {
+    func_80067904(line);
+    if (semiTrans) {
+        SetSemiTrans(line, 1);
+    }
+    if (color0 != 0) {
+        setPrimRgb0(line, color0[0], color0[1], color0[2]);
+    }
+    if (color1 != 0) {
+        setPrimRgb1(line, color1[0], color1[1], color1[2]);
+    }
+    otherLine[0] = line[0];
+    otherLine[1] = line[1];
+    otherLine[2] = line[2];
+    otherLine[3] = line[3];
+    otherLine[4] = line[4];
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
+    }
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
+    }
+}
+
+void initLineF2Pair(s32 *line, s32 *otherLine, u8 *color, s32 blendMode, void *tpage0, void *tpage1, u8 semiTrans) {
+    func_800678E4(line);
+    if (semiTrans) {
+        SetSemiTrans(line, 1);
+    }
+    if (color != 0) {
+        setPrimRgb0(line, color[0], color[1], color[2]);
+    }
+    otherLine[0] = line[0];
+    otherLine[1] = line[1];
+    otherLine[2] = line[2];
+    otherLine[3] = line[3];
+    if (tpage0 != 0) {
+        SetDrawTPage(tpage0, 0, 0, GetTPage(0, blendMode, 0, 0));
+    }
+    if (tpage1 != 0) {
+        SetDrawTPage(tpage1, 0, 0, GetTPage(0, blendMode, 0, 0));
     }
 }

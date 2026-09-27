@@ -7,7 +7,7 @@
 #define STRIP_DRAW(draw)                                                                                            \
     {                                                                                                                \
         gte_avsz3();                                                                                                 \
-        pkt = draw(func_800206B0(pkt, SORT_WORK->ot, gouraud, SORT_WORK->code), SORT_WORK->ot, gouraud,             \
+        packet = draw(emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code), SORT_WORK->ot, gouraud,           \
                    SORT_WORK->code);                                                                                 \
     }
 
@@ -28,29 +28,29 @@ typedef struct {
     /* 0x38 */ u32 unk38;
 } SortWork;
 
-extern Unk8006DF60 D_8006DF60[];
+extern Unk8006DF60 MODEL_TEXTURE_SLOTS[];
 
-void func_8001F518(u32 i0, u32 *idx, u8 *base);
-void func_8001F580(s32 flag, u32 i, u8 *base);
-void func_8001F5A4(s32 flag, u32 i, u8 *base);
-void func_8001F5CC(s32 flag, u32 i, u8 *base);
-void func_8001F5FC(s32 flag, u32 i, u8 *base);
-void func_8001F630(s32 flag, u32 i, u8 *base);
-void func_8001F660(s32 flag, u32 i, u8 *base);
-void func_8001F694(s32 flag, u32 i, u8 *base);
-u32 *func_8001F6C4(u32 *p, u32 *ot, s32 gouraud, u32 code);
-u32 *func_8001F768(u32 *p, u32 *ot, s32 gouraud, u32 code);
-u32 *func_8001F824(u32 *p, u32 *ot, s32 gouraud, u32 code);
-u32 *func_8001F8B0(u32 *p, u32 *ot, s32 gouraud, u32 code);
-u32 *func_8001F3C0(u32 *, u32 *);
-void func_8001F94C(SortWork *);
-u32 *func_80020440(u32 *, u32 *);
-void func_80020778(SortWork *);
-u32 func_800202D8(u32 *data, u32 *ot, u32 packet, void *arg3);
-u32 func_80020370(u32 *data, u32 *ot, u32 packet, void *arg3);
-void func_8002060C(s32 flag, u32 i, u8 *base);
-void func_80020638(s32 flag, u32 i, u8 *base);
-void func_80020674(s32 flag, u32 i, u8 *base);
-u32 *func_800206B0(u32 *p, u32 *ot, s32 gouraud, u32 code);
+void loadTriangleToGte(u32 index0, u32 *indices, u8 *workBuf);
+void loadGteVertex0(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteVertex0Nclip(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteVertex1(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteVertex1Nclip(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteVertex2(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteVertex2Nclip(s32 gouraud, u32 index, u8 *workBuf);
+void loadGteQuadVertex3(s32 gouraud, u32 index, u8 *workBuf);
+u32 *emitTexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code);
+u32 *emitTexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code);
+u32 *emitUntexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code);
+u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code);
+u32 *transformAndLightVertices(u32 *, u32 *);
+void sortModelPrimitives(SortWork *);
+u32 *transformVerticesWithEnvMap(u32 *, u32 *);
+void sortEnvMappedPrimitives(SortWork *w);
+u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize);
+u32 sortEnvMappedModelObject(u32 *data, u32 *ot, u32 packet, void *otSize);
+void loadEnvGteVertex0(s32 gouraud, u32 index, u8 *workBuf);
+void loadEnvGteVertex1(s32 gouraud, u32 index, u8 *workBuf);
+void loadEnvGteVertex2(s32 gouraud, u32 index, u8 *workBuf);
+u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code);
 
 #endif /* DCB_TMD_SORT_H */

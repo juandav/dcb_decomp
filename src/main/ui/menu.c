@@ -13,7 +13,7 @@ void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
 
     for (i = 0; i < 2; i++) {
         setDrawMode(&p->dm[i], 0, 0, GetTPage(0, 1, 0, 0));
-        func_8001E6EC(0x11, &p->prim[i], 1, 0);
+        initPrimByType(0x11, &p->prim[i], 1, 0);
     }
     func_800191C0(p, arg1, arg2);
 }
