@@ -7166,9 +7166,56 @@ void func_8003917C(void) {
     } while (diff);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80039220);
+extern u8 *D_801D833C;
+extern u8 *D_801D83EC;
+int abs(int);
+s32 func_80040764(s32);
+void func_8004480C(void *, s32);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80039354);
+#define PLAYER(p) ((Player *)D_801D8348[p])
+
+void func_80039220(s32 p) {
+    s32 idx;
+    u8 *q;
+
+    idx = func_800411C4(p);
+    if (idx != -1) {
+        q = D_801D83EC + (p * 0xD8 + 0x48);
+        PLAYER(p)->unk130[4].value = (s8)PLAYER(p)->cards[idx % 30].card[0x1C];
+        PLAYER(p)->unk130[4].type = 5;
+        PLAYER(p)->unk130[4].timer = 0x30;
+        PLAYER(p)->unk130[4].x = *(s16 *)(q + 0x10) + (s16)(p * 93 + 0x10);
+        PLAYER(p)->unk130[4].y = *(u16 *)(q + 0x12) + 2;
+    } else {
+        PLAYER(p)->unk130[4].timer = 0;
+    }
+}
+
+void func_80039354(s32 p, s32 v, s32 k) {
+    s32 c;
+    u8 *q;
+
+    PLAYER(p)->unk130[k].value = v - PLAYER(p)->unk11C[k];
+    if (PLAYER(p)->unk130[k].value == 0) {
+        PLAYER(p)->unk130[k].type = 7;
+    } else if (PLAYER(p)->unk130[k].value > 0) {
+        PLAYER(p)->unk130[k].type = 5;
+    } else {
+        PLAYER(p)->unk130[k].type = 2;
+    }
+    PLAYER(p)->unk130[k].value = abs(PLAYER(p)->unk130[k].value);
+    PLAYER(p)->unk130[k].timer = 0x30;
+    if (k == 0) {
+        c = func_80040764(p);
+        func_8004480C(*(void **)(D_801D833C + c * 36), c);
+        PLAYER(p)->unk130[0].x = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x34) + 0x19;
+        PLAYER(p)->unk130[0].y = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x36) + 0x15;
+    } else {
+        q = D_801D83EC + (p * 0xD8 + 0x48);
+        PLAYER(p)->unk130[k].x = *(u16 *)(q + 0x10) + p * 25 + 0x1C;
+        PLAYER(p)->unk130[k].y = *(s16 *)(q + 0x12) + (s16)((k - 1) * 13 + 3);
+    }
+}
 
 extern s32 D_8006E298;
 void func_8002961C(s32, s32, u8 *, u8 *, s32, s32);
@@ -7505,7 +7552,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E4F0);
 
 s32 func_801F8200();
 s32 func_801F8854();
-extern void *D_801D833C;
+extern u8 *D_801D833C;
+extern u8 *D_801D83EC;
 
 s32 func_8003FB3C();
 void func_8003E844(s32 arg0) {
