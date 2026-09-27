@@ -424,22 +424,72 @@ u_long func_800666A8(u_long cmd) {
     return *D_8007685C & 0xFFFFFF;
 }
 
-int func_800666D8(int arg0, int arg1, int arg2) {
-    return func_800666FC(arg0, arg1, 0, arg2);
+int func_800666D8(int (*func)(), u_long *param, u_long value) {
+    return func_800666FC(func, param, 0, value);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666FC);
+/* GPU command queue */
+typedef struct GpuQueue {
+    /* 0x00 */ int (*func)();
+    /* 0x04 */ u_long *param;
+    /* 0x08 */ u_long value;
+    /* 0x0C */ u_long data[21];
+} GpuQueue;
+
+extern volatile GpuQueue D_801DC130[64];
+extern volatile long D_80076880;
+extern volatile long D_80076884;
+extern long D_80076888;
+int func_80066EB8(void);
+/* libetc.h has no prototype for it */
+int SetIntrMask(int mask);
+
+int func_800666FC(int (*func)(), u_long *param, int size, u_long value) {
+    int i;
+    u_long v;
+    GpuDebug *dbg;
+
+    func_80066E84();
+    while (((D_80076880 + 1) & 0x3F) == D_80076884) {
+        if (func_80066EB8() != 0) {
+            return -1;
+        }
+        func_800669AC();
+    }
+    D_80076888 = SetIntrMask(0);
+    dbg = &D_80076758;
+    dbg->unk8 = 1;
+    if (dbg->queue == 0 || (D_80076880 == D_80076884 && !(*(volatile u_long *)D_8007686C & 0x01000000) &&
+                            dbg->drawSyncCallback == NULL)) {
+        do {
+        } while (!(*(volatile u_long *)D_80076860 & 0x04000000));
+        func(param, value);
+        SetIntrMask(D_80076888);
+        return 0;
+    }
+    DMACallback(2, func_800669AC);
+    if (size != 0) {
+        for (i = 0; i < size / 4; i++) {
+            v = param[i];
+            D_801DC130[D_80076880].data[i] = v;
+        }
+        D_801DC130[D_80076880].param = (u_long *)D_801DC130[D_80076880].data;
+    } else {
+        D_801DC130[D_80076880].param = param;
+    }
+    D_801DC130[D_80076880].value = value;
+    D_801DC130[D_80076880].func = func;
+    D_80076880 = (D_80076880 + 1) & 0x3F;
+    SetIntrMask(D_80076888);
+    func_800669AC();
+    return (D_80076880 - D_80076884) & 0x3F;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800669AC);
 
-extern volatile long D_80076880;
-extern volatile long D_80076884;
 extern long D_80076890;
 extern volatile u_long *D_8007687C;
-extern u_char D_801DC130[];
 int func_80066FFC(int mode);
-/* libetc.h has no prototype for it */
-int SetIntrMask(int mask);
 
 int func_80066C0C(int mode) {
     D_80076890 = SetIntrMask(0);
@@ -450,7 +500,7 @@ int func_80066C0C(int mode) {
         *D_8007686C = 0x401;
         *D_8007687C |= 0x800;
         *D_80076860 = 0;
-        func_800674DC(D_801DC130, 0, 0x1800);
+        func_800674DC((u_char *)D_801DC130, 0, sizeof(D_801DC130));
         break;
     case 1:
     case 3:

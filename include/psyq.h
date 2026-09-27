@@ -247,7 +247,7 @@ typedef struct GpuDebug {
     /* 0x3 */ u_char reverse;
     /* 0x4 */ short w;
     /* 0x6 */ short h;
-    /* 0x8 */ u8 unk8[4];
+    /* 0x8 */ long unk8;
     /* 0x0C */ void (*drawSyncCallback)();
     /* 0x10 */ DRAWENV draw;
     /* 0x6C */ DISPENV disp;
@@ -387,7 +387,7 @@ long _SsVmSetProgVol(short vab, short prog, u_char vol);
 void _SsVmSetVol(short seq_sep, char vab, u_char prog, u_short vol, u_char pan);
 void _SsSndSetVolData();
 u_long _SpuSetAnyVoice(long on_off, u_long bits, int addr1, int addr2);
-int func_800666FC(int, int, int, int);
+int func_800666FC(int (*func)(), u_long *param, int size, u_long value);
 
 extern SeqStruct *D_801D8618[];
 
