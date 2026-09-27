@@ -1,4 +1,4 @@
-obj___fixsfsi
+obj___fixsfsi nocse
 libspu_s_crwa
 libspu_spu
 libspu_s_ini

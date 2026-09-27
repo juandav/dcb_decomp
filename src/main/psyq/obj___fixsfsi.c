@@ -4,4 +4,21 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", __fixsfsi);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", __floatsisf);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _err_math);
+extern int D_8006EF1C;
+extern int D_8006EF20;
+
+int _err_math(int code, int arg) {
+    D_8006EF1C = code;
+    D_8006EF20 = arg;
+    switch (code) {
+    case 33:
+        func_8006A784(0xF4000002, 0x301);
+        break;
+    case 34:
+        func_8006A784(0xF4000002, 0x302);
+        break;
+    }
+    return 0;
+}
+
+OBJECT_END(3);
