@@ -45,17 +45,22 @@ def split(line):
 
 
 def loads_without_at(lines):
-    """lui $at / addu $at,$at,$r / lw $d,%lo(x)($at)  ->  use $d instead."""
+    """lui $at / addu $at,$at,$r / lw $d,%lo(x)($at)  ->  use $d instead.
+
+    maspsx expands a large constant offset (`lw $d,0x1F801088($r)`) with
+    `addu $at,$r,$at`; ASPSX wrote it as for a symbol."""
     out = list(lines)
     for i in range(len(out) - 2):
         a, b, c = (split(x) for x in out[i : i + 3])
         if not (a and b and c) or a[0] != "lui" or a[1][:1] != ["$at"]:
             continue
-        if b[0] != "addu" or b[1][:2] != ["$at", "$at"]:
+        if b[0] != "addu" or b[1][0] != "$at" or "$at" not in b[1][1:]:
             continue
         if not LOADS.match(c[0]) or not c[1][1].endswith("($at)"):
             continue
-        dest, index = c[1][0], b[1][2]
+        index = b[1][2] if b[1][1] == "$at" else b[1][1]
+        out[i + 1] = f"addu\t$at,$at,{index}"
+        dest = c[1][0]
         if dest in ("$at", index):
             continue
         out[i] = out[i].replace("$at", dest)
@@ -322,7 +327,8 @@ def fill_from_target(lines, split):
         if ud is None or len(ud[1]) != 1:
             continue
         r = next(iter(ud[1]))
-        if r in ud[0] or r in ("$0", "$29", "$31"):
+        # $at: the first half of an expanded macro, which reorg never saw
+        if r in ud[0] or r in ("$0", "$1", "$at", "$29", "$31"):
             continue
         if not is_dead(items, n + 2, r, labels):
             continue
