@@ -170,10 +170,22 @@ def main():
                 and len(prev[1]) == 2
                 and re.match(r"^[A-Za-z_][\w.]*([+-]\d+)?\((\$\w+)\)$", prev[1][1])
             )
+            reg_store = (
+                prev is not None
+                and STORES.match(prev[0]) is not None
+                and len(prev[1]) == 2
+                and re.match(r"^-?(0x)?[0-9a-fA-F]*\(\$\w+\)$", prev[1][1])
+            )
             if ins[0] in CONDBR:
                 # a conditional branch left in reorder mode only takes a store
-                # to a symbol into its slot
+                # into its slot: GCC's reorg doesn't move volatile stores
                 idx_store = False
+                if reg_store and not at_label and not (prev2 and BRANCHES.match(prev2[0])):
+                    moved = out.pop(k)
+                    out.append(line)
+                    out.append(moved)
+                    i += 2
+                    continue
                 if not sym_store:
                     prev = prev_la = None
             movable = (
