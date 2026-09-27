@@ -44,7 +44,15 @@ int OpenTIM(u_long *addr) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ReadTIM);
+TIM_IMAGE *ReadTIM(TIM_IMAGE *timimg) {
+    int n = func_80067BE8(D_801DD930, timimg);
+
+    if (n == -1) {
+        return NULL;
+    }
+    D_801DD930 += n;
+    return timimg;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067BE8);
 
