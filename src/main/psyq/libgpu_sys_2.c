@@ -654,7 +654,22 @@ void func_80066E84(void) {
     D_80076898 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066EB8);
+int func_80066EB8(void) {
+    if (VSync(-1) > D_80076894 || D_80076898++ > 0xF0000) {
+        (void)*D_80076860;
+        printf("GPU timeout:que=%d,stat=%08x,chcr=%08x,madr=%08x\n", (D_80076880 - D_80076884) & 0x3F,
+               *D_80076860, *D_8007686C, *D_80076864);
+        D_80076890 = SetIntrMask(0);
+        D_80076880 = D_80076884 = 0;
+        *D_8007686C = 0x401;
+        *D_8007687C |= 0x800;
+        *D_80076860 = 0x2000000;
+        *D_80076860 = 0x1000000;
+        SetIntrMask(D_80076890);
+        return -1;
+    }
+    return 0;
+}
 
 int func_80066FFC(int mode) {
     *D_80076860 = 0x10000007;
