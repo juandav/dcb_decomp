@@ -192,15 +192,26 @@ typedef struct {
 } Entry12;
 
 typedef struct {
-    /* 0x00 */ u8 unk0[0x14];
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2;
+    /* 0x04 */ Rect16 view;
+    /* 0x0C */ Rect16 rect;
     /* 0x14 */ Rect16 cur;
-    /* 0x1C */ u8 unk1C[8];
+    /* 0x1C */ Rect16 from;
     /* 0x24 */ Rect16 delta;
-    /* 0x2C */ u8 unk2C[0x10];
+    /* 0x2C */ s32 unk2C;
+    /* 0x30 */ s16 unk30[4];
+    /* 0x38 */ u8 unk38;
+    /* 0x39 */ u8 unk39;
+    /* 0x3A */ u8 unk3A[2];
     /* 0x3C */ u8 unk3C;
     /* 0x3D */ u8 unk3D;
-    /* 0x3E */ u8 unk3E[3];
+    /* 0x3E */ u8 unk3E;
+    /* 0x3F */ u8 unk3F;
+    /* 0x40 */ u8 unk40;
     /* 0x41 */ s8 unk41;
+    /* 0x42 */ u8 unk42;
+    /* 0x43 */ u8 unk43;
 } Unk80016F38;
 
 typedef struct {
@@ -1644,7 +1655,91 @@ void func_80016BEC(void) {
     D_800897E8 = D_800793A0->unk40BC;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016C08);
+void func_80016C08(void *arg0, void *arg1, s32 arg2, s16 *arg3, s32 a4, s32 a5, s32 a6, s32 a7) {
+    Unk80016F38 *w = arg0;
+    Rect16 *r = arg1;
+    Rect16 *from = (Rect16 *)arg2;
+    Rect16 *view = (Rect16 *)arg3;
+
+    if (r == (Rect16 *)-1) {
+        w->rect.x = 0;
+        w->rect.y = 0;
+        w->rect.w = 0;
+        w->rect.h = 0;
+    } else {
+        w->rect = *r;
+    }
+    if (from == (Rect16 *)-1) {
+        w->from.x = w->rect.x + w->rect.w / 2;
+        w->from.y = w->rect.y + w->rect.h / 2;
+        w->from.w = 0;
+        w->from.h = 0;
+    } else {
+        w->from = *from;
+    }
+    if (view == (Rect16 *)-1) {
+        w->view.x = 0;
+        w->view.y = 0;
+        w->view.w = w->rect.w;
+        w->view.h = w->rect.h;
+    } else {
+        w->view = *view;
+        if (w->view.x < 0) {
+            w->view.x = 0;
+        }
+        if (w->view.y < 0) {
+            w->view.y = 0;
+        }
+        if (w->view.w == 0) {
+            w->view.w = w->rect.w;
+        }
+        if (w->view.h == 0) {
+            w->view.h = w->rect.h;
+        }
+        if (w->view.w < w->rect.w) {
+            w->view.w = w->rect.w;
+        }
+        if (w->view.h < w->rect.h) {
+            w->view.h = w->rect.h;
+        }
+        if (w->view.x >= w->view.w - w->rect.w) {
+            w->view.x = w->view.w - w->rect.w;
+        }
+        if (w->view.y >= w->view.h - w->rect.h) {
+            w->view.y = w->view.h - w->rect.h;
+        }
+    }
+    w->cur = w->rect;
+    w->delta.x = w->cur.x - w->from.x;
+    w->delta.y = w->cur.y - w->from.y;
+    w->delta.w = w->cur.w - w->from.w;
+    w->delta.h = w->cur.h - w->from.h;
+    w->unk0 = w->rect.x - w->view.x;
+    w->unk2 = w->rect.y - w->view.y;
+    w->unk30[0] = w->view.x;
+    w->unk30[1] = w->view.y;
+    w->unk30[2] = w->view.x;
+    w->unk30[3] = w->view.y;
+    w->unk3C = a7;
+    w->unk3D = 0;
+    w->unk3E = 0;
+    w->unk3F = a4;
+    w->unk41 = 0;
+    w->unk42 = a5;
+    if ((u32)a6 > 256) {
+        w->unk40 = 0xFF;
+    } else {
+        w->unk40 = a6;
+    }
+    w->unk38 = 0;
+    w->unk39 = 0;
+    if ((a5 >> 4) < 5) {
+        w->unk43 = 0;
+    } else {
+        w->unk43 = 1;
+    }
+    w->unk2C = 0;
+}
 
 void func_80016F38(Unk80016F38 *p, Rect16 *r) {
     s32 dx;
@@ -2556,9 +2651,9 @@ void func_8001B7F4(u32 *p, s32 dx, s32 dy) {
 void func_8001B930();
 extern s32 D_80079500;
 
-void func_8001B90C(void) {
+void func_8001B90C(s32 w, s32 h, s32 interlace) {
     D_80079500 = 0;
-    func_8001B930();
+    func_8001B930(w, h, interlace);
 }
 
 void SetDefDrawEnv(DRAWENV *, s32, s32, s32, s32);
@@ -8381,7 +8476,7 @@ void func_8003EB50(void) {
 
 s32 func_8003D4C4();
 s32 func_8003E4F0();
-s32 func_80042824(s16);
+void func_80042824(s32);
 s32 func_80042E78();
 s32 func_80043D00(s16);
 s32 func_80044074(s16);
@@ -9145,7 +9240,108 @@ void func_8004269C(SprtInfo *info, s32 arg1, s32 z) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80042824);
+void func_80042824(s32 c) {
+    POLY_FT4 *p;
+    u8 *buf;
+
+    buf = (u8 *)D_800793A0->unk4078[11];
+    p = (POLY_FT4 *)(buf + 0x1E0);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0;
+    p->y0 = 0xB;
+    p->x1 = 0xA0;
+    p->y1 = 0xB;
+    p->x2 = 0;
+    p->y2 = 0x7A;
+    p->x3 = 0xA0;
+    p->y3 = 0x7A;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x208);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0x13F;
+    p->y0 = 0xB;
+    p->x1 = 0x9F;
+    p->y1 = 0xB;
+    p->x2 = 0x13F;
+    p->y2 = 0x7A;
+    p->x3 = 0x9F;
+    p->y3 = 0x7A;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x230);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0;
+    p->y0 = 0xE8;
+    p->x1 = 0xA0;
+    p->y1 = 0xE8;
+    p->x2 = 0;
+    p->y2 = 0x79;
+    p->x3 = 0xA0;
+    p->y3 = 0x79;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x258);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0x13F;
+    p->y0 = 0xE8;
+    p->x1 = 0x9F;
+    p->y1 = 0xE8;
+    p->x2 = 0x13F;
+    p->y2 = 0x79;
+    p->x3 = 0x9F;
+    p->y3 = 0x79;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042BBC);
 
@@ -10083,6 +10279,73 @@ void func_80049E80(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80049EF8);
 
-INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012F28);
+void func_8002F8E8(void);
+void func_8002B3EC(s32 arg0, s32 arg1);
+void func_80015328();
+s8 func_8001A100(void *arg0);
+void D_801DF47C();
+s32 ClearImage(Rect16 *, s32, s32, s32);
+void func_8001B90C(s32, s32, s32);
+/* the same text as in func_800416D8, kept as its own copy */
+extern char D_80012FAC[];
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004A2DC);
+void func_8004A2DC(s32 mode) {
+    u8 dlg[0xB8];
+    Rect16 r = { 0, 0, 480, 512 };
+    s32 stack;
+    s32 done;
+
+    stack = func_800148B0();
+    if (mode == 0) {
+        func_8002F8E8();
+        func_80014C08(10);
+        ClearImage(&r, 0, 0, 0);
+        DrawSync(0);
+        func_80014C08(10);
+        done = 0;
+        func_8002B688();
+        func_80014C08(10);
+        func_800149B8(0, -1, 0, 0x800, func_8002B3EC, 1, stack);
+        func_80014C08(0x7FFFFFFF);
+        func_8001B90C(0x140, 0xF0, 0);
+        func_800149B8(0x1F, 0, 0, 0x800, func_80015328, 0, 0, 0, 0);
+        func_80014C08(2);
+        do {
+            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, stack, 0, 0);
+            func_80014C08(0x7FFFFFFF);
+            func_8002BB58(3);
+            func_80019EA4(dlg,
+                          "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
+                          "to continue.)",
+                          1);
+            func_8001A100(dlg);
+            switch ((s8)dlg[0xA5]) {
+            case 1:
+                done = 1;
+                break;
+            case 0:
+            case 2:
+                done = 0;
+                break;
+            }
+        } while (!done);
+        func_80014C08(20);
+        func_80014A48(0);
+        func_80014A90();
+    } else {
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\endseg.bin", D_80010C9C, func_800148B0());
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x800, D_801DF47C, stack, mode, 0, 0);
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(10);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1000, func_8001B358, D_80012FAC, D_80010C9C, func_800148B0());
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, stack, 0, 0);
+    }
+}
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012FAC);
