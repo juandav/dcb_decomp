@@ -28,4 +28,16 @@ void GsSetLsMatrix(MATRIX *mp) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetLightMatrix);
+extern MATRIX D_801DBE40;
+
+void GsSetLightMatrix(MATRIX *mp) {
+    MATRIX m;
+
+    m = D_801DBE40;
+    PushMatrix();
+    MulMatrix(&m, mp);
+    PopMatrix();
+    SetLightMatrix(&m);
+}
+
+OBJECT_END(3);
