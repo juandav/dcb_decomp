@@ -9513,7 +9513,62 @@ void func_80042824(s32 c) {
     addPrim(&D_800793A0->ot[0xFFF], p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80042BBC);
+void func_80042BBC(s32 x, s32 y, s32 z, s32 n, u8 *tex) {
+    POLY_FT4 *p;
+    s32 u;
+
+    p = (POLY_FT4 *)((u8 *)D_800793A0->unk4078[11] + (n * 80 + 0x280));
+    u = ((((Unk8006E050 *)D_8006E050)->unk24 / 4) % 4) * 32;
+    func_8001E6EC(0xC, p, 1, 0);
+    p->r0 = 0x80;
+    p->g0 = 0x80;
+    p->b0 = 0x80;
+    p->u0 = u;
+    p->v0 = 0x40;
+    p->u1 = u + 0x20;
+    p->v1 = 0x40;
+    p->u2 = u;
+    p->v2 = 0x80;
+    p->u3 = u + 0x20;
+    p->v3 = 0x80;
+    p->x0 = x;
+    p->y0 = y;
+    p->x1 = x + 0x40;
+    p->y1 = y;
+    p->x2 = x;
+    p->y2 = y + 0x40;
+    p->x3 = x + 0x40;
+    p->y3 = y + 0x40;
+    p->tpage = 0x1E;
+    p->clut = 0x7FB0;
+    addPrim(&D_800793A0->ot[z], p);
+    if (tex != 0) {
+        p++;
+        func_8001E6EC(0xC, p, 1, 0);
+        p->r0 = 0x80;
+        p->g0 = 0x80;
+        p->b0 = 0x80;
+        p->u0 = tex[0x16];
+        p->v0 = tex[0x17];
+        p->u1 = tex[0x16] + 0x28;
+        p->v1 = tex[0x17];
+        p->u2 = tex[0x16];
+        p->v2 = tex[0x17] + 0x27;
+        p->u3 = tex[0x16] + 0x28;
+        p->v3 = tex[0x17] + 0x27;
+        p->x0 = x;
+        p->y0 = y;
+        p->x1 = x + 0x40;
+        p->y1 = y;
+        p->x2 = x;
+        p->y2 = y + 0x40;
+        p->x3 = x + 0x40;
+        p->y3 = y + 0x40;
+        p->tpage = *(u16 *)(tex + 0x12);
+        p->clut = *(u16 *)(tex + 0x10);
+        addPrim(&D_800793A0->ot[z], p);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042E78);
 
