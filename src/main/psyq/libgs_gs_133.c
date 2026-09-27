@@ -1,10 +1,144 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLw);
+extern u_long D_801DBE20;
+extern GsCOORDINATE2 *D_801DBF00[];
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLs);
+void GsGetLw(GsCOORDINATE2 *coord, MATRIX *m) {
+    GsCOORDINATE2 *co;
+    int i;
+    int j;
+    int flg;
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLws);
+    co = coord;
+    i = 0;
+    j = 100;
+    for (;; i++) {
+        D_801DBF00[i] = co;
+        if (co->super == NULL) {
+            if (co->flg == D_801DBE20 || co->flg == 0) {
+                co->workm = co->coord;
+                flg = D_801DBE20;
+                *m = co->workm;
+                co->flg = flg;
+            } else if (j == 100) {
+                *m = D_801DBF00[0]->workm;
+                i = 0;
+            } else {
+                i = j + 1;
+                *m = D_801DBF00[i]->workm;
+            }
+            break;
+        }
+        if (co->flg == D_801DBE20) {
+            *m = co->workm;
+            break;
+        }
+        if (co->flg == 0) {
+            j = i;
+        }
+        co = co->super;
+    }
+    for (; i > 0; i--) {
+        GsMulCoord3(m, &D_801DBF00[i - 1]->coord);
+        D_801DBF00[i - 1]->workm = *m;
+        D_801DBF00[i - 1]->flg = D_801DBE20;
+    }
+}
+
+OBJECT_END(2);
+
+extern MATRIX D_801DBEA0;
+
+void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m) {
+    GsCOORDINATE2 *co;
+    int i;
+    int j;
+    int flg;
+
+    co = coord;
+    i = 0;
+    j = 100;
+    for (;; i++) {
+        D_801DBF00[i] = co;
+        if (co->super == NULL) {
+            if (co->flg == D_801DBE20 || co->flg == 0) {
+                co->workm = co->coord;
+                flg = D_801DBE20;
+                *m = co->workm;
+                co->flg = flg;
+            } else if (j == 100) {
+                *m = D_801DBF00[0]->workm;
+                i = 0;
+            } else {
+                i = j + 1;
+                *m = D_801DBF00[i]->workm;
+            }
+            break;
+        }
+        if (co->flg == D_801DBE20) {
+            *m = co->workm;
+            break;
+        }
+        if (co->flg == 0) {
+            j = i;
+        }
+        co = co->super;
+    }
+    for (; i > 0; i--) {
+        GsMulCoord3(m, &D_801DBF00[i - 1]->coord);
+        D_801DBF00[i - 1]->workm = *m;
+        D_801DBF00[i - 1]->flg = D_801DBE20;
+    }
+    GsMulCoord2(&D_801DBEA0, m);
+}
+
+OBJECT_END(2);
+
+void GsGetLws(GsCOORDINATE2 *coord, MATRIX *lw, MATRIX *ls) {
+    GsCOORDINATE2 *co;
+    int i;
+    int j;
+    int flg;
+
+    co = coord;
+    i = 0;
+    j = 100;
+    for (;; i++) {
+        D_801DBF00[i] = co;
+        if (co->super == NULL) {
+            if (co->flg == D_801DBE20 || co->flg == 0) {
+                co->workm = co->coord;
+                flg = D_801DBE20;
+                *lw = co->workm;
+                co->flg = flg;
+            } else if (j == 100) {
+                *lw = D_801DBF00[0]->workm;
+                i = 0;
+            } else {
+                i = j + 1;
+                *lw = D_801DBF00[i]->workm;
+            }
+            break;
+        }
+        if (co->flg == D_801DBE20) {
+            *lw = co->workm;
+            break;
+        }
+        if (co->flg == 0) {
+            j = i;
+        }
+        co = co->super;
+    }
+    for (; i > 0; i--) {
+        GsMulCoord3(lw, &D_801DBF00[i - 1]->coord);
+        D_801DBF00[i - 1]->workm = *lw;
+        D_801DBF00[i - 1]->flg = D_801DBE20;
+    }
+    *ls = *lw;
+    GsMulCoord2(&D_801DBEA0, ls);
+}
+
+OBJECT_END(3);
 
 typedef struct {
     SVECTOR *vertop;

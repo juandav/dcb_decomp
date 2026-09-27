@@ -126,7 +126,7 @@ typedef struct PadPort {
     /* 0xEA */ u_char unkEA;
     /* 0xEB */ u8 unkEB;
     /* 0xEC */ u_short unkEC;
-    /* 0xEE */ u8 unkEE[2];
+    /* 0xEE */ u_short unkEE;
 } PadPort;
 
 /* libmcrd global state, returned by McrdGetGlobalStructure */
@@ -178,7 +178,8 @@ typedef struct SeqStruct {
     /* 0x0C */ u_char *unkC;
     /* 0x10 */ u_char *unk10;
     /* 0x14 */ char unk14;
-    /* 0x15 */ u8 unk15[2];
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ u_char status;
     /* 0x17 */ u_char channel;
     /* 0x18 */ u_char rpn1;
     /* 0x19 */ u_char rpn2;
@@ -213,13 +214,13 @@ typedef struct SeqStruct {
     /* 0x88 */ long unk88;
     /* 0x8C */ long unk8C;
     /* 0x90 */ long delta;
-    /* 0x94 */ long unk94;
+    /* 0x94 */ u_long unk94;
     /* 0x98 */ long flags;
     /* 0x9C */ long unk9C;
     /* 0xA0 */ long unkA0;
     /* 0xA4 */ long unkA4;
     /* 0xA8 */ long unkA8;
-    /* 0xAC */ long unkAC;
+    /* 0xAC */ u_long unkAC;
 } SeqStruct;
 
 /* libsnd decoded ADSR */
@@ -254,7 +255,7 @@ void _patch_card_info(void);
 extern GpuDriver *D_80076750;
 extern int (*D_80076754)(char *fmt, ...);
 typedef struct GpuDebug {
-    /* 0x0 */ volatile u_char type;
+    /* 0x0 */ u_char type;
     /* 0x1 */ u_char queue;
     /* 0x2 */ u_char level;
     /* 0x3 */ u_char reverse;
@@ -313,7 +314,7 @@ void func_80056D0C();
 void *func_80056D78();
 void func_80056DA4(long *p, int n);
 void func_80056E20();
-void func_80056FA0();
+void (*func_80056FA0(int index, void (*callback)(void)))(void);
 void func_8005704C(long *p, int n);
 void func_8004C300(short);
 void func_8004ECA0(int);
@@ -360,7 +361,7 @@ extern long D_8008217C;
 extern long D_80082180;
 extern long D_80082184;
 
-int func_800649E8(char *name, RECT *rect);
+void func_800649E8(char *name, RECT *rect);
 void func_8003B444(void);
 void func_8003B568(char *bufA, long lenA, char *bufB, long lenB);
 void func_8003B588(char *bufA, long lenA, char *bufB, long lenB);

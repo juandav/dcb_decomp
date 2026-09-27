@@ -98,7 +98,7 @@ libspu_s_snc
 libsnd_vm_noff
 libsnd_vm_nowof
 libsnd_vm_nowon gcc2.8
-libsnd_vm_pb gcc2.8
+libsnd_vm_pb
 libsnd_vm_prog2
 libsnd_vm_seq
 libsnd_vm_stav
@@ -117,7 +117,7 @@ libspu_s_stm
 libsnd_vs_vtc
 libspu_s_itc
 libetc_vsync
-libetc_intr nocse
+libetc_intr
 libetc_intr_vb
 libetc_intr_dma
 libetc_vmode
@@ -131,7 +131,7 @@ libcd_c_004
 libcd_c_005
 libcd_c_007
 libcd_c_008
-libcd_c_009
+libcd_c_009 gcc2.8
 libcd_c_010
 libcd_c_011
 libcd_bios_1 gcc2.8
@@ -156,7 +156,7 @@ libgte_func_8002b018
 libgte_fgo_00
 libgte_fgo_00_2 gcc2.8
 libgte_patchgte
-libgs_gs_001 gcc2.8
+libgs_gs_001
 libgs_gs_0022 nocse
 libgs_gs_003 nocse
 libgs_matrix9

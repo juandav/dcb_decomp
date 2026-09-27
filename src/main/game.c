@@ -3071,7 +3071,72 @@ s32 func_8001A164(s32 *arg0, s32 arg1) {
     return (s32) (*(s8 *)((s8 *)arg0 + 0xA5));
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
+void func_8001A40C(u8 *w);
+
+void func_8001A1D8(u8 *w, s32 arg1) {
+    Rect16 r;
+    s32 x;
+    s32 width;
+    u16 mask;
+    PadState **pads;
+    s32 on;
+
+    D_8008983C = 0;
+    if ((s8)w[0xA5] == 1) {
+        x = *(s16 *)(w + 0xAC);
+        width = *(s16 *)(w + 0xAE);
+    } else {
+        x = *(s16 *)(w + 0xB0);
+        width = *(s16 *)(w + 0xB2);
+    }
+    r.x = x;
+    r.y = (240 - *(s16 *)(w + 0xAA)) / 2 + *(s16 *)(w + 0xAA) - 14;
+    r.w = width;
+    r.h = 12;
+    func_800191C0((Unk800190F4 *)(w + 0x44), &r, (Bytes4 *)-1);
+    pads = D_80089840;
+    on = 1;
+    do {
+        func_80014C08(D_800794F0);
+        func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
+        if (*(void (**)(void))(w + 0xA0) != 0) {
+            (*(void (**)(void))(w + 0xA0))();
+        }
+        if (w[0xA4] != 0) {
+            if (w[0xB5] != 0) {
+                mask = 0x40;
+            } else {
+                mask = 0x50;
+            }
+        } else {
+            mask = 0x40;
+        }
+        if (pads[w[0xA6]]->unk2 & mask) {
+            break;
+        }
+    } while (w[0xB4] == 0);
+    if (w[0xB4] != 0) {
+        w[0xA5] = 3;
+    } else if (pads[w[0xA6]]->unk2 & 0x10) {
+        w[0xA5] = 0;
+        w[0xB4] = on;
+        func_8002BB58(0);
+    } else {
+        w[0xB4] = on;
+        func_8002BB58(1);
+    }
+    func_80016F38((Unk80016F38 *)w, (Rect16 *)-1);
+    do {
+        func_80014C08(D_800794F0);
+        func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
+        if (*(void (**)(void))(w + 0xA0) != 0) {
+            (*(void (**)(void))(w + 0xA0))();
+        }
+    } while (*(s8 *)(w + 0x41) == 0);
+    D_8008983C = 1;
+    func_80014A48(arg1, (s8)w[0xA5]);
+    func_80014A90();
+}
 
 void func_80028D18(s32, s32, s32, s32, s32);
 void func_8002BB58(u32);
@@ -7702,7 +7767,47 @@ s8 *func_8002A5B4(s8 *d, s8 *s) {
     return func_8002A5B4(d + 1, s + 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A5DC);
+s8 *func_8002A5DC(s8 *buf, s8 pad, s32 n, s32 width) {
+    s8 *q;
+    s8 *r;
+    s32 cnt;
+    s8 c;
+
+    buf += width;
+    q = buf;
+    *buf = 0;
+    cnt = 0;
+    do {
+        q--;
+        c = n % 10 + '0';
+        *q = c;
+        n /= 10;
+        if (--width <= 0 && n != 0) {
+            buf++;
+            for (r = buf; q < r; r--) {
+                *r = r[-1];
+            }
+            q++;
+        }
+        if (++cnt % 3 == 0) {
+            if (n == 0) {
+                break;
+            }
+            *--q = ',';
+            if (--width <= 0) {
+                buf++;
+                for (r = buf; q < r; r--) {
+                    *r = r[-1];
+                }
+                q++;
+            }
+        }
+    } while (n != 0);
+    while (--width >= 0) {
+        *--q = pad;
+    }
+    return buf;
+}
 
 s8 *func_8002A710(s8 *buf, s8 pad, s32 n, s32 width) {
     s8 *q;
@@ -9305,13 +9410,19 @@ extern s32 D_801D81B8;
 extern void *D_801D8340;
 
 typedef struct {
+    /* 0x0 */ s16 id;
+    /* 0x2 */ u8 used;
+    /* 0x3 */ u8 age;
+} CardCache;
+
+typedef struct {
     /* 0x000 */ u8 unk0[0x50];
     /* 0x050 */ Player *unk50;
     /* 0x054 */ Player *unk54;
     /* 0x058 */ u8 *unk58;
-    /* 0x05C */ u8 unk5C[0x786];
-    /* 0x7E2 */ u8 unk7E2[6][4];
-    /* 0x7FA */ u8 unk7FA[2];
+    /* 0x05C */ u8 unk5C[0x784];
+    /* 0x7E0 */ CardCache cache[6];
+    /* 0x7F8 */ u8 unk7F8[4];
     /* 0x7FC */ s32 unk7FC;
     /* 0x800 */ s32 unk800;
     /* 0x804 */ s32 unk804;
@@ -12854,7 +12965,7 @@ void func_80039730(s32 n, s32 z) {
         if (*(s16 *)(DUEL->unk58 + 2) == -1) {
             break;
         }
-        back = DUEL->unk7E2[DUEL->unk826][0];
+        back = DUEL->cache[DUEL->unk826].used;
         if (back == 1) {
             if (func_80029990() != 0) {
                 break;
@@ -14145,7 +14256,7 @@ s32 func_801F8998(s32, s32, s32, s32, s32);
 void func_80038F68();
 extern void *D_8006E054;
 void func_80034260(void);
-extern s32 func_80041E00;
+void func_80041E00(void);
 
 void func_8003E9F4(s32 arg0) {
     s32 var_a0;
@@ -15019,7 +15130,73 @@ void func_80041CA8(u8 *s, s32 row, s32 arg2) {
     func_80014A48(arg2);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041E00);
+extern s32 D_801D8350;
+
+void func_80041E00(void) {
+    char path[72];
+    u32 *tim;
+    s32 i;
+    s16 k;
+    s32 id;
+
+    D_801D8350 = -1;
+    DUEL->unk812 = 0;
+    DUEL->unk826 = 0;
+    for (i = 0; i < 6; i++) {
+        DUEL->cache[i].id = -1;
+        DUEL->cache[i].used = 0;
+        DUEL->cache[i].age = 100;
+    }
+    for (;;) {
+        s32 slot;
+
+        func_80014C08(D_800794F0);
+        slot = DUEL->unk826 % 6;
+        DUEL->cache[slot].used = 0;
+        if (DUEL->unk812 != 0) {
+            break;
+        }
+        if (DUEL->unk81C == -1 || DUEL->unk81C == 4) {
+            continue;
+        }
+        k = *(s16 *)(DUEL->unk58 + 2);
+        if (k == -1) {
+            continue;
+        }
+        if (SPRITE_KIND(k) == 0x19) {
+            continue;
+        }
+        if (k != D_801D8350) {
+            id = PLAYER(DUEL->unk81B)->cards[k % 30].id;
+            if (DUEL->unk811 != 0) {
+                continue;
+            }
+            DUEL->cache[slot].used = 0;
+            D_801D8350 = *(s16 *)(DUEL->unk58 + 2);
+            if (DUEL->cache[slot].id != id) {
+                DUEL->unk811 = 1;
+                DUEL->cache[slot].id = id;
+                sprintf(path, "B:\\CARD\\LC%3.3d.TIM", id);
+                func_800149B8(0, -1, 0, 0x800, func_8001B144, path, func_800148B0());
+                tim = (u32 *)func_80014C08(0x7FFFFFFF);
+                func_8001B438(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
+                DrawSync(0);
+                func_8001AE90(tim);
+                DUEL->unk811 = 0;
+            }
+            DUEL->cache[slot].used = 1;
+            for (i = 0; i < 6; i++) {
+                if (DUEL->cache[i].age != 0) {
+                    DUEL->cache[i].age--;
+                }
+            }
+            DUEL->cache[slot].age = 100;
+        } else {
+            DUEL->cache[slot].used = 1;
+        }
+    }
+    DUEL->unk812 = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042174);
 

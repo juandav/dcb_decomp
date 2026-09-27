@@ -46,9 +46,22 @@ void func_80056E20(void) {
 }
 
 /* ASPSX padded the string table of the object as well */
-__asm__(".section .rodata\n\t.space 4\n");
+__asm__(".section .rodata\n\t.space 4\n\t.section .text\n");
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056FA0);
+void (*func_80056FA0(int index, void (*callback)(void)))(void) {
+    void (*prev)(void) = D_80070AFC[index];
+
+    if (callback != prev) {
+        if (callback != NULL) {
+            D_80070AFC[index] = callback;
+            *D_80070AF8 = (*D_80070AF8 & 0xFFFFFF) | 0x800000 | (1 << (index + 16));
+        } else {
+            D_80070AFC[index] = NULL;
+            *D_80070AF8 = ((*D_80070AF8 & 0xFFFFFF) | 0x800000) & ~(1 << (index + 16));
+        }
+    }
+    return prev;
+}
 
 void func_8005704C(long *p, int n) {
     int i = n - 1;

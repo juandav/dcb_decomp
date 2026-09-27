@@ -58,13 +58,80 @@ typedef struct {
     /* 0x30 */ u_short enabled;
     /* 0x32 */ u_short mask;
     /* 0x34 */ u_long dpcr;
-    /* 0x38 */ u_long buf[1];
+    /* 0x38 */ u_long buf[12];
+    /* 0x68 */ u_long stack[1024];
 } IntrEnv;
 extern IntrEnv D_8006FA20;
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056788);
+void func_80056860(void);
+void func_80056C90(long *p, int n);
+int setjmp(u_long *buf);
+int func_8006A7F4(u_long *);
+void *startIntrVSync(void);
+void *startIntrDMA(void);
+void func_8006A76C();
+void func_8006A814(void);
+extern volatile u_long *D_80070AB4;
+extern volatile u_short *D_80070AAC;
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056860);
+void *func_80056788(void) {
+    if (D_8006FA20.inited != 0) {
+        return NULL;
+    }
+    *D_80070AAC = *D_80070AB0 = 0;
+    *D_80070AB4 = 0x33333333;
+    func_80056C90((long *)&D_8006FA20, sizeof(IntrEnv) / 4);
+    if (setjmp(D_8006FA20.buf)) {
+        func_80056860();
+    }
+    D_8006FA20.buf[1] = (u_long)&D_8006FA20.stack[1004];
+    func_8006A7F4(D_8006FA20.buf);
+    D_8006FA20.inited = 1;
+    D_80070AA8->vsyncCallbacks = startIntrVSync();
+    D_80070AA8->dmaCallback = startIntrDMA();
+    func_8006A76C(D_80070AA8);
+    func_8006A814();
+    return &D_8006FA20;
+}
+
+extern long D_80070AB8;
+void func_8006A7D4(void);
+
+void func_80056860(void) {
+    int i;
+    u_short mask;
+    short pending;
+
+    if (D_8006FA20.inited == 0) {
+        printf("unexpected interrupt(%04x)\n", *D_80070AAC);
+        func_8006A7D4();
+    }
+    D_8006FA20.unk2 = 1;
+    while ((mask = D_8006FA20.enabled & *D_80070AAC & *D_80070AB0) != 0) {
+        for (i = 0; mask != 0 && i < 11; i++, mask >>= 1) {
+            if (mask & 1) {
+                *D_80070AAC = ~(1 << i);
+                if (D_8006FA20.handlers[i] != NULL) {
+                    D_8006FA20.handlers[i]();
+                }
+            }
+        }
+    }
+    pending = *D_80070AAC & *D_80070AB0;
+    if (pending) {
+        if (D_80070AB8++ > 0x800) {
+            printf("intr timeout(%04x:%04x)\n", *D_80070AAC, *D_80070AB0);
+            D_80070AB8 = 0;
+            *D_80070AAC = 0;
+        }
+    } else {
+        D_80070AB8 = 0;
+    }
+    D_8006FA20.unk2 = 0;
+    func_8006A7D4();
+}
+
+__asm__(".section .rodata\n\t.space 4\n\t.section .text\n");
 
 void func_8006A884(int);
 void func_8006A894(int, int);
@@ -103,8 +170,6 @@ void *func_80056A30(int irq, void (*func)()) {
     return old;
 }
 
-extern volatile u_long *D_80070AB4;
-extern volatile u_short *D_80070AAC;
 void func_8006A804(void);
 void func_8006A7E4(void);
 
@@ -121,9 +186,6 @@ void *func_80056B78(void) {
     D_8006FA20.inited = 0;
     return &D_8006FA20;
 }
-
-int func_8006A7F4(u_long *);
-void func_8006A814(void);
 
 void *func_80056C18(void) {
     if (D_8006FA20.inited != 0) {

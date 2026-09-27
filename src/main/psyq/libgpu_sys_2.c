@@ -38,7 +38,16 @@ int ResetGraph(int mode) {
     return D_80076750->unk34(1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
+int SetGraphDebug(int level) {
+    int old = D_80076758.level;
+
+    D_80076758.level = level;
+    if (D_80076758.level) {
+        D_80076754("SetGraphDebug:level:%d,type:%d reverse:%d\n", D_80076758.level, D_80076758.type,
+                   D_80076758.reverse);
+    }
+    return old;
+}
 
 int SetGraphQueue(int mode) {
     u_char old = D_80076758.queue;
@@ -88,7 +97,21 @@ int DrawSync(int mode) {
     return D_80076750->sync(mode);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800649E8);
+void func_800649E8(char *name, RECT *rect) {
+    switch (D_80076758.level) {
+    case 1:
+        if (rect->w > D_80076758.w || rect->w + rect->x > D_80076758.w || rect->y > D_80076758.h ||
+            rect->y + rect->h > D_80076758.h || rect->w <= 0 || rect->x < 0 || rect->y < 0 || rect->h <= 0) {
+            D_80076754("%s:bad RECT", name);
+            D_80076754("(%d,%d)-(%d,%d)\n", rect->x, rect->y, rect->w, rect->h);
+        }
+        break;
+    case 2:
+        D_80076754("%s:", name);
+        D_80076754("(%d,%d)-(%d,%d)\n", rect->x, rect->y, rect->w, rect->h);
+        break;
+    }
+}
 
 int ClearImage(RECT *rect, u_char r, u_char g, u_char b) {
     func_800649E8("ClearImage", rect);
@@ -303,9 +326,19 @@ u_long func_80065C34(int dfe, int dtd, int tpage) {
     return (dtd ? 0xE1000200 : 0xE1000000) | (dfe ? 0x400 : 0) | (tpage & 0x9FF);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065C54);
+#define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065CEC);
+u_long func_80065C54(short x, short y) {
+    x = CLAMP(x, 0, D_80076758.w - 1);
+    y = CLAMP(y, 0, D_80076758.h - 1);
+    return 0xE3000000 | ((y & 0x3FF) << 10) | (x & 0x3FF);
+}
+
+u_long func_80065CEC(short x, short y) {
+    x = CLAMP(x, 0, D_80076758.w - 1);
+    y = CLAMP(y, 0, D_80076758.h - 1);
+    return 0xE4000000 | ((y & 0x3FF) << 10) | (x & 0x3FF);
+}
 
 u_long func_80065D84(short x, short y) {
     return 0xE5000000 | ((y & 0x7FF) << 11) | (x & 0x7FF);
@@ -642,9 +675,10 @@ int func_80066D48(int mode) {
         func_800669AC();
     }
     if ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
-        if (n == 0) {
-            return 1;
+        if (n != 0) {
+            return n;
         }
+        return 1;
     }
     return n;
 }
@@ -654,7 +688,22 @@ void func_80066E84(void) {
     D_80076898 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066EB8);
+int func_80066EB8(void) {
+    if (VSync(-1) > D_80076894 || D_80076898++ > 0xF0000) {
+        (void)*D_80076860;
+        printf("GPU timeout:que=%d,stat=%08x,chcr=%08x,madr=%08x\n", (D_80076880 - D_80076884) & 0x3F,
+               *D_80076860, *D_8007686C, *D_80076864);
+        D_80076890 = SetIntrMask(0);
+        D_80076880 = D_80076884 = 0;
+        *D_8007686C = 0x401;
+        *D_8007687C |= 0x800;
+        *D_80076860 = 0x2000000;
+        *D_80076860 = 0x1000000;
+        SetIntrMask(D_80076890);
+        return -1;
+    }
+    return 0;
+}
 
 int func_80066FFC(int mode) {
     *D_80076860 = 0x10000007;

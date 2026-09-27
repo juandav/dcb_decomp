@@ -77,8 +77,6 @@ void GsInitGraph2(u_short x, u_short y, u_short intmode, u_short dith, u_short v
     func_80061ADC(x, y);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80061ADC);
-
 /* BLK_FILL */
 typedef struct {
     /* 0x0 */ u_long tag;
@@ -90,9 +88,50 @@ typedef struct {
 extern BlkFill D_801DBD68[2];
 extern short D_801DBD88[2];
 extern short D_801DBD8C[2];
+extern short D_801DBD90[2];
+extern short D_801DBD94[2];
+extern _GsPOSITION D_801DBD98;
+extern RECT D_801DBE18;
+extern long D_801DBE20;
+extern volatile long D_801DBE28;
+extern volatile long D_801DBE2C;
+extern MATRIX D_801DBE40;
+extern MATRIX D_801DBE60;
+extern MATRIX D_801DBEC0;
+extern MATRIX D_801DBEE0;
+
+void func_80061ADC(u_short w, u_short h) {
+    long aspect;
+
+    D_801DBE28 = w;
+    D_801DBE2C = h;
+    aspect = (D_801DBE2C << 14) / D_801DBE28;
+    D_801DBEC0.m[2][2] = D_801DBEC0.m[1][1] = D_801DBEC0.m[0][0] = 0x1000;
+    D_801DBEC0.m[0][1] = D_801DBEC0.m[0][2] = 0;
+    D_801DBEC0.m[1][0] = D_801DBEC0.m[1][2] = 0;
+    D_801DBEC0.m[2][0] = D_801DBEC0.m[2][1] = 0;
+    D_801DBEC0.t[0] = D_801DBEC0.t[1] = D_801DBEC0.t[2] = 0;
+    D_801DBEE0 = D_801DBEC0;
+    D_801DBE40 = D_801DBEC0;
+    D_801DBE40.m[0][0] = D_801DBE40.m[1][1] = D_801DBE40.m[2][2] = 0;
+    D_801DBE60 = D_801DBE40;
+    D_801DBD90[0] = 0;
+    D_801DBD90[1] = 0;
+    D_801DBD94[0] = 0;
+    D_801DBD94[1] = 0;
+    D_801DBD98.offx = D_801DBD98.offy = 0;
+    D_801DBEE0.m[1][1] = aspect / 3;
+    D_801DBE18.x = D_801DBE18.y = 0;
+    setlen(&D_801DBD68[0], 3);
+    setcode(&D_801DBD68[0], 2);
+    setlen(&D_801DBD68[1], 3);
+    setcode(&D_801DBD68[1], 2);
+    D_801DBE20 = 1;
+    D_801DBE18.w = *(u_short *)&D_801DBE28;
+    D_801DBE18.h = *(u_short *)&D_801DBE2C;
+}
+
 extern DISPENV D_801DBE00;
-extern long D_801DBE28;
-extern u_short D_801DBE2C;
 
 void GsSortClear(u_char r, u_char g, u_char b, GsOT *otp) {
     D_801DBD68[D_801DBE24].r0 = r;
@@ -100,11 +139,11 @@ void GsSortClear(u_char r, u_char g, u_char b, GsOT *otp) {
     D_801DBD68[D_801DBE24].b0 = b;
     D_801DBD68[D_801DBE24].x0 = D_801DBD88[D_801DBE24];
     D_801DBD68[D_801DBE24].y0 = D_801DBD8C[D_801DBE24];
-    D_801DBD68[D_801DBE24].h = D_801DBE2C;
+    D_801DBD68[D_801DBE24].h = *(u_short *)&D_801DBE2C;
     if (D_801DBE00.isrgb24) {
         D_801DBD68[D_801DBE24].w = D_801DBE28 * 3 / 2;
     } else {
-        D_801DBD68[D_801DBE24].w = D_801DBE28;
+        D_801DBD68[D_801DBE24].w = *(u_short *)&D_801DBE28;
     }
     AddPrim(otp->tag, &D_801DBD68[D_801DBE24]);
 }
