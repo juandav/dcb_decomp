@@ -13022,9 +13022,6 @@ void func_80039730(s32 n, s32 z) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003B210);
-
-void func_8003B210(s32, s32);
 void func_80044800(void);
 typedef struct {
     /* 0x00 */ u8 rgbc[4];
@@ -13048,6 +13045,545 @@ typedef struct {
 } CardSprite;
 
 void func_80044AB0(CardSprite *, s32);
+
+typedef struct {
+    /* 0x00 */ CardSprite *spr;
+    /* 0x04 */ s32 x;
+    /* 0x08 */ s32 y;
+    /* 0x0C */ s32 z;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s16 rx;
+    /* 0x16 */ s16 ry;
+    /* 0x18 */ s16 rz;
+    /* 0x1A */ s16 unk1A;
+    /* 0x1C */ s16 scale;
+    /* 0x1E */ s16 total;
+    /* 0x20 */ s16 count;
+    /* 0x22 */ s8 state;
+    /* 0x23 */ s8 unk23;
+} CardAnim;
+
+typedef struct {
+    /* 0x00 */ u8 unk0[0xC];
+    /* 0x0C */ u8 unkC;
+    /* 0x0D */ u8 unkD[3];
+    /* 0x10 */ s16 x;
+    /* 0x12 */ s16 y;
+    /* 0x14 */ u8 unk14[0x10];
+} BoardSlot;
+
+typedef struct {
+    /* 0x00 */ u8 unk0[0x48];
+    /* 0x48 */ BoardSlot slot[3];
+    /* 0xB4 */ u8 unkB4[0x24];
+} Board;
+
+#define ANIM_SAVE(a)                   \
+    (a)->x = (a)->spr->pos.vx;         \
+    (a)->y = (a)->spr->pos.vy;         \
+    (a)->z = (a)->spr->pos.vz;         \
+    (a)->rx = (a)->spr->rot.vx;        \
+    (a)->ry = (a)->spr->rot.vy;        \
+    (a)->rz = (a)->spr->rot.vz;        \
+    (a)->scale = (a)->spr->scale
+
+#define ANIM_STEP(a, TX, TY, RX, RY, RZ, SC)                                  \
+    (a)->count--;                                                             \
+    (a)->spr->pos.vx = TX - (TX - (a)->x) * (a)->count / (a)->total;         \
+    (a)->spr->pos.vy = TY - (TY - (a)->y) * (a)->count / (a)->total;         \
+    (a)->spr->pos.vz = 0 - (0 - (a)->z) * (a)->count / (a)->total;            \
+    (a)->spr->rot.vx = RX - (RX - (a)->rx) * (a)->count / (a)->total;        \
+    (a)->spr->rot.vy = RY - (RY - (a)->ry) * (a)->count / (a)->total;        \
+    (a)->spr->rot.vz = RZ - (RZ - (a)->rz) * (a)->count / (a)->total;        \
+    (a)->spr->scale = SC - (SC - (a)->scale) * (a)->count / (a)->total
+
+#define SLOT(p, o) ((BoardSlot *)(D_801D83EC + (p) * 0xD8 + (o)))
+typedef struct {
+    /* 0x00 */ u8 unk0[0x28];
+    /* 0x28 */ s16 rx;
+    /* 0x2A */ s16 ry;
+    /* 0x2C */ s16 rz;
+    /* 0x2E */ u8 unk2E[0xE];
+} Unk7F8;
+
+#define UNK7F8(c) ((*(Unk7F8 **)((u8 *)D_801D8340 + 0x7F8))[c])
+
+void func_80039220(s32 p);
+
+void func_8003B210(s32 c, s32 p) {
+    CardAnim *a;
+
+    a = (CardAnim *)(D_801D833C + c * 36);
+    a->spr->flags |= 0x80;
+    switch (SPRITE_KIND(c)) {
+    case 0:
+        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x80 + p * 0xBE;
+        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x54 + p * 0xE;
+        a->spr->pos.vz = 0;
+        UNK7F8(c).rx = 0x2000;
+        UNK7F8(c).ry = 0x2800;
+        UNK7F8(c).rz = 0x1C00;
+        a->spr->scale = 0x800;
+        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
+        a->count = 0;
+        break;
+    case 1:
+    case 21:
+    case 26:
+        ANIM_SAVE(a);
+        a->total = 0x10;
+        a->count = 0x10;
+        func_8002B498(0xA5);
+        a->state++;
+        break;
+    case 2:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x90)->x - 0x80 + p * 0xBE);
+            ty = (s16)(SLOT(p, 0x90)->y - 0x54 + p * 0xE);
+            rx = 0x2000;
+            ry = 0x2800;
+            rz = 0x1C00;
+            sc = 0x800;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state = 0;
+        }
+        break;
+    case 3:
+        ANIM_SAVE(a);
+        a->total = 0x10;
+        a->count = 0x10;
+        func_8002B498(0xA5);
+        a->state++;
+    case 4:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B);
+            ty = (s16)(SLOT(p, 0x90)->y - 0x69 + p * 0x21);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            if (a->count != 0) {
+                break;
+            }
+        }
+        a->total = 4;
+        a->count = 4;
+        a->state++;
+        func_8002B498(0xA7);
+        break;
+    case 5:
+    case 13:
+        if (--a->count == 0) {
+            ANIM_SAVE(a);
+            a->total = 0xE;
+            a->count = 0xC;
+            a->state++;
+        }
+        break;
+    case 6:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B);
+            ty = (s16)(SLOT(p, 0x90)->y - 0x61 + p * 0x11);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state++;
+            func_8002B498(0xA7);
+        }
+        break;
+    case 7:
+        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x5C + p * -10 + a->unk23 * 0x2B;
+        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x61 + p * 0x11;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2000;
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x1000;
+        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
+        break;
+    case 8:
+        ANIM_SAVE(a);
+        a->total = 0x10;
+        a->count = 0x10;
+        func_8002B498(0xA5);
+        a->state++;
+    case 9:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x90)->x - 0x80 + p * 0xBE);
+            ty = (s16)(SLOT(p, 0x90)->y - 0x6C + p * 0xE);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2400;
+            sc = 0x800;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state++;
+            func_8002B498(0xA7);
+        }
+        break;
+    case 10:
+        a->spr->pos.vx = SLOT(p, 0x90)->x - 0x80 + p * 0xBE;
+        a->spr->pos.vy = SLOT(p, 0x90)->y - 0x6C + p * 0xE;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2000;
+        a->spr->rot.vz = 0x2400;
+        a->spr->scale = 0x800;
+        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x90)->unkC;
+        break;
+    case 11:
+        ANIM_SAVE(a);
+        a->total = 0x10;
+        a->count = 0x10;
+        func_8002B498(0xA5);
+        a->state++;
+    case 12: {
+        s32 n;
+        s32 i;
+
+            n = 0;
+            if (a->count != 0) {
+                s32 tx;
+                s32 ty;
+                s16 rx;
+                s16 ry;
+                s16 rz;
+                s16 sc;
+
+                for (i = 2; i >= 0; i--) {
+                    if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                        break;
+                    }
+                    n++;
+                }
+                tx = (s16)(SLOT(p, 0x48)->x + (s16)(n * 2 - 0x46) + (s16)((-0x40 - (n * 2 + 8) * 2) * p + 8));
+                ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+                rx = 0x2000;
+                ry = 0x2000;
+                rz = 0x2000;
+                sc = 0x1000;
+                ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            } else {
+                func_8002B498(0xA7);
+                a->total = 4;
+                a->count = 4;
+                a->state++;
+            }
+            break;
+    }
+    case 14: {
+        s32 n;
+        s32 i;
+
+            n = 0;
+            if (a->count != 0) {
+                s32 tx;
+                s32 ty;
+                s16 rx;
+                s16 ry;
+                s16 rz;
+                s16 sc;
+
+                for (i = 2; i >= 0; i--) {
+                    if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                        break;
+                    }
+                    n++;
+                }
+                tx = (s16)(SLOT(p, 0x48)->x + (s16)(n * 2 - 0x46) + (s16)((-0x40 - n * 4) * p));
+                ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+                rx = 0x2000;
+                ry = 0x2000;
+                rz = 0x2000;
+                sc = 0x1000;
+                ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+            } else {
+                a->state++;
+                func_8002B498(0xA7);
+            }
+            break;
+    }
+    case 15: {
+        s32 n;
+        s32 i;
+
+            n = 0;
+            for (i = 2; i >= 0; i--) {
+                if (c == ((Player *)D_801D8348[p])->unk1CA[i]) {
+                    break;
+                }
+                n++;
+            }
+            a->spr->pos.vx = SLOT(p, 0x48)->x - 0x46 + n * 2 + (-0x40 - n * 4) * p;
+            a->spr->pos.vy = SLOT(p, 0x48)->y - 0x54;
+            a->spr->pos.vz = 0;
+            a->spr->rot.vx = 0x2000;
+            a->spr->rot.vy = 0x2000;
+            a->spr->rot.vz = 0x2000;
+            a->spr->scale = 0x1000;
+            a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x48)->unkC;
+            break;
+    }
+    case 16:
+        ANIM_SAVE(a);
+        a->total = 0x10;
+        a->count = 0x10;
+        if (a->spr->rot.vy == 0x2000) {
+            func_8002B498(0xA5);
+        } else {
+            func_8002B498(0xA6);
+        }
+        a->state++;
+        break;
+    case 17:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
+            ty = (s16)(SLOT(p, 0x6C)->y - 0x50 + p * -0x3E);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            func_8002B498(0xA7);
+            a->total = 4;
+            a->count = 4;
+            a->state++;
+        }
+        break;
+    case 18:
+        if (--a->count == 0) {
+            ANIM_SAVE(a);
+            a->total = 4;
+            a->count = 4;
+            a->state++;
+        }
+        break;
+    case 19:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
+            ty = (s16)(SLOT(p, 0x6C)->y - 0x58 + p * -0x2E);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state++;
+            func_8002B498(0xA7);
+        }
+        break;
+    case 20:
+        a->spr->pos.vx = SLOT(p, 0x6C)->x - p - 0x89;
+        a->spr->pos.vy = SLOT(p, 0x6C)->y - p * 0x2E - 0x58;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2000;
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x1000;
+        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x6C)->unkC;
+        break;
+    case 22:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
+            ty = (s16)(SLOT(p, 0x6C)->y - 0x50 + p * -0x3E);
+            rx = 0x2000;
+            ry = 0x2800;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->total = 0x20;
+            a->count = 0x20;
+            a->state++;
+        }
+        break;
+    case 23:
+        if (a->count != 0) {
+            a->count--;
+            ANIM_SAVE(a);
+            a->total = 4;
+            a->count = 4;
+            a->state++;
+        }
+        break;
+    case 24:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x6C)->x - 0x89 + p * -1);
+            ty = (s16)(SLOT(p, 0x6C)->y - 0x58 + p * -0x2E);
+            rx = 0x2000;
+            ry = 0x2800;
+            rz = 0x2000;
+            sc = 0x1000;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state++;
+            func_8002B498(0xA7);
+        }
+        break;
+    case 25:
+        a->spr->pos.vx = SLOT(p, 0x6C)->x - p - 0x89;
+        a->spr->pos.vy = SLOT(p, 0x6C)->y - p * 0x2E - 0x58;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2800;
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x1000;
+        break;
+    case 27:
+        if (a->count != 0) {
+            s32 tx;
+            s32 ty;
+            s16 rx;
+            s16 ry;
+            s16 rz;
+            s16 sc;
+
+            tx = (s16)(SLOT(p, 0x48)->x - 0x94 + p * 0x5D);
+            ty = (s16)(SLOT(p, 0x48)->y - 0x54);
+            rx = 0x2000;
+            ry = 0x2000;
+            rz = 0x2000;
+            sc = 0x800;
+            ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
+        } else {
+            a->state++;
+            func_80039220(p);
+            func_8002B498(0xA7);
+        }
+        break;
+    case 28:
+        a->spr->pos.vx = SLOT(p, 0x48)->x - 0x94 + p * 0x5D;
+        a->spr->pos.vy = SLOT(p, 0x48)->y - 0x54;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2000;
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x800;
+        a->spr->flags = (a->spr->flags & 0x7F) | SLOT(p, 0x48)->unkC;
+        break;
+    case 29:
+        ANIM_SAVE(a);
+        a->total = 0x20;
+        a->count = 0x20;
+        a->state++;
+        break;
+    case 30:
+        if (a->count != 0) {
+            s32 ty;
+            s16 r;
+
+            ty = (s16)(0x3C - p * 0x78);
+            r = 0x2000;
+            ANIM_STEP(a, 0, ty, r, r, r, r);
+        } else {
+            a->state++;
+        }
+        break;
+    case 31:
+        a->spr->pos.vx = 0;
+        a->spr->pos.vy = 0x3C - p * 0x78;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2000;
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x2000;
+        break;
+    case 32:
+        ANIM_SAVE(a);
+        a->total = 0x20;
+        a->count = 0x20;
+        func_8002B498(0xA6);
+        a->state++;
+        break;
+    case 33:
+        if (a->count != 0) {
+            s32 ty;
+            s16 ry;
+
+            s16 r;
+
+            ty = (s16)(0xA0 - p * 0x140);
+            r = 0x2000;
+            ry = 0x2800 - (p << 12);
+            ANIM_STEP(a, 0, ty, r, ry, r, r);
+        } else {
+            a->state++;
+        }
+        break;
+    case 34:
+        a->spr->pos.vx = 0;
+        a->spr->pos.vy = 0xA0 - p * 0x140;
+        a->spr->pos.vz = 0;
+        a->spr->rot.vx = 0x2000;
+        a->spr->rot.vy = 0x2800 - (p << 12);
+        a->spr->rot.vz = 0x2000;
+        a->spr->scale = 0x2000;
+        break;
+    }
+}
+
 
 
 void func_8003D4C4(void) {
