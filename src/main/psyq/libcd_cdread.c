@@ -207,4 +207,25 @@ int CdRead(int sectors, u_long *buf, int mode) {
     return func_8005AB4C(0) > 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadSync);
+int CdReadSync(int mode, u_char *result) {
+    int rest;
+
+    while (1) {
+        rest = -1;
+        if (VSync(-1) <= D_80070FD8[0].stime + 1200) {
+            if (D_80070FD8[0].rest < 0 || VSync(-1) > D_80070FD8[0].ctime + 60) {
+                func_8005AB4C(1);
+                rest = D_80070FD8[0].nsector;
+            } else {
+                rest = D_80070FD8[0].rest;
+            }
+        }
+        if (mode || !((D_80070FD8[0].busy && rest == 0) || rest > 0)) {
+            func_8005A384(1, result);
+            if (D_80070FD8[0].busy && rest == 0) {
+                rest = 1;
+            }
+            return rest;
+        }
+    }
+}
