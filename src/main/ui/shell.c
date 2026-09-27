@@ -9,6 +9,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/memcard.h"
+#include "dcb/player_rank.h"
 #include "dcb/menu.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"

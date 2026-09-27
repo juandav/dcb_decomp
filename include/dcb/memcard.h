@@ -46,6 +46,5 @@ s32 readMemoryCardSavePreview(s32 port, void *dst, s32 fileName);
 void scanMemoryCardFiles(s32 port);
 s32 verifySaveChecksum(s32 len, u8 *data);
 void writeSaveChecksum(s32 len, u8 *data);
-void updatePlayerRanks(s32 player);
 
 #endif /* DCB_MEMCARD_H */

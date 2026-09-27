@@ -5,6 +5,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/memcard.h"
+#include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
 #include "dcb/window.h"
