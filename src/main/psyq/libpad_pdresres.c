@@ -50,7 +50,62 @@ void func_8006C400(PadPort *p) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C4F0);
+extern int D_801DDF2C;
+int func_8006D3C0(void);
+
+int func_8006C4F0(PadPort *p, int data) {
+    volatile SioRegs *sio;
+    int rx;
+    int baud;
+    int id;
+
+    if (data < 0) {
+        rx = D_800779D8->data;
+        p->unk44 = 0xFF;
+        p->unk45 = 1;
+        *p->unk40 = ~data;
+        sio = D_800779D8;
+        while (!(sio->stat & 1)) {
+        }
+        while (func_8006D3C0() == 0) {
+        }
+        D_800779D8->data = ~data;
+    } else {
+        baud = 0x88;
+        id = *p->unk3C;
+        if ((id >> 4) == 8 && p->unk44 >= 9) {
+            baud = 0x22;
+        }
+        D_801DDF28 = 0x1AE;
+        D_801DDF24 = *(volatile u_short *)0x1F801120;
+        D_801DDF2C = *(volatile u_short *)0x1F801124;
+        if (!(D_800779D8->stat & 2)) {
+            volatile SioRegs *rxsio = D_800779D8;
+
+            while (!(rxsio->stat & 2)) {
+            }
+        }
+        rx = D_800779D8->data;
+        D_800779D8->baud = baud;
+        while (!(*D_800779D4 & 0x80)) {
+            if (func_8006D3C0() != 0) {
+                return -20;
+            }
+        }
+        D_800779D8->data = data;
+        if (baud == 0x22) {
+            volatile u_long *irq = D_800779D4;
+            volatile SioRegs *ctl = D_800779D8;
+
+            *irq = ~0x80;
+            ctl->ctrl |= 0x10;
+        }
+        p->unk45++;
+        p->unk3C[p->unk44] = rx;
+        p->unk44++;
+    }
+    return rx;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C714);
 

@@ -73,7 +73,7 @@ typedef struct PadPort {
     /* 0x0C */ struct PadPort *unkC;
     /* 0x10 */ struct PadPort *unk10;
     /* 0x14 */ void (*unk14)();
-    /* 0x18 */ void (*unk18)();
+    /* 0x18 */ int (*unk18)(struct PadPort *p);
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ u_char *unk20;
     /* 0x24 */ u_char param;
@@ -90,7 +90,8 @@ typedef struct PadPort {
     /* 0x3A */ u8 unk3A[2];
     /* 0x3C */ u_char *unk3C;
     /* 0x40 */ u_char *unk40;
-    /* 0x44 */ u8 unk44[2];
+    /* 0x44 */ u_char unk44;
+    /* 0x45 */ u8 unk45;
     /* 0x46 */ u_char unk46;
     /* 0x47 */ u_char unk47[2];
     /* 0x49 */ u_char unk49;
@@ -130,7 +131,8 @@ typedef struct McrdGlobal {
 
 /* serial port registers */
 typedef struct SioRegs {
-    /* 0x0 */ u_long data;
+    /* 0x0 */ u_char data;
+    /* 0x1 */ u8 unk1[3];
     /* 0x4 */ u_short stat;
     /* 0x6 */ u_short unk6;
     /* 0x8 */ u_short mode;
