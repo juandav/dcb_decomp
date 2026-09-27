@@ -90,7 +90,52 @@ long _spu_init(long mode) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004AC20);
+void func_8004AC20(u_char *addr, u_long size) {
+    u_short *p = (u_short *)addr;
+    u_short stat;
+    u_short cnt;
+    int n;
+    int i;
+    u_int wait;
+
+    stat = D_8006EF24[0xD7] & 0x7FF;
+    D_8006EF24[0xD3] = D_8006EF3C;
+    _spu_Fw1ts();
+    while (size != 0) {
+        n = size > 0x40 ? 0x40 : size;
+        for (i = 0; i < n; i += 2) {
+            D_8006EF24[0xD4] = *p++;
+        }
+        cnt = D_8006EF24[0xD5];
+        cnt &= ~0x30;
+        cnt |= 0x10;
+        D_8006EF24[0xD5] = cnt;
+        _spu_Fw1ts();
+        wait = 0;
+        while (D_8006EF24[0xD7] & 0x400) {
+            if (++wait > 0xF00) {
+                printf("SPU:T/O [%s]\n", "wait (wrdy H -> L)");
+                break;
+            }
+        }
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        size -= n;
+    }
+    cnt = D_8006EF24[0xD5];
+    cnt &= ~0x30;
+    D_8006EF24[0xD5] = cnt;
+    wait = 0;
+    while ((D_8006EF24[0xD7] & 0x7FF) != stat) {
+        if (++wait > 0xF00) {
+            printf("SPU:T/O [%s]\n", "wait (dmaf clear/W)");
+            break;
+        }
+    }
+}
+
+/* the object's string table was padded to 8 bytes */
+__asm__(".section .rodata\n\t.space 8\n");
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FiDMA);
 
