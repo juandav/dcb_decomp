@@ -4,6 +4,8 @@
 #include "dcb/heap.h"
 #include "dcb/system.h"
 
+s32 D_8006DD3C[2] = { 0, 0 };
+
 int main(void) {
     Rect16 r;
 

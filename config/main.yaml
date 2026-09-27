@@ -112,7 +112,8 @@ segments:
       - [0x3A040, c, ui/shell]
       - [0x3AE10, c, psyq]
       # the game's .data, split by the module that defines it
-      - [0x5E53C, data, main]
+      - [0x5E53C, .data, main]
+      - [0x5E544, data, startup]
       - [0x5E54C, .data, system/system]
       - [0x5E550, data, system/cd_file]
       - [0x5E570, data, ui/window]
