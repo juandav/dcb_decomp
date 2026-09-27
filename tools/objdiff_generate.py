@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write objdiff.json with the game and the PsyQ SDK as two units.
+"""Write objdiff.json with the game's code and data as one unit.
 
 The game's code lives in one C file per module under src/main/, but it is
 reported as a single main/game unit, as it was when it was all game.c: the
@@ -10,9 +10,9 @@ segment) into one target object. The target also gets the game's data
 every function and section under the unit name decomp.dev has tracked all
 along.
 
-src/main/psyq/ holds one file per PsyQ library object; they are linked into a
-single build/src/main/psyq.c.o and form the main/psyq unit, in its own
-progress category.
+The PsyQ SDK (src/main/psyq/) and the soft-float library (libmath.c) are
+Sony's and the compiler's code, not the game's: like other PSX decomps
+(jype0/dw_decomp), progress doesn't count them.
 
 Base objects are the files built from src/, where every function still
 behind INCLUDE_ASM carries a .NON_MATCHING label that objdiff drops from the
@@ -28,8 +28,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 CATEGORIES = [
     {"id": "game", "name": "Game"},
-    {"id": "sdk", "name": "PsyQ SDK"},
 ]
+
+# library code linked with the game, left out of the progress
+LIBRARIES = {"psyq", "libmath"}
 
 # the game's data, disassembled by splat (not C yet)
 GAME_DATA = ["expected/asm/main/data/game.data.s.o", "expected/asm/main/data/game.bss.s.o"]
@@ -38,7 +40,7 @@ GAME_DATA = ["expected/asm/main/data/game.data.s.o", "expected/asm/main/data/gam
 def game_modules() -> list:
     """The game's C modules in ROM order, from config/main.yaml."""
     yaml = (ROOT / "config" / "main.yaml").read_text()
-    return [m for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, (\w+)\]", yaml, re.M) if m != "psyq"]
+    return [m for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, (\w+)\]", yaml, re.M) if m not in LIBRARIES]
 
 
 def link(out: str, parts: list) -> None:
@@ -57,12 +59,6 @@ def main() -> None:
             "target_path": "expected/report/main/game.s.o",
             "base_path": "build/report/main/game.c.o",
             "metadata": {"progress_categories": ["game"]},
-        },
-        {
-            "name": "main/psyq",
-            "target_path": "expected/asm/main/psyq.s.o",
-            "base_path": "build/src/main/psyq.c.o",
-            "metadata": {"progress_categories": ["sdk"]},
         },
     ]
 
