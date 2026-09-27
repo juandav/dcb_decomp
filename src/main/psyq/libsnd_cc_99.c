@@ -13,7 +13,7 @@ void _SsContNrpn2(short seq, short sep, u_char data) {
     case 30:
         score->unk1A[1] = data;
         if (score->unk1A[3] == 0) {
-            score->unk15[0] = 0;
+            score->unk15 = 0;
             score->delta = _SsReadDeltaValue(seq, sep);
         } else if (score->unk1A[3] < 0x7F) {
             score->unk1A[3]--;
@@ -21,7 +21,7 @@ void _SsContNrpn2(short seq, short sep, u_char data) {
             if (score->unk1A[3] != 0) {
                 score->unk0 = score->unk8;
             } else {
-                score->unk15[0] = 0;
+                score->unk15 = 0;
             }
         } else {
             _SsReadDeltaValue(seq, sep);

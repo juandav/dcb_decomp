@@ -32,8 +32,8 @@ short _SsInitSoundSeq(short seq, short vabId, u_char *addr) {
     score->delta = 0;
     score->unk1A[2] = 0;
     score->unk1A[3] = 0;
-    score->unk15[0] = 0;
-    score->unk15[1] = 0;
+    score->unk15 = 0;
+    score->status = 0;
     score->unk80 = 0;
     score->unk24[0] = 0;
     score->unk24[1] = 0;
