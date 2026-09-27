@@ -698,7 +698,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", StSetRing);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdInit);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057164);
+int func_80057164(void) {
+    if (CD_init() != 0) {
+        return 0;
+    }
+    return CD_initvol() == 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800571A0);
 
