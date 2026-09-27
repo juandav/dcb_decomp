@@ -1540,7 +1540,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSwapDispBuff);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsInitCoordinate2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetLsMatrix);
+void GsSetLsMatrix(MATRIX *mp) {
+    SetRotMatrix(mp);
+    func_8005C444(mp);
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetLightMatrix);
 
