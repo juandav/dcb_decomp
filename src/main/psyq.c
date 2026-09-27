@@ -473,7 +473,9 @@ void _spu_setInTransfer(int mode) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_getInTransfer);
+int _spu_getInTransfer(void) {
+    return D_8006EF58 != 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmKeyOn);
 
