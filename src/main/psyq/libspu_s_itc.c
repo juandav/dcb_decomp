@@ -6,4 +6,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", __SN_ENTRY_POINT);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", __main);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", __sn_cpp_structors);
+void __sn_cpp_structors(long start, long end) {
+    void (*fn)(void);
+
+    while (start < end) {
+        fn = *(void (**)(void))start;
+        if (fn != NULL) {
+            fn();
+        }
+        start += 4;
+    }
+}
