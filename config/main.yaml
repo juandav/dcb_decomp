@@ -127,7 +127,7 @@ segments:
       - [0x5E8C0, .data, model/stage]
       - [0x5EA80, .data, model/effect]
       - [0x5EA94, .data, card/card_render]
-      - [0x5ED0C, data, card/card_db]
+      - [0x5ED0C, .data, card/card_db]
       - [0x5F704, .data, ui/shell]
       - [0x5F714, data, psyq]
       - { start: 0x68208, type: bss, vram: 0x80077A08, name: game }
