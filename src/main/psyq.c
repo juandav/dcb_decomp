@@ -366,7 +366,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsGetSeqData);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndNextSep);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndReplay);
+void _SsSndReplay(short seq, short sep) {
+    SeqStruct *score = &D_801D8618[seq][sep];
+
+    score->unk14 = 1;
+    D_801D8618[seq][sep].flags &= ~8;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndStop);
 
