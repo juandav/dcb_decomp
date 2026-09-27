@@ -7038,7 +7038,14 @@ void *func_80046088(s32 arg0) {
     return D_801D8404 + (arg0 * 0x70 - 0x8030);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046118);
+void func_80046118(s32 p) {
+    s32 i;
+
+    for (i = 0; i < 30; i++) {
+        ((Unk8006E050 *)D_8006E050)[p].unk14B2[func_80045F94(((Player *)D_801D8348[p])->cards[i].state,
+                                                             ((Player *)D_801D8348[p])->cards[i].unk1)] |= 0x40;
+    }
+}
 
 void func_800461C0(s32 a) {
     u8 count[0x12D];
