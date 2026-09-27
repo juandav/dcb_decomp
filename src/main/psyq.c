@@ -1840,7 +1840,12 @@ void func_8006D32C(PadPort *port, u_char param) {
     port->len = 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D34C);
+void func_8006D34C(PadPort *port, u_char param) {
+    port->cmd = 0x46;
+    port->data = &port->param;
+    port->param = param;
+    port->len = 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D36C);
 
