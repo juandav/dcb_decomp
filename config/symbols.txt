@@ -1,5 +1,6 @@
 // Game
 main = 0x80013E4C; // type:func
+func_80013F04 = 0x80013F04; // type:func
 
 // Strings used by functions already decompiled to C; kept as INCLUDE_RODATA
 D_80010598 = 0x80010598; // force_not_migration:True

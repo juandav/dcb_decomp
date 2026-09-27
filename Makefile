@@ -35,7 +35,7 @@ CPPFLAGS := $(INC) -undef -nostdinc \
 CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	    -fgnu-linker -Wall -Wno-unused
 MASPSXFLAGS := --aspsx-version=2.86
-# game.c holds many original source files; see tools/fix_jtbl_align.py
+# jump tables sit where the original files put them; see tools/fix_jtbl_align.py
 ALIGN_FIX := $(PYTHON) tools/fix_jtbl_align.py
 CC1_POST := cat
 
@@ -95,13 +95,13 @@ LDFLAGS := -nostdlib --no-check-sections -Map $(MAP) \
 	   -T $(GENDIR)/undefined_funcs_auto_main.txt
 
 C_SRC := $(shell find src -name '*.c' -not -path 'src/main/psyq/*' 2> /dev/null) src/main/psyq.c
-ASM_SRC := $(shell find $(ASM_DIR) -name '*.s' \
-	   -not -path '*/nonmatchings/*' -not -path '*/matchings/*' \
-	   -not -path '$(ASM_DIR)/main/game.s' \
-	   -not -path '$(ASM_DIR)/main/psyq.s' 2> /dev/null)
-
 # Target objects for objdiff: splat's full disassembly of every C unit
 TARGET_ASM := $(C_SRC:src/%.c=$(ASM_DIR)/%.s)
+
+# Everything else splat wrote (header, data); not the function-by-function
+# asm nor the full disassembly of the C files
+ASM_SRC := $(filter-out $(TARGET_ASM),$(shell find $(ASM_DIR) -name '*.s' \
+	   -not -path '*/nonmatchings/*' -not -path '*/matchings/*' 2> /dev/null))
 
 C_OBJ := $(C_SRC:%.c=$(BUILDDIR)/%.c.o)
 ASM_OBJ := $(ASM_SRC:%.s=$(BUILDDIR)/%.s.o)
@@ -139,8 +139,11 @@ $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
-	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) > $(@:.o=.s)
+	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(notdir $*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
+	@# the game's data lives in asm/; a C file's empty .data/.bss must not
+	@# realign the sections they are linked into (gas gives them 16)
+	@$(OBJCOPY) --set-section-alignment .data=4 --set-section-alignment .bss=4 $@
 
 # Local labels get the object's name so the outputs can be joined
 $(BUILDDIR)/src/main/psyq/%.c.s: src/main/psyq/%.c

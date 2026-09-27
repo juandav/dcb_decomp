@@ -11,7 +11,9 @@ original table (the padding the original file needed before its next
 table).
 
 The original tables are read from splat's full disassembly of each C
-segment (asm/main/<segment>.s).
+segment (asm/main/<segment>.s). The file's own rodata start (its .rodata
+subsegment in config/main.yaml, given the unit name as argument) decides
+which tables sit 4 bytes past an 8-byte boundary relative to that start.
 """
 
 import glob
@@ -24,6 +26,15 @@ ASM_DIR = os.path.join(
 )
 
 _tables = None
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def rodata_start(unit):
+    """VRAM where the .rodata subsegment named `unit` starts (0 if none)."""
+    text = open(os.path.join(ROOT, "config", "main.yaml")).read()
+    m = re.search(r"\[(0x[0-9A-Fa-f]+), \.rodata, %s\]" % re.escape(unit), text)
+    return 0x80010000 + int(m.group(1), 16) - 0x800 if m else 0
 
 
 def load_tables():
@@ -50,6 +61,7 @@ def jump_tables(func):
 
 
 def main():
+    start = rodata_start(sys.argv[1]) if len(sys.argv) > 1 else 0
     lines = sys.stdin.readlines()
     out = []
     func = None
@@ -63,7 +75,7 @@ def main():
             seen = 0
         if func is not None and re.match(r"\s*\.align\s+3\s*$", line):
             tables = jump_tables(func)
-            if seen < len(tables) and tables[seen][0] % 8 == 4:
+            if seen < len(tables) and (tables[seen][0] - start) % 8 == 4:
                 out.append(re.sub(r"\.align\s+3", ".align 2", line))
                 i += 1
                 # label, then the table's .word entries
