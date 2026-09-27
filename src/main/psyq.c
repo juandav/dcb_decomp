@@ -173,7 +173,16 @@ void func_8004B450(void) {
     *D_8006EF38 = (*D_8006EF38 & 0xF0FFFFFF) | 0x22000000;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_Fw1ts);
+void _spu_Fw1ts(void) {
+    volatile int i;
+    volatile int n = 13;
+
+    for (i = 0; i < 60; i += 1) {
+        n *= 13;
+    }
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SpuInit);
 
