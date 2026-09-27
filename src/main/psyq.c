@@ -1588,7 +1588,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", memcpy);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", memset);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", rand);
+extern u_long D_801DDC10;
+
+int rand(void) {
+    D_801DDC10 = D_801DDC10 * 0x41C64E6D + 12345;
+    return (D_801DDC10 >> 16) & 0x7FFF;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", srand);
 
