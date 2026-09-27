@@ -535,7 +535,9 @@ short SsVabOpenHeadSticky(unsigned char *addr, short vabId, unsigned long sbaddr
     return _SsVabOpenHeadWithMode(addr, vabId, func_80055BE8, sbaddr);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabFakeHead);
+short SsVabFakeHead(unsigned char *addr, short vabId, unsigned long sbaddr) {
+    return _SsVabOpenHeadWithMode(addr, vabId, func_80055BE8, sbaddr);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80055BE8);
 
