@@ -70,6 +70,16 @@ typedef struct {
     s16 unk90;
     s16 unk92;
     s16 unk94;
+    u8 pad96[0x2];
+    struct {
+        u8 pad0[0x19];
+        u8 r0;
+        u8 g0;
+        u8 b0;
+        u8 pad1C[0x405C];
+        s32 unk4078[16];
+        u8 pad40B8[0x8];
+    } unk98[2];
 } Unk800794F8;
 
 typedef struct {
@@ -91,6 +101,18 @@ typedef struct {
     /* 0x1B */ u8 unk1B;
     /* 0x1C */ u8 unk1C[2];
 } PadState;
+
+typedef struct {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ u8 loc[4];
+    /* 0x08 */ u8 unk8[0x14];
+    /* 0x1C */ s32 sector;
+    /* 0x20 */ s32 remaining;
+    /* 0x24 */ s32 size;
+    /* 0x28 */ s32 avail;
+    /* 0x2C */ u8 *cur;
+    /* 0x30 */ u8 buf[0x1000];
+} CdFile;
 
 typedef struct {
     /* 0x0 */ u8 unk0[4];
@@ -280,6 +302,10 @@ typedef struct {
 typedef struct {
     /* 0x0000 */ u8 unk0[0x2220];
     /* 0x2220 */ Unk2220 unk2220[16];
+    /* 0x22A0 */ u8 unk22A0[0x430];
+    /* 0x26D0 */ s32 unk26D0;
+    /* 0x26D4 */ s32 unk26D4;
+    /* 0x26D8 */ s32 unk26D8;
 } Model2220;
 
 typedef struct {
@@ -844,17 +870,21 @@ void func_800157B0(void) {
     D_800857D0 = 0;
 }
 
-s32 func_80015AD8(s32, s32);
-s32 func_80015EAC(s32 *arg0);
-s32 func_80015F34(s32, s32, s32 *);
+CdFile *func_80015AD8(s32, s32);
+s32 func_80015EAC(CdFile *f);
+s32 func_80015F34(CdFile *f, s32 size, u8 *dst);
+s32 CdIntToPos(s32, u8 *);
+s32 CdRead(s32, u8 *, s32);
+s32 CdReadSync(s32, u8 *);
+s32 func_80014C08(s32);
 extern s32 D_800857E0;
 
 s32 func_80015848(s32 arg0) {
-    s32 temp_v0;
+    CdFile *f;
 
-    temp_v0 = func_80015AD8(arg0, 0);
-    if ((temp_v0 != 0) && (func_80015F34(temp_v0, 0x4000, &D_800857E0) != 0)) {
-        func_80015EAC(temp_v0);
+    f = func_80015AD8(arg0, 0);
+    if (f != 0 && func_80015F34(f, 0x4000, (u8 *)&D_800857E0) != 0) {
+        func_80015EAC(f);
         D_800857D0 = 1;
         return 0;
     }
@@ -891,8 +921,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80015AD8);
 
 s32 func_8005A364(s32, s32);
 
-s32 func_80015EAC(s32 *arg0) {
-    *arg0 = 0;
+s32 func_80015EAC(CdFile *f) {
+    f->unk0 = 0;
     return func_8005A364(0, 0) == 5;
 }
 
@@ -910,15 +940,256 @@ int func_80015EDC(void) {
     return func_8005A364(0, 0) == 5;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80015F34);
+s32 func_80015F34(CdFile *f, s32 size, u8 *dst) {
+    u8 result[8];
+    u8 result2[8];
+    s32 total;
+    s32 sectors;
+    s32 n;
+    s32 r;
+    u8 *src;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800161D8);
+    total = 0;
+    n = f->avail;
+    if (n > 0) {
+        if (size < n) {
+            n = size;
+        }
+        total = n;
+        f->avail -= total;
+        src = f->cur;
+        size -= total;
+        for (n = total - 4; n >= 0; n -= 4) {
+            *(s32 *)dst = *(s32 *)src;
+            src += 4;
+            dst += 4;
+        }
+        f->cur = src;
+    }
+    if (f->remaining < size) {
+        size = f->remaining;
+    }
+    if (size <= 0 || f->remaining <= 0) {
+        return total;
+    }
+    sectors = size / 0x800;
+    if (sectors > 0) {
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            while (CdRead(sectors, dst, 0x80) == 0) {
+            }
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += sectors;
+        dst += sectors << 11;
+        n = sectors << 11;
+        total += n;
+        size -= n;
+        f->remaining -= n;
+    }
+    if (size <= 0 || f->remaining <= 0) {
+        return total;
+    }
+    CdIntToPos(f->sector, f->loc);
+    do {
+        while (CdControlB(2, f->loc, result2) == 0) {
+        }
+        do {
+            f->cur = f->buf;
+        } while (CdRead(2, f->buf, 0x80) == 0);
+        while ((r = CdReadSync(1, 0)) > 0) {
+            func_80014C08(1);
+        }
+    } while (r != 0);
+    f->sector += 2;
+    f->avail = 0x1000;
+    if ((f->remaining -= 0x1000) < 0) {
+        f->avail = f->remaining + 0x1000;
+    }
+    n = f->avail;
+    if (n > 0) {
+        if (size < n) {
+            n = size;
+        }
+        total += n;
+        f->avail -= n;
+        src = f->cur;
+        do {
+            *(s32 *)dst = *(s32 *)src;
+            src += 4;
+            dst += 4;
+            n -= 4;
+        } while (n > 0);
+        f->cur = src;
+    }
+    return total;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800162F0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016500);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016724);
+s32 func_800161D8(CdFile *f) {
+    u8 result[8];
+    s32 r;
+
+    if (f->avail <= 0) {
+        if (f->remaining <= 0) {
+            return -1;
+        }
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            do {
+                f->cur = f->buf;
+            } while (CdRead(2, f->buf, 0x80) == 0);
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        f->avail = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            f->avail = f->remaining + 0x1000;
+        }
+        if (f->avail <= 0) {
+            return -1;
+        }
+    }
+    f->avail--;
+    return *f->cur++;
+}
+
+s32 func_800162F0(CdFile *f) {
+    u8 result[8];
+    s16 i;
+    s16 v;
+    s32 r;
+
+    if (f->avail < 2) {
+        i = 0;
+        v = 0;
+        while (f->avail != 0 && i++ < 2) {
+            v += *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        if (f->remaining <= 0) {
+            return -1;
+        }
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            do {
+                f->cur = f->buf;
+            } while (CdRead(2, f->buf, 0x80) == 0);
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        f->avail = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            f->avail = f->remaining + 0x1000;
+        }
+        if (f->avail + i < 2) {
+            return -1;
+        }
+        while (f->avail != 0 && i++ < 2) {
+            v += *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        return v;
+    }
+    f->avail -= 2;
+    /* sic: undefined order; the original reads one byte twice and advances once */
+    return *f->cur++ + (*f->cur++ << 8);
+}
+
+s32 func_80016500(CdFile *f) {
+    u8 result[8];
+    s16 i;
+    s32 v;
+    s32 w;
+    s32 r;
+
+    if (f->avail < 4) {
+        i = 0;
+        v = 0;
+        while (f->avail != 0 && i++ < 4) {
+            v |= *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        if (f->remaining <= 0) {
+            return -1;
+        }
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            do {
+                f->cur = f->buf;
+            } while (CdRead(2, f->buf, 0x80) == 0);
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        f->avail = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            f->avail = f->remaining + 0x1000;
+        }
+        if (f->avail + i < 4) {
+            return -1;
+        }
+        while (f->avail != 0 && i++ < 4) {
+            v |= *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        return v;
+    }
+    f->avail -= 4;
+    w = (((f->cur[3] << 8) + f->cur[2] << 8) + f->cur[1] << 8) + f->cur[0];
+    f->cur += 4;
+    return w;
+}
+
+s8 *func_80016724(s8 *buf, s32 n, CdFile *f) {
+    s8 *p;
+    s32 c;
+
+    c = 0;
+    p = buf;
+    while (--n > 0) {
+        c = func_800161D8(f);
+        if (c == -1) {
+            break;
+        }
+        if (c == 0) {
+            break;
+        }
+        *p++ = c;
+        if (c == '\n') {
+            break;
+        }
+        if (c == 0x1A) {
+            break;
+        }
+    }
+    if (n <= 0 && !(c == -1 || c == 0 || c == '\n' || c == 0x1A)) {
+        do {
+            c = func_800161D8(f);
+        } while (!(c == -1 || c == 0 || c == '\n' || c == 0x1A));
+    }
+    *p = 0;
+    if (*buf == 0) {
+        return 0;
+    }
+    return buf;
+}
 
 extern s32 D_80079500;
 void func_8001683C(s32 arg0) {
@@ -966,7 +1237,28 @@ found:
     goto found;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800168C4);
+void func_800168C4(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[0] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[1] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[2] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[3] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[4] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[5] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[6] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[7] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[8] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[9] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[10] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[11] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[12] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[13] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[14] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[15] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016948);
 
@@ -1368,9 +1660,59 @@ s32 func_8001AB64(void) {
     return max;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001ABCC);
+void func_80014970(void);
+void func_800149A0(void);
 
-void *func_8001ABCC(s32, s32);
+void *func_8001ABCC(s32 size, s32 tag) {
+    s32 *p;
+    s32 *q;
+    s32 i;
+    s32 addr;
+    s32 avail;
+    s32 res;
+
+    size = (size + 3) & ~3;
+    if (size == 0) {
+        return 0;
+    }
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr >= 0) {
+                avail = p[1];
+                if (avail >= size) {
+                    res = addr | 0x80000000;
+                    p[0] = res;
+                    p[1] = size;
+                    avail -= size;
+                    p[2] = tag;
+                    if (avail != 0) {
+                        addr += size;
+                        q = &D_80089848 + 0x3FF * 3;
+                        for (i--; i > 0; i--) {
+                            q[0] = q[-3];
+                            q[1] = q[-2];
+                            q[2] = q[-1];
+                            q -= 3;
+                        }
+                        q[0] = addr;
+                        q[1] = avail;
+                        q[2] = -1;
+                    }
+                    func_800149A0();
+                    return (void *)res;
+                }
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
+
 void *func_8001ACEC(s32 arg0) {
     return func_8001ABCC(arg0, -2);
 }
@@ -1382,7 +1724,53 @@ void *func_8001AD0C(s32 size) {
     return func_8001ABCC(size, func_800148B0());
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001AD3C);
+void *func_8001AD3C(void *ptr, s32 size) {
+    s32 *p;
+    s32 i;
+    s32 addr;
+    s32 rest;
+
+    size = (size + 3) & ~3;
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr == (s32)ptr) {
+                rest = p[1] - size;
+                if (rest < 0) {
+                    func_800149A0();
+                    return 0;
+                }
+                if (rest != 0 && i != 0) {
+                    p[1] = size;
+                    p += 3;
+                    addr += size;
+                    if (p[0] > 0) {
+                        rest += p[1];
+                    } else {
+                        p = &D_80089848 + 0x3FF * 3;
+                        for (i--; i > 0; i--) {
+                            p[0] = p[-3];
+                            p[1] = p[-2];
+                            p[2] = p[-1];
+                            p -= 3;
+                        }
+                    }
+                    p[0] = addr & 0x3FFFFFFF;
+                    p[1] = rest;
+                    p[2] = -1;
+                }
+                func_800149A0();
+                return ptr;
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
 
 s32 func_8001AE90(void *);
 
@@ -1390,7 +1778,65 @@ void func_8001AE70(void *arg0) {
     func_8001AE90(arg0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001AE90);
+s32 func_8001AE90(void *ptr) {
+    s32 *p;
+    s32 *q;
+    s32 i;
+    s32 addr;
+    s32 size;
+
+    if (ptr == 0) {
+        return 0;
+    }
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr == (s32)ptr) {
+                addr &= 0x3FFFFFFF;
+                size = p[1];
+                q = p;
+                if (p != &D_80089848 && p[-3] > 0) {
+                    p -= 3;
+                    addr = p[0];
+                    size += p[1];
+                    i++;
+                }
+                if (i > 0 && q[3] > 0) {
+                    if (q != p) {
+                        i--;
+                    }
+                    q += 3;
+                    size += q[1];
+                }
+                p[0] = addr;
+                p[1] = size;
+                p[2] = -1;
+                if (p != q) {
+                    for (i--; i > 0; i--) {
+                        p += 3;
+                        q += 3;
+                        p[0] = q[0];
+                        p[1] = q[1];
+                        p[2] = q[2];
+                    }
+                    while (p < q) {
+                        p += 3;
+                        p[0] = 0;
+                        p[2] = 0;
+                    }
+                }
+                func_800149A0();
+                return 0;
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
 
 extern s32 D_80089848;
 
@@ -1453,7 +1899,7 @@ extern s32 D_801D4848;
 
 s32 func_8001B144(s32 name, s32 arg1) {
     s32 size;
-    s32 f;
+    CdFile *f;
     s32 buf;
 
     size = 0;
@@ -1464,13 +1910,13 @@ s32 func_8001B144(s32 name, s32 arg1) {
     f = func_80015AD8(name, 1);
     buf = 0;
     if (f != 0) {
-        size = *(s32 *)((s8 *)f + 0x24);
+        size = f->size;
         buf = (s32)func_8001ABCC(size, arg1);
         if (buf == 0) {
-            func_80015EAC((s32 *)f);
+            func_80015EAC(f);
         } else {
-            func_80015F34(f, size, (s32 *)buf);
-            func_80015EAC((s32 *)f);
+            func_80015F34(f, size, (u8 *)buf);
+            func_80015EAC(f);
         }
     }
     D_801D4848 = size;
@@ -1481,7 +1927,7 @@ s32 func_8001B144(s32 name, s32 arg1) {
 
 s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
     s32 size;
-    s32 f;
+    CdFile *f;
     s32 buf;
 
     size = 0;
@@ -1492,13 +1938,13 @@ s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
     f = func_80015AD8((s32)name, 1);
     buf = 0;
     if (f != 0) {
-        size = *(s32 *)((s8 *)f + 0x24);
+        size = f->size;
         buf = (s32)func_8001ABCC(size, arg2);
         if (buf == 0) {
-            func_80015EAC((s32 *)f);
+            func_80015EAC(f);
         } else {
-            func_80015F34(f, size, (s32 *)buf);
-            func_80015EAC((s32 *)f);
+            func_80015F34(f, size, (u8 *)buf);
+            func_80015EAC(f);
         }
     }
     D_801D4848 = size;
@@ -1681,7 +2127,7 @@ void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
     }
 }
 
-void func_8001AD3C(Chunk *, s32);
+void *func_8001AD3C(void *, s32);
 
 void func_8001BB94(Chunk *p, s32 id, s32 sub) {
     Chunk *base;
@@ -1814,7 +2260,7 @@ void func_8001BDEC(u32 size) {
     }
 }
 
-void func_8001C078(s32);
+s32 func_8001C078(s32);
 
 void func_8001BFCC(s32 arg0, s32 arg1) {
     func_8001C078(arg0 + ((s32 *)arg0)[arg1]);
@@ -1845,8 +2291,8 @@ s32 func_8001BFF8(s32 arg0, s32 arg1) {
 s32 func_800148B0();
 s32 func_8001BFF8(s32, s32);
 
-void func_8001C078(s32 arg0) {
-    func_8001BFF8(arg0, func_800148B0());
+s32 func_8001C078(s32 arg0) {
+    return func_8001BFF8(arg0, func_800148B0());
 }
 
 void func_8001C1E0(s8 *, s8 *, s32);
@@ -3501,7 +3947,22 @@ void func_800235C8(s32 arg0) {
     func_8001AFF0(arg0 + 0x40);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002360C);
+void func_8002360C(void) {
+    s32 i;
+
+    for (i = 0; i < 24; i++) {
+        if (D_801D6A4C->unk114[i] != 0) {
+            func_80022DBC(i);
+            D_801D6A4C->unk114[i] = 0;
+            /* sic: the original clears the wrong slot */
+            D_801D6A4C->unk13C[i - 0x40] = 0;
+        }
+    }
+    func_80014C08(D_800794F0);
+    for (i = 0x40; i < 0x7F; i++) {
+        func_8001AFF0(i);
+    }
+}
 
 void *func_800236B4(s32 id) {
     s32 i;
@@ -5127,13 +5588,144 @@ block_9:
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E034);
+extern u8 *D_801D8348[];
+extern void *D_801D81AC;
+extern void *D_801D81B0;
+void func_8002E7B8(void);
+void func_8002E42C(s32 n);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E26C);
+void func_8002E034(s32 bg) {
+    s32 pak;
+    s32 i;
+    u8 *s;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E42C);
+    if (*((s8 *)D_801D8340 + 0x811) == 1) {
+        do {
+            func_80014C08(D_800794F0);
+        } while (*((s8 *)D_801D8340 + 0x811) == 1);
+    }
+    *((s8 *)D_801D8340 + 0x811) = 1;
+    *((s8 *)D_801D8340 + 0x813) = 0;
+    pak = func_8001B144((s32) "A:\\BATTLE.PAK", func_800148B0());
+    if (pak != 0) {
+        func_8001B5BC(func_8001BB44((Chunk *)pak, 5, 0x68));
+        D_801D81AC = (void *)func_8002DC30(999, pak);
+        D_801D81B0 = (void *)func_8002DC30(998, pak);
+        func_8001BC14((Chunk *)pak);
+    }
+    func_8002E42C(bg);
+    D_801D81B8 = (&D_801D81B8)[8] = -1;
+    *((s8 *)D_801D8340 + 0x811) = 0;
+    do {
+        func_80014C08(D_800794F0);
+        for (i = 0; i < 2; i++) {
+            s = *(u8 **)(D_801D8348[i] + 0x114);
+            if (s != 0 && s[0xE5] != (&D_801D81B8)[i * 8]) {
+                func_8002DEA0(i, s);
+            }
+        }
+    } while (*((s8 *)D_801D8340 + 0x813) == 0);
+    for (i = 0; i < 2; i++) {
+        if ((&D_801D81B8)[i * 8] > 0) {
+            func_80022DBC(i);
+            func_800235C8(i);
+        }
+    }
+    func_8002E7B8();
+    func_8001AFF0(0x1F4);
+    func_8001AFF0(0x84);
+    func_8001AFF0(0x1F5);
+    func_8001AFF0(0x85);
+    func_8001AFF0(0x81);
+    *((s8 *)D_801D8340 + 0x813) = 0;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E658);
+extern u8 D_801EEE90[];
+
+void func_8002E26C(void) {
+    do {
+        func_80014C08(D_800794F0);
+    } while (D_801D81B8 <= 0 || (&D_801D81B8)[8] <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
+    *((s8 *)D_801D8340 + 0x811) = 1;
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\sugseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_8002B858(1);
+    func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    D_80079544 = 0;
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\kawseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_8002B858(0);
+    *((s8 *)D_801D8340 + 0x811) = 0;
+}
+
+typedef struct {
+    s8 bg;
+    u8 unk1;
+    u8 unk2;
+    s8 flags;
+    u8 rgb[3];
+    u8 unk7;
+} BgEntry;
+
+extern BgEntry D_8006E0C0[];
+extern s32 D_8006DF80;
+extern u8 D_801D6A60[3];
+extern s32 D_801D81A8;
+
+void func_8002E42C(s32 n) {
+    char path[32];
+
+    if (n < 0) {
+        n = rand() % 12 + 0x2C;
+    }
+    sprintf(path, "F:\\bg%d.pak", D_8006E0C0[n].bg + 900);
+    func_800149B8(0, -1, 0, 0x400, func_8001B248, path, func_800148B0(), 0x81);
+    D_801D81A8 = func_80014C08(0x7FFFFFFF);
+    func_8002386C(0x17, D_8006E0C0[n].bg + 900, 0, D_801D81A8, 0);
+    D_801D6A4C->unk114[0x17] = -1;
+    ((Model2220 *)D_801D6A4C->unk13C[23])->unk26D4 = 0xA0000;
+    ((Model2220 *)D_801D6A4C->unk13C[23])->unk26D0 = 0x280000;
+    if (D_8006E0C0[n].flags & 2) {
+        func_800230B8(0x17, 0, 0, D_801D81A8);
+        func_80023148(0x17, 0);
+        func_80022D34(0x17, 0, -2, 0);
+    }
+    D_801D6A4C->unk114[0x18] = D_801D6A4C->unk114[0x19] = 0;
+    D_801D6A4C->unk114[0x1B] = D_8006E0C0[n].unk2;
+    D_801D6A4C->unk114[0x1A] = D_8006E0C0[n].unk1;
+    *(s32 *)&D_801D6A4C->unk114[0x24] = D_8006E0C0[n].flags;
+    D_801D6A60[0] = D_8006E0C0[n].rgb[0];
+    D_801D6A60[1] = D_8006E0C0[n].rgb[1];
+    D_801D6A60[2] = D_8006E0C0[n].rgb[2];
+    D_8006DF80 = D_8006E0C0[n].unk7;
+}
+
+void func_8002E658(s16 id) {
+    Unk801D6A4C *p;
+    s32 tim;
+
+    D_80079544 = 1;
+    p = D_801D6A4C;
+    *(s16 *)((u8 *)p->unk13C[23] + 0xA78) = id;
+    tim = func_8001C078((s32)func_8001BB44((Chunk *)D_801D81A8, 5, *(s16 *)((u8 *)p->unk13C[23] + 6)));
+    func_8001B438((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
+    DrawSync(0);
+    func_8001AE90((void *)tim);
+    if (id != 0 && (*(s32 *)&D_801D6A4C->unk114[0x24] & 2)) {
+        func_80014A00(0x1B);
+        func_800149B8(0x1B, -1, 0, 0x1000, func_80022B98, 1);
+        func_80023148(0x17, 0);
+        func_80022D34(0x17, 0, -2, 0);
+    }
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].r0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].r0 = D_801D6A60[0];
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].g0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].g0 = D_801D6A60[1];
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].b0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].b0 = D_801D6A60[2];
+}
 
 extern s32 D_801D81A8;
 
@@ -6213,7 +6805,6 @@ void func_8003E94C(void) {
 s32 func_801F8998(s32, s32, s32, s32, s32);
 extern s32 D_80038F68;
 extern void *D_8006E054;
-extern s32 func_8002E034;
 extern s32 func_80034260;
 extern s32 func_80041E00;
 
@@ -7038,7 +7629,14 @@ void *func_80046088(s32 arg0) {
     return D_801D8404 + (arg0 * 0x70 - 0x8030);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046118);
+void func_80046118(s32 p) {
+    s32 i;
+
+    for (i = 0; i < 30; i++) {
+        ((Unk8006E050 *)D_8006E050)[p].unk14B2[func_80045F94(((Player *)D_801D8348[p])->cards[i].state,
+                                                             ((Player *)D_801D8348[p])->cards[i].unk1)] |= 0x40;
+    }
+}
 
 void func_800461C0(s32 a) {
     u8 count[0x12D];
