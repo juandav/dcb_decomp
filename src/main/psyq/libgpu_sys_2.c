@@ -294,7 +294,40 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800669AC);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066C0C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066D48);
+void func_80066E84(void);
+int func_80066EB8(void);
+extern volatile long D_80076880;
+extern volatile long D_80076884;
+
+int func_80066D48(int mode) {
+    int n;
+
+    if (mode == 0) {
+        func_80066E84();
+        while (D_80076880 != D_80076884) {
+            func_800669AC();
+            if (func_80066EB8()) {
+                return -1;
+            }
+        }
+        while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+            if (func_80066EB8()) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+    n = (D_80076880 - D_80076884) & 0x3F;
+    if (n) {
+        func_800669AC();
+    }
+    if ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+        if (n == 0) {
+            return 1;
+        }
+    }
+    return n;
+}
 
 void func_80066E84(void) {
     D_80076894 = VSync(-1) + 240;
