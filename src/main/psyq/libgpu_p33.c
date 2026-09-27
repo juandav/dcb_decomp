@@ -67,7 +67,42 @@ TIM_IMAGE *ReadTIM(TIM_IMAGE *timimg) {
     return timimg;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067BE8);
+int func_80067BE8(u_long *tim, TIM_IMAGE *timimg) {
+    int size;
+    int n;
+
+    if (*tim++ != 0x10) {
+        return -1;
+    }
+    timimg->mode = *tim++;
+    if (GetGraphDebug() == 2) {
+        printf("id  =%08x\n", 0x10);
+    }
+    if (GetGraphDebug() == 2) {
+        printf("mode=%08x\n", timimg->mode);
+    }
+    if (GetGraphDebug() == 2) {
+        printf("timaddr=%08x\n", tim);
+    }
+    if (timimg->mode & 8) {
+        size = *tim >> 2;
+        timimg->crect = (RECT *)(tim + 1);
+        timimg->caddr = tim + 3;
+        tim += size;
+    } else {
+        size = 0;
+        timimg->crect = NULL;
+        timimg->caddr = NULL;
+    }
+    n = (*tim >> 2) + 2;
+    timimg->prect = (RECT *)(tim + 1);
+    timimg->paddr = tim + 3;
+    return size + n;
+}
+
+__asm__(".section .rodata\n\t.space 8\n\t.section .text\n");
+
+OBJECT_END(1);
 
 void DecDCTReset(int mode) {
     if (mode == 0) {
