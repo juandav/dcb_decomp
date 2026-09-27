@@ -1499,7 +1499,11 @@ void func_80067764(POLY_GT3 *p) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067784);
+void func_80067784(POLY_F4 *p) {
+    setPolyF4(p);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800677A4);
 
