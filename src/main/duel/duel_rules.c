@@ -40,7 +40,7 @@ void func_8003FB3C(s32 arg) {
     u16 id;
 
     for (i = 0; i < 2; i++) {
-        D_801D8348[i] = func_8001AD0C(0x1E4);
+        D_801D8348[i] = allocTaskHeapBlock(0x1E4);
         PLAYER(i)->unk178_17 = (1 - arg) * 2 + i;
         PLAYER(i)->unk0[0] = 1;
         for (j = 0; j < 30; j++) {

@@ -19,10 +19,10 @@ void startCpuDuel(s32 deckIndex) {
     s32 result;
 
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, func_8001B144, &PATH_DECK2_DEK, func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
     deckFile = (u8 *)func_80014C08(0x7FFFFFFF);
     ((Unk8006E054 *)D_8006E054)->unk0 = deckFile;
     decks = (SavedDeck *)(deckFile + 8);
@@ -40,10 +40,10 @@ void startCpuDuel(s32 deckIndex) {
                 PLAYER_DATA(0).unk18 = 999;
             }
         }
-        func_8002CC44(0);
+        updatePlayerRanks(0);
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\saiseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     ((u8 *)((Unk8006E054 *)D_8006E054)->unk100C)[0x1A6] = result;
@@ -52,10 +52,10 @@ void startCpuDuel(s32 deckIndex) {
 
 void startVersusDuel(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, func_8001B144, &PATH_DECK2_DEK, func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
     ((Unk8006E054 *)D_8006E054)->unk0 = (u8 *)func_80014C08(0x7FFFFFFF);
     ((Unk8006E054 *)D_8006E054)->unk1010[0x12] = 0;
     func_800149B8(0, -1, 0, 0x800, func_8003EC4C, 0, func_800148B0(), 0, 0);
@@ -74,10 +74,10 @@ void startVersusDuel(void) {
             PLAYER_DATA(1).unk1E = 999;
         }
     }
-    func_8002CC44(0);
-    func_8002CC44(1);
+    updatePlayerRanks(0);
+    updatePlayerRanks(1);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\openseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x800, D_801EB2E8, func_800148B0(), 0, 0, 0);
@@ -90,19 +90,19 @@ void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
 
     D_8006E294 = 1;
     DUEL_VRAM_READY = 0;
-    func_800149B8(0, -1, 0, 0x800, &func_8001B144, "B:\\FONT.ARC", func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", func_800148B0());
     fontArchive = (u8 *)func_80014C08(0x7FFFFFFF);
     for (i = 0; *string != 0;) {
-        func_8001B438((u32 *)(fontArchive + ((s32 *)fontArchive)[*string - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
+        uploadTim((u32 *)(fontArchive + ((s32 *)fontArchive)[*string - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
                       row + 0x1D7);
         DrawSync(0);
         string++;
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         if (++i >= 12) {
             break;
         }
     }
-    func_8001AE90(fontArchive);
+    freeHeapBlock(fontArchive);
     D_8006E294 = 0;
     func_80014A48(parentTask);
 }
@@ -125,7 +125,7 @@ void runCardArtLoader(void) {
     for (;;) {
         s32 slot;
 
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         slot = DUEL->unk826 % 6;
         DUEL->cache[slot].used = 0;
         if (DUEL->unk812 != 0) {
@@ -152,11 +152,11 @@ void runCardArtLoader(void) {
                 DUEL->unk811 = 1;
                 DUEL->cache[slot].id = cardId;
                 sprintf(path, "B:\\CARD\\LC%3.3d.TIM", cardId);
-                func_800149B8(0, -1, 0, 0x800, func_8001B144, path, func_800148B0());
+                func_800149B8(0, -1, 0, 0x800, loadFile, path, func_800148B0());
                 tim = (u32 *)func_80014C08(0x7FFFFFFF);
-                func_8001B438(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
+                uploadTim(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
                 DrawSync(0);
-                func_8001AE90(tim);
+                freeHeapBlock(tim);
                 DUEL->unk811 = 0;
             }
             DUEL->cache[slot].used = 1;
@@ -224,8 +224,8 @@ void drawHudSprite(SprtInfo *info, s32 unused, s32 z) {
         CUR_SPRT->sp.g0 = info->g;
         CUR_SPRT->sp.b0 = info->b;
         setDrawMode(&CUR_SPRT->dm, 0, 0, info->tpage);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -234,7 +234,7 @@ void renderDuelBackground(s32 brightness) {
     POLY_FT4 *poly;
     u8 *polyBuf;
 
-    polyBuf = (u8 *)D_800793A0->unk4078[11];
+    polyBuf = (u8 *)CURRENT_FRAME_BUFFER->unk4078[11];
     poly = (POLY_FT4 *)(polyBuf + 0x1E0);
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
@@ -258,7 +258,7 @@ void renderDuelBackground(s32 brightness) {
     poly->y3 = 0x7A;
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
-    addPrim(&D_800793A0->ot[0xFFF], poly);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x208);
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
@@ -282,7 +282,7 @@ void renderDuelBackground(s32 brightness) {
     poly->y3 = 0x7A;
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
-    addPrim(&D_800793A0->ot[0xFFF], poly);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x230);
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
@@ -306,7 +306,7 @@ void renderDuelBackground(s32 brightness) {
     poly->y3 = 0x79;
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
-    addPrim(&D_800793A0->ot[0xFFF], poly);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x258);
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
@@ -330,14 +330,14 @@ void renderDuelBackground(s32 brightness) {
     poly->y3 = 0x79;
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
-    addPrim(&D_800793A0->ot[0xFFF], poly);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
 }
 
 void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
     POLY_FT4 *poly;
     s32 u;
 
-    poly = (POLY_FT4 *)((u8 *)D_800793A0->unk4078[11] + (index * 80 + 0x280));
+    poly = (POLY_FT4 *)((u8 *)CURRENT_FRAME_BUFFER->unk4078[11] + (index * 80 + 0x280));
     u = ((((Unk8006E050 *)PLAYER_PROFILES)->unk24 / 4) % 4) * 32;
     initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
@@ -361,7 +361,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
     poly->y3 = y + 0x40;
     poly->tpage = 0x1E;
     poly->clut = 0x7FB0;
-    addPrim(&D_800793A0->ot[z], poly);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[z], poly);
     if (cardSprite != 0) {
         poly++;
         initPrimByType(0xC, poly, 1, 0);
@@ -386,7 +386,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
         poly->y3 = y + 0x40;
         poly->tpage = *(u16 *)(cardSprite + 0x12);
         poly->clut = *(u16 *)(cardSprite + 0x10);
-        addPrim(&D_800793A0->ot[z], poly);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], poly);
     }
 }
 
@@ -415,7 +415,7 @@ void renderPhaseBanner(void) {
         DUEL_MSG_BAR.unkB = step;
         DUEL_MSG_BAR.unkD = phase;
     }
-    poly = (POLY_FT4 *)(D_800793A0->unk4078[11] + 0x320);
+    poly = (POLY_FT4 *)(CURRENT_FRAME_BUFFER->unk4078[11] + 0x320);
     switch ((u8)DUEL_MSG_BAR.unk0) {
     case 0:
         DUEL_MSG_BAR.px -= 14;
@@ -452,7 +452,7 @@ void renderPhaseBanner(void) {
                 poly->y3 = DUEL_MSG_BAR.py + 12;
                 poly->tpage = 0x3E;
                 poly->clut = 0x7CB3;
-                addPrim(&D_800793A0->ot[0x1E], poly);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], poly);
                 poly++;
                 initPrimByType(0xC, poly, 1, 0);
                 poly->r0 = brightness;
@@ -476,7 +476,7 @@ void renderPhaseBanner(void) {
                 poly->y3 = (s16)(DUEL_MSG_BAR.py - (s16)(age - 8) + 0x18) + age * 2;
                 poly->tpage = 0x3E;
                 poly->clut = 0x7CB3;
-                addPrim(&D_800793A0->ot[0x1E], poly);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], poly);
                 poly++;
                 initPrimByType(0xC, poly, 1, 0);
                 poly->r0 = brightness;
@@ -500,7 +500,7 @@ void renderPhaseBanner(void) {
                 poly->y3 = (s16)(DUEL_MSG_BAR.py - (s16)(age - 8) + 0x18) + age * 2;
                 poly->tpage = 0x3C;
                 poly->clut = 0x7CB3;
-                addPrim(&D_800793A0->ot[0x1E], poly);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], poly);
                 poly++;
             }
         }
@@ -544,8 +544,8 @@ void renderPhaseBanner(void) {
         CUR_SPRT->sp.g0 = 0x80;
         CUR_SPRT->sp.b0 = 0x80;
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
-        addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
     if (func_80029990() != 0) {
@@ -563,8 +563,8 @@ void renderPhaseBanner(void) {
     CUR_SPRT->sp.g0 = 0x80;
     CUR_SPRT->sp.b0 = 0x80;
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
     D_801D6B24 += sizeof(SprtPacket);
     if (func_80029990() != 0) {
         return;
@@ -581,8 +581,8 @@ void renderPhaseBanner(void) {
     CUR_SPRT->sp.g0 = 0x80;
     CUR_SPRT->sp.b0 = 0x80;
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
     D_801D6B24 += sizeof(SprtPacket);
     if (func_80029990() != 0) {
         return;
@@ -599,8 +599,8 @@ void renderPhaseBanner(void) {
     CUR_SPRT->sp.g0 = 0x80;
     CUR_SPRT->sp.b0 = 0x80;
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
-    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
     D_801D6B24 += sizeof(SprtPacket);
 }
 
@@ -620,8 +620,8 @@ void renderStatusMessage(s32 brightness) {
     rgb[1] = brightness;
     rgb[2] = brightness;
     GetDispEnv(&env);
-    SetDrawArea(&STATUS_MSG_RESTORE_AREA[D_800794F4], (Rect16 *)env.disp);
-    addPrim(&D_800793A0->ot[0xFFE], &STATUS_MSG_RESTORE_AREA[D_800794F4]);
+    SetDrawArea(&STATUS_MSG_RESTORE_AREA[FRAME_BUFFER_INDEX], (Rect16 *)env.disp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &STATUS_MSG_RESTORE_AREA[FRAME_BUFFER_INDEX]);
     if (DUEL_MSG_BAR.cur != DUEL_MSG_BAR.next) {
         if (++DUEL_MSG_BAR.y > 0x10) {
             DUEL_MSG_BAR.cur = DUEL_MSG_BAR.next;
@@ -655,8 +655,8 @@ void renderStatusMessage(s32 brightness) {
     clipRect.y = env.disp[1] + 0xE;
     clipRect.w = 0x120;
     clipRect.h = 0xC;
-    SetDrawArea(&STATUS_MSG_CLIP_AREA[D_800794F4], &clipRect);
-    addPrim(&D_800793A0->ot[0xFFE], &STATUS_MSG_CLIP_AREA[D_800794F4]);
+    SetDrawArea(&STATUS_MSG_CLIP_AREA[FRAME_BUFFER_INDEX], &clipRect);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &STATUS_MSG_CLIP_AREA[FRAME_BUFFER_INDEX]);
 }
 
 void renderHelpBar(s32 brightness) {
@@ -671,8 +671,8 @@ void renderHelpBar(s32 brightness) {
     rgb[1] = brightness;
     rgb[2] = brightness;
     GetDispEnv(&env);
-    SetDrawArea(&HELP_BAR_RESTORE_AREA[D_800794F4], (Rect16 *)env.disp);
-    addPrim(&D_800793A0->ot[0xFFE], &HELP_BAR_RESTORE_AREA[D_800794F4]);
+    SetDrawArea(&HELP_BAR_RESTORE_AREA[FRAME_BUFFER_INDEX], (Rect16 *)env.disp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &HELP_BAR_RESTORE_AREA[FRAME_BUFFER_INDEX]);
     if (DUEL_MSG_BAR.cur2 != DUEL_MSG_BAR.next2 || DUEL_MSG_BAR.unkA != DUEL_MSG_BAR.unk1) {
         if (++DUEL_MSG_BAR.y2 > 0x10) {
             DUEL_MSG_BAR.cur2 = DUEL_MSG_BAR.next2;
@@ -697,8 +697,8 @@ void renderHelpBar(s32 brightness) {
         CUR_SPRT->sp.g0 = brightness;
         CUR_SPRT->sp.b0 = brightness;
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
-        addPrim(&D_800793A0->ot[0xFFE], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[0xFFE], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
         if (DUEL_MSG_BAR.unkA == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
             func_80028D48(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
@@ -710,8 +710,8 @@ void renderHelpBar(s32 brightness) {
     clipRect.y = env.disp[1] + 0xDB;
     clipRect.w = 0x120;
     clipRect.h = 0xC;
-    SetDrawArea(&HELP_BAR_CLIP_AREA[D_800794F4], &clipRect);
-    addPrim(&D_800793A0->ot[0xFFE], &HELP_BAR_CLIP_AREA[D_800794F4]);
+    SetDrawArea(&HELP_BAR_CLIP_AREA[FRAME_BUFFER_INDEX], &clipRect);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &HELP_BAR_CLIP_AREA[FRAME_BUFFER_INDEX]);
 }
 
 void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z) {
@@ -728,8 +728,8 @@ void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z) {
         CUR_SPRT->sp.g0 = brightness;
         CUR_SPRT->sp.b0 = brightness;
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -748,8 +748,8 @@ void drawWinMarker(s32 x, s32 y, s32 z) {
         CUR_SPRT->sp.g0 = 0x80;
         CUR_SPRT->sp.b0 = 0x80;
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -840,7 +840,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     vertices[3].vz = 0;
     col = (u32 *)sprite->rgbc;
     fade = (u32 *)sprite->fade;
-    buf = (RawPolyFT4 *)D_800793A0->unk4078[10];
+    buf = (RawPolyFT4 *)CURRENT_FRAME_BUFFER->unk4078[10];
     nclip = RotAverageNclip4((s32)&vertices[0], (s32)&vertices[1], (s32)&vertices[2], (s32)&vertices[3], (s32)&sxy[0], (s32)&sxy[1],
                              (s32)&sxy[2], (s32)&sxy[3], &depthCue, &otz, &flag);
     if (nclip <= 0) {
@@ -859,8 +859,8 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         CUR_SPRT->sp.g0 = 0x80;
         CUR_SPRT->sp.b0 = 0x80;
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
-        addPrim(&D_800793A0->ot[0], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[0], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
     sprite->z = 0x57 - *(s16 *)(D_801D833C + spriteIndex * 36 + 0x20);
@@ -895,7 +895,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         pk->uv2 = 0x7080;
         pk->xy3 = sxy[3];
         pk->uv3 = 0x70A8;
-        addPrim(&D_800793A0->ot[sprite->z], pk);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[sprite->z], pk);
     }
     if (nclip <= 0) {
         otz = RotAverage4(&vertices[1], &vertices[0], &vertices[3], &vertices[2], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &depthCue, &flag);
@@ -944,7 +944,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         pk->uv2 = (v2 << 8) | u2;
         pk->xy3 = sxy[3];
         pk->uv3 = (v3 << 8) | u3;
-        addPrim(&D_800793A0->ot[sprite->z], pk);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[sprite->z], pk);
         otz = RotAverage4(&vertices[0], &vertices[1], &vertices[2], &vertices[3], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &depthCue, &flag);
         tpage = 0x1C;
         clut = getClut(800, 497 + sprite->pal);
@@ -970,7 +970,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     pk->uv2 = (v2 << 8) | u2;
     pk->xy3 = sxy[3];
     pk->uv3 = (v3 << 8) | u3;
-    addPrim(&D_800793A0->ot[sprite->z], pk);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[sprite->z], pk);
     PopMatrix();
 }
 

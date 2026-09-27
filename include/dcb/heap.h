@@ -3,19 +3,19 @@
 
 #include "game.h"
 
-extern s32 D_8008C848;
-extern s32 D_80089848;
+extern s32 HEAP_ARENA;
+extern s32 HEAP_BLOCKS;
 
-void func_8001AA80(s32);
-s32 func_8001AE90(void *);
-s32 func_8001AFF0(s32 arg0);
-void *func_8001ACEC(s32);
-s32 func_8001AB64(void);
-void *func_8001ABCC(s32, s32);
-void func_8001AE70(void *arg0);
-s32 func_8001B088(s32 y, s32 x);
-void *func_8001AD3C(void *, s32);
-void *func_8001AD0C(s32);
-s32 func_8001AFF0(s32);
+void resetHeap(s32 initialize);
+s32 freeHeapBlock(void *ptr);
+s32 freeHeapBlocksByTag(s32 tag);
+void *allocPermanentHeapBlock(s32 size);
+s32 getLargestFreeHeapBlock(void);
+void *allocHeapBlock(s32 size, s32 ownerTag);
+void releaseHeapBlock(void *ptr);
+s32 computeVectorAngle(s32 y, s32 x);
+void *shrinkHeapBlock(void *ptr, s32 size);
+void *allocTaskHeapBlock(s32 size);
+s32 freeHeapBlocksByTag(s32);
 
 #endif /* DCB_HEAP_H */

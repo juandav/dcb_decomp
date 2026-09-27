@@ -204,7 +204,7 @@ void func_80049A14(s16 *arg0) {
                 r[0] = 0x28;
                 r[1] = 0x28;
                 func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)r);
-                func_8002BB58(3);
+                playMenuSound(3);
                 break;
             case 5:
                 func_800293FC(D_80012DB8);
@@ -213,7 +213,7 @@ void func_80049A14(s16 *arg0) {
                 r[0] = 0x50;
                 r[1] = 0x78;
                 func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)r);
-                func_8002BB58(3);
+                playMenuSound(3);
                 break;
             case 6:
                 func_800293FC(D_80012DF8);
@@ -222,7 +222,7 @@ void func_80049A14(s16 *arg0) {
                 r[0] = (0x140 - r[2]) >> 1;
                 r[1] = 0xB4 - r[3] / 2;
                 func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)r);
-                func_8002BB58(3);
+                playMenuSound(3);
                 break;
             case '>':
                 D_801D8540 = 1;
@@ -298,7 +298,7 @@ void func_80049EF8(s32 n, s32 arg1) {
     ((Unk80016F38 *)&D_801D8410)->unk2C = (s32)"SHELL COMMAND";
     ((Unk80016F38 *)&D_801D8410)->unk38 = 2;
     ((Unk80016F38 *)&D_801D8410)->unk39 = 8;
-    func_8002BB58(3);
+    playMenuSound(3);
     func_800293FC(D_80012D68);
     r.w = (D_801D6B18 + 1) / 2 * 2;
     r.h = (D_801D6B1C + 1) / 2 * 2;
@@ -322,12 +322,12 @@ void func_80049EF8(s32 n, s32 arg1) {
     func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)-1);
     func_8001683C((s32)func_80049E80);
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         if (D_801D854C != 0) {
             done = 1;
         }
     } while (done == 0);
-    func_8002BB58(4);
+    playMenuSound(4);
     func_80016F38((Unk80016F38 *)&D_801D8410, (Rect16 *)-1);
     func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)-1);
     func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)-1);
@@ -351,17 +351,17 @@ void func_8004A2DC(s32 mode) {
         DrawSync(0);
         func_80014C08(10);
         done = 0;
-        func_8002B688();
+        stopMusic();
         func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x800, func_8002B3EC, 1, stack);
+        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 1, stack);
         func_80014C08(0x7FFFFFFF);
-        func_8001B90C(0x140, 0xF0, 0);
-        func_800149B8(0x1F, 0, 0, 0x800, func_80015328, 0, 0, 0, 0);
+        resetDisplay(0x140, 0xF0, 0);
+        func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
         func_80014C08(2);
         do {
             func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, stack, 0, 0);
             func_80014C08(0x7FFFFFFF);
-            func_8002BB58(3);
+            playMenuSound(3);
             func_80019EA4(dlg,
                           "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
                           "to continue.)",
@@ -382,14 +382,14 @@ void func_8004A2DC(s32 mode) {
         func_80014A90();
     } else {
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\endseg.bin", D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x800, D_801DF47C, stack, mode, 0, 0);
         func_80014C08(0x7FFFFFFF);
         func_80014C08(10);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, D_80012FAC, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, D_80012FAC, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, stack, 0, 0);

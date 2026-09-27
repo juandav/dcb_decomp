@@ -208,6 +208,6 @@ loop_1:
         goto loop_1;
     }
     var_s1 = 0;
-    func_80014C08(D_800794F0);
+    func_80014C08(FRAME_INTERVAL);
     goto loop_1;
 }

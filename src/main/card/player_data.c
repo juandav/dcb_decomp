@@ -13,9 +13,9 @@ void initPlayerData(void) {
     void *session;
 
     loadCardDatabase();
-    PLAYER_PROFILES = func_8001ACEC(0x4EE8);
-    D_8006E054 = session = func_8001ACEC(0x102C);
-    (*(void **)((s8 *)D_8006E054 + 0x100C)) = func_8001ACEC(0x1AC);
+    PLAYER_PROFILES = allocPermanentHeapBlock(0x4EE8);
+    D_8006E054 = session = allocPermanentHeapBlock(0x102C);
+    (*(void **)((s8 *)D_8006E054 + 0x100C)) = allocPermanentHeapBlock(0x1AC);
     resetPlayerData();
 }
 
@@ -136,8 +136,8 @@ void renderFullscreenBackground(void) {
     CUR_SPRT->sp.g0 = 0x80;
     CUR_SPRT->sp.b0 = 0x80;
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x85);
-    addPrim(&D_800793A0->ot[0], &CUR_SPRT->sp);
-    addPrim(&D_800793A0->ot[0], &CUR_SPRT->dm);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
     D_801D6B24 += sizeof(SprtPacket);
     CUR_SPRT->sp.x0 = 0x100;
     CUR_SPRT->sp.y0 = 0;
@@ -151,8 +151,8 @@ void renderFullscreenBackground(void) {
     CUR_SPRT->sp.g0 = 0x80;
     CUR_SPRT->sp.b0 = 0x80;
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x87);
-    addPrim(&D_800793A0->ot[0], &CUR_SPRT->sp);
-    addPrim(&D_800793A0->ot[0], &CUR_SPRT->dm);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
     D_801D6B24 += sizeof(SprtPacket);
 }
 
@@ -161,8 +161,8 @@ void playModelAnimation(s32 modelSlot, s32 animId) {
 
     model = D_801D6A4C->unk13C[modelSlot];
     if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
-        func_8001AFF0(modelSlot + 0x84);
-        func_80023094(model, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
+        freeHeapBlocksByTag(modelSlot + 0x84);
+        func_80023094(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
     }
     func_80022D34(modelSlot, animId, -2, 0);
 }
@@ -173,8 +173,8 @@ void setModelAnimationPose(s32 modelSlot, s32 animId) {
 
     model = D_801D6A4C->unk13C[modelSlot];
     heapTag = modelSlot + 0x84;
-    func_8001AFF0(heapTag);
-    func_80023094(model, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
+    freeHeapBlocksByTag(heapTag);
+    func_80023094(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
     func_80023148(modelSlot, animId);
 }
 
@@ -200,10 +200,10 @@ s32 loadSkill(s32 skillId, s32 pak) {
     char path[32];
     s32 skill;
 
-    skill = (s32)func_8001BB44((Chunk *)pak, 2, skillId);
+    skill = (s32)findPakChunk((Chunk *)pak, 2, skillId);
     if (skill == 0) {
         sprintf(path, &FMT_SKILL_PATH, skillId);
-        skill = func_8001B248(path, func_800148B0(), 0x81);
+        skill = loadFileTagged(path, func_800148B0(), 0x81);
     }
     return skill;
 }

@@ -34,23 +34,23 @@ void func_80026E90(s32 x, s32 y, s32 n) {
     D_801D6B20 = x + 0x20;
     D_801D6B22 = y + 0xF8;
     D_801D6B10 = n;
-    func_800149B8(0, -1, 0, 0x800, func_8001B144, "B:\\SYSTEM.TIM", func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", func_800148B0());
     tim = (u32 *)func_80014C08(0x7FFFFFFF);
-    func_8001B438(tim, D_801D6B12, D_801D6B14, -2, -2);
-    image = &D_801D4850;
+    uploadTim(tim, D_801D6B12, D_801D6B14, -2, -2);
+    image = &LOADED_TIM;
     r.x = D_801D6B20;
     r.y = D_801D6B22;
     r.w = 0x20;
     r.h = 8;
     LoadImage((s16 *)&r, (s32)image->caddr);
     DrawSync(0);
-    func_8001AE90(tim);
-    p = func_8001ACEC(D_801D6B10 * sizeof(SprtPacket) * 2);
+    freeHeapBlock(tim);
+    p = allocPermanentHeapBlock(D_801D6B10 * sizeof(SprtPacket) * 2);
     for (i = 0; i < 2; i++) {
         DB(i).unk40B8 = (s32)(p + D_801D6B10 * i);
     }
     func_80027044();
-    D_801D6B24 = D_800793A0->unk40B8;
+    D_801D6B24 = CURRENT_FRAME_BUFFER->unk40B8;
 }
 
 void func_80027044(void) {
@@ -72,7 +72,7 @@ void func_80027044(void) {
 }
 
 void func_800271D0(void) {
-    D_801D6B24 = D_800793A0->unk40B8;
+    D_801D6B24 = CURRENT_FRAME_BUFFER->unk40B8;
 }
 
 void func_800271EC(s32 arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
@@ -93,8 +93,8 @@ void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
         setDrawMode(&CUR_SPRT->dm, 0, 0, tpage);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -118,8 +118,8 @@ void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
         setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -142,8 +142,8 @@ void func_800276C8(s32 x, s32 y, u8 c, s32 n, u8 *rgb, s32 z, s32 w, s32 h, s32 
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
         setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -233,8 +233,8 @@ void func_8002793C(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -332,8 +332,8 @@ void func_80027DE8(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -385,8 +385,8 @@ void func_80028258(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -479,8 +479,8 @@ void func_80028588(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -536,8 +536,8 @@ void func_800289D0(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -701,8 +701,8 @@ s32 func_80028D48(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             x += CUR_SPRT->sp.w;
             if (D_801D6B18 < x) {
                 D_801D6B18 = x;
@@ -765,8 +765,8 @@ void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             break;
         }
@@ -774,7 +774,7 @@ void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
 }
 
 s32 func_80029990(void) {
-    if (D_801D6B24 == D_800793A0->unk40B8 + D_801D6B10 * 0x1C) {
+    if (D_801D6B24 == CURRENT_FRAME_BUFFER->unk40B8 + D_801D6B10 * 0x1C) {
         return -1;
     }
     return 0;
@@ -843,8 +843,8 @@ void func_80029A0C(s32 x, s32 y, s32 kind, s32 n, u8 *rgb, s32 z) {
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
         setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }
@@ -982,8 +982,8 @@ s32 func_80029EFC(s32 x, s32 y, s32 n, s32 arg3, u8 *rgb, s32 z, u8 *s) {
                     CUR_SPRT->sp.g0 = 0x80;
                     CUR_SPRT->sp.b0 = 0x80;
                     setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-                    addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-                    addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
                     D_801D6B24 += sizeof(SprtPacket);
                     x += 6 + spacing;
                 }
@@ -1006,8 +1006,8 @@ s32 func_80029EFC(s32 x, s32 y, s32 n, s32 arg3, u8 *rgb, s32 z, u8 *s) {
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
             setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
             x += 12 + spacing;
             s += 2;

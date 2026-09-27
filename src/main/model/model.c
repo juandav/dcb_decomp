@@ -11,7 +11,7 @@
 void func_80022C4C(void) {
     Unk801D6A4C *p;
 
-    p = D_801D6A4C = func_8001ABCC(0x29C, 0x7F);
+    p = D_801D6A4C = allocHeapBlock(0x29C, 0x7F);
     bzero(p, 0x29C);
     GsInitCoordinate2(NULL, &D_801D6A4C->root);
     D_80079544 = 1;
@@ -67,7 +67,7 @@ void func_80022DBC(s32 arg0) {
     s32 i;
 
     key = *(s16 *)((s8 *)D_801D6A4C->unk13C[arg0] + 6);
-    func_8001AFF0(arg0 + 0x5A);
+    freeHeapBlocksByTag(arg0 + 0x5A);
     key = (key << 8) | 0x10000000;
     for (i = 0; i < 0x20; i++) {
         if ((D_801D6A4C->unk19C[i].key & ~0xFF) == key) {
@@ -86,7 +86,7 @@ void func_80022E58(void) {
             D_801D6A4C->unk19C[i].value = 0;
         }
     }
-    func_8001AFF0(0x82);
+    freeHeapBlocksByTag(0x82);
 }
 
 s32 func_80022ED0(s32 key, s32 n, KeyValue **pp) {
@@ -127,9 +127,9 @@ s32 func_80022F34(s32 id, s32 anim, s32 slot, Chunk *pak) {
             sprintf(name, "M:\\HDF%03d\\%c.hdf", id, anim + 'a');
             n = anim;
         }
-        p = (s32)func_8001BB44(pak, 1, n);
+        p = (s32)findPakChunk(pak, 1, n);
         if (p == 0) {
-            p = func_8001B248((s32 *)name, func_800148B0(), slot + 0x5A);
+            p = loadFileTagged((s32 *)name, func_800148B0(), slot + 0x5A);
             if (p == 0) {
                 return 0;
             }
@@ -266,7 +266,7 @@ void func_800234AC(Model *m) {
 void func_800235C8(s32 arg0) {
     D_801D6A4C->unk114[arg0] = 0;
     D_801D6A4C->unk13C[arg0] = 0;
-    func_8001AFF0(arg0 + 0x40);
+    freeHeapBlocksByTag(arg0 + 0x40);
 }
 
 void func_8002360C(void) {
@@ -280,9 +280,9 @@ void func_8002360C(void) {
             D_801D6A4C->unk13C[i - 0x40] = 0;
         }
     }
-    func_80014C08(D_800794F0);
+    func_80014C08(FRAME_INTERVAL);
     for (i = 0x40; i < 0x7F; i++) {
-        func_8001AFF0(i);
+        freeHeapBlocksByTag(i);
     }
 }
 
@@ -318,8 +318,8 @@ s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
         func_80022DBC(slot);
         func_800235C8(slot);
     }
-    func_80014C08(D_800794F0);
-    m = D_801D6A4C->unk13C[slot] = func_8001ABCC(0x28F8, slot + 0x40);
+    func_80014C08(FRAME_INTERVAL);
+    m = D_801D6A4C->unk13C[slot] = allocHeapBlock(0x28F8, slot + 0x40);
     bzero(m, 0x28F8);
     *(s32 *)(m + 0x26F4) = pak;
     func_80022CA4(slot);
@@ -346,32 +346,32 @@ s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
     } else {
         sprintf(buf, "M:\\%03d.omd", id);
     }
-    data = func_8001BB44((Chunk *)pak, 0, id);
+    data = findPakChunk((Chunk *)pak, 0, id);
     if (data == 0) {
-        data = (u8 *)func_8001B248((s32 *)buf, func_800148B0(), slot + 0x40);
+        data = (u8 *)loadFileTagged((s32 *)buf, func_800148B0(), slot + 0x40);
         if (data == 0) {
             return 0;
         }
-        *(s32 *)m = D_801D4848;
+        *(s32 *)m = LOADED_FILE_SIZE;
     } else {
         *(s32 *)m = ((s32 *)data)[-1];
     }
     *(u8 **)(m + 0x26DC) = data;
     if (pos != 0) {
         i = 0;
-        img = func_8001BB44((Chunk *)pak, 5, id);
+        img = findPakChunk((Chunk *)pak, 5, id);
         if (img == 0) {
             if (func_8002371C(m) == 0) {
                 goto skip;
             }
             sprintf(buf, "M:\\%s", data);
             i = 1;
-            img = (u32 *)func_8001B144(buf, func_800148B0());
+            img = (u32 *)loadFile(buf, func_800148B0());
         }
         if (img != 0) {
             u = (pos & 0xF) << 6;
             v = (pos & 0x10) << 4;
-            func_8001B634(img, u - 0x140, v);
+            uploadTimListOffset(img, u - 0x140, v);
             OpenTIM(img);
             ReadTIM(&tim);
             *(Rect16 *)(m + 0x26E4) = *tim.prect;
@@ -381,7 +381,7 @@ s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
             ((Rect16 *)(m + 0x26E4))->x += u - 0x140;
             ((Rect16 *)(m + 0x26E4))->y += v;
             if (i) {
-                func_8001AE90(img);
+                freeHeapBlock(img);
             }
         }
     }

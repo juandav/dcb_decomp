@@ -42,8 +42,8 @@ void func_8002FAE4(void) {
     if (f->mode != f->unk6D) {
         if (f->unk6D == -1) {
             if (f->unk72 == 0) {
-                tim = func_8001BFCC(f->tim, f->mode);
-                func_8001B438((u32 *)tim, f->x, f->y, f->w, f->h);
+                tim = decompressArchiveEntry(f->tim, f->mode);
+                uploadTim((u32 *)tim, f->x, f->y, f->w, f->h);
                 if (f->mode != 6) {
                     f->unk7C = 0x40;
                 } else {
@@ -51,7 +51,7 @@ void func_8002FAE4(void) {
                 }
                 D_801D81F8.unk7E = 0x80;
                 DrawSync(0);
-                func_8001AE90((void *)tim);
+                freeHeapBlock((void *)tim);
             }
             D_801D81F8.unk72 += 6;
             if (D_801D81F8.unk72 > 0x80) {
@@ -66,23 +66,23 @@ void func_8002FAE4(void) {
             }
         }
     }
-    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].twin0);
-    db = D_800794F4;
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].twin0);
+    db = FRAME_BUFFER_INDEX;
     D_801D81F8.buf[db].x0 = -((D_801D81F8.unk70 / 60) & 1);
-    D_801D81F8.buf[D_800794F4].y0 = 0;
-    D_801D81F8.buf[D_800794F4].u0 = (D_801D81F8.unk70 / 60) & 0xFE;
-    D_801D81F8.buf[D_800794F4].v0 = D_801D81F8.unk70 / 60;
-    D_801D81F8.buf[D_800794F4].r0 = D_801D81F8.unk72;
-    D_801D81F8.buf[D_800794F4].g0 = D_801D81F8.unk72;
-    D_801D81F8.buf[D_800794F4].b0 = D_801D81F8.unk72;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].y0 = 0;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].u0 = (D_801D81F8.unk70 / 60) & 0xFE;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].v0 = D_801D81F8.unk70 / 60;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].r0 = D_801D81F8.unk72;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].g0 = D_801D81F8.unk72;
+    D_801D81F8.buf[FRAME_BUFFER_INDEX].b0 = D_801D81F8.unk72;
     r[0] = (D_801D81F8.x % 64) * 4;
     r[1] = D_801D81F8.y % 256;
     r[2] = D_801D81F8.unk7C;
     r[3] = D_801D81F8.unk7E;
-    SetTexWindow(D_801D81F8.buf[D_800794F4].twin, r);
-    addPrim(&D_800793A0->ot[0xFFF], &D_801D81F8.buf[D_800794F4]);
-    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].twin);
-    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].tpage);
+    SetTexWindow(D_801D81F8.buf[FRAME_BUFFER_INDEX].twin, r);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &D_801D81F8.buf[FRAME_BUFFER_INDEX]);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].twin);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].tpage);
 }
 
 void func_80030130(void *arg0) {
@@ -258,7 +258,7 @@ s32 func_80030A34(SVECTOR *a, SVECTOR *b, SVECTOR *c, s16 r) {
 Unk13C *func_80030AE4(Unk13C *src) {
     Unk13C *dst;
 
-    dst = func_8001AD0C(0x13C);
+    dst = allocTaskHeapBlock(0x13C);
     *dst = *src;
     func_80030E3C(dst);
     return dst;
@@ -271,7 +271,7 @@ void func_80030B6C(s32 arg0) {
 }
 
 void func_80030BA4(void *arg0) {
-    func_8001AE90(arg0);
+    freeHeapBlock(arg0);
 }
 
 s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out) {
@@ -862,7 +862,7 @@ Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n
     s32 i;
     s32 j;
 
-    o = func_8001AD0C(0x1B0);
+    o = allocTaskHeapBlock(0x1B0);
     o->type = type;
     o->n = n;
     o->unk19C[0] = p0;
@@ -870,7 +870,7 @@ Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n
     o->unk19C[2] = p2;
     o->unk19C[3] = p3;
     o->unk19C[4] = p4;
-    o->unk16C = func_8001AD0C(n * 48);
+    o->unk16C = allocTaskHeapBlock(n * 48);
     func_80031970(o);
     if (type == 13) {
         o->unk170 = *q;
@@ -898,11 +898,11 @@ Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n
     o->unk1AC = abr;
     for (i = 0; i < 2; i++) {
         if (o->type < 10) {
-            o->unk15C[i] = func_8001AD0C(o->n * 16);
+            o->unk15C[i] = allocTaskHeapBlock(o->n * 16);
         } else {
             o->unk15C[i] = 0;
         }
-        prim = o->unk164[i] = func_8001AD0C(PRIM_SIZES[o->type] * o->n * 2);
+        prim = o->unk164[i] = allocTaskHeapBlock(PRIM_SIZES[o->type] * o->n * 2);
         for (j = 0; j < o->n * 2; j++) {
             initPrimByType(o->type, prim, abr, 0);
             if (o->type < 10) {
@@ -950,9 +950,9 @@ void func_8003230C(Obj32 *o) {
         u8 *q;
         u8 *tp;
 
-        p = o->unk164[D_800794F4];
-        q = o->unk164[D_800794F4 ^ 1];
-        tp = o->unk15C[D_800794F4];
+        p = o->unk164[FRAME_BUFFER_INDEX];
+        q = o->unk164[FRAME_BUFFER_INDEX ^ 1];
+        tp = o->unk15C[FRAME_BUFFER_INDEX];
         for (i = 0; i < o->n; i++) {
             if (o->unk1A6 != o->unk1A8) {
                 setPrimRgb0(p, c0[0], c0[1], c0[2]);
@@ -993,8 +993,8 @@ void func_8003230C(Obj32 *o) {
         if (o->unk1AD >= 0) {
             func_801E7020(o->unk13C);
         }
-        p = o->unk164[D_800794F4];
-        q = o->unk164[D_800794F4 ^ 1];
+        p = o->unk164[FRAME_BUFFER_INDEX];
+        q = o->unk164[FRAME_BUFFER_INDEX ^ 1];
         for (i = 0; i < o->n; i++) {
             setPrimQuadUvRect(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
             *(u16 *)(p + 0x1A) = o->unk178;
@@ -1041,14 +1041,14 @@ void func_80032AA0(Obj32 *p) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        func_8001AE90(p->unk15C[i]);
-        func_8001AE90(p->unk164[i]);
+        freeHeapBlock(p->unk15C[i]);
+        freeHeapBlock(p->unk164[i]);
     }
     if (p->unk1AD >= 0) {
         func_801E72D4(p->unk13C);
     }
-    func_8001AE90(p->unk16C);
-    func_8001AE90(p);
+    freeHeapBlock(p->unk16C);
+    freeHeapBlock(p);
 }
 
 Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s16 a6, s16 frames, s16 a8, s16 a9,
@@ -1060,8 +1060,8 @@ Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s1
     s32 k;
     s32 angle;
 
-    o = func_8001AD0C(0x15C);
-    o->p = p = func_8001AD0C(count * 0x88);
+    o = allocTaskHeapBlock(0x15C);
+    o->p = p = allocTaskHeapBlock(count * 0x88);
     k = 0;
     if (src == 0) {
         o->parent = (u8 *)D_801D6A4C + 0x78;
@@ -1206,7 +1206,7 @@ void func_80033258(Particles *o) {
         for (i = 0; i < o->count; i++) {
             t = o->unk150 + i;
             if (t < limit) {
-                l = &p->line[D_800794F4];
+                l = &p->line[FRAME_BUFFER_INDEX];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
                 updateTransformMatrix(p, 0);
@@ -1230,7 +1230,7 @@ void func_80033258(Particles *o) {
                         l->r0 = r;
                         l->g0 = g;
                         l->b0 = bl;
-                        addPrim(&D_800793A0->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
                     }
                 }
             }
@@ -1240,7 +1240,7 @@ void func_80033258(Particles *o) {
         for (i = 0; i < o->count; i++) {
             t = o->unk150 + i;
             if (t < limit) {
-                l = &p->line[D_800794F4];
+                l = &p->line[FRAME_BUFFER_INDEX];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
                 updateTransformMatrix(p, 0);
@@ -1267,7 +1267,7 @@ void func_80033258(Particles *o) {
                         l->r0 = r;
                         l->g0 = g;
                         l->b0 = bl;
-                        addPrim(&D_800793A0->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
                     }
                 }
             }
@@ -1280,7 +1280,7 @@ void func_80033258(Particles *o) {
         for (i = 0; i < o->count; i++) {
             t = o->unk150 + i;
             if (t < limit) {
-                l = &p->line[D_800794F4];
+                l = &p->line[FRAME_BUFFER_INDEX];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
                 updateTransformMatrix(p, 0);
@@ -1298,7 +1298,7 @@ void func_80033258(Particles *o) {
                         if (o->unk154 != 0) {
                             z = o->unk154;
                         }
-                        addPrim(&D_800793A0->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
                     }
                 }
             }
@@ -1308,7 +1308,7 @@ void func_80033258(Particles *o) {
         for (i = 0; i < o->count; i++) {
             t = o->unk150 + i;
             if (t < limit) {
-                l = &p->line[D_800794F4];
+                l = &p->line[FRAME_BUFFER_INDEX];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
                 updateTransformMatrix(p, 0);
@@ -1329,7 +1329,7 @@ void func_80033258(Particles *o) {
                         if (o->unk154 != 0) {
                             z = o->unk154;
                         }
-                        addPrim(&D_800793A0->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
                     }
                 }
             }
@@ -1343,13 +1343,13 @@ void func_80033258(Particles *o) {
 }
 
 void func_80033CD4(void *arg0) {
-    func_8001AE90((*(void **)((s8 *)arg0 + 0x140)));
-    func_8001AE90(arg0);
+    freeHeapBlock((*(void **)((s8 *)arg0 + 0x140)));
+    freeHeapBlock(arg0);
 }
 
 void func_80033D08(s32 n) {
     while (n > 0) {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         if (((s8 *)D_801D8340)[0x823] == 0) {
             n--;
         }
@@ -1370,14 +1370,14 @@ s32 func_80033D9C(void) {
         return -1;
     }
     if ((((u32) (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178)) >> 0x11) & 3) == 1) {
-        var_v0_2 = *D_80089840;
+        var_v0_2 = *PAD_STATES;
     } else {
-        var_v0_2 = D_80089840[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
+        var_v0_2 = PAD_STATES[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
     }
     if (!((*(u16 *)((s8 *)var_v0_2 + 0xA)) & 0x40)) {
         return 0;
     }
-    func_8002B498(0xA0);
+    playSoundEffect(0xA0);
     return 1;
 }
 
@@ -1391,7 +1391,7 @@ void func_80033E7C(void) {
             func_80014A90();
             return;
         }
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         if ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) != 0) {
             (*(s8 *)((s8 *)D_801D8340 + 0x816)) = 0;
             return;
@@ -1437,8 +1437,8 @@ void func_80033F34(void) {
             CUR_SPRT->sp.g0 = x;
             CUR_SPRT->sp.b0 = x;
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1D);
-            addPrim(&D_800793A0->ot[0], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[0], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
         }
     }

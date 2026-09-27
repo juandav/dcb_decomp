@@ -18,7 +18,7 @@ void func_8003917C(void) {
     s32 i;
 
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         diff = 0;
         for (p = 0; p < 2; p++) {
             for (i = 0; i < 5; i++) {
@@ -154,8 +154,8 @@ void func_80039730(s32 n, s32 z) {
             CUR_SPRT->sp.g0 = 0x80;
             CUR_SPRT->sp.b0 = 0x80;
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
         }
         break;
@@ -175,8 +175,8 @@ void func_80039730(s32 n, s32 z) {
             CUR_SPRT->sp.g0 = 0x80;
             CUR_SPRT->sp.b0 = 0x80;
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x3D);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
         }
         break;
@@ -220,8 +220,8 @@ void func_80039730(s32 n, s32 z) {
             CUR_SPRT->sp.g0 = 0x80;
             CUR_SPRT->sp.b0 = 0x80;
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x9A);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
-            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
         } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
             drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, 0);
@@ -454,7 +454,7 @@ void func_8003B210(s32 c, s32 p) {
         ANIM_SAVE(a);
         a->total = 0x10;
         a->count = 0x10;
-        func_8002B498(0xA5);
+        playSoundEffect(0xA5);
         a->state++;
         break;
     case 2:
@@ -481,7 +481,7 @@ void func_8003B210(s32 c, s32 p) {
         ANIM_SAVE(a);
         a->total = 0x10;
         a->count = 0x10;
-        func_8002B498(0xA5);
+        playSoundEffect(0xA5);
         a->state++;
     case 4:
         if (a->count != 0) {
@@ -506,7 +506,7 @@ void func_8003B210(s32 c, s32 p) {
         a->total = 4;
         a->count = 4;
         a->state++;
-        func_8002B498(0xA7);
+        playSoundEffect(0xA7);
         break;
     case 5:
     case 13:
@@ -535,7 +535,7 @@ void func_8003B210(s32 c, s32 p) {
             ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
         } else {
             a->state++;
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 7:
@@ -552,7 +552,7 @@ void func_8003B210(s32 c, s32 p) {
         ANIM_SAVE(a);
         a->total = 0x10;
         a->count = 0x10;
-        func_8002B498(0xA5);
+        playSoundEffect(0xA5);
         a->state++;
     case 9:
         if (a->count != 0) {
@@ -572,7 +572,7 @@ void func_8003B210(s32 c, s32 p) {
             ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
         } else {
             a->state++;
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 10:
@@ -589,7 +589,7 @@ void func_8003B210(s32 c, s32 p) {
         ANIM_SAVE(a);
         a->total = 0x10;
         a->count = 0x10;
-        func_8002B498(0xA5);
+        playSoundEffect(0xA5);
         a->state++;
     case 12: {
         s32 n;
@@ -618,7 +618,7 @@ void func_8003B210(s32 c, s32 p) {
                 sc = 0x1000;
                 ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
             } else {
-                func_8002B498(0xA7);
+                playSoundEffect(0xA7);
                 a->total = 4;
                 a->count = 4;
                 a->state++;
@@ -653,7 +653,7 @@ void func_8003B210(s32 c, s32 p) {
                 ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
             } else {
                 a->state++;
-                func_8002B498(0xA7);
+                playSoundEffect(0xA7);
             }
             break;
     }
@@ -683,9 +683,9 @@ void func_8003B210(s32 c, s32 p) {
         a->total = 0x10;
         a->count = 0x10;
         if (a->spr->rot.vy == 0x2000) {
-            func_8002B498(0xA5);
+            playSoundEffect(0xA5);
         } else {
-            func_8002B498(0xA6);
+            playSoundEffect(0xA6);
         }
         a->state++;
         break;
@@ -706,7 +706,7 @@ void func_8003B210(s32 c, s32 p) {
             sc = 0x1000;
             ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
         } else {
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
             a->total = 4;
             a->count = 4;
             a->state++;
@@ -738,7 +738,7 @@ void func_8003B210(s32 c, s32 p) {
             ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
         } else {
             a->state++;
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 20:
@@ -800,7 +800,7 @@ void func_8003B210(s32 c, s32 p) {
             ANIM_STEP(a, tx, ty, rx, ry, rz, sc);
         } else {
             a->state++;
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 25:
@@ -831,7 +831,7 @@ void func_8003B210(s32 c, s32 p) {
         } else {
             a->state++;
             func_80039220(p);
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 28:
@@ -875,7 +875,7 @@ void func_8003B210(s32 c, s32 p) {
         ANIM_SAVE(a);
         a->total = 0x20;
         a->count = 0x20;
-        func_8002B498(0xA6);
+        playSoundEffect(0xA6);
         a->state++;
         break;
     case 33:
@@ -1109,7 +1109,7 @@ void func_8003DD9C(s32 arg0) {
         break;
     case 2:
         if (func_8003DA64(p) == 0) {
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 3:
@@ -1196,7 +1196,7 @@ void func_8003E11C(s32 arg0) {
         break;
     case 2:
         if (func_8003DA64(p) == 0) {
-            func_8002B498(0xA7);
+            playSoundEffect(0xA7);
         }
         break;
     case 3:
@@ -1326,7 +1326,7 @@ void func_8003E4F0(void) {
         }
     }
     if (count != 0 && !(((Unk8006E050 *)PLAYER_PROFILES)->unk24 & 3)) {
-        func_8002B498(0xAA);
+        playSoundEffect(0xAA);
     }
     func_800395A0();
     for (i = 0; i < 12; i++) {
@@ -1340,8 +1340,8 @@ void func_8003E4F0(void) {
 void func_8003E844(s32 arg0) {
     void *p;
 
-    D_801D833C = p = func_8001AD0C(0x870);
-    D_801D8340 = p = func_8001AD0C(0x86C);
+    D_801D833C = p = allocTaskHeapBlock(0x870);
+    D_801D8340 = p = allocTaskHeapBlock(0x86C);
     (*(s32 *)((s8 *)D_801D8340 + 0x7F8)) = func_801F8854();
     (*(s8 *)((s8 *)D_801D8340 + 0x817)) = (s8) (rand() % 2);
     (*(s8 *)((s8 *)D_801D8340 + 0x818)) = 0;
@@ -1365,7 +1365,7 @@ void func_8003E94C(void) {
     func_80024460(0);
     func_800149B8(0x19, -1, 0, 0x800, &func_800250F4, 0);
     func_80014C08(2);
-    p = (Unk800794F8 *)&D_800794F8;
+    p = (Unk800794F8 *)&GRAPHICS;
     p->unk54 = 0;
     p->unk56 = 0;
     p->unk58 = 0;
@@ -1406,7 +1406,7 @@ void func_8003EB50(void) {
     func_80014A00(0x19);
     func_801F848C();
     func_801F88E8();
-    func_8001AFF0(0x7F);
+    freeHeapBlocksByTag(0x7F);
 }
 
 void func_8003EB88(void) {

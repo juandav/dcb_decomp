@@ -3,12 +3,12 @@
 
 #include "game.h"
 
-extern s32 D_800897F8;
+extern s32 PAD_RECEIVE_BUFFERS;
 
-void func_8001A9B0(void);
-void func_8001A600(void);
-void func_8001A6B0(void);
-void func_8001A688(s32 arg0, s16 arg1, s16 arg2);
-s32 func_8001A7A4(s32, PadState *, u8 *);
+void pollPads(void);
+void initPads(void);
+void resetPadStates(void);
+void setPadRepeatRate(s32 port, s16 repeatDelay, s16 repeatRate);
+s32 updatePadState(s32 port, PadState *pad, u8 *rawData);
 
 #endif /* DCB_PAD_H */

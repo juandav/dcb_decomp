@@ -23,7 +23,7 @@
 #define setDrawMode(p, dfe, dtd, tpage) \
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
-#define DB(i) (((Unk800794F8 *)&D_800794F8)->unk98[i])
+#define DB(i) (((Unk800794F8 *)&GRAPHICS)->unk98[i])
 #define PLAYER_DATA(p) (((Unk8006E050 *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
 #define PLAYER(p) ((Player *)D_801D8348[p])
@@ -903,24 +903,24 @@ extern s32 D_801D6B24;
 extern u16 D_801D6B12;
 extern u16 D_801D6B14;
 extern s32 PLAYER_PROFILES;
-extern Unk800793A0 *D_800793A0;
-extern u8 D_800794F4;
-extern s32 D_800794F0;
-extern s32 D_800794F8;
-extern s32 D_8008983C;
-extern char D_80010000[];
+extern Unk800793A0 *CURRENT_FRAME_BUFFER;
+extern u8 FRAME_BUFFER_INDEX;
+extern s32 FRAME_INTERVAL;
+extern s32 GRAPHICS;
+extern s32 PAD_INPUT_ENABLED;
+extern char PATH_DRV_SUFFIX[];
 extern s32 D_80079500;
 extern char D_80010008[];
-extern PadState *D_80089840[];
+extern PadState *PAD_STATES[];
 extern s32 D_801D6B18;
 extern s32 D_801D6B1C;
-extern s32 D_801D4848;
-extern TIM_IMAGE D_801D4850;
+extern s32 LOADED_FILE_SIZE;
+extern TIM_IMAGE LOADED_TIM;
 extern s32 D_80079544;
 extern Unk801D6A4C *D_801D6A4C;
 extern s32 D_80010C9C;
-extern s32 D_8006E03C;
-extern s32 D_8006E040;
+extern s32 MUSIC_CHANGE_BUSY;
+extern s32 PENDING_MUSIC_CHANGES;
 extern u8 *DIGIMON_CARDS;
 extern void *D_8006E054;
 extern void *D_801D8340;

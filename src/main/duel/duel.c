@@ -26,7 +26,7 @@ void func_80034260(void) {
     Player *b;
 
     while (DUEL->state < 0) {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
     }
     DUEL->unk815 = 0;
     for (;;) {
@@ -151,8 +151,8 @@ void func_80034260(void) {
         case 5:
             DUEL->unk822 = 1;
             DUEL_MSG_BAR.next2 = 1;
-            if (D_80089840[ME]->unkA & 0x10) {
-                func_8002B498(0xA0);
+            if (PAD_STATES[ME]->unkA & 0x10) {
+                playSoundEffect(0xA0);
                 DUEL_MSG_BAR.next = 3;
                 DUEL_MSG_BAR.next2 = 0;
                 do {
@@ -173,11 +173,11 @@ void func_80034260(void) {
                         break;
                     }
                 } while (DUEL->unk818 == 5);
-            } else if (D_80089840[ME]->unkA & 0x40) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[ME]->unkA & 0x40) {
+                playSoundEffect(0xA0);
                 DUEL->unk818 = 8;
-            } else if (D_80089840[ME]->unkA & 0x80) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[ME]->unkA & 0x80) {
+                playSoundEffect(0xA0);
                 DUEL->unk818 = 7;
                 DUEL->unk819 = 4;
                 DUEL->unk81A = ME;
@@ -201,8 +201,8 @@ void func_80034260(void) {
             for (;;) {
                 func_80033D08(1);
                 func_801EBACC(DUEL->unk81A, 0);
-                if (D_80089840[DUEL->unk81A]->unkA & 0x10) {
-                    func_8002B498(0xA1);
+                if (PAD_STATES[DUEL->unk81A]->unkA & 0x10) {
+                    playSoundEffect(0xA1);
                     if (DUEL->unk819 == 0x19) {
                         D_801D83EC[0x31] = 1;
                         D_801D83EC[0x109] = 1;
@@ -265,7 +265,7 @@ void func_80034260(void) {
             }
             if (func_801EBACC(ME, 1) == 0) {
                 if (PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].state == 0) {
-                    func_8002B498(0xA0);
+                    playSoundEffect(0xA0);
                     func_801EC528(ME);
                     func_801EA558(CUR_CARD, ME);
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
@@ -303,8 +303,8 @@ void func_80034260(void) {
                         DUEL->unk818++;
                     }
                 }
-            } else if ((D_80089840[ME]->unkA & 0x10) && func_80040220(ME) != 0) {
-                func_8002B498(0xA1);
+            } else if ((PAD_STATES[ME]->unkA & 0x10) && func_80040220(ME) != 0) {
+                playSoundEffect(0xA1);
                 func_801EC528(ME);
                 DUEL->unk818 = 4;
             }
@@ -381,12 +381,12 @@ void func_80034260(void) {
             if (func_801EBACC(ME, 2) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
                 if (PLAYER(ME)->cards[i % 30].state == 0) {
-                    func_8002B498(0xA0);
+                    playSoundEffect(0xA0);
                     DUEL->unk80E = func_801ECBCC(CUR_CARD, ME);
                     DUEL->unk818++;
                 }
-            } else if (D_80089840[ME]->unkA & 0x20) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[ME]->unkA & 0x20) {
+                playSoundEffect(0xA0);
                 DUEL->unk818++;
             }
             if (DUEL->unk818 != 0xD) {
@@ -429,7 +429,7 @@ void func_80034260(void) {
             if (func_801EBACC(ME, 5) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
                 if (PLAYER(ME)->cards[i % 30].state == 2) {
-                    func_8002B498(0xA0);
+                    playSoundEffect(0xA0);
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
                     if (func_801EA374(ME) != 0) {
                         func_80019EA4((u8 *)&D_801D8278, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
@@ -449,15 +449,15 @@ void func_80034260(void) {
                         DUEL->unk818++;
                     }
                 }
-            } else if (D_80089840[ME]->unkA & 0x30) {
+            } else if (PAD_STATES[ME]->unkA & 0x30) {
                 DUEL->unk81C = -1;
-                if (D_80089840[ME]->unkA & 0x20) {
-                    func_8002B498(0xA0);
+                if (PAD_STATES[ME]->unkA & 0x20) {
+                    playSoundEffect(0xA0);
                     func_801EC528(ME);
                     D_801D83EC[ME * 0xD8 + 0x55] = 1;
                     DUEL->unk818 = 0x13;
-                } else if (D_80089840[ME]->unkA & 0x10) {
-                    func_8002B498(0xA1);
+                } else if (PAD_STATES[ME]->unkA & 0x10) {
+                    playSoundEffect(0xA1);
                     if (DUEL->unk80E >= 0) {
                         func_801ECA30(func_800411C4(ME), ME, DUEL->unk80E);
                         DUEL->unk80E = -1;
@@ -577,8 +577,8 @@ void func_80034260(void) {
                 D_801D83D7 = 6;
                 i = func_801EBACC(ME, 6);
                 if (i != 0) {
-                    if (D_80089840[ME]->unkA & 0x20) {
-                        func_8002B498(0xA0);
+                    if (PAD_STATES[ME]->unkA & 0x20) {
+                        playSoundEffect(0xA0);
                         if (DUEL->unk80A >= 0) {
                             func_801EC8E0(ME, DUEL->unk80A);
                             DUEL->unk80A = -2;
@@ -586,8 +586,8 @@ void func_80034260(void) {
                         DUEL->unk818 = 0x13;
                         func_801EC528(ME);
                         D_801D83EC[ME * 0xD8 + 0x55] = 1;
-                    } else if (D_80089840[ME]->unkA & 0x10) {
-                        func_8002B498(0xA1);
+                    } else if (PAD_STATES[ME]->unkA & 0x10) {
+                        playSoundEffect(0xA1);
                         if (DUEL->unk80A >= 0) {
                             func_801EC8E0(ME, DUEL->unk80A);
                             DUEL->unk80A = -2;
@@ -700,12 +700,12 @@ void func_80034260(void) {
                     PLAYER(ME)->unk110 |= 8;
                     func_801FA4E4(ME);
                 }
-            } else if (D_80089840[ME]->unkA & 0x20) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[ME]->unkA & 0x20) {
+                playSoundEffect(0xA0);
                 DUEL->unk818++;
                 func_801EC528(ME);
-            } else if (D_80089840[ME]->unkA & 0x10) {
-                func_8002B498(0xA1);
+            } else if (PAD_STATES[ME]->unkA & 0x10) {
+                playSoundEffect(0xA1);
                 func_801ECD68();
                 func_801EC528(ME);
             }
@@ -778,21 +778,21 @@ void func_80034260(void) {
             for (i = 0; i < 2; i++) {
                 if (PLAYER(i)->unk178_17 == 1) {
                     if (DUEL->unk816 == 0 && PLAYER(i)->unk178_2 == 3) {
-                        func_8002B498(0xA0);
+                        playSoundEffect(0xA0);
                         PLAYER(i)->unk178_2 = DUEL->unk804;
                     }
                 } else if (PLAYER(i)->unk178_2 == 3) {
-                    if (D_80089840[i]->unkA & 0x20) {
-                        func_8002B498(0xA0);
+                    if (PAD_STATES[i]->unkA & 0x20) {
+                        playSoundEffect(0xA0);
                         PLAYER(i)->unk178_2 = 0;
-                    } else if (D_80089840[i]->unkA & 0x10) {
-                        func_8002B498(0xA0);
+                    } else if (PAD_STATES[i]->unkA & 0x10) {
+                        playSoundEffect(0xA0);
                         PLAYER(i)->unk178_2 = 1;
-                    } else if (D_80089840[i]->unkA & 0x40) {
-                        func_8002B498(0xA0);
+                    } else if (PAD_STATES[i]->unkA & 0x40) {
+                        playSoundEffect(0xA0);
                         PLAYER(i)->unk178_2 = 2;
-                    } else if (D_80089840[i]->unkA & 0x80) {
-                        func_8002B498(0xA0);
+                    } else if (PAD_STATES[i]->unkA & 0x80) {
+                        playSoundEffect(0xA0);
                         func_801EC4CC(i);
                         D_801D83EC[0x31] = 4;
                         D_801D83EC[0x109] = 4;
@@ -867,11 +867,11 @@ void func_80034260(void) {
                     }
                     DUEL->unk80A = func_801ECB40(CUR_CARD, OPP);
                 }
-                func_8002B498(0xA0);
+                playSoundEffect(0xA0);
                 func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->unk818++;
-            } else if (D_80089840[OPP]->unkA & 0x20) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[OPP]->unkA & 0x20) {
+                playSoundEffect(0xA0);
                 func_80019EA4((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->unk818++;
             }
@@ -951,11 +951,11 @@ void func_80034260(void) {
                     }
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
                 }
-                func_8002B498(0xA0);
+                playSoundEffect(0xA0);
                 func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->unk818++;
-            } else if (D_80089840[ME]->unkA & 0x20) {
-                func_8002B498(0xA0);
+            } else if (PAD_STATES[ME]->unkA & 0x20) {
+                playSoundEffect(0xA0);
                 func_80019EA4((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->unk818++;
             }
@@ -994,7 +994,7 @@ void func_80034260(void) {
                 D_801D8330 = 0x20;
                 func_8001683C((s32)func_80033F34);
                 while (D_801D8330 != 0) {
-                    func_80014C08(D_800794F0);
+                    func_80014C08(FRAME_INTERVAL);
                 }
                 func_80014C08(0x14);
             }
@@ -1017,18 +1017,18 @@ void func_80034260(void) {
                 func_8002E26C();
                 DUEL->unk83C = 0;
                 func_80014C08(2);
-                ((Unk800794F8 *)&D_800794F8)->unk54 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk56 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk58 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk7C = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk80 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk84 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk8E = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk90 = 0x1C0;
-                ((Unk800794F8 *)&D_800794F8)->unk92 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk94 = 0;
-                ((Unk800794F8 *)&D_800794F8)->unk8C = -1;
-                ((Unk800794F8 *)&D_800794F8)->unk74 = 1;
+                ((Unk800794F8 *)&GRAPHICS)->unk54 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk56 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk58 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk7C = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk80 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk84 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk8E = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk90 = 0x1C0;
+                ((Unk800794F8 *)&GRAPHICS)->unk92 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk94 = 0;
+                ((Unk800794F8 *)&GRAPHICS)->unk8C = -1;
+                ((Unk800794F8 *)&GRAPHICS)->unk74 = 1;
                 func_80014C08(2);
                 DUEL->state = 6;
             }

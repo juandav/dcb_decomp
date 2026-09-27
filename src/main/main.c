@@ -20,8 +20,8 @@ int main(void) {
     ClearImage(&r, 0, 0, 0);
     DrawSync(0);
     SsInit();
-    func_8001AA80(1);
-    func_800149A8(1, 0x400, func_800155F4, 0, 0, 0, 0);
+    resetHeap(1);
+    func_800149A8(1, 0x400, runMainTask, 0, 0, 0, 0);
     for (;;) {
         rand();
     }
@@ -95,7 +95,7 @@ s32 func_80013FA4(s32 mode, s32 size, s32 pc, s32 a0, s32 a1, s32 a2, s32 a3) {
     t[3] = (s32)&D_80077AE0;
     t[5] = 0;
     t[6] = 0;
-    stack = (s32)func_8001ABCC(size, -3);
+    stack = (s32)allocHeapBlock(size, -3);
     if (stack == 0) {
         return -6;
     }
@@ -117,7 +117,7 @@ long func_800141B8(void) {
     s32 i;
 
     t = (Thread *)D_80077A0C;
-    func_80014CF0();
+    tickVblankCounters();
     ctx = (s32 *)(D_80077ADC + 8);
     regs = t->regs;
     for (i = 0x27; i >= 0; i--) {
@@ -250,7 +250,7 @@ s32 func_80014364(s32 id, s32 where, s32 prio, s32 size, s32 unused, s32 pc, s32
     t->regs[28] = D_80077C30;
     t->unk14 = id;
     t->unk18 = 0;
-    stack = (s32)func_8001ABCC(size, -3);
+    stack = (s32)allocHeapBlock(size, -3);
     if (stack == 0) {
         return -6;
     }
@@ -293,8 +293,8 @@ s32 func_80014614(s32 arg0) {
         D_80077A14 = next;
         D_80077A1C = (*(u16 *)((s8 *)next + 0));
     }
-    func_8001AFF0((*(s32 *)((s8 *)t + 0x14)));
-    func_8001AE90((*(void **)((s8 *)t + 0x1C)));
+    freeHeapBlocksByTag((*(s32 *)((s8 *)t + 0x14)));
+    freeHeapBlock((*(void **)((s8 *)t + 0x1C)));
     (*(s32 *)((s8 *)t + 0)) = 0;
     return 0;
 }
@@ -324,8 +324,8 @@ void func_80014748(void) {
         D_80077A14 = next;
         D_80077A1C = (*(u16 *)((s8 *)next + 0));
     }
-    func_8001AFF0((*(s32 *)((s8 *)t + 0x14)));
-    func_8001AE90((*(void **)((s8 *)t + 0x1C)));
+    freeHeapBlocksByTag((*(s32 *)((s8 *)t + 0x14)));
+    freeHeapBlock((*(void **)((s8 *)t + 0x1C)));
     (*(s32 *)((s8 *)t + 0)) = 0;
     func_800142D0(t);
 }

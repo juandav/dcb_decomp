@@ -7,134 +7,134 @@
 #include "dcb/loader.h"
 #include "dcb/main.h"
 
-s32 D_8006DFFC = 0;
+s32 SOUND_LOAD_BUSY = 0;
 extern s8 D_8006E00C[];
 extern s8 D_8006E01C[];
 extern s8 D_8006E02C[];
-s8 *D_8006E000[3] = { D_8006E00C, D_8006E02C, D_8006E01C };
+s8 *SE_BANK_INFO[3] = { D_8006E00C, D_8006E02C, D_8006E01C };
 /* a name, then the note played at byte 15 */
 s8 D_8006E00C[16] = { 'S', 'E', '0', [15] = 0x3C };
 s8 D_8006E01C[16] = { 'S', 'E', '1', [15] = 0x24 };
 s8 D_8006E02C[16] = { 'S', 'E', '2', [15] = 0x3C };
-s32 D_8006E03C = 0;
-s32 D_8006E040 = 0;
-s32 D_8006E044 = 0x12;
-s32 D_8006E048 = 0x24;
+s32 MUSIC_CHANGE_BUSY = 0;
+s32 PENDING_MUSIC_CHANGES = 0;
+s32 NEXT_SFX_VOICE = 0x12;
+s32 SFX_BASE_NOTE = 0x24;
 u16 D_8006E04C = 0x3C;
 
-void func_8002ADEC(void) {
-    s8 *p;
+void initSound(void) {
+    s8 *state;
 
-    SsSetTableSize(&D_801D6B28, 0x20, 1);
+    SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
     SsSetMVol(0, 0);
     SsSetTickMode(1);
     SsStart();
-    func_8002B258(1);
+    setReverbType(1);
     func_80055740();
-    p = (s8 *)&D_801D8128;
-    *(void **)(p + 0x1C) = func_8001ABCC(0x2100, -2);
-    *(void **)(p + 0x28) = func_8001ABCC(0x9300, -2);
-    *(void **)(p + 0x34) = func_8001ABCC(0x9300, -2);
-    *(s16 *)(p + 0x2C) = 0xFF;
-    *(s16 *)(p + 0x20) = 0xFF;
-    *(s16 *)(p + 0x14) = 0xFF;
-    *(s16 *)(p + 2) = -1;
-    func_8002AEA4(1);
+    state = (s8 *)&SOUND_STATE;
+    *(void **)(state + 0x1C) = allocHeapBlock(0x2100, -2);
+    *(void **)(state + 0x28) = allocHeapBlock(0x9300, -2);
+    *(void **)(state + 0x34) = allocHeapBlock(0x9300, -2);
+    *(s16 *)(state + 0x2C) = 0xFF;
+    *(s16 *)(state + 0x20) = 0xFF;
+    *(s16 *)(state + 0x14) = 0xFF;
+    *(s16 *)(state + 2) = -1;
+    loadSoundEffectBank(1);
     SsSetMVol(0x7F, 0x7F);
 }
 
-void func_8002AEA4(s32 id) {
+void loadSoundEffectBank(s32 bankId) {
     char name[32];
     u8 *pak;
-    SndSlot *se;
+    SndSlot *bank;
 
-    se = &((SndState *)&D_801D8128)->unk14;
-    if (se->id != id) {
-        while (D_8006DFFC != 0) {
-            func_80014C08(D_800794F0);
+    bank = &((SndState *)&SOUND_STATE)->unk14;
+    if (bank->id != bankId) {
+        while (SOUND_LOAD_BUSY != 0) {
+            func_80014C08(FRAME_INTERVAL);
         }
-        D_8006DFFC = 1;
-        if (se->id != 0xFF) {
-            func_8002B668();
-            SsVabClose(se->vab);
+        SOUND_LOAD_BUSY = 1;
+        if (bank->id != 0xFF) {
+            stopAllSoundEffects();
+            SsVabClose(bank->vab);
         }
-        se->id = id;
+        bank->id = bankId;
         /* written as a word here, read as a halfword by the SFX players */
-        D_8006E048 = D_8006E000[id][0xF];
-        sprintf(name, "A:\\SE%d.PAK", id);
-        pak = (u8 *)func_8001B248((s32 *)name, func_800148B0(), -2);
+        SFX_BASE_NOTE = SE_BANK_INFO[bankId][0xF];
+        sprintf(name, "A:\\SE%d.PAK", bankId);
+        pak = (u8 *)loadFileTagged((s32 *)name, func_800148B0(), -2);
         if (pak == 0) {
-            se->id = 0xFF;
+            bank->id = 0xFF;
         } else {
-            bcopy(pak, se->buf, 0x2030);
-            if (func_8002B300(se, 0, 0x1010) != 0) {
-                func_8002B38C(se, (s32)func_8001BB44((Chunk *)pak, 8, se->id), se->vab);
+            bcopy(pak, bank->buf, 0x2030);
+            if (openSlotVabHeader(bank, 0, 0x1010) != 0) {
+                transferSlotVabBody(bank, (s32)findPakChunk((Chunk *)pak, 8, bank->id), bank->vab);
             } else {
-                se->id = 0xFF;
+                bank->id = 0xFF;
             }
-            func_8001AE90(pak);
+            freeHeapBlock(pak);
         }
-        D_8006DFFC = 0;
+        SOUND_LOAD_BUSY = 0;
     }
 }
 
-void func_8002B024(s32 n, s32 id, u8 vol) {
+void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
     char name[32];
     u8 *pak;
-    SndSlot *sl;
+    SndSlot *slot;
 
-    sl = &((SndState *)&D_801D8128)->slot[n];
-    if (sl->id == id) {
+    slot = &((SndState *)&SOUND_STATE)->slot[slotIndex];
+    if (slot->id == trackId) {
         return;
     }
-    while (D_8006DFFC != 0) {
-        func_80014C08(D_800794F0);
+    while (SOUND_LOAD_BUSY != 0) {
+        func_80014C08(FRAME_INTERVAL);
     }
-    D_8006DFFC = 1;
-    func_8002B2C0();
-    if (sl->id != 0xFF) {
-        if (((SndState *)&D_801D8128)->cur == n) {
-            func_8002B688();
+    SOUND_LOAD_BUSY = 1;
+    setInstantVoiceRelease();
+    if (slot->id != 0xFF) {
+        if (((SndState *)&SOUND_STATE)->cur == slotIndex) {
+            stopMusic();
         }
-        SsSeqClose(((SndState *)&D_801D8128)->seq[n]);
-        SsVabClose(sl->vab);
-        func_80014C08(D_800794F0);
+        SsSeqClose(((SndState *)&SOUND_STATE)->seq[slotIndex]);
+        SsVabClose(slot->vab);
+        func_80014C08(FRAME_INTERVAL);
     }
-    sl->id = id;
-    ((SndState *)&D_801D8128)->vol[n] = vol;
-    sprintf(name, "A:\\BGM\\BGM%02d.PAK", id);
-    pak = (u8 *)func_8001B248((s32 *)name, func_800148B0(), -2);
+    slot->id = trackId;
+    ((SndState *)&SOUND_STATE)->vol[slotIndex] = volume;
+    sprintf(name, "A:\\BGM\\BGM%02d.PAK", trackId);
+    pak = (u8 *)loadFileTagged((s32 *)name, func_800148B0(), -2);
     if (pak == 0) {
-        sl->id = 0xFF;
+        slot->id = 0xFF;
     } else {
-        bcopy(pak, sl->buf, 0x9210);
-        if (func_8002B300(sl, n + 1, n * 0x1A300 + 0x49E90) == 0) {
-            func_8001AE90(pak);
-            sl->id = 0xFF;
+        bcopy(pak, slot->buf, 0x9210);
+        if (openSlotVabHeader(slot, slotIndex + 1, slotIndex * 0x1A300 + 0x49E90) == 0) {
+            freeHeapBlock(pak);
+            slot->id = 0xFF;
         } else {
-            func_8002B38C(sl, (s32)func_8001BB44((Chunk *)pak, 8, sl->id), sl->vab);
-            ((SndState *)&D_801D8128)->data[n] = func_8001BB44((Chunk *)sl->buf, 6, sl->id);
-            ((SndState *)&D_801D8128)->seq[n] = SsSeqOpen(((SndState *)&D_801D8128)->data[n], sl->vab);
-            func_8001AE90(pak);
+            transferSlotVabBody(slot, (s32)findPakChunk((Chunk *)pak, 8, slot->id), slot->vab);
+            ((SndState *)&SOUND_STATE)->data[slotIndex] = findPakChunk((Chunk *)slot->buf, 6, slot->id);
+            ((SndState *)&SOUND_STATE)->seq[slotIndex] = SsSeqOpen(((SndState *)&SOUND_STATE)->data[slotIndex], slot->vab);
+            freeHeapBlock(pak);
         }
     }
-    D_8006DFFC = 0;
+    SOUND_LOAD_BUSY = 0;
 }
 
-void func_8002B258(s32 arg0) {
-    if (arg0 == 0) {
+void setReverbType(s32 reverbType) {
+    if (reverbType == 0) {
         func_80051C70();
         SsUtSetReverbType(0);
         SsUtSetReverbDepth(0, 0);
         SpuClearReverbWorkArea(0);
         return;
     }
-    SsUtSetReverbType((s16) arg0);
+    SsUtSetReverbType((s16) reverbType);
     func_80051C90();
     SsUtSetReverbDepth(0x64, 0x64);
 }
 
-void func_8002B2C0(void) {
+void setInstantVoiceRelease(void) {
     SpuVoiceAttr attr;
 
     attr.mask = 0x4000;
@@ -144,21 +144,21 @@ void func_8002B2C0(void) {
     VSync(0);
 }
 
-s32 func_8002B300(void *arg0, s16 arg1, s32 arg2) {
-    u8 *vh;
+s32 openSlotVabHeader(void *slot, s16 vabId, s32 spuAddr) {
+    u8 *vabHeader;
 
-    vh = func_8001BB44(*(Chunk **)((s8 *)arg0 + 8), 7, (*(s16 *)((s8 *)arg0 + 0)));
-    if (vh != 0) {
-        (*(s32 *)((s8 *)arg0 + 4)) = (*(s32 *)(vh - 4));
-        if (((*(s16 *)((s8 *)arg0 + 2)) = SsVabOpenHeadSticky(vh, arg1, arg2)) != -1) {
+    vabHeader = findPakChunk(*(Chunk **)((s8 *)slot + 8), 7, (*(s16 *)((s8 *)slot + 0)));
+    if (vabHeader != 0) {
+        (*(s32 *)((s8 *)slot + 4)) = (*(s32 *)(vabHeader - 4));
+        if (((*(s16 *)((s8 *)slot + 2)) = SsVabOpenHeadSticky(vabHeader, vabId, spuAddr)) != -1) {
             return 1;
         }
     }
     return 0;
 }
 
-void func_8002B38C(void *arg0, s32 arg1, s32 vab) {
-    if ((arg1 == 0) || (SsVabTransBody(arg1, (*(s16 *)((s8 *)arg0 + 2))) == (*(s16 *)((s8 *)arg0 + 2)))) {
+void transferSlotVabBody(void *slot, s32 vabBody, s32 vab) {
+    if ((vabBody == 0) || (SsVabTransBody(vabBody, (*(s16 *)((s8 *)slot + 2))) == (*(s16 *)((s8 *)slot + 2)))) {
         SsVabTransCompleted(1);
     }
 }
@@ -169,154 +169,154 @@ void func_8002B3DC(void) {
 void func_8002B3E4(void) {
 }
 
-void func_8002B3EC(s32 arg0, s32 arg1) {
+void playOpeningMovie(s32 movieMode, s32 parentTask) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, &func_8001B358, &D_80010598, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, &PATH_OPENSEG_BIN, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_801DFBAC(&D_800105A8);
-    func_801E055C(arg0);
-    func_80014A48(arg1);
+    func_801DFBAC(&PATH_DIGIMON_MOV);
+    func_801E055C(movieMode);
+    func_80014A48(parentTask);
 }
 
-void func_8002B498(s32 arg0) {
-    s32 tone = arg0 & 0xF;
+void playSoundEffect(s32 sound) {
+    s32 tone = sound & 0xF;
 
-    SsUtKeyOnV(D_8006E044, D_801D813E, arg0 >> 4, tone, D_8006E048,
+    SsUtKeyOnV(NEXT_SFX_VOICE, D_801D813E, sound >> 4, tone, SFX_BASE_NOTE,
                D_8006E04C + tone, 0x6E, 0x6E);
-    if (++D_8006E044 >= 0x16) {
-        D_8006E044 = 0x12;
+    if (++NEXT_SFX_VOICE >= 0x16) {
+        NEXT_SFX_VOICE = 0x12;
     }
 }
 
-void func_8002B530(s32 arg0, s32 vol) {
-    s32 tone = arg0 & 0xF;
+void playSoundEffectAtVolume(s32 sound, s32 volume) {
+    s32 tone = sound & 0xF;
 
-    SsUtKeyOnV(D_8006E044, D_801D813E, arg0 >> 4, tone, D_8006E048,
-               D_8006E04C + tone, vol, vol);
-    if (++D_8006E044 >= 0x16) {
-        D_8006E044 = 0x12;
+    SsUtKeyOnV(NEXT_SFX_VOICE, D_801D813E, sound >> 4, tone, SFX_BASE_NOTE,
+               D_8006E04C + tone, volume, volume);
+    if (++NEXT_SFX_VOICE >= 0x16) {
+        NEXT_SFX_VOICE = 0x12;
     }
 }
 
-void func_8002B5D0(s32 arg0, s32 arg1) {
-    s32 tone = arg1 & 0xF;
+void playSoundEffectOnVoice(s32 voice, s32 sound) {
+    s32 tone = sound & 0xF;
 
-    SsUtKeyOnV(arg0, D_801D813E, arg1 >> 4, tone, D_8006E048,
+    SsUtKeyOnV(voice, D_801D813E, sound >> 4, tone, SFX_BASE_NOTE,
                D_8006E04C + tone, 0x6E, 0x6E);
 }
 
-void func_8002B644(s16 arg0) {
-    SsUtKeyOffV(arg0);
+void stopSoundVoice(s16 voice) {
+    SsUtKeyOffV(voice);
 }
 
-void func_8002B668(void) {
+void stopAllSoundEffects(void) {
     SsUtAllKeyOff(0);
 }
 
-void func_8002B688(void) {
-    s16 *p;
+void stopMusic(void) {
+    s16 *state;
 
     func_80014A00(0x1C);
-    p = (s16 *)&D_801D8128;
-    if (((s16 *)&D_801D8128)[1] >= 0) {
-        SsSeqStop(((s16 *)&D_801D8128)[p[1] + 2]);
+    state = (s16 *)&SOUND_STATE;
+    if (((s16 *)&SOUND_STATE)[1] >= 0) {
+        SsSeqStop(((s16 *)&SOUND_STATE)[state[1] + 2]);
         func_80014C08(4);
-        ((s16 *)&D_801D8128)[1] = -1;
+        ((s16 *)&SOUND_STATE)[1] = -1;
     }
 }
 
-void func_8002B6E4(s32 idx, s32 step) {
-    s16 vl;
-    s16 vr;
+void fadeOutMusicTask(s32 slotIndex, s32 step) {
+    s16 volL;
+    s16 volR;
 
     for (;;) {
-        func_80014C08(D_800794F0);
-        if (((SndState *)&D_801D8128)->cur != idx) {
+        func_80014C08(FRAME_INTERVAL);
+        if (((SndState *)&SOUND_STATE)->cur != slotIndex) {
             func_80014A90();
         }
-        SsSeqGetVol(((SndState *)&D_801D8128)->seq[idx], 0, &vl, &vr);
-        if (vl == 0) {
-            SsSeqStop(((SndState *)&D_801D8128)->seq[idx]);
+        SsSeqGetVol(((SndState *)&SOUND_STATE)->seq[slotIndex], 0, &volL, &volR);
+        if (volL == 0) {
+            SsSeqStop(((SndState *)&SOUND_STATE)->seq[slotIndex]);
             func_80014C08(4);
-            ((SndState *)&D_801D8128)->cur = -1;
+            ((SndState *)&SOUND_STATE)->cur = -1;
             func_80014A90();
         }
-        vl -= step;
-        if (vl < 0) {
-            vl = 0;
+        volL -= step;
+        if (volL < 0) {
+            volL = 0;
         }
-        SsSeqSetVol(((SndState *)&D_801D8128)->seq[idx], vl, vl);
+        SsSeqSetVol(((SndState *)&SOUND_STATE)->seq[slotIndex], volL, volL);
     }
 }
 
-void func_8002B7DC(s32 arg0) {
-    s16 *p = (s16 *)&D_801D8128;
+void fadeOutMusic(s32 step) {
+    s16 *state = (s16 *)&SOUND_STATE;
 
-    if (p[1] >= 0) {
+    if (state[1] >= 0) {
         func_80014A00(0x1C);
-        func_800149B8(0x1C, -1, 0, 0x1000, &func_8002B6E4, p[1], arg0);
+        func_800149B8(0x1C, -1, 0, 0x1000, &fadeOutMusicTask, state[1], step);
     }
 }
 
 void func_8002B850(void) {
 }
 
-void func_8002B858(s32 arg0) {
-    if (((SndState *)&D_801D8128)->slot[arg0].id != 0xFF) {
-        if (((SndState *)&D_801D8128)->cur >= 0) {
-            func_8002B688();
+void playLoadedMusic(s32 slotIndex) {
+    if (((SndState *)&SOUND_STATE)->slot[slotIndex].id != 0xFF) {
+        if (((SndState *)&SOUND_STATE)->cur >= 0) {
+            stopMusic();
         }
-        SsSeqPlay(((SndState *)&D_801D8128)->seq[arg0], 1, 0);
-        SsSeqSetVol(((SndState *)&D_801D8128)->seq[arg0],
-                    ((SndState *)&D_801D8128)->vol[arg0],
-                    ((SndState *)&D_801D8128)->vol[arg0]);
-        ((SndState *)&D_801D8128)->cur = arg0;
+        SsSeqPlay(((SndState *)&SOUND_STATE)->seq[slotIndex], 1, 0);
+        SsSeqSetVol(((SndState *)&SOUND_STATE)->seq[slotIndex],
+                    ((SndState *)&SOUND_STATE)->vol[slotIndex],
+                    ((SndState *)&SOUND_STATE)->vol[slotIndex]);
+        ((SndState *)&SOUND_STATE)->cur = slotIndex;
     }
 }
 
-void func_8002B900(s32 seq, s32 arg1, s32 arg2, s32 load) {
-    D_8006E040++;
+void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad) {
+    PENDING_MUSIC_CHANGES++;
     do {
-        func_80014C08(D_800794F0);
-    } while (D_8006E03C != 0);
-    D_8006E03C = 1;
-    if (((SndState *)&D_801D8128)->cur >= 0) {
-        func_8002B7DC(2);
-        while (((SndState *)&D_801D8128)->cur >= 0) {
-            func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
+    } while (MUSIC_CHANGE_BUSY != 0);
+    MUSIC_CHANGE_BUSY = 1;
+    if (((SndState *)&SOUND_STATE)->cur >= 0) {
+        fadeOutMusic(2);
+        while (((SndState *)&SOUND_STATE)->cur >= 0) {
+            func_80014C08(FRAME_INTERVAL);
         }
     }
-    if (load) {
-        func_8002B024(seq, arg1, arg2);
+    if (needsLoad) {
+        loadMusicTrack(slotIndex, trackId, volume);
     }
-    func_8002B858(seq);
-    D_8006E03C = 0;
-    D_8006E040--;
+    playLoadedMusic(slotIndex);
+    MUSIC_CHANGE_BUSY = 0;
+    PENDING_MUSIC_CHANGES--;
     func_80014A90();
 }
 
-void func_8002BA24(void) {
+void waitForMusicChange(void) {
     do {
-        func_80014C08(D_800794F0);
-    } while (D_8006E040 != 0);
+        func_80014C08(FRAME_INTERVAL);
+    } while (PENDING_MUSIC_CHANGES != 0);
 }
 
-void func_8002BA6C(s32 arg0, s32 arg1, s32 arg2) {
-    s8 *base;
+void playMusic(s32 slotIndex, s32 trackId, s32 volume) {
+    s8 *state;
 
-    base = (s8 *)&D_801D8128;
-    if ((*(s16 *)(base + arg0 * 0xC + 0x20)) != arg1) {
-        func_8002BA24();
-        func_800149B8(0, -1, 0, 0x1000, &func_8002B900, arg0, arg1, arg2, 1);
+    state = (s8 *)&SOUND_STATE;
+    if ((*(s16 *)(state + slotIndex * 0xC + 0x20)) != trackId) {
+        waitForMusicChange();
+        func_800149B8(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 1);
         return;
     }
-    if (D_801D812A != arg0) {
-        func_8002BA24();
-        func_800149B8(0, -1, 0, 0x1000, &func_8002B900, arg0, arg1, arg2, 0);
+    if (D_801D812A != slotIndex) {
+        waitForMusicChange();
+        func_800149B8(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 0);
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/system/sound", D_80010598);
+INCLUDE_RODATA("asm/main/nonmatchings/system/sound", PATH_OPENSEG_BIN);
 
-INCLUDE_RODATA("asm/main/nonmatchings/system/sound", D_800105A8);
+INCLUDE_RODATA("asm/main/nonmatchings/system/sound", PATH_DIGIMON_MOV);

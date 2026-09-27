@@ -3,27 +3,27 @@
 
 #include "game.h"
 
-extern s32 D_801D4868;
-extern u32 D_801D486C;
-extern u8 *D_801D4870;
-extern s32 D_801D4878;
-extern s32 D_801D4888;
-extern s32 D_801D5108;
-extern s32 D_801D487C;
-extern u8 *D_801D4874;
-extern u8 D_801D5988[0x1000];
+extern s32 BITSTREAM_BITS_LEFT;
+extern u32 BITSTREAM_BYTE;
+extern u8 *BITSTREAM_SRC;
+extern s32 HUFFMAN_NEXT_NODE;
+extern s32 HUFFMAN_LEFT;
+extern s32 HUFFMAN_RIGHT;
+extern s32 HUFFMAN_SYMBOLS_DECODED;
+extern u8 *DECOMPRESS_DST;
+extern u8 LZ_WINDOW[0x1000];
 
-void *func_8001BB44(Chunk *p, s32 id, s32 sub);
-void func_8001BB94(Chunk *p, s32 id, s32 sub);
-void func_8001BC14(Chunk *arg0);
-s32 func_8001BC38(void);
-u32 func_8001BCA4(s32);
-s32 func_8001BD60(void);
-s32 func_8001C078(s32);
-s32 func_8001BFCC(s32 arg0, s32 arg1);
-void func_8001BDEC(u32);
-s32 func_8001BFF8(s32, s32);
-void func_8001C1E0(s8 *, s8 *, s32);
-void func_8001C0A8(s8 *base, u32 n, s32 size, s32 (*cmp)(s8 *, s8 *));
+void *findPakChunk(Chunk *cursor, s32 id, s32 sub);
+void truncatePakAtChunk(Chunk *cursor, s32 id, s32 sub);
+void truncatePakTextures(Chunk *pak);
+s32 readBitstreamBit(void);
+u32 readBitstreamBits(s32 bitCount);
+s32 readHuffmanTree(void);
+s32 decompressForTask(s32 src);
+s32 decompressArchiveEntry(s32 archive, s32 index);
+void decompressLzHuffman(u32 outputSize);
+s32 decompressToHeap(s32 src, s32 heapTag);
+void swapBytes(s8 *a, s8 *b, s32 size);
+void sortArray(s8 *base, u32 n, s32 size, s32 (*cmp)(s8 *, s8 *));
 
 #endif /* DCB_ARCHIVE_H */
