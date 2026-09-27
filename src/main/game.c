@@ -7517,7 +7517,11 @@ void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80027674);
+void func_800276C8(s32 x, s32 y, u8 c, s32 n, u8 *rgb, s32 z, s32 w, s32 h, s32 bu, s32 bv);
+
+void func_80027674(s32 x, s32 y, u8 c, s32 n, s32 z, s32 w, s32 h, s32 bu, s32 bv) {
+    func_800276C8(x, y, c, n, (u8 *)&D_8006DF98, z, w, h, bu, bv);
+}
 
 void func_800276C8(s32 x, s32 y, u8 c, s32 n, u8 *rgb, s32 z, s32 w, s32 h, s32 bu, s32 bv) {
     if (c > 0x20 && func_80029990() == 0) {
