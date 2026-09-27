@@ -6,127 +6,127 @@
 #include "dcb/heap.h"
 #include "dcb/main.h"
 
-s32 D_8006DEF0 = 0;
+s32 FILE_LOADER_BUSY = 0;
 
-void func_8001B10C(s32 arg0, s32 arg1) {
-    func_80014A48(arg1, func_80015848(arg0) == 0 ? 1 : -1);
+void mountDriveTask(s32 path, s32 parentTask) {
+    func_80014A48(parentTask, mountDrive(path) == 0 ? 1 : -1);
 }
 
-s32 func_8001B144(s32 name, s32 arg1) {
+s32 loadFile(s32 path, s32 parentTask) {
     s32 size;
-    CdFile *f;
+    CdFile *file;
     s32 buf;
 
     size = 0;
-    while (D_8006DEF0 != 0) {
-        func_80014C08(D_800794F0);
+    while (FILE_LOADER_BUSY != 0) {
+        func_80014C08(FRAME_INTERVAL);
     }
-    D_8006DEF0 = 1;
-    f = func_80015AD8((s8 *)name, 1);
+    FILE_LOADER_BUSY = 1;
+    file = openDiscFile((s8 *)path, 1);
     buf = 0;
-    if (f != 0) {
-        size = f->size;
-        buf = (s32)func_8001ABCC(size, arg1);
+    if (file != 0) {
+        size = file->size;
+        buf = (s32)allocHeapBlock(size, parentTask);
         if (buf == 0) {
-            func_80015EAC(f);
+            closeDiscFile(file);
         } else {
-            func_80015F34(f, size, (u8 *)buf);
-            func_80015EAC(f);
+            readDiscFile(file, size, (u8 *)buf);
+            closeDiscFile(file);
         }
     }
-    D_801D4848 = size;
-    func_80014A48(arg1, buf);
-    D_8006DEF0 = 0;
+    LOADED_FILE_SIZE = size;
+    func_80014A48(parentTask, buf);
+    FILE_LOADER_BUSY = 0;
     return buf;
 }
 
-s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
+s32 loadFileTagged(s32 *path, s32 parentTask, s32 heapTag) {
     s32 size;
-    CdFile *f;
+    CdFile *file;
     s32 buf;
 
     size = 0;
-    while (D_8006DEF0 != 0) {
-        func_80014C08(D_800794F0);
+    while (FILE_LOADER_BUSY != 0) {
+        func_80014C08(FRAME_INTERVAL);
     }
-    D_8006DEF0 = 1;
-    f = func_80015AD8((s8 *)name, 1);
+    FILE_LOADER_BUSY = 1;
+    file = openDiscFile((s8 *)path, 1);
     buf = 0;
-    if (f != 0) {
-        size = f->size;
-        buf = (s32)func_8001ABCC(size, arg2);
+    if (file != 0) {
+        size = file->size;
+        buf = (s32)allocHeapBlock(size, heapTag);
         if (buf == 0) {
-            func_80015EAC(f);
+            closeDiscFile(file);
         } else {
-            func_80015F34(f, size, (u8 *)buf);
-            func_80015EAC(f);
+            readDiscFile(file, size, (u8 *)buf);
+            closeDiscFile(file);
         }
     }
-    D_801D4848 = size;
-    func_80014A48(arg1, buf);
-    D_8006DEF0 = 0;
+    LOADED_FILE_SIZE = size;
+    func_80014A48(parentTask, buf);
+    FILE_LOADER_BUSY = 0;
     return buf;
 }
 
-void func_8001B358(s32 arg0, s32 *arg1, s32 arg2) {
-    s32 temp_v0;
-    s32 var_s2;
+void loadFileToAddress(s32 path, s32 *dst, s32 parentTask) {
+    s32 file;
+    s32 size;
 
-    var_s2 = 0;
-    if (D_8006DEF0 != 0) {
+    size = 0;
+    if (FILE_LOADER_BUSY != 0) {
         do {
-            func_80014C08(D_800794F0);
-        } while (D_8006DEF0 != 0);
+            func_80014C08(FRAME_INTERVAL);
+        } while (FILE_LOADER_BUSY != 0);
     }
-    D_8006DEF0 = 1;
-    temp_v0 = (s32)func_80015AD8((s8 *)arg0, 1);
-    if (temp_v0 != 0) {
-        var_s2 = (*(s32 *)((s8 *)temp_v0 + 0x24));
-        func_80015F34(temp_v0, var_s2, arg1);
-        func_80015EAC((s32 *) temp_v0);
+    FILE_LOADER_BUSY = 1;
+    file = (s32)openDiscFile((s8 *)path, 1);
+    if (file != 0) {
+        size = (*(s32 *)((s8 *)file + 0x24));
+        readDiscFile(file, size, dst);
+        closeDiscFile((s32 *) file);
     }
-    D_801D4848 = var_s2;
-    func_80014A48(arg2);
-    D_8006DEF0 = 0;
+    LOADED_FILE_SIZE = size;
+    func_80014A48(parentTask);
+    FILE_LOADER_BUSY = 0;
 }
 
-void func_8001B438(u32 *tim, s16 px, s16 py, s16 cx, s16 cy) {
-    Rect16 r;
+void uploadTim(u32 *tim, s16 pixelX, s16 pixelY, s16 clutX, s16 clutY) {
+    Rect16 rect;
 
     OpenTIM(tim);
-    ReadTIM(&D_801D4850);
-    if (px == -1) {
-        px = D_801D4850.prect->x;
-        py = D_801D4850.prect->y;
+    ReadTIM(&LOADED_TIM);
+    if (pixelX == -1) {
+        pixelX = LOADED_TIM.prect->x;
+        pixelY = LOADED_TIM.prect->y;
     } else {
-        D_801D4850.prect->x = px;
-        D_801D4850.prect->y = py;
+        LOADED_TIM.prect->x = pixelX;
+        LOADED_TIM.prect->y = pixelY;
     }
-    if (cx == -1) {
-        cx = D_801D4850.crect->x;
-        cy = D_801D4850.crect->y;
-    } else if (cx != -2) {
-        D_801D4850.crect->x = cx;
-        D_801D4850.crect->y = cy;
+    if (clutX == -1) {
+        clutX = LOADED_TIM.crect->x;
+        clutY = LOADED_TIM.crect->y;
+    } else if (clutX != -2) {
+        LOADED_TIM.crect->x = clutX;
+        LOADED_TIM.crect->y = clutY;
     }
-    r.x = px;
-    r.y = py;
-    r.w = D_801D4850.prect->w;
-    r.h = D_801D4850.prect->h;
-    LoadImage((s16 *)&r, (s32)D_801D4850.paddr);
-    if ((D_801D4850.mode & 8) && cx != -2) {
-        r.x = cx;
-        r.y = cy;
-        r.w = D_801D4850.crect->w;
-        r.h = D_801D4850.crect->h;
-        LoadImage((s16 *)&r, (s32)D_801D4850.caddr);
+    rect.x = pixelX;
+    rect.y = pixelY;
+    rect.w = LOADED_TIM.prect->w;
+    rect.h = LOADED_TIM.prect->h;
+    LoadImage((s16 *)&rect, (s32)LOADED_TIM.paddr);
+    if ((LOADED_TIM.mode & 8) && clutX != -2) {
+        rect.x = clutX;
+        rect.y = clutY;
+        rect.w = LOADED_TIM.crect->w;
+        rect.h = LOADED_TIM.crect->h;
+        LoadImage((s16 *)&rect, (s32)LOADED_TIM.caddr);
     }
 }
 
-void func_8001B5BC(u32 *addr) {
+void uploadTimList(u32 *tims) {
     TIM_IMAGE img;
 
-    OpenTIM(addr);
+    OpenTIM(tims);
     while (ReadTIM(&img) != 0) {
         if (img.caddr != 0) {
             LoadImage((s16 *)img.crect, (s32)img.caddr);
@@ -138,82 +138,82 @@ void func_8001B5BC(u32 *addr) {
     DrawSync(0);
 }
 
-void func_8001B634(u32 *addr, s32 dx, s32 dy) {
+void uploadTimListOffset(u32 *tims, s32 dx, s32 dy) {
     TIM_IMAGE img;
-    Rect16 r;
+    Rect16 rect;
 
-    OpenTIM(addr);
+    OpenTIM(tims);
     while (ReadTIM(&img) != 0) {
         if (img.caddr != 0) {
-            r.w = img.crect->w;
-            r.h = img.crect->h;
-            r.x = img.crect->x + dx;
-            r.y = img.crect->y + dy;
-            LoadImage((s16 *)&r, (s32)img.caddr);
+            rect.w = img.crect->w;
+            rect.h = img.crect->h;
+            rect.x = img.crect->x + dx;
+            rect.y = img.crect->y + dy;
+            LoadImage((s16 *)&rect, (s32)img.caddr);
         }
         if (img.paddr != 0) {
-            r.w = img.prect->w;
-            r.h = img.prect->h;
-            r.x = img.prect->x + dx;
-            r.y = img.prect->y + dy;
-            LoadImage((s16 *)&r, (s32)img.paddr);
+            rect.w = img.prect->w;
+            rect.h = img.prect->h;
+            rect.x = img.prect->x + dx;
+            rect.y = img.prect->y + dy;
+            LoadImage((s16 *)&rect, (s32)img.paddr);
         }
     }
     DrawSync(0);
 }
 
-void func_8001B734(u32 *p) {
-    u32 *top;
-    u32 *b;
-    s32 n;
+void uploadTexturePack(u32 *pack) {
+    u32 *base;
+    u32 *image;
+    s32 count;
 
-    n = *p++;
-    top = p;
-    if ((n & 0xFFFF) == 0x7054) {
-        n >>= 16;
+    count = *pack++;
+    base = pack;
+    if ((count & 0xFFFF) == 0x7054) {
+        count >>= 16;
         do {
-            b = top + p[n - 1];
-            if (*b++ & 8) {
-                LoadImage((s16 *)(b + 1), (s32)(b + 3));
-                b += *b >> 2;
+            image = base + pack[count - 1];
+            if (*image++ & 8) {
+                LoadImage((s16 *)(image + 1), (s32)(image + 3));
+                image += *image >> 2;
             }
-            LoadImage((s16 *)(b + 1), (s32)(b + 3));
+            LoadImage((s16 *)(image + 1), (s32)(image + 3));
             DrawSync(0);
-        } while (--n > 0);
+        } while (--count > 0);
     }
 }
 
-void func_8001B7F4(u32 *p, s32 dx, s32 dy) {
-    u32 *top;
-    u32 *b;
-    s32 n;
+void uploadTexturePackOffset(u32 *pack, s32 dx, s32 dy) {
+    u32 *base;
+    u32 *image;
+    s32 count;
 
-    n = *p++;
-    top = p;
-    if ((n & 0xFFFF) == 0x7054) {
-        n >>= 16;
+    count = *pack++;
+    base = pack;
+    if ((count & 0xFFFF) == 0x7054) {
+        count >>= 16;
         do {
-            b = top + p[n - 1];
-            if (*b++ & 8) {
-                ((Rect16 *)(b + 1))->x += dx;
-                ((Rect16 *)(b + 1))->y += dy;
-                LoadImage((s16 *)(b + 1), (s32)(b + 3));
-                b += *b >> 2;
+            image = base + pack[count - 1];
+            if (*image++ & 8) {
+                ((Rect16 *)(image + 1))->x += dx;
+                ((Rect16 *)(image + 1))->y += dy;
+                LoadImage((s16 *)(image + 1), (s32)(image + 3));
+                image += *image >> 2;
             }
-            ((Rect16 *)(b + 1))->x += dx;
-            ((Rect16 *)(b + 1))->y += dy;
-            LoadImage((s16 *)(b + 1), (s32)(b + 3));
+            ((Rect16 *)(image + 1))->x += dx;
+            ((Rect16 *)(image + 1))->y += dy;
+            LoadImage((s16 *)(image + 1), (s32)(image + 3));
             DrawSync(0);
-        } while (--n > 0);
+        } while (--count > 0);
     }
 }
 
-void func_8001B90C(s32 w, s32 h, s32 interlace) {
+void resetDisplay(s32 w, s32 h, s32 interlace) {
     D_80079500 = 0;
-    func_8001B930(w, h, interlace);
+    initDisplayBuffers(w, h, interlace);
 }
 
-void func_8001B930(s32 w, s32 h, s32 interlace) {
+void initDisplayBuffers(s32 w, s32 h, s32 interlace) {
     s32 i;
 
     func_80013F04(interlace);

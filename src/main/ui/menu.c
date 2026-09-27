@@ -62,15 +62,15 @@ void func_800192FC(Unk800190F4 *p, s32 ot) {
     } else {
         p->unk40 = p->unk38;
     }
-    (p->prim + D_800794F4)->x0 = p->unk40.x - 2;
-    (p->prim + D_800794F4)->y0 = p->unk40.y - 1;
-    (p->prim + D_800794F4)->w = p->unk40.w + 4;
-    (p->prim + D_800794F4)->h = p->unk40.h + 2;
-    (p->prim + D_800794F4)->r0 = p->unk48.b[0] * p->unk4C / 128;
-    (p->prim + D_800794F4)->g0 = p->unk48.b[1] * p->unk4C / 128;
-    (p->prim + D_800794F4)->b0 = p->unk48.b[2] * p->unk4C / 128;
-    addPrim(&D_800793A0->ot[ot], &p->prim[D_800794F4]);
-    addPrim(&D_800793A0->ot[ot], &p->dm[D_800794F4]);
+    (p->prim + FRAME_BUFFER_INDEX)->x0 = p->unk40.x - 2;
+    (p->prim + FRAME_BUFFER_INDEX)->y0 = p->unk40.y - 1;
+    (p->prim + FRAME_BUFFER_INDEX)->w = p->unk40.w + 4;
+    (p->prim + FRAME_BUFFER_INDEX)->h = p->unk40.h + 2;
+    (p->prim + FRAME_BUFFER_INDEX)->r0 = p->unk48.b[0] * p->unk4C / 128;
+    (p->prim + FRAME_BUFFER_INDEX)->g0 = p->unk48.b[1] * p->unk4C / 128;
+    (p->prim + FRAME_BUFFER_INDEX)->b0 = p->unk48.b[2] * p->unk4C / 128;
+    addPrim(&CURRENT_FRAME_BUFFER->ot[ot], &p->prim[FRAME_BUFFER_INDEX]);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[ot], &p->dm[FRAME_BUFFER_INDEX]);
 }
 
 void func_8001963C(void *arg0, void *arg1, Unk800190F4 *arg2, Bytes4 *arg3) {
@@ -118,63 +118,63 @@ s32 func_800198A8(Menu *m) {
     if (m->active != 0) {
         c->unk4C = 0x80;
         if (m->nrows >= 2 && m->rowH != 0) {
-            if (D_80089840[m->pad]->unkE & 0x1000) {
-                func_8002BB58(2);
+            if (PAD_STATES[m->pad]->unkE & 0x1000) {
+                playMenuSound(2);
                 m->moved = 1;
                 if (--m->row < 0) {
                     func_8001705C((s16 *)w, 0, w->view.h - w->rect.h);
                     m->row = m->nrows - 1;
                 } else {
                 if (m->row == 0) {
-                    D_80089840[m->pad]->unk10 = 0;
+                    PAD_STATES[m->pad]->unk10 = 0;
                 }
                 if (m->row * m->rowH < w->unk30[3]) {
                     func_8001705C((s16 *)w, 0, m->row * m->rowH);
                 }
                 }
-            } else if (D_80089840[m->pad]->unkE & 0x4000) {
-                func_8002BB58(2);
+            } else if (PAD_STATES[m->pad]->unkE & 0x4000) {
+                playMenuSound(2);
                 m->moved = 1;
                 if (++m->row >= m->nrows) {
                     func_8001705C((s16 *)w, 0, 0);
                     m->row = 0;
                 } else {
                 if (m->row == m->nrows - 1) {
-                    D_80089840[m->pad]->unk10 = 0;
+                    PAD_STATES[m->pad]->unk10 = 0;
                 }
                 if (m->row * m->rowH >= w->unk30[3] + w->rect.h) {
                     func_8001705C((s16 *)w, 0, (m->row + 1) * m->rowH - w->rect.h);
                 }
                 }
-            } else if (D_80089840[m->pad]->unkE & 0x1) {
+            } else if (PAD_STATES[m->pad]->unkE & 0x1) {
                 if (m->row != 0) {
-                    func_8002BB58(2);
+                    playMenuSound(2);
                 }
                 m->moved = 1;
                 m->row -= (w->rect.h + m->rowH - 1) / m->rowH;
                 if (m->row < 0) {
-                    D_80089840[m->pad]->unk10 = 0;
+                    PAD_STATES[m->pad]->unk10 = 0;
                     func_8001705C((s16 *)w, 0, 0);
                     m->row = 0;
                 } else {
                     if (m->row == 0) {
-                        D_80089840[m->pad]->unk10 = 0;
+                        PAD_STATES[m->pad]->unk10 = 0;
                     }
                     func_8001705C((s16 *)w, 0, w->unk30[3] - (w->rect.h + m->rowH - 1) / m->rowH * m->rowH);
                 }
-            } else if (D_80089840[m->pad]->unkE & 0x2) {
+            } else if (PAD_STATES[m->pad]->unkE & 0x2) {
                 if (m->row != m->nrows - 1) {
-                    func_8002BB58(2);
+                    playMenuSound(2);
                 }
                 m->moved = 1;
                 m->row += (w->rect.h + m->rowH - 1) / m->rowH;
                 if (m->row >= m->nrows) {
-                    D_80089840[m->pad]->unk10 = 0;
+                    PAD_STATES[m->pad]->unk10 = 0;
                     func_8001705C((s16 *)w, 0, w->view.h - w->rect.h);
                     m->row = m->nrows - 1;
                 } else {
                     if (m->row == m->nrows - 1) {
-                        D_80089840[m->pad]->unk10 = 0;
+                        PAD_STATES[m->pad]->unk10 = 0;
                     }
                     func_8001705C((s16 *)w, 0, w->unk30[3] + (w->rect.h + m->rowH - 1) / m->rowH * m->rowH);
                 }
@@ -196,7 +196,7 @@ s32 func_800198A8(Menu *m) {
     return m->col + m->row * m->ncols;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", D_80010000);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", PATH_DRV_SUFFIX);
 
 INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", D_80010008);
 
@@ -280,7 +280,7 @@ void func_8001A1D8(u8 *w, s32 arg1) {
     PadState **pads;
     s32 on;
 
-    D_8008983C = 0;
+    PAD_INPUT_ENABLED = 0;
     if ((s8)w[0xA5] == 1) {
         x = *(s16 *)(w + 0xAC);
         width = *(s16 *)(w + 0xAE);
@@ -293,10 +293,10 @@ void func_8001A1D8(u8 *w, s32 arg1) {
     r.w = width;
     r.h = 12;
     func_800191C0((Unk800190F4 *)(w + 0x44), &r, (Bytes4 *)-1);
-    pads = D_80089840;
+    pads = PAD_STATES;
     on = 1;
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
         if (*(void (**)(void))(w + 0xA0) != 0) {
             (*(void (**)(void))(w + 0xA0))();
@@ -319,20 +319,20 @@ void func_8001A1D8(u8 *w, s32 arg1) {
     } else if (pads[w[0xA6]]->unk2 & 0x10) {
         w[0xA5] = 0;
         w[0xB4] = on;
-        func_8002BB58(0);
+        playMenuSound(0);
     } else {
         w[0xB4] = on;
-        func_8002BB58(1);
+        playMenuSound(1);
     }
     func_80016F38((Unk80016F38 *)w, (Rect16 *)-1);
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
         if (*(void (**)(void))(w + 0xA0) != 0) {
             (*(void (**)(void))(w + 0xA0))();
         }
     } while (*(s8 *)(w + 0x41) == 0);
-    D_8008983C = 1;
+    PAD_INPUT_ENABLED = 1;
     func_80014A48(arg1, (s8)w[0xA5]);
     func_80014A90();
 }
@@ -350,23 +350,23 @@ void func_8001A40C(u8 *w) {
     y = *(s16 *)(w + 2) + *(s16 *)(w + 0xAA) - 0xE;
     if (w[0xA4] != 0) {
         if (w[0xB4] == 0) {
-            if ((D_80089840[w[0xA6]]->unk2 & 0x8000) && (s8)w[0xA5] != 1) {
+            if ((PAD_STATES[w[0xA6]]->unk2 & 0x8000) && (s8)w[0xA5] != 1) {
                 w[0xA5] = 1;
                 r.x = *(s16 *)(w + 0xAC);
                 r.y = y;
                 r.w = *(s16 *)(w + 0xAE);
                 r.h = 0xC;
                 func_80019280((Unk800190F4 *)(w + 0x44), &r);
-                func_8002BB58(2);
+                playMenuSound(2);
             }
-            if ((D_80089840[w[0xA6]]->unk2 & 0x2000) && (s8)w[0xA5] != 2) {
+            if ((PAD_STATES[w[0xA6]]->unk2 & 0x2000) && (s8)w[0xA5] != 2) {
                 w[0xA5] = 2;
                 r.x = *(s16 *)(w + 0xB0);
                 r.y = y;
                 r.w = *(s16 *)(w + 0xB2);
                 r.h = 0xC;
                 func_80019280((Unk800190F4 *)(w + 0x44), &r);
-                func_8002BB58(2);
+                playMenuSound(2);
             }
         }
         func_80028D18(*(s16 *)(w + 0xAC), y, *(s32 *)(w + 0x98), 7, *(s16 *)(w + 0x3A));

@@ -33,7 +33,7 @@ void initVramSprite(void *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vra
     } else {
         blend = 0;
     }
-    SetDrawMode(packet, 0, 0, ((colorMode & 3) << 7) | ((blend & 3) << 5) | ((vramY & 0x100) >> 4) | ((vramX & 0x3C0) >> 6) | ((vramY & 0x200) * 4), &D_800794F8);
+    SetDrawMode(packet, 0, 0, ((colorMode & 3) << 7) | ((blend & 3) << 5) | ((vramY & 0x100) >> 4) | ((vramX & 0x3C0) >> 6) | ((vramY & 0x200) * 4), &GRAPHICS);
     MargePrim(packet, (s8 *)packet + 0xC);
 }
 
@@ -50,8 +50,8 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
     rect.x = x;
     rect.w = w;
     /* x is reused as the fill size in bytes */
-    if (func_8001AB64() < w * (h << 2)) {
-        x = func_8001AB64();
+    if (getLargestFreeHeapBlock() < w * (h << 2)) {
+        x = getLargestFreeHeapBlock();
     } else {
         x = w * (h << 2);
     }
@@ -59,7 +59,7 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
     if (rect.h <= 0) {
         return;
     }
-    buf = func_8001AD0C(rect.h * (w << 2));
+    buf = allocTaskHeapBlock(rect.h * (w << 2));
     if (buf == NULL) {
         return;
     }
@@ -73,7 +73,7 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
         LoadImage((s16 *)&rect, (s32)buf);
     }
     DrawSync(0);
-    func_8001AE90(buf);
+    freeHeapBlock(buf);
 }
 
 void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blendMode) {
@@ -97,8 +97,8 @@ void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 o
             setSemiTrans(&CUR_SPRT->sp, 0);
         }
         setDrawMode(&CUR_SPRT->dm, 0, 0, tpageBits);
-        addPrim(&D_800793A0->ot[otz], &CUR_SPRT->sp);
-        addPrim(&D_800793A0->ot[otz], &CUR_SPRT->dm);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
     }
 }

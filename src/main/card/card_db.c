@@ -211,7 +211,7 @@ void loadCardDatabase(void) {
     s32 i;
     s32 cardId;
 
-    func_800149B8(0, -1, 0, 0x800, func_8001B248, "B:\\CARD2.CDD", func_800148B0(), -2);
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", func_800148B0(), -2);
     CARD_DB_FILE = file = (u8 *)func_80014C08(0x7FFFFFFF);
     DIGIMON_CARDS = file + 8;
     OPTION_CARDS = DIGIMON_CARDS + *(u16 *)(file + 4) * 0x13C;
@@ -303,7 +303,7 @@ s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
         PLAYER_DATA(player).unk14B2[cardId] |= 0x10;
     }
     PLAYER_DATA(player).unk14B2[cardId] |= 0xC0;
-    func_8002CC44(player);
+    updatePlayerRanks(player);
     return PLAYER_DATA(player).unk14B2[cardId] & 7;
 }
 
@@ -319,7 +319,7 @@ s8 removeCardFromCollection(s32 player, s32 cardId, s32 count) {
         return -1;
     }
     PLAYER_DATA(player).unk14B2[cardId] -= count;
-    func_8002CC44(player);
+    updatePlayerRanks(player);
     return PLAYER_DATA(player).unk14B2[cardId] & 7;
 }
 
@@ -713,7 +713,7 @@ void addPartner(s32 player, s32 partner, s32 obtain) {
                 cardId = PLAYER_DATA(player).unk80[slot].unk288;
                 PLAYER_DATA(player).unk14B2[cardId] = 1;
                 func_80045968(player, cardId, 0);
-                func_8002CC44(player);
+                updatePlayerRanks(player);
                 grantPartnerAbility(player, PARTNER_START_ABILITIES[partner]);
                 PLAYER_DATA(player).unk14B2[PARTNER_CARD_IDS[partner]] |= 0xF0;
             } else {

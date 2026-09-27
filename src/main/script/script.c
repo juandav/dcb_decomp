@@ -8,7 +8,7 @@ void *func_80020E34(void *arg0) {
     s32 temp_v0_2;
     void *temp_v0;
 
-    temp_v0 = func_8001AD0C(0x28);
+    temp_v0 = allocTaskHeapBlock(0x28);
     (*(void **)((s8 *)temp_v0 + 0)) = arg0;
     temp_v0_2 = arg0 + 0x10;
     (*(s32 *)((s8 *)temp_v0 + 4)) = temp_v0_2;
@@ -32,7 +32,7 @@ void func_80020E94(void *arg0, void *arg1) {
 }
 
 s32 *func_80020ED4(s32 n) {
-    s32 *p = func_8001AD0C(n * 4);
+    s32 *p = allocTaskHeapBlock(n * 4);
     s32 *q = p;
     s32 i;
 
@@ -43,8 +43,8 @@ s32 *func_80020ED4(s32 n) {
 }
 
 void func_80020F24(void *arg0, void *arg1) {
-    func_8001AE90(arg1);
-    func_8001AE90(arg0);
+    freeHeapBlock(arg1);
+    freeHeapBlock(arg0);
 }
 
 s32 func_80020F54(Script *s, s32 *regs) {

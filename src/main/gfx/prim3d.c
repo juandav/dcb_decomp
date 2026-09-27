@@ -16,10 +16,10 @@ void transformAndAddPolyFT3(s32 poly, s32 vert0, s32 vert1, s32 vert2, u8 cullBa
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[fixedOtz], poly);
+            AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
         }
     }
 }
@@ -37,10 +37,10 @@ void transformAndAddPolyFT4(s32 poly, s32 vert0, s32 vert1, s32 vert2, s32 vert3
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[fixedOtz], poly);
+            AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
         }
     }
 }
@@ -58,10 +58,10 @@ void transformAndAddPolyGT4(s32 poly, s32 vert0, s32 vert1, s32 vert2, s32 vert3
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[fixedOtz], poly);
+            AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
         }
     }
 }
@@ -79,14 +79,14 @@ void transformAndAddPolyF3(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 ve
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
                 }
             }
         }
@@ -106,14 +106,14 @@ void transformAndAddPolyF4(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 ve
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
                 }
             }
         }
@@ -133,10 +133,10 @@ void transformAndAddPolyGT3(s32 poly, s32 vert0, s32 vert1, s32 vert2, u8 cullBa
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[fixedOtz], poly);
+            AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
         }
     }
 }
@@ -154,14 +154,14 @@ void transformAndAddPolyG3(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 ve
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
                 }
             }
         }
@@ -181,14 +181,14 @@ void transformAndAddPolyG4(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 ve
 block_3:
         if ((u32) (otz - 2) < 0xFFFU) {
             if (fixedOtz == 0) {
-                AddPrim(&D_800793A0->ot[otz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], poly);
                 if ((semiTrans != 0) && (tpagePrim != 0)) {
-                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
+                    AddPrim(&CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
                 }
             }
         }
@@ -204,14 +204,14 @@ void transformAndAddLineF2(s32 line, s32 tpagePrim, s32 vert0, s32 vert1, u8 sem
     otz = RotTransPers(vert1, line + 0xC, &depthCue, &flag);
     if ((u32) (otz - 2) < 0xFFFU) {
         if (fixedOtz == 0) {
-            AddPrim((s32 *) &D_800793A0->ot[otz], line);
+            AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[otz], line);
             if ((semiTrans != 0) && (tpagePrim != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[otz], tpagePrim);
+                AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
             }
         } else {
-            AddPrim((s32 *) &D_800793A0->ot[fixedOtz], line);
+            AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[fixedOtz], line);
             if ((semiTrans != 0) && (tpagePrim != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[fixedOtz], tpagePrim);
+                AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
             }
         }
     }
@@ -226,14 +226,14 @@ void transformAndAddLineG2(s32 line, s32 tpagePrim, s32 vert0, s32 vert1, u8 sem
     otz = RotTransPers(vert1, line + 0x10, &depthCue, &flag);
     if ((u32) (otz - 2) < 0xFFFU) {
         if (fixedOtz == 0) {
-            AddPrim((s32 *) &D_800793A0->ot[otz], line);
+            AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[otz], line);
             if ((semiTrans != 0) && (tpagePrim != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[otz], tpagePrim);
+                AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[otz], tpagePrim);
             }
         } else {
-            AddPrim((s32 *) &D_800793A0->ot[fixedOtz], line);
+            AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[fixedOtz], line);
             if ((semiTrans != 0) && (tpagePrim != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[fixedOtz], tpagePrim);
+                AddPrim((s32 *) &CURRENT_FRAME_BUFFER->ot[fixedOtz], tpagePrim);
             }
         }
     }

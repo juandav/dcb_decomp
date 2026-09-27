@@ -109,22 +109,22 @@ void func_800168C4(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[0] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[1] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[2] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[3] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[4] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[5] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[6] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[7] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[8] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[9] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[10] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[11] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[12] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[13] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[14] = 0;
-        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[15] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[0] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[1] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[2] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[3] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[4] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[5] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[6] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[7] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[8] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[9] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[10] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[11] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[12] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[13] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[14] = 0;
+        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[15] = 0;
     }
 }
 
@@ -142,10 +142,10 @@ void func_80016948(s32 n) {
     D_800897F0 = 0x100;
     D_800897F2 = 0x3E0;
     D_800897F4 = 0x1F8;
-    buf = func_8001ACEC(D_800897EC * sizeof(PanelPrims) * 2);
+    buf = allocPermanentHeapBlock(D_800897EC * sizeof(PanelPrims) * 2);
     tpage = GetTPage(0, 0, D_800897EE, D_800897F0);
     for (i = 0; i < 2; i++) {
-        p = (PanelPrims *)(((Unk800794F8 *)&D_800794F8)->unk98[i].unk40BC = (s32)(buf + D_800897EC * i));
+        p = (PanelPrims *)(((Unk800794F8 *)&GRAPHICS)->unk98[i].unk40BC = (s32)(buf + D_800897EC * i));
         for (k = 0; k < D_800897EC; k++, p++) {
             for (j = 0; j < 4; j++) {
                 initPrimByType(0xC, &p->ft4a[j], 0, 0);
@@ -171,11 +171,11 @@ void func_80016948(s32 n) {
             SetTexWindow(p->twin, r);
         }
     }
-    D_800897E8 = D_800793A0->unk40BC;
+    D_800897E8 = CURRENT_FRAME_BUFFER->unk40BC;
 }
 
 void func_80016BEC(void) {
-    D_800897E8 = D_800793A0->unk40BC;
+    D_800897E8 = CURRENT_FRAME_BUFFER->unk40BC;
 }
 
 void func_80016C08(void *arg0, void *arg1, s32 arg2, s16 *arg3, s32 a4, s32 a5, s32 a6, s32 a7) {
@@ -361,7 +361,7 @@ s32 func_800170F0(Unk80016F38 *w, void (*draw)(), s32 z) {
         }
         func_800176E4(&r2, &r);
         SetDrawArea((DR_AREA *)&WP->unk264[0x18], (Rect16 *)&env);
-        addPrim(&D_800793A0->ot[z], &WP->unk264[0x18]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0x18]);
         if (w->unk2C != 0 && (w->unk3F & 8) && (kind = D_8006DD70[(w->unk42 >> 4) - 1].label) != 0) {
             switch (kind) {
             case 1:
@@ -397,15 +397,15 @@ s32 func_800170F0(Unk80016F38 *w, void (*draw)(), s32 z) {
             }
             func_800176E4(&r3, (Rect16 *)&env);
             SetDrawArea((DR_AREA *)&WP->unk264[0x24], &r3);
-            addPrim(&D_800793A0->ot[z], &WP->unk264[0x24]);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0x24]);
         }
         func_80018694(w, z);
         func_80018B8C(w, z);
         SetDrawArea((DR_AREA *)&WP->unk264[0], &r);
-        addPrim(&D_800793A0->ot[z], &WP->unk264[0]);
-        draw(w, &D_800793A0->ot[z]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0]);
+        draw(w, &CURRENT_FRAME_BUFFER->ot[z]);
         SetDrawArea((DR_AREA *)&WP->unk264[0xC], &r2);
-        addPrim(&D_800793A0->ot[z], &WP->unk264[0xC]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0xC]);
         func_80017B88(&w->from, w->unk42, w->unk3F & 1, w->unk40, w->unk38, z);
     }
     return ret;
@@ -474,7 +474,7 @@ s32 func_800177E8(Unk80016F38 *w) {
     oy += w->view.y;
     w->unk0 = w->from.x - ox;
     w->unk2 = w->from.y - oy;
-    w->unk3D += D_800794F0;
+    w->unk3D += FRAME_INTERVAL;
     if ((s8)w->unk3D > (s8)w->unk3C) {
         w->unk3D = w->unk3C;
         w->unk41 = 1;
@@ -495,7 +495,7 @@ void func_80017B88(Rect16 *r, u8 style, s32 semi, s32 col, s32 pal, s32 z) {
         return;
     }
     if (r->x < 320 && r->y < 240 && r->x + r->w > 0 && r->y + r->h > 0) {
-        ot = &D_800793A0->ot[z];
+        ot = &CURRENT_FRAME_BUFFER->ot[z];
         if (style & 0xF0) {
             k = (style >> 4) - 1;
             setPrimQuadRect(&WP->ft4a[0], (s8)D_8006DD70[k].left + r->x,
@@ -631,13 +631,13 @@ void func_80018694(Unk80016F38 *w, s32 z) {
         setWH(&WP->lineb[i], D_8006DE48[i + w->unk43 * 4].w, D_8006DE48[i + w->unk43 * 4].h);
         setRGB0(&WP->lineb[i], w->unk40, w->unk40, w->unk40);
         WP->lineb[i].clut = clut;
-        addPrim(&D_800793A0->ot[z], &WP->lineb[i]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->lineb[i]);
     }
     for (i = 0; i < 2; i++) {
         setPrimQuadUvRect((u8 *)&WP->ft4b[i], D_8006DE28[i + w->unk43 * 2].x, D_8006DE28[i + w->unk43 * 2].y, D_8006DE28[i + w->unk43 * 2].w, D_8006DE28[i + w->unk43 * 2].h);
         setRGB0(&WP->ft4b[i], w->unk40, w->unk40, w->unk40);
         WP->ft4b[i].clut = clut;
-        addPrim(&D_800793A0->ot[z], &WP->ft4b[i]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->ft4b[i]);
     }
 }
 
@@ -690,18 +690,18 @@ void func_80018B8C(Unk80016F38 *w, s32 z) {
         setWH(&WP->linec[i], D_8006DEA8[i + w->unk43 * 4].w, D_8006DEA8[i + w->unk43 * 4].h);
         setRGB0(&WP->linec[i], w->unk40, w->unk40, w->unk40);
         WP->linec[i].clut = clut;
-        addPrim(&D_800793A0->ot[z], &WP->linec[i]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->linec[i]);
     }
     for (i = 0; i < 2; i++) {
         setPrimQuadUvRect((u8 *)&WP->ft4c[i], D_8006DE88[i + w->unk43 * 2].x, D_8006DE88[i + w->unk43 * 2].y, D_8006DE88[i + w->unk43 * 2].w, D_8006DE88[i + w->unk43 * 2].h);
         setRGB0(&WP->ft4c[i], w->unk40, w->unk40, w->unk40);
         WP->ft4c[i].clut = clut;
-        addPrim(&D_800793A0->ot[z], &WP->ft4c[i]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->ft4c[i]);
     }
 }
 
 int func_80019084(void) {
-    if (D_800897E8 == D_800793A0->unk40BC + D_800897EC * 0x294) {
+    if (D_800897E8 == CURRENT_FRAME_BUFFER->unk40BC + D_800897EC * 0x294) {
         printf(D_80010008);
         return -1;
     }

@@ -15,24 +15,24 @@ typedef struct {
     /* 0x10 */ s32 name[4];
 } FileEntry;
 
-extern Unk80081710 D_80081710[4];
-extern s32 D_800857D0;
-extern s32 D_800857E0;
-extern FileEntry D_8006DD50;
-extern s32 D_800897E0;
-extern s32 D_800897E4;
+extern Unk80081710 DISC_FILES[4];
+extern s32 DRIVE_DIRECTORY_CACHED;
+extern s32 DRIVE_DIRECTORY;
+extern FileEntry ROOT_DIRECTORY_ENTRY;
+extern s32 DRIVE_SECTOR;
+extern s32 DRIVE_SIZE;
 
-void func_800157B0(void);
-int func_80015EDC(void);
-CdFile *func_80015AD8(s8 *path, s32 mode);
-s32 func_80015EAC(CdFile *f);
-s32 func_80015F34(CdFile *f, s32 size, u8 *dst);
-s32 func_80015848(s32 arg0);
-FileEntry *func_800158B0(CdFile *f, char *name, s32 key);
-FileEntry *func_80015A3C(char *name, s32 key);
-s32 func_800161D8(CdFile *f);
-s32 func_800162F0(CdFile *f);
-s32 func_80016500(CdFile *f);
-s8 *func_80016724(s8 *buf, s32 n, CdFile *f);
+void initDiscDrive(void);
+int closeAllDiscFiles(void);
+CdFile *openDiscFile(s8 *path, s32 openMode);
+s32 closeDiscFile(CdFile *file);
+s32 readDiscFile(CdFile *file, s32 size, u8 *dst);
+s32 mountDrive(s32 path);
+FileEntry *findDirectoryEntryOnDisc(CdFile *file, char *name, s32 key);
+FileEntry *findDirectoryEntryInCache(char *name, s32 key);
+s32 readDiscFileByte(CdFile *file);
+s32 readDiscFileU16(CdFile *file);
+s32 readDiscFileU32(CdFile *file);
+s8 *readDiscFileLine(s8 *line, s32 maxLength, CdFile *file);
 
 #endif /* DCB_CD_FILE_H */

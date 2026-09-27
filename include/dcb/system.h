@@ -3,16 +3,16 @@
 
 #include "game.h"
 
-extern s32 D_800794EC;
-extern Screen D_800793A8;
+extern s32 VBLANK_COUNTER;
+extern Screen SCREEN_COPY_EFFECT;
 extern u8 D_800794E7;
-extern s32 D_8006DD4C;
+extern s32 RENDER_CALLBACKS_ENABLED;
 
-void func_800155F4();
-void func_80014CF0(void);
-void func_80014D64(void);
-void func_80014EF0(void);
-void func_80015328();
-void func_800152AC(void);
+void runMainTask();
+void tickVblankCounters(void);
+void initScreenCopyEffect(void);
+void renderScreenCopyEffect(void);
+void runRenderLoop();
+void initGraphics(void);
 
 #endif /* DCB_SYSTEM_H */

@@ -4,11 +4,11 @@
 #include "dcb/cd_file.h"
 #include "dcb/text.h"
 
-FileEntry D_8006DD50 = { 0 };
+FileEntry ROOT_DIRECTORY_ENTRY = { 0 };
 
-void func_800157B0(void) {
-    u8 param[8];
-    Unk80081710 *p;
+void initDiscDrive(void) {
+    u8 cdMode[8];
+    Unk80081710 *handle;
     s32 i;
 
     ResetCallback();
@@ -16,160 +16,160 @@ void func_800157B0(void) {
     }
     VSync(4);
     for (;;) {
-        param[0] = 0x80;
-        if (CdControlB(0xE, param, 0) != 0) {
+        cdMode[0] = 0x80;
+        if (CdControlB(0xE, cdMode, 0) != 0) {
             break;
         }
         VSync(0);
     }
     VSync(4);
     func_8005A344(0);
-    p = D_80081710;
-    for (i = 3; i >= 0; i--, p++) {
-        p->unk0 = 0;
+    handle = DISC_FILES;
+    for (i = 3; i >= 0; i--, handle++) {
+        handle->unk0 = 0;
     }
-    D_800857D0 = 0;
+    DRIVE_DIRECTORY_CACHED = 0;
 }
 
-s32 func_80015848(s32 arg0) {
-    CdFile *f;
+s32 mountDrive(s32 path) {
+    CdFile *file;
 
-    f = func_80015AD8((s8 *)arg0, 0);
-    if (f != 0 && func_80015F34(f, 0x4000, (u8 *)&D_800857E0) != 0) {
-        func_80015EAC(f);
-        D_800857D0 = 1;
+    file = openDiscFile((s8 *)path, 0);
+    if (file != 0 && readDiscFile(file, 0x4000, (u8 *)&DRIVE_DIRECTORY) != 0) {
+        closeDiscFile(file);
+        DRIVE_DIRECTORY_CACHED = 1;
         return 0;
     }
     return 1;
 }
 
-FileEntry *func_800158B0(CdFile *f, char *name, s32 key) {
-    u8 result[8];
-    FileEntry *e;
-    s32 n;
+FileEntry *findDirectoryEntryOnDisc(CdFile *file, char *name, s32 key) {
+    u8 cdResult[8];
+    FileEntry *entry;
+    s32 bytesLeft;
     s32 i;
-    s32 r;
+    s32 readStatus;
 
     if (key == 0x80 && *(s32 *)name == 0) {
-        return &D_8006DD50;
+        return &ROOT_DIRECTORY_ENTRY;
     }
     for (;;) {
-        if (f->remaining <= 0) {
+        if (file->remaining <= 0) {
             return 0;
         }
-        CdIntToPos(f->sector, f->loc);
-        e = (FileEntry *)f->buf;
+        CdIntToPos(file->sector, file->loc);
+        entry = (FileEntry *)file->buf;
         do {
-            while (CdControlB(2, f->loc, result) == 0) {
+            while (CdControlB(2, file->loc, cdResult) == 0) {
             }
-            while (CdRead(2, (u8 *)e, 0x80) == 0) {
+            while (CdRead(2, (u8 *)entry, 0x80) == 0) {
             }
-            while ((r = CdReadSync(1, 0)) > 0) {
+            while ((readStatus = CdReadSync(1, 0)) > 0) {
                 func_80014C08(1);
             }
-        } while (r != 0);
-        f->sector += 2;
-        n = 0x1000;
-        if ((f->remaining -= 0x1000) < 0) {
-            n = f->remaining + 0x1000;
+        } while (readStatus != 0);
+        file->sector += 2;
+        bytesLeft = 0x1000;
+        if ((file->remaining -= 0x1000) < 0) {
+            bytesLeft = file->remaining + 0x1000;
         }
-        for (; n > 0; n -= 0x20, e++) {
-            if (e->key == 0) {
+        for (; bytesLeft > 0; bytesLeft -= 0x20, entry++) {
+            if (entry->key == 0) {
                 return 0;
             }
-            if (e->key == key) {
+            if (entry->key == key) {
                 for (i = 0; i < 4; i++) {
-                    if (e->name[i] != *(s32 *)(name + (i << 2))) {
+                    if (entry->name[i] != *(s32 *)(name + (i << 2))) {
                         break;
                     }
                 }
                 if (i == 4) {
-                    return e;
+                    return entry;
                 }
             }
         }
     }
 }
 
-FileEntry *func_80015A3C(char *name, s32 key) {
-    FileEntry *e;
-    s32 n;
+FileEntry *findDirectoryEntryInCache(char *name, s32 key) {
+    FileEntry *entry;
+    s32 entriesLeft;
     s32 i;
 
-    e = (FileEntry *)&D_800857E0;
-    for (n = 0x1FF; n >= 0; n--, e++) {
-        if (e->key == 0) {
+    entry = (FileEntry *)&DRIVE_DIRECTORY;
+    for (entriesLeft = 0x1FF; entriesLeft >= 0; entriesLeft--, entry++) {
+        if (entry->key == 0) {
             return 0;
         }
-        if (e->key == key) {
+        if (entry->key == key) {
             for (i = 0; i < 4; i++) {
-                if (e->name[i] != *(s32 *)(name + (i << 2))) {
+                if (entry->name[i] != *(s32 *)(name + (i << 2))) {
                     break;
                 }
             }
             if (i == 4) {
-                return e;
+                return entry;
             }
         }
     }
     return 0;
 }
 
-CdFile *func_80015AD8(s8 *path, s32 mode) {
-    s32 name[4];
-    char search[16];
-    char *q;
-    CdFile *f;
-    FileEntry *e;
+CdFile *openDiscFile(s8 *path, s32 openMode) {
+    s32 entryName[4];
+    char drivePath[16];
+    char *drivePathCursor;
+    CdFile *file;
+    FileEntry *entry;
     s32 i;
-    s32 key;
+    s32 extensionKey;
     s32 sector;
     s32 size;
-    u8 *p;
-    s32 c;
+    u8 *cursor;
+    s32 ch;
 
 retry:
-    f = (CdFile *)D_80081710;
-    for (i = 3; i >= 0; i--, f++) {
-        if (f->unk0 == 0) {
+    file = (CdFile *)DISC_FILES;
+    for (i = 3; i >= 0; i--, file++) {
+        if (file->unk0 == 0) {
             break;
         }
     }
     if (i < 0) {
         return 0;
     }
-    p = (u8 *)path;
-    if (p[1] != ':') {
-        if (D_800857D0 == 0) {
+    cursor = (u8 *)path;
+    if (cursor[1] != ':') {
+        if (DRIVE_DIRECTORY_CACHED == 0) {
             return 0;
         }
-        sector = D_800897E0;
+        sector = DRIVE_SECTOR;
         size = 0;
     } else {
-        q = search;
-        *q++ = '\\';
-        *q++ = toupper((s8)*p);
-        p += 2;
-        func_8002A5B4((s8 *)q, (s8 *)D_80010000);
-        if (CdSearchFile(f->loc, search) == 0) {
+        drivePathCursor = drivePath;
+        *drivePathCursor++ = '\\';
+        *drivePathCursor++ = toupper((s8)*cursor);
+        cursor += 2;
+        func_8002A5B4((s8 *)drivePathCursor, (s8 *)PATH_DRV_SUFFIX);
+        if (CdSearchFile(file->loc, drivePath) == 0) {
             return 0;
         }
-        size = f->fsize;
-        f->remaining = size;
-        sector = CdPosToInt(f->loc);
-        f->sector = sector;
-        if (mode == 0) {
-            D_800897E0 = sector;
-            D_800897E4 = size;
+        size = file->fsize;
+        file->remaining = size;
+        sector = CdPosToInt(file->loc);
+        file->sector = sector;
+        if (openMode == 0) {
+            DRIVE_SECTOR = sector;
+            DRIVE_SIZE = size;
         }
     }
     for (;;) {
         for (i = 0; i < 4; i++) {
-            name[i] = 0;
+            entryName[i] = 0;
         }
-        key = 0;
+        extensionKey = 0;
         for (i = 0; i < 16; i++) {
-            switch (c = *p++) {
+            switch (ch = *cursor++) {
             case '.':
                 goto ext;
             case 0:
@@ -177,340 +177,340 @@ retry:
             case '\\':
                 goto dir;
             }
-            ((u8 *)name)[i] = toupper((s8)c);
+            ((u8 *)entryName)[i] = toupper((s8)ch);
         }
-        while ((c = *p++) != '.') {
-            if (c == 0) {
+        while ((ch = *cursor++) != '.') {
+            if (ch == 0) {
                 goto end;
             }
-            if (c == '\\') {
+            if (ch == '\\') {
                 goto dir;
             }
         }
     ext:
         for (i = 0; i < 24; i += 8) {
-            c = *p++;
-            if (c == 0) {
+            ch = *cursor++;
+            if (ch == 0) {
                 goto end;
             }
-            if (c == '\\') {
+            if (ch == '\\') {
                 goto dir;
             }
-            key += toupper((s8)c) << i;
+            extensionKey += toupper((s8)ch) << i;
         }
         break;
     dir:
         if (size == 0) {
-            size = D_800897E4;
-            e = func_80015A3C((char *)name, 0x80);
-            if (e == 0) {
+            size = DRIVE_SIZE;
+            entry = findDirectoryEntryInCache((char *)entryName, 0x80);
+            if (entry == 0) {
                 return 0;
             }
         } else {
-            e = func_800158B0(f, (char *)name, 0x80);
-            if (e == 0) {
+            entry = findDirectoryEntryOnDisc(file, (char *)entryName, 0x80);
+            if (entry == 0) {
                 return 0;
             }
         }
-        f->sector = sector + e->sector;
-        f->remaining = size - (e->sector << 11);
+        file->sector = sector + entry->sector;
+        file->remaining = size - (entry->sector << 11);
     }
 end:
-    if (mode == 0) {
+    if (openMode == 0) {
         if (size == 0) {
-            e = func_80015A3C((char *)name, 0x80);
+            entry = findDirectoryEntryInCache((char *)entryName, 0x80);
         } else {
-            e = func_800158B0(f, (char *)name, 0x80);
+            entry = findDirectoryEntryOnDisc(file, (char *)entryName, 0x80);
         }
-        if (e == 0) {
+        if (entry == 0) {
             return 0;
         }
-        f->sector = sector + e->sector;
-        f->avail = 0;
-        f->remaining = 0x4000;
+        file->sector = sector + entry->sector;
+        file->avail = 0;
+        file->remaining = 0x4000;
     } else {
         if (size == 0) {
-            size = D_800897E4;
-            e = func_80015A3C((char *)name, (key << 8) + 1);
+            size = DRIVE_SIZE;
+            entry = findDirectoryEntryInCache((char *)entryName, (extensionKey << 8) + 1);
         } else {
-            e = func_800158B0(f, (char *)name, (key << 8) + 1);
+            entry = findDirectoryEntryOnDisc(file, (char *)entryName, (extensionKey << 8) + 1);
         }
-        if (e == 0) {
+        if (entry == 0) {
             return 0;
         }
-        f->sector = sector + e->sector;
-        f->remaining = size - (e->sector << 11);
-        f->avail = 0;
-        if ((f->remaining = f->size = e->size) == 0) {
+        file->sector = sector + entry->sector;
+        file->remaining = size - (entry->sector << 11);
+        file->avail = 0;
+        if ((file->remaining = file->size = entry->size) == 0) {
             goto retry;
         }
-        f->unk0 = mode;
+        file->unk0 = openMode;
     }
-    return f;
+    return file;
 }
 
-s32 func_80015EAC(CdFile *f) {
-    f->unk0 = 0;
+s32 closeDiscFile(CdFile *file) {
+    file->unk0 = 0;
     return func_8005A364(0, 0) == 5;
 }
 
-int func_80015EDC(void) {
-    Unk80081710 *p = D_80081710;
+int closeAllDiscFiles(void) {
+    Unk80081710 *handle = DISC_FILES;
     int i;
 
-    for (i = 3; i >= 0; i--, p++) {
-        if (p->unk0 > 0) {
-            p->unk0 = 0;
+    for (i = 3; i >= 0; i--, handle++) {
+        if (handle->unk0 > 0) {
+            handle->unk0 = 0;
         }
     }
     return func_8005A364(0, 0) == 5;
 }
 
-s32 func_80015F34(CdFile *f, s32 size, u8 *dst) {
-    u8 result[8];
-    u8 result2[8];
+s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
+    u8 cdResult[8];
+    u8 cdResult2[8];
     s32 total;
     s32 sectors;
-    s32 n;
-    s32 r;
+    s32 chunkSize;
+    s32 readStatus;
     u8 *src;
 
     total = 0;
-    n = f->avail;
-    if (n > 0) {
-        if (size < n) {
-            n = size;
+    chunkSize = file->avail;
+    if (chunkSize > 0) {
+        if (size < chunkSize) {
+            chunkSize = size;
         }
-        total = n;
-        f->avail -= total;
-        src = f->cur;
+        total = chunkSize;
+        file->avail -= total;
+        src = file->cur;
         size -= total;
-        for (n = total - 4; n >= 0; n -= 4) {
+        for (chunkSize = total - 4; chunkSize >= 0; chunkSize -= 4) {
             *(s32 *)dst = *(s32 *)src;
             src += 4;
             dst += 4;
         }
-        f->cur = src;
+        file->cur = src;
     }
-    if (f->remaining < size) {
-        size = f->remaining;
+    if (file->remaining < size) {
+        size = file->remaining;
     }
-    if (size <= 0 || f->remaining <= 0) {
+    if (size <= 0 || file->remaining <= 0) {
         return total;
     }
     sectors = size / 0x800;
     if (sectors > 0) {
-        CdIntToPos(f->sector, f->loc);
+        CdIntToPos(file->sector, file->loc);
         do {
-            while (CdControlB(2, f->loc, result) == 0) {
+            while (CdControlB(2, file->loc, cdResult) == 0) {
             }
             while (CdRead(sectors, dst, 0x80) == 0) {
             }
-            while ((r = CdReadSync(1, 0)) > 0) {
+            while ((readStatus = CdReadSync(1, 0)) > 0) {
                 func_80014C08(1);
             }
-        } while (r != 0);
-        f->sector += sectors;
+        } while (readStatus != 0);
+        file->sector += sectors;
         dst += sectors << 11;
-        n = sectors << 11;
-        total += n;
-        size -= n;
-        f->remaining -= n;
+        chunkSize = sectors << 11;
+        total += chunkSize;
+        size -= chunkSize;
+        file->remaining -= chunkSize;
     }
-    if (size <= 0 || f->remaining <= 0) {
+    if (size <= 0 || file->remaining <= 0) {
         return total;
     }
-    CdIntToPos(f->sector, f->loc);
+    CdIntToPos(file->sector, file->loc);
     do {
-        while (CdControlB(2, f->loc, result2) == 0) {
+        while (CdControlB(2, file->loc, cdResult2) == 0) {
         }
         do {
-            f->cur = f->buf;
-        } while (CdRead(2, f->buf, 0x80) == 0);
-        while ((r = CdReadSync(1, 0)) > 0) {
+            file->cur = file->buf;
+        } while (CdRead(2, file->buf, 0x80) == 0);
+        while ((readStatus = CdReadSync(1, 0)) > 0) {
             func_80014C08(1);
         }
-    } while (r != 0);
-    f->sector += 2;
-    f->avail = 0x1000;
-    if ((f->remaining -= 0x1000) < 0) {
-        f->avail = f->remaining + 0x1000;
+    } while (readStatus != 0);
+    file->sector += 2;
+    file->avail = 0x1000;
+    if ((file->remaining -= 0x1000) < 0) {
+        file->avail = file->remaining + 0x1000;
     }
-    n = f->avail;
-    if (n > 0) {
-        if (size < n) {
-            n = size;
+    chunkSize = file->avail;
+    if (chunkSize > 0) {
+        if (size < chunkSize) {
+            chunkSize = size;
         }
-        total += n;
-        f->avail -= n;
-        src = f->cur;
+        total += chunkSize;
+        file->avail -= chunkSize;
+        src = file->cur;
         do {
             *(s32 *)dst = *(s32 *)src;
             src += 4;
             dst += 4;
-            n -= 4;
-        } while (n > 0);
-        f->cur = src;
+            chunkSize -= 4;
+        } while (chunkSize > 0);
+        file->cur = src;
     }
     return total;
 }
 
-s32 func_800161D8(CdFile *f) {
-    u8 result[8];
-    s32 r;
+s32 readDiscFileByte(CdFile *file) {
+    u8 cdResult[8];
+    s32 readStatus;
 
-    if (f->avail <= 0) {
-        if (f->remaining <= 0) {
+    if (file->avail <= 0) {
+        if (file->remaining <= 0) {
             return -1;
         }
-        CdIntToPos(f->sector, f->loc);
+        CdIntToPos(file->sector, file->loc);
         do {
-            while (CdControlB(2, f->loc, result) == 0) {
+            while (CdControlB(2, file->loc, cdResult) == 0) {
             }
             do {
-                f->cur = f->buf;
-            } while (CdRead(2, f->buf, 0x80) == 0);
-            while ((r = CdReadSync(1, 0)) > 0) {
+                file->cur = file->buf;
+            } while (CdRead(2, file->buf, 0x80) == 0);
+            while ((readStatus = CdReadSync(1, 0)) > 0) {
                 func_80014C08(1);
             }
-        } while (r != 0);
-        f->sector += 2;
-        f->avail = 0x1000;
-        if ((f->remaining -= 0x1000) < 0) {
-            f->avail = f->remaining + 0x1000;
+        } while (readStatus != 0);
+        file->sector += 2;
+        file->avail = 0x1000;
+        if ((file->remaining -= 0x1000) < 0) {
+            file->avail = file->remaining + 0x1000;
         }
-        if (f->avail <= 0) {
+        if (file->avail <= 0) {
             return -1;
         }
     }
-    f->avail--;
-    return *f->cur++;
+    file->avail--;
+    return *file->cur++;
 }
 
-s32 func_800162F0(CdFile *f) {
-    u8 result[8];
+s32 readDiscFileU16(CdFile *file) {
+    u8 cdResult[8];
     s16 i;
-    s16 v;
-    s32 r;
+    s16 value;
+    s32 readStatus;
 
-    if (f->avail < 2) {
+    if (file->avail < 2) {
         i = 0;
-        v = 0;
-        while (f->avail != 0 && i++ < 2) {
-            v += *f->cur++ << ((i - 1) * 8);
-            f->avail--;
+        value = 0;
+        while (file->avail != 0 && i++ < 2) {
+            value += *file->cur++ << ((i - 1) * 8);
+            file->avail--;
         }
-        if (f->remaining <= 0) {
+        if (file->remaining <= 0) {
             return -1;
         }
-        CdIntToPos(f->sector, f->loc);
+        CdIntToPos(file->sector, file->loc);
         do {
-            while (CdControlB(2, f->loc, result) == 0) {
+            while (CdControlB(2, file->loc, cdResult) == 0) {
             }
             do {
-                f->cur = f->buf;
-            } while (CdRead(2, f->buf, 0x80) == 0);
-            while ((r = CdReadSync(1, 0)) > 0) {
+                file->cur = file->buf;
+            } while (CdRead(2, file->buf, 0x80) == 0);
+            while ((readStatus = CdReadSync(1, 0)) > 0) {
                 func_80014C08(1);
             }
-        } while (r != 0);
-        f->sector += 2;
-        f->avail = 0x1000;
-        if ((f->remaining -= 0x1000) < 0) {
-            f->avail = f->remaining + 0x1000;
+        } while (readStatus != 0);
+        file->sector += 2;
+        file->avail = 0x1000;
+        if ((file->remaining -= 0x1000) < 0) {
+            file->avail = file->remaining + 0x1000;
         }
-        if (f->avail + i < 2) {
+        if (file->avail + i < 2) {
             return -1;
         }
-        while (f->avail != 0 && i++ < 2) {
-            v += *f->cur++ << ((i - 1) * 8);
-            f->avail--;
+        while (file->avail != 0 && i++ < 2) {
+            value += *file->cur++ << ((i - 1) * 8);
+            file->avail--;
         }
-        return v;
+        return value;
     }
-    f->avail -= 2;
+    file->avail -= 2;
     /* sic: undefined order; the original reads one byte twice and advances once */
-    return *f->cur++ + (*f->cur++ << 8);
+    return *file->cur++ + (*file->cur++ << 8);
 }
 
-s32 func_80016500(CdFile *f) {
-    u8 result[8];
+s32 readDiscFileU32(CdFile *file) {
+    u8 cdResult[8];
     s16 i;
-    s32 v;
-    s32 w;
-    s32 r;
+    s32 value;
+    s32 word;
+    s32 readStatus;
 
-    if (f->avail < 4) {
+    if (file->avail < 4) {
         i = 0;
-        v = 0;
-        while (f->avail != 0 && i++ < 4) {
-            v |= *f->cur++ << ((i - 1) * 8);
-            f->avail--;
+        value = 0;
+        while (file->avail != 0 && i++ < 4) {
+            value |= *file->cur++ << ((i - 1) * 8);
+            file->avail--;
         }
-        if (f->remaining <= 0) {
+        if (file->remaining <= 0) {
             return -1;
         }
-        CdIntToPos(f->sector, f->loc);
+        CdIntToPos(file->sector, file->loc);
         do {
-            while (CdControlB(2, f->loc, result) == 0) {
+            while (CdControlB(2, file->loc, cdResult) == 0) {
             }
             do {
-                f->cur = f->buf;
-            } while (CdRead(2, f->buf, 0x80) == 0);
-            while ((r = CdReadSync(1, 0)) > 0) {
+                file->cur = file->buf;
+            } while (CdRead(2, file->buf, 0x80) == 0);
+            while ((readStatus = CdReadSync(1, 0)) > 0) {
                 func_80014C08(1);
             }
-        } while (r != 0);
-        f->sector += 2;
-        f->avail = 0x1000;
-        if ((f->remaining -= 0x1000) < 0) {
-            f->avail = f->remaining + 0x1000;
+        } while (readStatus != 0);
+        file->sector += 2;
+        file->avail = 0x1000;
+        if ((file->remaining -= 0x1000) < 0) {
+            file->avail = file->remaining + 0x1000;
         }
-        if (f->avail + i < 4) {
+        if (file->avail + i < 4) {
             return -1;
         }
-        while (f->avail != 0 && i++ < 4) {
-            v |= *f->cur++ << ((i - 1) * 8);
-            f->avail--;
+        while (file->avail != 0 && i++ < 4) {
+            value |= *file->cur++ << ((i - 1) * 8);
+            file->avail--;
         }
-        return v;
+        return value;
     }
-    f->avail -= 4;
-    w = (((f->cur[3] << 8) + f->cur[2] << 8) + f->cur[1] << 8) + f->cur[0];
-    f->cur += 4;
-    return w;
+    file->avail -= 4;
+    word = (((file->cur[3] << 8) + file->cur[2] << 8) + file->cur[1] << 8) + file->cur[0];
+    file->cur += 4;
+    return word;
 }
 
-s8 *func_80016724(s8 *buf, s32 n, CdFile *f) {
-    s8 *p;
-    s32 c;
+s8 *readDiscFileLine(s8 *line, s32 maxLength, CdFile *file) {
+    s8 *out;
+    s32 ch;
 
-    c = 0;
-    p = buf;
-    while (--n > 0) {
-        c = func_800161D8(f);
-        if (c == -1) {
+    ch = 0;
+    out = line;
+    while (--maxLength > 0) {
+        ch = readDiscFileByte(file);
+        if (ch == -1) {
             break;
         }
-        if (c == 0) {
+        if (ch == 0) {
             break;
         }
-        *p++ = c;
-        if (c == '\n') {
+        *out++ = ch;
+        if (ch == '\n') {
             break;
         }
-        if (c == 0x1A) {
+        if (ch == 0x1A) {
             break;
         }
     }
-    if (n <= 0 && !(c == -1 || c == 0 || c == '\n' || c == 0x1A)) {
+    if (maxLength <= 0 && !(ch == -1 || ch == 0 || ch == '\n' || ch == 0x1A)) {
         do {
-            c = func_800161D8(f);
-        } while (!(c == -1 || c == 0 || c == '\n' || c == 0x1A));
+            ch = readDiscFileByte(file);
+        } while (!(ch == -1 || ch == 0 || ch == '\n' || ch == 0x1A));
     }
-    *p = 0;
-    if (*buf == 0) {
+    *out = 0;
+    if (*line == 0) {
         return 0;
     }
-    return buf;
+    return line;
 }

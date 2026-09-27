@@ -5,203 +5,203 @@
 #include "dcb/heap.h"
 #include "dcb/main.h"
 
-void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
-    Chunk *c;
+void *findPakChunk(Chunk *cursor, s32 id, s32 sub) {
+    Chunk *header;
 
-    if (p == 0) {
+    if (cursor == 0) {
         return 0;
     }
     for (;;) {
-        c = p++;
-        if (c->id < 0) {
+        header = cursor++;
+        if (header->id < 0) {
             return 0;
         }
-        if (c->id == id && c->sub == sub) {
-            return p;
+        if (header->id == id && header->sub == sub) {
+            return cursor;
         }
-        p = (Chunk *)((u8 *)p + c->size);
+        cursor = (Chunk *)((u8 *)cursor + header->size);
     }
 }
 
-void func_8001BB94(Chunk *p, s32 id, s32 sub) {
-    Chunk *base;
-    Chunk *c;
+void truncatePakAtChunk(Chunk *cursor, s32 id, s32 sub) {
+    Chunk *pak;
+    Chunk *header;
 
-    base = p;
-    if (p == 0) {
+    pak = cursor;
+    if (cursor == 0) {
         return;
     }
     for (;;) {
-        c = p++;
-        if (c->id < 0) {
+        header = cursor++;
+        if (header->id < 0) {
             return;
         }
-        if (c->id == id && (sub < 0 || c->sub == sub)) {
-            c->id = -1;
-            func_8001AD3C(base, (u8 *)p - (u8 *)base);
+        if (header->id == id && (sub < 0 || header->sub == sub)) {
+            header->id = -1;
+            shrinkHeapBlock(pak, (u8 *)cursor - (u8 *)pak);
             return;
         }
-        p = (Chunk *)((u8 *)p + c->size);
+        cursor = (Chunk *)((u8 *)cursor + header->size);
     }
 }
 
-void func_8001BC14(Chunk *arg0) {
-    func_8001BB94(arg0, 5, -1);
+void truncatePakTextures(Chunk *pak) {
+    truncatePakAtChunk(pak, 5, -1);
 }
 
-s32 func_8001BC38(void) {
-    if (--D_801D4868 >= 0) {
-        return (D_801D486C >> D_801D4868) & 1;
+s32 readBitstreamBit(void) {
+    if (--BITSTREAM_BITS_LEFT >= 0) {
+        return (BITSTREAM_BYTE >> BITSTREAM_BITS_LEFT) & 1;
     }
-    D_801D4868 = 7;
-    D_801D486C = *D_801D4870++;
-    return D_801D486C >> 7;
+    BITSTREAM_BITS_LEFT = 7;
+    BITSTREAM_BYTE = *BITSTREAM_SRC++;
+    return BITSTREAM_BYTE >> 7;
 }
 
-u32 func_8001BCA4(s32 n) {
-    u16 v;
+u32 readBitstreamBits(s32 bitCount) {
+    u16 value;
 
-    v = 0;
-    while (D_801D4868 < n) {
-        n -= D_801D4868;
-        v |= (D_801D486C & ((1 << D_801D4868) - 1)) << n;
-        D_801D486C = *D_801D4870++;
-        D_801D4868 = 8;
+    value = 0;
+    while (BITSTREAM_BITS_LEFT < bitCount) {
+        bitCount -= BITSTREAM_BITS_LEFT;
+        value |= (BITSTREAM_BYTE & ((1 << BITSTREAM_BITS_LEFT) - 1)) << bitCount;
+        BITSTREAM_BYTE = *BITSTREAM_SRC++;
+        BITSTREAM_BITS_LEFT = 8;
     }
-    D_801D4868 -= n;
-    return v | ((D_801D486C >> D_801D4868) & ((1 << n) - 1));
+    BITSTREAM_BITS_LEFT -= bitCount;
+    return value | ((BITSTREAM_BYTE >> BITSTREAM_BITS_LEFT) & ((1 << bitCount) - 1));
 }
 
-s32 func_8001BD60(void) {
-    s32 i;
+s32 readHuffmanTree(void) {
+    s32 node;
 
-    if (func_8001BC38() != 0) {
-        i = D_801D4878++;
-        if (i >= 0x21F) {
+    if (readBitstreamBit() != 0) {
+        node = HUFFMAN_NEXT_NODE++;
+        if (node >= 0x21F) {
             return -1;
         }
-        (&D_801D4888)[i] = func_8001BD60();
-        (&D_801D5108)[i] = func_8001BD60();
+        (&HUFFMAN_LEFT)[node] = readHuffmanTree();
+        (&HUFFMAN_RIGHT)[node] = readHuffmanTree();
     } else {
-        i = func_8001BCA4(9);
+        node = readBitstreamBits(9);
     }
-    return i;
+    return node;
 }
 
-void func_8001BDEC(u32 size) {
-    s32 pos;
+void decompressLzHuffman(u32 outputSize) {
+    s32 windowPos;
     s32 i;
     s32 k;
-    u32 out;
+    u32 written;
     s32 root;
-    s32 sym;
-    s32 off;
-    u8 c;
+    s32 symbol;
+    s32 offset;
+    u8 byte;
 
-    D_801D487C = 0x1000;
-    out = 0;
+    HUFFMAN_SYMBOLS_DECODED = 0x1000;
+    written = 0;
     root = 0;
-    pos = 0xFEE;
-    for (k = 0; k < pos; k++) {
-        D_801D5988[k] = 0;
+    windowPos = 0xFEE;
+    for (k = 0; k < windowPos; k++) {
+        LZ_WINDOW[k] = 0;
     }
-    while (out < size) {
-        if (D_801D487C == 0x1000) {
-            D_801D4878 = 0x110;
-            root = func_8001BD60();
-            D_801D487C = 0;
+    while (written < outputSize) {
+        if (HUFFMAN_SYMBOLS_DECODED == 0x1000) {
+            HUFFMAN_NEXT_NODE = 0x110;
+            root = readHuffmanTree();
+            HUFFMAN_SYMBOLS_DECODED = 0;
         }
-        sym = root;
-        while (sym >= 0x110) {
-            if (func_8001BC38() != 0) {
-                sym = (&D_801D5108)[sym];
+        symbol = root;
+        while (symbol >= 0x110) {
+            if (readBitstreamBit() != 0) {
+                symbol = (&HUFFMAN_RIGHT)[symbol];
             } else {
-                sym = (&D_801D4888)[sym];
+                symbol = (&HUFFMAN_LEFT)[symbol];
             }
         }
-        D_801D487C++;
-        if (sym < 0x100) {
-            *D_801D4874++ = sym;
-            D_801D5988[pos] = sym;
-            pos++;
-            pos &= 0xFFF;
-            out++;
+        HUFFMAN_SYMBOLS_DECODED++;
+        if (symbol < 0x100) {
+            *DECOMPRESS_DST++ = symbol;
+            LZ_WINDOW[windowPos] = symbol;
+            windowPos++;
+            windowPos &= 0xFFF;
+            written++;
         } else {
-            sym -= 0xFD;
-            off = func_8001BCA4(12);
-            for (i = 0; i < sym; i++) {
-                c = D_801D5988[(off + i) & 0xFFF];
-                *D_801D4874++ = c;
-                D_801D5988[pos] = c;
-                pos++;
-            pos &= 0xFFF;
+            symbol -= 0xFD;
+            offset = readBitstreamBits(12);
+            for (i = 0; i < symbol; i++) {
+                byte = LZ_WINDOW[(offset + i) & 0xFFF];
+                *DECOMPRESS_DST++ = byte;
+                LZ_WINDOW[windowPos] = byte;
+                windowPos++;
+            windowPos &= 0xFFF;
             }
-            out += sym;
+            written += symbol;
         }
     }
 }
 
-s32 func_8001BFCC(s32 arg0, s32 arg1) {
-    return func_8001C078(arg0 + ((s32 *)arg0)[arg1]);
+s32 decompressArchiveEntry(s32 archive, s32 index) {
+    return decompressForTask(archive + ((s32 *)archive)[index]);
 }
 
-s32 func_8001BFF8(s32 arg0, s32 arg1) {
-    s32 temp_s0;
-    s32 temp_s0_2;
-    s32 temp_v0;
+s32 decompressToHeap(s32 src, s32 heapTag) {
+    s32 sizeHigh;
+    s32 size;
+    s32 dst;
 
-    D_801D4868 = 0;
-    D_801D486C = 0;
-    D_801D4870 = (u8 *)arg0;
-    temp_s0 = func_8001BCA4(0x10);
-    temp_s0_2 = (temp_s0 << 0x10) | func_8001BCA4(0x10);
-    temp_v0 = func_8001ABCC(temp_s0_2, arg1);
-    D_801D4874 = (u8 *)temp_v0;
-    func_8001BDEC(temp_s0_2);
-    return temp_v0;
+    BITSTREAM_BITS_LEFT = 0;
+    BITSTREAM_BYTE = 0;
+    BITSTREAM_SRC = (u8 *)src;
+    sizeHigh = readBitstreamBits(0x10);
+    size = (sizeHigh << 0x10) | readBitstreamBits(0x10);
+    dst = allocHeapBlock(size, heapTag);
+    DECOMPRESS_DST = (u8 *)dst;
+    decompressLzHuffman(size);
+    return dst;
 }
 
-s32 func_8001C078(s32 arg0) {
-    return func_8001BFF8(arg0, func_800148B0());
+s32 decompressForTask(s32 src) {
+    return decompressToHeap(src, func_800148B0());
 }
 
-void func_8001C0A8(s8 *base, u32 n, s32 size, s32 (*cmp)(s8 *, s8 *)) {
+void sortArray(s8 *base, u32 count, s32 size, s32 (*cmp)(s8 *, s8 *)) {
     u32 i;
     u32 j;
     u32 k;
-    s8 *a;
-    s8 *b;
+    s8 *left;
+    s8 *right;
 
-    if (n < 2) {
+    if (count < 2) {
         return;
     }
-    a = base;
-    if (n == 2) {
-        b = a + size;
-        if (cmp(a, b) > 0) {
-            func_8001C1E0(a, b, size);
+    left = base;
+    if (count == 2) {
+        right = left + size;
+        if (cmp(left, right) > 0) {
+            swapBytes(left, right, size);
         }
         return;
     }
-    for (i = 0; i < n; i++, a += size) {
-        b = a + size;
-        for (j = i; j < n - 1; j++, b += size) {
-            if (cmp(a, b) > 0) {
+    for (i = 0; i < count; i++, left += size) {
+        right = left + size;
+        for (j = i; j < count - 1; j++, right += size) {
+            if (cmp(left, right) > 0) {
                 for (k = i; k <= j; k++) {
-                    func_8001C1E0(base + size * k, b, size);
+                    swapBytes(base + size * k, right, size);
                 }
             }
         }
     }
 }
 
-void func_8001C1E0(s8 *a, s8 *b, s32 size) {
+void swapBytes(s8 *a, s8 *b, s32 size) {
     u32 i;
-    s8 t;
+    s8 tmp;
 
     for (i = 0; i < size; i++) {
-        t = a[i];
+        tmp = a[i];
         a[i] = b[i];
-        b[i] = t;
+        b[i] = tmp;
     }
 }

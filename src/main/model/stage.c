@@ -80,7 +80,7 @@ s32 func_8002DCB0(s32 slot, s32 id, s8 kind, s32 anims) {
     } else {
         sprintf(path, "F:\\%03d.PAK", id);
     }
-    pak = func_8001B248((s32 *)path, func_800148B0(), slot + 0x1F4);
+    pak = loadFileTagged((s32 *)path, func_800148B0(), slot + 0x1F4);
     if (func_8002386C(slot, id, -1, pak, kind) == 0) {
         return pak;
     }
@@ -95,13 +95,13 @@ s32 func_8002DCB0(s32 slot, s32 id, s8 kind, s32 anims) {
         func_800230B8(slot, 6, 6, pak);
     } else {
         func_80023094(D_801D6A4C->unk13C[slot],
-                      (s32 *)func_8001BFF8(
-                          (s32)func_8001BB44((Chunk *)((Model2220 *)D_801D6A4C->unk13C[slot])->unk26F4, 1, 7), slot + 0x84),
+                      (s32 *)decompressToHeap(
+                          (s32)findPakChunk((Chunk *)((Model2220 *)D_801D6A4C->unk13C[slot])->unk26F4, 1, 7), slot + 0x84),
                       7);
         func_80023148(slot, 7);
     }
     D_801D6A4C->unk114[slot] = -1;
-    func_8001BC14((Chunk *)pak);
+    truncatePakTextures((Chunk *)pak);
     return pak;
 }
 
@@ -119,14 +119,14 @@ void func_8002DEA0(s32 arg0, void *arg1) {
         (*(s32 *)((s8 *)temp_s1 + 0)) = -2;
         if ((*(s8 *)((s8 *)D_801D8340 + 0x811)) == 1) {
             do {
-                func_80014C08(D_800794F0);
+                func_80014C08(FRAME_INTERVAL);
             } while ((*(s8 *)((s8 *)D_801D8340 + 0x811)) == 1);
         }
         (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 1;
         if (temp_s6 > 0) {
             func_800235C8(arg0);
-            func_8001AFF0(arg0 + 0x1F4);
-            func_8001AFF0(arg0 + 0x84);
+            freeHeapBlocksByTag(arg0 + 0x1F4);
+            freeHeapBlocksByTag(arg0 + 0x84);
         }
         if (temp_s5 > 0) {
             temp_s2 = findDigimonCardByModelId(temp_s5);
@@ -155,23 +155,23 @@ void func_8002E034(s32 bg) {
 
     if (*((s8 *)D_801D8340 + 0x811) == 1) {
         do {
-            func_80014C08(D_800794F0);
+            func_80014C08(FRAME_INTERVAL);
         } while (*((s8 *)D_801D8340 + 0x811) == 1);
     }
     *((s8 *)D_801D8340 + 0x811) = 1;
     *((s8 *)D_801D8340 + 0x813) = 0;
-    pak = func_8001B144((s32) "A:\\BATTLE.PAK", func_800148B0());
+    pak = loadFile((s32) "A:\\BATTLE.PAK", func_800148B0());
     if (pak != 0) {
-        func_8001B5BC(func_8001BB44((Chunk *)pak, 5, 0x68));
+        uploadTimList(findPakChunk((Chunk *)pak, 5, 0x68));
         D_801D81AC = (void *)loadSkill(999, pak);
         D_801D81B0 = (void *)loadSkill(998, pak);
-        func_8001BC14((Chunk *)pak);
+        truncatePakTextures((Chunk *)pak);
     }
     func_8002E42C(bg);
     D_801D81B8 = (&D_801D81B8)[8] = -1;
     *((s8 *)D_801D8340 + 0x811) = 0;
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             s = *(u8 **)(D_801D8348[i] + 0x114);
             if (s != 0 && s[0xE5] != (&D_801D81B8)[i * 8]) {
@@ -186,32 +186,32 @@ void func_8002E034(s32 bg) {
         }
     }
     func_8002E7B8();
-    func_8001AFF0(0x1F4);
-    func_8001AFF0(0x84);
-    func_8001AFF0(0x1F5);
-    func_8001AFF0(0x85);
-    func_8001AFF0(0x81);
+    freeHeapBlocksByTag(0x1F4);
+    freeHeapBlocksByTag(0x84);
+    freeHeapBlocksByTag(0x1F5);
+    freeHeapBlocksByTag(0x85);
+    freeHeapBlocksByTag(0x81);
     *((s8 *)D_801D8340 + 0x813) = 0;
 }
 
 void func_8002E26C(void) {
     do {
-        func_80014C08(D_800794F0);
+        func_80014C08(FRAME_INTERVAL);
     } while (D_801D81B8 <= 0 || (&D_801D81B8)[8] <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
     *((s8 *)D_801D8340 + 0x811) = 1;
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\sugseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_8002B858(1);
+    playLoadedMusic(1);
     func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     D_80079544 = 0;
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\kawseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_8002B858(0);
+    playLoadedMusic(0);
     *((s8 *)D_801D8340 + 0x811) = 0;
 }
 
@@ -222,7 +222,7 @@ void func_8002E42C(s32 n) {
         n = rand() % 12 + 0x2C;
     }
     sprintf(path, "F:\\bg%d.pak", D_8006E0C0[n].bg + 900);
-    func_800149B8(0, -1, 0, 0x400, func_8001B248, path, func_800148B0(), 0x81);
+    func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, func_800148B0(), 0x81);
     D_801D81A8 = func_80014C08(0x7FFFFFFF);
     func_8002386C(0x17, D_8006E0C0[n].bg + 900, 0, D_801D81A8, 0);
     D_801D6A4C->unk114[0x17] = -1;
@@ -250,24 +250,24 @@ void func_8002E658(s16 id) {
     D_80079544 = 1;
     p = D_801D6A4C;
     *(s16 *)((u8 *)p->unk13C[23] + 0xA78) = id;
-    tim = func_8001C078((s32)func_8001BB44((Chunk *)D_801D81A8, 5, *(s16 *)((u8 *)p->unk13C[23] + 6)));
-    func_8001B438((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
+    tim = decompressForTask((s32)findPakChunk((Chunk *)D_801D81A8, 5, *(s16 *)((u8 *)p->unk13C[23] + 6)));
+    uploadTim((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
-    func_8001AE90((void *)tim);
+    freeHeapBlock((void *)tim);
     if (id != 0 && (*(s32 *)&D_801D6A4C->unk114[0x24] & 2)) {
         func_80014A00(0x1B);
         func_800149B8(0x1B, -1, 0, 0x1000, func_80022B98, 1);
         func_80023148(0x17, 0);
         func_80022D34(0x17, 0, -2, 0);
     }
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.r0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.r0 = D_801D6A60[0];
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.g0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.g0 = D_801D6A60[1];
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.b0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.b0 = D_801D6A60[2];
+    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.r0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.r0 = D_801D6A60[0];
+    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.g0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.g0 = D_801D6A60[1];
+    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.b0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.b0 = D_801D6A60[2];
 }
 
 void func_8002E7B8(void) {
     func_800235C8(0x17);
-    func_8001AE90(D_801D81A8);
+    freeHeapBlock(D_801D81A8);
 }
 
 void func_8002E7E8(u8 *arg0) {
@@ -289,7 +289,7 @@ void func_8002E7E8(u8 *arg0) {
 void func_8002E8EC(s32 mode) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010864, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010864, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801EBAFC, mode, func_800148B0(), 0, 0);
@@ -297,14 +297,14 @@ void func_8002E8EC(s32 mode) {
     switch (mode) {
     case 2:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 1, 1, func_800148B0(), 0);
         break;
     case 4:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -321,12 +321,12 @@ void func_8002EB1C(void) {
         return;
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     if (*(u8 *)(PLAYER_PROFILES + 0xF) == 0) {
-        func_8002B024(0, 0x6F, 0x7F);
-        func_8002B858(0);
+        loadMusicTrack(0, 0x6F, 0x7F);
+        playLoadedMusic(0);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 0, func_800148B0(), 0);
     } else {
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -336,7 +336,7 @@ void func_8002EB1C(void) {
 void func_8002ECDC(s8 arg0) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010884, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010884, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1600, D_801E8E88, (s32 *) arg0, 0, 0, 0);
@@ -344,7 +344,7 @@ void func_8002ECDC(s8 arg0) {
 
 void func_8002ED9C(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -352,7 +352,7 @@ void func_8002ED9C(void) {
 
 void func_8002EE50(s32 mode) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010894, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010894, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801E8C04, 0, func_800148B0(), 0, 0);
@@ -360,14 +360,14 @@ void func_8002EE50(s32 mode) {
     switch (mode) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, func_800148B0(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -377,7 +377,7 @@ void func_8002EE50(s32 mode) {
 
 void func_8002F074(s32 mode) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010894, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010894, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, D_801E4B34, 0, func_800148B0(), 0, 0);
@@ -385,14 +385,14 @@ void func_8002F074(s32 mode) {
     switch (mode) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, func_800148B0(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -402,26 +402,26 @@ void func_8002F074(s32 mode) {
 
 void func_8002F298(s32 *arg0) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010894, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010894, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801E8C04, arg0, func_800148B0(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010864, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010864, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
 
 void func_8002F3C4(s32 *arg0) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010894, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010894, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, D_801E4B34, arg0, func_800148B0(), 1, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010864, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010864, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
@@ -433,7 +433,7 @@ void func_8002F4F4(void) {
 
     stack = func_800148B0();
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010864, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010864, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     do {
@@ -446,7 +446,7 @@ void func_8002F4F4(void) {
             func_800149B8(0, -1, 0, 0x800, D_801E6454, stack, 0, 0, 0);
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
-            func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+            func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &D_80010874, D_80010C9C, func_800148B0());
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
             func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
@@ -500,14 +500,14 @@ void func_8002F7A8(void) {
         r[3] = 0;
         SetTexWindow((s8 *)&D_801D8220 + i * 0x34, r);
     }
-    func_800149B8(0, -1, 0, 0x800, func_8001B248, &D_800108A4, func_800148B0(), -2);
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, &D_800108A4, func_800148B0(), -2);
     D_801D8260 = func_80014C08(0x7FFFFFFF);
 }
 
 void func_8002F8E8(void) {
     s8 *p = (s8 *)&D_801D81F8;
 
-    func_8001AE90(*(void **)(p + 0x68));
+    freeHeapBlock(*(void **)(p + 0x68));
     *(void **)(p + 0x68) = 0;
     func_8002FAA8();
 }
@@ -517,7 +517,7 @@ void func_8002F920(s32 mode, s32 x, s32 y, s32 w, s32 h) {
 
     if (D_801D81F8.unk72 != 0 && D_801D81F8.unk72 != 0x80) {
         do {
-            func_80014C08(D_800794F0);
+            func_80014C08(FRAME_INTERVAL);
         } while (D_801D81F8.unk72 != 0 && D_801D81F8.unk72 != 0x80);
     }
     if (D_801D81F8.unk72 == 0) {

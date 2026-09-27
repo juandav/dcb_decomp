@@ -9,194 +9,194 @@
 s32 PLAYER_PROFILES = 0;
 void *D_8006E054 = 0;
 
-void func_8002BB58(u32 arg0) {
-    s32 var_a0;
+void playMenuSound(u32 kind) {
+    s32 sound;
 
-    var_a0 = 0;
+    sound = 0;
     if (D_801D813C == 0) {
-        switch (arg0) {
+        switch (kind) {
         case 0:
-            var_a0 = 0xA1;
+            sound = 0xA1;
             break;
         case 1:
-            var_a0 = 0xA0;
+            sound = 0xA0;
             break;
         case 2:
-            var_a0 = 0xA2;
+            sound = 0xA2;
             break;
         case 3:
-            var_a0 = 0xA3;
+            sound = 0xA3;
             break;
         case 4:
-            var_a0 = 0xA4;
+            sound = 0xA4;
             break;
         }
     } else {
-        switch (arg0) {
+        switch (kind) {
         case 0:
-            var_a0 = 1;
+            sound = 1;
             break;
         case 1:
-            var_a0 = 0;
+            sound = 0;
             break;
         case 2:
-            var_a0 = 2;
+            sound = 2;
             break;
         case 3:
-            var_a0 = 3;
+            sound = 3;
             break;
         case 4:
-            var_a0 = 4;
+            sound = 4;
             break;
         }
     }
-    func_8002B498(var_a0);
+    playSoundEffect(sound);
 }
 
-s32 func_8002BC2C(void) {
-    s32 var_v1;
+s32 isMusicIdle(void) {
+    s32 idle;
 
-    var_v1 = 0;
-    if (D_8006E03C == 0) {
-        var_v1 = D_8006E040 == 0;
+    idle = 0;
+    if (MUSIC_CHANGE_BUSY == 0) {
+        idle = PENDING_MUSIC_CHANGES == 0;
     }
-    return var_v1;
+    return idle;
 }
 
-void func_8002BC58(void) {
+void initMemoryCard(void) {
     InitCARD(0);
-    func_8002BC80();
+    startMemoryCardEvents();
 }
 
-void func_8002BC80(void) {
+void startMemoryCardEvents(void) {
     s32 i;
 
     VSync(2);
-    D_801D8160 = func_8006A794(0xF4000001, 4, 0x2000, 0);
-    D_801D8164 = func_8006A794(0xF4000001, 0x8000, 0x2000, 0);
-    D_801D8168 = func_8006A794(0xF4000001, 0x100, 0x2000, 0);
-    D_801D816C = func_8006A794(0xF4000001, 0x2000, 0x2000, 0);
-    D_801D8170 = func_8006A794(0xF0000011, 4, 0x2000, 0);
-    D_801D8174 = func_8006A794(0xF0000011, 0x8000, 0x2000, 0);
-    D_801D8178 = func_8006A794(0xF0000011, 0x100, 0x2000, 0);
-    D_801D817C = func_8006A794(0xF0000011, 0x2000, 0x2000, 0);
+    MEMORY_CARD_EVENT_DONE = func_8006A794(0xF4000001, 4, 0x2000, 0);
+    MEMORY_CARD_EVENT_ERROR = func_8006A794(0xF4000001, 0x8000, 0x2000, 0);
+    MEMORY_CARD_EVENT_TIMEOUT = func_8006A794(0xF4000001, 0x100, 0x2000, 0);
+    MEMORY_CARD_EVENT_NEW_CARD = func_8006A794(0xF4000001, 0x2000, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_DONE = func_8006A794(0xF0000011, 4, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_ERROR = func_8006A794(0xF0000011, 0x8000, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_TIMEOUT = func_8006A794(0xF0000011, 0x100, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_NEW_CARD = func_8006A794(0xF0000011, 0x2000, 0x2000, 0);
     StartCARD();
     func_80068804();
-    func_8006A7C4(D_801D8160);
-    func_8006A7C4(D_801D8164);
-    func_8006A7C4(D_801D8168);
-    func_8006A7C4(D_801D816C);
-    func_8006A7C4(D_801D8170);
-    func_8006A7C4(D_801D8174);
-    func_8006A7C4(D_801D8178);
-    func_8006A7C4(D_801D817C);
+    func_8006A7C4(MEMORY_CARD_EVENT_DONE);
+    func_8006A7C4(MEMORY_CARD_EVENT_ERROR);
+    func_8006A7C4(MEMORY_CARD_EVENT_TIMEOUT);
+    func_8006A7C4(MEMORY_CARD_EVENT_NEW_CARD);
+    func_8006A7C4(MEMORY_CARD_HW_EVENT_DONE);
+    func_8006A7C4(MEMORY_CARD_HW_EVENT_ERROR);
+    func_8006A7C4(MEMORY_CARD_HW_EVENT_TIMEOUT);
+    func_8006A7C4(MEMORY_CARD_HW_EVENT_NEW_CARD);
     for (i = 0; i < 2; i++) {
-        D_801D8190[i] = func_8001ACEC(0x260);
+        MEMORY_CARD_DIRECTORIES[i] = allocPermanentHeapBlock(0x260);
     }
-    D_801D81A0 = func_8001ACEC(0x200);
+    MEMORY_CARD_SAVE_HEADER = allocPermanentHeapBlock(0x200);
 }
 
-s32 func_8002BE84(s32 arg0) {
-    s32 n;
+s32 waitForMemoryCardEvent(s32 waitFrames) {
+    s32 tries;
 
-    n = 0;
+    tries = 0;
     D_801D8198 = 0;
     do {
-        if (func_8006A7B4(D_801D8160) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_EVENT_DONE) == 1) {
             return 0;
         }
-        if (func_8006A7B4(D_801D8164) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_EVENT_ERROR) == 1) {
             return 1;
         }
-        if (func_8006A7B4(D_801D8168) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_EVENT_TIMEOUT) == 1) {
             return 2;
         }
-        if (func_8006A7B4(D_801D816C) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_EVENT_NEW_CARD) == 1) {
             return 3;
         }
-        if (arg0 != 0) {
-            if (n++ >= 0x1F) {
+        if (waitFrames != 0) {
+            if (tries++ >= 0x1F) {
                 break;
             }
-            func_80014C08(arg0);
+            func_80014C08(waitFrames);
         }
     } while (D_801D8198 < 0x259);
     return 2;
 }
 
-void func_8002BF60(void) {
-    func_8006A7B4(D_801D8160);
-    func_8006A7B4(D_801D8164);
-    func_8006A7B4(D_801D8168);
-    func_8006A7B4(D_801D816C);
+void clearMemoryCardEvents(void) {
+    func_8006A7B4(MEMORY_CARD_EVENT_DONE);
+    func_8006A7B4(MEMORY_CARD_EVENT_ERROR);
+    func_8006A7B4(MEMORY_CARD_EVENT_TIMEOUT);
+    func_8006A7B4(MEMORY_CARD_EVENT_NEW_CARD);
 }
 
-s32 func_8002BFB8(s32 arg0) {
-    s32 n;
+s32 waitForMemoryCardHwEvent(s32 waitFrames) {
+    s32 tries;
 
-    n = 0;
+    tries = 0;
     D_801D8198 = 0;
     do {
-        if (func_8006A7B4(D_801D8170) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_DONE) == 1) {
             return 0;
         }
-        if (func_8006A7B4(D_801D8174) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_ERROR) == 1) {
             return 1;
         }
-        if (func_8006A7B4(D_801D8178) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_TIMEOUT) == 1) {
             return 2;
         }
-        if (func_8006A7B4(D_801D817C) == 1) {
+        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_NEW_CARD) == 1) {
             return 3;
         }
-        if (arg0 != 0) {
-            if (n++ >= 0x1F) {
+        if (waitFrames != 0) {
+            if (tries++ >= 0x1F) {
                 break;
             }
-            func_80014C08(arg0);
+            func_80014C08(waitFrames);
         }
     } while (D_801D8198 < 0x259);
     return 2;
 }
 
-void func_8002C094(void) {
-    func_8006A7B4(D_801D8170);
-    func_8006A7B4(D_801D8174);
-    func_8006A7B4(D_801D8178);
-    func_8006A7B4(D_801D817C);
+void clearMemoryCardHwEvents(void) {
+    func_8006A7B4(MEMORY_CARD_HW_EVENT_DONE);
+    func_8006A7B4(MEMORY_CARD_HW_EVENT_ERROR);
+    func_8006A7B4(MEMORY_CARD_HW_EVENT_TIMEOUT);
+    func_8006A7B4(MEMORY_CARD_HW_EVENT_NEW_CARD);
 }
 
-s32 func_8002C0EC(s32 arg0) {
-    s32 temp_s0;
-    s32 temp_v0;
-    s32 var_s0;
+s32 ensureMemoryCardReady(s32 port) {
+    s32 channel;
+    s32 event;
+    s32 retries;
 
-    var_s0 = 0;
+    retries = 0;
 loop_1:
-    func_8002BF60();
-    func_80068814(arg0 * 0x10);
-    temp_v0 = func_8002BE84(0);
-    if ((u32) (temp_v0 - 1) < 2U) {
-        if (var_s0 >= 5) {
+    clearMemoryCardEvents();
+    func_80068814(port * 0x10);
+    event = waitForMemoryCardEvent(0);
+    if ((u32) (event - 1) < 2U) {
+        if (retries >= 5) {
             return 1;
         }
         goto block_6;
     }
-    if (temp_v0 == 3) {
-        if (var_s0 < 3) {
+    if (event == 3) {
+        if (retries < 3) {
 block_6:
-            var_s0 += 1;
-            func_80014C08(D_800794F0);
+            retries += 1;
+            func_80014C08(FRAME_INTERVAL);
             goto loop_1;
         }
-        if (temp_v0 == 3) {
-            temp_s0 = arg0 * 0x10;
-            func_8002C094();
-            _card_clear(temp_s0);
-            func_8002BFB8(1);
-            func_8002BF60();
-            func_80068824(temp_s0);
-            func_8002BE84(0);
+        if (event == 3) {
+            channel = port * 0x10;
+            clearMemoryCardHwEvents();
+            _card_clear(channel);
+            waitForMemoryCardHwEvent(1);
+            clearMemoryCardEvents();
+            func_80068824(channel);
+            waitForMemoryCardEvent(0);
         }
         /* Duplicate return node #9. Try simplifying control flow for better match */
         return 0;
@@ -204,34 +204,34 @@ block_6:
     return 0;
 }
 
-s32 func_8002C1C0(s32 port) {
-    s32 r;
+s32 getMemoryCardStatus(s32 port) {
+    s32 event;
     s32 tries;
     s32 retry;
 
     tries = 0;
     retry = 0;
 loop:
-    func_8002BF60();
+    clearMemoryCardEvents();
     func_80068814(port * 16);
-    r = func_8002BE84(1);
-    if (r == 1 || r == 2) {
+    event = waitForMemoryCardEvent(1);
+    if (event == 1 || event == 2) {
         if (retry >= 5) {
             return 1;
         }
         retry++;
     } else {
-        if (r == 3) {
+        if (event == 3) {
             if (retry < 3) {
                 retry++;
                 goto wait;
             }
             retry++;
-            if (r == 3) {
-                func_8002C094();
+            if (event == 3) {
+                clearMemoryCardHwEvents();
                 _card_clear(port * 16);
-                r = func_8002BFB8(1);
-                if (r == 1 || r == 2) {
+                event = waitForMemoryCardHwEvent(1);
+                if (event == 1 || event == 2) {
                     retry = 0;
                     if (tries >= 5) {
                         return 1;
@@ -241,15 +241,15 @@ loop:
                 }
             }
         }
-        func_8002BF60();
+        clearMemoryCardEvents();
         func_80068824(port * 16);
-        r = func_8002BE84(0);
-        if (r == 0) {
+        event = waitForMemoryCardEvent(0);
+        if (event == 0) {
             goto done;
         }
         retry = 0;
         if (tries >= 5) {
-            if (r == 3) {
+            if (event == 3) {
                 return 2;
             }
             return 1;
@@ -263,162 +263,162 @@ done:
     return 0;
 }
 
-s32 func_8002C2E4(s32 arg0) {
-    return _card_format(arg0 * 0x10) == 1;
+s32 formatMemoryCard(s32 port) {
+    return _card_format(port * 0x10) == 1;
 }
 
-s32 func_8002C30C(s32 slot, u8 blocks, s32 arg2, s32 arg3, McHeader *hdr) {
+s32 startMemoryCardSave(s32 port, u8 blocks, s32 data, s32 fileName, McHeader *header) {
     char name[32];
     s32 fd;
 
-    ((u8 *)hdr)[3] = blocks;
-    sprintf(name, &D_800105E4, slot, arg3);
-    func_8006A864(func_8006A824(name, (((u8 *)hdr)[3] << 16) | 0x200));
-    *(McHeader *)D_801D81A0 = *hdr;
-    D_801D8184 = fd = func_8006A824(name, 0x8002);
+    ((u8 *)header)[3] = blocks;
+    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
+    func_8006A864(func_8006A824(name, (((u8 *)header)[3] << 16) | 0x200));
+    *(McHeader *)MEMORY_CARD_SAVE_HEADER = *header;
+    MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8002);
     if (fd == -1) {
         return -1;
     }
-    D_801D8180 = 0;
-    D_801D8188 = arg2;
-    if (func_8002C0EC(slot) != 0) {
+    MEMORY_CARD_TRANSFER_STEP = 0;
+    MEMORY_CARD_TRANSFER_DATA = data;
+    if (ensureMemoryCardReady(port) != 0) {
         return -1;
     }
     return 0;
 }
 
-s32 func_8002C468(void) {
-    s32 r;
-    s32 start;
-    s32 end;
+s32 stepMemoryCardSave(void) {
+    s32 event;
+    s32 dataOffset;
+    s32 fileSize;
     s32 off;
 
-    func_8002BF60();
-    switch (D_801D8180) {
+    clearMemoryCardEvents();
+    switch (MEMORY_CARD_TRANSFER_STEP) {
     case 0:
-        start = D_801D81A0[2] * 128 - 0x780;
-        func_8006A834(D_801D8184, 0, 0);
-        if (func_8006A854(D_801D8184, D_801D81A0, start) == -1) {
+        dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
+        func_8006A834(MEMORY_CARD_FILE, 0, 0);
+        if (func_8006A854(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, dataOffset) == -1) {
             return -1;
         }
-        D_801D8180++;
+        MEMORY_CARD_TRANSFER_STEP++;
     case 1:
-        r = func_8002BE84(1);
-        if (r == 1 || r == 2) {
-            func_8006A864(D_801D8184);
+        event = waitForMemoryCardEvent(1);
+        if (event == 1 || event == 2) {
+            func_8006A864(MEMORY_CARD_FILE);
             return -1;
         }
-        start = D_801D81A0[2] * 128 - 0x780;
-        end = D_801D81A0[3] * 0x2000;
-        D_801D819C = (end - start) / 128;
-        D_801D818C = 0;
-        D_801D8180++;
+        dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
+        fileSize = MEMORY_CARD_SAVE_HEADER[3] * 0x2000;
+        MEMORY_CARD_SECTORS_TOTAL = (fileSize - dataOffset) / 128;
+        MEMORY_CARD_SECTORS_DONE = 0;
+        MEMORY_CARD_TRANSFER_STEP++;
         return 0;
     case 2:
-        func_8006A834(D_801D8184, ((D_801D81A0[2] - 0x10) << 7) + 0x80 + (D_801D818C << 7), 0);
-        if (func_8006A854(D_801D8184, (void *)(D_801D8188 + (D_801D818C << 7)), 0x80) == -1) {
+        func_8006A834(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
+        if (func_8006A854(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
             return -1;
         }
-        D_801D8180++;
+        MEMORY_CARD_TRANSFER_STEP++;
     case 3:
-        r = func_8002BE84(1);
-        if (r == 1 || r == 2) {
-            func_8006A864(D_801D8184);
+        event = waitForMemoryCardEvent(1);
+        if (event == 1 || event == 2) {
+            func_8006A864(MEMORY_CARD_FILE);
             return -1;
         }
-        D_801D818C++;
-        D_801D8180 = 2;
-        if (D_801D818C == D_801D819C) {
-            func_8006A864(D_801D8184);
+        MEMORY_CARD_SECTORS_DONE++;
+        MEMORY_CARD_TRANSFER_STEP = 2;
+        if (MEMORY_CARD_SECTORS_DONE == MEMORY_CARD_SECTORS_TOTAL) {
+            func_8006A864(MEMORY_CARD_FILE);
         }
         break;
     }
-    return D_801D818C * 100 / D_801D819C;
+    return MEMORY_CARD_SECTORS_DONE * 100 / MEMORY_CARD_SECTORS_TOTAL;
 }
 
-s32 func_8002C6EC(s32 slot, s32 arg1, s32 arg2) {
+s32 startMemoryCardLoad(s32 port, s32 data, s32 fileName) {
     char name[32];
     s32 fd;
 
-    sprintf(name, &D_800105E4, slot, arg2);
-    D_801D8184 = fd = func_8006A824(name, 0x8001);
+    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
+    MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8001);
     if (fd == -1) {
         return -1;
     }
-    D_801D8180 = 0;
-    D_801D8188 = arg1;
-    if (func_8002C0EC(slot) != 0) {
+    MEMORY_CARD_TRANSFER_STEP = 0;
+    MEMORY_CARD_TRANSFER_DATA = data;
+    if (ensureMemoryCardReady(port) != 0) {
         return -1;
     }
     return 0;
 }
 
-s32 func_8002C784(void) {
-    s32 r;
-    s32 start;
-    s32 end;
+s32 stepMemoryCardLoad(void) {
+    s32 event;
+    s32 dataOffset;
+    s32 fileSize;
     s32 off;
 
-    func_8002BF60();
-    switch (D_801D8180) {
+    clearMemoryCardEvents();
+    switch (MEMORY_CARD_TRANSFER_STEP) {
     case 0:
-        func_8006A834(D_801D8184, 0, 0);
-        if (func_8006A844(D_801D8184, D_801D81A0, 0x80) == -1) {
+        func_8006A834(MEMORY_CARD_FILE, 0, 0);
+        if (func_8006A844(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
             return -1;
         }
-        D_801D8180++;
+        MEMORY_CARD_TRANSFER_STEP++;
     case 1:
-        r = func_8002BE84(1);
-        if (r == 1 || r == 2) {
-            func_8006A864(D_801D8184);
+        event = waitForMemoryCardEvent(1);
+        if (event == 1 || event == 2) {
+            func_8006A864(MEMORY_CARD_FILE);
             return -1;
         }
-        start = D_801D81A0[2] * 128 - 0x780;
-        end = D_801D81A0[3] * 0x2000;
-        D_801D819C = (end - start) / 128;
-        D_801D818C = 0;
-        D_801D8180++;
+        dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
+        fileSize = MEMORY_CARD_SAVE_HEADER[3] * 0x2000;
+        MEMORY_CARD_SECTORS_TOTAL = (fileSize - dataOffset) / 128;
+        MEMORY_CARD_SECTORS_DONE = 0;
+        MEMORY_CARD_TRANSFER_STEP++;
         return 0;
     case 2:
-        func_8006A834(D_801D8184, ((D_801D81A0[2] - 0x10) << 7) + 0x80 + (D_801D818C << 7), 0);
-        if (func_8006A844(D_801D8184, (void *)(D_801D8188 + (D_801D818C << 7)), 0x80) == -1) {
+        func_8006A834(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
+        if (func_8006A844(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
             return -1;
         }
-        D_801D8180++;
+        MEMORY_CARD_TRANSFER_STEP++;
     case 3:
-        r = func_8002BE84(1);
-        if (r == 1 || r == 2) {
-            func_8006A864(D_801D8184);
+        event = waitForMemoryCardEvent(1);
+        if (event == 1 || event == 2) {
+            func_8006A864(MEMORY_CARD_FILE);
             return -1;
         }
-        D_801D818C++;
-        D_801D8180 = 2;
-        if (D_801D818C == D_801D819C) {
-            func_8006A864(D_801D8184);
+        MEMORY_CARD_SECTORS_DONE++;
+        MEMORY_CARD_TRANSFER_STEP = 2;
+        if (MEMORY_CARD_SECTORS_DONE == MEMORY_CARD_SECTORS_TOTAL) {
+            func_8006A864(MEMORY_CARD_FILE);
         }
         break;
     }
-    return D_801D818C * 100 / D_801D819C;
+    return MEMORY_CARD_SECTORS_DONE * 100 / MEMORY_CARD_SECTORS_TOTAL;
 }
 
-s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
+s32 readMemoryCardSavePreview(s32 port, void *dst, s32 fileName) {
     char name[32];
     s32 fd;
 
-    sprintf(name, &D_800105E4, arg0, arg2);
+    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
     fd = func_8006A824(name, 1);
     if (fd == -1) {
         return 1;
     }
-    if (func_8006A844(fd, D_801D81A0, 0x80) == -1) {
+    if (func_8006A844(fd, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
         func_8006A864(fd);
         return 1;
     }
-    if (func_8006A834(fd, ((*(u8 *)((s8 *)D_801D81A0 + 2)) - 0x10) << 7, 1) == -1) {
+    if (func_8006A834(fd, ((*(u8 *)((s8 *)MEMORY_CARD_SAVE_HEADER + 2)) - 0x10) << 7, 1) == -1) {
         func_8006A864(fd);
         return 1;
     }
-    if (func_8006A844(fd, arg1, 0x80) == -1) {
+    if (func_8006A844(fd, dst, 0x80) == -1) {
         func_8006A864(fd);
         return 1;
     }
@@ -426,230 +426,230 @@ s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
     return 0;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", D_800105E4);
+INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", FMT_MEMORY_CARD_FILE_PATH);
 
-void func_8002CAC8(s32 port) {
+void scanMemoryCardFiles(s32 port) {
     char name[8];
-    DirEntry *d;
+    DirEntry *entry;
     s32 count;
     s32 total;
 
     count = 0;
     total = 0;
     sprintf(name, "bu%1d0:*", port);
-    d = D_801D8190[port]->files;
-    if (firstfile(name, d) == d) {
+    entry = MEMORY_CARD_DIRECTORIES[port]->files;
+    if (firstfile(name, entry) == entry) {
         do {
-            total += d->size;
+            total += entry->size;
             count++;
-            d++;
-        } while (func_8006A874(d) == d);
+            entry++;
+        } while (func_8006A874(entry) == entry);
     }
-    D_801D8190[port]->count = count;
-    D_801D8190[port]->blocks = total /= 8192;
+    MEMORY_CARD_DIRECTORIES[port]->count = count;
+    MEMORY_CARD_DIRECTORIES[port]->blocks = total /= 8192;
 }
 
 /* the rank titles, lowest first */
-char *D_8006E058[8] = {
+char *STR_TAMER_RANKS[8] = {
     "Beginner Tamer", "Regular Tamer", "Mid Level Tamer", "High Level Tamer",
     "Expert Tamer", "Master Tamer", "Genius Tamer", "Invincible Tamer",
 };
-char *D_8006E078[8] = {
+char *STR_COLLECTOR_RANKS[8] = {
     "General Public", "Hobby Collector", "Serious Collector", "Top Level Collector",
     "Famous Collector", "Great Collector", "Perfect Collector", "Legendary Collector",
 };
-char *D_8006E098[8] = {
+char *STR_BATTLE_RANKS[8] = {
     "Battle Beginner", "Battle Expert", "Battle Specialist", "Battle Champion",
     "Battle Master", "Battle Lord", "Battle King", "Battle Emperor",
 };
-u8 D_8006E0B8[6] = { 0x22, 0x23, 0x22, 0x24, 0x21, 0x6E };
+u8 COMPLETE_SET_CARD_COUNTS[6] = { 0x22, 0x23, 0x22, 0x24, 0x21, 0x6E };
 
-s32 func_8002CBA0(s32 len, u8 *p) {
+s32 verifySaveChecksum(s32 len, u8 *data) {
     s32 i;
-    u8 x = 0;
+    u8 xorSum = 0;
     u8 sum = 0;
 
     for (i = 0; i < len; i++) {
-        x ^= *p;
-        sum += *p;
-        p++;
+        xorSum ^= *data;
+        sum += *data;
+        data++;
     }
-    if (p[0] != x || p[1] != sum) {
+    if (data[0] != xorSum || data[1] != sum) {
         return 1;
     }
     return 0;
 }
 
-void func_8002CC04(s32 len, u8 *p) {
+void writeSaveChecksum(s32 len, u8 *data) {
     s32 i;
-    u8 x = 0;
+    u8 xorSum = 0;
     u8 sum = 0;
 
     for (i = 0; i < len; i++) {
-        x ^= *p;
-        sum += *p;
-        p++;
+        xorSum ^= *data;
+        sum += *data;
+        data++;
     }
-    p[0] = x;
-    p[1] = sum;
+    data[0] = xorSum;
+    data[1] = sum;
 }
 
-void func_8002CC44(s32 p) {
-    s32 count[6];
-    s32 total;
+void updatePlayerRanks(s32 player) {
+    s32 specialtyCounts[6];
+    s32 ownedCards;
     s32 rank;
     s32 i;
-    s32 n;
+    s32 completedSets;
 
-    rank = PLAYER_DATA(p).rankA;
+    rank = PLAYER_DATA(player).rankA;
     switch (rank) {
     case 0:
-        if (PLAYER_DATA(p).unk18 < 10) {
+        if (PLAYER_DATA(player).unk18 < 10) {
             break;
         }
         rank = 1;
     case 1:
-        if (PLAYER_DATA(p).unk18 < 25) {
+        if (PLAYER_DATA(player).unk18 < 25) {
             break;
         }
         rank = 2;
     case 2:
-        if (PLAYER_DATA(p).unk18 < 50) {
+        if (PLAYER_DATA(player).unk18 < 50) {
             break;
         }
         rank = 3;
     case 3:
-        if (PLAYER_DATA(p).unk18 < 100) {
+        if (PLAYER_DATA(player).unk18 < 100) {
             break;
         }
         rank = 4;
     case 4:
-        if (PLAYER_DATA(p).unk18 < 200) {
+        if (PLAYER_DATA(player).unk18 < 200) {
             break;
         }
         rank = 5;
     case 5:
-        if (PLAYER_DATA(p).unk18 < 300) {
+        if (PLAYER_DATA(player).unk18 < 300) {
             break;
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(p).unk18 < 500) {
+        if (PLAYER_DATA(player).unk18 < 500) {
             break;
         }
         rank = 7;
     }
-    PLAYER_DATA(p).rankA = rank;
+    PLAYER_DATA(player).rankA = rank;
 
-    total = 0;
+    ownedCards = 0;
     for (i = 0; i < 6; i++) {
-        count[i] = 0;
+        specialtyCounts[i] = 0;
     }
     for (i = 0; i < 0xAC; i++) {
-        n = PLAYER_DATA(p).unk14B2[i] & 7;
-        if (n != 0) {
-            total += n;
-            count[DIGIMON_CARDS[i * 0x13C + 0x1A] >> 4]++;
+        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        if (completedSets != 0) {
+            ownedCards += completedSets;
+            specialtyCounts[DIGIMON_CARDS[i * 0x13C + 0x1A] >> 4]++;
         }
     }
     for (i = 0xBF; i < 0x125; i++) {
-        n = PLAYER_DATA(p).unk14B2[i] & 7;
-        if (n != 0) {
-            total += n;
-            count[5]++;
+        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        if (completedSets != 0) {
+            ownedCards += completedSets;
+            specialtyCounts[5]++;
         }
     }
     for (i = 0x125; i < 0x12D; i++) {
-        n = PLAYER_DATA(p).unk14B2[i] & 7;
-        if (n != 0) {
-            total += n;
-            count[5]++;
+        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        if (completedSets != 0) {
+            ownedCards += completedSets;
+            specialtyCounts[5]++;
         }
     }
-    n = 0;
+    completedSets = 0;
     for (i = 0; i < 6; i++) {
-        if (count[i] == D_8006E0B8[i]) {
-            n++;
+        if (specialtyCounts[i] == COMPLETE_SET_CARD_COUNTS[i]) {
+            completedSets++;
         }
     }
 
-    rank = PLAYER_DATA(p).rankB;
+    rank = PLAYER_DATA(player).rankB;
     switch (rank) {
     case 0:
-        if (total < 100) {
+        if (ownedCards < 100) {
             break;
         }
         rank = 1;
     case 1:
-        if (total < 200) {
+        if (ownedCards < 200) {
             break;
         }
         rank = 2;
     case 2:
-        if (n <= 0) {
+        if (completedSets <= 0) {
             break;
         }
         rank = 3;
     case 3:
-        if (n < 3) {
+        if (completedSets < 3) {
             break;
         }
         rank = 4;
     case 4:
-        if (n < 5) {
+        if (completedSets < 5) {
             break;
         }
         rank = 5;
     case 5:
-        if (n < 6) {
+        if (completedSets < 6) {
             break;
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(p).unk28_11) {
+        if (PLAYER_DATA(player).unk28_11) {
             break;
         }
         rank = 7;
     }
-    PLAYER_DATA(p).rankB = rank;
+    PLAYER_DATA(player).rankB = rank;
 
-    rank = PLAYER_DATA(p).rankC;
+    rank = PLAYER_DATA(player).rankC;
     switch (rank) {
     case 0:
-        if (PLAYER_DATA(p).unk1C < 10) {
+        if (PLAYER_DATA(player).unk1C < 10) {
             break;
         }
         rank = 1;
     case 1:
-        if (PLAYER_DATA(p).unk1C < 20) {
+        if (PLAYER_DATA(player).unk1C < 20) {
             break;
         }
         rank = 2;
     case 2:
-        if (PLAYER_DATA(p).unk1C < 30) {
+        if (PLAYER_DATA(player).unk1C < 30) {
             break;
         }
         rank = 3;
     case 3:
-        if (PLAYER_DATA(p).unk1C < 40) {
+        if (PLAYER_DATA(player).unk1C < 40) {
             break;
         }
         rank = 4;
     case 4:
-        if (PLAYER_DATA(p).unk1C < 60) {
+        if (PLAYER_DATA(player).unk1C < 60) {
             break;
         }
         rank = 5;
     case 5:
-        if (PLAYER_DATA(p).unk1C < 80) {
+        if (PLAYER_DATA(player).unk1C < 80) {
             break;
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(p).unk1C < 100) {
+        if (PLAYER_DATA(player).unk1C < 100) {
             break;
         }
         rank = 7;
     }
-    PLAYER_DATA(p).rankC = rank;
+    PLAYER_DATA(player).rankC = rank;
 }

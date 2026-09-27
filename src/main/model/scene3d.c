@@ -142,7 +142,7 @@ void func_80024460(s32 alloc) {
     func_8006A804();
     for (i = 0; i < 2; i++) {
         if (alloc) {
-            DB(i).unk4070 = func_8001ABCC(0xBB80, 0x7F);
+            DB(i).unk4070 = allocHeapBlock(0xBB80, 0x7F);
         }
         D_801D6A4C->ot[i].length = 12;
         D_801D6A4C->ot[i].org = DB(i).ot;
@@ -168,7 +168,7 @@ void func_80024460(s32 alloc) {
         D_801D6A28 = lc[1];
     }
     if (alloc) {
-        func_8001B10C((s32) "M:", func_800148B0());
+        mountDriveTask((s32) "M:", func_800148B0());
         func_8001683C((s32)func_80023DF0);
     }
 }
@@ -251,7 +251,7 @@ void func_80024B08(s32 w, s32 h, s32 cols, s32 rows, s32 unused, s32 vertical) {
     D_801D69FA = h;
     D_8006DF84 = 1;
     for (i = 0; i < 2; i++) {
-        l = D_801D6A58[i] = func_8001AD0C(D_801D6A00 * 16);
+        l = D_801D6A58[i] = allocTaskHeapBlock(D_801D6A00 * 16);
         for (j = 0; j < D_801D6A00; j++) {
             func_800678E4(l);
             l[4] = 8;
@@ -260,8 +260,8 @@ void func_80024B08(s32 w, s32 h, s32 cols, s32 rows, s32 unused, s32 vertical) {
             l += 16;
         }
     }
-    D_801D6A50 = v = (SVECTOR *)func_8001AD0C(D_801D69FC * (D_801D69FE << 3));
-    D_801D6A48 = (s32 *)func_8001AD0C(D_801D69FC * (D_801D69FE << 2));
+    D_801D6A50 = v = (SVECTOR *)allocTaskHeapBlock(D_801D69FC * (D_801D69FE << 3));
+    D_801D6A48 = (s32 *)allocTaskHeapBlock(D_801D69FC * (D_801D69FE << 2));
     for (r = 0; r < D_801D69FE; r++) {
         for (j = 0; j < D_801D69FC; j++) {
             v->vx = D_801D69F8 / 2 - D_801D69F8 / (D_801D69FC - 1) * j;
@@ -282,10 +282,10 @@ void func_80024DD4(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        func_8001AE90(D_801D6A58[i]);
+        freeHeapBlock(D_801D6A58[i]);
     }
-    func_8001AE90(D_801D6A50);
-    func_8001AE90(D_801D6A48);
+    freeHeapBlock(D_801D6A50);
+    freeHeapBlock(D_801D6A48);
 }
 
 s32 func_80024E44(u8 *cam, s32 *pos, s32 cur, s16 *target) {
