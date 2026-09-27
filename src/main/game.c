@@ -5502,7 +5502,58 @@ s32 func_8002C6EC(s32 slot, s32 arg1, s32 arg2) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C784);
+s32 func_8006A834(s32, s32, s32);
+s32 func_8006A844(s32, void *, s32);
+extern s32 D_801D818C;
+extern s32 D_801D819C;
+
+s32 func_8002C784(void) {
+    s32 r;
+    s32 start;
+    s32 end;
+    s32 off;
+
+    func_8002BF60();
+    switch (D_801D8180) {
+    case 0:
+        func_8006A834(D_801D8184, 0, 0);
+        if (func_8006A844(D_801D8184, D_801D81A0, 0x80) == -1) {
+            return -1;
+        }
+        D_801D8180++;
+    case 1:
+        r = func_8002BE84(1);
+        if (r == 1 || r == 2) {
+            func_8006A864(D_801D8184);
+            return -1;
+        }
+        start = D_801D81A0[2] * 128 - 0x780;
+        end = D_801D81A0[3] * 0x2000;
+        D_801D819C = (end - start) / 128;
+        D_801D818C = 0;
+        D_801D8180++;
+        return 0;
+    case 2:
+        func_8006A834(D_801D8184, ((D_801D81A0[2] - 0x10) << 7) + 0x80 + (D_801D818C << 7), 0);
+        if (func_8006A844(D_801D8184, (void *)(D_801D8188 + (D_801D818C << 7)), 0x80) == -1) {
+            return -1;
+        }
+        D_801D8180++;
+    case 3:
+        r = func_8002BE84(1);
+        if (r == 1 || r == 2) {
+            func_8006A864(D_801D8184);
+            return -1;
+        }
+        D_801D818C++;
+        D_801D8180 = 2;
+        if (D_801D818C == D_801D819C) {
+            func_8006A864(D_801D8184);
+        }
+        break;
+    }
+    return D_801D818C * 100 / D_801D819C;
+}
 
 s32 func_8006A834(s32, s32, s32);
 s32 func_8006A844(s32, void *, s32);
