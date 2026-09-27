@@ -82,6 +82,9 @@ def delay_slot_hazards(lines):
                     and re.match(r"-?(0x)?[0-9a-fA-F]*\(", la[1][1])):
                 insert.append(a)
             continue
+        # not for calls: `lw $x,symbol / jal / sw ..($x)` stays as it is
+        if lb[0] in ("jal", "jalr"):
+            continue
         # only when the slot uses it as the base of a memory access
         if (LOADS.match(lc[0]) or STORES.match(lc[0])) and lc[1][-1].endswith(
             f"({reg})"
