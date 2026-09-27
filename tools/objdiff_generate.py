@@ -56,25 +56,34 @@ def link(out: str, parts: list) -> None:
     subprocess.run(["mipsel-linux-gnu-ld", "-r", "-o", out] + parts, cwd=ROOT, check=True)
 
 
-def rodata_bytes(path: str) -> bytes:
-    """The contents of PATH's .rodata (empty if it has none)."""
+def section_bytes(path: str, name: str) -> bytes:
+    """The contents of PATH's section NAME (empty if it has none)."""
     with open(ROOT / path, "rb") as f:
-        section = ELFFile(f).get_section_by_name(".rodata")
+        section = ELFFile(f).get_section_by_name(name)
         return section.data() if section else b""
 
 
-def pad_rodata(base: str, target: str) -> None:
-    """Pad BASE's .rodata with the zeros that end TARGET's.
+def pad_sections(base: str, target: str) -> None:
+    """Pad BASE's .rodata and .data with the zeros that end TARGET's.
 
-    splat counts the padding after a module's last string as part of it;
-    GCC leaves it to the linker, which fills the same zeros in the ROM."""
-    ours, theirs = rodata_bytes(base), rodata_bytes(target)
-    extra = theirs[len(ours):]
-    if 0 < len(extra) < 8 and not any(extra):
-        padded = ROOT / (base + ".rodata.bin")
-        padded.write_bytes(ours + extra)
-        subprocess.run(["mipsel-linux-gnu-objcopy", "--update-section", f".rodata={padded}", base], cwd=ROOT, check=True)
-        padded.unlink()
+    splat counts the padding after a module's last datum as part of it;
+    GCC leaves it to the linker, which fills the same zeros in the ROM.
+    ld -r pads them and keeps the sections' relocations."""
+    pads = {}
+    for name in (".rodata", ".data"):
+        ours, theirs = section_bytes(base, name), section_bytes(target, name)
+        extra = theirs[len(ours):]
+        if ours and 0 < len(extra) < 8 and not any(extra):
+            pads[name] = len(extra)
+    if not pads:
+        return
+    script = ROOT / (base + ".ld")
+    script.write_text("SECTIONS {\n" + "".join(
+        f"  {name} 0 : {{ *({name}) . += {n}; }}\n" for name, n in pads.items()) + "}\n")
+    padded = base + ".padded"
+    subprocess.run(["mipsel-linux-gnu-ld", "-r", "-T", str(script), "-o", padded, base], cwd=ROOT, check=True)
+    (ROOT / padded).replace(ROOT / base)
+    script.unlink()
 
 
 def rodata_symbols(path: str) -> list:
@@ -118,8 +127,8 @@ def unit(module: str, data: list) -> dict:
     base = f"build/report/main/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
     (ROOT / base).write_bytes((ROOT / f"build/src/main/{module}.c.o").read_bytes())
+    pad_sections(base, target)
     name_rodata(base, target)
-    pad_rodata(base, target)
     return {
         "name": f"main/{module}",
         "target_path": target,
