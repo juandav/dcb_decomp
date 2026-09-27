@@ -1874,7 +1874,22 @@ void *bzero(unsigned char *p, int n) {
     return s;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", memcpy);
+void *memcpy(u_char *dst, u_char *src, int n) {
+    u_char *ret = NULL;
+    u_char *d;
+
+    if (dst != NULL) {
+        d = dst;
+        while (n > 0) {
+            *dst++ = *src++;
+            n--;
+        }
+        ret = d;
+    }
+    return ret;
+}
+
+OBJECT_END(3);
 
 void *memset(u_char *p, u_char c, int n) {
     u_char *s;
