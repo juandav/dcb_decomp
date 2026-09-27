@@ -25,7 +25,12 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    (`beqz v1,L; move v0,zero`) still counts as live and a branch just before
    can't take `li v0,K` from its target (libpad func_8002184C). The patched
    scan first records what that jump and its delay slot use and set (they
-   run on both paths), then stops. Returns and other jumps are unchanged.
+   run on both paths), then stops. Returns and other jumps are unchanged,
+   and so is a conditional jump back to an earlier label (its label's UID is
+   lower than the jump's): __fixsfsi's first `beqz` keeps its nop instead of
+   stealing `move v0,zero` from the `j` at its target, because the
+   fallthrough's `beqz v1,<earlier label>; negu v0,a2` still leaves v0 live.
+   func_80066384 and GsSortObject4 need the forward case.
 4. reorg's fill_simple_delay_slots never fills the slot of an unconditional
    jump from its target (2.7.2 only fills it from the insns before the jump);
    the ROM does, like GCC 2.8: `j L; <first insn at L>` with the jump
@@ -126,7 +131,8 @@ def patch(src, dst):
 
     # 3. mark_target_live_regs+3810: the `jne` that leaves the forward scan for
     # a jump that is neither simple nor a return goes to new code: for a
-    # conditional jump (SET of pc from IF_THEN_ELSE) set next = 0 and run the
+    # conditional jump (SET of pc from IF_THEN_ELSE) to a label with a higher
+    # UID than the jump (a forward jump) set next = 0 and run the
     # loop's marking code (+3873), which then ends the scan; anything else
     # leaves it as before (+4121).
     def scan_cond_jump(code, jump):
@@ -137,6 +143,12 @@ def patch(src, dst):
         code += b"\x8b\x40\x08"                    # mov 0x8(%eax),%eax    (SET_SRC)
         code += b"\x66\x83\x38\x3e"                # cmpw $IF_THEN_ELSE,(%eax)
         jump(b"\x0f\x85", 0x081725A6)             # jne break
+        code += b"\x8b\x45\x88"                    # mov this_jump_insn,%eax
+        code += b"\x8b\x50\x20"                    # mov JUMP_LABEL,%edx
+        code += b"\x85\xd2"                        # test %edx,%edx
+        jump(b"\x0f\x84", 0x081725A6)             # je break
+        code += b"\x8b\x52\x04\x3b\x50\x04"        # mov uid(label),%edx; cmp uid(jump),%edx
+        jump(b"\x0f\x8c", 0x081725A6)             # jl break (backward jump)
         code += b"\xc7\x85\x5c\xff\xff\xff" + bytes(4)  # movl $0,-0xa4(%ebp)  (next = 0)
         jump(b"\xe9", 0x081724AE)                  # jmp to the marking code
 
