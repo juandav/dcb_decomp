@@ -1944,7 +1944,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", PAD_init);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", InitPAD);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StartPAD);
+long StartPAD(void) {
+    func_8006AF64();
+    func_8006A884(0);
+    EnablePAD();
+    return 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AE30);
 
