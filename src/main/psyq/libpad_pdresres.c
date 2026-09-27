@@ -23,7 +23,32 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BF3C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C0CC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C400);
+extern long D_800779A4;
+extern long (*D_800779E8[])(PadPort *);
+extern void (*D_80077960)(long);
+void func_8006D3A0(int wait);
+long func_8006C990(void);
+
+void func_8006C400(PadPort *p) {
+    long r;
+
+    r = D_800779E8[D_800779A4++](p);
+    if (r >= 0) {
+        if (D_800779A4 != 0) {
+            if (D_800779A4 != 3 || *p->unk3C != 0x80) {
+                func_8006D3A0(0x3C);
+                if (func_8006C990() == 0) {
+                    D_80077960(-3);
+                }
+            }
+        }
+        if (D_800779A4 >= 5) {
+            D_800779A4--;
+        }
+    } else {
+        D_80077960(r);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C4F0);
 
