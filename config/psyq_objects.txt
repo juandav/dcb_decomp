@@ -37,7 +37,7 @@ libsnd_de_10
 libsnd_de_11
 libsnd_de_12 gcc2.8
 libsnd_de_13 gcc2.8
-libsnd_de_14
+libsnd_de_14 gcc2.8
 libsnd_de_16
 libsnd_midibend
 libsnd_midicc
