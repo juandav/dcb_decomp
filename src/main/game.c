@@ -5530,9 +5530,149 @@ void *func_800236B4(s32 id) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002371C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002386C);
+typedef struct {
+    /* 0x00 */ AnimChan pos[3];
+    /* 0x30 */ AnimChan rot[3];
+    /* 0x60 */ AnimChan scale[3];
+} BoneKeys;
 
-s32 func_8002386C(s32, s32, s32, s32, s32);
+typedef struct {
+    /* 0x0000 */ u8 unk0[0xB80];
+    /* 0x0B80 */ struct {
+        u32 attribute;
+        void *coord2;
+        u32 *tmd;
+        u32 id;
+    } obj[32];
+    /* 0x0D80 */ BoneKeys keys[32];
+    /* 0x1F80 */ u8 unk1F80[0x730];
+    /* 0x26B0 */ u8 name[32];
+} Model;
+
+s32 func_8002371C(u8 *);
+void func_800234AC(u8 *);
+void StoreImage2(Rect16 *, u32 *);
+void GsMapModelingData(u32 *);
+void GsLinkObject4(u32, void *, s32);
+
+s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
+    char buf[16];
+    TIM_IMAGE tim;
+    u8 *m;
+    u8 *data;
+    u32 *img;
+    s32 u;
+    s32 v;
+    s32 i;
+    s32 j;
+
+    if (slot >= 0x18) {
+        return 0;
+    }
+    if (D_801D6A4C->unk13C[slot] != 0) {
+        func_80022DBC(slot);
+        func_800235C8(slot);
+    }
+    func_80014C08(D_800794F0);
+    m = D_801D6A4C->unk13C[slot] = func_8001ABCC(0x28F8, slot + 0x40);
+    bzero(m, 0x28F8);
+    *(s32 *)(m + 0x26F4) = pak;
+    func_80022CA4(slot);
+    RotMatrixYXZ(m + 0xA78, m + 0x2C);
+    *(s32 *)(m + 0x28) = 0;
+    *(s32 *)(m + 0x20) = 0x1000;
+    *(s32 *)(m + 0x1C) = 0x1000;
+    *(s32 *)(m + 0x18) = 0x1000;
+    for (i = 0; i < 32; i++) {
+        for (j = 0; j < 3; j++) {
+            ((Model *)m)->keys[i].rot[j].unk0 = 0;
+            ((Model *)m)->keys[i].pos[j].unk0 = 0;
+            ((Model *)m)->keys[i].scale[j].unk0 = 0x10000000;
+        }
+    }
+    if (pos < 0) {
+        pos = (slot >> 1) + (slot & 1) * 16 + 5;
+    }
+    *(s32 *)(m + 0x26D4) = (pos - 5) << 16;
+    *(s32 *)(m + 0x26D0) = ((((pos & 0x10) << 10) | ((pos & 0xF) * 4)) - 0x14) << 16;
+    *(s16 *)(m + 6) = id;
+    if (id > 1000) {
+        sprintf(buf, "M:\\%d_%d.omd", id / 10, id % 10);
+    } else {
+        sprintf(buf, "M:\\%03d.omd", id);
+    }
+    data = func_8001BB44((Chunk *)pak, 0, id);
+    if (data == 0) {
+        data = (u8 *)func_8001B248((s32 *)buf, func_800148B0(), slot + 0x40);
+        if (data == 0) {
+            return 0;
+        }
+        *(s32 *)m = D_801D4848;
+    } else {
+        *(s32 *)m = ((s32 *)data)[-1];
+    }
+    *(u8 **)(m + 0x26DC) = data;
+    if (pos != 0) {
+        i = 0;
+        img = func_8001BB44((Chunk *)pak, 5, id);
+        if (img == 0) {
+            if (func_8002371C(m) == 0) {
+                goto skip;
+            }
+            sprintf(buf, "M:\\%s", data);
+            i = 1;
+            img = (u32 *)func_8001B144(buf, func_800148B0());
+        }
+        if (img != 0) {
+            u = (pos & 0xF) << 6;
+            v = (pos & 0x10) << 4;
+            func_8001B634(img, u - 0x140, v);
+            OpenTIM(img);
+            ReadTIM(&tim);
+            *(Rect16 *)(m + 0x26E4) = *tim.prect;
+            *(Rect16 *)(m + 0x26EC) = *tim.crect;
+            ((Rect16 *)(m + 0x26EC))->x += u - 0x140;
+            ((Rect16 *)(m + 0x26EC))->y += v;
+            ((Rect16 *)(m + 0x26E4))->x += u - 0x140;
+            ((Rect16 *)(m + 0x26E4))->y += v;
+            if (i) {
+                func_8001AE90(img);
+            }
+        }
+    }
+skip:
+    StoreImage2((Rect16 *)(m + 0x26EC), (u32 *)(m + 0x26F8));
+    data += 0x10;
+    *(s16 *)(m + 4) = *(u16 *)data;
+    data += 4;
+    for (i = 0; i < 32; i++) {
+        ((Model *)m)->name[i] = *data++;
+    }
+    data = (u8 *)func_80023468(m, (s32 *)data);
+    if (kind == 0) {
+        for (i = 0; i < *(s16 *)(m + 4); i++) {
+            if (i != 0) {
+                for (data += 4; *(s32 *)data != 0x30444D4F; data += 4) {
+                }
+            }
+            ((Model *)m)->obj[i].tmd = 0;
+            func_80023408((Tmd18 *)data);
+            func_80023454((s32)(data + 12), &((Model *)m)->obj[i], i);
+        }
+    } else {
+        for (i = 0; i < *(s16 *)(m + 4); i++) {
+            if (i != 0) {
+                for (data += 4; *(s32 *)data != 0x41 || ((s32 *)data)[1] != 0; data += 4) {
+                }
+            }
+            ((Model *)m)->obj[i].tmd = 0;
+            GsMapModelingData((u32 *)(data + 4));
+            GsLinkObject4((u32)(data + 12), &((Model *)m)->obj[i], 0);
+        }
+    }
+    func_800234AC(m);
+    return 1;
+}
 
 void func_80023DA4(s32 arg0, s32 arg1, s32 arg2) {
     func_8002386C(arg0, arg1, arg2, 0, 0);
