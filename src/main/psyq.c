@@ -1420,7 +1420,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTPutEnv);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTin);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTout);
+void DecDCTout(void) {
+    func_80068144();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTinSync);
 
