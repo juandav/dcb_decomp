@@ -1110,7 +1110,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsInit3D);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsMapModelingData);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062484);
+void func_80062484(void) {
+    func_8005C4A4();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetFlatLight);
 
