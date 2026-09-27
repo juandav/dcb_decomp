@@ -1545,7 +1545,17 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", printf);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", prnt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", memchr);
+void *memchr(unsigned char *s, int c, int n) {
+    if (s == NULL || n <= 0) {
+        return NULL;
+    }
+    while (--n >= 0) {
+        if (*s++ == (u_char)c) {
+            return s - 1;
+        }
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _putchar);
 
