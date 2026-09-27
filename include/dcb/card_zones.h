@@ -2,7 +2,7 @@
 #define DCB_CARD_ZONES_H
 
 #include "game.h"
-#include "dcb/duel_rules.h"
+#include "dcb/duel_setup.h"
 
 s32 discardCardToOfflineDeck(s32 cardIndex, s32 player);
 s32 takePartnerCardFromOnlineDeck(s32 player);

@@ -116,7 +116,6 @@ segments:
       - [0x2BA10, c, duel/card_motion]
       - [0x2E1C0, c, duel/hud_panels]
       - [0x2F044, c, duel/duel_session]
-      - [0x301EC, c, duel/duel_rules]
       - [0x301EC, c, duel/duel_setup]
       - [0x30864, c, duel/card_zones]
       - [0x31ED8, c, card/card_render]
