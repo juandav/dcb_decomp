@@ -166,6 +166,11 @@ def main():
                     and m != call_slot
                     and "branch/jump" not in out[m]
                 )
+                # ...but the stack adjustment before `j $31` does move into
+                # its slot, unless the label follows a branch's delay slot
+                if at_label and ins[1] == ["$31"]:
+                    code = [x for x in out[:m] if split(x)]
+                    at_label = len(code) < 2 or bool(BRANCHES.match(split(code[-2])[0]))
                 # (a split la or store to a symbol leaves its lui there)
                 if at_label and prev[0] != "la" and not (
                     STORES.match(prev[0])
