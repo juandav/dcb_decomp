@@ -2277,7 +2277,22 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", sprintf);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", memmove);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", puts);
+void puts(char *s) {
+    char c;
+
+    if (s == NULL) {
+        s = "<NULL>";
+    }
+    while ((c = *s++) != 0) {
+        _putchar(c);
+    }
+    _putchar_flash();
+}
+
+/* ASPSX padded the string table of the object as well */
+__asm__(".section .rodata\n\t.space 9\n");
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", setjmp);
 
@@ -2660,5 +2675,3 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D580);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D62C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D748);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013E3C);
