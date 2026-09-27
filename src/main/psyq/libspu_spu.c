@@ -1,8 +1,92 @@
 #include "psyq.h"
 
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80012FBC);
+extern u_short D_8006EF3C;
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_init);
+extern u_long *D_8006EF34;
+extern long D_8006EF44;
+extern long D_8006EF48;
+extern long D_8006EF50;
+extern long D_8006EF54;
+extern void (*volatile D_8006EF5C)(void);
+extern void (*volatile D_8006EF60)(void);
+extern u_short D_8006EF64[];
+extern volatile u_short D_801D8560[];
+void _spu_Fw1ts(void);
+void func_8004AC20(u_char *addr, u_long size);
+
+long _spu_init(long mode) {
+    int i;
+    u_int n;
+
+    *D_8006EF34 |= 0xB0000;
+    D_8006EF40 = 0;
+    D_8006EF44 = 0;
+    D_8006EF3C = 0;
+    D_8006EF24[0xC0] = 0;
+    D_8006EF24[0xC1] = 0;
+    D_8006EF24[0xD5] = 0;
+    _spu_Fw1ts();
+    D_8006EF24[0xC0] = 0;
+    D_8006EF24[0xC1] = 0;
+    n = 0;
+    while (D_8006EF24[0xD7] & 0x7FF) {
+        if (++n > 0xF00) {
+            printf("SPU:T/O [%s]\n", "wait (reset)");
+            break;
+        }
+    }
+    D_8006EF48 = 2;
+    D_8006EF4C = 3;
+    D_8006EF50 = 8;
+    D_8006EF54 = 7;
+    D_8006EF24[0xD6] = 4;
+    D_8006EF24[0xC2] = 0;
+    D_8006EF24[0xC3] = 0;
+    D_8006EF24[0xC6] = 0xFFFF;
+    D_8006EF24[0xC7] = 0xFFFF;
+    D_8006EF24[0xCC] = 0;
+    D_8006EF24[0xCD] = 0;
+    for (i = 0; i < 10; i++) {
+        D_801D8560[i] = 0;
+    }
+    if (mode == 0) {
+        D_8006EF3C = 0x200;
+        D_8006EF24[0xC8] = 0;
+        D_8006EF24[0xC9] = 0;
+        D_8006EF24[0xCA] = 0;
+        D_8006EF24[0xCB] = 0;
+        D_8006EF24[0xD8] = 0;
+        D_8006EF24[0xD9] = 0;
+        D_8006EF24[0xDA] = 0;
+        D_8006EF24[0xDB] = 0;
+        func_8004AC20((u_char *)D_8006EF64, 0x10);
+        for (i = 0; i < 24; i++) {
+            D_8006EF24[i * 8 + 0] = 0;
+            D_8006EF24[i * 8 + 1] = 0;
+            D_8006EF24[i * 8 + 2] = 0x3FFF;
+            D_8006EF24[i * 8 + 3] = 0x200;
+            D_8006EF24[i * 8 + 4] = 0;
+            D_8006EF24[i * 8 + 5] = 0;
+        }
+        D_8006EF24[0xC4] = 0xFFFF;
+        D_8006EF24[0xC5] = 0xFF;
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        D_8006EF24[0xC6] = 0xFFFF;
+        D_8006EF24[0xC7] = 0xFF;
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+        _spu_Fw1ts();
+    }
+    D_8006EF58 = 1;
+    D_8006EF24[0xD5] = 0xC000;
+    D_8006EF5C = NULL;
+    D_8006EF60 = NULL;
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004AC20);
 
