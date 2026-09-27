@@ -1180,7 +1180,13 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062B44);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", Gssub_make_matrix);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062C34);
+extern long D_801DBF98;
+
+void func_80062C34(long v) {
+    D_801DBF98 = v;
+}
+
+OBJECT_END(1);
 
 extern long D_801DBF98;
 
