@@ -906,7 +906,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlF);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlB);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A784);
+int func_8005A784(CdlATV *vol) {
+    CD_vol(vol);
+    return 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A7A4);
 
