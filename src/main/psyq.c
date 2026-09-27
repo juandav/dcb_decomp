@@ -425,7 +425,9 @@ void func_80051C70(void) {
     SpuSetReverb(0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80051C90);
+void func_80051C90(void) {
+    SpuSetReverb(1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsUtSetVagAtr);
 
