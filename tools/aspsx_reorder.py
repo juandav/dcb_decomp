@@ -25,6 +25,8 @@ BRANCHES = re.compile(
 )
 LOADS = re.compile(r"(lw|lh|lhu|lb|lbu|lwl|lwr)$")
 STORES = re.compile(r"(sw|sh|sb|swl|swr)$")
+# conditional branches GCC can leave in reorder mode
+CONDBR = ("beq", "bne", "beqz", "bnez", "blez", "bgtz", "bltz", "bgez")
 # Instructions the assembler expands into several machine instructions
 MACROS = re.compile(r"(la|li|div|divu|rem|remu|mul|ulw|usw|ulh|ulhu)$")
 
@@ -103,7 +105,7 @@ def main():
         nxt = lines[i + 1] if i + 1 < len(lines) else ""
         if (
             ins
-            and (ins[0] == "j" or ins[0] == "jal")
+            and (ins[0] == "j" or ins[0] == "jal" or ins[0] in CONDBR)
             and nxt.strip().startswith("nop")
             and "branch/jump" in nxt
         ):
@@ -122,7 +124,12 @@ def main():
                 prev2 = split(out[m]) if m >= 0 else None
                 # a branch target stays where it is
                 at_label = m >= 0 and out[m].split("#", 1)[0].strip().endswith(":")
-                if at_label and prev[0] != "la":
+                # (a split la or store to a symbol leaves its lui there)
+                if at_label and prev[0] != "la" and not (
+                    STORES.match(prev[0])
+                    and len(prev[1]) == 2
+                    and not re.search(r"\(\$\w+\)$", prev[1][1])
+                ):
                     prev = None
             sym_store = (
                 prev is not None
@@ -136,8 +143,15 @@ def main():
                 and len(prev[1]) == 2
                 and re.match(r"^[A-Za-z_][\w.]*([+-]\d+)?\((\$\w+)\)$", prev[1][1])
             )
+            if ins[0] in CONDBR:
+                # a conditional branch left in reorder mode only takes a store
+                # to a symbol into its slot
+                idx_store = False
+                if not sym_store:
+                    prev = prev_la = None
             movable = (
                 prev is not None
+                and ins[0] not in CONDBR
                 and not at_label
                 and not sym_store
                 and not idx_store
