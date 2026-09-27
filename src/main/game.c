@@ -126,6 +126,96 @@ typedef struct {
 
 typedef struct {
     u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 r3, g3, b3, p3;
+    s16 x3, y3;
+} POLY_G4;
+
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+} POLY_GT3;
+
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad;
+} POLY_FT3;
+
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+    u8 r3, g3, b3, p3;
+    s16 x3, y3;
+    u8 u3, v3;
+    u16 pad3;
+} POLY_GT4;
+
+typedef struct {
+    u32 tag;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 code;
+    s16 x0;
+    s16 y0;
+    u8 u0;
+    u8 v0;
+    u16 clut;
+    s16 x1;
+    s16 y1;
+    u8 u1;
+    u8 v1;
+    u16 tpage;
+    s16 x2;
+    s16 y2;
+    u8 u2;
+    u8 v2;
+    u16 pad1;
+    s16 x3;
+    s16 y3;
+    u8 u3;
+    u8 v3;
+    u16 pad2;
+} POLY_FT4;
+
+typedef struct {
+    u32 tag;
     u8 r0;
     u8 g0;
     u8 b0;
@@ -240,6 +330,12 @@ typedef struct Panel {
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ struct Panel *parent;
 } Panel;
+
+typedef struct {
+    /* 0x00 */ u16 cards[30];
+    /* 0x3C */ char name[0x31];
+    /* 0x6D */ u8 unk6D;
+} SavedDeck;
 
 typedef struct {
     /* 0x00 */ s32 unk0[5];
@@ -361,9 +457,10 @@ typedef struct {
 } Unk8006E054Sub;
 
 typedef struct {
-    /* 0x0000 */ u8 unk0[0x78];
+    /* 0x0000 */ u8 *unk0;
+    /* 0x0004 */ u8 unk4[0x74];
     /* 0x0078 */ Deck unk78[2][3];
-    /* 0x1008 */ s32 unk1008;
+    /* 0x1008 */ s16 unk1008[2];
     /* 0x100C */ Unk8006E054Sub *unk100C;
     /* 0x1010 */ u8 unk1010[0x17];
     /* 0x1027 */ u8 unk1027;
@@ -451,6 +548,9 @@ s32 func_80029990(void);
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
 
 s32 VSync(s32);
+void SetSemiTrans(void *, s32);
+void SetShadeTex(void *, s32);
+void func_8001E76C(void *, u8, u8, u8);
 s32 rand(void);
 s32 sprintf(char *, const char *, ...);
 void func_80048230(s32, s32);
@@ -1745,19 +1845,241 @@ void func_8001C4DC(s32 x, s32 y, Rect16 *r, u16 tpage, s32 clut, s32 z, u8 c, s8
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C6A4);
+void func_800677A4(POLY_FT4 *);
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_8001EA64(void *, s16, s16, s16, s16);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C810);
+void func_8001C6A4(POLY_FT4 *p, POLY_FT4 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *uv, Rect16 *xy,
+                   u8 semi, u8 flat) {
+    func_800677A4(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    SetShadeTex(p, flat ^ 1);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    if (uv != 0) {
+        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    }
+    if (xy != 0) {
+        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    }
+    *dst = *p;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CA54);
+void func_80067724(POLY_FT3 *);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CCB4);
+void func_8001C810(POLY_FT3 *p, s32 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *uv, Rect16 *xy,
+                   u8 semi, u8 flat) {
+    func_80067724(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    SetShadeTex(p, flat ^ 1);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    if (uv != 0) {
+        p->u0 = uv->x + uv->w / 2;
+        p->v0 = uv->y;
+        p->u1 = uv->x;
+        p->v1 = uv->y + uv->h;
+        p->u2 = uv->x + uv->w;
+        p->v2 = uv->y + uv->h;
+    }
+    if (xy != 0) {
+        p->x0 = xy->x + xy->w / 2;
+        p->y0 = xy->y;
+        p->x1 = xy->x;
+        p->y1 = xy->y + xy->h;
+        p->x2 = xy->x + xy->w;
+        p->y2 = xy->y + xy->h;
+    }
+    dst[0] = ((s32 *)p)[0];
+    dst[1] = ((s32 *)p)[1];
+    dst[2] = ((s32 *)p)[2];
+    dst[3] = ((s32 *)p)[3];
+    dst[4] = ((s32 *)p)[4];
+    dst[5] = ((s32 *)p)[5];
+    dst[6] = ((s32 *)p)[6];
+    dst[7] = ((s32 *)p)[7];
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CE74);
+void func_80067764(POLY_GT3 *);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CFDC);
+void func_8001CA54(POLY_GT3 *p, POLY_GT3 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 tpage, s32 clut,
+                   Rect16 *uv, Rect16 *xy, u8 semi) {
+    func_80067764(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    if (uv != 0) {
+        p->u0 = uv->x + uv->w / 2;
+        p->v0 = uv->y;
+        p->u1 = uv->x;
+        p->v1 = uv->y + uv->h;
+        p->u2 = uv->x + uv->w;
+        p->v2 = uv->y + uv->h;
+    }
+    if (xy != 0) {
+        p->x0 = xy->x + xy->w / 2;
+        p->y0 = xy->y;
+        p->x1 = xy->x;
+        p->y1 = xy->y + xy->h;
+        p->x2 = xy->x + xy->w;
+        p->y2 = xy->y + xy->h;
+    }
+    *dst = *p;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D1AC);
+void func_800677E4(POLY_GT4 *);
+void func_8001E7B8(void *, u8, u8, u8);
+void func_8001E804(void *, u8, u8, u8);
+
+void func_8001CCB4(POLY_GT4 *p, POLY_GT4 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, u8 *rgb3, s32 tpage,
+                   s32 clut, Rect16 *uv, Rect16 *xy, u8 semi) {
+    func_800677E4(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    if (rgb3 != 0) {
+        func_8001E804(p, rgb3[0], rgb3[1], rgb3[2]);
+    }
+    if (uv != 0) {
+        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    }
+    if (xy != 0) {
+        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    }
+    *dst = *p;
+}
+
+void func_80067784(void *);
+void func_8001EA64(void *, s16, s16, s16, s16);
+
+void func_8001CE74(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, s16 *r, u8 semi) {
+    func_80067784(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    if (r != 0) {
+        func_8001EA64(p, r[0], r[1], r[2], r[3]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    dst[5] = p[5];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
+
+void func_800677C4(POLY_G4 *);
+
+void func_8001CFDC(POLY_G4 *p, POLY_G4 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, u8 *rgb3, s32 abr,
+                   void *tp0, void *tp1, Rect16 *xy, u8 semi) {
+    func_800677C4(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    if (rgb3 != 0) {
+        func_8001E804(p, rgb3[0], rgb3[1], rgb3[2]);
+    }
+    if (xy != 0) {
+        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    }
+    *dst = *p;
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
+
+void func_80067744(void *);
+
+void func_8001D1AC(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 abr, void *tp0, void *tp1,
+                   u8 semi) {
+    func_80067744(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    dst[5] = p[5];
+    dst[6] = p[6];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 void func_80067704(void *);
 void func_8001E75C(void *, u8, u8, u8);
@@ -1784,7 +2106,31 @@ void func_8001D33C(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D464);
+void func_80067904(void *);
+
+void func_8001D464(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, s32 abr, void *tp0, void *tp1, u8 semi) {
+    func_80067904(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 void func_800678E4(void *);
 void func_8001E75C(void *, u8, u8, u8);
@@ -2980,7 +3326,7 @@ void func_80023094(Model2220 *m, s32 *p, s32 i) {
     m->unk2220[i].unk4 = p;
 }
 
-s32 func_80022F34(s16, s32, s32, s32);
+s32 func_80022F34(s32, s32, s32, Chunk *);
 void func_80023094(Model2220 *, s32 *, s32);
 
 s32 func_800230B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
@@ -2988,7 +3334,7 @@ s32 func_800230B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_s0;
 
     temp_s0 = D_801D6A4C->unk13C[arg0];
-    temp_v0 = func_80022F34((*(s16 *)((s8 *)temp_s0 + 6)), arg1, arg0, arg3);
+    temp_v0 = func_80022F34((*(s16 *)((s8 *)temp_s0 + 6)), arg1, arg0, (Chunk *)arg3);
     if (temp_v0 != 0) {
         func_80023094(temp_s0, (s32 *)temp_v0, arg2);
         return 1;
@@ -4364,7 +4710,37 @@ s32 func_8002C2E4(s32 arg0) {
     return _card_format(arg0 * 0x10) == 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C30C);
+s32 func_8006A824(char *, s32);
+s32 func_8006A864(s32);
+extern char D_800105E4;
+extern s32 D_801D8180;
+extern s32 D_801D8184;
+extern s32 D_801D8188;
+extern u8 *D_801D81A0;
+
+typedef struct {
+    u8 data[0x200];
+} McHeader;
+
+s32 func_8002C30C(s32 slot, u8 blocks, s32 arg2, s32 arg3, McHeader *hdr) {
+    char name[32];
+    s32 fd;
+
+    ((u8 *)hdr)[3] = blocks;
+    sprintf(name, &D_800105E4, slot, arg3);
+    func_8006A864(func_8006A824(name, (((u8 *)hdr)[3] << 16) | 0x200));
+    *(McHeader *)D_801D81A0 = *hdr;
+    D_801D8184 = fd = func_8006A824(name, 0x8002);
+    if (fd == -1) {
+        return -1;
+    }
+    D_801D8180 = 0;
+    D_801D8188 = arg2;
+    if (func_8002C0EC(slot) != 0) {
+        return -1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C468);
 
@@ -4460,7 +4836,7 @@ void func_8002CC04(s32 len, u8 *p) {
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CC44);
 
 s32 func_8002D51C();
-s32 func_800457FC();
+void func_800457FC();
 
 extern void *D_8006E054;
 void func_8002D404(void) {
@@ -5737,7 +6113,36 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80011350);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003EC4C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003F9EC);
+s32 func_80047620(s32, s32, s32);
+void func_80047C38(s32, s32, s32);
+void func_80047248(s32);
+
+void func_8003F9EC(s32 player) {
+    SavedDeck *decks;
+    SavedDeck *d;
+    s32 i;
+    s32 k;
+    u16 id;
+
+    decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
+    if (((Unk8006E054 *)D_8006E054)->unk1008[player] != -1) {
+        d = &decks[((Unk8006E054 *)D_8006E054)->unk1008[player]];
+        func_80047248(player);
+        strcpy(D_801D8348[player] + 1, d->name);
+        for (i = 0; i < 30; i++) {
+            id = d->cards[i];
+            func_80046BAC(D_801D8348[player] + 0x14 + i * 8, id);
+            k = func_80047A58(id);
+            if (k >= 0) {
+                func_80047620(player, k, 0);
+                if (d->unk6D != 0) {
+                    func_80047C38(player, k, d->unk6D - 1);
+                }
+            }
+        }
+        func_80046A38(player, (Unk110 *)D_801D8348[player]);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003FB3C);
 
@@ -6825,7 +7230,27 @@ s32 func_800495B4(s32 a, s32 b, s32 skip, s32 card) {
     return ok;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800496E4);
+s32 func_800496E4(s32 a, s32 id) {
+    s32 j;
+    s32 k;
+
+    if (id < 0) {
+        return 0;
+    }
+    if (!((((Unk8006E050 *)D_8006E050)[a].unk3C[id / 8] >> (id % 8)) & 1)) {
+        return 0;
+    }
+    for (j = 0; j < 3; j++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 != 0) {
+            for (k = 0; k < 3; k++) {
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28C[k] == id) {
+                    return 2;
+                }
+            }
+        }
+    }
+    return 1;
+}
 
 s32 func_800496E4(s32, s32);
 
