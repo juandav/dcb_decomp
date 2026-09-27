@@ -41,7 +41,7 @@ libsnd_de_14 gcc2.8
 libsnd_de_16
 libsnd_midibend
 libsnd_midicc gcc2.8
-libsnd_midimeta
+libsnd_midimeta gcc2.8
 libsnd_midinote
 libsnd_midiprog
 libsnd_miditime gcc2.8
