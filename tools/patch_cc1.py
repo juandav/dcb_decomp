@@ -20,17 +20,10 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    condition codes, no SImode), so global.c couldn't place them and reload
    gave them stack slots. The best-class search now starts below ST_REGS,
    which the PsyQ code (no floating point) never uses.
-3. reorg's mark_target_live_regs stops its forward scan at a conditional
-   jump before looking at the jump's own delay slot, so a register set there
-   (`beqz v1,L; move v0,zero`) still counts as live and a branch just before
-   can't take `li v0,K` from its target (libpad func_8002184C). The patched
-   scan first records what that jump and its delay slot use and set (they
-   run on both paths), then stops. Returns and other jumps are unchanged,
-   and so is a conditional jump back to an earlier label (its label's UID is
-   lower than the jump's): __fixsfsi's first `beqz` keeps its nop instead of
-   stealing `move v0,zero` from the `j` at its target, because the
-   fallthrough's `beqz v1,<earlier label>; negu v0,a2` still leaves v0 live.
-   func_80066384 and GsSortObject4 need the forward case.
+3. (Now part of 16.) reorg's mark_target_live_regs stopped its forward scan
+   at a conditional jump before looking at the jump's own delay slot, so a
+   register set there (`beqz v1,L; move v0,zero`) still counted as live
+   (libpad func_8002184C).
 4. reorg's fill_simple_delay_slots never fills the slot of an unconditional
    jump from its target (2.7.2 only fills it from the insns before the jump);
    the ROM does, like GCC 2.8: `j L; <first insn at L>` with the jump
@@ -75,6 +68,9 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    or B zero needs, with cheap branches, a power of two as the other value
    (GCC 2.8), so SpuSetCommonAttr's `x < 0 ? 0 : x` clamps stay branches
    instead of `nor/sra/and`.
+16. mark_target_live_regs follows both paths of a conditional jump, as
+   GCC 2.8's find_dead_or_set_registers: a register set before any use on
+   both paths is dead (prnt's `beqz v0,L; sll v0,s0,2`).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -120,7 +116,7 @@ def patch(src, dst):
     # 2. regclass+2986: `for (class = ALL_REGS - 1; ...)` -> start at MD_REGS (6)
     put(0x0814313C, b"\xbe\x07\x00\x00\x00", b"\xbe\x06\x00\x00\x00")
 
-    # Patches 3 and 4 add code after the end of the text segment (the rest of
+    # Patch 4 adds code after the end of the text segment (the rest of
     # its last page is zero padding in the file) and grow the segment over it.
     ti = next(i for i, (v, o, s) in enumerate(segs) if v <= 0x08172000 < v + s)
     tva, toff, tsz = segs[ti]
@@ -144,34 +140,6 @@ def patch(src, dst):
         for field in (16, 20):  # p_filesz, p_memsz
             struct.pack_into("<I", d, phoff + phidx[ti] * phentsize + field, end[0] - tva)
         return cave
-
-    # 3. mark_target_live_regs+3810: the `jne` that leaves the forward scan for
-    # a jump that is neither simple nor a return goes to new code: for a
-    # conditional jump (SET of pc from IF_THEN_ELSE) to a label with a higher
-    # UID than the jump (a forward jump) set next = 0 and run the
-    # loop's marking code (+3873), which then ends the scan; anything else
-    # leaves it as before (+4121).
-    def scan_cond_jump(code, jump):
-        code += b"\x8b\x45\x88"                    # mov -0x78(%ebp),%eax  (this_jump_insn)
-        code += b"\x8b\x40\x10"                    # mov 0x10(%eax),%eax   (PATTERN)
-        code += b"\x66\x83\x38\x29"                # cmpw $SET,(%eax)
-        jump(b"\x0f\x85", 0x081725A6)             # jne break
-        code += b"\x8b\x40\x08"                    # mov 0x8(%eax),%eax    (SET_SRC)
-        code += b"\x66\x83\x38\x3e"                # cmpw $IF_THEN_ELSE,(%eax)
-        jump(b"\x0f\x85", 0x081725A6)             # jne break
-        code += b"\x8b\x45\x88"                    # mov this_jump_insn,%eax
-        code += b"\x8b\x50\x20"                    # mov JUMP_LABEL,%edx
-        code += b"\x85\xd2"                        # test %edx,%edx
-        jump(b"\x0f\x84", 0x081725A6)             # je break
-        code += b"\x8b\x52\x04\x3b\x50\x04"        # mov uid(label),%edx; cmp uid(jump),%edx
-        jump(b"\x0f\x8c", 0x081725A6)             # jl break (backward jump)
-        code += b"\xc7\x85\x5c\xff\xff\xff" + bytes(4)  # movl $0,-0xa4(%ebp)  (next = 0)
-        jump(b"\xe9", 0x081724AE)                  # jmp to the marking code
-
-    cave = append(scan_cond_jump)
-    o = fo(0x0817246F)
-    put(0x0817246F, b"\x0f\x85" + d[o + 2:o + 6],
-        b"\x0f\x85" + (cave - (0x0817246F + 6)).to_bytes(4, "little", signed=True))
 
     # 4. fill_simple_delay_slots+2819 (`if (delay_list)` before
     # emit_delay_sequence): first, as GCC 2.8 does, fill an empty slot of an
@@ -797,6 +765,169 @@ def patch(src, dst):
         o = fo(site)
         put(site, d[o:o + 2] + d[o + 2:o + 6],
             b"\xe9" + (target - (site + 5)).to_bytes(4, "little", signed=True) + b"\x90")
+
+    # 16. mark_target_live_regs follows both paths of a conditional jump, as
+    #    GCC 2.8's find_dead_or_set_registers does: a register is dead after
+    #    the jump if it is set before being used on the target path and on
+    #    the fallthrough (following at most one conditional jump, jump_count
+    #    += 4). find_dead_or_set_registers is new code over
+    #    bc_expand_constructor (-fbytecode only); the scan of
+    #    mark_target_live_regs hands a conditional jump over to it (replacing
+    #    patch 3's stop there). prnt: `beqz v0,L; sll v0,s0,2`, v0 being set
+    #    on both paths from L's `bgez s0`. (2.8 also kills spill registers at
+    #    labels from before reload; 2.7.2 has no record of those.)
+    def dead_or_set(code, jump, start):
+        fix = {}
+
+        def br(opcode, name):
+            code.extend(opcode + bytes(4))
+            fix.setdefault(name, []).append(len(code))
+
+        def label(name):
+            fix[name + ":"] = len(code)
+
+        def resolve():
+            for name, sites in fix.items():
+                if name.endswith(":"):
+                    continue
+                for at in sites:
+                    code[at - 4:at] = (fix[name + ":"] - at).to_bytes(4, "little", signed=True)
+
+        def s8(n):
+            return (n & 0xFF).to_bytes(1, "little")
+
+        def call(fn, *args):  # args: bytes pushing one dword each; keeps 16-byte alignment
+            pad = -4 * len(args) % 16
+            if pad:
+                code.extend(b"\x83\xec" + bytes([pad]))
+            for a in reversed(args):
+                code.extend(a)
+            jump(b"\xe8", fn)
+            code.extend(b"\x83\xc4" + bytes([pad + 4 * len(args)]))
+
+        def arg(n):  # push n(%ebp)
+            return b"\xff\x75" + s8(n)
+
+        def addr(n):  # lea n(%ebp),%ecx; push %ecx
+            return b"\x8d\x4d" + s8(n) + b"\x51"
+
+        ESI, EDI, EAX = b"\x56", b"\x57", b"\x50"
+        JE, JNE, JG, JMP = b"\x0f\x84", b"\x0f\x85", b"\x0f\x8f", b"\xe9"
+        PENDING = 0x082C7A50
+        mark_referenced, mark_set = 0x0816DDAC, 0x0816E3F3
+        SET, NEEDED, TSET, TRES, FRES, THIS = -0x1C, -0x2C, -0x3C, -0x4C, -0x5C, -0x60
+
+        def copy16(dst, src_reg_disp):  # copy a struct resources from (%eax) to dst(%ebp)
+            for k in range(0, 16, 4):
+                code.extend(b"\x8b\x48" + s8(k) + b"\x89\x4d" + s8(dst + k))  # mov k(%eax),%ecx; mov %ecx,dst+k(%ebp)
+
+        # find_dead_or_set_registers (target, res, jump_count, &set, &needed)
+        code.extend(b"\x55\x89\xe5\x53\x56\x57\x83\xec\x5c")  # prologue, 0x5c of locals
+        code.extend(b"\x8b\x45\x14"); copy16(SET, 0)       # set = *arg
+        code.extend(b"\x8b\x45\x18"); copy16(NEEDED, 0)    # needed = *arg
+        code.extend(b"\x8b\x75\x08")                       # insn = target
+        label("loop")
+        code.extend(b"\x85\xf6"); br(JE, "done")
+        code.extend(b"\x8b\x7e\x0c")                       # next = NEXT_INSN (insn)
+        code.extend(b"\x89\x75" + s8(THIS))                # this_jump_insn = insn
+        code.extend(b"\x0f\xb7\x06")                       # movzwl (%esi),%eax
+        code.extend(b"\x83\xf8\x1f"); br(JNE, "notlabel")  # CODE_LABEL
+        for k in range(4, 16, 4):                          # pending &= ~needed; res &= ~pending; pending = 0
+            code.extend(b"\x8b\x45" + s8(NEEDED + k) + b"\xf7\xd0\x21\x05" + (PENDING + k - 4).to_bytes(4, "little"))
+        code.extend(b"\x8b\x4d\x0c")
+        for k in range(4, 16, 4):
+            code.extend(b"\xa1" + (PENDING + k - 4).to_bytes(4, "little") + b"\xf7\xd0\x21\x41" + s8(k))
+            code.extend(b"\xc7\x05" + (PENDING + k - 4).to_bytes(4, "little") + bytes(4))
+        br(JMP, "cont")
+        label("notlabel")
+        code.extend(b"\x83\xf8\x1e"); br(JE, "cont")       # BARRIER
+        code.extend(b"\x83\xf8\x20"); br(JE, "cont")       # NOTE
+        code.extend(b"\x83\xf8\x1b"); br(JNE, "jumpp")     # INSN
+        code.extend(b"\x8b\x46\x10\x0f\xb7\x08")           # PATTERN; its code in %ecx
+        code.extend(b"\x83\xf9\x2a"); br(JNE, "notuse")    # USE
+        code.extend(b"\x8b\x40\x04\x0f\xb7\x08")           # XEXP (pat, 0)
+        code.extend(b"\x80\xb9" + (0x082BCC80).to_bytes(4, "little") + b"\x69")  # rtx_class == 'i'
+        br(JNE, "cont")
+        call(mark_set, EAX, arg(0x0C), b"\x6a\x00", b"\x6a\x01")
+        br(JMP, "cont")
+        label("notuse")
+        code.extend(b"\x83\xf9\x2b"); br(JE, "cont")       # CLOBBER
+        code.extend(b"\x83\xf9\x13"); br(JNE, "jumpp")     # SEQUENCE: find a JUMP_INSN in it
+        code.extend(b"\x8b\x40\x04\x8b\x08\x31\xd2")       # rtvec, its length, i = 0
+        label("seq")
+        code.extend(b"\x39\xca"); br(b"\x0f\x83", "jumpp")  # i >= len
+        code.extend(b"\x8b\x5c\x90\x04\x89\x5d" + s8(THIS))  # this_jump_insn = XVECEXP (pat, 0, i)
+        code.extend(b"\x66\x83\x3b\x1c"); br(JE, "jumpp")
+        code.extend(b"\x42"); br(JMP, "seq")
+        label("jumpp")
+        code.extend(b"\x8b\x45" + s8(THIS) + b"\x66\x83\x38\x1c"); br(JNE, "mark")  # JUMP_INSN
+        code.extend(b"\x8b\x4d\x10\x8d\x51\x01\x89\x55\x10\x83\xf9\x09")  # jump_count++ < 10
+        br(JG, "done")
+        call(0x080F6486, arg(THIS))                        # simplejump_p
+        code.extend(b"\x85\xc0"); br(JNE, "simple")
+        code.extend(b"\x8b\x45" + s8(THIS) + b"\x8b\x40\x10\x66\x83\x38\x2d"); br(JE, "simple")  # RETURN
+        call(0x080F64E4, arg(THIS))                        # condjump_p
+        code.extend(b"\x85\xc0"); br(JE, "done")
+        code.extend(b"\x83\x45\x10\x04\x83\x7d\x10\x09"); br(JG, "done")  # (jump_count += 4) >= 10
+        call(mark_referenced, ESI, addr(NEEDED), b"\x6a\x01")
+        call(mark_set, ESI, addr(SET), b"\x6a\x00", b"\x6a\x01")
+        code.extend(b"\x8d\x45" + s8(SET)); copy16(TSET, 0)
+        code.extend(b"\x8b\x45\x0c"); copy16(TRES, 0); copy16(FRES, 0)
+        for k in range(4, 16, 4):                          # both &= ~(set & ~needed)
+            code.extend(b"\x8b\x55" + s8(NEEDED + k) + b"\xf7\xd2\x23\x55" + s8(SET + k) + b"\xf7\xd2")
+            code.extend(b"\x21\x55" + s8(TRES + k) + b"\x21\x55" + s8(FRES + k))
+        code.extend(b"\x8b\x45" + s8(THIS) + b"\x8b\x40\x20")  # JUMP_LABEL
+        call(start, EAX, addr(TRES), arg(0x10), addr(TSET), addr(NEEDED))
+        call(start, EDI, addr(FRES), arg(0x10), addr(SET), addr(NEEDED))
+        code.extend(b"\x8b\x4d\x0c")
+        for k in range(4, 16, 4):                          # res &= target_res | fallthrough_res
+            code.extend(b"\x8b\x45" + s8(FRES + k) + b"\x0b\x45" + s8(TRES + k) + b"\x21\x41" + s8(k))
+        br(JMP, "done")
+        label("simple")
+        code.extend(b"\x8b\x45" + s8(THIS) + b"\x8b\x78\x20")  # next = JUMP_LABEL
+        label("mark")
+        call(mark_referenced, ESI, addr(NEEDED), b"\x6a\x01")
+        call(mark_set, ESI, addr(SET), b"\x6a\x00", b"\x6a\x01")
+        code.extend(b"\x8b\x4d\x0c")
+        for k in range(4, 16, 4):                          # res &= ~(set & ~needed)
+            code.extend(b"\x8b\x55" + s8(NEEDED + k) + b"\xf7\xd2\x23\x55" + s8(SET + k) + b"\xf7\xd2\x21\x51" + s8(k))
+        label("cont")
+        code.extend(b"\x89\xfe"); br(JMP, "loop")
+        label("done")
+        code.extend(b"\x8d\x65\xf4\x5f\x5e\x5b\x5d\xc3")  # epilogue
+        resolve()
+
+    fdsr = 0x080B1E53
+    code = bytearray()
+
+    def jump(opcode, target):
+        code.extend(opcode)
+        code.extend((target - (fdsr + len(code) + 4)).to_bytes(4, "little", signed=True))
+
+    dead_or_set(code, jump, fdsr)
+    if len(code) > 821:
+        sys.exit("patch_cc1: find_dead_or_set_registers doesn't fit")
+    put(fdsr, b"\xf3\x0f\x1e\xfb", code)
+
+    # In the scan: a jump that is neither simple nor a return (+3810) goes to
+    # find_dead_or_set_registers (insn, res, jump_count - 1, &set, &needed)
+    # if it is a conditional jump, then the scan ends (+4121).
+    def scan_cond_jump2(code, jump):
+        code.extend(b"\x83\xec\x0c\xff\x75\x88")                     # push this_jump_insn
+        jump(b"\xe8", 0x080F64E4)                                     # condjump_p
+        code.extend(b"\x83\xc4\x10\x85\xc0")
+        jump(b"\x0f\x84", 0x081725A6)
+        code.extend(b"\x83\xec\x0c\x8d\x45\xc4\x50\x8d\x45\xb4\x50")  # &needed; &set
+        code.extend(b"\x8b\x85\x68\xff\xff\xff\x48\x50")             # jump_count - 1
+        code.extend(b"\xff\xb5\x40\xff\xff\xff\xff\xb5\x58\xff\xff\xff")  # res; insn
+        jump(b"\xe8", fdsr)
+        code.extend(b"\x83\xc4\x20")
+        jump(b"\xe9", 0x081725A6)
+
+    start = in_bc(scan_cond_jump2)
+    o = fo(0x0817246F)
+    put(0x0817246F, d[o:o + 6],
+        b"\x0f\x85" + (start - (0x0817246F + 6)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
