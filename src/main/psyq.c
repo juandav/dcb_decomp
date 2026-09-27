@@ -459,7 +459,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuGetReverbVoice);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetKey);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80052AB0);
+void func_80052AB0(long reg, u_short *out) {
+    *out = D_8006EF24[reg * 8 + 6];
+}
+
+OBJECT_END();
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmInit);
 
