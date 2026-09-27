@@ -8,7 +8,56 @@ extern void (*D_8006F59C[])();
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _ExitCard);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068C64);
+void func_80068884(void);
+int func_80068874(long chan, long block, u_char *buf);
+int func_80069024(long chan, long block, u_char *buf);
+int func_80069034(long port);
+
+int func_80068C64(long chan, long block, u_char *buf) {
+    u_char rbuf[128];
+    u_char *p;
+    u_char *rp;
+    u_char sum;
+    int i;
+    int n;
+    u_char *q;
+    int k;
+
+    i = 0;
+    p = buf;
+    sum = 0;
+    for (n = 0; n < 127; n++) {
+        sum ^= *p++;
+    }
+    *p = sum;
+    while (1) {
+        if (i >= 8) {
+            return 0;
+        }
+        func_80068884();
+        if (func_80068874(chan, block, buf) != 1) {
+            return 0;
+        }
+        while (!(func_80069034(chan >> 4) & 1)) {
+        }
+        rp = rbuf;
+        bzero(rp, 128);
+        func_80068884();
+        if (func_80069024(chan, block, rp) == 1) {
+            while (!(func_80069034(chan >> 4) & 1)) {
+            }
+        }
+        q = rbuf;
+        sum = 0;
+        for (k = 0; k < 127; k++) {
+            sum ^= *q++;
+        }
+        if (buf[127] == sum) {
+            return 1;
+        }
+        i++;
+    }
+}
 
 typedef struct CardDir {
     /* 0x00 */ long attr;
@@ -28,10 +77,6 @@ typedef struct {
 extern CardDir D_801DD960[15];
 extern long D_801DDB40[20];
 extern u_char D_801DDB90[128];
-int func_80068C64(long chan, long block, u_char *buf);
-int func_80069024(long chan, long block, u_char *buf);
-int func_80069034(long port);
-void func_80068884(void);
 int func_80068824(long chan);
 
 /* read a block back and wait for the card to finish */
