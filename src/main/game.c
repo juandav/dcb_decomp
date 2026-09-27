@@ -1770,7 +1770,65 @@ void func_8001AE70(void *arg0) {
     func_8001AE90(arg0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001AE90);
+s32 func_8001AE90(void *ptr) {
+    s32 *p;
+    s32 *q;
+    s32 i;
+    s32 addr;
+    s32 size;
+
+    if (ptr == 0) {
+        return 0;
+    }
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr == (s32)ptr) {
+                addr &= 0x3FFFFFFF;
+                size = p[1];
+                q = p;
+                if (p != &D_80089848 && p[-3] > 0) {
+                    p -= 3;
+                    addr = p[0];
+                    size += p[1];
+                    i++;
+                }
+                if (i > 0 && q[3] > 0) {
+                    if (q != p) {
+                        i--;
+                    }
+                    q += 3;
+                    size += q[1];
+                }
+                p[0] = addr;
+                p[1] = size;
+                p[2] = -1;
+                if (p != q) {
+                    for (i--; i > 0; i--) {
+                        p += 3;
+                        q += 3;
+                        p[0] = q[0];
+                        p[1] = q[1];
+                        p[2] = q[2];
+                    }
+                    while (p < q) {
+                        p += 3;
+                        p[0] = 0;
+                        p[2] = 0;
+                    }
+                }
+                func_800149A0();
+                return 0;
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
 
 extern s32 D_80089848;
 
