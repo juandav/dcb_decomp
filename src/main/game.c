@@ -5390,7 +5390,18 @@ void func_8001F5A4(s32 flag, u32 i, u8 *base) {
     gte_lwc2(20, 0, base);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F5CC);
+void func_8001F5CC(s32 flag, u32 i, u8 *base) {
+    u8 *p;
+
+    p = base + (i >> 16);
+    base += i & 0xFFFF;
+    gte_lwc2(13, 0, p);
+    gte_lwc2(18, 4, p);
+    if (flag == 0) {
+        gte_lwc2(20, 0, base);
+    }
+    gte_lwc2(21, 0, base);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F5FC);
 
