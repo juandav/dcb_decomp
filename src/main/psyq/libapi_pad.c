@@ -57,7 +57,16 @@ int func_8006AEA8(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF10);
+extern long *D_80077930;
+
+int func_8006AF10(void) {
+    if ((D_80077930[1] & 1) == 0 || (D_80077930[0] & 1) == 0) {
+        return 0;
+    }
+    return 1;
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF54);
 
