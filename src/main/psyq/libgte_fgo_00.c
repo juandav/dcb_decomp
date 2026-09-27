@@ -47,7 +47,7 @@ u_long *GsTMDdivTG3NL(TMD_P_TG3 *op, SVECTOR *vp, SVECTOR *np, POLY_GT3 *pk, u_l
             continue;
         }
         func_8005D104(&r0->sz, &r1->sz, &r2->sz);
-        divp->ot = ot->org + ((otz - ot->offset) >> shift);
+        divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
         divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
         divp->clut = op->clut;
         divp->tpage = op->tpage;
