@@ -1506,7 +1506,22 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80069034);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", bcopy);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", bzero);
+void *bzero(unsigned char *p, int n) {
+    unsigned char *s;
+
+    if (p == NULL) {
+        return NULL;
+    }
+    if (n <= 0) {
+        return NULL;
+    }
+    s = p;
+    while (n > 0) {
+        *p++ = 0;
+        n--;
+    }
+    return s;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", memcpy);
 
