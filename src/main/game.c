@@ -837,7 +837,7 @@ s32 ClearImage(Rect16 *, s32, s32, s32);
 void SsInit(void);
 void func_8001AA80(s32);
 void func_800149A8(s32, s32, void (*)(), s32, s32, s32, s32);
-void D_800155F4();
+void func_800155F4();
 
 int main(void) {
     Rect16 r;
@@ -854,7 +854,7 @@ int main(void) {
     DrawSync(0);
     SsInit();
     func_8001AA80(1);
-    func_800149A8(1, 0x400, D_800155F4, 0, 0, 0, 0);
+    func_800149A8(1, 0x400, func_800155F4, 0, 0, 0, 0);
     for (;;) {
         rand();
     }
@@ -1397,6 +1397,8 @@ void func_800152AC(void) {
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80015328);
+
+INCLUDE_ASM("asm/main/nonmatchings/game", func_800155F4);
 
 extern Unk80081710 D_80081710[4];
 extern s32 D_800857D0;
