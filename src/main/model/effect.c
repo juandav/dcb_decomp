@@ -13,6 +13,9 @@
 #include "dcb/text.h"
 #include "dcb/transform.h"
 
+s16 D_8006E280[3] = { 0x80, -0x40, 0x140 };
+s16 D_8006E288[2][3] = { { -0xF0, 0x99, 0x99 }, { 0xF0, 0x1C, 0x1C } };
+
 void func_8002FAE4(void) {
     Fade *f;
     s32 tim;

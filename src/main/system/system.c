@@ -16,6 +16,8 @@
 #include "dcb/text.h"
 #include "dcb/window.h"
 
+s32 D_8006DD4C = 1;
+
 void func_80014CF0(void) {
     s32 i;
 
