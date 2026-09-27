@@ -797,7 +797,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_ready);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_cw);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_vol);
+int CD_vol(CdlATV *vol) {
+    *D_80070F04 = 2;
+    *D_80070F14 = vol->val0;
+    *D_80070F08 = vol->val1;
+    *D_80070F04 = 3;
+    *D_80070F10 = vol->val2;
+    *D_80070F14 = vol->val3;
+    *D_80070F08 = 0x20;
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_flush);
 
