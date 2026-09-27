@@ -119,7 +119,29 @@ DECDCTENV *DecDCTGetEnv(DECDCTENV *env) {
     return env;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTPutEnv);
+void func_800680B4(u_long *adr, u_long size);
+
+DECDCTENV *DecDCTPutEnv(DECDCTENV *env) {
+    u_long *src;
+    u_long *dst;
+    int i;
+
+    dst = (u_long *)D_800768A8.iq_y;
+    src = (u_long *)env->iq_y;
+    i = 16;
+    while (i--) {
+        *dst++ = *src++;
+    }
+    dst = (u_long *)D_800768A8.iq_c;
+    src = (u_long *)env->iq_c;
+    i = 16;
+    while (i--) {
+        *dst++ = *src++;
+    }
+    func_800680B4((u_long *)&D_800768A8, 32);
+    func_800680B4((u_long *)&D_8007692C, 32);
+    return env;
+}
 
 void DecDCTin(u_long *buf, int mode) {
     if (mode & 1) {
