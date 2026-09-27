@@ -1238,7 +1238,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", PutDrawEnv);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTagEnv);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetDrawEnv);
+DRAWENV *GetDrawEnv(DRAWENV *env) {
+    memcpy((u_char *)env, (u_char *)&D_80076768, sizeof(DRAWENV));
+    return env;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", PutDispEnv);
 
