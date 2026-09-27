@@ -1398,7 +1398,69 @@ void func_800152AC(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80015328);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800155F4);
+void func_80015328();
+void func_8002BC58(void);
+void func_8001A600(void);
+void func_8006A884(s32);
+void func_800157B0(void);
+void func_800152AC(void);
+int func_80015EDC(void);
+void func_8002ADEC();
+void func_80026E90(s32, s32, s32);
+void func_80016948(s32 n);
+void func_8001B90C(s32 w, s32 h, s32 interlace);
+void func_8002D404(void);
+void func_8002F79C(void);
+void func_8002B3EC(s32 arg0, s32 arg1);
+void func_8002F4F4(void);
+s32 func_80014C08(s32);
+void func_800168C4(void);
+void func_8001F040(void);
+extern s32 D_8008983C;
+s32 func_800149B8();
+s32 func_801E055C(s32);
+void func_8002AEA4(s32);
+void func_8002B688(void);
+
+void func_800155F4(void) {
+    s32 t;
+
+    t = func_800148B0();
+    func_8002BC58();
+    func_8001A600();
+    func_8006A884(0);
+    func_800157B0();
+    func_800152AC();
+    func_80014840();
+    func_80015EDC();
+    func_8001AA80(0);
+    func_8002ADEC(t);
+    func_80026E90(0x3C0, 0x100, 0x3E8);
+    func_80016948(0xD);
+    func_8001B90C(0x140, 0xF0, 0);
+    func_8002D404();
+    func_8002F79C();
+    for (;;) {
+        func_80014840();
+        func_80015EDC();
+        func_8001AA80(0);
+        func_80014C08(0xA);
+        func_800168C4();
+        func_8001F040();
+        D_8008983C = 1;
+        func_800149B8(0, -1, 0, 0x800, func_8002B3EC, 2, t);
+        func_80014C08(0x7FFFFFFF);
+        func_801E055C(0);
+        func_8002AEA4(1);
+        func_8002B688();
+        func_8001B90C(0x140, 0xF0, 0);
+        func_800149B8(0x1F, 0, 0, 0x800, func_80015328, 0, 0, 0, 0);
+        func_80014C08(0xA);
+        func_800149B8(0, -1, 0, 0x400, func_8002F4F4, 0, 0, 0, 0);
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(0xA);
+    }
+}
 
 extern Unk80081710 D_80081710[4];
 extern s32 D_800857D0;
