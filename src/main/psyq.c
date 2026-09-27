@@ -1945,7 +1945,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", setjmp);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", longjmp);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", toupper);
+extern u_char D_80077879[];
+
+char toupper(char c) {
+    if (D_80077879[(u_char)c] & 2) {
+        c -= 0x20;
+    }
+    return c;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A734);
 
