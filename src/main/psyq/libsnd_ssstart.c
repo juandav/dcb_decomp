@@ -18,7 +18,14 @@ void SsStart2(void) {
     func_8004ECA0(0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004EF10);
+extern void (*D_8006F59C[])();
+
+void func_8004EF10(void) {
+    if (D_8006F59C[1] != NULL) {
+        D_8006F59C[1]();
+    }
+    D_8006F59C[0]();
+}
 
 extern long D_8006F5A8;
 
