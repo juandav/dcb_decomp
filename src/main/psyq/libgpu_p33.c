@@ -213,7 +213,21 @@ void func_80067FC4(int mode) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800680B4);
+extern volatile u_long *D_800769F0;
+extern volatile u_long *D_800769B8;
+extern volatile u_long *D_800769BC;
+extern volatile u_long *D_800769C0;
+extern volatile u_long *D_800769E8;
+int func_800681D0(void);
+
+void func_800680B4(u_long *addr, u_long size) {
+    func_800681D0();
+    *D_800769F0 |= 0x88;
+    *D_800769B8 = (u_long)(addr + 1);
+    *D_800769BC = ((size >> 5) << 16) | 0x20;
+    *D_800769E8 = *addr;
+    *D_800769C0 = 0x1000201;
+}
 
 extern volatile u_long *D_800769F0;
 extern volatile u_long *D_800769C4;
