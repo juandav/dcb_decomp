@@ -474,15 +474,16 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80013FA4);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800141B8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800142D0);
-
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014364);
-
 extern void *D_80077A10;
 extern void *D_80077A14;
 extern s16 D_80077A1A;
 extern s16 D_80077A1C;
 extern s32 D_80077AE0;
+extern Unk80077A0C *D_80077A0C;
+INCLUDE_ASM("asm/main/nonmatchings/game", func_800142D0);
+
+INCLUDE_ASM("asm/main/nonmatchings/game", func_80014364);
+
 
 s32 func_8001AE90(void *);
 s32 func_8001AFF0(s32 arg0);
@@ -2276,11 +2277,31 @@ void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
     RotMatrix(arg1, arg2);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001EDE0);
+s32 TransMatrix(MATRIX *, VECTOR *);
+s32 ScaleMatrix(void *, void *);
+void func_8001EFB0(s32 arg0);
+
+void func_8001EDE0(SVECTOR *, VECTOR *, VECTOR *, MATRIX *, s32);
+
+/* old-style definition: the callers pass an int, the byte is read here */
+void func_8001EDE0(rot, trans, scale, m, axis)
+    SVECTOR *rot;
+    VECTOR *trans;
+    VECTOR *scale;
+    MATRIX *m;
+    u8 axis;
+{
+    RotMatrix(rot, m);
+    func_8001ED30(axis, (s16 *)rot, m);
+    TransMatrix(m, trans);
+    if (scale != 0 && (scale->vx != 0x1000 || scale->vy != scale->vx || scale->vz != scale->vy)) {
+        ScaleMatrix(m, scale);
+    }
+    func_8001EFB0((s32)m);
+}
 
 MATRIX *MulMatrix2(MATRIX *, MATRIX *);
 s32 RotTrans(u16 *, void *, s32 *);
-s32 func_8001EDE0(void *, void *, void *, void *, s32);
 
 s32 ScaleMatrix(void *, void *);
 void func_8001EFB0(s32 arg0);
