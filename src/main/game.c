@@ -2651,9 +2651,9 @@ void func_8001B7F4(u32 *p, s32 dx, s32 dy) {
 void func_8001B930();
 extern s32 D_80079500;
 
-void func_8001B90C(void) {
+void func_8001B90C(s32 w, s32 h, s32 interlace) {
     D_80079500 = 0;
-    func_8001B930();
+    func_8001B930(w, h, interlace);
 }
 
 void SetDefDrawEnv(DRAWENV *, s32, s32, s32, s32);
@@ -10178,6 +10178,73 @@ void func_80049E80(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80049EF8);
 
-INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012F28);
+void func_8002F8E8(void);
+void func_8002B3EC(s32 arg0, s32 arg1);
+void func_80015328();
+s8 func_8001A100(void *arg0);
+void D_801DF47C();
+s32 ClearImage(Rect16 *, s32, s32, s32);
+void func_8001B90C(s32, s32, s32);
+/* the same text as in func_800416D8, kept as its own copy */
+extern char D_80012FAC[];
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004A2DC);
+void func_8004A2DC(s32 mode) {
+    u8 dlg[0xB8];
+    Rect16 r = { 0, 0, 480, 512 };
+    s32 stack;
+    s32 done;
+
+    stack = func_800148B0();
+    if (mode == 0) {
+        func_8002F8E8();
+        func_80014C08(10);
+        ClearImage(&r, 0, 0, 0);
+        DrawSync(0);
+        func_80014C08(10);
+        done = 0;
+        func_8002B688();
+        func_80014C08(10);
+        func_800149B8(0, -1, 0, 0x800, func_8002B3EC, 1, stack);
+        func_80014C08(0x7FFFFFFF);
+        func_8001B90C(0x140, 0xF0, 0);
+        func_800149B8(0x1F, 0, 0, 0x800, func_80015328, 0, 0, 0, 0);
+        func_80014C08(2);
+        do {
+            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, stack, 0, 0);
+            func_80014C08(0x7FFFFFFF);
+            func_8002BB58(3);
+            func_80019EA4(dlg,
+                          "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
+                          "to continue.)",
+                          1);
+            func_8001A100(dlg);
+            switch ((s8)dlg[0xA5]) {
+            case 1:
+                done = 1;
+                break;
+            case 0:
+            case 2:
+                done = 0;
+                break;
+            }
+        } while (!done);
+        func_80014C08(20);
+        func_80014A48(0);
+        func_80014A90();
+    } else {
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\endseg.bin", D_80010C9C, func_800148B0());
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x800, D_801DF47C, stack, mode, 0, 0);
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(10);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1000, func_8001B358, D_80012FAC, D_80010C9C, func_800148B0());
+        func_80014C08(0x7FFFFFFF);
+        func_80014C08(2);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, stack, 0, 0);
+    }
+}
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80012FAC);
