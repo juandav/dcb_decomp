@@ -1198,7 +1198,10 @@ int ClearImage(RECT *rect, u_char r, u_char g, u_char b) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearImage2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", LoadImage);
+int LoadImage(RECT *rect, u_long *p) {
+    func_800649E8("LoadImage", rect);
+    return D_80076750->addque(D_80076750->unk20, rect, 8, (long)p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StoreImage);
 
