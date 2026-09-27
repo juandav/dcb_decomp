@@ -135,6 +135,34 @@ typedef struct {
     u8 u0;
     u8 v0;
     u16 clut;
+    s16 x1;
+    s16 y1;
+    u8 u1;
+    u8 v1;
+    u16 tpage;
+    s16 x2;
+    s16 y2;
+    u8 u2;
+    u8 v2;
+    u16 pad1;
+    s16 x3;
+    s16 y3;
+    u8 u3;
+    u8 v3;
+    u16 pad2;
+} POLY_FT4;
+
+typedef struct {
+    u32 tag;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 code;
+    s16 x0;
+    s16 y0;
+    u8 u0;
+    u8 v0;
+    u16 clut;
     s16 w;
     s16 h;
 } SPRT;
@@ -459,6 +487,7 @@ s32 func_80029990(void);
 
 s32 VSync(s32);
 void SetSemiTrans(void *, s32);
+void SetShadeTex(void *, s32);
 void func_8001E76C(void *, u8, u8, u8);
 s32 rand(void);
 s32 sprintf(char *, const char *, ...);
@@ -1754,7 +1783,32 @@ void func_8001C4DC(s32 x, s32 y, Rect16 *r, u16 tpage, s32 clut, s32 z, u8 c, s8
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C6A4);
+void func_800677A4(POLY_FT4 *);
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_8001EA64(void *, s16, s16, s16, s16);
+
+void func_8001C6A4(POLY_FT4 *p, POLY_FT4 *dst, u8 *rgb, s32 tpage, s32 clut, Rect16 *uv, Rect16 *xy,
+                   u8 semi, u8 flat) {
+    func_800677A4(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    SetShadeTex(p, flat ^ 1);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    if (uv != 0) {
+        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    }
+    if (xy != 0) {
+        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    }
+    *dst = *p;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C810);
 
