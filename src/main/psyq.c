@@ -488,7 +488,11 @@ u_long _SpuGetAnyVoice(int lo, int hi) {
     return D_8006EF24[lo] | (h << 16);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetReverbVoice);
+u_long SpuSetReverbVoice(long on_off, u_long voice_bit) {
+    return _SpuSetAnyVoice(on_off, voice_bit, 0xCC, 0xCD);
+}
+
+OBJECT_END(3);
 
 u_long SpuGetReverbVoice(void) {
     return _SpuGetAnyVoice(0xCC, 0xCD);
