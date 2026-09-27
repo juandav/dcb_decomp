@@ -1332,7 +1332,12 @@ int func_80066620(u_long *p, int n) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066660);
+void func_80066660(u_long addr) {
+    *D_80076860 = 0x04000002;
+    *D_80076864 = addr;
+    *D_80076868 = 0;
+    *D_8007686C = 0x01000401;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666A8);
 
