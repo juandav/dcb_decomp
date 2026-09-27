@@ -2654,7 +2654,109 @@ void func_800176E4(Rect16 *a, Rect16 *b) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800177E8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80017B88);
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_8001EA64(void *, s16, s16, s16, s16);
+extern Rect16 D_8006DDE8[];
+
+void func_80017B88(Rect16 *r, u8 style, s32 semi, s32 col, s32 pal, s32 z) {
+    Rect16 uv[4];
+    Rect16 st[4];
+    u16 clut;
+    u32 *ot;
+    s32 k;
+    s32 i;
+
+    clut = getClut(D_800897F2 + (pal % 2) * 16, D_800897F4 + pal / 2);
+    if (func_80019084() != 0) {
+        return;
+    }
+    if (r->x < 320 && r->y < 240 && r->x + r->w > 0 && r->y + r->h > 0) {
+        ot = &D_800793A0->ot[z];
+        if (style & 0xF0) {
+            k = (style >> 4) - 1;
+            func_8001EA64(&WP->ft4a[0], (s8)D_8006DD70[k].left + r->x,
+                          (s8)D_8006DD70[k].top + r->y - D_8006DD70[k].h[0],
+                          r->w - ((s8)D_8006DD70[k].left - (s8)D_8006DD70[k].right), D_8006DD70[k].h[0]);
+            func_8001EA64(&WP->ft4a[1], (s8)D_8006DD70[k].left + r->x,
+                          (s8)D_8006DD70[k].bottom + r->y + r->h,
+                          r->w - ((s8)D_8006DD70[k].left - (s8)D_8006DD70[k].right), D_8006DD70[k].h[1]);
+            func_8001EA64(&WP->ft4a[2], (s8)D_8006DD70[k].left + r->x - D_8006DD70[k].w[0],
+                          (s8)D_8006DD70[k].top + r->y, D_8006DD70[k].w[0],
+                          r->h - ((s8)D_8006DD70[k].top - (s8)D_8006DD70[k].bottom));
+            func_8001EA64(&WP->ft4a[3], (s8)D_8006DD70[k].right + r->x + r->w,
+                          (s8)D_8006DD70[k].top + r->y, D_8006DD70[k].w[1],
+                          r->h - ((s8)D_8006DD70[k].top - (s8)D_8006DD70[k].bottom));
+            WP->linea[0].x0 = (r->x - D_8006DD70[k].w[0]) + (s8)D_8006DD70[k].left;
+            WP->linea[0].y0 = (r->y - D_8006DD70[k].h[0]) + (s8)D_8006DD70[k].top;
+            WP->linea[1].x0 = (r->x + r->w) + (s8)D_8006DD70[k].right;
+            WP->linea[1].y0 = (r->y - D_8006DD70[k].h[0]) + (s8)D_8006DD70[k].top;
+            WP->linea[2].x0 = (r->x - D_8006DD70[k].w[0]) + (s8)D_8006DD70[k].left;
+            WP->linea[2].y0 = (r->y + r->h) + (s8)D_8006DD70[k].bottom;
+            WP->linea[3].x0 = (r->x + r->w) + (s8)D_8006DD70[k].right;
+            WP->linea[3].y0 = (r->y + r->h) + (s8)D_8006DD70[k].bottom;
+            uv[0].x = D_8006DD70[k].u[1];
+            uv[0].y = D_8006DD70[k].v[0];
+            uv[0].w = 0;
+            uv[0].h = D_8006DD70[k].h[0];
+            uv[1].x = D_8006DD70[k].u[1];
+            uv[1].y = D_8006DD70[k].v[2];
+            uv[1].w = 0;
+            uv[1].h = D_8006DD70[k].h[1];
+            uv[2].x = D_8006DD70[k].u[0];
+            uv[2].y = D_8006DD70[k].v[1];
+            uv[2].w = D_8006DD70[k].w[0];
+            uv[2].h = 0;
+            uv[3].x = D_8006DD70[k].u[2];
+            uv[3].y = D_8006DD70[k].v[1];
+            uv[3].w = D_8006DD70[k].w[1];
+            uv[3].h = 0;
+            st[0].x = D_8006DD70[k].u[0];
+            st[0].y = D_8006DD70[k].v[0];
+            st[0].w = D_8006DD70[k].w[0];
+            st[0].h = D_8006DD70[k].h[0];
+            st[1].x = D_8006DD70[k].u[2];
+            st[1].y = D_8006DD70[k].v[0];
+            st[1].w = D_8006DD70[k].w[1];
+            st[1].h = D_8006DD70[k].h[0];
+            st[2].x = D_8006DD70[k].u[0];
+            st[2].y = D_8006DD70[k].v[2];
+            st[2].w = D_8006DD70[k].w[0];
+            st[2].h = D_8006DD70[k].h[1];
+            st[3].x = D_8006DD70[k].u[2];
+            st[3].y = D_8006DD70[k].v[2];
+            st[3].w = D_8006DD70[k].w[1];
+            st[3].h = D_8006DD70[k].h[1];
+
+            for (i = 0; i < 4; i++) {
+                func_8001EC3C((u8 *)&WP->ft4a[i], uv[i].x, uv[i].y, uv[i].w, uv[i].h);
+                setRGB0(&WP->ft4a[i], col, col, col);
+                WP->ft4a[i].clut = clut;
+                addPrim(ot, &WP->ft4a[i]);
+                setUV0(&WP->linea[i], st[i].x, st[i].y);
+                setWH(&WP->linea[i], st[i].w, st[i].h);
+                setRGB0(&WP->linea[i], col, col, col);
+                WP->linea[i].clut = clut;
+                addPrim(ot, &WP->linea[i]);
+            }
+        }
+        addPrim(ot, WP->twin);
+        if (style & 0xF) {
+            k = (style & 0xF) - 1;
+            WP->frame.x0 = r->x - 2;
+            WP->frame.y0 = r->y - 2;
+            WP->frame.w = r->w + 4;
+            WP->frame.h = r->h + 4;
+            setSemiTrans(&WP->frame, semi);
+            setRGB0(&WP->frame, col, col, col);
+            WP->frame.clut = clut;
+            SetTexWindow(WP->unk10C, (s16 *)&D_8006DDE8[k]);
+            addPrim(ot, &WP->frame);
+        }
+        addPrim(ot, WP->unk10C);
+        addPrim(ot, WP->tpage);
+        D_800897E8 += sizeof(PanelPrims);
+    }
+}
 
 extern Rect16 D_8006DE48[];
 extern Rect16 D_8006DE28[];
