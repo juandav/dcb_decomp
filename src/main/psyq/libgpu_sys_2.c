@@ -325,7 +325,11 @@ u_long func_80065C54(short x, short y) {
     return 0xE3000000 | ((y & 0x3FF) << 10) | (x & 0x3FF);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065CEC);
+u_long func_80065CEC(short x, short y) {
+    x = CLAMP(x, 0, D_80076758.w - 1);
+    y = CLAMP(y, 0, D_80076758.h - 1);
+    return 0xE4000000 | ((y & 0x3FF) << 10) | (x & 0x3FF);
+}
 
 u_long func_80065D84(short x, short y) {
     return 0xE5000000 | ((y & 0x7FF) << 11) | (x & 0x7FF);
