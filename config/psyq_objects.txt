@@ -69,7 +69,7 @@ libspu_s_srmp
 libspu_s_sra
 libsnd_ut_rdep
 libsnd_ut_rev
-libspu_s_sr
+libspu_s_sr gcc2.8
 libsnd_ut_rfb nocse
 libsnd_ut_sva
 libsnd_vm_aloc2
