@@ -81,16 +81,6 @@ void renderStatPopups(void);
 void drawHudPanelContents(s32 panelIndex, s32 z);
 void showDpGainPopup(s32 player);
 void tickCardMotion(s32 cardIndex, s32 player);
-void startPanelMove(Panel *panel, s16 targetX, s16 targetY, s32 frames);
-s32 stepPanelMove();
-void holdPanelAtTarget();
-void tickDeckPanel(s32 player);
-void func_8003DD9C(s32 player);
-void tickStatusPanel(s32 player);
-void func_8003E11C(s32 player);
-void tickAttackPanel(s32 player);
-void tickCardInfoPanel(s32 player);
 void renderBoardCards(void);
-void tickBattleHud(void);
 
 #endif /* DCB_BATTLE_HUD_H */

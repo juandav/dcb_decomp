@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/duel.h"
 #include "dcb/battle_hud.h"
+#include "dcb/hud_panels.h"
 #include "dcb/duel_session.h"
 #include "dcb/card_db.h"
 #include "dcb/duel_rules.h"
