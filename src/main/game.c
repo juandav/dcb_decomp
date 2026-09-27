@@ -9011,7 +9011,133 @@ Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n
     return o;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003230C);
+void func_80031754(void *arg0);
+s16 func_800317A8(void *arg0, s16 arg1);
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_801E7020(u8 *);
+
+void func_8003230C(Obj32 *o) {
+    u8 c0[8];
+    u8 c1[8];
+    u8 c2[8];
+    SVECTOR *v;
+    s32 i;
+
+    if (o->unk0[0x139] != 0) {
+        func_80031754(o);
+        return;
+    }
+    PushMatrix();
+    func_80030F90((s32)o, o->unk1AA);
+    o->unk1A6 = func_800317A8(o, o->unk1A6);
+    if (o->unk1A6 == 0) {
+        PopMatrix();
+        return;
+    }
+    v = o->unk16C;
+    if (o->unk1A6 != o->unk1A8) {
+        c0[0] = o->unk185.b[0] * o->unk1A6 / 256;
+        c0[1] = o->unk185.b[1] * o->unk1A6 / 256;
+        c0[2] = o->unk185.b[2] * o->unk1A6 / 256;
+        c1[0] = o->unk189.b[0] * o->unk1A6 / 256;
+        c1[1] = o->unk189.b[1] * o->unk1A6 / 256;
+        c1[2] = o->unk189.b[2] * o->unk1A6 / 256;
+        c2[0] = o->unk18D.b[0] * o->unk1A6 / 256;
+        c2[1] = o->unk18D.b[1] * o->unk1A6 / 256;
+        c2[2] = o->unk18D.b[2] * o->unk1A6 / 256;
+    }
+    switch (o->type) {
+    case 9: {
+        u8 *p;
+        u8 *q;
+        u8 *tp;
+
+        p = o->unk164[D_800794F4];
+        q = o->unk164[D_800794F4 ^ 1];
+        tp = o->unk15C[D_800794F4];
+        for (i = 0; i < o->n; i++) {
+            if (o->unk1A6 != o->unk1A8) {
+                func_8001E75C(p, c0[0], c0[1], c0[2]);
+                func_8001E76C(p, c0[0], c0[1], c0[2]);
+                func_8001E7B8(p, c1[0], c1[1], c1[2]);
+                func_8001E804(p, c1[0], c1[1], c1[2]);
+                func_8001E75C(q, c0[0], c0[1], c0[2]);
+                func_8001E76C(q, c0[0], c0[1], c0[2]);
+                func_8001E7B8(q, c1[0], c1[1], c1[2]);
+                func_8001E804(q, c1[0], c1[1], c1[2]);
+            }
+            func_8001DFE0((s32)p, (s32)tp, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AC, o->unk1AB, o->unk194);
+            p += 0x24;
+            q += 0x24;
+            tp += 8;
+            if (o->unk1A6 != o->unk1A8) {
+                func_8001E75C(p, c1[0], c1[1], c1[2]);
+                func_8001E76C(p, c1[0], c1[1], c1[2]);
+                func_8001E7B8(p, c2[0], c2[1], c2[2]);
+                func_8001E804(p, c2[0], c2[1], c2[2]);
+                func_8001E75C(q, c1[0], c1[1], c1[2]);
+                func_8001E76C(q, c1[0], c1[1], c1[2]);
+                func_8001E7B8(q, c2[0], c2[1], c2[2]);
+                func_8001E804(q, c2[0], c2[1], c2[2]);
+            }
+            func_8001DFE0((s32)p, (s32)tp, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AC, o->unk1AB, o->unk194);
+            p += 0x24;
+            q += 0x24;
+            tp += 8;
+            v += 6;
+        }
+        break;
+    }
+    case 13: {
+        u8 *p;
+        u8 *q;
+
+        if (o->unk1AD >= 0) {
+            func_801E7020(o->unk13C);
+        }
+        p = o->unk164[D_800794F4];
+        q = o->unk164[D_800794F4 ^ 1];
+        for (i = 0; i < o->n; i++) {
+            func_8001EC3C(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
+            *(u16 *)(p + 0x1A) = o->unk178;
+            *(u16 *)(p + 0xE) = o->unk17C;
+            if (o->unk1A6 != o->unk1A8) {
+                func_8001E75C(p, c0[0], c0[1], c0[2]);
+                func_8001E76C(p, c0[0], c0[1], c0[2]);
+                func_8001E7B8(p, c1[0], c1[1], c1[2]);
+                func_8001E804(p, c1[0], c1[1], c1[2]);
+                func_8001E75C(q, c0[0], c0[1], c0[2]);
+                func_8001E76C(q, c0[0], c0[1], c0[2]);
+                func_8001E7B8(q, c1[0], c1[1], c1[2]);
+                func_8001E804(q, c1[0], c1[1], c1[2]);
+            }
+            func_8001D900((s32)p, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AB, o->unk194);
+            p += 0x34;
+            q += 0x34;
+            func_8001EC3C(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
+            *(u16 *)(p + 0x1A) = o->unk178;
+            *(u16 *)(p + 0xE) = o->unk17C;
+            if (o->unk1A6 != o->unk1A8) {
+                func_8001E75C(p, c1[0], c1[1], c1[2]);
+                func_8001E76C(p, c1[0], c1[1], c1[2]);
+                func_8001E7B8(p, c2[0], c2[1], c2[2]);
+                func_8001E804(p, c2[0], c2[1], c2[2]);
+                func_8001E75C(q, c1[0], c1[1], c1[2]);
+                func_8001E76C(q, c1[0], c1[1], c1[2]);
+                func_8001E7B8(q, c2[0], c2[1], c2[2]);
+                func_8001E804(q, c2[0], c2[1], c2[2]);
+            }
+            func_8001D900((s32)p, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AB, o->unk194);
+            p += 0x34;
+            q += 0x34;
+            v += 6;
+        }
+        break;
+    }
+    }
+    PopMatrix();
+    o->unk1A8 = o->unk1A6;
+}
 
 void func_801E72D4(u8 *);
 
