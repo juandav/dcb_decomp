@@ -617,7 +617,10 @@ typedef struct {
 
 typedef struct {
     /* 0x0000 */ u8 *unk0;
-    /* 0x0004 */ u8 unk4[0x74];
+    /* 0x0004 */ u8 unk4;
+    /* 0x0005 */ u8 unk5[3];
+    /* 0x0008 */ SavedDeck unk8;
+    /* 0x0076 */ u8 unk76[2];
     /* 0x0078 */ Deck unk78[2][3];
     /* 0x1008 */ s16 unk1008[2];
     /* 0x100C */ Unk8006E054Sub *unk100C;
@@ -8557,11 +8560,47 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113C0);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113D0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800416D8);
 
 extern s32 D_800113C0;
 extern s32 D_800113D0;
 void func_8003EC4C();
+
+void func_800416D8(s32 n) {
+    u8 *buf;
+    SavedDeck *decks;
+    s32 r;
+
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_800113C0, D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x800, func_8001B144, &D_800113D0, func_800148B0());
+    buf = (u8 *)func_80014C08(0x7FFFFFFF);
+    ((Unk8006E054 *)D_8006E054)->unk0 = buf;
+    decks = (SavedDeck *)(buf + 8);
+    ((Unk8006E054 *)D_8006E054)->unk4 = n;
+    ((Unk8006E054 *)D_8006E054)->unk8 = decks[n];
+    func_800149B8(0, -1, 0, 0x800, func_8003EC4C, 1, func_800148B0(), 0, 0);
+    r = func_80014C08(0x7FFFFFFF);
+    if (*((s8 *)D_801D8340 + 0x81F) == 0) {
+        if (r != 0) {
+            if (++PLAYER_DATA(0).unk1A >= 1000) {
+                PLAYER_DATA(0).unk1A = 999;
+            }
+        } else {
+            if (++PLAYER_DATA(0).unk18 >= 1000) {
+                PLAYER_DATA(0).unk18 = 999;
+            }
+        }
+        func_8002CC44(0);
+    }
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\saiseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    ((u8 *)((Unk8006E054 *)D_8006E054)->unk100C)[0x1A6] = r;
+    func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+}
 
 void func_80041A1C(void) {
     func_80014C08(2);
