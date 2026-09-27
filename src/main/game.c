@@ -451,6 +451,8 @@ s32 func_80029990(void);
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
 
 s32 VSync(s32);
+void SetSemiTrans(void *, s32);
+void func_8001E76C(void *, u8, u8, u8);
 s32 rand(void);
 s32 sprintf(char *, const char *, ...);
 void func_80048230(s32, s32);
@@ -1784,7 +1786,31 @@ void func_8001D33C(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D464);
+void func_80067904(void *);
+
+void func_8001D464(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, s32 abr, void *tp0, void *tp1, u8 semi) {
+    func_80067904(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 void func_800678E4(void *);
 void func_8001E75C(void *, u8, u8, u8);
