@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Write objdiff.json with one unit per C file of the game under src/.
 
-The PsyQ SDK (src/main/psyq/, one file per library object) is not part of
-the game: like other PSX decomps, progress counts only the game's own code,
-so it gets no unit.
+Library code is not part of the game: like other PSX decomps, progress
+counts only the game's own code, so these get no unit.
 
 Target objects are splat's full disassembly of each C segment
 (expected/asm/<segment>/<file>.s.o); base objects are the files built from
@@ -21,6 +20,10 @@ CATEGORIES = [
 ]
 
 
+# The PsyQ SDK (one file per library object) and the soft-float library
+LIBRARIES = ["main/psyq", "main/libmath"]
+
+
 def main() -> None:
     units = []
     names = [
@@ -28,6 +31,7 @@ def main() -> None:
         for src in (ROOT / "src").rglob("*.c")
         if not src.is_relative_to(ROOT / "src/main/psyq")
     ]
+    names = [n for n in names if n not in LIBRARIES]
     for name in sorted(names):
         units.append(
             {
