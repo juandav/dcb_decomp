@@ -491,7 +491,7 @@ void func_8002F7A8(void) {
     (*(s8 *)(p + 0x6F)) = 5;
     for (i = 0; i < 2; i++) {
         e = (s8 *)&D_801D81F8 + i * 0x34;
-        func_8001E6EC(0xE, e, 0, 0);
+        initPrimByType(0xE, e, 0, 0);
         (*(s16 *)(e + 0x10)) = 0x141;
         (*(s16 *)(e + 0x12)) = 0xF0;
         r[0] = 0;

@@ -148,19 +148,19 @@ void func_80016948(s32 n) {
         p = (PanelPrims *)(((Unk800794F8 *)&D_800794F8)->unk98[i].unk40BC = (s32)(buf + D_800897EC * i));
         for (k = 0; k < D_800897EC; k++, p++) {
             for (j = 0; j < 4; j++) {
-                func_8001E6EC(0xC, &p->ft4a[j], 0, 0);
+                initPrimByType(0xC, &p->ft4a[j], 0, 0);
                 p->ft4a[j].tpage = tpage;
-                func_8001E6EC(0xE, &p->linea[j], 0, 0);
-                func_8001E6EC(0xE, &p->lineb[j], 0, 0);
-                func_8001E6EC(0xE, &p->linec[j], 0, 0);
+                initPrimByType(0xE, &p->linea[j], 0, 0);
+                initPrimByType(0xE, &p->lineb[j], 0, 0);
+                initPrimByType(0xE, &p->linec[j], 0, 0);
             }
             for (j = 0; j < 2; j++) {
-                func_8001E6EC(0xC, &p->ft4b[j], 0, 0);
+                initPrimByType(0xC, &p->ft4b[j], 0, 0);
                 p->ft4b[j].tpage = tpage;
-                func_8001E6EC(0xC, &p->ft4c[j], 0, 0);
+                initPrimByType(0xC, &p->ft4c[j], 0, 0);
                 p->ft4c[j].tpage = tpage;
             }
-            func_8001E6EC(0xE, &p->frame, 0, 0);
+            initPrimByType(0xE, &p->frame, 0, 0);
             p->frame.u0 = 0;
             p->frame.v0 = 0;
             SetDrawTPage(p->tpage, 0, 1, tpage);
@@ -498,16 +498,16 @@ void func_80017B88(Rect16 *r, u8 style, s32 semi, s32 col, s32 pal, s32 z) {
         ot = &D_800793A0->ot[z];
         if (style & 0xF0) {
             k = (style >> 4) - 1;
-            func_8001EA64(&WP->ft4a[0], (s8)D_8006DD70[k].left + r->x,
+            setPrimQuadRect(&WP->ft4a[0], (s8)D_8006DD70[k].left + r->x,
                           (s8)D_8006DD70[k].top + r->y - D_8006DD70[k].h[0],
                           r->w - ((s8)D_8006DD70[k].left - (s8)D_8006DD70[k].right), D_8006DD70[k].h[0]);
-            func_8001EA64(&WP->ft4a[1], (s8)D_8006DD70[k].left + r->x,
+            setPrimQuadRect(&WP->ft4a[1], (s8)D_8006DD70[k].left + r->x,
                           (s8)D_8006DD70[k].bottom + r->y + r->h,
                           r->w - ((s8)D_8006DD70[k].left - (s8)D_8006DD70[k].right), D_8006DD70[k].h[1]);
-            func_8001EA64(&WP->ft4a[2], (s8)D_8006DD70[k].left + r->x - D_8006DD70[k].w[0],
+            setPrimQuadRect(&WP->ft4a[2], (s8)D_8006DD70[k].left + r->x - D_8006DD70[k].w[0],
                           (s8)D_8006DD70[k].top + r->y, D_8006DD70[k].w[0],
                           r->h - ((s8)D_8006DD70[k].top - (s8)D_8006DD70[k].bottom));
-            func_8001EA64(&WP->ft4a[3], (s8)D_8006DD70[k].right + r->x + r->w,
+            setPrimQuadRect(&WP->ft4a[3], (s8)D_8006DD70[k].right + r->x + r->w,
                           (s8)D_8006DD70[k].top + r->y, D_8006DD70[k].w[1],
                           r->h - ((s8)D_8006DD70[k].top - (s8)D_8006DD70[k].bottom));
             WP->linea[0].x0 = (r->x - D_8006DD70[k].w[0]) + (s8)D_8006DD70[k].left;
@@ -552,7 +552,7 @@ void func_80017B88(Rect16 *r, u8 style, s32 semi, s32 col, s32 pal, s32 z) {
             st[3].h = D_8006DD70[k].h[1];
 
             for (i = 0; i < 4; i++) {
-                func_8001EC3C((u8 *)&WP->ft4a[i], uv[i].x, uv[i].y, uv[i].w, uv[i].h);
+                setPrimQuadUvRect((u8 *)&WP->ft4a[i], uv[i].x, uv[i].y, uv[i].w, uv[i].h);
                 setRGB0(&WP->ft4a[i], col, col, col);
                 WP->ft4a[i].clut = clut;
                 addPrim(ot, &WP->ft4a[i]);
@@ -624,8 +624,8 @@ void func_80018694(Unk80016F38 *w, s32 z) {
     WP->lineb[2].y0 = top;
     WP->lineb[3].x0 = x;
     WP->lineb[3].y0 = top + knob - 2;
-    func_8001EA64(&WP->ft4b[0], x, top + 2, 8, knob - 4);
-    func_8001EA64(&WP->ft4b[1], x, y + 8, 8, len);
+    setPrimQuadRect(&WP->ft4b[0], x, top + 2, 8, knob - 4);
+    setPrimQuadRect(&WP->ft4b[1], x, y + 8, 8, len);
     for (i = 0; i < 4; i++) {
         setUV0(&WP->lineb[i], D_8006DE48[i + w->unk43 * 4].x, D_8006DE48[i + w->unk43 * 4].y);
         setWH(&WP->lineb[i], D_8006DE48[i + w->unk43 * 4].w, D_8006DE48[i + w->unk43 * 4].h);
@@ -634,7 +634,7 @@ void func_80018694(Unk80016F38 *w, s32 z) {
         addPrim(&D_800793A0->ot[z], &WP->lineb[i]);
     }
     for (i = 0; i < 2; i++) {
-        func_8001EC3C((u8 *)&WP->ft4b[i], D_8006DE28[i + w->unk43 * 2].x, D_8006DE28[i + w->unk43 * 2].y, D_8006DE28[i + w->unk43 * 2].w, D_8006DE28[i + w->unk43 * 2].h);
+        setPrimQuadUvRect((u8 *)&WP->ft4b[i], D_8006DE28[i + w->unk43 * 2].x, D_8006DE28[i + w->unk43 * 2].y, D_8006DE28[i + w->unk43 * 2].w, D_8006DE28[i + w->unk43 * 2].h);
         setRGB0(&WP->ft4b[i], w->unk40, w->unk40, w->unk40);
         WP->ft4b[i].clut = clut;
         addPrim(&D_800793A0->ot[z], &WP->ft4b[i]);
@@ -683,8 +683,8 @@ void func_80018B8C(Unk80016F38 *w, s32 z) {
     WP->linec[2].y0 = y;
     WP->linec[3].x0 = left + knob - 2;
     WP->linec[3].y0 = y;
-    func_8001EA64(&WP->ft4c[0], left + 2, y, knob - 4, 8);
-    func_8001EA64(&WP->ft4c[1], x + 8, y, len, 8);
+    setPrimQuadRect(&WP->ft4c[0], left + 2, y, knob - 4, 8);
+    setPrimQuadRect(&WP->ft4c[1], x + 8, y, len, 8);
     for (i = 0; i < 4; i++) {
         setUV0(&WP->linec[i], D_8006DEA8[i + w->unk43 * 4].x, D_8006DEA8[i + w->unk43 * 4].y);
         setWH(&WP->linec[i], D_8006DEA8[i + w->unk43 * 4].w, D_8006DEA8[i + w->unk43 * 4].h);
@@ -693,7 +693,7 @@ void func_80018B8C(Unk80016F38 *w, s32 z) {
         addPrim(&D_800793A0->ot[z], &WP->linec[i]);
     }
     for (i = 0; i < 2; i++) {
-        func_8001EC3C((u8 *)&WP->ft4c[i], D_8006DE88[i + w->unk43 * 2].x, D_8006DE88[i + w->unk43 * 2].y, D_8006DE88[i + w->unk43 * 2].w, D_8006DE88[i + w->unk43 * 2].h);
+        setPrimQuadUvRect((u8 *)&WP->ft4c[i], D_8006DE88[i + w->unk43 * 2].x, D_8006DE88[i + w->unk43 * 2].y, D_8006DE88[i + w->unk43 * 2].w, D_8006DE88[i + w->unk43 * 2].h);
         setRGB0(&WP->ft4c[i], w->unk40, w->unk40, w->unk40);
         WP->ft4c[i].clut = clut;
         addPrim(&D_800793A0->ot[z], &WP->ft4c[i]);

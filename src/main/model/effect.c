@@ -331,8 +331,8 @@ void func_80030CA8(u8 *p) {
 }
 
 void *func_80030E3C(void *arg0) {
-    func_8001EFDC(arg0, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xD4)), (s32) (*(s16 *)((s8 *)arg0 + 0xD6)), (s32) (*(s16 *)((s8 *)arg0 + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE8)));
-    func_8001EFDC(arg0 + 0x4C, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xDC)), (s32) (*(s16 *)((s8 *)arg0 + 0xDE)), (s32) (*(s16 *)((s8 *)arg0 + 0xE0)), 0, 0, 0);
+    initTransform(arg0, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xD4)), (s32) (*(s16 *)((s8 *)arg0 + 0xD6)), (s32) (*(s16 *)((s8 *)arg0 + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE8)));
+    initTransform(arg0 + 0x4C, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xDC)), (s32) (*(s16 *)((s8 *)arg0 + 0xDE)), (s32) (*(s16 *)((s8 *)arg0 + 0xE0)), 0, 0, 0);
     (*(s32 *)((s8 *)arg0 + 0x14)) = 0;
     (*(s32 *)((s8 *)arg0 + 0x18)) = 0;
     (*(s32 *)((s8 *)arg0 + 0x1C)) = 0;
@@ -421,7 +421,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
         o->rotY = o->ry0 + o->dry * o->t + o->ddry * o->t2 * o->t2 / 64;
         o->rotZ = o->rz0 + o->drz * o->t + o->ddrz * o->t2 * o->t2 / 64;
     }
-    func_8001F01C(o, &v0);
+    getTransformWorldPos(o, &v0);
     switch (o->mode) {
     case 6:
         o->state = -1;
@@ -533,10 +533,10 @@ s32 func_80030F90(s32 arg, s32 flag) {
         break;
     }
     if (o->state != -1 && o->mode != 0 && o->mode < 90) {
-        func_8001EEA0(o, f);
-        func_8001EEA0((u8 *)o + 0x4C, 0);
-        func_8001F01C(o, &v1);
-        func_8001F01C((u8 *)o + 0x4C, &v2);
+        updateTransformMatrix(o, f);
+        updateTransformMatrix((u8 *)o + 0x4C, 0);
+        getTransformWorldPos(o, &v1);
+        getTransformWorldPos((u8 *)o + 0x4C, &v2);
         r = func_80030A34(&v0, &v1, &v2, o->unk12C);
         if (r == 1) {
             switch (o->mode) {
@@ -722,7 +722,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
             o->flag = 1;
         }
     }
-    func_8001EEA0(o, f);
+    updateTransformMatrix(o, f);
 }
 
 void func_80031754(void *arg0) {
@@ -902,13 +902,13 @@ Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n
         } else {
             o->unk15C[i] = 0;
         }
-        prim = o->unk164[i] = func_8001AD0C(D_8006DEF4[o->type] * o->n * 2);
+        prim = o->unk164[i] = func_8001AD0C(PRIM_SIZES[o->type] * o->n * 2);
         for (j = 0; j < o->n * 2; j++) {
-            func_8001E6EC(o->type, prim, abr, 0);
+            initPrimByType(o->type, prim, abr, 0);
             if (o->type < 10) {
                 SetDrawTPage(o->unk15C[i] + j * 8, 0, 0, GetTPage(0, tp, 0, 0));
             }
-            prim += D_8006DEF4[o->type];
+            prim += PRIM_SIZES[o->type];
         }
     }
     return o;
@@ -955,30 +955,30 @@ void func_8003230C(Obj32 *o) {
         tp = o->unk15C[D_800794F4];
         for (i = 0; i < o->n; i++) {
             if (o->unk1A6 != o->unk1A8) {
-                func_8001E75C(p, c0[0], c0[1], c0[2]);
-                func_8001E76C(p, c0[0], c0[1], c0[2]);
-                func_8001E7B8(p, c1[0], c1[1], c1[2]);
-                func_8001E804(p, c1[0], c1[1], c1[2]);
-                func_8001E75C(q, c0[0], c0[1], c0[2]);
-                func_8001E76C(q, c0[0], c0[1], c0[2]);
-                func_8001E7B8(q, c1[0], c1[1], c1[2]);
-                func_8001E804(q, c1[0], c1[1], c1[2]);
+                setPrimRgb0(p, c0[0], c0[1], c0[2]);
+                setPrimRgb1(p, c0[0], c0[1], c0[2]);
+                setPrimRgb2(p, c1[0], c1[1], c1[2]);
+                setPrimRgb3(p, c1[0], c1[1], c1[2]);
+                setPrimRgb0(q, c0[0], c0[1], c0[2]);
+                setPrimRgb1(q, c0[0], c0[1], c0[2]);
+                setPrimRgb2(q, c1[0], c1[1], c1[2]);
+                setPrimRgb3(q, c1[0], c1[1], c1[2]);
             }
-            func_8001DFE0((s32)p, (s32)tp, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AC, o->unk1AB, o->unk194);
+            transformAndAddPolyG4((s32)p, (s32)tp, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AC, o->unk1AB, o->unk194);
             p += 0x24;
             q += 0x24;
             tp += 8;
             if (o->unk1A6 != o->unk1A8) {
-                func_8001E75C(p, c1[0], c1[1], c1[2]);
-                func_8001E76C(p, c1[0], c1[1], c1[2]);
-                func_8001E7B8(p, c2[0], c2[1], c2[2]);
-                func_8001E804(p, c2[0], c2[1], c2[2]);
-                func_8001E75C(q, c1[0], c1[1], c1[2]);
-                func_8001E76C(q, c1[0], c1[1], c1[2]);
-                func_8001E7B8(q, c2[0], c2[1], c2[2]);
-                func_8001E804(q, c2[0], c2[1], c2[2]);
+                setPrimRgb0(p, c1[0], c1[1], c1[2]);
+                setPrimRgb1(p, c1[0], c1[1], c1[2]);
+                setPrimRgb2(p, c2[0], c2[1], c2[2]);
+                setPrimRgb3(p, c2[0], c2[1], c2[2]);
+                setPrimRgb0(q, c1[0], c1[1], c1[2]);
+                setPrimRgb1(q, c1[0], c1[1], c1[2]);
+                setPrimRgb2(q, c2[0], c2[1], c2[2]);
+                setPrimRgb3(q, c2[0], c2[1], c2[2]);
             }
-            func_8001DFE0((s32)p, (s32)tp, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AC, o->unk1AB, o->unk194);
+            transformAndAddPolyG4((s32)p, (s32)tp, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AC, o->unk1AB, o->unk194);
             p += 0x24;
             q += 0x24;
             tp += 8;
@@ -996,36 +996,36 @@ void func_8003230C(Obj32 *o) {
         p = o->unk164[D_800794F4];
         q = o->unk164[D_800794F4 ^ 1];
         for (i = 0; i < o->n; i++) {
-            func_8001EC3C(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
+            setPrimQuadUvRect(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
             *(u16 *)(p + 0x1A) = o->unk178;
             *(u16 *)(p + 0xE) = o->unk17C;
             if (o->unk1A6 != o->unk1A8) {
-                func_8001E75C(p, c0[0], c0[1], c0[2]);
-                func_8001E76C(p, c0[0], c0[1], c0[2]);
-                func_8001E7B8(p, c1[0], c1[1], c1[2]);
-                func_8001E804(p, c1[0], c1[1], c1[2]);
-                func_8001E75C(q, c0[0], c0[1], c0[2]);
-                func_8001E76C(q, c0[0], c0[1], c0[2]);
-                func_8001E7B8(q, c1[0], c1[1], c1[2]);
-                func_8001E804(q, c1[0], c1[1], c1[2]);
+                setPrimRgb0(p, c0[0], c0[1], c0[2]);
+                setPrimRgb1(p, c0[0], c0[1], c0[2]);
+                setPrimRgb2(p, c1[0], c1[1], c1[2]);
+                setPrimRgb3(p, c1[0], c1[1], c1[2]);
+                setPrimRgb0(q, c0[0], c0[1], c0[2]);
+                setPrimRgb1(q, c0[0], c0[1], c0[2]);
+                setPrimRgb2(q, c1[0], c1[1], c1[2]);
+                setPrimRgb3(q, c1[0], c1[1], c1[2]);
             }
-            func_8001D900((s32)p, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AB, o->unk194);
+            transformAndAddPolyGT4((s32)p, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AB, o->unk194);
             p += 0x34;
             q += 0x34;
-            func_8001EC3C(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
+            setPrimQuadUvRect(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
             *(u16 *)(p + 0x1A) = o->unk178;
             *(u16 *)(p + 0xE) = o->unk17C;
             if (o->unk1A6 != o->unk1A8) {
-                func_8001E75C(p, c1[0], c1[1], c1[2]);
-                func_8001E76C(p, c1[0], c1[1], c1[2]);
-                func_8001E7B8(p, c2[0], c2[1], c2[2]);
-                func_8001E804(p, c2[0], c2[1], c2[2]);
-                func_8001E75C(q, c1[0], c1[1], c1[2]);
-                func_8001E76C(q, c1[0], c1[1], c1[2]);
-                func_8001E7B8(q, c2[0], c2[1], c2[2]);
-                func_8001E804(q, c2[0], c2[1], c2[2]);
+                setPrimRgb0(p, c1[0], c1[1], c1[2]);
+                setPrimRgb1(p, c1[0], c1[1], c1[2]);
+                setPrimRgb2(p, c2[0], c2[1], c2[2]);
+                setPrimRgb3(p, c2[0], c2[1], c2[2]);
+                setPrimRgb0(q, c1[0], c1[1], c1[2]);
+                setPrimRgb1(q, c1[0], c1[1], c1[2]);
+                setPrimRgb2(q, c2[0], c2[1], c2[2]);
+                setPrimRgb3(q, c2[0], c2[1], c2[2]);
             }
-            func_8001D900((s32)p, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AB, o->unk194);
+            transformAndAddPolyGT4((s32)p, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AB, o->unk194);
             p += 0x34;
             q += 0x34;
             v += 6;
@@ -1114,7 +1114,7 @@ Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s1
             l->g1 = c1[1];
             l->b1 = c1[2];
         }
-        func_8001EFDC(p, (s32)o->parent, 0, 0, 0, 0, 0, 0);
+        initTransform(p, (s32)o->parent, 0, 0, 0, 0, 0, 0);
         p->unk7C = a5 * 8;
         p->unk7E = rand() % a8 + 1;
         if (sy == 0) {
@@ -1209,7 +1209,7 @@ void func_80033258(Particles *o) {
                 l = &p->line[D_800794F4];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
-                func_8001EEA0(p, 0);
+                updateTransformMatrix(p, 0);
                 if (o->unk158 < 0) {
                     v->vz = p->unk80 - p->unk7E * t;
                 } else {
@@ -1243,7 +1243,7 @@ void func_80033258(Particles *o) {
                 l = &p->line[D_800794F4];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
-                func_8001EEA0(p, 0);
+                updateTransformMatrix(p, 0);
                 if (o->unk158 < 0) {
                     v->vz = p->unk80 - p->unk7E * t;
                 } else {
@@ -1283,7 +1283,7 @@ void func_80033258(Particles *o) {
                 l = &p->line[D_800794F4];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
-                func_8001EEA0(p, 0);
+                updateTransformMatrix(p, 0);
                 if (o->unk158 < 0) {
                     v->vz = p->unk80 - p->unk7E * t;
                 } else {
@@ -1311,7 +1311,7 @@ void func_80033258(Particles *o) {
                 l = &p->line[D_800794F4];
                 v = (SVECTOR *)&p->unk74;
                 t %= o->frames;
-                func_8001EEA0(p, 0);
+                updateTransformMatrix(p, 0);
                 if (o->unk158 < 0) {
                     v->vz = p->unk80 - p->unk7E * t;
                 } else {

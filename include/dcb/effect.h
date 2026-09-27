@@ -121,7 +121,7 @@ typedef struct {
     /* 0x15B */ s8 kind;
 } Particles;
 
-extern u8 D_8006DEF4[];
+extern u8 PRIM_SIZES[];
 extern s16 D_8006E280[3];
 extern s16 D_8006E288[2][3];
 

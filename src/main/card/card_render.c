@@ -236,7 +236,7 @@ void renderDuelBackground(s32 brightness) {
 
     polyBuf = (u8 *)D_800793A0->unk4078[11];
     poly = (POLY_FT4 *)(polyBuf + 0x1E0);
-    func_8001E6EC(0xC, poly, 0, 0);
+    initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
     poly->b0 = brightness;
@@ -260,7 +260,7 @@ void renderDuelBackground(s32 brightness) {
     poly->clut = 0x7C33;
     addPrim(&D_800793A0->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x208);
-    func_8001E6EC(0xC, poly, 0, 0);
+    initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
     poly->b0 = brightness;
@@ -284,7 +284,7 @@ void renderDuelBackground(s32 brightness) {
     poly->clut = 0x7C33;
     addPrim(&D_800793A0->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x230);
-    func_8001E6EC(0xC, poly, 0, 0);
+    initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
     poly->b0 = brightness;
@@ -308,7 +308,7 @@ void renderDuelBackground(s32 brightness) {
     poly->clut = 0x7C33;
     addPrim(&D_800793A0->ot[0xFFF], poly);
     poly = (POLY_FT4 *)(polyBuf + 0x258);
-    func_8001E6EC(0xC, poly, 0, 0);
+    initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
     poly->b0 = brightness;
@@ -339,7 +339,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
 
     poly = (POLY_FT4 *)((u8 *)D_800793A0->unk4078[11] + (index * 80 + 0x280));
     u = ((((Unk8006E050 *)PLAYER_PROFILES)->unk24 / 4) % 4) * 32;
-    func_8001E6EC(0xC, poly, 1, 0);
+    initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
     poly->g0 = 0x80;
     poly->b0 = 0x80;
@@ -364,7 +364,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
     addPrim(&D_800793A0->ot[z], poly);
     if (cardSprite != 0) {
         poly++;
-        func_8001E6EC(0xC, poly, 1, 0);
+        initPrimByType(0xC, poly, 1, 0);
         poly->r0 = 0x80;
         poly->g0 = 0x80;
         poly->b0 = 0x80;
@@ -430,7 +430,7 @@ void renderPhaseBanner(void) {
             age = DUEL_MSG_BAR.unkE - i * 3;
             brightness = 0x100 - age * 20;
             if (brightness >= 0) {
-                func_8001E6EC(0xC, poly, 1, 0);
+                initPrimByType(0xC, poly, 1, 0);
                 poly->r0 = brightness;
                 poly->g0 = brightness;
                 poly->b0 = brightness;
@@ -454,7 +454,7 @@ void renderPhaseBanner(void) {
                 poly->clut = 0x7CB3;
                 addPrim(&D_800793A0->ot[0x1E], poly);
                 poly++;
-                func_8001E6EC(0xC, poly, 1, 0);
+                initPrimByType(0xC, poly, 1, 0);
                 poly->r0 = brightness;
                 poly->g0 = brightness;
                 poly->b0 = brightness;
@@ -478,7 +478,7 @@ void renderPhaseBanner(void) {
                 poly->clut = 0x7CB3;
                 addPrim(&D_800793A0->ot[0x1E], poly);
                 poly++;
-                func_8001E6EC(0xC, poly, 1, 0);
+                initPrimByType(0xC, poly, 1, 0);
                 poly->r0 = brightness;
                 poly->g0 = brightness;
                 poly->b0 = brightness;

@@ -3,10 +3,10 @@
 
 #include "game.h"
 
-void func_8001ED30(s32 arg0, s16 *arg1, void *arg2);
-void func_8001EFB0(s32 arg0);
-void func_8001EEA0(void *arg0, s32 arg1);
-void func_8001EFDC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s16 arg5, s16 arg6, s16 arg7);
-void func_8001F01C(void *arg0, void *arg1);
+void constrainRotationAxis(s32 axisMode, s16 *rot, void *matrix);
+void loadGteMatrix(s32 matrix);
+void updateTransformMatrix(void *xform, s32 axisMode);
+void initTransform(void *xform, s32 parent, s32 x, s32 y, s32 z, s16 rotX, s16 rotY, s16 rotZ);
+void getTransformWorldPos(void *xform, void *outPos);
 
 #endif /* DCB_TRANSFORM_H */

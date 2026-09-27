@@ -102,9 +102,9 @@ void func_80023DF0(Unk800793A0 *db, s32 idx) {
                         gte_SetRotMatrix(&ls);
                         gte_SetTransMatrix(&ls);
                         if (obj->tmd[0] != 0) {
-                            packet = func_80020370((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
+                            packet = sortEnvMappedModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
                         } else {
-                            packet = func_800202D8((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
+                            packet = sortModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
                         }
                     }
                 }

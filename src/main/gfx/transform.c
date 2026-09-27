@@ -4,35 +4,35 @@
 #include "dcb/transform.h"
 #include "dcb/prim_util.h"
 
-void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
-    s32 axis;
+void constrainRotationAxis(s32 axisMode, s16 *rot, void *matrix) {
+    s32 mode;
 
-    axis = arg0 & 0xFF;
-    if (axis == 0) {
+    mode = axisMode & 0xFF;
+    if (mode == 0) {
         return;
     }
-    func_8001ED04(arg2);
-    switch (axis) {
+    resetMatrixRotation(matrix);
+    switch (mode) {
     case 4:
         return;
     case 3:
-        arg1[1] = 0;
-        arg1[2] = 0;
+        rot[1] = 0;
+        rot[2] = 0;
         break;
     case 2:
-        arg1[0] = 0;
-        arg1[2] = 0;
+        rot[0] = 0;
+        rot[2] = 0;
         break;
     case 1:
-        arg1[0] = 0;
-        arg1[1] = 0;
+        rot[0] = 0;
+        rot[1] = 0;
         break;
     }
-    RotMatrix(arg1, arg2);
+    RotMatrix(rot, matrix);
 }
 
 /* old-style definition: the callers pass an int, the byte is read here */
-void func_8001EDE0(rot, trans, scale, m, axis)
+void composeTransformMatrix(rot, trans, scale, m, axis)
     SVECTOR *rot;
     VECTOR *trans;
     VECTOR *scale;
@@ -40,63 +40,63 @@ void func_8001EDE0(rot, trans, scale, m, axis)
     u8 axis;
 {
     RotMatrix(rot, m);
-    func_8001ED30(axis, (s16 *)rot, m);
+    constrainRotationAxis(axis, (s16 *)rot, m);
     TransMatrix(m, trans);
     if (scale != 0 && (scale->vx != 0x1000 || scale->vy != scale->vx || scale->vz != scale->vy)) {
         ScaleMatrix(m, scale);
     }
-    func_8001EFB0((s32)m);
+    loadGteMatrix((s32)m);
 }
 
-void func_8001EEA0(void *arg0, s32 arg1) {
-    s16 v[4];
+void updateTransformMatrix(void *xform, s32 axisMode) {
+    s16 localPos[4];
     s32 flag;
-    s32 axis;
+    s32 mode;
     s32 sx;
     s32 sy;
     void *rot;
 
-    axis = arg1 & 0xFF;
-    if ((*(s32 *)((s8 *)arg0 + 0x48)) == 0) {
-        func_8001EDE0((s8 *)arg0 + 0x30, (s8 *)arg0 + 0x20, (s8 *)arg0 + 0x38, arg0, axis);
+    mode = axisMode & 0xFF;
+    if ((*(s32 *)((s8 *)xform + 0x48)) == 0) {
+        composeTransformMatrix((s8 *)xform + 0x30, (s8 *)xform + 0x20, (s8 *)xform + 0x38, xform, mode);
         return;
     }
-    rot = (s8 *)arg0 + 0x30;
-    func_8001EFB0((*(s32 *)((s8 *)arg0 + 0x48)));
-    RotMatrix(rot, arg0);
-    MulMatrix2(*(MATRIX **)((s8 *)arg0 + 0x48), arg0);
-    func_8001ED30(axis, rot, arg0);
-    v[0] = (*(u16 *)((s8 *)arg0 + 0x20));
-    v[1] = (*(u16 *)((s8 *)arg0 + 0x24));
-    v[2] = (*(u16 *)((s8 *)arg0 + 0x28));
-    RotTrans(v, (s8 *)arg0 + 0x14, &flag);
-    sx = (*(s32 *)((s8 *)arg0 + 0x38));
-    if ((sx != 0x1000 || (sy = (*(s32 *)((s8 *)arg0 + 0x3C))) != sx || (*(s32 *)((s8 *)arg0 + 0x40)) != sy) && axis != 4) {
-        ScaleMatrix(arg0, (s8 *)arg0 + 0x38);
+    rot = (s8 *)xform + 0x30;
+    loadGteMatrix((*(s32 *)((s8 *)xform + 0x48)));
+    RotMatrix(rot, xform);
+    MulMatrix2(*(MATRIX **)((s8 *)xform + 0x48), xform);
+    constrainRotationAxis(mode, rot, xform);
+    localPos[0] = (*(u16 *)((s8 *)xform + 0x20));
+    localPos[1] = (*(u16 *)((s8 *)xform + 0x24));
+    localPos[2] = (*(u16 *)((s8 *)xform + 0x28));
+    RotTrans(localPos, (s8 *)xform + 0x14, &flag);
+    sx = (*(s32 *)((s8 *)xform + 0x38));
+    if ((sx != 0x1000 || (sy = (*(s32 *)((s8 *)xform + 0x3C))) != sx || (*(s32 *)((s8 *)xform + 0x40)) != sy) && mode != 4) {
+        ScaleMatrix(xform, (s8 *)xform + 0x38);
     }
-    func_8001EFB0((s32) arg0);
+    loadGteMatrix((s32) xform);
 }
 
-void func_8001EFB0(s32 arg0) {
+void loadGteMatrix(s32 matrix) {
     func_8005C444();
-    SetRotMatrix(arg0);
+    SetRotMatrix(matrix);
 }
 
-void func_8001EFDC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s16 arg5, s16 arg6, s16 arg7) {
-    (*(s32 *)((s8 *)arg0 + 0x20)) = arg2;
-    (*(s32 *)((s8 *)arg0 + 0x24)) = arg3;
-    (*(s32 *)((s8 *)arg0 + 0x28)) = arg4;
-    (*(s16 *)((s8 *)arg0 + 0x30)) = arg5;
-    (*(s16 *)((s8 *)arg0 + 0x32)) = arg6;
-    (*(s16 *)((s8 *)arg0 + 0x34)) = arg7;
-    (*(s32 *)((s8 *)arg0 + 0x38)) = 0x1000;
-    (*(s32 *)((s8 *)arg0 + 0x3C)) = 0x1000;
-    (*(s32 *)((s8 *)arg0 + 0x40)) = 0x1000;
-    (*(s32 *)((s8 *)arg0 + 0x48)) = arg1;
+void initTransform(void *xform, s32 parent, s32 x, s32 y, s32 z, s16 rotX, s16 rotY, s16 rotZ) {
+    (*(s32 *)((s8 *)xform + 0x20)) = x;
+    (*(s32 *)((s8 *)xform + 0x24)) = y;
+    (*(s32 *)((s8 *)xform + 0x28)) = z;
+    (*(s16 *)((s8 *)xform + 0x30)) = rotX;
+    (*(s16 *)((s8 *)xform + 0x32)) = rotY;
+    (*(s16 *)((s8 *)xform + 0x34)) = rotZ;
+    (*(s32 *)((s8 *)xform + 0x38)) = 0x1000;
+    (*(s32 *)((s8 *)xform + 0x3C)) = 0x1000;
+    (*(s32 *)((s8 *)xform + 0x40)) = 0x1000;
+    (*(s32 *)((s8 *)xform + 0x48)) = parent;
 }
 
-void func_8001F01C(void *arg0, void *arg1) {
-    (*(u16 *)((s8 *)arg1 + 0)) = (u16) (*(u16 *)((s8 *)arg0 + 0x14));
-    (*(u16 *)((s8 *)arg1 + 2)) = (u16) (*(u16 *)((s8 *)arg0 + 0x18));
-    (*(u16 *)((s8 *)arg1 + 4)) = (u16) (*(u16 *)((s8 *)arg0 + 0x1C));
+void getTransformWorldPos(void *xform, void *outPos) {
+    (*(u16 *)((s8 *)outPos + 0)) = (u16) (*(u16 *)((s8 *)xform + 0x14));
+    (*(u16 *)((s8 *)outPos + 2)) = (u16) (*(u16 *)((s8 *)xform + 0x18));
+    (*(u16 *)((s8 *)outPos + 4)) = (u16) (*(u16 *)((s8 *)xform + 0x1C));
 }

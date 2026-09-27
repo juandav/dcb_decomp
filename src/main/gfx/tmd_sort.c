@@ -4,427 +4,427 @@
 #include "dcb/tmd_sort.h"
 #include "dcb/main.h"
 
-Unk8006DF60 D_8006DF60[4] = {
+Unk8006DF60 MODEL_TEXTURE_SLOTS[4] = {
     { 0x002F0000, 0x103C0000 },
     { 0x002F0040, 0x103D0040 },
     { 0x002F0080, 0x103E0080 },
     { 0x002F00C0, 0x103F00C0 },
 };
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F3C0);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", transformAndLightVertices);
 
-void func_8001F518(u32 i0, u32 *idx, u8 *base) {
-    u8 *v0;
-    u8 *v1;
-    u8 *v2;
-    u8 *c0;
-    u8 *c1;
-    u32 i1;
-    u32 i2;
+void loadTriangleToGte(u32 index0, u32 *indices, u8 *workBuf) {
+    u8 *vert0;
+    u8 *vert1;
+    u8 *vert2;
+    u8 *color0;
+    u8 *color1;
+    u32 index1;
+    u32 index2;
 
-    v0 = base + (i0 >> 16);
-    gte_lwc2(12, 0, v0);
-    gte_lwc2(17, 4, v0);
-    i1 = idx[1];
-    i2 = idx[2];
-    v1 = base + (i1 >> 16);
-    v2 = base + (i2 >> 16);
-    gte_lwc2(13, 0, v1);
-    gte_lwc2(18, 4, v1);
-    gte_lwc2(14, 0, v2);
-    gte_lwc2(19, 4, v2);
-    c0 = base + (i0 & 0xFFFF);
+    vert0 = workBuf + (index0 >> 16);
+    gte_lwc2(12, 0, vert0);
+    gte_lwc2(17, 4, vert0);
+    index1 = indices[1];
+    index2 = indices[2];
+    vert1 = workBuf + (index1 >> 16);
+    vert2 = workBuf + (index2 >> 16);
+    gte_lwc2(13, 0, vert1);
+    gte_lwc2(18, 4, vert1);
+    gte_lwc2(14, 0, vert2);
+    gte_lwc2(19, 4, vert2);
+    color0 = workBuf + (index0 & 0xFFFF);
     gte_nclip();
-    c1 = base + (i1 & 0xFFFF);
-    base += i2 & 0xFFFF;
-    gte_lwc2(20, 0, c0);
-    gte_lwc2(21, 0, c1);
-    gte_lwc2(22, 0, base);
+    color1 = workBuf + (index1 & 0xFFFF);
+    workBuf += index2 & 0xFFFF;
+    gte_lwc2(20, 0, color0);
+    gte_lwc2(21, 0, color1);
+    gte_lwc2(22, 0, workBuf);
 }
 
-void func_8001F580(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex0(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    base += i & 0xFFFF;
-    gte_lwc2(12, 0, p);
-    gte_lwc2(17, 4, p);
-    gte_lwc2(20, 0, base);
+    vertex = workBuf + (index >> 16);
+    workBuf += index & 0xFFFF;
+    gte_lwc2(12, 0, vertex);
+    gte_lwc2(17, 4, vertex);
+    gte_lwc2(20, 0, workBuf);
 }
 
-void func_8001F5A4(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex0Nclip(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(12, 0, p);
-    gte_lwc2(17, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(12, 0, vertex);
+    gte_lwc2(17, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(20, 0, base);
+    gte_lwc2(20, 0, workBuf);
 }
 
-void func_8001F5CC(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex1(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    base += i & 0xFFFF;
-    gte_lwc2(13, 0, p);
-    gte_lwc2(18, 4, p);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
+    vertex = workBuf + (index >> 16);
+    workBuf += index & 0xFFFF;
+    gte_lwc2(13, 0, vertex);
+    gte_lwc2(18, 4, vertex);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
     }
-    gte_lwc2(21, 0, base);
+    gte_lwc2(21, 0, workBuf);
 }
 
-void func_8001F5FC(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex1Nclip(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(13, 0, p);
-    gte_lwc2(18, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(13, 0, vertex);
+    gte_lwc2(18, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(21, 0, base);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
+    gte_lwc2(21, 0, workBuf);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
     }
 }
 
-void func_8001F630(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex2(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    base += i & 0xFFFF;
-    gte_lwc2(14, 0, p);
-    gte_lwc2(19, 4, p);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
+    vertex = workBuf + (index >> 16);
+    workBuf += index & 0xFFFF;
+    gte_lwc2(14, 0, vertex);
+    gte_lwc2(19, 4, vertex);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
     }
-    gte_lwc2(22, 0, base);
+    gte_lwc2(22, 0, workBuf);
 }
 
-void func_8001F660(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteVertex2Nclip(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(14, 0, p);
-    gte_lwc2(19, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(14, 0, vertex);
+    gte_lwc2(19, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(22, 0, base);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
+    gte_lwc2(22, 0, workBuf);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
     }
 }
 
-void func_8001F694(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadGteQuadVertex3(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    base += i & 0xFFFF;
-    gte_lwc2(0, 0, p);
-    gte_lwc2(16, 4, p);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
+    vertex = workBuf + (index >> 16);
+    workBuf += index & 0xFFFF;
+    gte_lwc2(0, 0, vertex);
+    gte_lwc2(16, 4, vertex);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
     }
-    gte_lwc2(6, 0, base);
+    gte_lwc2(6, 0, workBuf);
 }
 
-u32 *func_8001F6C4(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+u32 *emitTexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     u32 *next;
     register u32 rgb asm("$8");
     u32 len;
-    u32 z;
+    u32 otz;
     u32 tag;
 
     gte_mfc2(20, rgb);
-    gte_swc2(12, 8, p);
-    p[1] = rgb | code;
-    next = p;
+    gte_swc2(12, 8, packet);
+    packet[1] = rgb | code;
+    next = packet;
     if (gouraud) {
-        gte_swc2(2, 12, p);
-        gte_swc2(21, 16, p);
-        gte_swc2(13, 20, p);
-        gte_swc2(4, 24, p);
-        gte_swc2(22, 28, p);
-        gte_swc2(14, 32, p);
-        gte_swc2(3, 36, p);
-        gte_mfc2(7, z);
+        gte_swc2(2, 12, packet);
+        gte_swc2(21, 16, packet);
+        gte_swc2(13, 20, packet);
+        gte_swc2(4, 24, packet);
+        gte_swc2(22, 28, packet);
+        gte_swc2(14, 32, packet);
+        gte_swc2(3, 36, packet);
+        gte_mfc2(7, otz);
         len = 0x09000000;
-        next = p + 10;
+        next = packet + 10;
     } else {
-        gte_swc2(2, 12, p);
-        gte_swc2(13, 16, p);
-        gte_swc2(4, 20, p);
-        gte_swc2(14, 24, p);
-        gte_swc2(3, 28, p);
-        gte_mfc2(7, z);
+        gte_swc2(2, 12, packet);
+        gte_swc2(13, 16, packet);
+        gte_swc2(4, 20, packet);
+        gte_swc2(14, 24, packet);
+        gte_swc2(3, 28, packet);
+        gte_mfc2(7, otz);
         len = 0x07000000;
         next += 8;
     }
-    if (z >= (u32)SORT_WORK->unk20) {
-        return p;
+    if (otz >= (u32)SORT_WORK->unk20) {
+        return packet;
     }
-    tag = len | ot[z];
-    ot[z] = (u32)p;
-    *p = tag;
+    tag = len | ot[otz];
+    ot[otz] = (u32)packet;
+    *packet = tag;
     return next;
 }
 
-u32 *func_8001F768(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+u32 *emitTexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     register u32 rgb asm("$8");
     u32 *next;
     u32 len;
-    u32 z;
+    u32 otz;
     u32 tag;
 
     gte_mfc2(20, rgb);
-    gte_swc2(12, 8, p);
-    p[1] = rgb | code;
-    next = p;
+    gte_swc2(12, 8, packet);
+    packet[1] = rgb | code;
+    next = packet;
     if (gouraud) {
-        gte_swc2(2, 12, p);
-        gte_swc2(21, 16, p);
-        gte_swc2(13, 20, p);
-        gte_swc2(4, 24, p);
-        gte_swc2(22, 28, p);
-        gte_swc2(14, 32, p);
-        gte_swc2(3, 36, p);
-        gte_mfc2(7, z);
+        gte_swc2(2, 12, packet);
+        gte_swc2(21, 16, packet);
+        gte_swc2(13, 20, packet);
+        gte_swc2(4, 24, packet);
+        gte_swc2(22, 28, packet);
+        gte_swc2(14, 32, packet);
+        gte_swc2(3, 36, packet);
+        gte_mfc2(7, otz);
         len = 0x0C000000;
-        next = p + 13;
-        gte_swc2(6, 40, p);
-        gte_swc2(0, 44, p);
-        gte_swc2(5, 48, p);
+        next = packet + 13;
+        gte_swc2(6, 40, packet);
+        gte_swc2(0, 44, packet);
+        gte_swc2(5, 48, packet);
     } else {
-        gte_swc2(2, 12, p);
-        gte_swc2(13, 16, p);
-        gte_swc2(4, 20, p);
-        gte_swc2(14, 24, p);
-        gte_swc2(3, 28, p);
-        gte_swc2(0, 32, p);
-        gte_swc2(5, 36, p);
-        gte_mfc2(7, z);
+        gte_swc2(2, 12, packet);
+        gte_swc2(13, 16, packet);
+        gte_swc2(4, 20, packet);
+        gte_swc2(14, 24, packet);
+        gte_swc2(3, 28, packet);
+        gte_swc2(0, 32, packet);
+        gte_swc2(5, 36, packet);
+        gte_mfc2(7, otz);
         len = 0x09000000;
         next += 10;
     }
-    if (z >= (u32)SORT_WORK->unk20) {
-        return p;
+    if (otz >= (u32)SORT_WORK->unk20) {
+        return packet;
     }
-    tag = len | ot[z];
-    ot[z] = (u32)p;
-    *p = tag;
+    tag = len | ot[otz];
+    ot[otz] = (u32)packet;
+    *packet = tag;
     return next;
 }
 
-u32 *func_8001F824(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+u32 *emitUntexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     register u32 rgb asm("$8");
     u32 *next;
     u32 len;
-    u32 z;
+    u32 otz;
     u32 tag;
 
     gte_mfc2(20, rgb);
-    gte_swc2(12, 8, p);
-    p[1] = rgb | code;
-    next = p;
+    gte_swc2(12, 8, packet);
+    packet[1] = rgb | code;
+    next = packet;
     if (gouraud) {
-        gte_swc2(21, 12, p);
-        gte_swc2(13, 16, p);
-        gte_swc2(22, 20, p);
-        gte_swc2(14, 24, p);
-        gte_mfc2(7, z);
+        gte_swc2(21, 12, packet);
+        gte_swc2(13, 16, packet);
+        gte_swc2(22, 20, packet);
+        gte_swc2(14, 24, packet);
+        gte_mfc2(7, otz);
         len = 0x06000000;
-        next = p + 7;
+        next = packet + 7;
     } else {
-        gte_swc2(13, 12, p);
-        gte_swc2(14, 16, p);
-        gte_mfc2(7, z);
+        gte_swc2(13, 12, packet);
+        gte_swc2(14, 16, packet);
+        gte_mfc2(7, otz);
         len = 0x04000000;
         next += 5;
     }
-    if (z >= (u32)SORT_WORK->unk20) {
-        return p;
+    if (otz >= (u32)SORT_WORK->unk20) {
+        return packet;
     }
-    tag = len | ot[z];
-    ot[z] = (u32)p;
-    *p = tag;
+    tag = len | ot[otz];
+    ot[otz] = (u32)packet;
+    *packet = tag;
     return next;
 }
 
-u32 *func_8001F8B0(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     register u32 rgb asm("$8");
     u32 *next;
     u32 len;
-    u32 z;
+    u32 otz;
     u32 tag;
 
     gte_mfc2(20, rgb);
-    gte_swc2(12, 8, p);
-    p[1] = rgb | code;
-    next = p;
+    gte_swc2(12, 8, packet);
+    packet[1] = rgb | code;
+    next = packet;
     if (gouraud) {
-        gte_swc2(21, 12, p);
-        gte_swc2(13, 16, p);
-        gte_swc2(22, 20, p);
-        gte_swc2(14, 24, p);
-        gte_mfc2(7, z);
+        gte_swc2(21, 12, packet);
+        gte_swc2(13, 16, packet);
+        gte_swc2(22, 20, packet);
+        gte_swc2(14, 24, packet);
+        gte_mfc2(7, otz);
         len = 0x08000000;
-        next = p + 9;
-        gte_swc2(6, 28, p);
-        gte_swc2(0, 32, p);
+        next = packet + 9;
+        gte_swc2(6, 28, packet);
+        gte_swc2(0, 32, packet);
     } else {
-        gte_swc2(13, 12, p);
-        gte_swc2(14, 16, p);
-        gte_swc2(0, 20, p);
-        gte_mfc2(7, z);
+        gte_swc2(13, 12, packet);
+        gte_swc2(14, 16, packet);
+        gte_swc2(0, 20, packet);
+        gte_mfc2(7, otz);
         len = 0x05000000;
         next += 6;
     }
-    if (z >= (u32)SORT_WORK->unk20) {
-        return p;
+    if (otz >= (u32)SORT_WORK->unk20) {
+        return packet;
     }
-    tag = len | ot[z];
-    ot[z] = (u32)p;
-    *p = tag;
+    tag = len | ot[otz];
+    ot[otz] = (u32)packet;
+    *packet = tag;
     return next;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F94C);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", sortModelPrimitives);
 
-u32 func_800202D8(u32 *data, u32 *ot, u32 packet, void *arg3) {
-    SortWork *w;
-    s32 n;
+u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
+    SortWork *work;
+    s32 partCount;
 
-    w = SORT_WORK;
-    w->data = data;
-    w->ot = ot;
-    w->packet = packet & 0xFFFFFF;
-    w->work = (u32 *)0x1F80007C;
-    w->unk20 = arg3;
-    n = *data++;
-    w->data = data;
-    for (; n > 0; n--) {
-        SORT_WORK->data = func_8001F3C0(SORT_WORK->data, SORT_WORK->work);
-        func_8001F94C(w);
+    work = SORT_WORK;
+    work->data = data;
+    work->ot = ot;
+    work->packet = packet & 0xFFFFFF;
+    work->work = (u32 *)0x1F80007C;
+    work->unk20 = otSize;
+    partCount = *data++;
+    work->data = data;
+    for (; partCount > 0; partCount--) {
+        SORT_WORK->data = transformAndLightVertices(SORT_WORK->data, SORT_WORK->work);
+        sortModelPrimitives(work);
     }
     return SORT_WORK->packet;
 }
 
-u32 func_80020370(u32 *data, u32 *ot, u32 packet, void *arg3) {
-    SortWork *w;
-    s32 n;
+u32 sortEnvMappedModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
+    SortWork *work;
+    s32 partCount;
 
-    w = SORT_WORK;
-    w->data = data;
-    w->ot = ot;
-    w->packet = packet & 0xFFFFFF;
-    w->work = (u32 *)0x1F80007C;
-    w->unk20 = arg3;
-    n = *data++;
-    w->data = data;
-    for (; n > 0; n--) {
+    work = SORT_WORK;
+    work->data = data;
+    work->ot = ot;
+    work->packet = packet & 0xFFFFFF;
+    work->work = (u32 *)0x1F80007C;
+    work->unk20 = otSize;
+    partCount = *data++;
+    work->data = data;
+    for (; partCount > 0; partCount--) {
         if (*SORT_WORK->data++ != 0) {
-            SORT_WORK->data = func_80020440(SORT_WORK->data, SORT_WORK->work);
-            func_80020778(w);
+            SORT_WORK->data = transformVerticesWithEnvMap(SORT_WORK->data, SORT_WORK->work);
+            sortEnvMappedPrimitives(work);
         } else {
-            SORT_WORK->data = func_8001F3C0(SORT_WORK->data, SORT_WORK->work);
-            func_8001F94C(w);
+            SORT_WORK->data = transformAndLightVertices(SORT_WORK->data, SORT_WORK->work);
+            sortModelPrimitives(work);
         }
     }
     return SORT_WORK->packet;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_80020440);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", transformVerticesWithEnvMap);
 
-void func_8002060C(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadEnvGteVertex0(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(12, 0, p);
-    gte_lwc2(17, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(12, 0, vertex);
+    gte_lwc2(17, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(20, 0, base);
-    gte_lwc2(25, 4, base);
+    gte_lwc2(20, 0, workBuf);
+    gte_lwc2(25, 4, workBuf);
 }
 
-void func_80020638(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadEnvGteVertex1(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(13, 0, p);
-    gte_lwc2(18, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(13, 0, vertex);
+    gte_lwc2(18, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(21, 0, base);
-    gte_lwc2(26, 4, base);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
-        gte_lwc2(25, 4, base);
+    gte_lwc2(21, 0, workBuf);
+    gte_lwc2(26, 4, workBuf);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
+        gte_lwc2(25, 4, workBuf);
     }
 }
 
-void func_80020674(s32 flag, u32 i, u8 *base) {
-    u8 *p;
+void loadEnvGteVertex2(s32 gouraud, u32 index, u8 *workBuf) {
+    u8 *vertex;
 
-    p = base + (i >> 16);
-    gte_lwc2(14, 0, p);
-    gte_lwc2(19, 4, p);
-    base += i & 0xFFFF;
+    vertex = workBuf + (index >> 16);
+    gte_lwc2(14, 0, vertex);
+    gte_lwc2(19, 4, vertex);
+    workBuf += index & 0xFFFF;
     gte_nclip();
-    gte_lwc2(22, 0, base);
-    gte_lwc2(27, 4, base);
-    if (flag == 0) {
-        gte_lwc2(20, 0, base);
-        gte_lwc2(25, 4, base);
+    gte_lwc2(22, 0, workBuf);
+    gte_lwc2(27, 4, workBuf);
+    if (gouraud == 0) {
+        gte_lwc2(20, 0, workBuf);
+        gte_lwc2(25, 4, workBuf);
     }
 }
 
-u32 *func_800206B0(u32 *p, u32 *ot, s32 gouraud, u32 code) {
-    SortWork *w;
-    s32 a;
-    s32 b;
-    s32 c;
-    u32 z;
+u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
+    SortWork *work;
+    s32 envUv0;
+    s32 envUv1;
+    s32 envUv2;
+    u32 otz;
     u32 tag;
 
-    gte_mfc2(25, a);
-    gte_mfc2(26, b);
-    gte_mfc2(27, c);
-    if (a > 0 && b > 0 && c > 0) {
-        return p;
+    gte_mfc2(25, envUv0);
+    gte_mfc2(26, envUv1);
+    gte_mfc2(27, envUv2);
+    if (envUv0 > 0 && envUv1 > 0 && envUv2 > 0) {
+        return packet;
     }
-    w = SORT_WORK;
-    p[1] = w->unk2C;
-    p[3] = (a & 0xFFFF) | w->clut;
-    p[5] = (b & 0xFFFF) | w->tpage;
-    p[7] = (c | w->tpage) & 0xFFFF;
-    gte_swc2(12, 8, p);
-    gte_swc2(13, 16, p);
-    gte_swc2(14, 24, p);
-    gte_mfc2(7, z);
-    if (z >= (u32)w->unk20) {
-        return p;
+    work = SORT_WORK;
+    packet[1] = work->unk2C;
+    packet[3] = (envUv0 & 0xFFFF) | work->clut;
+    packet[5] = (envUv1 & 0xFFFF) | work->tpage;
+    packet[7] = (envUv2 | work->tpage) & 0xFFFF;
+    gte_swc2(12, 8, packet);
+    gte_swc2(13, 16, packet);
+    gte_swc2(14, 24, packet);
+    gte_mfc2(7, otz);
+    if (otz >= (u32)work->unk20) {
+        return packet;
     }
-    tag = ot[z] | 0x07000000;
-    ot[z] = (u32)p;
-    *p = tag;
-    return p + 8;
+    tag = ot[otz] | 0x07000000;
+    ot[otz] = (u32)packet;
+    *packet = tag;
+    return packet + 8;
 }
 
-void func_80020778(SortWork *w) {
-    u32 *pkt;
-    u32 *d;
-    u32 hdr;
-    s32 tex;
+void sortEnvMappedPrimitives(SortWork *w) {
+    u32 *packet;
+    u32 *cursor;
+    u32 header;
+    s32 texInfo;
     u32 code;
     s32 gouraud;
     u32 idx;
-    u32 n;
-    u32 len;
+    u32 stripCount;
+    u32 stripLength;
     u32 k;
-    register s32 opz asm("$4");
+    register s32 nclip asm("$4");
     u8 *base;
     u8 *p0;
     u8 *p1;
@@ -435,41 +435,41 @@ void func_80020778(SortWork *w) {
     u32 i1;
     u32 i2;
 
-    pkt = (u32 *)SORT_WORK->packet;
-    d = SORT_WORK->data;
-    while ((hdr = *d++) != 0) {
-        SORT_WORK->count[0] = hdr >> 20;
-        SORT_WORK->count[1] = (hdr >> 8) & 0xFFF;
-        code = hdr << 24;
+    packet = (u32 *)SORT_WORK->packet;
+    cursor = SORT_WORK->data;
+    while ((header = *cursor++) != 0) {
+        SORT_WORK->count[0] = header >> 20;
+        SORT_WORK->count[1] = (header >> 8) & 0xFFF;
+        code = header << 24;
         SORT_WORK->code = code;
         SORT_WORK->quad = code & 0x08000000;
         SORT_WORK->textured = code & 0x04000000;
         gouraud = code & 0x10000000;
-        tex = *d++;
-        if (tex >= 0) {
+        texInfo = *cursor++;
+        if (texInfo >= 0) {
             SORT_WORK->unk38 = 0;
-            SORT_WORK->unk2C = (tex & 0xFFFFFF) | 0x26000000;
-            SORT_WORK->clut = D_8006DF60[tex >> 24].clut;
-            SORT_WORK->tpage = D_8006DF60[tex >> 24].tpage;
+            SORT_WORK->unk2C = (texInfo & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->clut = MODEL_TEXTURE_SLOTS[texInfo >> 24].clut;
+            SORT_WORK->tpage = MODEL_TEXTURE_SLOTS[texInfo >> 24].tpage;
         } else {
             SORT_WORK->unk38 = 1;
-            SORT_WORK->unk2C = (tex & 0xFFFFFF) | 0x26000000;
-            SORT_WORK->clut = *d++;
-            SORT_WORK->tpage = *d++;
+            SORT_WORK->unk2C = (texInfo & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->clut = *cursor++;
+            SORT_WORK->tpage = *cursor++;
         }
-        idx = *d;
+        idx = *cursor;
         for (SORT_WORK->pass = 0; SORT_WORK->pass != 2; SORT_WORK->pass++) {
             while (SORT_WORK->count[SORT_WORK->pass] != 0) {
-                n = idx;
-                len = idx >> 16;
-                idx = *++d;
-                for (n &= 0xFFFF; n != 0; n--) {
+                stripCount = idx;
+                stripLength = idx >> 16;
+                idx = *++cursor;
+                for (stripCount &= 0xFFFF; stripCount != 0; stripCount--) {
                     base = (u8 *)SORT_WORK->work;
                     p0 = base + (idx >> 16);
                     gte_lwc2(12, 0, p0);
                     gte_lwc2(17, 4, p0);
-                    i1 = d[1];
-                    i2 = d[2];
+                    i1 = cursor[1];
+                    i2 = cursor[2];
                     p1 = base + (i1 >> 16);
                     p2 = base + (i2 >> 16);
                     gte_lwc2(13, 0, p1);
@@ -486,85 +486,85 @@ void func_80020778(SortWork *w) {
                     gte_lwc2(25, 4, q0);
                     gte_lwc2(26, 4, q1);
                     gte_lwc2(27, 4, q2);
-                    gte_mfc2(24, opz);
+                    gte_mfc2(24, nclip);
                     if (SORT_WORK->textured) {
-                        gte_lwc2(2, 12, d);
-                        gte_lwc2(4, 16, d);
-                        idx = d[6];
-                        if (opz > 0) {
+                        gte_lwc2(2, 12, cursor);
+                        gte_lwc2(4, 16, cursor);
+                        idx = cursor[6];
+                        if (nclip > 0) {
                             gte_avsz3();
-                            gte_lwc2(3, 20, d);
-                            pkt = func_8001F6C4(func_800206B0(pkt, SORT_WORK->ot, gouraud, SORT_WORK->code),
+                            gte_lwc2(3, 20, cursor);
+                            packet = emitTexturedTriangle(emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code),
                                                 SORT_WORK->ot, gouraud, SORT_WORK->code);
                         }
-                        d += 6;
-                        for (k = 1; k != len;) {
-                            func_80020674(gouraud, idx, (u8 *)SORT_WORK->work);
-                            gte_lwc2(3, 4, d);
-                            idx = d[2];
-                            gte_mfc2(24, opz);
-                            if ((k & 1) ? opz < 0 : opz > 0) {
-                                STRIP_DRAW(func_8001F6C4);
+                        cursor += 6;
+                        for (k = 1; k != stripLength;) {
+                            loadEnvGteVertex2(gouraud, idx, (u8 *)SORT_WORK->work);
+                            gte_lwc2(3, 4, cursor);
+                            idx = cursor[2];
+                            gte_mfc2(24, nclip);
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                STRIP_DRAW(emitTexturedTriangle);
                             }
-                            d += 2;
-                            if (++k == len) {
+                            cursor += 2;
+                            if (++k == stripLength) {
                                 break;
                             }
                             if (SORT_WORK->pass != 0) {
-                                func_8002060C(gouraud, idx, (u8 *)SORT_WORK->work);
-                                gte_lwc2(2, 4, d);
-                                gte_mfc2(24, opz);
-                                idx = d[2];
-                                if ((k & 1) ? opz < 0 : opz > 0) {
-                                    STRIP_DRAW(func_8001F6C4);
+                                loadEnvGteVertex0(gouraud, idx, (u8 *)SORT_WORK->work);
+                                gte_lwc2(2, 4, cursor);
+                                gte_mfc2(24, nclip);
+                                idx = cursor[2];
+                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                    STRIP_DRAW(emitTexturedTriangle);
                                 }
-                                d += 2;
-                                if (++k == len) {
+                                cursor += 2;
+                                if (++k == stripLength) {
                                     break;
                                 }
                             }
-                            func_80020638(gouraud, idx, (u8 *)SORT_WORK->work);
-                            gte_lwc2(4, 4, d);
-                            gte_mfc2(24, opz);
-                            idx = d[2];
-                            if ((k & 1) ? opz < 0 : opz > 0) {
-                                STRIP_DRAW(func_8001F6C4);
+                            loadEnvGteVertex1(gouraud, idx, (u8 *)SORT_WORK->work);
+                            gte_lwc2(4, 4, cursor);
+                            gte_mfc2(24, nclip);
+                            idx = cursor[2];
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                STRIP_DRAW(emitTexturedTriangle);
                             }
-                            d += 2;
+                            cursor += 2;
                             k++;
                         }
                     } else {
-                        idx = d[3];
-                        if (opz > 0) {
-                            STRIP_DRAW(func_8001F824);
+                        idx = cursor[3];
+                        if (nclip > 0) {
+                            STRIP_DRAW(emitUntexturedTriangle);
                         }
-                        d += 3;
-                        for (k = 1; k != len;) {
-                            func_80020674(gouraud, idx, (u8 *)SORT_WORK->work);
-                            idx = *++d;
-                            gte_mfc2(24, opz);
-                            if ((k & 1) ? opz < 0 : opz > 0) {
-                                STRIP_DRAW(func_8001F824);
+                        cursor += 3;
+                        for (k = 1; k != stripLength;) {
+                            loadEnvGteVertex2(gouraud, idx, (u8 *)SORT_WORK->work);
+                            idx = *++cursor;
+                            gte_mfc2(24, nclip);
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                STRIP_DRAW(emitUntexturedTriangle);
                             }
-                            if (++k == len) {
+                            if (++k == stripLength) {
                                 break;
                             }
                             if (SORT_WORK->pass != 0) {
-                                func_8002060C(gouraud, idx, (u8 *)SORT_WORK->work);
-                                idx = *++d;
-                                gte_mfc2(24, opz);
-                                if ((k & 1) ? opz < 0 : opz > 0) {
-                                    STRIP_DRAW(func_8001F824);
+                                loadEnvGteVertex0(gouraud, idx, (u8 *)SORT_WORK->work);
+                                idx = *++cursor;
+                                gte_mfc2(24, nclip);
+                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                    STRIP_DRAW(emitUntexturedTriangle);
                                 }
-                                if (++k == len) {
+                                if (++k == stripLength) {
                                     break;
                                 }
                             }
-                            func_80020638(gouraud, idx, (u8 *)SORT_WORK->work);
-                            idx = *++d;
-                            gte_mfc2(24, opz);
-                            if ((k & 1) ? opz < 0 : opz > 0) {
-                                STRIP_DRAW(func_8001F824);
+                            loadEnvGteVertex1(gouraud, idx, (u8 *)SORT_WORK->work);
+                            idx = *++cursor;
+                            gte_mfc2(24, nclip);
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                STRIP_DRAW(emitUntexturedTriangle);
                             }
                             k++;
                         }
@@ -574,6 +574,6 @@ void func_80020778(SortWork *w) {
             }
         }
     }
-    SORT_WORK->packet = (u32)pkt;
-    SORT_WORK->data = d;
+    SORT_WORK->packet = (u32)packet;
+    SORT_WORK->data = cursor;
 }

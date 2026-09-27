@@ -3,237 +3,237 @@
 #include "game.h"
 #include "dcb/prim3d.h"
 
-void func_8001D6D0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
-    s32 sp28;
-    s32 sp2C;
-    s32 sp30;
+void transformAndAddPolyFT3(s32 poly, s32 vert0, s32 vert1, s32 vert2, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg4 == 0) {
-        sp30 = RotTransPers3(arg1, arg2, arg3, arg0 + 8, arg0 + 0x10, arg0 + 0x18, &sp28, &sp2C);
+    if (cullBackface == 0) {
+        otz = RotTransPers3(vert0, vert1, vert2, poly + 8, poly + 0x10, poly + 0x18, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip3(arg1, arg2, arg3, arg0 + 8, arg0 + 0x10, arg0 + 0x18, &sp28, &sp30, &sp2C) > 0) {
+    if (RotAverageNclip3(vert0, vert1, vert2, poly + 8, poly + 0x10, poly + 0x18, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp30 - 2) < 0xFFFU) {
-            if (arg5 == 0) {
-                AddPrim(&D_800793A0->ot[sp30], arg0);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[arg5], arg0);
+            AddPrim(&D_800793A0->ot[fixedOtz], poly);
         }
     }
 }
 
-void func_8001D7DC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, s32 arg6) {
-    s32 sp30;
-    s32 sp34;
-    s32 sp38;
+void transformAndAddPolyFT4(s32 poly, s32 vert0, s32 vert1, s32 vert2, s32 vert3, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg5 == 0) {
-        sp38 = RotTransPers4(arg1, arg2, arg3, arg4, arg0 + 8, arg0 + 0x10, arg0 + 0x18, arg0 + 0x20, &sp30, &sp34);
+    if (cullBackface == 0) {
+        otz = RotTransPers4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x10, poly + 0x18, poly + 0x20, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip4(arg1, arg2, arg3, arg4, arg0 + 8, arg0 + 0x10, arg0 + 0x18, arg0 + 0x20, &sp30, &sp38, &sp34) > 0) {
+    if (RotAverageNclip4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x10, poly + 0x18, poly + 0x20, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp38 - 2) < 0xFFFU) {
-            if (arg6 == 0) {
-                AddPrim(&D_800793A0->ot[sp38], arg0);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[arg6], arg0);
+            AddPrim(&D_800793A0->ot[fixedOtz], poly);
         }
     }
 }
 
-void func_8001D900(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, s32 arg6) {
-    s32 sp30;
-    s32 sp34;
-    s32 sp38;
+void transformAndAddPolyGT4(s32 poly, s32 vert0, s32 vert1, s32 vert2, s32 vert3, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg5 == 0) {
-        sp38 = RotTransPers4(arg1, arg2, arg3, arg4, arg0 + 8, arg0 + 0x14, arg0 + 0x20, arg0 + 0x2C, &sp30, &sp34);
+    if (cullBackface == 0) {
+        otz = RotTransPers4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x14, poly + 0x20, poly + 0x2C, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip4(arg1, arg2, arg3, arg4, arg0 + 8, arg0 + 0x14, arg0 + 0x20, arg0 + 0x2C, &sp30, &sp38, &sp34) > 0) {
+    if (RotAverageNclip4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x14, poly + 0x20, poly + 0x2C, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp38 - 2) < 0xFFFU) {
-            if (arg6 == 0) {
-                AddPrim(&D_800793A0->ot[sp38], arg0);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[arg6], arg0);
+            AddPrim(&D_800793A0->ot[fixedOtz], poly);
         }
     }
 }
 
-void func_8001DA24(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, u8 arg6, s32 arg7) {
-    s32 sp28;
-    s32 sp2C;
-    s32 sp30;
+void transformAndAddPolyF3(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 vert2, u8 semiTrans, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg6 == 0) {
-        sp30 = RotTransPers3(arg2, arg3, arg4, arg0 + 8, arg0 + 0xC, arg0 + 0x10, &sp28, &sp2C);
+    if (cullBackface == 0) {
+        otz = RotTransPers3(vert0, vert1, vert2, poly + 8, poly + 0xC, poly + 0x10, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip3(arg2, arg3, arg4, arg0 + 8, arg0 + 0xC, arg0 + 0x10, &sp28, &sp30, &sp2C) > 0) {
+    if (RotAverageNclip3(vert0, vert1, vert2, poly + 8, poly + 0xC, poly + 0x10, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp30 - 2) < 0xFFFU) {
-            if (arg7 == 0) {
-                AddPrim(&D_800793A0->ot[sp30], arg0);
-                if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[sp30], arg1);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[arg7], arg0);
-                if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[arg7], arg1);
+                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
                 }
             }
         }
     }
 }
 
-void func_8001DBAC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u8 arg6, u8 arg7, s32 arg8) {
-    s32 sp30;
-    s32 sp34;
-    s32 sp38;
+void transformAndAddPolyF4(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 vert2, s32 vert3, u8 semiTrans, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg7 == 0) {
-        sp38 = RotTransPers4(arg2, arg3, arg4, arg5, arg0 + 8, arg0 + 0xC, arg0 + 0x10, arg0 + 0x14, &sp30, &sp34);
+    if (cullBackface == 0) {
+        otz = RotTransPers4(vert0, vert1, vert2, vert3, poly + 8, poly + 0xC, poly + 0x10, poly + 0x14, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip4(arg2, arg3, arg4, arg5, arg0 + 8, arg0 + 0xC, arg0 + 0x10, arg0 + 0x14, &sp30, &sp38, &sp34) > 0) {
+    if (RotAverageNclip4(vert0, vert1, vert2, vert3, poly + 8, poly + 0xC, poly + 0x10, poly + 0x14, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp38 - 2) < 0xFFFU) {
-            if (arg8 == 0) {
-                AddPrim(&D_800793A0->ot[sp38], arg0);
-                if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[sp38], arg1);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[arg8], arg0);
-                if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[arg8], arg1);
+                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
                 }
             }
         }
     }
 }
 
-void func_8001DD4C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
-    s32 sp28;
-    s32 sp2C;
-    s32 sp30;
+void transformAndAddPolyGT3(s32 poly, s32 vert0, s32 vert1, s32 vert2, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg4 == 0) {
-        sp30 = RotTransPers3(arg1, arg2, arg3, arg0 + 8, arg0 + 0x14, arg0 + 0x20, &sp28, &sp2C);
+    if (cullBackface == 0) {
+        otz = RotTransPers3(vert0, vert1, vert2, poly + 8, poly + 0x14, poly + 0x20, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip3(arg1, arg2, arg3, arg0 + 8, arg0 + 0x14, arg0 + 0x20, &sp28, &sp30, &sp2C) > 0) {
+    if (RotAverageNclip3(vert0, vert1, vert2, poly + 8, poly + 0x14, poly + 0x20, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp30 - 2) < 0xFFFU) {
-            if (arg5 == 0) {
-                AddPrim(&D_800793A0->ot[sp30], arg0);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
                 return;
             }
-            AddPrim(&D_800793A0->ot[arg5], arg0);
+            AddPrim(&D_800793A0->ot[fixedOtz], poly);
         }
     }
 }
 
-void func_8001DE58(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, u8 arg6, s32 arg7) {
-    s32 sp28;
-    s32 sp2C;
-    s32 sp30;
+void transformAndAddPolyG3(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 vert2, u8 semiTrans, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg6 == 0) {
-        sp30 = RotTransPers3(arg2, arg3, arg4, arg0 + 8, arg0 + 0x10, arg0 + 0x18, &sp28, &sp2C);
+    if (cullBackface == 0) {
+        otz = RotTransPers3(vert0, vert1, vert2, poly + 8, poly + 0x10, poly + 0x18, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip3(arg2, arg3, arg4, arg0 + 8, arg0 + 0x10, arg0 + 0x18, &sp28, &sp30, &sp2C) > 0) {
+    if (RotAverageNclip3(vert0, vert1, vert2, poly + 8, poly + 0x10, poly + 0x18, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp30 - 2) < 0xFFFU) {
-            if (arg7 == 0) {
-                AddPrim(&D_800793A0->ot[sp30], arg0);
-                if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[sp30], arg1);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[arg7], arg0);
-                if ((arg5 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[arg7], arg1);
+                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
                 }
             }
         }
     }
 }
 
-void func_8001DFE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u8 arg6, u8 arg7, s32 arg8) {
-    s32 sp30;
-    s32 sp34;
-    s32 sp38;
+void transformAndAddPolyG4(s32 poly, s32 tpagePrim, s32 vert0, s32 vert1, s32 vert2, s32 vert3, u8 semiTrans, u8 cullBackface, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    if (arg7 == 0) {
-        sp38 = RotTransPers4(arg2, arg3, arg4, arg5, arg0 + 8, arg0 + 0x10, arg0 + 0x18, arg0 + 0x20, &sp30, &sp34);
+    if (cullBackface == 0) {
+        otz = RotTransPers4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x10, poly + 0x18, poly + 0x20, &depthCue, &flag);
         goto block_3;
     }
-    if (RotAverageNclip4(arg2, arg3, arg4, arg5, arg0 + 8, arg0 + 0x10, arg0 + 0x18, arg0 + 0x20, &sp30, &sp38, &sp34) > 0) {
+    if (RotAverageNclip4(vert0, vert1, vert2, vert3, poly + 8, poly + 0x10, poly + 0x18, poly + 0x20, &depthCue, &otz, &flag) > 0) {
 block_3:
-        if ((u32) (sp38 - 2) < 0xFFFU) {
-            if (arg8 == 0) {
-                AddPrim(&D_800793A0->ot[sp38], arg0);
-                if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[sp38], arg1);
+        if ((u32) (otz - 2) < 0xFFFU) {
+            if (fixedOtz == 0) {
+                AddPrim(&D_800793A0->ot[otz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[otz], tpagePrim);
                 }
             } else {
-                AddPrim(&D_800793A0->ot[arg8], arg0);
-                if ((arg6 != 0) && (arg1 != 0)) {
-                    AddPrim(&D_800793A0->ot[arg8], arg1);
+                AddPrim(&D_800793A0->ot[fixedOtz], poly);
+                if ((semiTrans != 0) && (tpagePrim != 0)) {
+                    AddPrim(&D_800793A0->ot[fixedOtz], tpagePrim);
                 }
             }
         }
     }
 }
 
-void func_8001E180(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
-    s32 sp10;
-    s32 sp14;
-    s32 temp_v0;
+void transformAndAddLineF2(s32 line, s32 tpagePrim, s32 vert0, s32 vert1, u8 semiTrans, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    RotTransPers(arg2, arg0 + 8, &sp10, &sp14);
-    temp_v0 = RotTransPers(arg3, arg0 + 0xC, &sp10, &sp14);
-    if ((u32) (temp_v0 - 2) < 0xFFFU) {
-        if (arg5 == 0) {
-            AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg0);
-            if ((arg4 != 0) && (arg1 != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg1);
+    RotTransPers(vert0, line + 8, &depthCue, &flag);
+    otz = RotTransPers(vert1, line + 0xC, &depthCue, &flag);
+    if ((u32) (otz - 2) < 0xFFFU) {
+        if (fixedOtz == 0) {
+            AddPrim((s32 *) &D_800793A0->ot[otz], line);
+            if ((semiTrans != 0) && (tpagePrim != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[otz], tpagePrim);
             }
         } else {
-            AddPrim((s32 *) &D_800793A0->ot[arg5], arg0);
-            if ((arg4 != 0) && (arg1 != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[arg5], arg1);
+            AddPrim((s32 *) &D_800793A0->ot[fixedOtz], line);
+            if ((semiTrans != 0) && (tpagePrim != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[fixedOtz], tpagePrim);
             }
         }
     }
 }
 
-void func_8001E2A4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
-    s32 sp10;
-    s32 sp14;
-    s32 temp_v0;
+void transformAndAddLineG2(s32 line, s32 tpagePrim, s32 vert0, s32 vert1, u8 semiTrans, s32 fixedOtz) {
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
 
-    RotTransPers(arg2, arg0 + 8, &sp10, &sp14);
-    temp_v0 = RotTransPers(arg3, arg0 + 0x10, &sp10, &sp14);
-    if ((u32) (temp_v0 - 2) < 0xFFFU) {
-        if (arg5 == 0) {
-            AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg0);
-            if ((arg4 != 0) && (arg1 != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[temp_v0], arg1);
+    RotTransPers(vert0, line + 8, &depthCue, &flag);
+    otz = RotTransPers(vert1, line + 0x10, &depthCue, &flag);
+    if ((u32) (otz - 2) < 0xFFFU) {
+        if (fixedOtz == 0) {
+            AddPrim((s32 *) &D_800793A0->ot[otz], line);
+            if ((semiTrans != 0) && (tpagePrim != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[otz], tpagePrim);
             }
         } else {
-            AddPrim((s32 *) &D_800793A0->ot[arg5], arg0);
-            if ((arg4 != 0) && (arg1 != 0)) {
-                AddPrim((s32 *) &D_800793A0->ot[arg5], arg1);
+            AddPrim((s32 *) &D_800793A0->ot[fixedOtz], line);
+            if ((semiTrans != 0) && (tpagePrim != 0)) {
+                AddPrim((s32 *) &D_800793A0->ot[fixedOtz], tpagePrim);
             }
         }
     }

@@ -209,7 +209,7 @@ void func_800155F4(void) {
         func_8001AA80(0);
         func_80014C08(0xA);
         func_800168C4();
-        func_8001F040();
+        initScreenFade();
         D_8008983C = 1;
         func_800149B8(0, -1, 0, 0x800, func_8002B3EC, 2, t);
         func_80014C08(0x7FFFFFFF);
