@@ -39,10 +39,13 @@ typedef struct VmVoice {
     /* 0x02 */ short unk2;
     /* 0x04 */ short unk4;
     /* 0x06 */ u_short envx;
-    /* 0x08 */ u8 unk8[6];
+    /* 0x08 */ short unk8;
+    /* 0x0A */ u_char unkA;
+    /* 0x0B */ u8 unkB;
+    /* 0x0C */ short unkC;
     /* 0x0E */ short note;
     /* 0x10 */ short unk10;
-    /* 0x12 */ u8 unk12[2];
+    /* 0x12 */ short unk12;
     /* 0x14 */ short prog;
     /* 0x16 */ short tone;
     /* 0x18 */ short vabId;
@@ -50,9 +53,18 @@ typedef struct VmVoice {
     /* 0x1C */ u8 unk1C;
     /* 0x1D */ char unk1D;
     /* 0x1E */ short autoVol;
-    /* 0x20 */ u8 unk20[0xA];
+    /* 0x20 */ short unk20;
+    /* 0x22 */ short unk22;
+    /* 0x24 */ short unk24;
+    /* 0x26 */ short startVol;
+    /* 0x28 */ short endVol;
     /* 0x2A */ short autoPan;
-    /* 0x2C */ u8 unk2C[0xC];
+    /* 0x2C */ short unk2C;
+    /* 0x2E */ short unk2E;
+    /* 0x30 */ short unk30;
+    /* 0x32 */ short startPan;
+    /* 0x34 */ short endPan;
+    /* 0x36 */ short unk36;
 } VmVoice;
 extern VmVoice D_800815D0[];
 
