@@ -13,6 +13,17 @@ blockage before the restores when there is a frame pointer; this makes it do
 so always (the frame pointer check follows the blockage), so the restores stay
 at the end (_spu_init, _padInitDirPort).
 
+For the same reason reorg saw no insns after the last one of the body: a
+branch falling into the epilogue had end_of_function_needs as its live
+registers. Ours scans into the RTL epilogue with stale flow info and keeps the
+counter of a function-ending loop live, so it fills the loop branch's slot
+with the counter increment plus an undoing `addiu -1` after the loop
+(_spu_FiDMA, func_8004AC20). mark_target_live_regs() now gives a target inside
+the epilogue the registers needed at the start of the epilogue (helper written
+over iterator_loop_prologue, GNU C iterators being unused). The bare return
+jump of a frameless function is left alone: a branch to it keeps its slot
+empty (func_8006B584).
+
 It had no post-reload CSE either: it loads a constant again where ours copies
 a register that already holds it (`li $a0,3` for ResetGraph(3) after a
 compare with 3 in func_80061958), so reload_cse_regs() returns at once.
@@ -54,9 +65,30 @@ with open(src, 'rb') as f:
     blk += b'\x74' + (skip - (at + len(blk) + 2)).to_bytes(1, 'little', signed=True)
     blk += b'\x90' * (29 - len(blk))
 
+    # Helper for mark_target_live_regs, reading its target (-0xcc(%ebp)):
+    # returns 0 for a null target (end of function), 1 to go on as usual;
+    # for a non-jump insn of the epilogue it returns 0 with %ebx lowered by
+    # 16, so the caller's copy of end_of_function_needs (0xcf60(%ebx)) reads
+    # start_of_epilogue_needs instead (%ebx is popped on the way out).
+    cave = sym('iterator_loop_prologue')
+    live = b'\x8b\x85' + (-0xcc).to_bytes(4, 'little', signed=True)  # mov target,%eax
+    live += b'\x85\xc0\x74\x2a'                                     # test; je ret0
+    live += b'\x66\x83\x38\x1c\x74\x1e'                           # JUMP_INSN? je ret1
+    live += b'\x8b\x15' + sym('epilogue').to_bytes(4, 'little')      # mov epilogue,%edx
+    live += b'\x85\xd2\x74\x14\x52\x50'                           # test; je ret1; push
+    live += b'\xe8' + rel32(cave + len(live), sym('contains'))        # call contains
+    live += b'\x83\xc4\x08\x85\xc0\x74\x06'                       # pop; test; je ret1
+    live += b'\x83\xeb\x10\x31\xc0\xc3'                           # ebx -= 16; return 0
+    live += b'\xb8\x01\x00\x00\x00\xc3\x31\xc0\xc3'             # ret1: 1; ret0: 0
+    # mark_target_live_regs+83: `if (target == 0)` -> `if (!helper ())`
+    site = sym('mark_target_live_regs') + 83
+    test = b'\xe8' + rel32(site, cave) + b'\x85\xc0\x75\x2e'
+
     patches = [(offset('mips_can_use_return_insn'), b'\x31\xc0\xc3'),
                (offset('reload_cse_regs'), b'\xc3'),
-               (offset('mips_expand_epilogue') + 180, blk)]
+               (offset('mips_expand_epilogue') + 180, blk),
+               (offset('iterator_loop_prologue'), live),
+               (offset('mark_target_live_regs') + 83, test)]
 data = bytearray(open(src, 'rb').read())
 for off, code in patches:
     data[off:off + len(code)] = code
