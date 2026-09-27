@@ -1468,7 +1468,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", InitCARD);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StartCARD);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StopCARD);
+long StopCARD(void) {
+    func_800689B4();
+    _ExitCard();
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068994);
 
