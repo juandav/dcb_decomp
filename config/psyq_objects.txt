@@ -25,7 +25,7 @@ libsnd_cc_121
 libsnd_de_0 gcc2.8
 libsnd_de_1 gcc2.8
 libsnd_de_2 gcc2.8
-libsnd_de_3
+libsnd_de_3 gcc2.8
 libsnd_de_4
 libsnd_ccadsr
 libsnd_de_5
