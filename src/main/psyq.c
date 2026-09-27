@@ -1339,7 +1339,10 @@ void func_80066660(u_long addr) {
     *D_8007686C = 0x01000401;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666A8);
+u_long func_800666A8(u_long cmd) {
+    *D_80076860 = cmd | 0x10000000;
+    return *D_8007685C & 0xFFFFFF;
+}
 
 int func_800666D8(int arg0, int arg1, int arg2) {
     return func_800666FC(arg0, arg1, 0, arg2);
