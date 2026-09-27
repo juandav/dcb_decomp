@@ -725,7 +725,16 @@ long GetVideoMode(void) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StSetRing);
+extern u_long *D_801D98F0;
+extern long D_801D98F4;
+
+void StSetRing(u_long *ring_addr, u_long ring_size) {
+    D_801D98F0 = ring_addr;
+    D_801D98F4 = ring_size;
+    StClearRing();
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdInit);
 
