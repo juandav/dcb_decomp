@@ -9,7 +9,6 @@
 #include "dcb/card_db.h"
 #include "dcb/duel_setup.h"
 #include "dcb/card_zones.h"
-#include "dcb/effect.h"
 #include "dcb/effect_object.h"
 #include "dcb/duel_util.h"
 #include "dcb/main.h"

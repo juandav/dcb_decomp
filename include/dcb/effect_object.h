@@ -2,7 +2,7 @@
 #define DCB_EFFECT_OBJECT_H
 
 #include "game.h"
-#include "dcb/effect.h"
+#include "dcb/scroll_bg.h"
 
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag);
 void updateEffectLinearMotion(void *fx);
