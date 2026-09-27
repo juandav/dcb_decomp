@@ -40,7 +40,7 @@ CATEGORIES = [
 # library code linked with the game, left out of the progress
 LIBRARIES = {"psyq", "libmath"}
 
-# the game's data that no module owns yet, reported with main
+# the game's data that no module owns (its .bss), reported with main
 UNOWNED_DATA = "game"
 
 
