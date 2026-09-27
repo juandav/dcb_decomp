@@ -60,7 +60,7 @@ libsnd_replay
 libsnd_ssstop
 libsnd_sssv
 libsnd_sstable
-libsnd_sstick
+libsnd_sstick gcc2.8
 libsnd_ssvol gcc2.8
 libsnd_ssvol_2
 libsnd_tempo
