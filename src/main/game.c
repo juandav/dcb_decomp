@@ -4629,7 +4629,27 @@ void func_8002A7CC(s8 *arg0, s32 arg1, s32 arg2) {
     func_8002A710(arg0, '0', arg1, arg2 - 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A820);
+s8 *func_8002A820(s8 *buf, s32 n) {
+    s8 *s;
+
+    switch (n) {
+    case 1:
+        s = "1ab";
+        break;
+    case 2:
+        s = "2cd";
+        break;
+    case 3:
+        s = "3ef";
+        break;
+    default:
+        if (n < 10) {
+            return func_8002A5B4(func_8002A710(buf, ' ', n, 1), "gh");
+        }
+        return func_8002A5B4(func_8002A710(buf, ' ', n, 2), "i");
+    }
+    return func_8002A5B4(buf, s);
+}
 
 s32 strlen(u8 *);
 
@@ -4756,9 +4776,43 @@ void func_8002AC70(s16 *arg0, s32 arg1, s32 arg2) {
     func_8002ABAC(arg0, 0x30, arg1, arg2 - 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002ACC4);
+s16 *func_8002ACC4(s16 *buf, s32 n) {
+    u8 *s;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002AD58);
+    switch (n) {
+    case 1:
+        s = "1st";
+        break;
+    case 2:
+        s = "2nd";
+        break;
+    case 3:
+        s = "3rd";
+        break;
+    default:
+        return func_8002AB5C(func_8002ABAC(buf, ' ', n, 1), "th");
+    }
+    return func_8002AB5C(buf, s);
+}
+
+s8 *func_8002AD58(s8 *buf, s32 n) {
+    s8 *s;
+
+    switch (n) {
+    case 1:
+        s = "1ST";
+        break;
+    case 2:
+        s = "2ND";
+        break;
+    case 3:
+        s = "3RD";
+        break;
+    default:
+        return func_8002A5B4(func_8002A710(buf, ' ', n, 1), "TH");
+    }
+    return func_8002A5B4(buf, s);
+}
 
 s32 SsSetMVol(s32, s32);
 s32 SsSetTableSize(s32 *, s32, s32);
