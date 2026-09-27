@@ -1203,7 +1203,10 @@ int LoadImage(RECT *rect, u_long *p) {
     return D_80076750->addque(D_80076750->unk20, rect, 8, (long)p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StoreImage);
+int StoreImage(RECT *rect, u_long *p) {
+    func_800649E8(D_800139D4, rect);
+    return D_80076750->addque(D_80076750->unk1C, rect, 8, (long)p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage);
 
