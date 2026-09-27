@@ -54,7 +54,52 @@ static __inline__ void cd_read_end(void) {
     D_80070FD8->busy = 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A808);
+void func_8005A808(u_char intr, u_char *result) {
+    u_long head[3];
+
+    D_80070FD8->result = result;
+    if (intr == CdlDataReady) {
+        if (D_80070FD8->rest > 0) {
+            if (D_80070FD8->size == 0x200) {
+                if (D_80070B4C & 1) {
+                    func_8005A7A4(NULL);
+                    func_8005B304(head, 3);
+                    func_8005B414(0);
+                    func_8005A7A4(func_8005AA7C);
+                } else {
+                    func_8005B1E4(head, 3);
+                }
+                if (CdPosToInt((CdlLOC *)head) != D_80070FD8[0].pos) {
+                    puts("CdRead: sector error\n");
+                    D_80070FD8->rest = -1;
+                }
+            }
+            if (D_80070B4C & 1) {
+                func_8005B304(D_80070FD8[0].cur, D_80070FD8[0].size);
+            } else {
+                func_8005B1E4(D_80070FD8[0].cur, D_80070FD8[0].size);
+                D_80070FD8->cur = D_80070FD8[0].cur + D_80070FD8[0].size;
+                D_80070FD8->rest--;
+                D_80070FD8->pos++;
+            }
+        }
+    } else {
+        D_80070FD8->rest = -1;
+    }
+    D_80070FD8->ctime = VSync(-1);
+    if (D_80070FD8->rest < 0) {
+        func_8005AB4C(1);
+    }
+    if (VSync(-1) > D_80070FD8->stime + 1200) {
+        D_80070FD8->rest = -1;
+    }
+    if (D_80070FD8->rest == 0 || VSync(-1) > D_80070FD8->stime + 1200) {
+        cd_read_end();
+        if (D_80070B48 != NULL) {
+            D_80070B48(D_80070FD8->rest == 0 ? CdlComplete : CdlDiskError, result);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005AA7C);
 
