@@ -35,9 +35,10 @@
 .endm
 
 
-# A label referenced by a jumptable.
-.macro jlabel label, visibility=global
-    .\visibility \label
+# A label referenced by a jumptable. Local, so that jump tables relocate
+# against .text plus an offset, as the compiler's do; objdiff compares
+# relocations, and global labels made the original's tables never match ours.
+.macro jlabel label
     \label:
 .endm
 

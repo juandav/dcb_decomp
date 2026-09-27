@@ -1,28 +1,36 @@
 #!/usr/bin/env python3
-"""Write objdiff.json with the game's code and data as one unit.
+"""Write objdiff.json with one unit per game module.
 
-The game's code lives in one C file per module, grouped by subsystem under
-src/main/ (gfx/prim.c, duel/duel.c, ...), but it is reported as a single
-main/game unit, as it was when it was all game.c: the module objects are linked with `ld -r`, in ROM order, into one base object,
-and the same modules' target objects (splat's full disassembly of each C
-segment) into one target object. The target also gets the game's data
-(.data and .bss, still assembly), so data keeps being measured. That keeps
-every function and section under the unit name decomp.dev has tracked all
-along.
+Each C file of the game (src/main/<subsystem>/<module>.c) is a unit, like
+jype0/dw_decomp does: its target object is splat's full disassembly of that
+segment (asm/main/<path>.s), plus the segment's .data and .bss if splat
+split any out (asm/main/data/<path>.{data,bss}.s). The game's data that no
+module owns yet (asm/main/data/game.{data,bss}.s, still assembly) is
+reported with main.
+
+objdiff counts a data section as matched only when all of it matches, so
+units per module let each module's data count as soon as it is done.
+
+Base objects are the files built from src/, where every function still
+behind INCLUDE_ASM carries a .NON_MATCHING label that objdiff drops from the
+progress count. The rodata GCC emits for string literals, constants and
+jump tables has no symbol of its own, while the target names it (D_...,
+jtbl_...); objdiff pairs data by name, so the report's copy of each base
+object gets the target's names at the same offsets. objdiff compares a data
+section's bytes and relocations up to its last symbol, so the names only
+set that range; whatever the base holds there must still be identical.
 
 The PsyQ SDK (src/main/psyq/) and the soft-float library (libmath.c) are
 Sony's and the compiler's code, not the game's: like other PSX decomps
 (jype0/dw_decomp), progress doesn't count them.
-
-Base objects are the files built from src/, where every function still
-behind INCLUDE_ASM carries a .NON_MATCHING label that objdiff drops from the
-progress count.
 """
 
 import json
 import re
 import subprocess
 from pathlib import Path
+
+from elftools.elf.elffile import ELFFile
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -33,8 +41,8 @@ CATEGORIES = [
 # library code linked with the game, left out of the progress
 LIBRARIES = {"psyq", "libmath"}
 
-# the game's data, disassembled by splat (not C yet)
-GAME_DATA = ["expected/asm/main/data/game.data.s.o", "expected/asm/main/data/game.bss.s.o"]
+# the game's data that no module owns yet, reported with main
+UNOWNED_DATA = "game"
 
 
 def game_modules() -> list:
@@ -49,18 +57,92 @@ def link(out: str, parts: list) -> None:
     subprocess.run(["mipsel-linux-gnu-ld", "-r", "-o", out] + parts, cwd=ROOT, check=True)
 
 
+def rodata_bytes(path: str) -> bytes:
+    """The contents of PATH's .rodata (empty if it has none)."""
+    with open(ROOT / path, "rb") as f:
+        section = ELFFile(f).get_section_by_name(".rodata")
+        return section.data() if section else b""
+
+
+def pad_rodata(base: str, target: str) -> None:
+    """Pad BASE's .rodata with the zeros that end TARGET's.
+
+    splat counts the padding after a module's last string as part of it;
+    GCC leaves it to the linker, which fills the same zeros in the ROM."""
+    ours, theirs = rodata_bytes(base), rodata_bytes(target)
+    extra = theirs[len(ours):]
+    if 0 < len(extra) < 8 and not any(extra):
+        padded = ROOT / (base + ".rodata.bin")
+        padded.write_bytes(ours + extra)
+        subprocess.run(["mipsel-linux-gnu-objcopy", "--update-section", f".rodata={padded}", base], cwd=ROOT, check=True)
+        padded.unlink()
+
+
+def rodata_symbols(path: str) -> list:
+    """(name, offset) of the symbols defined in PATH's .rodata."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        index = next((i for i, s in enumerate(elf.iter_sections()) if s.name == ".rodata"), None)
+        if index is None:
+            return []
+        return [
+            (s.name, s["st_value"])
+            for s in elf.get_section_by_name(".symtab").iter_symbols()
+            if s["st_shndx"] == index and s.name and s["st_info"]["type"] != "STT_SECTION"
+        ]
+
+
+def name_rodata(base: str, target: str) -> None:
+    """Give BASE's anonymous rodata the names TARGET has at the same offsets."""
+    have = {name for name, _ in rodata_symbols(base)}
+    # INCLUDE_RODATA data carries a .NON_MATCHING marker, which makes objdiff
+    # leave it out of the section's compared range and cut the section
+    # short; renamed, it is compared like the rest
+    asm = {name[: -len(".NON_MATCHING")] for name in have if name.endswith(".NON_MATCHING")}
+    args = []
+    for name in sorted(asm):
+        args += ["--redefine-sym", f"{name}={name}.asm", "--strip-symbol", name + ".NON_MATCHING"]
+    for name, offset in rodata_symbols(target):
+        if name not in have and re.fullmatch(r"(D|jtbl)_[0-9A-F]{8}", name):
+            args += ["--add-symbol", f"{name}=.rodata:{offset:#x},object,global"]
+    if args:
+        subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
+
+
+def unit(module: str, data: list) -> dict:
+    """The objdiff unit of MODULE, with the data objects DATA in its target."""
+    target = f"expected/asm/main/{module}.s.o"
+    if data:
+        target_all = f"expected/report/main/{module}.s.o"
+        link(target_all, [target] + data)
+        target = target_all
+    base = f"build/report/main/{module}.c.o"
+    (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
+    (ROOT / base).write_bytes((ROOT / f"build/src/main/{module}.c.o").read_bytes())
+    name_rodata(base, target)
+    pad_rodata(base, target)
+    return {
+        "name": f"main/{module}",
+        "target_path": target,
+        "base_path": base,
+        "metadata": {"progress_categories": ["game"], "source_path": f"src/main/{module}.c"},
+    }
+
+
+def data_objects(name: str) -> list:
+    """splat's .data and .bss objects for the segment NAME (its .rodata is
+    already in the segment's full disassembly)."""
+    paths = [f"expected/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
+    return [p for p in paths if (ROOT / p).exists()]
+
+
 def main() -> None:
-    modules = game_modules()
-    link("expected/report/main/game.s.o", [f"expected/asm/main/{m}.s.o" for m in modules] + GAME_DATA)
-    link("build/report/main/game.c.o", [f"build/src/main/{m}.c.o" for m in modules])
-    units = [
-        {
-            "name": "main/game",
-            "target_path": "expected/report/main/game.s.o",
-            "base_path": "build/report/main/game.c.o",
-            "metadata": {"progress_categories": ["game"]},
-        },
-    ]
+    units = []
+    for module in game_modules():
+        data = data_objects(module)
+        if module == "main":
+            data += data_objects(UNOWNED_DATA)
+        units.append(unit(module, data))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",
