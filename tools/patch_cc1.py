@@ -68,6 +68,9 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 13. global-alloc's prune_preferences checks conflicts in both directions
    (GCC 2.8), so a pseudo doesn't take a register that a conflicting
    lower-priority pseudo prefers (_spu_note2pitch).
+14. jump_optimize turns `if (...) { x = a; goto l; } x = b;` into
+   `x = a; if (...) goto l; x = b;` (GCC 2.8), so the ROM sets x before
+   the test (SpuSetNoiseClock's `bltz v0,END; li a1,0`).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -561,6 +564,187 @@ def patch(src, dst):
     o = fo(0x0814C78F)
     put(0x0814C78F, b"\x0f\x84" + d[o + 2:o + 6],
         b"\x0f\x84" + (start - (0x0814C78F + 6)).to_bytes(4, "little", signed=True))
+
+    # 14. jump_optimize: GCC 2.8's
+    #      if (...) { x = a; goto l; } x = b;  ->  x = a; if (...) goto l; x = b;
+    #    (A a register or a constant, the test not involving X), placed like
+    #    in 2.8 right after the `if (...) x = a; else x = b;` case
+    #    (+5084, where that case gives up), including its quirk of skipping
+    #    the rest of the loop body when CHANGED was already set. The ROM keeps
+    #    such an X live across the rest of the test: SpuSetNoiseClock's
+    #    `bltz v0,END; li a1,0` and func_8006C0CC's `li v0,1` before loading
+    #    p->cmd into v1. The code goes over bc_expand_end_case (-fbytecode).
+    #    Locals: insn %edi, next -0x170, changed -0x150, this_is_simplejump
+    #    -0xac; temp -0xb0, temp1 -0x12c, temp2 -0x90, temp3 -0x128, temp4
+    #    -0x160 as in 2.8, insert_after -0x118 and prev_label -0x15c (the
+    #    dead p and temp5 of the case before).
+    def goto_after_set(code, jump):
+        fix = {}
+
+        def br(opcode, name):  # rel32 forward branch to a label below
+            code.extend(opcode + bytes(4))
+            fix.setdefault(name, []).append(len(code))
+
+        def label(name):
+            for at in fix.pop(name, []):
+                code[at - 4:at] = (len(code) - at).to_bytes(4, "little")
+
+        def off(n):
+            return n.to_bytes(4, "little", signed=True)
+
+        def ld(n):  # mov n(%ebp),%eax
+            code.extend(b"\x8b\x85" + off(n))
+
+        def st(n):  # mov %eax,n(%ebp)
+            code.extend(b"\x89\x85" + off(n))
+
+        def var(n):  # push n(%ebp)
+            return b"\xff\xb5" + off(n)
+
+        EAX, ECX, EDI = b"\x50", b"\x51", b"\x57"
+
+        def call(fn, *args):  # cdecl call keeping %esp 16-byte aligned
+            pad = -4 * len(args) % 16
+            if pad:
+                code.extend(b"\x83\xec" + bytes([pad]))
+            for a in reversed(args):
+                code.extend(a)
+            jump(b"\xe8", fn)
+            code.extend(b"\x83\xc4" + bytes([pad + 4 * len(args)]))
+
+        def test_eax(opcode, name):  # test %eax,%eax; j<cc> name
+            code.extend(b"\x85\xc0")
+            br(opcode, name)
+
+        def code_is(value, opcode, name):  # GET_CODE (%eax) vs value
+            code.extend(b"\x66\x83\x38" + bytes([value]))
+            br(opcode, name)
+
+        JE, JNE = b"\x0f\x84", b"\x0f\x85"
+        next_active_insn, prev_active_insn = 0x080DBF36, 0x080DBFB1
+        single_set, rtx_equal_p = 0x080D6DEC, 0x080D7AF6
+        delete_insn, no_labels_between_p = 0x080F6DEA, 0x080D661F
+        reg_referenced_between_p, reg_set_between_p = 0x080D695B, 0x080D69E9
+
+        code.extend(b"\x83\xbd" + off(-0xAC) + b"\x00")  # this_is_simplejump
+        br(JE, "fail")
+        call(next_active_insn, EDI)                     # temp2
+        test_eax(JE, "fail")
+        st(-0x90)
+        code_is(0x1B, JNE, "fail")                      # INSN
+        call(single_set, var(-0x90))
+        test_eax(JE, "fail")
+        code.extend(b"\x8b\x40\x04")                    # temp1 = SET_DEST
+        st(-0x12C)
+        code_is(0x34, JNE, "fail")                      # REG
+        call(prev_active_insn, EDI)                     # temp3
+        test_eax(JE, "fail")
+        st(-0x128)
+        code_is(0x1B, JNE, "fail")
+        call(single_set, var(-0x128))                   # temp4
+        test_eax(JE, "fail")
+        st(-0x160)
+        code.extend(b"\x8b\x40\x04")
+        call(rtx_equal_p, EAX, var(-0x12C))
+        test_eax(JE, "fail")
+        ld(-0x160)
+        code.extend(b"\x8b\x40\x08")                    # SET_SRC (temp4)
+        for c in (0x34, 0x36, 0x2F, 0x30, 0x32, 0x3A, 0x3B, 0x72):  # REG, SUBREG, CONSTANT_P
+            code_is(c, JE, "simple")
+        br(b"\xe9", "fail")
+        label("simple")
+        ld(-0x128)
+        code.extend(b"\x8b\x40\x1c")                    # REG_NOTES (temp3)
+        test_eax(JE, "notes")
+        code.extend(b"\x0f\xb6\x48\x02\x83\xf9\x03")    # REG_NOTE_KIND == REG_EQUIV
+        br(JE, "kind")
+        code.extend(b"\x83\xf9\x05")                    # or REG_EQUAL
+        br(JNE, "fail")
+        label("kind")
+        code.extend(b"\x83\x78\x08\x00")                # the only note
+        br(JNE, "fail")
+        code.extend(b"\x8b\x40\x04\x8b\x8d" + off(-0x160) + b"\x8b\x49\x08")
+        call(rtx_equal_p, EAX, ECX)                     # of the value A
+        test_eax(JE, "fail")
+        label("notes")
+        call(prev_active_insn, var(-0x128))             # temp
+        test_eax(JE, "fail")
+        st(-0xB0)
+        call(0x080F64E4, var(-0xB0))                    # condjump_p
+        test_eax(JE, "fail")
+        call(0x080F6486, var(-0xB0))                    # simplejump_p
+        test_eax(JNE, "fail")
+        ld(-0xB0)
+        code.extend(b"\x8b\x40\x20")                    # JUMP_LABEL (temp)
+        call(0x080DBEE5, EAX)                           # prev_real_insn
+        code.extend(b"\x39\xf8")                        # == insn
+        br(JNE, "fail")
+        call(no_labels_between_p, var(-0xB0), EDI)
+        test_eax(JE, "fail")
+        ld(-0xB0)
+        code.extend(b"\x8b\x40\x20")
+        st(-0x15C)                                      # prev_label
+        call(0x080DBE5B, var(-0xB0))                    # prev_nonnote_insn
+        st(-0x118)                                      # insert_after
+        ld(-0x15C)
+        code.extend(b"\x83\x40\x18\x01")                # ++LABEL_NUSES
+        code.extend(b"\x83\xbd" + off(-0x118) + b"\x00")
+        br(JE, "tried")
+        call(no_labels_between_p, var(-0x118), var(-0xB0))
+        test_eax(JE, "tried")
+        call(reg_referenced_between_p, var(-0x12C), var(-0x118), var(-0x128))
+        test_eax(JNE, "tried")
+        ld(-0x90)
+        code.extend(b"\x8b\x40\x0c")                    # NEXT_INSN (temp2)
+        call(reg_referenced_between_p, var(-0x12C), var(-0x128), EAX)
+        test_eax(JNE, "tried")
+        call(reg_set_between_p, var(-0x12C), var(-0x118), var(-0xB0))
+        test_eax(JNE, "tried")
+        ld(-0x160)
+        code.extend(b"\x8b\x40\x08")
+        code_is(0x2F, JE, "src")                        # CONST_INT
+        call(reg_set_between_p, EAX, var(-0x118), var(-0xB0))
+        test_eax(JNE, "tried")
+        label("src")
+        code.extend(b"\x8b\x47\x20")                    # JUMP_LABEL (insn)
+        call(0x080F71E1, var(-0xB0), EAX)               # invert_jump
+        test_eax(JE, "tried")
+        ld(-0x128)
+        code.extend(b"\x8b\x40\x10")                    # PATTERN (temp3)
+        call(0x080DCAB3, EAX, var(-0x118), var(-0x128))  # emit_insn_after_with_line_notes
+        call(delete_insn, var(-0x128))
+        call(delete_insn, EDI)
+        ld(-0x90)
+        st(-0x170)                                      # next = temp2
+        code.extend(b"\xc7\x85" + off(-0x150) + b"\x01\x00\x00\x00")  # changed = 1
+        label("tried")
+        ld(-0x15C)
+        test_eax(JE, "check")
+        code.extend(b"\x83\x68\x18\x01")                # --LABEL_NUSES
+        br(JNE, "check")
+        call(delete_insn, EAX)
+        label("check")
+        code.extend(b"\x83\xbd" + off(-0x150) + b"\x00")  # if (changed) continue
+        br(JE, "fail")
+        jump(b"\xe9", 0x080F4FFC)
+        label("fail")
+        code.extend(b"\xc7\xc0" + (0x082D52AC).to_bytes(4, "little"))  # the replaced insn
+        jump(b"\xe9", 0x080F38C6)
+        assert not fix
+
+    cave = 0x0809CEFF
+    code = bytearray()
+
+    def jump(opcode, target):
+        code.extend(opcode)
+        code.extend((target - (cave + len(code) + 4)).to_bytes(4, "little", signed=True))
+
+    goto_after_set(code, jump)
+    if len(code) > 1194:
+        sys.exit("patch_cc1: goto_after_set doesn't fit")
+    put(cave, b"\xf3\x0f\x1e\xfb", code)
+    put(0x080F38C0, bytes.fromhex("c7c0ac522d08"),
+        b"\xe9" + (cave - (0x080F38C0 + 5)).to_bytes(4, "little", signed=True) + b"\x90")
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"

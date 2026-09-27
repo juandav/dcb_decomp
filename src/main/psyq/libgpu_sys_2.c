@@ -675,9 +675,10 @@ int func_80066D48(int mode) {
         func_800669AC();
     }
     if ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
-        if (n == 0) {
-            return 1;
+        if (n != 0) {
+            return n;
         }
+        return 1;
     }
     return n;
 }
