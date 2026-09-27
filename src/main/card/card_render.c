@@ -19,16 +19,16 @@ void startCpuDuel(s32 deckIndex) {
     s32 result;
 
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, getCurrentTaskId());
     deckFile = (u8 *)func_80014C08(0x7FFFFFFF);
     ((Unk8006E054 *)D_8006E054)->unk0 = deckFile;
     decks = (SavedDeck *)(deckFile + 8);
     ((Unk8006E054 *)D_8006E054)->unk4 = deckIndex;
     ((Unk8006E054 *)D_8006E054)->unk8 = decks[deckIndex];
-    func_800149B8(0, -1, 0, 0x800, runDuel, 1, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x800, runDuel, 1, getCurrentTaskId(), 0, 0);
     result = func_80014C08(0x7FFFFFFF);
     if (*((s8 *)D_801D8340 + 0x81F) == 0) {
         if (result != 0) {
@@ -43,22 +43,22 @@ void startCpuDuel(s32 deckIndex) {
         updatePlayerRanks(0);
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     ((u8 *)((Unk8006E054 *)D_8006E054)->unk100C)[0x1A6] = result;
-    func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
 }
 
 void startVersusDuel(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, getCurrentTaskId());
     ((Unk8006E054 *)D_8006E054)->unk0 = (u8 *)func_80014C08(0x7FFFFFFF);
     ((Unk8006E054 *)D_8006E054)->unk1010[0x12] = 0;
-    func_800149B8(0, -1, 0, 0x800, runDuel, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x800, runDuel, 0, getCurrentTaskId(), 0, 0);
     if (func_80014C08(0x7FFFFFFF) != 0) {
         if (++PLAYER_DATA(0).unk1E >= 1000) {
             PLAYER_DATA(0).unk1E = 999;
@@ -77,10 +77,10 @@ void startVersusDuel(void) {
     updatePlayerRanks(0);
     updatePlayerRanks(1);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, D_801EB2E8, func_800148B0(), 0, 0, 0);
+    func_800149B8(0, -1, 0, 0x800, D_801EB2E8, getCurrentTaskId(), 0, 0, 0);
 }
 
 void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
@@ -90,7 +90,7 @@ void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
 
     D_8006E294 = 1;
     DUEL_VRAM_READY = 0;
-    func_800149B8(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", getCurrentTaskId());
     fontArchive = (u8 *)func_80014C08(0x7FFFFFFF);
     for (i = 0; *string != 0;) {
         uploadTim((u32 *)(fontArchive + ((s32 *)fontArchive)[*string - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
@@ -152,7 +152,7 @@ void runCardArtLoader(void) {
                 DUEL->unk811 = 1;
                 DUEL->cache[slot].id = cardId;
                 sprintf(path, "B:\\CARD\\LC%3.3d.TIM", cardId);
-                func_800149B8(0, -1, 0, 0x800, loadFile, path, func_800148B0());
+                func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
                 tim = (u32 *)func_80014C08(0x7FFFFFFF);
                 uploadTim(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
                 DrawSync(0);

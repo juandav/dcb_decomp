@@ -129,7 +129,7 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
         }
         animData = (s32)findPakChunk(pak, 1, chunkSub);
         if (animData == 0) {
-            animData = loadFileTagged((s32 *)path, func_800148B0(), slot + 0x5A);
+            animData = loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x5A);
             if (animData == 0) {
                 return 0;
             }
@@ -348,7 +348,7 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     }
     data = findPakChunk((Chunk *)pak, 0, id);
     if (data == 0) {
-        data = (u8 *)loadFileTagged((s32 *)path, func_800148B0(), slot + 0x40);
+        data = (u8 *)loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x40);
         if (data == 0) {
             return 0;
         }
@@ -366,7 +366,7 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
             }
             sprintf(path, "M:\\%s", data);
             i = 1;
-            img = (u32 *)loadFile(path, func_800148B0());
+            img = (u32 *)loadFile(path, getCurrentTaskId());
         }
         if (img != 0) {
             texX = (vramSlot & 0xF) << 6;

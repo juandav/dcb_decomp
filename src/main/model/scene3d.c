@@ -168,7 +168,7 @@ void initScene3D(s32 allocBuffers) {
         SCENE_LIGHT_COLORS = colorMatrices[1];
     }
     if (allocBuffers) {
-        mountDriveTask((s32) "M:", func_800148B0());
+        mountDriveTask((s32) "M:", getCurrentTaskId());
         addFrameCallback((s32)renderSceneModels);
     }
 }

@@ -80,7 +80,7 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     } else {
         sprintf(path, "F:\\%03d.PAK", id);
     }
-    pak = loadFileTagged((s32 *)path, func_800148B0(), slot + 0x1F4);
+    pak = loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x1F4);
     if (loadModel(slot, id, -1, pak, format) == 0) {
         return pak;
     }
@@ -160,7 +160,7 @@ void runDuelStageTask(s32 stageId) {
     }
     *((s8 *)D_801D8340 + 0x811) = 1;
     *((s8 *)D_801D8340 + 0x813) = 0;
-    pak = loadFile((s32) "A:\\BATTLE.PAK", func_800148B0());
+    pak = loadFile((s32) "A:\\BATTLE.PAK", getCurrentTaskId());
     if (pak != 0) {
         uploadTimList(findPakChunk((Chunk *)pak, 5, 0x68));
         D_801D81AC = (void *)loadSkill(999, pak);
@@ -200,15 +200,15 @@ void playPolygonBattle(void) {
     } while (DUEL_DIGIMON_MODELS <= 0 || (&DUEL_DIGIMON_MODELS)[8] <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
     *((s8 *)D_801D8340 + 0x811) = 1;
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     playLoadedMusic(1);
-    func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, func_800148B0());
+    func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     SCENE_3D_ENABLED = 0;
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     playLoadedMusic(0);
@@ -222,7 +222,7 @@ void loadArenaStage(s32 stageId) {
         stageId = rand() % 12 + 0x2C;
     }
     sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + 900);
-    func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, func_800148B0(), 0x81);
+    func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
     STAGE_PAK = func_80014C08(0x7FFFFFFF);
     loadModel(0x17, ARENA_STAGES[stageId].bg + 900, 0, STAGE_PAK, 0);
     SCENE_3D->unk114[0x17] = -1;
@@ -289,31 +289,31 @@ void animateStageTexture(u8 *model) {
 void openSaveScreenFromMap(s32 saveMode) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x600, D_801EBAFC, saveMode, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x600, D_801EBAFC, saveMode, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     switch (saveMode) {
     case 2:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 1, 1, func_800148B0(), 0);
+        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 1, 1, getCurrentTaskId(), 0);
         break;
     case 4:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
 
 void continueSavedGame(void) {
-    func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 0xFF, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 0xFF, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     if (D_801F80C1 != 0) {
         fadeOutScrollingBackground();
@@ -321,22 +321,22 @@ void continueSavedGame(void) {
         return;
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     if (*(u8 *)(PLAYER_PROFILES + 0xF) == 0) {
         loadMusicTrack(0, 0x6F, 0x7F);
         playLoadedMusic(0);
-        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 0, func_800148B0(), 0);
+        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 0, getCurrentTaskId(), 0);
     } else {
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
     }
 }
 
 void openPartnerFusion(s8 mode) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_EVOSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_EVOSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1600, D_801E8E88, (s32 *) mode, 0, 0, 0);
@@ -344,84 +344,84 @@ void openPartnerFusion(s8 mode) {
 
 void returnToWorldMap(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
 }
 
 void openDeckEditor(s32 returnTo) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x600, D_801E8C04, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x600, D_801E8C04, 0, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     switch (returnTo) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, func_800148B0(), 0);
+        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
 
 void openPartnerEquipment(s32 returnTo) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, D_801E4B34, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x1000, D_801E4B34, 0, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     switch (returnTo) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, func_800148B0(), 0);
+        func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
 
 void func_8002F298(s32 *param) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x600, D_801E8C04, param, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x600, D_801E8C04, param, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
 
 void func_8002F3C4(s32 *param) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, D_801E4B34, param, func_800148B0(), 1, 0);
+    func_800149B8(0, -1, 0, 0x1000, D_801E4B34, param, getCurrentTaskId(), 1, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
@@ -431,9 +431,9 @@ void runTitleMenu(void) {
     s32 again;
     s32 choice;
 
-    stack = func_800148B0();
+    stack = getCurrentTaskId();
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     do {
@@ -446,10 +446,10 @@ void runTitleMenu(void) {
             func_800149B8(0, -1, 0, 0x800, D_801E6454, stack, 0, 0, 0);
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
-            func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, func_800148B0());
+            func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
-            func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+            func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
             break;
         case 1:
             changeScrollingBackground(6, 0x380, 0, 0x380, 0x80);
@@ -500,7 +500,7 @@ void loadScrollingBackground(void) {
         texWindow[3] = 0;
         SetTexWindow((s8 *)&D_801D8220 + i * 0x34, texWindow);
     }
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, &PATH_BG_ARC, func_800148B0(), -2);
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, &PATH_BG_ARC, getCurrentTaskId(), -2);
     D_801D8260 = func_80014C08(0x7FFFFFFF);
 }
 

@@ -211,7 +211,7 @@ void loadCardDatabase(void) {
     s32 i;
     s32 cardId;
 
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", func_800148B0(), -2);
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", getCurrentTaskId(), -2);
     CARD_DB_FILE = file = (u8 *)func_80014C08(0x7FFFFFFF);
     DIGIMON_CARDS = file + 8;
     OPTION_CARDS = DIGIMON_CARDS + *(u16 *)(file + 4) * 0x13C;

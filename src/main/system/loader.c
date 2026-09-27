@@ -216,7 +216,7 @@ void resetDisplay(s32 w, s32 h, s32 interlace) {
 void initDisplayBuffers(s32 w, s32 h, s32 interlace) {
     s32 i;
 
-    func_80013F04(interlace);
+    setTaskVsyncMode(interlace);
     for (i = 0; i < 2; i++) {
         if (h > 240) {
             SetDefDrawEnv(&DB(i).draw, 0, 0, w, h);
