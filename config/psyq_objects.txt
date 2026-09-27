@@ -209,4 +209,5 @@ libpad_pdent3
 libpad_pdmaiini nocse
 libpad_pddirini
 libpad_pddirres gcc2.8
-libpad_pdresres gcc2.8
+libpad_pdresres
+libpad_pdresres_2 gcc2.8
