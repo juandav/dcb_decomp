@@ -9179,7 +9179,40 @@ void func_80045AB8(s32 arg0) {
     } while (i < 0x12D);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045B18);
+void *func_80046088(s32);
+
+s8 func_80045B18(s32 p, s32 id, s32 n) {
+    s32 k;
+
+    if (id >= 0xAC && id <= 0xBE) {
+        return -3;
+    }
+    for (k = PLAYER_DATA(p).unk14B2[id] & 7; k < 6; k++) {
+        func_80045968(p, id, k);
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x50;
+        return -2;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0 && !(PLAYER_DATA(p).unk14B2[id] & 0x40)) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x20;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) + n >= 7) {
+        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
+        PLAYER_DATA(p).unk14B2[id] |= 0x56;
+        return -1;
+    }
+    PLAYER_DATA(p).unk14B2[id] += n;
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    }
+    if (((u8 *)func_80046088(id))[0x19] == 0) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    }
+    PLAYER_DATA(p).unk14B2[id] |= 0xC0;
+    func_8002CC44(p);
+    return PLAYER_DATA(p).unk14B2[id] & 7;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80045E1C);
 
