@@ -18,4 +18,8 @@ void func_8004DFD0(short vabId, short prog, short tone, VagAtr vag, short fn, un
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004E000);
+void func_8004E000(short vabId, short prog, short tone, VagAtr vag, short fn, unsigned char data) {
+    SsUtSetReverbDelay(data);
+}
+
+OBJECT_END(3);
