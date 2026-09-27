@@ -850,7 +850,102 @@ extern s32 D_80077AE0;
 extern Unk80077A0C *D_80077A0C;
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800142D0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014364);
+extern s32 D_80077C30;
+
+s32 func_80014364(s32 id, s32 where, s32 prio, s32 size, s32 unused, s32 pc, s32 a0, s32 a1, s32 a2, s32 a3) {
+    Thread *t;
+    Thread *prev;
+    Thread *next;
+    s32 ret;
+    s32 f;
+    s32 g;
+    s32 *src;
+    s32 *dst;
+    s32 i;
+    s32 stack;
+
+    t = (Thread *)&D_80077BA0 + id;
+    if (id != 0) {
+        if ((s32)t->flags < 0) {
+            return -1;
+        }
+    } else {
+        for (id++; id < 32; id++) {
+            if ((s32)(++t)->flags >= 0) {
+                break;
+            }
+        }
+        if (id >= 32) {
+            return -1;
+        }
+    }
+    ret = 0;
+    if (where < 0) {
+        prev = (Thread *)&D_80077BA0;
+        if (prio >= *(u16 *)prev) {
+            do {
+                prev = prev->prev;
+            } while (prio >= *(u16 *)prev);
+        }
+        goto after;
+    }
+    if (where >= 32) {
+        where -= 32;
+        prev = (Thread *)&D_80077BA0 + where;
+        if ((s32)prev->flags >= 0) {
+            return -3;
+        }
+        f = prev->flags;
+        if ((u16)f < prio) {
+            ret = -0x86;
+            prio = f;
+        }
+    after:
+        next = prev->next;
+        next->prev = t;
+    } else {
+        next = (Thread *)&D_80077BA0 + where;
+        if ((s32)next->flags >= 0) {
+            return -3;
+        }
+        g = next->flags;
+        if (prio < (u16)g) {
+            ret = -0x86;
+            prio = g;
+        }
+        prev = next->prev;
+        next->prev = t;
+    }
+    prev->next = t;
+    t->next = next;
+    t->prev = prev;
+    if (D_80077A08 != 0 && prio > 0 && *(s16 *)next == 0) {
+        D_80077AEC = (s16 *)t;
+    }
+    src = (s32 *)(D_80077ADC + 8);
+    dst = t->regs;
+    for (i = 0x27; i >= 0; i--) {
+        *dst++ = *src++;
+    }
+    t->flags = prio | 0xA0000000;
+    t->regs[32] = pc;
+    t->regs[35] = 0x4000FF04;
+    t->regs[4] = a0;
+    t->regs[5] = a1;
+    t->regs[6] = a2;
+    t->regs[7] = a3;
+    t->regs[31] = (s32)func_80014A90;
+    t->regs[28] = D_80077C30;
+    t->unk14 = id;
+    t->unk18 = 0;
+    stack = (s32)func_8001ABCC(size, -3);
+    if (stack == 0) {
+        return -6;
+    }
+    t->stack = stack;
+    t->regs[29] = stack + (size & ~7) - 0x20;
+    return ret;
+}
 
 
 s32 func_8001AE90(void *);
