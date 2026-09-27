@@ -5891,7 +5891,7 @@ loop_1:
     goto loop_1;
 }
 
-s32 GsInitCoordinate2(s32, u8 *);
+void GsInitCoordinate2(GsCOORDINATE2 *, GsCOORDINATE2 *);
 s32 bzero(Unk801D6A4C *, s32);
 
 void func_80022C4C(void) {
@@ -5899,7 +5899,7 @@ void func_80022C4C(void) {
 
     p = D_801D6A4C = func_8001ABCC(0x29C, 0x7F);
     bzero(p, 0x29C);
-    GsInitCoordinate2(0, D_801D6A4C->unk28);
+    GsInitCoordinate2(NULL, (GsCOORDINATE2 *)D_801D6A4C->unk28);
     D_80079544 = 1;
 }
 
@@ -6108,7 +6108,27 @@ s32 *func_80023468(u8 *m, s32 *p) {
     return p;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800234AC);
+void func_800234AC(Model *m) {
+    GsCOORDINATE2 *c;
+    s8 *parent;
+    GsDOBJ4 *o;
+    s32 i;
+
+    c = m->coord;
+    GsInitCoordinate2((GsCOORDINATE2 *)D_801D6A4C->unk28, &m->root);
+    for (i = 0, parent = m->parent, o = m->obj; i < m->nobj; i++, parent++, o++, c++) {
+        o->coord2 = c;
+        if (*parent < 0) {
+            GsInitCoordinate2(&m->root, c);
+        } else {
+            GsInitCoordinate2(&m->coord[*parent], c);
+        }
+        c->coord.t[0] = m->bonepos[i][0];
+        c->coord.t[1] = m->bonepos[i][1];
+        c->coord.t[2] = m->bonepos[i][2];
+    }
+}
+
 
 void func_800235C8(s32 arg0) {
     D_801D6A4C->unk114[arg0] = 0;
@@ -6148,7 +6168,7 @@ void *func_800236B4(s32 id) {
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002371C);
 
 s32 func_8002371C(u8 *);
-void func_800234AC(u8 *);
+void func_800234AC(Model *);
 void StoreImage2(Rect16 *, u32 *);
 void GsMapModelingData(u32 *);
 void GsLinkObject4(u32, void *, s32);
@@ -6268,7 +6288,7 @@ skip:
             GsLinkObject4((u32)(data + 12), &((Model *)m)->obj[i], 0);
         }
     }
-    func_800234AC(m);
+    func_800234AC((Model *)m);
     return 1;
 }
 
