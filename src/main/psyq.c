@@ -596,7 +596,9 @@ void *DMACallback(int dma, void (*func)()) {
     return D_80070AA8->dmaCallback(dma, func);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", VSyncCallback);
+int VSyncCallback(void (*func)()) {
+    return (int)D_80070AA8->vsyncCallbacks(4, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", VSyncCallbacks);
 
