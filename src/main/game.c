@@ -3501,7 +3501,22 @@ void func_800235C8(s32 arg0) {
     func_8001AFF0(arg0 + 0x40);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002360C);
+void func_8002360C(void) {
+    s32 i;
+
+    for (i = 0; i < 24; i++) {
+        if (D_801D6A4C->unk114[i] != 0) {
+            func_80022DBC(i);
+            D_801D6A4C->unk114[i] = 0;
+            /* sic: the original clears the wrong slot */
+            D_801D6A4C->unk13C[i - 0x40] = 0;
+        }
+    }
+    func_80014C08(D_800794F0);
+    for (i = 0x40; i < 0x7F; i++) {
+        func_8001AFF0(i);
+    }
+}
 
 void *func_800236B4(s32 id) {
     s32 i;
