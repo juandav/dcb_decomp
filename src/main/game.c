@@ -323,23 +323,6 @@ typedef struct {
 } POLY_FT4;
 
 typedef struct {
-    /* 0x000 */ POLY_FT4 ft4a[4];
-    /* 0x0A0 */ u8 linea[4][0x14];
-    /* 0x0F0 */ u8 lineF0[0xC];
-    /* 0x0FC */ u8 unkFC;
-    /* 0x0FD */ u8 unkFD;
-    /* 0x0FE */ u8 unkFE[6];
-    /* 0x104 */ u8 tpage[8];
-    /* 0x10C */ u8 unk10C[0xC];
-    /* 0x118 */ u8 twin[0xC];
-    /* 0x124 */ u8 lineb[4][0x14];
-    /* 0x174 */ POLY_FT4 ft4b[2];
-    /* 0x1C4 */ u8 linec[4][0x14];
-    /* 0x214 */ POLY_FT4 ft4c[2];
-    /* 0x264 */ u8 unk264[0x30];
-} PanelPrims;
-
-typedef struct {
     u32 tag;
     u8 r0;
     u8 g0;
@@ -353,6 +336,23 @@ typedef struct {
     s16 w;
     s16 h;
 } SPRT;
+
+typedef struct {
+    /* 0x000 */ POLY_FT4 ft4a[4];
+    /* 0x0A0 */ u8 linea[4][0x14];
+    /* 0x0F0 */ u8 lineF0[0xC];
+    /* 0x0FC */ u8 unkFC;
+    /* 0x0FD */ u8 unkFD;
+    /* 0x0FE */ u8 unkFE[6];
+    /* 0x104 */ u8 tpage[8];
+    /* 0x10C */ u8 unk10C[0xC];
+    /* 0x118 */ u8 twin[0xC];
+    /* 0x124 */ SPRT lineb[4];
+    /* 0x174 */ POLY_FT4 ft4b[2];
+    /* 0x1C4 */ SPRT linec[4];
+    /* 0x214 */ POLY_FT4 ft4c[2];
+    /* 0x264 */ u8 unk264[0x30];
+} PanelPrims;
 
 typedef struct {
     DR_MODE dm;
@@ -421,6 +421,8 @@ typedef struct {
 #define setShadeTex(p, tge) \
     ((tge) ? setcode(p, getcode(p) | 1) : setcode(p, getcode(p) & ~1))
 #define setRGB0(p, _r0, _g0, _b0) (p)->r0 = _r0, (p)->g0 = _g0, (p)->b0 = _b0
+#define setUV0(p, _u0, _v0) (p)->u0 = (_u0), (p)->v0 = (_v0)
+#define setWH(p, _w, _h) (p)->w = _w, (p)->h = _h
 #define getTPage(tp, abr, x, y)                                                        \
     ((((tp) & 0x3) << 7) | (((abr) & 0x3) << 5) | (((y) & 0x100) >> 4) | (((x) & 0x3ff) >> 6) | \
      (((y) & 0x200) << 2))
@@ -2049,8 +2051,8 @@ void func_80016948(s32 n) {
                 func_8001E6EC(0xC, &p->ft4a[j], 0, 0);
                 p->ft4a[j].tpage = tpage;
                 func_8001E6EC(0xE, p->linea[j], 0, 0);
-                func_8001E6EC(0xE, p->lineb[j], 0, 0);
-                func_8001E6EC(0xE, p->linec[j], 0, 0);
+                func_8001E6EC(0xE, &p->lineb[j], 0, 0);
+                func_8001E6EC(0xE, &p->linec[j], 0, 0);
             }
             for (j = 0; j < 2; j++) {
                 func_8001E6EC(0xC, &p->ft4b[j], 0, 0);
@@ -2239,7 +2241,70 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_800177E8);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80017B88);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80018694);
+extern Rect16 D_8006DE48[];
+extern Rect16 D_8006DE28[];
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_8001EA64(void *, s16, s16, s16, s16);
+#define WP ((PanelPrims *)D_800897E8)
+
+void func_80018694(Unk80016F38 *w, s32 z) {
+    u16 clut;
+    s32 x;
+    s32 y;
+    s32 len;
+    s32 pos;
+    s32 knob;
+    s32 i;
+    s32 end;
+    s32 off;
+    s32 top;
+
+    clut = getClut(D_800897F2 + (w->unk38 % 2) * 16, D_800897F4 + w->unk38 / 2);
+    if (!(w->unk3F & 2) || w->rect.h >= w->view.h) {
+        return;
+    }
+    x = w->unk0 + w->view.x + w->rect.w - 8;
+    y = w->unk2 + w->view.y;
+    len = w->rect.h - 0x10;
+    if (w->unk3F & 4) {
+        len -= 8;
+    }
+    pos = w->view.y * len / w->view.h;
+    knob = w->rect.h * len - 1;
+    knob = (knob + w->view.h) / w->view.h;
+    if (pos + knob < 0) {
+        pos = 0;
+    }
+    if (pos + knob > len) {
+        pos = len - knob;
+    }
+    WP->lineb[0].x0 = x;
+    WP->lineb[0].y0 = y;
+    WP->lineb[1].x0 = x;
+    end = len + 8;
+    WP->lineb[1].y0 = y + end;
+    WP->lineb[2].x0 = x;
+    off = pos + 8;
+    top = y + off;
+    WP->lineb[2].y0 = top;
+    WP->lineb[3].x0 = x;
+    WP->lineb[3].y0 = top + knob - 2;
+    func_8001EA64(&WP->ft4b[0], x, top + 2, 8, knob - 4);
+    func_8001EA64(&WP->ft4b[1], x, y + 8, 8, len);
+    for (i = 0; i < 4; i++) {
+        setUV0(&WP->lineb[i], D_8006DE48[i + w->unk43 * 4].x, D_8006DE48[i + w->unk43 * 4].y);
+        setWH(&WP->lineb[i], D_8006DE48[i + w->unk43 * 4].w, D_8006DE48[i + w->unk43 * 4].h);
+        setRGB0(&WP->lineb[i], w->unk40, w->unk40, w->unk40);
+        WP->lineb[i].clut = clut;
+        addPrim(&D_800793A0->ot[z], &WP->lineb[i]);
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001EC3C((u8 *)&WP->ft4b[i], D_8006DE28[i + w->unk43 * 2].x, D_8006DE28[i + w->unk43 * 2].y, D_8006DE28[i + w->unk43 * 2].w, D_8006DE28[i + w->unk43 * 2].h);
+        setRGB0(&WP->ft4b[i], w->unk40, w->unk40, w->unk40);
+        WP->ft4b[i].clut = clut;
+        addPrim(&D_800793A0->ot[z], &WP->ft4b[i]);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80018B8C);
 
