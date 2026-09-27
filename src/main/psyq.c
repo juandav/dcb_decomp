@@ -1245,7 +1245,10 @@ DRAWENV *GetDrawEnv(DRAWENV *env) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", PutDispEnv);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetDispEnv);
+DISPENV *GetDispEnv(DISPENV *env) {
+    memcpy((u_char *)env, (u_char *)&D_800767C4, sizeof(DISPENV));
+    return env;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GetODE);
 
