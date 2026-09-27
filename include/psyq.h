@@ -11,6 +11,7 @@
 #include <libsnd.h>
 #include <libmcrd.h>
 #include <libpad.h>
+#include <libgs.h>
 
 /* libgpu driver entry points */
 typedef struct GpuDriver {
