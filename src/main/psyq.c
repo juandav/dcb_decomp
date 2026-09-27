@@ -1218,7 +1218,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTag);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTagR);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawPrim);
+void DrawPrim(void *p) {
+    int len = getlen(p);
+
+    D_80076750->sync(0);
+    D_80076750->unk14((u_long *)p + 1, len);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTag);
 
