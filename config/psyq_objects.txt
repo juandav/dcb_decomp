@@ -100,7 +100,7 @@ libsnd_vm_prog2
 libsnd_vm_seq
 libsnd_vm_stav
 libsnd_vm_vol
-libsnd_vm_vsu
+libsnd_vm_vsu nocse
 libsnd_func_80034bf8_2
 libsnd_func_80034be8_2
 libsnd_vs_vab
