@@ -74,7 +74,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 unk0;
-    /* 0x02 */ s16 unk2;
+    /* 0x02 */ u16 unk2;
     /* 0x04 */ s16 unk4;
     /* 0x06 */ s16 unk6;
     /* 0x08 */ s16 unk8;
@@ -1188,7 +1188,48 @@ s32 func_8001A164(s32 *arg0, s32 arg1) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A40C);
+void func_80028D18(s32, s32, s32, s32, s32);
+void func_8002BB58(u32);
+void func_800192FC(void *, s32);
+extern PadState *D_80089840[];
+
+void func_8001A40C(u8 *w) {
+    Rect16 r;
+    s32 x;
+    s32 y;
+
+    x = *(s16 *)w + (*(s16 *)(w + 0xA8) - w[0xA7] * 2) / 2;
+    y = *(s16 *)(w + 2) + 2;
+    if (*(s32 *)(w + 0x94) != 0) {
+        func_80028D18(x, y, *(s32 *)(w + 0x94), 7, *(s16 *)(w + 0x3A));
+    }
+    y = *(s16 *)(w + 2) + *(s16 *)(w + 0xAA) - 0xE;
+    if (w[0xA4] != 0) {
+        if (w[0xB4] == 0) {
+            if ((D_80089840[w[0xA6]]->unk2 & 0x8000) && (s8)w[0xA5] != 1) {
+                w[0xA5] = 1;
+                r.x = *(s16 *)(w + 0xAC);
+                r.y = y;
+                r.w = *(s16 *)(w + 0xAE);
+                r.h = 0xC;
+                func_80019280((Unk800190F4 *)(w + 0x44), &r);
+                func_8002BB58(2);
+            }
+            if ((D_80089840[w[0xA6]]->unk2 & 0x2000) && (s8)w[0xA5] != 2) {
+                w[0xA5] = 2;
+                r.x = *(s16 *)(w + 0xB0);
+                r.y = y;
+                r.w = *(s16 *)(w + 0xB2);
+                r.h = 0xC;
+                func_80019280((Unk800190F4 *)(w + 0x44), &r);
+                func_8002BB58(2);
+            }
+        }
+        func_80028D18(*(s16 *)(w + 0xAC), y, *(s32 *)(w + 0x98), 7, *(s16 *)(w + 0x3A));
+        func_80028D18(*(s16 *)(w + 0xB0), y, *(s32 *)(w + 0x9C), 7, *(s16 *)(w + 0x3A));
+        func_800192FC(w + 0x44, *(s16 *)(w + 0x3A));
+    }
+}
 
 void func_8001A6B0(void);
 
@@ -1196,7 +1237,6 @@ void *func_8001ACEC(s32);
 s32 PadInitDirect(void *, void *);
 s32 PadStartCom(void);
 extern s32 D_800897F8;
-extern PadState *D_80089840[];
 extern s32 D_8008983C;
 void func_8001A600(void) {
     s32 i;
