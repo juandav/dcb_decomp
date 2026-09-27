@@ -22,6 +22,10 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
+s32 GRID_VISIBLE = 1;
+u8 GRID_PULSE_PHASE = 0;
+u8 D_8006DF8C[12] = { 0 };
+
 void renderWireGrid(Unk800793A0 *buffer, s32 bufferIndex) {
     LINE_F2 *line;
     SVECTOR *vertex;
