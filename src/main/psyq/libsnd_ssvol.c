@@ -6,7 +6,18 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndSetVol);
+void _SsVmSetSeqVol(short seq_sep_no, u_short voll, u_short volr, int mode);
+
+void _SsSndSetVol(short seq, short sep, u_short voll, u_short volr) {
+    SeqStruct *score = *(D_801D8618 + seq) + sep;
+
+    if (score->flags != 1) {
+        score->voll = voll;
+        score->volr = volr;
+    } else {
+        _SsVmSetSeqVol(seq | (sep << 8), voll, volr, 1);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSeqSetVol);
 
