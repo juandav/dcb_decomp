@@ -1458,7 +1458,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawStp);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawMode);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", OpenTIM);
+extern u_long *D_801DD930;
+
+int OpenTIM(u_long *addr) {
+    D_801DD930 = addr;
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ReadTIM);
 
