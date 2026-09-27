@@ -160,7 +160,15 @@ DRAWENV *PutDrawEnv(DRAWENV *env) {
     return env;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTagEnv);
+void DrawOTagEnv(u_long *p, DRAWENV *env) {
+    if (D_80076758.level >= 2) {
+        D_80076754("DrawOTagEnv(%08x,&08x)...\n", p, env);
+    }
+    func_800659C4(&env->dr_env, env);
+    setaddr(&env->dr_env, p);
+    D_80076750->addque(D_80076750->unk18, &env->dr_env, sizeof(DR_ENV), 0);
+    memcpy((u_char *)&D_80076758.draw, (u_char *)env, sizeof(DRAWENV));
+}
 
 DRAWENV *GetDrawEnv(DRAWENV *env) {
     memcpy((u_char *)env, (u_char *)&D_80076768, sizeof(DRAWENV));
