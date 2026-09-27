@@ -54,4 +54,56 @@ long func_80062C44(void) {
     return D_801DBF98;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetRefView2);
+extern MATRIX D_801DBEA0;
+extern MATRIX D_801DBEE0;
+extern MATRIX D_801DBE80;
+void gte_rotate_z_matrix(MATRIX *m, long r);
+void func_80063024(long *src, long *dst);
+
+int GsSetRefView2(GsRVIEW2 *pv) {
+    GsRVIEW2 rv;
+    MATRIX m;
+    MATRIX tm;
+    MATRIX lw;
+    VECTOR vec;
+    long r;
+    long t;
+    long s;
+
+    D_801DBEA0 = D_801DBEE0;
+    gte_rotate_z_matrix(&D_801DBEA0, -pv->rz);
+    func_80063024((long *)pv, (long *)&rv);
+    r = SquareRoot0((rv.vrx - rv.vpx) * (rv.vrx - rv.vpx) + (rv.vry - rv.vpy) * (rv.vry - rv.vpy) + (rv.vrz - rv.vpz) * (rv.vrz - rv.vpz));
+    if (r == 0) {
+        return 1;
+    }
+    t = rv.vpy - rv.vry;
+    s = -((t << 12) / r);
+    t = SquareRoot0((rv.vrx - rv.vpx) * (rv.vrx - rv.vpx) + (rv.vrz - rv.vpz) * (rv.vrz - rv.vpz));
+    Gssub_make_matrix(&m, s, (t << 12) / r, 'x');
+    MulMatrix(&D_801DBEA0, &m);
+    if (t != 0) {
+        r = t;
+        t = rv.vrx - rv.vpx;
+        s = (t << 12) / r;
+        t = rv.vrz - rv.vpz;
+        Gssub_make_matrix(&m, -s, (t << 12) / r, 'y');
+        MulMatrix(&D_801DBEA0, &m);
+    }
+    vec.vx = -pv->vpx;
+    vec.vy = -pv->vpy;
+    vec.vz = -pv->vpz;
+    ApplyMatrixLV(&D_801DBEA0, &vec, (VECTOR *)D_801DBEA0.t);
+    if (pv->super != NULL) {
+        GsGetLw(pv->super, &m);
+        TransposeMatrix(&m, &tm);
+        ApplyMatrixLV(&tm, (VECTOR *)m.t, &vec);
+        tm.t[0] = -vec.vx;
+        tm.t[1] = -vec.vy;
+        tm.t[2] = -vec.vz;
+        GsMulCoord2(&D_801DBEA0, &tm);
+        D_801DBEA0 = tm;
+    }
+    D_801DBE80 = D_801DBEA0;
+    return 0;
+}
