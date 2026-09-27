@@ -435,7 +435,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmDoAllocate);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80052050);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80052060);
+void func_80052060(void) {
+    D_801D9678 = 2;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmFlush);
 
