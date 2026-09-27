@@ -888,7 +888,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_getsector2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B414);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", rsin);
+int rsin(int a) {
+    if (a < 0) {
+        return -sin_1(-a & 0xFFF);
+    }
+    return sin_1(a & 0xFFF);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", sin_1);
 
