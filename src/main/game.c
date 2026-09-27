@@ -619,6 +619,11 @@ typedef struct {
     /* 0x0C */ u32 packet;
     /* 0x10 */ u32 unk10[4];
     /* 0x20 */ void *unk20;
+    /* 0x24 */ u32 unk24;
+    /* 0x28 */ u32 unk28;
+    /* 0x2C */ u32 unk2C;
+    /* 0x30 */ u32 unk30;
+    /* 0x34 */ u32 unk34;
 } SortWork;
 
 #define SORT_WORK ((SortWork *)0x1F800000)
@@ -5561,7 +5566,37 @@ void func_80020674(s32 flag, u32 i, u8 *base) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800206B0);
+u32 *func_800206B0(u32 *p, u32 *ot) {
+    SortWork *w;
+    s32 a;
+    s32 b;
+    s32 c;
+    u32 z;
+    u32 tag;
+
+    gte_mfc2(25, a);
+    gte_mfc2(26, b);
+    gte_mfc2(27, c);
+    if (a > 0 && b > 0 && c > 0) {
+        return p;
+    }
+    w = SORT_WORK;
+    p[1] = w->unk2C;
+    p[3] = (a & 0xFFFF) | w->unk34;
+    p[5] = (b & 0xFFFF) | w->unk30;
+    p[7] = (c | w->unk30) & 0xFFFF;
+    gte_swc2(12, 8, p);
+    gte_swc2(13, 16, p);
+    gte_swc2(14, 24, p);
+    gte_mfc2(7, z);
+    if (z >= (u32)w->unk20) {
+        return p;
+    }
+    tag = ot[z] | 0x07000000;
+    ot[z] = (u32)p;
+    *p = tag;
+    return p + 8;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80020778);
 
