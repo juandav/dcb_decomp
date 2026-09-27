@@ -33,7 +33,8 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 6. alter_reg: a pseudo spilled to the stack gets a slot aligned to its own
    mode (4 bytes for SImode) instead of BIGGEST_ALIGNMENT (8), like GCC 2.8's
    `inherent_size == total_size ? 0 : -1`. Two spilled pseudos then sit at
-   0x5C/0x60 instead of 0x60/0x68 (libmcrd MemCardGetDirentry's frame).
+   0x5C/0x60 instead of 0x60/0x68 (libmcrd MemCardGetDirentry's frame); a
+   HImode one in a 4-byte slot keeps the 8-byte alignment (_SsVmKeyOn).
 7. mark_target_live_regs: its forward scan follows a simple jump to the
    label itself (GCC 2.8), so the label kills the registers a REG_DEAD note
    left pending before the jump. A branch can then take an insn that sets
@@ -230,9 +231,6 @@ def patch(src, dst):
     put(site, b"\x66\x83\xf8\x34\x74\x2e",
         b"\xe9" + (cave - (site + 5)).to_bytes(4, "little", signed=True) + b"\x90")
 
-    # 6. alter_reg+348: `assign_stack_local (mode, total_size, -1)` for a
-    #    pseudo with no slot to reuse -> align 0 (the mode's alignment).
-    put(0x08161CD9, b"\x6a\xff", b"\x6a\x00")
 
     # 7. mark_target_live_regs+3822: the forward scan follows a simple jump
     #    to `JUMP_LABEL` itself, as GCC 2.8's find_dead_or_set_registers does,
@@ -983,6 +981,20 @@ def patch(src, dst):
     start = in_bc(best_class_start)
     put(0x0814313C, b"\xbe\x07\x00\x00\x00",
         b"\xe9" + (start - (0x0814313C + 5)).to_bytes(4, "little", signed=True))
+
+    # 6. alter_reg+345 and +639: the align argument of both
+    #    `assign_stack_local (mode, total_size, -1)` becomes GCC 2.8's
+    #    `inherent_size == total_size ? 0 : -1` (-0x1c and -0x2c(%ebp)); the
+    #    mode is in %eax at the first site.
+    for site, back in ((0x08161CD6, 0x08161CDB), (0x08161DFC, 0x08161E01)):
+        def slot_align(code, jump, back=back):
+            code.extend(b"\x83\xec\x04\x8b\x4d\xe4\x31\xd2")   # sub $4,%esp; mov inherent,%ecx; xor %edx,%edx
+            code.extend(b"\x3b\x4d\xd4\x74\x01\x4a\x52")        # cmp total,%ecx; je 1f; dec %edx; 1: push %edx
+            jump(b"\xe9", back)
+
+        start = in_bc(slot_align)
+        put(site, b"\x83\xec\x04\x6a\xff",
+            b"\xe9" + (start - (site + 5)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
