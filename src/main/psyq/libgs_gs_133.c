@@ -7,9 +7,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLs);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLws);
 
 typedef struct {
-    u_long *vertop;
+    SVECTOR *vertop;
     u_long vern;
-    u_long *nortop;
+    SVECTOR *nortop;
     u_long norn;
     u_long *primtop;
     u_long primn;
@@ -122,4 +122,174 @@ __asm__(".section .rodata\n\t.space 8\n");
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSortObject4);
+extern u_long D_801DBF9C;
+extern u_long D_801DBF88;
+extern u_long D_801DBF8C;
+extern u_long D_801DBF84;
+extern u_long D_801DBFA8;
+extern u_long D_801DBFA4;
+extern long D_801DBE28;
+extern long D_801DBE2C;
+extern long D_801DBE34;
+extern PACKET *D_801DBF98;
+extern _GsFCALL D_801DBFB0;
+
+/* the object's string table was padded to 8 bytes before the jump table */
+__asm__(".section .rodata\nD_800137FC:\n\t.asciz \"non supported code %x %x\\n\"\n\t.align 2\n\t.space 4\n\t.section .text\n");
+extern char D_800137FC[];
+
+void GsSortObject4(GsDOBJ2 *objp, GsOT *otp, int shift, u_long *scratch) {
+    TmdObj *obj;
+    u_long *op;
+    u_long primn;
+    SVECTOR *vp;
+    SVECTOR *np;
+    long div;
+    long lmode;
+    u_long code;
+
+    if (objp->attribute & GsDOFF) {
+        return;
+    }
+    D_801DBF9C = objp->attribute & 7;
+    D_801DBF88 = (objp->attribute >> 3) & 3;
+    D_801DBF8C = (objp->attribute >> 5) & 1;
+    D_801DBF84 = (objp->attribute >> 6) & 1;
+    D_801DBFA8 = (objp->attribute >> 9) & 7;
+    D_801DBFA4 = (objp->attribute >> 30) & 1;
+    if (D_801DBFA8 != 0) {
+        scratch[1] = D_801DBE28;
+        scratch[2] = D_801DBE2C;
+        scratch[0] = D_801DBFA8;
+        div = 1;
+    } else {
+        div = 0;
+    }
+    if (D_801DBF84 == 1) {
+        lmode = 2;
+    } else if ((D_801DBF8C == 0 && (D_801DBE34 & 1)) || (D_801DBF8C == 1 && (D_801DBF88 & 1))) {
+        lmode = 1;
+    } else {
+        lmode = 0;
+    }
+    obj = (TmdObj *)objp->tmd;
+    op = obj->primtop;
+    primn = obj->primn;
+    vp = obj->vertop;
+    np = obj->nortop;
+    while (primn != 0) {
+        code = ((u_char *)op)[3] & 0xFD;
+        switch (code) {
+        case 0x20:
+            if (((u_short *)op)[1] & 4) {
+                D_801DBF98 = D_801DBFB0.f3g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 6;
+            } else {
+                D_801DBF98 = D_801DBFB0.f3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 4;
+            }
+            break;
+        case 0x24:
+            D_801DBF98 = D_801DBFB0.tf3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 6;
+            break;
+        case 0x30:
+            if (((u_short *)op)[1] & 4) {
+                D_801DBF98 = D_801DBFB0.g3g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 7;
+            } else {
+                D_801DBF98 = D_801DBFB0.g3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 5;
+            }
+            break;
+        case 0x34:
+            D_801DBF98 = D_801DBFB0.tg3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 7;
+            break;
+        case 0x28:
+            if (((u_short *)op)[1] & 4) {
+                D_801DBF98 = D_801DBFB0.f4g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 8;
+            } else {
+                D_801DBF98 = D_801DBFB0.f4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 5;
+            }
+            break;
+        case 0x2C:
+            D_801DBF98 = D_801DBFB0.tf4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 8;
+            break;
+        case 0x38:
+            if (((u_short *)op)[1] & 4) {
+                D_801DBF98 = D_801DBFB0.g4g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 9;
+            } else {
+                D_801DBF98 = D_801DBFB0.g4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                primn -= *(u_short *)op;
+                op += *(u_short *)op * 6;
+            }
+            break;
+        case 0x3C:
+            D_801DBF98 = D_801DBFB0.tg4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 9;
+            break;
+        case 0x21:
+            D_801DBF98 = D_801DBFB0.nf3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 4;
+            break;
+        case 0x29:
+            D_801DBF98 = D_801DBFB0.nf4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 4;
+            break;
+        case 0x31:
+            D_801DBF98 = D_801DBFB0.ng3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 6;
+            break;
+        case 0x25:
+            D_801DBF98 = D_801DBFB0.ntf3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 7;
+            break;
+        case 0x35:
+            D_801DBF98 = D_801DBFB0.ntg3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 9;
+            break;
+        case 0x39:
+            D_801DBF98 = D_801DBFB0.ng4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 7;
+            break;
+        case 0x2D:
+            D_801DBF98 = D_801DBFB0.ntf4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 8;
+            break;
+        case 0x3D:
+            D_801DBF98 = D_801DBFB0.ntg4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            primn -= *(u_short *)op;
+            op += *(u_short *)op * 11;
+            break;
+        default:
+            printf(D_800137FC, code, op);
+            break;
+        }
+    }
+}
+
+/* ASPSX padded the jump table of the object as well */
+__asm__(".section .rodata\n\t.space 8\n");
