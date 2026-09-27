@@ -37,16 +37,16 @@ u_long *GsTMDdivTF3NL(TMD_P_TF3 *op, SVECTOR *vp, SVECTOR *np, POLY_FT3 *pk, u_l
         if (!(op->dummy & 2)) {
             if (RotAverageNclip3(&r0->v, &r1->v, &r2->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy, &p,
                                  (long *)&otz, &flag) > 0) {
-            func_8005D104(&r0->sz, &r1->sz, &r2->sz);
-            divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
-            *(u_long *)&divp->rgbc = col;
-            divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
-            divp->clut = op->clut;
-            divp->tpage = op->tpage;
-            *(u_long *)r0->uv = *(u_long *)&op->tu0;
-            *(u_long *)r1->uv = *(u_long *)&op->tu1;
-            *(u_long *)r2->uv = *(u_long *)&op->tu2;
-            pk = RCpolyFT3A(pk, divp, 0, cr);
+                func_8005D104(&r0->sz, &r1->sz, &r2->sz);
+                divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
+                *(u_long *)&divp->rgbc = col;
+                divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
+                divp->clut = op->clut;
+                divp->tpage = op->tpage;
+                *(u_long *)r0->uv = *(u_long *)&op->tu0;
+                *(u_long *)r1->uv = *(u_long *)&op->tu1;
+                *(u_long *)r2->uv = *(u_long *)&op->tu2;
+                pk = RCpolyFT3A(pk, divp, 0, cr);
             }
         } else {
             otz = RotAverage3(&r0->v, &r1->v, &r2->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy, &p,
@@ -96,16 +96,16 @@ u_long *GsTMDdivTNF3(TMD_P_TNF3 *op, SVECTOR *vp, POLY_FT3 *pk, u_long n, u_long
         if (!(op->dummy & 2)) {
             if (RotAverageNclip3(&r0->v, &r1->v, &r2->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy, &p,
                                  (long *)&otz, &flag) > 0) {
-            func_8005D104(&r0->sz, &r1->sz, &r2->sz);
-            divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
-            *(u_long *)&divp->rgbc = *(u_long *)&op->r0;
-            divp->rgbc.cd = (D_801DBFA4 << 1) | (op->cd & 0xFE);
-            divp->clut = op->clut;
-            divp->tpage = op->tpage;
-            *(u_long *)r0->uv = *(u_long *)&op->tu0;
-            *(u_long *)r1->uv = *(u_long *)&op->tu1;
-            *(u_long *)r2->uv = *(u_long *)&op->tu2;
-            pk = RCpolyFT3A(pk, divp, 0, cr);
+                func_8005D104(&r0->sz, &r1->sz, &r2->sz);
+                divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
+                *(u_long *)&divp->rgbc = *(u_long *)&op->r0;
+                divp->rgbc.cd = (D_801DBFA4 << 1) | (op->cd & 0xFE);
+                divp->clut = op->clut;
+                divp->tpage = op->tpage;
+                *(u_long *)r0->uv = *(u_long *)&op->tu0;
+                *(u_long *)r1->uv = *(u_long *)&op->tu1;
+                *(u_long *)r2->uv = *(u_long *)&op->tu2;
+                pk = RCpolyFT3A(pk, divp, 0, cr);
             }
         } else {
             otz = RotAverage3(&r0->v, &r1->v, &r2->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy, &p,
