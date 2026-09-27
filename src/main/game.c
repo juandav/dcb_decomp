@@ -552,7 +552,9 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ u16 cards[30];
-    /* 0x3C */ char name[0x31];
+    /* 0x3C */ char name[0x28];
+    /* 0x64 */ u8 unk64[4];
+    /* 0x68 */ u8 unk68[5];
     /* 0x6D */ u8 unk6D;
 } SavedDeck;
 
@@ -630,7 +632,10 @@ typedef struct {
     /* 0x178 */ u32 unk178_15 : 2;
     /* 0x178 */ u32 unk178_17 : 2;
     /* 0x178 */ u32 unk178_19 : 3;
-    /* 0x178 */ u32 unk178_22 : 8;
+    /* 0x178 */ u32 unk178_22 : 2;
+    /* 0x178 */ u32 unk178_24 : 2;
+    /* 0x178 */ u32 unk178_26 : 2;
+    /* 0x178 */ u32 unk178_28 : 2;
     /* 0x178 */ u32 unk178_30 : 1;
     /* 0x178 */ u32 unk178_31 : 1;
     /* 0x17C */ u8 unk17C;
@@ -9312,7 +9317,7 @@ s32 func_801F8854();
 extern u8 *D_801D833C;
 extern u8 *D_801D83EC;
 
-s32 func_8003FB3C();
+void func_8003FB3C(s32);
 void func_8003E844(s32 arg0) {
     void *p;
 
@@ -9466,7 +9471,84 @@ void func_8003F9EC(s32 player) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003FB3C);
+char *strcpy(char *, const char *);
+
+void func_8003FB3C(s32 arg) {
+    s32 i;
+    s32 j;
+    s32 k;
+    u16 id;
+
+    for (i = 0; i < 2; i++) {
+        D_801D8348[i] = func_8001AD0C(0x1E4);
+        PLAYER(i)->unk178_17 = (1 - arg) * 2 + i;
+        PLAYER(i)->unk0[0] = 1;
+        for (j = 0; j < 30; j++) {
+            PLAYER(i)->cards[j].id = 0;
+            PLAYER(i)->cards[j].state = 0;
+            PLAYER(i)->cards[j].unk1 = 0;
+            PLAYER(i)->unk17D[j] = i * 30 + j;
+            PLAYER(i)->unk19B[j] = -1;
+        }
+        for (j = 0; j < 4; j++) {
+            PLAYER(i)->unk1B9[j] = -1;
+        }
+        for (j = 0; j < 8; j++) {
+            PLAYER(i)->unk1C2[j] = -1;
+        }
+        for (j = 0; j < 3; j++) {
+            PLAYER(i)->unk1CA[j] = -1;
+        }
+        PLAYER(i)->unk1CD = -1;
+        PLAYER(i)->unk17C = 0;
+        *(s32 *)(D_801D8348[i] + 0x114) = 0;
+        for (j = 0; j < 5; j++) {
+            PLAYER(i)->unk11C[j] = 0;
+            PLAYER(i)->unk126[j] = 0;
+            PLAYER(i)->unk130[j].value = 0;
+            PLAYER(i)->unk130[j].type = 0;
+            PLAYER(i)->unk130[j].timer = 0;
+            PLAYER(i)->unk130[j].x = 0;
+            PLAYER(i)->unk130[j].y = 0;
+        }
+    }
+    if (arg != 0) {
+        strcpy((char *)D_801D8348[0] + 0x1CE, (char *)D_8006E050);
+        strcpy((char *)D_801D8348[1] + 0x1CE, (char *)D_8006E054 + 0x57);
+        if (((Unk8006E054 *)D_8006E054)->unk4 == 0) {
+            func_801EA708();
+            for (i = 0; i < 2; i++) {
+                func_80046A38(i, D_801D8348[i]);
+            }
+        } else {
+            func_8003F9EC(0);
+            for (i = 0; i < 3; i++) {
+                PLAYER_DATA(1).unk80[i].unk288 = 0;
+            }
+            PLAYER(1)->unk178_22 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[0];
+            PLAYER(1)->unk178_24 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[1];
+            PLAYER(1)->unk178_26 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[2];
+            PLAYER(1)->unk178_28 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[3];
+            strcpy((char *)D_801D8348[1] + 1, ((Unk8006E054 *)D_8006E054)->unk8.name);
+            for (i = 0; i < 30; i++) {
+                id = ((Unk8006E054 *)D_8006E054)->unk8.cards[i];
+                func_80046BAC(D_801D8348[1] + 0x14 + i * 8, id);
+                k = func_80047A58(id);
+                if (k >= 0) {
+                    func_80047620(1, k, 0);
+                    if (((Unk8006E054 *)D_8006E054)->unk8.unk6D != 0) {
+                        func_80047C38(1, k, ((Unk8006E054 *)D_8006E054)->unk8.unk6D - 1);
+                    }
+                }
+            }
+            func_80046A38(1, D_801D8348[1]);
+        }
+    } else {
+        for (i = 0; i < 2; i++) {
+            strcpy((char *)D_801D8348[i] + 0x1CE, PLAYER_DATA(i).name);
+        }
+    }
+}
 
 extern u8 *D_801D8348[];
 
