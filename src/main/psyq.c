@@ -22,7 +22,30 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_t);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_Fw);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_Fr);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+u_long _spu_Fr(char *addr, u_long size) {
+    _spu_t(2, D_8006EF3C << D_8006EF4C);
+    _spu_t(0);
+    _spu_t(3, addr, size);
+    return size;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetRXX);
 
