@@ -1145,7 +1145,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", Gssub_make_matrix);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062C34);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062C44);
+extern long D_801DBF98;
+
+long func_80062C44(void) {
+    return D_801DBF98;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetRefView2);
 
