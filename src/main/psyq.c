@@ -1625,7 +1625,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A894);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetRCnt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetRCnt);
+long GetRCnt(unsigned long spec) {
+    int c = spec & 0xFFFF;
+
+    if (c >= 3) {
+        return 0;
+    }
+    return D_8007790C[c * 8];
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StartRCnt);
 
