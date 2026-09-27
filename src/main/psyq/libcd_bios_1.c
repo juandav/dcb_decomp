@@ -131,6 +131,23 @@ int func_80058BE4(void) {
     }
 }
 
+static inline void func_8005A088(void) {
+    u_char mask;
+    int intr;
+
+    mask = *D_80070F04 & 3;
+    while ((intr = func_80058BE4()) != 0) {
+        if ((intr & 4) && D_80070C44) {
+            ((void (*)(u_char, u_char *))D_80070C44)(D_80070F1C[0].ready, D_801DBD28);
+        }
+        if ((intr & 2) && D_80070C40) {
+            ((void (*)(u_char, u_char *))D_80070C40)(D_80070F1C[0].sync, D_801DBD20);
+        }
+    }
+    *D_80070F04 = mask;
+}
+
+
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_sync);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_ready);
@@ -211,4 +228,3 @@ void CD_set_test_parmnum(int num) {
     D_80070EE8 = num;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A088);

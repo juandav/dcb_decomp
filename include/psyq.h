@@ -416,7 +416,6 @@ long funcEvSpIOEx(void);
 long funcEvSpErrorx(void);
 long funcEvSpTimeoutx(void);
 long funcEvSpNewcardx(void);
-void func_8005A088();
 void _spu_FiDMA();
 
 extern long D_80070C4C;
