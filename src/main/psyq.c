@@ -203,7 +203,11 @@ void SsSeqClose(short seq) {
     func_8004C300(seq);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSepClose);
+void SsSepClose(short sep_access_num) {
+    func_8004C300(sep_access_num);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsInit);
 
