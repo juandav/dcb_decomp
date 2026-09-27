@@ -218,7 +218,45 @@ void CD_initintr(void) {
     InterruptCallback(2, func_8005A088);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_init);
+extern long D_80070F20[];
+
+int CD_init(void) {
+    puts("CD_init:");
+    printf("addr=%08x\n", &D_80070F20);
+    D_80070C5D = 0;
+    D_80070C5C = 0;
+    D_80070C44 = 0;
+    D_80070C40 = 0;
+    D_80070C50 = 0;
+    D_80070C4C = 0;
+    ResetCallback();
+    InterruptCallback(2, func_8005A088);
+    *D_80070F04 = 1;
+    while (*D_80070F08 & 7) {
+        *D_80070F04 = 1;
+        *D_80070F08 = 7;
+        *D_80070F14 = 7;
+    }
+    D_80070F1C->ready = D_80070F1C->c = CdlNoIntr;
+    D_80070F1C->sync = CdlComplete;
+    *D_80070F04 = 0;
+    *D_80070F08 = 0;
+    *D_80070F0C = 0x1325;
+    CD_cw(CdlNop, NULL, NULL, 0);
+    if (D_80070C4C & CdlStatShellOpen) {
+        CD_cw(CdlNop, NULL, NULL, 0);
+    }
+    if (CD_cw(0x0A /* CdlReset */, NULL, NULL, 0)) {
+        return -1;
+    }
+    if (CD_cw(CdlDemute, NULL, NULL, 0)) {
+        return -1;
+    }
+    if (CD_sync(0, NULL) != CdlComplete) {
+        return -1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_datasync);
 
