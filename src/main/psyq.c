@@ -463,7 +463,7 @@ void func_80052AB0(long reg, u_short *out) {
     *out = D_8006EF24[reg * 8 + 6];
 }
 
-OBJECT_END();
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmInit);
 
@@ -535,7 +535,7 @@ void func_80055740(void) {
     D_801D96C0 = 0;
 }
 
-OBJECT_END();
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabClose);
 
