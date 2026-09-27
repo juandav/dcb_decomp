@@ -215,7 +215,19 @@ void func_80067FC4(int mode) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800680B4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068144);
+extern volatile u_long *D_800769F0;
+extern volatile u_long *D_800769C4;
+extern volatile u_long *D_800769C8;
+int func_80068264(void);
+
+void func_80068144(u_long *addr, u_long size) {
+    func_80068264();
+    *D_800769F0 |= 0x88;
+    *D_800769CC = 0;
+    *D_800769C4 = (u_long)addr;
+    *D_800769C8 = ((size >> 5) << 16) | 0x20;
+    *D_800769CC = 0x1000200;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800681D0);
 
