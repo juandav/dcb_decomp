@@ -1716,7 +1716,53 @@ void *func_8001AD0C(s32 size) {
     return func_8001ABCC(size, func_800148B0());
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001AD3C);
+void *func_8001AD3C(void *ptr, s32 size) {
+    s32 *p;
+    s32 i;
+    s32 addr;
+    s32 rest;
+
+    size = (size + 3) & ~3;
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr == (s32)ptr) {
+                rest = p[1] - size;
+                if (rest < 0) {
+                    func_800149A0();
+                    return 0;
+                }
+                if (rest != 0 && i != 0) {
+                    p[1] = size;
+                    p += 3;
+                    addr += size;
+                    if (p[0] > 0) {
+                        rest += p[1];
+                    } else {
+                        p = &D_80089848 + 0x3FF * 3;
+                        for (i--; i > 0; i--) {
+                            p[0] = p[-3];
+                            p[1] = p[-2];
+                            p[2] = p[-1];
+                            p -= 3;
+                        }
+                    }
+                    p[0] = addr & 0x3FFFFFFF;
+                    p[1] = rest;
+                    p[2] = -1;
+                }
+                func_800149A0();
+                return ptr;
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
 
 s32 func_8001AE90(void *);
 
@@ -2015,7 +2061,7 @@ void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
     }
 }
 
-void func_8001AD3C(Chunk *, s32);
+void *func_8001AD3C(void *, s32);
 
 void func_8001BB94(Chunk *p, s32 id, s32 sub) {
     Chunk *base;
