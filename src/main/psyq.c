@@ -677,7 +677,12 @@ void *func_80056D78(int index, void (*func)()) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056DA4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", startIntrDMA);
+void *startIntrDMA(void) {
+    func_8005704C((long *)D_80070AFC, 8);
+    *D_80070AF8 = 0;
+    InterruptCallback(3, func_80056E20);
+    return func_80056FA0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056E20);
 
