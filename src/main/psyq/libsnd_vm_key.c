@@ -8,7 +8,33 @@ extern void (*D_8006F59C[])();
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmKeyOn);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmKeyOff);
+extern char D_801D96D4;
+extern long D_8006F564;
+extern short D_801D96F8;
+extern VmVoice D_801D8EB0[];
+void _SsVmKeyOffNow(int);
+void vmNoiseOff(u8 voice);
+
+int _SsVmKeyOff(short seq_sep_no, short vab, short prog, u_short note) {
+    u_char i;
+    int count;
+
+    count = 0;
+    for (i = 0; i < D_801D96D4; i++) {
+        if (!(D_8006F564 & (1 << i)) && D_801D8EB0[i].note == note && D_801D8EB0[i].prog == prog &&
+            D_801D8EB0[i].unk10 == seq_sep_no && D_801D8EB0[i].vabId == vab) {
+            if (D_801D8EB0[i].unk0 == 0xFF) {
+                vmNoiseOff(i);
+                count++;
+            } else {
+                D_801D96F8 = i;
+                _SsVmKeyOffNow(0);
+                count++;
+            }
+        }
+    }
+    return count;
+}
 
 void _SsVmKeyOn(int seq_sep_no, short vab, short prog, u_short note, u_short voll, u_short volr);
 
