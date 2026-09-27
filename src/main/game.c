@@ -222,7 +222,8 @@ typedef struct {
 typedef struct {
     /* 0x00 */ s32 unk0;
     /* 0x04 */ u8 loc[4];
-    /* 0x08 */ u8 unk8[0x14];
+    /* 0x08 */ s32 fsize;
+    /* 0x0C */ u8 fname[0x10];
     /* 0x1C */ s32 sector;
     /* 0x20 */ s32 remaining;
     /* 0x24 */ s32 size;
@@ -522,7 +523,9 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s32 key;
-    /* 0x04 */ u8 unk4[0xC];
+    /* 0x04 */ s32 sector;
+    /* 0x08 */ s32 size;
+    /* 0x0C */ u8 unkC[4];
     /* 0x10 */ s32 name[4];
 } FileEntry;
 
@@ -1877,7 +1880,7 @@ void func_800157B0(void) {
     D_800857D0 = 0;
 }
 
-CdFile *func_80015AD8(s32, s32);
+CdFile *func_80015AD8(s8 *path, s32 mode);
 s32 func_80015EAC(CdFile *f);
 s32 func_80015F34(CdFile *f, s32 size, u8 *dst);
 s32 CdIntToPos(s32, u8 *);
@@ -1889,7 +1892,7 @@ extern s32 D_800857E0;
 s32 func_80015848(s32 arg0) {
     CdFile *f;
 
-    f = func_80015AD8(arg0, 0);
+    f = func_80015AD8((s8 *)arg0, 0);
     if (f != 0 && func_80015F34(f, 0x4000, (u8 *)&D_800857E0) != 0) {
         func_80015EAC(f);
         D_800857D0 = 1;
@@ -1972,7 +1975,147 @@ FileEntry *func_80015A3C(char *name, s32 key) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80015AD8);
+extern s32 D_800897E0;
+extern s32 D_800897E4;
+extern char D_80010000[];
+int toupper(int);
+s8 *func_8002A5B4(s8 *d, s8 *s);
+s32 CdSearchFile(void *, char *);
+s32 CdPosToInt(void *);
+
+CdFile *func_80015AD8(s8 *path, s32 mode) {
+    s32 name[4];
+    char search[16];
+    char *q;
+    CdFile *f;
+    FileEntry *e;
+    s32 i;
+    s32 key;
+    s32 sector;
+    s32 size;
+    u8 *p;
+    s32 c;
+
+retry:
+    f = (CdFile *)D_80081710;
+    for (i = 3; i >= 0; i--, f++) {
+        if (f->unk0 == 0) {
+            break;
+        }
+    }
+    if (i < 0) {
+        return 0;
+    }
+    p = (u8 *)path;
+    if (p[1] != ':') {
+        if (D_800857D0 == 0) {
+            return 0;
+        }
+        sector = D_800897E0;
+        size = 0;
+    } else {
+        q = search;
+        *q++ = '\\';
+        *q++ = toupper((s8)*p);
+        p += 2;
+        func_8002A5B4((s8 *)q, (s8 *)D_80010000);
+        if (CdSearchFile(f->loc, search) == 0) {
+            return 0;
+        }
+        size = f->fsize;
+        f->remaining = size;
+        sector = CdPosToInt(f->loc);
+        f->sector = sector;
+        if (mode == 0) {
+            D_800897E0 = sector;
+            D_800897E4 = size;
+        }
+    }
+    for (;;) {
+        for (i = 0; i < 4; i++) {
+            name[i] = 0;
+        }
+        key = 0;
+        for (i = 0; i < 16; i++) {
+            switch (c = *p++) {
+            case '.':
+                goto ext;
+            case 0:
+                goto end;
+            case '\\':
+                goto dir;
+            }
+            ((u8 *)name)[i] = toupper((s8)c);
+        }
+        while ((c = *p++) != '.') {
+            if (c == 0) {
+                goto end;
+            }
+            if (c == '\\') {
+                goto dir;
+            }
+        }
+    ext:
+        for (i = 0; i < 24; i += 8) {
+            c = *p++;
+            if (c == 0) {
+                goto end;
+            }
+            if (c == '\\') {
+                goto dir;
+            }
+            key += toupper((s8)c) << i;
+        }
+        break;
+    dir:
+        if (size == 0) {
+            size = D_800897E4;
+            e = func_80015A3C((char *)name, 0x80);
+            if (e == 0) {
+                return 0;
+            }
+        } else {
+            e = func_800158B0(f, (char *)name, 0x80);
+            if (e == 0) {
+                return 0;
+            }
+        }
+        f->sector = sector + e->sector;
+        f->remaining = size - (e->sector << 11);
+    }
+end:
+    if (mode == 0) {
+        if (size == 0) {
+            e = func_80015A3C((char *)name, 0x80);
+        } else {
+            e = func_800158B0(f, (char *)name, 0x80);
+        }
+        if (e == 0) {
+            return 0;
+        }
+        f->sector = sector + e->sector;
+        f->avail = 0;
+        f->remaining = 0x4000;
+    } else {
+        if (size == 0) {
+            size = D_800897E4;
+            e = func_80015A3C((char *)name, (key << 8) + 1);
+        } else {
+            e = func_800158B0(f, (char *)name, (key << 8) + 1);
+        }
+        if (e == 0) {
+            return 0;
+        }
+        f->sector = sector + e->sector;
+        f->remaining = size - (e->sector << 11);
+        f->avail = 0;
+        if ((f->remaining = f->size = e->size) == 0) {
+            goto retry;
+        }
+        f->unk0 = mode;
+    }
+    return f;
+}
 
 s32 func_8005A364(s32, s32);
 
@@ -3812,7 +3955,7 @@ s32 func_8001B144(s32 name, s32 arg1) {
         func_80014C08(D_800794F0);
     }
     D_8006DEF0 = 1;
-    f = func_80015AD8(name, 1);
+    f = func_80015AD8((s8 *)name, 1);
     buf = 0;
     if (f != 0) {
         size = f->size;
@@ -3840,7 +3983,7 @@ s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
         func_80014C08(D_800794F0);
     }
     D_8006DEF0 = 1;
-    f = func_80015AD8((s32)name, 1);
+    f = func_80015AD8((s8 *)name, 1);
     buf = 0;
     if (f != 0) {
         size = f->size;
@@ -3871,7 +4014,7 @@ void func_8001B358(s32 arg0, s32 *arg1, s32 arg2) {
         } while (D_8006DEF0 != 0);
     }
     D_8006DEF0 = 1;
-    temp_v0 = func_80015AD8(arg0, 1);
+    temp_v0 = (s32)func_80015AD8((s8 *)arg0, 1);
     if (temp_v0 != 0) {
         var_s2 = (*(s32 *)((s8 *)temp_v0 + 0x24));
         func_80015F34(temp_v0, var_s2, arg1);
