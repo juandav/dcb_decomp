@@ -1225,7 +1225,12 @@ void DrawPrim(void *p) {
     D_80076750->unk14((u_long *)p + 1, len);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTag);
+void DrawOTag(u_long *p) {
+    if (D_80076758.level >= 2) {
+        D_80076754(D_80013A1C, p);
+    }
+    D_80076750->addque(D_80076750->unk18, p, 0, 0);
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013A1C);
 
