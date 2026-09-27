@@ -205,7 +205,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsInit);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsInit);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004C5B0);
+void func_8004C5B0(void) {
+    _SpuInit(0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSeqOpen);
 
