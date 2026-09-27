@@ -55,7 +55,44 @@ PadPort *func_8006BA28(int port) {
     return p;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BA48);
+extern void (*D_80077964)(PadPort *p);
+void func_8006D2F8(PadPort *p, int mode);
+void func_8006CA58(PadPort *p);
+int func_8006BA48(PadPort *p) {
+    if (*p->unk3C == 0xF3) {
+        if (p->unkE8 == 0) {
+            func_8006D2F8(p, 0);
+            return 0;
+        }
+        if (p->unk46 == 0xFF) {
+            func_8006D2F8(p, 0);
+            return 0;
+        }
+        if (p->unk49 == 2) {
+            D_80077964(p);
+        }
+    }
+    switch (p->unk46) {
+    case 0:
+        break;
+    case 1:
+        func_8006D2F8(p, 1);
+        break;
+    case 0xFE:
+        func_8006D2F8(p, 0);
+        break;
+    case 0xFF:
+        break;
+    default:
+        if (p->unk14 != NULL) {
+            p->unk14(p);
+        } else {
+            func_8006CA58(p);
+        }
+        break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BB58);
 
