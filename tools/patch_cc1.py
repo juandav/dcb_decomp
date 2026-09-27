@@ -6,7 +6,7 @@ usage: tools/patch_cc1.py [in out]   (default: bin/gcc-2.7.2-psx/cc1 ->
 
 Differences between our GCC 2.7.2 build and the compiler of the PsyQ 4.7
 libraries (which also need -mhard-float, see FLOAT_ABI in the Makefile).
-1 and 2 show up together: a short loaded once and used both sign-extended
+1 and 2/18 show up together: a short loaded once and used both sign-extended
 and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 `addiu $sp,-8/-16` frame (`.frame ... vars=8/16`) with no stack accesses.
 
@@ -15,11 +15,10 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    second load as a SUBREG of the extended value; the ROM keeps both loads
    (the "two independent SETs" split). The SIGN_EXTEND special case is
    skipped here.
-2. regclass: the combined-away shift temporaries keep stale reference counts.
-   With no costs recorded their preferred class came out as ST_REGS (FP
-   condition codes, no SImode), so global.c couldn't place them and reload
-   gave them stack slots. The best-class search now starts below ST_REGS,
-   which the PsyQ code (no floating point) never uses.
+2. (Now part of 18.) regclass: the combined-away temporaries keep stale
+   reference counts; with no costs their preferred class was ST_REGS (FP
+   condition codes, no SImode), global.c couldn't place them and reload gave
+   them stack slots.
 3. (Now part of 16.) reorg's mark_target_live_regs stopped its forward scan
    at a conditional jump before looking at the jump's own delay slot, so a
    register set there (`beqz v1,L; move v0,zero`) still counted as live
@@ -76,6 +75,10 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    the jump and its slot are marked and the scan stops if it goes forward,
    and it stops at once if it goes back (the old patch 3), as the ROM keeps
    __fixsfsi's first `beqz` slot empty.
+18. try_combine zeroes the reference counts of an I2 destination that the
+   new I2 pattern doesn't mention (GCC 2.8); only registers stale in 2.8 too
+   get a (bogus, unused) stack slot (_SsVmSetSeqVol's frame), and of those
+   only the ones referenced more than twice (see the code).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -118,8 +121,6 @@ def patch(src, dst):
     rel = int.from_bytes(d[o + 2:o + 6], "little", signed=True)
     put(va, b"\x0f\x85" + d[o + 2:o + 6],
         b"\xe9" + (rel + 1).to_bytes(4, "little", signed=True) + b"\x90")
-    # 2. regclass+2986: `for (class = ALL_REGS - 1; ...)` -> start at MD_REGS (6)
-    put(0x0814313C, b"\xbe\x07\x00\x00\x00", b"\xbe\x06\x00\x00\x00")
 
     # Patch 4 adds code after the end of the text segment (the rest of
     # its last page is zero padding in the file) and grow the segment over it.
@@ -941,6 +942,47 @@ def patch(src, dst):
     o = fo(0x0817246F)
     put(0x0817246F, d[o:o + 6],
         b"\x0f\x85" + (start - (0x0817246F + 6)).to_bytes(4, "little", signed=True))
+
+    # 18. try_combine+14621: the I2 of a combination is dead if the new
+    #    pattern doesn't set it any more. 2.7.2 zeroes the stale
+    #    REG_N_SETS/REG_N_REFS of I2DEST only when no new I2 pattern was
+    #    made; GCC 2.8 also does it when there is one that doesn't mention
+    #    I2DEST (`newi2pat == 0 || ! reg_mentioned_p (i2dest, newi2pat)`).
+    #    Left with their references, such registers had no costs, so
+    #    regclass gave them ST_REGS and reload a stack slot nothing uses: a
+    #    bogus frame (the old patch 2 hid it by never choosing ST_REGS). The
+    #    ROM keeps it where 2.8 also keeps the registers (_SsVmSetSeqVol's
+    #    `vars= 8`). Locals: i2dest -0x158, newi2pat -0x160.
+    def i2dest_dead(code, jump):
+        code.extend(b"\x83\xec\x08\xff\xb5\xa0\xfe\xff\xff\xff\xb5\xa8\xfe\xff\xff")  # newi2pat; i2dest
+        jump(b"\xe8", 0x080D647E)                   # reg_mentioned_p (i2dest, newi2pat)
+        code.extend(b"\x83\xc4\x10\x85\xc0")
+        jump(b"\x0f\x85", 0x0812A475)               # mentioned: keep it
+        jump(b"\xe9", 0x0812A3E0)                    # else go on to the update
+
+    start = in_bc(i2dest_dead)
+    o = fo(0x0812A3DA)
+    put(0x0812A3DA, d[o:o + 6],
+        b"\x0f\x85" + (start - (0x0812A3DA + 6)).to_bytes(4, "little", signed=True))
+
+    #    Some registers stay stale in 2.8 as well (the sign correction of a
+    #    division by a constant, when combine folds it away) and the ROM
+    #    still gives them no slot when they are referenced just twice
+    #    (GsSetFlatLight's nine `x / 255`), while _SsVmSetSeqVol's, used in a
+    #    loop (4 weighted references), get one. So the old patch 2 stays for
+    #    those: regclass+2986 starts its best-class search below ST_REGS for a
+    #    pseudo with exactly two references (an empirical rule).
+    def best_class_start(code, jump):
+        code.extend(b"\xbe\x07\x00\x00\x00")                    # mov $ALL_REGS-1,%esi
+        code.extend(b"\xa1" + (0x082D3A38).to_bytes(4, "little"))  # mov reg_n_refs,%eax
+        code.extend(b"\x8b\x8d\xf0\xfe\xff\xff")                # mov i,%ecx
+        code.extend(b"\x83\x3c\x88\x02\x75\x05")                # cmpl $2,(%eax,%ecx,4); jne
+        code.extend(b"\xbe\x06\x00\x00\x00")                    # mov $MD_REGS,%esi
+        jump(b"\xe9", 0x08143141)
+
+    start = in_bc(best_class_start)
+    put(0x0814313C, b"\xbe\x07\x00\x00\x00",
+        b"\xe9" + (start - (0x0814313C + 5)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
