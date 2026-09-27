@@ -347,6 +347,6 @@ s32 func_80024E44(u8 *cam, s32 *pos, s32 cur, s16 *target) {
     return cur;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/scene3d", func_800250F4);
+INCLUDE_ASM("asm/main/nonmatchings/model/scene3d", func_800250F4);
 
-INCLUDE_RODATA("asm/main/nonmatchings/scene3d", D_80010190);
+INCLUDE_RODATA("asm/main/nonmatchings/model/scene3d", D_80010190);

@@ -696,7 +696,7 @@ s32 func_80028D48(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
     return D_801D6B18;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/text", func_800293FC);
+INCLUDE_ASM("asm/main/nonmatchings/ui/text", func_800293FC);
 
 void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
     s16 clut;

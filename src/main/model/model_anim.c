@@ -177,7 +177,7 @@ s32 func_80021DF8(void *arg0) {
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model_anim", func_80022100);
+INCLUDE_ASM("asm/main/nonmatchings/model/model_anim", func_80022100);
 
 void func_80022B98(void) {
     s32 temp_v0;

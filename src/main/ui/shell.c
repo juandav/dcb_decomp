@@ -34,13 +34,13 @@ s32 func_8004994C(s32 a, s32 b) {
     return rand() % 4;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/shell", D_80012770);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012770);
 
-INCLUDE_RODATA("asm/main/nonmatchings/shell", D_80012D68);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012D68);
 
-INCLUDE_RODATA("asm/main/nonmatchings/shell", D_80012DB8);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012DB8);
 
-INCLUDE_RODATA("asm/main/nonmatchings/shell", D_80012DF8);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012DF8);
 
 void func_80049A14(s16 *arg0) {
     s16 r[4];
@@ -267,4 +267,4 @@ void func_8004A2DC(s32 mode) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/shell", D_80012FAC);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012FAC);

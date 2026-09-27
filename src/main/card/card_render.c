@@ -162,9 +162,9 @@ void func_80041E00(void) {
     DUEL->unk812 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/card_render", func_80042174);
+INCLUDE_ASM("asm/main/nonmatchings/card/card_render", func_80042174);
 
-INCLUDE_RODATA("asm/main/nonmatchings/card_render", D_80011440);
+INCLUDE_RODATA("asm/main/nonmatchings/card/card_render", D_80011440);
 
 void func_8004269C(SprtInfo *info, s32 arg1, s32 z) {
     if (func_80029990() == 0) {
@@ -956,4 +956,4 @@ MATRIX *func_80045700(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
     return m;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/card_render", D_8001174C);
+INCLUDE_RODATA("asm/main/nonmatchings/card/card_render", D_8001174C);

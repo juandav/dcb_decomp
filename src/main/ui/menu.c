@@ -190,9 +190,9 @@ s32 func_800198A8(Menu *m) {
     return m->col + m->row * m->ncols;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/menu", D_80010000);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", D_80010000);
 
-INCLUDE_RODATA("asm/main/nonmatchings/menu", D_80010008);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", D_80010008);
 
 void func_80019EA4(u8 *w, u8 *text, u32 flags) {
     Rect16 r;

@@ -686,6 +686,6 @@ void func_80041584(s32 player) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel_rules", D_800113C0);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", D_800113C0);
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel_rules", D_800113D0);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", D_800113D0);

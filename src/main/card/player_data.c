@@ -205,4 +205,4 @@ void func_8002DC90(s32 arg0) {
     func_8002DC30(arg0, 0);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/player_data", D_800107F8);
+INCLUDE_RODATA("asm/main/nonmatchings/card/player_data", D_800107F8);

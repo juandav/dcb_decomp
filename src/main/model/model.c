@@ -292,7 +292,7 @@ void *func_800236B4(s32 id) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model", func_8002371C);
+INCLUDE_ASM("asm/main/nonmatchings/model/model", func_8002371C);
 
 s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
     char buf[16];

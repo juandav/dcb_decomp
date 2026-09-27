@@ -342,15 +342,15 @@ void *func_80030E3C(void *arg0) {
     return arg0;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_80010864);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010864);
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_80010874);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010874);
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_80010884);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010884);
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_80010894);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010894);
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_800108A4);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_800108A4);
 
 s32 func_80030F90(s32 arg, s32 flag) {
     Anim *o = (Anim *)arg;
@@ -1442,4 +1442,4 @@ void func_800341EC(void) {
     func_8001A164(&D_801D8278, var_a1);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/effect", D_80010C9C);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010C9C);

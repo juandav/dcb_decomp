@@ -2,7 +2,7 @@
 #include "gte.h"
 #include "game.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/tmd_sort", func_8001F3C0);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F3C0);
 
 void func_8001F518(u32 i0, u32 *idx, u8 *base) {
     u8 *v0;
@@ -281,7 +281,7 @@ u32 *func_8001F8B0(u32 *p, u32 *ot, s32 gouraud, u32 code) {
     return next;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/tmd_sort", func_8001F94C);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F94C);
 
 u32 func_800202D8(u32 *data, u32 *ot, u32 packet, void *arg3) {
     SortWork *w;
@@ -326,7 +326,7 @@ u32 func_80020370(u32 *data, u32 *ot, u32 packet, void *arg3) {
     return SORT_WORK->packet;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/tmd_sort", func_80020440);
+INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_80020440);
 
 void func_8002060C(s32 flag, u32 i, u8 *base) {
     u8 *p;

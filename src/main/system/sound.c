@@ -297,6 +297,6 @@ void func_8002BA6C(s32 arg0, s32 arg1, s32 arg2) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/sound", D_80010598);
+INCLUDE_RODATA("asm/main/nonmatchings/system/sound", D_80010598);
 
-INCLUDE_RODATA("asm/main/nonmatchings/sound", D_800105A8);
+INCLUDE_RODATA("asm/main/nonmatchings/system/sound", D_800105A8);

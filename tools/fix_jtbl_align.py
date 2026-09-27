@@ -12,11 +12,10 @@ table).
 
 The original tables are read from splat's full disassembly of each C
 segment (asm/main/<segment>.s). The file's own rodata start (its .rodata
-subsegment in config/main.yaml, given the unit name as argument) decides
-which tables sit 4 bytes past an 8-byte boundary relative to that start.
+subsegment in config/main.yaml, given the unit path such as gfx/prim as
+argument) decides which tables sit 4 bytes past an 8-byte boundary relative to that start.
 """
 
-import glob
 import os
 import re
 import sys
@@ -37,10 +36,19 @@ def rodata_start(unit):
     return 0x80010000 + int(m.group(1), 16) - 0x800 if m else 0
 
 
+def unit_asm():
+    """splat's full disassembly of each C segment (asm/main/<unit>.s)."""
+    text = open(os.path.join(ROOT, "config", "main.yaml")).read()
+    for unit in re.findall(r"\[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", text):
+        path = os.path.join(ASM_DIR, unit + ".s")
+        if os.path.exists(path):
+            yield path
+
+
 def load_tables():
     """Map each function to the (address, size in words) of its jump tables."""
     by_func = {}
-    for path in glob.glob(os.path.join(ASM_DIR, "*.s")):
+    for path in unit_asm():
         text = open(path).read()
         sizes = {
             m.group(1): m.group(2).count(".word")

@@ -1201,4 +1201,4 @@ void func_80034260(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/duel", func_80038F68);
+INCLUDE_ASM("asm/main/nonmatchings/duel/duel", func_80038F68);

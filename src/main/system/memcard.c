@@ -419,7 +419,7 @@ s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
     return 0;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/memcard", D_800105E4);
+INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", D_800105E4);
 
 void func_8002CAC8(s32 port) {
     char name[8];
@@ -442,7 +442,7 @@ void func_8002CAC8(s32 port) {
     D_801D8190[port]->blocks = total /= 8192;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/memcard", D_800105FC);
+INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", D_800105FC);
 
 s32 func_8002CBA0(s32 len, u8 *p) {
     s32 i;

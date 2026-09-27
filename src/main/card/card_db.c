@@ -204,7 +204,7 @@ void func_800461C0(s32 a) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/card_db", func_8004635C);
+INCLUDE_ASM("asm/main/nonmatchings/card/card_db", func_8004635C);
 
 void func_80046864(s32 a) {
     s32 i;
@@ -665,7 +665,7 @@ s32 func_80048150(s32 a, s32 id) {
     return -1;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/card_db", D_800119CC);
+INCLUDE_RODATA("asm/main/nonmatchings/card/card_db", D_800119CC);
 
 s32 func_80048230(s32 p, s32 d) {
     s32 i;

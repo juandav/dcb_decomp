@@ -1419,6 +1419,6 @@ void func_8003EB88(void) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/battle_hud", D_80011350);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/battle_hud", D_80011350);
 
-INCLUDE_ASM("asm/main/nonmatchings/battle_hud", func_8003EC4C);
+INCLUDE_ASM("asm/main/nonmatchings/duel/battle_hud", func_8003EC4C);

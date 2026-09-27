@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Write objdiff.json with the game's code and data as one unit.
 
-The game's code lives in one C file per module under src/main/, but it is
-reported as a single main/game unit, as it was when it was all game.c: the
-module objects are linked with `ld -r`, in ROM order, into one base object,
+The game's code lives in one C file per module, grouped by subsystem under
+src/main/ (gfx/prim.c, duel/duel.c, ...), but it is reported as a single
+main/game unit, as it was when it was all game.c: the module objects are linked with `ld -r`, in ROM order, into one base object,
 and the same modules' target objects (splat's full disassembly of each C
 segment) into one target object. The target also gets the game's data
 (.data and .bss, still assembly), so data keeps being measured. That keeps
@@ -40,7 +40,7 @@ GAME_DATA = ["expected/asm/main/data/game.data.s.o", "expected/asm/main/data/gam
 def game_modules() -> list:
     """The game's C modules in ROM order, from config/main.yaml."""
     yaml = (ROOT / "config" / "main.yaml").read_text()
-    return [m for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, (\w+)\]", yaml, re.M) if m not in LIBRARIES]
+    return [m for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", yaml, re.M) if m not in LIBRARIES]
 
 
 def link(out: str, parts: list) -> None:
