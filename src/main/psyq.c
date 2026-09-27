@@ -527,7 +527,11 @@ void func_80055730(void) {
     D_801D96C0 = 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80055740);
+void func_80055740(void) {
+    D_801D96C0 = 0;
+}
+
+OBJECT_END();
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabClose);
 
