@@ -366,8 +366,15 @@ typedef struct {
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 
 typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 w, h;
+} TILE;
+
+typedef struct {
     /* 0x00 */ DR_MODE dm[2];
-    /* 0x10 */ u8 prim[2][0x10];
+    /* 0x10 */ TILE prim[2];
     /* 0x30 */ Rect16 unk30;
     /* 0x38 */ Rect16 unk38;
     /* 0x40 */ Rect16 unk40;
@@ -1737,7 +1744,7 @@ void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
 
     for (i = 0; i < 2; i++) {
         setDrawMode(&p->dm[i], 0, 0, GetTPage(0, 1, 0, 0));
-        func_8001E6EC(0x11, p->prim[i], 1, 0);
+        func_8001E6EC(0x11, &p->prim[i], 1, 0);
     }
     func_800191C0(p, arg1, arg2);
 }
@@ -1776,7 +1783,28 @@ void func_800192E0(void *arg0, Bytes4 *arg1) {
     *(Bytes4 *)((s8 *)arg0 + 0x48) = *arg1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800192FC);
+extern u8 D_800794F4;
+
+void func_800192FC(Unk800190F4 *p, s32 ot) {
+    if (p->unk4D < 6) {
+        p->unk40.x = p->unk30.x + (p->unk38.x - p->unk30.x) * p->unk4D / 6;
+        p->unk40.y = p->unk30.y + (p->unk38.y - p->unk30.y) * p->unk4D / 6;
+        p->unk40.w = p->unk30.w + (p->unk38.w - p->unk30.w) * p->unk4D / 6;
+        p->unk40.h = p->unk30.h + (p->unk38.h - p->unk30.h) * p->unk4D / 6;
+        p->unk4D++;
+    } else {
+        p->unk40 = p->unk38;
+    }
+    (p->prim + D_800794F4)->x0 = p->unk40.x - 2;
+    (p->prim + D_800794F4)->y0 = p->unk40.y - 1;
+    (p->prim + D_800794F4)->w = p->unk40.w + 4;
+    (p->prim + D_800794F4)->h = p->unk40.h + 2;
+    (p->prim + D_800794F4)->r0 = p->unk48.b[0] * p->unk4C / 128;
+    (p->prim + D_800794F4)->g0 = p->unk48.b[1] * p->unk4C / 128;
+    (p->prim + D_800794F4)->b0 = p->unk48.b[2] * p->unk4C / 128;
+    addPrim(&D_800793A0->ot[ot], &p->prim[D_800794F4]);
+    addPrim(&D_800793A0->ot[ot], &p->dm[D_800794F4]);
+}
 
 void func_80016C08(void *, void *, s32, s16 *, s32, s32, s32, s32);
 
@@ -1908,7 +1936,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
 void func_80028D18(s32, s32, s32, s32, s32);
 void func_8002BB58(u32);
-void func_800192FC(void *, s32);
+void func_800192FC(Unk800190F4 *, s32);
 extern PadState *D_80089840[];
 
 void func_8001A40C(u8 *w) {
@@ -1945,7 +1973,7 @@ void func_8001A40C(u8 *w) {
         }
         func_80028D18(*(s16 *)(w + 0xAC), y, *(s32 *)(w + 0x98), 7, *(s16 *)(w + 0x3A));
         func_80028D18(*(s16 *)(w + 0xB0), y, *(s32 *)(w + 0x9C), 7, *(s16 *)(w + 0x3A));
-        func_800192FC(w + 0x44, *(s16 *)(w + 0x3A));
+        func_800192FC((Unk800190F4 *)(w + 0x44), *(s16 *)(w + 0x3A));
     }
 }
 
