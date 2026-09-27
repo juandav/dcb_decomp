@@ -282,7 +282,14 @@ OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContDamper);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContExternal);
+void _SsContExternal(short seq, short sep, u_char depth) {
+    SeqStruct *score = &D_801D8618[seq][sep];
+
+    SsUtSetReverbDepth(depth, depth);
+    score->delta = _SsReadDeltaValue(seq, sep);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContNrpn1);
 
