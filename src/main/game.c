@@ -8791,7 +8791,49 @@ void func_80044800(void) {
     D_801D83F0 = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004480C);
+MATRIX *func_80045700(VECTOR *pos, SVECTOR *rot, MATRIX *m);
+MATRIX *CompMatrix(MATRIX *, MATRIX *, MATRIX *);
+
+void func_8004480C(void *arg0, s32 k) {
+    u8 *o;
+    MATRIX m;
+    SVECTOR v[4];
+    s32 sxy[4];
+    s32 p;
+    s32 otz;
+    s32 flag;
+
+    o = arg0;
+    if (!(o[0x15] & 0x80)) {
+        return;
+    }
+    PushMatrix();
+    func_80045700((VECTOR *)(o + 0x18), (SVECTOR *)(o + 0x28), &m);
+    CompMatrix((MATRIX *)((u8 *)D_801D6A4C + 0x78), &m, &m);
+    SetRotMatrix((s32)&m);
+    func_8005C444(&m);
+    v[0].vx = -(*(s32 *)(o + 0x30) * 40) / 8192;
+    v[0].vy = -(*(s32 *)(o + 0x30) * 48) / 8192;
+    v[0].vz = 0;
+    v[1].vx = (*(s32 *)(o + 0x30) * 40) / 8192;
+    v[1].vy = -(*(s32 *)(o + 0x30) * 48) / 8192;
+    v[1].vz = 0;
+    v[2].vx = -(*(s32 *)(o + 0x30) * 40) / 8192;
+    v[2].vy = (*(s32 *)(o + 0x30) * 48) / 8192;
+    v[2].vz = 0;
+    v[3].vx = (*(s32 *)(o + 0x30) * 40) / 8192;
+    v[3].vy = (*(s32 *)(o + 0x30) * 48) / 8192;
+    v[3].vz = 0;
+    RotAverageNclip4((s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], (s32)&sxy[0], (s32)&sxy[1], (s32)&sxy[2],
+                     (s32)&sxy[3], &p, &otz, &flag);
+    *(s32 *)(o + 0x38) = 0x57 - *(s16 *)(D_801D833C + k * 36 + 0x20);
+    if (*((s8 *)D_801D8340 + 0x81C) >= 0 && k == *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x58) + 2)) {
+        *(s32 *)(o + 0x38) = 0x33;
+    }
+    *(s16 *)(o + 0x34) = sxy[0];
+    *(s16 *)(o + 0x36) = sxy[0] >> 16;
+    PopMatrix();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80044AB0);
 
