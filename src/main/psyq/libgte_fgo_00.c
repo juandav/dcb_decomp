@@ -116,7 +116,60 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTF4NL);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTNF4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTG4NL);
+void func_8005DB44(u_long *sz0, u_long *sz1, u_long *sz2, u_long *sz3);
+POLY_GT4 *RCpolyGT4A(POLY_GT4 *pk, DIVPOLYGON4 *divp, long n, CRVECTOR4 *cr);
+
+u_long *GsTMDdivTG4NL(TMD_P_TG4 *op, SVECTOR *vp, SVECTOR *np, POLY_GT4 *pk, u_long n, u_long shift, GsOT *ot,
+                      DIVPOLYGON4 *divp) {
+    RVECTOR *r0;
+    RVECTOR *r1;
+    RVECTOR *r2;
+    RVECTOR *r3;
+    CRVECTOR4 *cr;
+    long p;
+    u_short otz;
+    long flag;
+    u_long col;
+    u_long i;
+
+    col = 0x3C808080;
+    r0 = &divp->r0;
+    r1 = &divp->r1;
+    r2 = &divp->r2;
+    r3 = &divp->r3;
+    cr = &divp->cr[0];
+    divp->cr[0].r0 = r0;
+    divp->cr[0].r1 = r1;
+    divp->cr[0].r2 = r2;
+    divp->cr[0].r3 = r3;
+    for (i = 0; i < n; op++, i++) {
+        r0->v = vp[op->v0];
+        r1->v = vp[op->v1];
+        r2->v = vp[op->v2];
+        r3->v = vp[op->v3];
+        if (RotAverageNclip4(&r0->v, &r1->v, &r2->v, &r3->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy,
+                             (long *)&r3->sxy, &p, (long *)&otz, &flag) <= 0) {
+            continue;
+        }
+        func_8005DB44(&r0->sz, &r1->sz, &r2->sz, &r3->sz);
+        divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
+        divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
+        divp->clut = op->clut;
+        divp->tpage = op->tpage;
+        *(u_long *)&r0->c = col;
+        *(u_long *)&r1->c = col;
+        *(u_long *)&r2->c = col;
+        *(u_long *)&r3->c = col;
+        *(u_long *)r0->uv = *(u_long *)&op->tu0;
+        *(u_long *)r1->uv = *(u_long *)&op->tu1;
+        *(u_long *)r2->uv = *(u_long *)&op->tu2;
+        *(u_long *)r3->uv = *(u_long *)&op->tu3;
+        pk = RCpolyGT4A(pk, divp, 0, cr);
+    }
+    return (u_long *)pk;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTNG4);
 
