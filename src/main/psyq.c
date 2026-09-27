@@ -1210,7 +1210,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetColorMatrix);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetLightMode);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetAmbient);
+void GsSetAmbient(long r, long g, long b) {
+    func_8005C464(r >> 4, g >> 4, b >> 4);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", gte_init);
 
