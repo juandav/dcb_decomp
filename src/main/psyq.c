@@ -572,7 +572,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SsUtSetVagAtr);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmDoAllocate);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80052050);
+void func_80052050(void) {
+    D_801D9678 = 0;
+}
+
+OBJECT_END(1);
 
 void func_80052060(void) {
     D_801D9678 = 2;
