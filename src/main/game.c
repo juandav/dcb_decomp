@@ -37,7 +37,8 @@ typedef struct {
     /* 0x0000 */ DRAWENV draw;
     /* 0x005C */ DISPENV disp;
     /* 0x0070 */ u32 ot[0x1000];
-    /* 0x4070 */ u8 unk4070[8];
+    /* 0x4070 */ void *unk4070;
+    /* 0x4074 */ s32 unk4074;
     /* 0x4078 */ s32 unk4078[16];
     /* 0x40B8 */ s32 unk40B8;
     /* 0x40BC */ s32 unk40BC;
@@ -7924,7 +7925,7 @@ void func_8003E844(s32 arg0) {
     (*(s8 *)((s8 *)D_801D8340 + 0x81D)) = -1;
 }
 
-s32 func_80024460(s32);
+void func_80024460(s32);
 extern s32 D_800794F8;
 extern s32 func_800250F4;
 
