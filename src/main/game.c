@@ -242,6 +242,12 @@ typedef struct Panel {
 } Panel;
 
 typedef struct {
+    /* 0x00 */ u16 cards[30];
+    /* 0x3C */ char name[0x31];
+    /* 0x6D */ u8 unk6D;
+} SavedDeck;
+
+typedef struct {
     /* 0x00 */ s32 unk0[5];
     /* 0x14 */ s32 unk14;
 } Obj18;
@@ -361,9 +367,10 @@ typedef struct {
 } Unk8006E054Sub;
 
 typedef struct {
-    /* 0x0000 */ u8 unk0[0x78];
+    /* 0x0000 */ u8 *unk0;
+    /* 0x0004 */ u8 unk4[0x74];
     /* 0x0078 */ Deck unk78[2][3];
-    /* 0x1008 */ s32 unk1008;
+    /* 0x1008 */ s16 unk1008[2];
     /* 0x100C */ Unk8006E054Sub *unk100C;
     /* 0x1010 */ u8 unk1010[0x17];
     /* 0x1027 */ u8 unk1027;
@@ -5763,7 +5770,36 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80011350);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003EC4C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003F9EC);
+s32 func_80047620(s32, s32, s32);
+void func_80047C38(s32, s32, s32);
+void func_80047248(s32);
+
+void func_8003F9EC(s32 player) {
+    SavedDeck *decks;
+    SavedDeck *d;
+    s32 i;
+    s32 k;
+    u16 id;
+
+    decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
+    if (((Unk8006E054 *)D_8006E054)->unk1008[player] != -1) {
+        d = &decks[((Unk8006E054 *)D_8006E054)->unk1008[player]];
+        func_80047248(player);
+        strcpy(D_801D8348[player] + 1, d->name);
+        for (i = 0; i < 30; i++) {
+            id = d->cards[i];
+            func_80046BAC(D_801D8348[player] + 0x14 + i * 8, id);
+            k = func_80047A58(id);
+            if (k >= 0) {
+                func_80047620(player, k, 0);
+                if (d->unk6D != 0) {
+                    func_80047C38(player, k, d->unk6D - 1);
+                }
+            }
+        }
+        func_80046A38(player, (Unk110 *)D_801D8348[player]);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003FB3C);
 
