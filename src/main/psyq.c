@@ -891,7 +891,14 @@ void func_8005A384(void) {
     CD_ready();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A3A4);
+long func_8005A3A4(long v) {
+    long old = D_80070C44;
+
+    D_80070C44 = v;
+    return old;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControl);
 
