@@ -121,7 +121,7 @@ segments:
       - [0x5E6F4, data, gfx/prim_util]
       - [0x5E760, .data, gfx/tmd_sort]
       - [0x5E780, .data, model/scene3d]
-      - [0x5E798, data, ui/text]
+      - [0x5E798, .data, ui/text]
       - [0x5E7FC, .data, system/sound]
       - [0x5E850, data, system/memcard]
       - [0x5E8C0, data, model/stage]
