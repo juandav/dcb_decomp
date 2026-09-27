@@ -117,13 +117,52 @@ def name_rodata(base: str, target: str) -> None:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
 
 
+def relocate_data_by_section(path: str) -> None:
+    """Make PATH's .data relocations into its own .rodata section-relative.
+
+    splat names the strings a table in .data points to, so the original's
+    relocations use those symbols; GCC relocates against .rodata plus the
+    offset, stored in the word. Same data, written differently: rewrite
+    them the way GCC does."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        names = [s.name for s in elf.iter_sections()]
+        if ".rel.data" not in names or ".rodata" not in names:
+            return
+        rodata = names.index(".rodata")
+        data = elf.get_section_by_name(".data")
+        rel = elf.get_section_by_name(".rel.data")
+        symtab = elf.get_section_by_name(".symtab")
+        section_sym = next(i for i, s in enumerate(symtab.iter_symbols())
+                           if s["st_info"]["type"] == "STT_SECTION" and s["st_shndx"] == rodata)
+        patches = []
+        for r in rel.iter_relocations():
+            sym = symtab.get_symbol(r["r_info_sym"])
+            if r["r_info_type"] == 2 and sym["st_shndx"] == rodata and sym["st_info"]["type"] != "STT_SECTION":
+                patches.append((r, sym["st_value"]))
+        if not patches:
+            return
+        blob = bytearray((ROOT / path).read_bytes())
+        for i, r in enumerate(rel.iter_relocations()):
+            match = [v for rr, v in patches if rr["r_offset"] == r["r_offset"]]
+            if not match:
+                continue
+            entry = rel["sh_offset"] + i * rel["sh_entsize"]
+            info = (section_sym << 8) | r["r_info_type"]
+            blob[entry + 4:entry + 8] = info.to_bytes(4, "little")
+            word = data["sh_offset"] + r["r_offset"]
+            value = int.from_bytes(blob[word:word + 4], "little") + match[0]
+            blob[word:word + 4] = (value & 0xFFFFFFFF).to_bytes(4, "little")
+    (ROOT / path).write_bytes(blob)
+
+
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
     target = f"expected/asm/main/{module}.s.o"
-    if data:
-        target_all = f"expected/report/main/{module}.s.o"
-        link(target_all, [target] + data)
-        target = target_all
+    target_all = f"expected/report/main/{module}.s.o"
+    link(target_all, [target] + data)
+    target = target_all
+    relocate_data_by_section(target)
     base = f"build/report/main/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
     (ROOT / base).write_bytes((ROOT / f"build/src/main/{module}.c.o").read_bytes())
