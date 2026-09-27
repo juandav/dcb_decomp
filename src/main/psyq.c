@@ -1320,7 +1320,17 @@ void func_80066604(u_long value) {
 void func_80066618(void) {
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066620);
+int func_80066620(u_long *p, int n) {
+    int i = n - 1;
+
+    *D_80076860 = 0x04000000;
+    if (n != 0) {
+        do {
+            *D_8007685C = *p++;
+        } while (i-- != 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066660);
 
