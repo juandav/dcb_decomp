@@ -6106,7 +6106,37 @@ void func_8002195C(void *arg0, s16 arg1) {
     (*(s16 *)((s8 *)arg0 + 0x24)) = arg1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80021964);
+void func_80021964(u8 *m) {
+    u8 *k;
+    SVECTOR v;
+    MATRIX mat;
+    VECTOR lv;
+    s32 flag;
+
+    k = m + 0xD80;
+    if (*(s16 *)(k + 0x52) == 0) {
+        return;
+    }
+    v.vy = 0;
+    v.vx = 0;
+    v.vz = *(s16 *)(k + 0x52);
+    PushMatrix();
+    mat.t[2] = 0;
+    mat.t[1] = 0;
+    mat.t[0] = 0;
+    gte_SetTransMatrix(&mat);
+    RotMatrix(m + 0xA78, &mat);
+    gte_SetRotMatrix(&mat);
+    gte_ldv0(&v);
+    gte_rtv0tr();
+    gte_stlvnl(&lv);
+    gte_stflg(&flag);
+    *(s16 *)(k + 0x52) = 0;
+    *(s32 *)(m + 8) += lv.vx;
+    *(s32 *)(m + 0xC) += lv.vy;
+    *(s32 *)(m + 0x10) += lv.vz;
+    PopMatrix();
+}
 
 void func_80021AA8(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
     s32 start;
