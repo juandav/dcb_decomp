@@ -27,6 +27,12 @@ mkdir gcc-2.7.2-psx
 tar -xzf gcc-2.7.2-psx.tar.gz -C gcc-2.7.2-psx
 rm gcc-2.7.2-psx.tar.gz
 
+fetch gcc-2.8.1-psx.tar.gz https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1-psx.tar.gz
+rm -rf gcc-2.8.1-psx
+mkdir gcc-2.8.1-psx
+tar -xzf gcc-2.8.1-psx.tar.gz -C gcc-2.8.1-psx
+rm gcc-2.8.1-psx.tar.gz
+
 fetch objdiff-cli-linux-x86_64 https://github.com/encounter/objdiff/releases/download/v3.8.1/objdiff-cli-linux-x86_64
 chmod a+x objdiff-cli-linux-x86_64
 
