@@ -521,7 +521,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmSetVol);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmVSetUp);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80055730);
+extern short D_801D96C0;
+
+void func_80055730(void) {
+    D_801D96C0 = 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80055740);
 
