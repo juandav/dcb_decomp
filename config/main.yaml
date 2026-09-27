@@ -107,6 +107,7 @@ segments:
       - [0xC438, c, system/decompress]
       - [0xC8A8, c, system/sort]
       - [0xCA20, c, gfx/prim]
+      - [0xCEA4, c, gfx/prim_pair]
       - [0xDED0, c, gfx/prim3d]
       - [0xEBC8, c, gfx/prim_util]
       - [0xF530, c, gfx/transform]
