@@ -765,7 +765,35 @@ s32 DrawSync(s32);
 s32 LoadImage(s16 *, s32);
 s32 func_80014A90();
 
-INCLUDE_ASM("asm/main/nonmatchings/game", main);
+void ResetCallback(void);
+void SetDispMask(s32);
+void GsInitGraph(u16, u16, u16, u16, u16);
+s32 ClearImage(Rect16 *, s32, s32, s32);
+void SsInit(void);
+void func_8001AA80(s32);
+void func_800149A8(s32, s32, void (*)(), s32, s32, s32, s32);
+void D_800155F4();
+
+int main(void) {
+    Rect16 r;
+
+    ResetCallback();
+    VSync(0);
+    SetDispMask(0);
+    GsInitGraph(320, 240, 0, 0, 0);
+    r.x = 0;
+    r.y = 0;
+    r.w = 640;
+    r.h = 511;
+    ClearImage(&r, 0, 0, 0);
+    DrawSync(0);
+    SsInit();
+    func_8001AA80(1);
+    func_800149A8(1, 0x400, D_800155F4, 0, 0, 0, 0);
+    for (;;) {
+        rand();
+    }
+}
 
 s32 func_8006A804();
 s32 func_8006A814();
