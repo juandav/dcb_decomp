@@ -62,6 +62,9 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 11. combine re-enables volatile MEMs in the recognizer when it ends, as
    GCC 2.8 does, so sched1 can recognize and schedule insns with volatile
    MEMs (trapIntr's loop exit test).
+12. -fforce-mem no longer loads a MEM into a register before extending it
+   (GCC 2.8), so `(int)s.byte` is one `zero_extend (mem)` that cse doesn't
+   replace with a value just stored there (SetGraphDebug reloads D.level).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -500,6 +503,36 @@ def patch(src, dst):
 
     start = in_bc(recog_volatile)
     put(site, replaced, b"\xe9" + (start - (site + 5)).to_bytes(4, "little", signed=True) + b"\x90" * 5)
+    # 12. -fforce-mem doesn't copy a MEM into a register before extending it,
+    #    as in GCC 2.8: expand_expr's NOP_EXPR (+10954) drops its
+    #    `if (flag_force_mem && GET_CODE (op0) == MEM) op0 = copy_to_reg (op0)`
+    #    and emit_unop_insn (+93) skips force_not_mem for SIGN_EXTEND and
+    #    ZERO_EXTEND ("extension from memory is often done specially on RISC
+    #    machines"). `(int)s.byte` then expands to `(zero_extend:SI (mem:QI))`
+    #    instead of a QImode load and an extension of that register, and cse
+    #    doesn't replace it with a value stored before: SetGraphDebug reloads
+    #    D.level for the printf.
+    put(0x080A7DF5, b"\x74\x21", b"\xeb\x21")
+
+    def extend_from_mem(code, jump):
+        def short(opcode):
+            code.extend(opcode + b"\x00")
+            return len(code)
+
+        code += b"\x83\x3d" + (0x082C1930).to_bytes(4, "little") + b"\x00"  # cmpl $0,flag_force_mem
+        skip1 = short(b"\x74")
+        code += b"\x8b\x45\x14\x83\xe8\x64\x83\xf8\x01"  # code - SIGN_EXTEND <= 1 (ZERO_EXTEND)?
+        skip2 = short(b"\x76")
+        code += b"\x83\xec\x0c\xff\x75\x10"        # sub $12,%esp; push op0
+        jump(b"\xe8", 0x080C285E)                  # call force_not_mem
+        code += b"\x83\xc4\x10\x89\x45\x10"        # add $16,%esp; mov %eax,op0
+        for at in (skip1, skip2):
+            code[at - 1] = len(code) - at
+        jump(b"\xe9", 0x080C81B9)
+
+    start = in_bc(extend_from_mem)
+    put(0x080C819C, bytes.fromhex("c7c030192c08"),
+        b"\xe9" + (start - (0x080C819C + 5)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
