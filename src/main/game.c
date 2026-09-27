@@ -5462,7 +5462,46 @@ void func_8001F694(s32 flag, u32 i, u8 *base) {
     gte_lwc2(6, 0, base);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F6C4);
+u32 *func_8001F6C4(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+    u32 *next;
+    register u32 rgb asm("$8");
+    u32 len;
+    u32 z;
+    u32 tag;
+
+    gte_mfc2(20, rgb);
+    gte_swc2(12, 8, p);
+    p[1] = rgb | code;
+    next = p;
+    if (gouraud) {
+        gte_swc2(2, 12, p);
+        gte_swc2(21, 16, p);
+        gte_swc2(13, 20, p);
+        gte_swc2(4, 24, p);
+        gte_swc2(22, 28, p);
+        gte_swc2(14, 32, p);
+        gte_swc2(3, 36, p);
+        gte_mfc2(7, z);
+        len = 0x09000000;
+        next = p + 10;
+    } else {
+        gte_swc2(2, 12, p);
+        gte_swc2(13, 16, p);
+        gte_swc2(4, 20, p);
+        gte_swc2(14, 24, p);
+        gte_swc2(3, 28, p);
+        gte_mfc2(7, z);
+        len = 0x07000000;
+        next += 8;
+    }
+    if (z >= (u32)SORT_WORK->unk20) {
+        return p;
+    }
+    tag = len | ot[z];
+    ot[z] = (u32)p;
+    *p = tag;
+    return next;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F768);
 
