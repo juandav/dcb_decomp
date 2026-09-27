@@ -211,7 +211,7 @@ u8 * HELP_BAR_TEXTS[9] = {
 };
 
 void drawHudSprite(SprtInfo *info, s32 unused, s32 z) {
-    if (func_80029990() == 0) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = info->x;
         CUR_SPRT->sp.y0 = info->y;
         CUR_SPRT->sp.u0 = info->u;
@@ -226,7 +226,7 @@ void drawHudSprite(SprtInfo *info, s32 unused, s32 z) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, info->tpage);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
@@ -529,7 +529,7 @@ void renderPhaseBanner(void) {
         break;
     }
     if (STATUS_STEP_SPRITES[DUEL_MSG_BAR.next] != -1) {
-        if (func_80029990() != 0) {
+        if (isSpritePoolFull() != 0) {
             return;
         }
         CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px + 0xE;
@@ -546,9 +546,9 @@ void renderPhaseBanner(void) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
-    if (func_80029990() != 0) {
+    if (isSpritePoolFull() != 0) {
         return;
     }
     CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px;
@@ -565,8 +565,8 @@ void renderPhaseBanner(void) {
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
-    D_801D6B24 += sizeof(SprtPacket);
-    if (func_80029990() != 0) {
+    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    if (isSpritePoolFull() != 0) {
         return;
     }
     CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px + 10;
@@ -583,8 +583,8 @@ void renderPhaseBanner(void) {
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
-    D_801D6B24 += sizeof(SprtPacket);
-    if (func_80029990() != 0) {
+    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    if (isSpritePoolFull() != 0) {
         return;
     }
     CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px + 0x30;
@@ -601,7 +601,7 @@ void renderPhaseBanner(void) {
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->sp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0x1E], &CUR_SPRT->dm);
-    D_801D6B24 += sizeof(SprtPacket);
+    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
 }
 
 void renderStatusMessage(s32 brightness) {
@@ -649,7 +649,7 @@ void renderStatusMessage(s32 brightness) {
             }
             *dst++ = *src++;
         } while (src[-1] != 0);
-        func_80028D48(0x10, DUEL_MSG_BAR.y + 0xE, (s32)buf, (s32 *)rgb, 7, 0xFFE);
+        drawTextColored(0x10, DUEL_MSG_BAR.y + 0xE, (s32)buf, (s32 *)rgb, 7, 0xFFE);
     }
     clipRect.x = env.disp[0] + 0x10;
     clipRect.y = env.disp[1] + 0xE;
@@ -682,7 +682,7 @@ void renderHelpBar(s32 brightness) {
         DUEL_MSG_BAR.y2--;
     }
     if (DUEL_MSG_BAR.cur2 != -1) {
-        if (func_80029990() != 0) {
+        if (isSpritePoolFull() != 0) {
             return;
         }
         CUR_SPRT->sp.x0 = 0x10;
@@ -699,11 +699,11 @@ void renderHelpBar(s32 brightness) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         if (DUEL_MSG_BAR.unkA == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
-            func_80028D48(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
+            drawTextColored(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
         } else {
-            func_80028D48(0x40, 0xDB - DUEL_MSG_BAR.y2, (s32)HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], (s32 *)rgb, 7, 0xFFE);
+            drawTextColored(0x40, 0xDB - DUEL_MSG_BAR.y2, (s32)HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], (s32 *)rgb, 7, 0xFFE);
         }
     }
     clipRect.x = env.disp[0] + 0x10;
@@ -715,7 +715,7 @@ void renderHelpBar(s32 brightness) {
 }
 
 void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z) {
-    if (func_80029990() == 0) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
         CUR_SPRT->sp.u0 = 0xD0;
@@ -730,12 +730,12 @@ void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
 void drawWinMarker(s32 x, s32 y, s32 z) {
-    if (func_80029990() == 0) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
         CUR_SPRT->sp.u0 = 0xD0;
@@ -750,7 +750,7 @@ void drawWinMarker(s32 x, s32 y, s32 z) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
@@ -846,7 +846,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     if (nclip <= 0) {
         otz = RotAverage4(&vertices[1], &vertices[0], &vertices[3], &vertices[2], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &depthCue, &flag);
     }
-    if ((sprite->flags & 0x20) && func_80029990() == 0) {
+    if ((sprite->flags & 0x20) && isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = sxy[0] - 10;
         CUR_SPRT->sp.y0 = (sxy[0] >> 16) + 6;
         CUR_SPRT->sp.u0 = (u8)(sprite->num / 5) * 60;
@@ -861,7 +861,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
     sprite->z = 0x57 - *(s16 *)(D_801D833C + spriteIndex * 36 + 0x20);
     duel = D_801D8340;

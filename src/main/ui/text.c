@@ -6,8 +6,8 @@
 #include "dcb/loader.h"
 #include "dcb/main.h"
 
-s32 D_8006DF98 = 0x808080;
-u8 D_8006DF9C[96] = {
+s32 DEFAULT_TEXT_RGB = 0x808080;
+u8 FONT_GLYPH_METRICS[96] = {
     0x4, 0x13, 0x4, 0x6, 0x6, 0x6, 0x6, 0x14,
     0x5, 0x15, 0x6, 0x6, 0x4, 0x6, 0x14, 0x6,
     0x6, 0x14, 0x6, 0x6, 0x6, 0x6, 0x6, 0x6,
@@ -22,47 +22,47 @@ u8 D_8006DF9C[96] = {
     0x6, 0x6, 0x5, 0x6, 0x6, 0x6, 0x6, 0x6,
 };
 
-void func_80026E90(s32 x, s32 y, s32 n) {
+void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize) {
     Rect16 r;
     u32 *tim;
-    SprtPacket *p;
+    SprtPacket *pool;
     s32 i;
     TIM_IMAGE *image;
 
-    D_801D6B12 = x;
-    D_801D6B14 = y;
-    D_801D6B20 = x + 0x20;
-    D_801D6B22 = y + 0xF8;
-    D_801D6B10 = n;
+    SYSTEM_TEX_X = vramX;
+    SYSTEM_TEX_Y = vramY;
+    SYSTEM_CLUT_X = vramX + 0x20;
+    SYSTEM_CLUT_Y = vramY + 0xF8;
+    SPRITE_POOL_SIZE = poolSize;
     func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", func_800148B0());
     tim = (u32 *)func_80014C08(0x7FFFFFFF);
-    uploadTim(tim, D_801D6B12, D_801D6B14, -2, -2);
+    uploadTim(tim, SYSTEM_TEX_X, SYSTEM_TEX_Y, -2, -2);
     image = &LOADED_TIM;
-    r.x = D_801D6B20;
-    r.y = D_801D6B22;
+    r.x = SYSTEM_CLUT_X;
+    r.y = SYSTEM_CLUT_Y;
     r.w = 0x20;
     r.h = 8;
     LoadImage((s16 *)&r, (s32)image->caddr);
     DrawSync(0);
     freeHeapBlock(tim);
-    p = allocPermanentHeapBlock(D_801D6B10 * sizeof(SprtPacket) * 2);
+    pool = allocPermanentHeapBlock(SPRITE_POOL_SIZE * sizeof(SprtPacket) * 2);
     for (i = 0; i < 2; i++) {
-        DB(i).unk40B8 = (s32)(p + D_801D6B10 * i);
+        DB(i).unk40B8 = (s32)(pool + SPRITE_POOL_SIZE * i);
     }
-    func_80027044();
-    D_801D6B24 = CURRENT_FRAME_BUFFER->unk40B8;
+    initSpritePoolPackets();
+    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->unk40B8;
 }
 
-void func_80027044(void) {
+void initSpritePoolPackets(void) {
     s32 i;
     s32 j;
 
-    if (D_801D6B10 == 0) {
+    if (SPRITE_POOL_SIZE == 0) {
         return;
     }
     for (i = 0; i < 2; i++) {
-        for (j = 0; j < D_801D6B10; j++) {
-            setDrawMode(&((SprtPacket *)DB(i).unk40B8)[j].dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        for (j = 0; j < SPRITE_POOL_SIZE; j++) {
+            setDrawMode(&((SprtPacket *)DB(i).unk40B8)[j].dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             setSprt(&((SprtPacket *)DB(i).unk40B8)[j].sp);
             setSemiTrans(&((SprtPacket *)DB(i).unk40B8)[j].sp, 1);
             setShadeTex(&((SprtPacket *)DB(i).unk40B8)[j].sp, 0);
@@ -71,23 +71,23 @@ void func_80027044(void) {
     }
 }
 
-void func_800271D0(void) {
-    D_801D6B24 = CURRENT_FRAME_BUFFER->unk40B8;
+void resetSpritePool(void) {
+    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->unk40B8;
 }
 
-void func_800271EC(s32 arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
-    func_80027228(arg0, arg1, (Rect16 *)arg2, (u8 *)&D_8006DF98, arg3, arg4, arg5);
+void drawPageSprite(s32 x, s32 y, s32 uvRect, u16 tpage, s32 palette, s32 z) {
+    drawPageSpriteColored(x, y, (Rect16 *)uvRect, (u8 *)&DEFAULT_TEXT_RGB, tpage, palette, z);
 }
 
-void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
-    if (func_80029990() == 0) {
+void drawPageSpriteColored(s32 x, s32 y, Rect16 *uvRect, u8 *rgb, u16 tpage, s32 palette, s32 z) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
-        CUR_SPRT->sp.u0 = r->x;
-        CUR_SPRT->sp.v0 = r->y;
-        CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-        CUR_SPRT->sp.w = r->w;
-        CUR_SPRT->sp.h = r->h;
+        CUR_SPRT->sp.u0 = uvRect->x;
+        CUR_SPRT->sp.v0 = uvRect->y;
+        CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+        CUR_SPRT->sp.w = uvRect->w;
+        CUR_SPRT->sp.h = uvRect->h;
         setSemiTrans(&CUR_SPRT->sp, 1);
         CUR_SPRT->sp.r0 = rgb[0];
         CUR_SPRT->sp.g0 = rgb[1];
@@ -95,604 +95,604 @@ void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
         setDrawMode(&CUR_SPRT->dm, 0, 0, tpage);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
-void func_80027410(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5,
-                   s32 arg6, s32 arg7) {
-    func_80027458(arg0, arg1, arg2, arg3, arg4, arg5, arg6, (u8 *)&D_8006DF98, arg7);
+void drawSystemSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h,
+                   s32 palette, s32 z) {
+    drawSystemSpriteColored(x, y, u, v, w, h, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32 z) {
-    if (func_80029990() == 0) {
+void drawSystemSpriteColored(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 palette, u8 *rgb, s32 z) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
         CUR_SPRT->sp.u0 = u;
         CUR_SPRT->sp.v0 = v;
-        CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+        CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
         CUR_SPRT->sp.w = w;
         CUR_SPRT->sp.h = h;
         setSemiTrans(&CUR_SPRT->sp, 1);
         CUR_SPRT->sp.r0 = rgb[0];
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
-        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
-void func_80027674(s32 x, s32 y, u8 c, s32 n, s32 z, s32 w, s32 h, s32 bu, s32 bv) {
-    func_800276C8(x, y, c, n, (u8 *)&D_8006DF98, z, w, h, bu, bv);
+void drawGlyph(s32 x, s32 y, u8 ch, s32 palette, s32 z, s32 w, s32 h, s32 baseU, s32 baseV) {
+    drawGlyphColored(x, y, ch, palette, (u8 *)&DEFAULT_TEXT_RGB, z, w, h, baseU, baseV);
 }
 
-void func_800276C8(s32 x, s32 y, u8 c, s32 n, u8 *rgb, s32 z, s32 w, s32 h, s32 bu, s32 bv) {
-    if (c > 0x20 && func_80029990() == 0) {
+void drawGlyphColored(s32 x, s32 y, u8 ch, s32 palette, u8 *rgb, s32 z, s32 w, s32 h, s32 baseU, s32 baseV) {
+    if (ch > 0x20 && isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
-        CUR_SPRT->sp.u0 = bu + (c & 0xF) * 8;
-        CUR_SPRT->sp.v0 = bv + (((c - 0x20) & 0xF0) >> 1);
-        CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+        CUR_SPRT->sp.u0 = baseU + (ch & 0xF) * 8;
+        CUR_SPRT->sp.v0 = baseV + (((ch - 0x20) & 0xF0) >> 1);
+        CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
         CUR_SPRT->sp.w = w;
         CUR_SPRT->sp.h = h;
         setSemiTrans(&CUR_SPRT->sp, 1);
         CUR_SPRT->sp.r0 = rgb[0];
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
-        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
-void func_8002790C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_8002793C(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawTinyText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawTinyTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_8002793C(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+void drawTinyTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s32 left;
     s16 clut;
-    s32 c;
+    s32 ch;
 
     left = x;
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    while (*s != 0) {
-        switch (*s) {
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    while (*text != 0) {
+        switch (*text) {
         case '\f':
-            s++;
-            n = *s++;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         case '*':
-            s++;
-            switch (*s) {
+            text++;
+            switch (*text) {
             case 'a':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - '0', rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - '0', rgb, z);
                 break;
             case 'b':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - ')', rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - ')', rgb, z);
                 break;
             case 'c':
-                s++;
-                n = *s - '0';
-                s++;
-                clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                text++;
+                palette = *text - '0';
+                text++;
+                clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
                 break;
             case 'd':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - 0x1C, rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - 0x1C, rgb, z);
                 break;
             case 'e':
-                s++;
-                n = *s;
-                if (*s < '4') {
-                    n -= '#';
-                } else if (*s == 'a') {
-                    n = 0x11;
+                text++;
+                palette = *text;
+                if (*text < '4') {
+                    palette -= '#';
+                } else if (*text == 'a') {
+                    palette = 0x11;
                 } else {
-                    n = *s - '"';
+                    palette = *text - '"';
                 }
-                func_80029A0C(x, y, 3, n, rgb, z);
-                s++;
+                drawIconColored(x, y, 3, palette, rgb, z);
+                text++;
                 break;
             }
         case '\n':
             x = left;
             y += 6;
-            s++;
+            text++;
             break;
         case ' ':
             x += 4;
-            s++;
+            text++;
             break;
         default:
-            c = *s++;
-            if (c >= 'a') {
-                c -= 0x20;
+            ch = *text++;
+            if (ch >= 'a') {
+                ch -= 0x20;
             }
-            if (func_80029990() != 0) {
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             x += 4;
-            CUR_SPRT->sp.u0 = (c & 0xF) * 4;
-            CUR_SPRT->sp.v0 = ((c - 0x20) >> 4) * 5 - 0x16;
+            CUR_SPRT->sp.u0 = (ch & 0xF) * 4;
+            CUR_SPRT->sp.v0 = ((ch - 0x20) >> 4) * 5 - 0x16;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 4;
             CUR_SPRT->sp.h = 5;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-void func_80027DB8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80027DE8(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawSmallText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawSmallTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_80027DE8(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+void drawSmallTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s32 left;
     s16 clut;
-    s32 c;
+    s32 ch;
     s32 icon;
 
     left = x;
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    while (*s != 0) {
-        switch (*s) {
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    while (*text != 0) {
+        switch (*text) {
         case 1:
-            s++;
-            func_80029A0C(x, y, 3, *s++ - 1, rgb, z);
+            text++;
+            drawIconColored(x, y, 3, *text++ - 1, rgb, z);
             x += 6;
             break;
         case '*':
-            s++;
-            switch (*s) {
+            text++;
+            switch (*text) {
             case 'a':
-                s++;
-                func_80029A0C(x, y, 3, *s++ - '0', rgb, z);
+                text++;
+                drawIconColored(x, y, 3, *text++ - '0', rgb, z);
                 x += 6;
                 break;
             case 'b':
-                s++;
-                func_80029A0C(x, y, 3, *s++ - 0x29, rgb, z);
+                text++;
+                drawIconColored(x, y, 3, *text++ - 0x29, rgb, z);
                 x += 6;
                 break;
             case 'c':
-                s++;
-                n = *s++ - '0';
-                clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                text++;
+                palette = *text++ - '0';
+                clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
                 break;
             case 'd':
-                s++;
-                func_80029A0C(x, y, 3, *s++ - 0x1C, rgb, z);
+                text++;
+                drawIconColored(x, y, 3, *text++ - 0x1C, rgb, z);
                 x += 6;
                 break;
             case 'e':
-                s++;
-                if (*s < 0x34) {
-                    icon = *s - 0x23;
-                } else if (*s == 'a') {
+                text++;
+                if (*text < 0x34) {
+                    icon = *text - 0x23;
+                } else if (*text == 'a') {
                     icon = 0x11;
                 } else {
-                    icon = *s - 0x22;
+                    icon = *text - 0x22;
                 }
-                func_80029A0C(x, y, 3, icon, rgb, z);
+                drawIconColored(x, y, 3, icon, rgb, z);
                 x += 6;
-                s++;
+                text++;
                 break;
             }
             break;
         case '\f':
-            s++;
-            n = *s++;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         case '\n':
             x = left;
             y += 6;
-            s++;
+            text++;
             break;
         case ' ':
             x += 5;
-            s++;
+            text++;
             break;
         default:
-            c = *s++;
-            if (c >= 'a') {
-                c -= 0x20;
+            ch = *text++;
+            if (ch >= 'a') {
+                ch -= 0x20;
             }
-            if (func_80029990() != 0) {
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             x += 5;
-            CUR_SPRT->sp.u0 = (c & 0xF) * 4 + 0x40;
-            CUR_SPRT->sp.v0 = ((c - 0x20) >> 4) * 5 - 0x16;
+            CUR_SPRT->sp.u0 = (ch & 0xF) * 4 + 0x40;
+            CUR_SPRT->sp.v0 = ((ch - 0x20) >> 4) * 5 - 0x16;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 4;
             CUR_SPRT->sp.h = 5;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-void func_80028228(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80028258(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawVerticalText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawVerticalTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_80028258(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+void drawVerticalTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s16 clut;
     s32 top;
-    s32 c;
+    s32 ch;
 
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
     top = y - 5;
     y = top;
-    while (*s != 0) {
-        switch (*s) {
+    while (*text != 0) {
+        switch (*text) {
         case '\f':
-            s++;
-            n = *s++;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         case '\n':
             x += 6;
             y = top;
-            s++;
+            text++;
             break;
         case ' ':
             y -= 5;
-            s++;
+            text++;
             break;
         default:
-            c = *s++;
-            if (func_80029990() != 0) {
+            ch = *text++;
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             y -= 5;
-            CUR_SPRT->sp.u0 = (c & 0xF) * 6;
-            CUR_SPRT->sp.v0 = ((c - 0x20) >> 4) * 4 - 0x26;
+            CUR_SPRT->sp.u0 = (ch & 0xF) * 6;
+            CUR_SPRT->sp.v0 = ((ch - 0x20) >> 4) * 4 - 0x26;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 5;
             CUR_SPRT->sp.h = 4;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-void func_80028558(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80028588(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawMediumText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawMediumTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_80028588(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+void drawMediumTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s32 left;
     s16 clut;
-    s32 c;
+    s32 ch;
 
     left = x;
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    while (*s != 0) {
-        switch (*s) {
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    while (*text != 0) {
+        switch (*text) {
         case '*':
-            s++;
-            switch (*s) {
+            text++;
+            switch (*text) {
             case 'a':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - '0', rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - '0', rgb, z);
                 x += 6;
                 break;
             case 'b':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - ')', rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - ')', rgb, z);
                 x += 6;
                 break;
             case 'c':
-                s++;
-                n = *s++ - '0';
-                clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                text++;
+                palette = *text++ - '0';
+                clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
                 break;
             case 'd':
-                s++;
-                n = *s++;
-                func_80029A0C(x, y, 3, n - 0x1C, rgb, z);
+                text++;
+                palette = *text++;
+                drawIconColored(x, y, 3, palette - 0x1C, rgb, z);
                 x += 6;
                 break;
             case 'e':
-                s++;
-                n = *s;
-                if (*s < '4') {
-                    n -= '#';
-                } else if (*s == 'a') {
-                    n = 0x11;
+                text++;
+                palette = *text;
+                if (*text < '4') {
+                    palette -= '#';
+                } else if (*text == 'a') {
+                    palette = 0x11;
                 } else {
-                    n = *s - '"';
+                    palette = *text - '"';
                 }
-                func_80029A0C(x, y, 3, n, rgb, z);
+                drawIconColored(x, y, 3, palette, rgb, z);
                 x += 6;
-                s++;
+                text++;
                 break;
             }
             break;
         case '\f':
-            s++;
-            n = *s++;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         case '\n':
             x = left;
             y += 7;
-            s++;
+            text++;
             break;
         case ' ':
             x += 6;
-            s++;
+            text++;
             break;
         default:
-            c = *s++;
-            if (func_80029990() != 0) {
+            ch = *text++;
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             x += 6;
-            CUR_SPRT->sp.u0 = (c & 0xF) * 6;
-            CUR_SPRT->sp.v0 = (((c - 0x20) & 0xF0) >> 4) * 6 - 0x4C;
+            CUR_SPRT->sp.u0 = (ch & 0xF) * 6;
+            CUR_SPRT->sp.v0 = (((ch - 0x20) & 0xF0) >> 4) * 6 - 0x4C;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 6;
             CUR_SPRT->sp.h = 6;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-void func_800289A0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_800289D0(arg0, arg1, (u8 *)arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawLargeText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawLargeTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_800289D0(s32 x, s32 y, u8 *s, s32 n, u8 *rgb, s32 z) {
+void drawLargeTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s32 left;
     s16 clut;
-    s32 c;
+    s32 ch;
 
     left = x;
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    while (*s != 0) {
-        switch (*s) {
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    while (*text != 0) {
+        switch (*text) {
         case 1:
-            s++;
-            func_80029A0C(x, y, 1, *s++ - 1, rgb, z);
+            text++;
+            drawIconColored(x, y, 1, *text++ - 1, rgb, z);
             x += 8;
             break;
         case '\f':
-            s++;
-            n = *s++;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         case '\n':
             x = left;
             y += 9;
-            s++;
+            text++;
             break;
         case ' ':
             x += 8;
-            s++;
+            text++;
             break;
         default:
-            c = *s++;
-            if (func_80029990() != 0) {
+            ch = *text++;
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             x += 8;
-            CUR_SPRT->sp.u0 = (c & 0xF) * 8;
-            CUR_SPRT->sp.v0 = ((c - 0x20) >> 4) * 7;
+            CUR_SPRT->sp.u0 = (ch & 0xF) * 8;
+            CUR_SPRT->sp.v0 = ((ch - 0x20) >> 4) * 7;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 7;
             CUR_SPRT->sp.h = 7;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-void func_80028D18(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80028D48(arg0, arg1, (u8 *)arg2, (u8 *)&D_8006DF98, arg3, arg4);
+void drawText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
+    drawTextColored(x, y, (u8 *)text, (u8 *)&DEFAULT_TEXT_RGB, palette, z);
 }
 
-s32 func_80028D48(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
-    s32 dx;
-    s32 left;
-    s32 top;
-    s32 dy;
-    s32 prop;
+s32 drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z) {
+    s32 charSpacing;
+    s32 startX;
+    s32 startY;
+    s32 lineSpacing;
+    s32 proportional;
     s16 clut;
-    s32 c;
-    s32 t;
+    s32 ch;
+    s32 icon;
 
-    dx = 0;
-    left = x;
-    top = y;
-    dy = 0;
-    prop = 1;
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    D_801D6B18 = 0;
-    D_801D6B1C = 0;
-    while (*s != 0) {
-        if (*s == '*') {
-            s++;
-            switch (*s) {
+    charSpacing = 0;
+    startX = x;
+    startY = y;
+    lineSpacing = 0;
+    proportional = 1;
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    TEXT_WIDTH = 0;
+    TEXT_HEIGHT = 0;
+    while (*text != 0) {
+        if (*text == '*') {
+            text++;
+            switch (*text) {
             case 'a':
-                s++;
-                func_80029A0C(x, y + 1, 0, *s++ - '0', rgb, z);
-                x += 12 + dx;
-                if (D_801D6B18 < x) {
-                    D_801D6B18 = x;
+                text++;
+                drawIconColored(x, y + 1, 0, *text++ - '0', rgb, z);
+                x += 12 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
                 }
                 continue;
             case 'b':
-                s++;
-                func_80029A0C(x, y + 1, 0, *s++ - ')', rgb, z);
-                x += 12 + dx;
-                if (D_801D6B18 < x) {
-                    D_801D6B18 = x;
+                text++;
+                drawIconColored(x, y + 1, 0, *text++ - ')', rgb, z);
+                x += 12 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
                 }
                 continue;
             case 'c':
-                s++;
-                n = *s - '0';
-                s++;
-                clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                text++;
+                palette = *text - '0';
+                text++;
+                clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
                 continue;
             case 'd':
-                s++;
-                func_80029A0C(x, y + 1, 0, *s++ - 0x1C, rgb, z);
-                x += 12 + dx;
-                if (D_801D6B18 < x) {
-                    D_801D6B18 = x;
+                text++;
+                drawIconColored(x, y + 1, 0, *text++ - 0x1C, rgb, z);
+                x += 12 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
                 }
                 continue;
             case 'e':
-                s++;
-                t = *s;
-                if (*s < '4') {
-                    t -= '#';
-                } else if (*s == 'a') {
-                    t = 0x11;
+                text++;
+                icon = *text;
+                if (*text < '4') {
+                    icon -= '#';
+                } else if (*text == 'a') {
+                    icon = 0x11;
                 } else {
-                    t = *s - '"';
+                    icon = *text - '"';
                 }
-                func_80029A0C(x, y + 1, 0, t, rgb, z);
-                x += 12 + dx;
-                if (D_801D6B18 < x) {
-                    D_801D6B18 = x;
+                drawIconColored(x, y + 1, 0, icon, rgb, z);
+                x += 12 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
                 }
-                s++;
+                text++;
                 continue;
             case 'g':
-                s++;
-                func_80029A0C(x, y, 2, *s++ - '0', rgb, z);
-                x += 25 + dx;
-                if (D_801D6B18 < x) {
-                    D_801D6B18 = x;
+                text++;
+                drawIconColored(x, y, 2, *text++ - '0', rgb, z);
+                x += 25 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
                 }
                 continue;
             case 'h':
-                s++;
-                if (*s == '-') {
-                    s++;
-                    dy = '0' - *s++;
+                text++;
+                if (*text == '-') {
+                    text++;
+                    lineSpacing = '0' - *text++;
                 } else {
-                    dy = *s++ - '0';
+                    lineSpacing = *text++ - '0';
                 }
                 continue;
             case 's':
-                s++;
-                prop = *s++ - '0';
+                text++;
+                proportional = *text++ - '0';
                 continue;
             case 'w':
-                s++;
-                if (*s == '-') {
-                    s++;
-                    dx = '0' - *s++;
+                text++;
+                if (*text == '-') {
+                    text++;
+                    charSpacing = '0' - *text++;
                 } else {
-                    dx = *s++ - '0';
+                    charSpacing = *text++ - '0';
                 }
                 continue;
             }
         }
-        switch (*s) {
+        switch (*text) {
         case '\\':
-            s++;
-            if (*s != 'n') {
-                s++;
+            text++;
+            if (*text != 'n') {
+                text++;
                 break;
             }
-            s++;
-            x = left;
-            y += 13 + dy;
-            if (D_801D6B18 < x) {
-                D_801D6B18 = x;
+            text++;
+            x = startX;
+            y += 13 + lineSpacing;
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
             }
-            if (D_801D6B1C < y) {
-                D_801D6B1C = y;
+            if (TEXT_HEIGHT < y) {
+                TEXT_HEIGHT = y;
             }
             break;
         case '\n':
-            s++;
-            x = left;
-            y += 13 + dy;
-            if (D_801D6B18 < x) {
-                D_801D6B18 = x;
+            text++;
+            x = startX;
+            y += 13 + lineSpacing;
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
             }
-            if (D_801D6B1C < y) {
-                D_801D6B1C = y;
+            if (TEXT_HEIGHT < y) {
+                TEXT_HEIGHT = y;
             }
             break;
         default:
-            c = *s++ - 0x20;
-            if (func_80029990() != 0) {
+            ch = *text++ - 0x20;
+            if (isSpritePoolFull() != 0) {
                 return; /* no value: the caller never reads it */
             }
-            x += dx;
+            x += charSpacing;
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y + 1;
-            CUR_SPRT->sp.u0 = (c % 16) * 6;
-            if (prop != 0) {
-                CUR_SPRT->sp.u0 += D_8006DF9C[c] >> 4;
+            CUR_SPRT->sp.u0 = (ch % 16) * 6;
+            if (proportional != 0) {
+                CUR_SPRT->sp.u0 += FONT_GLYPH_METRICS[ch] >> 4;
             }
-            CUR_SPRT->sp.v0 = (c / 16) * 12 + 0x30;
+            CUR_SPRT->sp.v0 = (ch / 16) * 12 + 0x30;
             CUR_SPRT->sp.clut = clut;
-            if (prop != 0) {
-                CUR_SPRT->sp.w = (u8)(D_8006DF9C[c] & 0xF);
+            if (proportional != 0) {
+                CUR_SPRT->sp.w = (u8)(FONT_GLYPH_METRICS[ch] & 0xF);
             } else {
                 CUR_SPRT->sp.w = 6;
             }
@@ -700,136 +700,136 @@ s32 func_80028D48(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             x += CUR_SPRT->sp.w;
-            if (D_801D6B18 < x) {
-                D_801D6B18 = x;
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
             }
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
-    D_801D6B18 -= left;
-    D_801D6B1C = D_801D6B1C - top + 12;
-    return D_801D6B18;
+    TEXT_WIDTH -= startX;
+    TEXT_HEIGHT = TEXT_HEIGHT - startY + 12;
+    return TEXT_WIDTH;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/ui/text", func_800293FC);
+INCLUDE_ASM("asm/main/nonmatchings/ui/text", measureText);
 
-void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
+void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z) {
     s16 clut;
-    s32 g;
+    s32 glyph;
 
-    clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
-    while (*s != 0) {
-        switch (*s) {
+    clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
+    while (*text != 0) {
+        switch (*text) {
         case ' ':
             x += 0x10;
-            s++;
+            text++;
             break;
         case 'c':
-            s++;
-            n = *s++ & 0xF;
-            clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            text++;
+            palette = *text++ & 0xF;
+            clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             break;
         default:
-            g = *s++;
-            switch (g) {
+            glyph = *text++;
+            switch (glyph) {
             case '+':
-                g = 10;
+                glyph = 10;
                 break;
             case '-':
-                g = 11;
+                glyph = 11;
                 break;
             case '=':
-                g = 12;
+                glyph = 12;
                 break;
             default:
-                g -= '0';
+                glyph -= '0';
                 break;
             }
-            if (func_80029990() != 0) {
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             x += 0xC;
-            CUR_SPRT->sp.u0 = (g % 8) * 16 - 0x80;
-            CUR_SPRT->sp.v0 = (g / 8) * 0x15;
+            CUR_SPRT->sp.u0 = (glyph % 8) * 16 - 0x80;
+            CUR_SPRT->sp.v0 = (glyph / 8) * 0x15;
             CUR_SPRT->sp.clut = clut;
             CUR_SPRT->sp.w = 0x10;
             CUR_SPRT->sp.h = 0x15;
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             break;
         }
     }
 }
 
-s32 func_80029990(void) {
-    if (D_801D6B24 == CURRENT_FRAME_BUFFER->unk40B8 + D_801D6B10 * 0x1C) {
+s32 isSpritePoolFull(void) {
+    if (SPRITE_POOL_CURSOR == CURRENT_FRAME_BUFFER->unk40B8 + SPRITE_POOL_SIZE * 0x1C) {
         return -1;
     }
     return 0;
 }
 
-void func_800299DC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    func_80029A0C(arg0, arg1, arg2, arg3, (u8 *)&D_8006DF98, arg4);
+void drawIcon(s32 x, s32 y, s32 iconSet, s32 icon, s32 z) {
+    drawIconColored(x, y, iconSet, icon, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
-void func_80029A0C(s32 x, s32 y, s32 kind, s32 n, u8 *rgb, s32 z) {
+void drawIconColored(s32 x, s32 y, s32 iconSet, s32 icon, u8 *rgb, s32 z) {
     s16 w;
     s16 h;
 
     w = 0xB;
     h = 0xB;
-    if (func_80029990() == 0) {
-        switch (kind) {
+    if (isSpritePoolFull() == 0) {
+        switch (iconSet) {
         case 0:
-            CUR_SPRT->sp.u0 = (n % 14) * 12;
-            CUR_SPRT->sp.v0 = (n / 14) * 11 + 0x7F;
-            if (n >= 0x15 && n < 0x18) {
-                CUR_SPRT->sp.clut = getClut(D_801D6B20 + 16, D_801D6B22 + 5);
-            } else if (n == 0x1B) {
-                CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 3);
-            } else if (n >= 0x1C && n < 0x25) {
-                CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 7);
+            CUR_SPRT->sp.u0 = (icon % 14) * 12;
+            CUR_SPRT->sp.v0 = (icon / 14) * 11 + 0x7F;
+            if (icon >= 0x15 && icon < 0x18) {
+                CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + 16, SYSTEM_CLUT_Y + 5);
+            } else if (icon == 0x1B) {
+                CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 3);
+            } else if (icon >= 0x1C && icon < 0x25) {
+                CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 7);
             } else {
-                CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 5);
+                CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 5);
             }
             w = 12;
             h = 11;
             break;
         case 1:
-            CUR_SPRT->sp.u0 = n * 8;
+            CUR_SPRT->sp.u0 = icon * 8;
             CUR_SPRT->sp.v0 = 0x78;
-            CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 5);
+            CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 5);
             w = 7;
             h = 7;
             break;
         case 2:
-            if (n < 10) {
+            if (icon < 10) {
                 CUR_SPRT->sp.u0 = 0xD8;
-                CUR_SPRT->sp.v0 = n * 12 + 0x18;
+                CUR_SPRT->sp.v0 = icon * 12 + 0x18;
             } else {
                 CUR_SPRT->sp.u0 = 0xC0;
-                CUR_SPRT->sp.v0 = (n - 10) * 12 + 0x60;
+                CUR_SPRT->sp.v0 = (icon - 10) * 12 + 0x60;
             }
-            CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 5);
+            CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 5);
             w = 0x18;
             h = 0xC;
             break;
         case 3:
-            CUR_SPRT->sp.u0 = (n % 14) * 6 + 0x30;
-            CUR_SPRT->sp.v0 = (n / 14) * 6 - 0x60;
-            CUR_SPRT->sp.clut = getClut(D_801D6B20, D_801D6B22 + 5);
+            CUR_SPRT->sp.u0 = (icon % 14) * 6 + 0x30;
+            CUR_SPRT->sp.v0 = (icon / 14) * 6 - 0x60;
+            CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X, SYSTEM_CLUT_Y + 5);
             w = 5;
             h = 5;
             break;
@@ -842,185 +842,185 @@ void func_80029A0C(s32 x, s32 y, s32 kind, s32 n, u8 *rgb, s32 z) {
         CUR_SPRT->sp.r0 = rgb[0];
         CUR_SPRT->sp.g0 = rgb[1];
         CUR_SPRT->sp.b0 = rgb[2];
-        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 
-void func_80029EC4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5) {
-    func_80029EFC(arg0, arg1, arg2, arg3, (u8 *)&D_8006DF98, arg4, (u8 *)arg5);
+void func_80029EC4(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text) {
+    func_80029EFC(x, y, palette, unused, (u8 *)&DEFAULT_TEXT_RGB, z, (u8 *)text);
 }
 
-s32 func_80029EFC(s32 x, s32 y, s32 n, s32 arg3, u8 *rgb, s32 z, u8 *s) {
-    s32 left;
+s32 func_80029EFC(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text) {
+    s32 startX;
     s32 spacing;
     s32 lineSpacing;
-    s32 space;
-    s32 c;
+    s32 spaceWidth;
+    s32 icon;
 
-    left = x;
+    startX = x;
     spacing = 0;
     lineSpacing = 0;
-    space = 6;
-    if (func_80029990() != 0) {
+    spaceWidth = 6;
+    if (isSpritePoolFull() != 0) {
         return;
     }
-    while (*s != 0) {
-        if ((u8)(*s + 0x7F) >= 0x18) {
-            switch (*s) {
+    while (*text != 0) {
+        if ((u8)(*text + 0x7F) >= 0x18) {
+            switch (*text) {
             case '\\':
-                s++;
-                if (*s == 'n') {
-                    s++;
-                    x = left;
+                text++;
+                if (*text == 'n') {
+                    text++;
+                    x = startX;
                     y += 13 + lineSpacing;
                 } else {
-                    s++;
+                    text++;
                 }
                 break;
             case 'a':
-                s++;
-                c = *s++;
-                func_80029A0C(x, y + 1, 0, c - '0', rgb, z);
+                text++;
+                icon = *text++;
+                drawIconColored(x, y + 1, 0, icon - '0', rgb, z);
                 x += 12 + spacing;
                 break;
             case 'b':
-                s++;
-                c = *s++;
-                func_80029A0C(x, y + 1, 0, c - ')', rgb, z);
+                text++;
+                icon = *text++;
+                drawIconColored(x, y + 1, 0, icon - ')', rgb, z);
                 x += 12 + spacing;
                 break;
             case 'c':
-                s++;
-                n = *s - '0';
-                s++;
+                text++;
+                palette = *text - '0';
+                text++;
                 break;
             case 'd':
-                s++;
-                c = *s++;
-                func_80029A0C(x, y + 1, 0, c - 0x1C, rgb, z);
+                text++;
+                icon = *text++;
+                drawIconColored(x, y + 1, 0, icon - 0x1C, rgb, z);
                 x += 12 + spacing;
                 break;
             case 'e':
-                s++;
-                if (*s < '4') {
-                    c = *s - '#';
-                } else if (*s == 'a') {
-                    c = 0x11;
+                text++;
+                if (*text < '4') {
+                    icon = *text - '#';
+                } else if (*text == 'a') {
+                    icon = 0x11;
                 } else {
-                    c = *s - '"';
+                    icon = *text - '"';
                 }
-                func_80029A0C(x, y + 1, 0, c, rgb, z);
+                drawIconColored(x, y + 1, 0, icon, rgb, z);
                 x += 12 + spacing;
-                s++;
+                text++;
                 break;
             case 'g':
-                s++;
-                c = *s++;
-                func_80029A0C(x, y, 2, c - '0', rgb, z);
+                text++;
+                icon = *text++;
+                drawIconColored(x, y, 2, icon - '0', rgb, z);
                 x += 25 + spacing;
                 break;
             case 'h':
-                s++;
-                if (*s == '-') {
-                    s++;
-                    lineSpacing = '0' - *s;
-                    s++;
+                text++;
+                if (*text == '-') {
+                    text++;
+                    lineSpacing = '0' - *text;
+                    text++;
                 } else {
-                    lineSpacing = *s - '0';
-                    s++;
+                    lineSpacing = *text - '0';
+                    text++;
                 }
                 break;
             case 'w':
-                s++;
-                if (*s == '-') {
-                    s++;
-                    spacing = '0' - *s;
-                    s++;
+                text++;
+                if (*text == '-') {
+                    text++;
+                    spacing = '0' - *text;
+                    text++;
                 } else {
-                    spacing = *s - '0';
-                    s++;
+                    spacing = *text - '0';
+                    text++;
                 }
                 break;
             case 'z':
-                s++;
-                if (space == 6) {
-                    space = 12;
+                text++;
+                if (spaceWidth == 6) {
+                    spaceWidth = 12;
                 } else {
-                    space = 6;
+                    spaceWidth = 6;
                 }
                 break;
             case ' ':
-                s++;
-                x += space + spacing;
+                text++;
+                x += spaceWidth + spacing;
                 break;
             case '\n':
-                s++;
-                x = left;
+                text++;
+                x = startX;
                 y += 13;
                 y += lineSpacing;
                 break;
             case 's':
-                s += 2;
+                text += 2;
                 break;
             default:
-                if ((u32)(*s - '0') < 10) {
-                    if (func_80029990() != 0) {
-                        return x - left;
+                if ((u32)(*text - '0') < 10) {
+                    if (isSpritePoolFull() != 0) {
+                        return x - startX;
                     }
                     CUR_SPRT->sp.x0 = x;
                     CUR_SPRT->sp.y0 = y;
                     CUR_SPRT->sp.u0 = 0x6C;
                     CUR_SPRT->sp.v0 = 0x30;
-                    CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                    CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
                     CUR_SPRT->sp.w = 12;
                     CUR_SPRT->sp.h = 12;
                     setSemiTrans(&CUR_SPRT->sp, 1);
                     CUR_SPRT->sp.r0 = 0x80;
                     CUR_SPRT->sp.g0 = 0x80;
                     CUR_SPRT->sp.b0 = 0x80;
-                    setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+                    setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
                     addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
                     addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-                    D_801D6B24 += sizeof(SprtPacket);
+                    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
                     x += 6 + spacing;
                 }
-                s++;
+                text++;
                 break;
             }
         } else {
-            if (func_80029990() != 0) {
-                return x - left;
+            if (isSpritePoolFull() != 0) {
+                return x - startX;
             }
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
             CUR_SPRT->sp.u0 = 0x6C;
             CUR_SPRT->sp.v0 = 0x30;
-            CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            CUR_SPRT->sp.clut = getClut(SYSTEM_CLUT_X + (palette % 2) * 16, SYSTEM_CLUT_Y + palette / 2);
             CUR_SPRT->sp.w = 12;
             CUR_SPRT->sp.h = 12;
             setSemiTrans(&CUR_SPRT->sp, 1);
             CUR_SPRT->sp.r0 = rgb[0];
             CUR_SPRT->sp.g0 = rgb[1];
             CUR_SPRT->sp.b0 = rgb[2];
-            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
             x += 12 + spacing;
-            s += 2;
+            text += 2;
         }
     }
-    D_801D6B18 = x - left;
-    D_801D6B1C = y + 12;
-    return x - left;
+    TEXT_WIDTH = x - startX;
+    TEXT_HEIGHT = y + 12;
+    return x - startX;
 }
 
-s8 *func_8002A5B4(s8 *d, s8 *s) {
-    if ((*d = *s) == 0) {
-        return d;
+s8 *copyString(s8 *dst, s8 *src) {
+    if ((*dst = *src) == 0) {
+        return dst;
     }
-    return func_8002A5B4(d + 1, s + 1);
+    return copyString(dst + 1, src + 1);
 }

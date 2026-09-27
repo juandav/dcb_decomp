@@ -79,7 +79,7 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
 void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blendMode) {
     s32 tpageBits = tpage;
 
-    if (func_80029990() == 0) {
+    if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
         CUR_SPRT->sp.u0 = uvRect->x;
@@ -99,7 +99,7 @@ void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 o
         setDrawMode(&CUR_SPRT->dm, 0, 0, tpageBits);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->dm);
-        D_801D6B24 += sizeof(SprtPacket);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
 

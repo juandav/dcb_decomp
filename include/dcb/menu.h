@@ -36,18 +36,18 @@ typedef struct {
     /* 0x28 */ u8 pad;
 } Menu;
 
-void func_800191C0(Unk800190F4 *, Rect16 *, Bytes4 *);
-void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2);
-void func_80019280(Unk800190F4 *p, Rect16 *r);
-void func_800192E0(void *arg0, Bytes4 *arg1);
-void func_8001963C(void *arg0, void *arg1, Unk800190F4 *arg2, Bytes4 *arg3);
-void func_800197AC(void *arg0);
-void func_800192FC(Unk800190F4 *, s32);
-s32 func_800198A8(Menu *m);
-void func_80019EA4(u8 *w, u8 *text, u32 flags);
-void func_8001A1D8();
-void func_8001A40C(u8 *w);
-s32 func_8001A164(s32 *, s32);
-s8 func_8001A100(void *arg0);
+void setCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color);
+void initCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color);
+void moveCursorHighlight(Unk800190F4 *highlight, Rect16 *target);
+void setCursorHighlightColor(void *highlight, Bytes4 *color);
+void openMenu(void *menu, void *win, Unk800190F4 *highlight, Bytes4 *color);
+void centerMenuOnCursor(void *menu);
+void drawCursorHighlight(Unk800190F4 *highlight, s32 z);
+s32 updateMenuCursor(Menu *menu);
+void initDialog(u8 *dialog, u8 *text, u32 flags);
+void dialogTask();
+void drawDialogBody(u8 *dialog);
+s32 runDialogForPad(s32 *dialog, s32 pad);
+s8 runDialog(void *dialog);
 
 #endif /* DCB_MENU_H */

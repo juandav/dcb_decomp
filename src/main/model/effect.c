@@ -1419,7 +1419,7 @@ void func_80033F34(void) {
         x = 0x80;
         y = i * -125 + 0x99;
         for (j = 0; j < 3; j++) {
-            if (func_80029990() != 0) {
+            if (isSpritePoolFull() != 0) {
                 return;
             }
             if (D_801D8330 == 0 && ((*(u32 *)(D_801D8348[i] + 0x178) >> 2) & 3) != j) {
@@ -1439,7 +1439,7 @@ void func_80033F34(void) {
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1D);
             addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         }
     }
 }
@@ -1453,7 +1453,7 @@ void func_800341EC(void) {
     if (((temp_v0 >> 0x11) & 3) == 1) {
         var_a1 = 0;
     }
-    func_8001A164(&D_801D8278, var_a1);
+    runDialogForPad(&D_801D8278, var_a1);
 }
 
 INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010C9C);

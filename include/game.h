@@ -22,7 +22,7 @@
     ((0xe1000000) | ((dtd) ? 0x0200 : 0) | ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff))
 #define setDrawMode(p, dfe, dtd, tpage) \
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
-#define CUR_SPRT ((SprtPacket *)D_801D6B24)
+#define CUR_SPRT ((SprtPacket *)SPRITE_POOL_CURSOR)
 #define DB(i) (((Unk800794F8 *)&GRAPHICS)->unk98[i])
 #define PLAYER_DATA(p) (((Unk8006E050 *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
@@ -899,9 +899,9 @@ typedef struct {
     /* 0x6 */ s16 unk6;
 } CardEffect;
 
-extern s32 D_801D6B24;
-extern u16 D_801D6B12;
-extern u16 D_801D6B14;
+extern s32 SPRITE_POOL_CURSOR;
+extern u16 SYSTEM_TEX_X;
+extern u16 SYSTEM_TEX_Y;
 extern s32 PLAYER_PROFILES;
 extern Unk800793A0 *CURRENT_FRAME_BUFFER;
 extern u8 FRAME_BUFFER_INDEX;
@@ -909,11 +909,11 @@ extern s32 FRAME_INTERVAL;
 extern s32 GRAPHICS;
 extern s32 PAD_INPUT_ENABLED;
 extern char PATH_DRV_SUFFIX[];
-extern s32 D_80079500;
-extern char D_80010008[];
+extern s32 FRAME_CALLBACKS;
+extern char STR_TOO_MANY_WINDOWS[];
 extern PadState *PAD_STATES[];
-extern s32 D_801D6B18;
-extern s32 D_801D6B1C;
+extern s32 TEXT_WIDTH;
+extern s32 TEXT_HEIGHT;
 extern s32 LOADED_FILE_SIZE;
 extern TIM_IMAGE LOADED_TIM;
 extern s32 D_80079544;

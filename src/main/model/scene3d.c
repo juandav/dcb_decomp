@@ -169,7 +169,7 @@ void func_80024460(s32 alloc) {
     }
     if (alloc) {
         mountDriveTask((s32) "M:", func_800148B0());
-        func_8001683C((s32)func_80023DF0);
+        addFrameCallback((s32)func_80023DF0);
     }
 }
 
@@ -275,7 +275,7 @@ void func_80024B08(s32 w, s32 h, s32 cols, s32 rows, s32 unused, s32 vertical) {
             v++;
         }
     }
-    func_8001683C((s32)func_800246E0);
+    addFrameCallback((s32)func_800246E0);
 }
 
 void func_80024DD4(void) {

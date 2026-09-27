@@ -138,7 +138,7 @@ void renderFullscreenBackground(void) {
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x85);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
-    D_801D6B24 += sizeof(SprtPacket);
+    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     CUR_SPRT->sp.x0 = 0x100;
     CUR_SPRT->sp.y0 = 0;
     CUR_SPRT->sp.u0 = 0;
@@ -153,7 +153,7 @@ void renderFullscreenBackground(void) {
     setDrawMode(&CUR_SPRT->dm, 0, 0, 0x87);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
-    D_801D6B24 += sizeof(SprtPacket);
+    SPRITE_POOL_CURSOR += sizeof(SprtPacket);
 }
 
 void playModelAnimation(s32 modelSlot, s32 animId) {
