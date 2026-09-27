@@ -754,7 +754,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmPBVoice);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmPitchBend);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmSetProgVol);
+extern ProgAtr *D_801D96C4;
+
+long _SsVmSetProgVol(short vab, short prog, u_char vol) {
+    if (_SsVmVSetUp(vab, prog) != 0) {
+        return -1;
+    }
+    D_801D96C4[prog].mvol = vol;
+    return D_801D96C4[prog].mvol;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmSetSeqVol);
 
