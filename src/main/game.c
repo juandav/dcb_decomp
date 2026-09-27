@@ -823,6 +823,73 @@ typedef struct {
 } Unk13C;
 
 typedef struct {
+    /* 0x000 */ u8 unk0[0x20];
+    /* 0x020 */ s32 posX;
+    /* 0x024 */ s32 posY;
+    /* 0x028 */ s32 posZ;
+    /* 0x02C */ u8 unk2C[4];
+    /* 0x030 */ s16 rotX;
+    /* 0x032 */ s16 rotY;
+    /* 0x034 */ s16 rotZ;
+    /* 0x036 */ u8 unk36[2];
+    /* 0x038 */ s32 sx;
+    /* 0x03C */ s32 sy;
+    /* 0x040 */ s32 sz;
+    /* 0x044 */ s32 sw;
+    /* 0x048 */ u8 unk48[0x64];
+    /* 0x0AC */ s32 sx0;
+    /* 0x0B0 */ s32 sy0;
+    /* 0x0B4 */ s32 sz0;
+    /* 0x0B8 */ s32 unkB8;
+    /* 0x0BC */ s32 sxT;
+    /* 0x0C0 */ s32 syT;
+    /* 0x0C4 */ s32 szT;
+    /* 0x0C8 */ s32 swT;
+    /* 0x0CC */ s16 dsx;
+    /* 0x0CE */ s16 dsy;
+    /* 0x0D0 */ s16 dsz;
+    /* 0x0D2 */ s16 unkD2;
+    /* 0x0D4 */ s16 px;
+    /* 0x0D6 */ s16 py;
+    /* 0x0D8 */ s16 pz;
+    /* 0x0DA */ s16 unkDA;
+    /* 0x0DC */ s16 px2;
+    /* 0x0DE */ s16 py2;
+    /* 0x0E0 */ s16 pz2;
+    /* 0x0E2 */ s16 unkE2;
+    /* 0x0E4 */ u16 rx0;
+    /* 0x0E6 */ u16 ry0;
+    /* 0x0E8 */ u16 rz0;
+    /* 0x0EA */ s16 unkEA;
+    /* 0x0EC */ s16 drx;
+    /* 0x0EE */ s16 dry;
+    /* 0x0F0 */ s16 drz;
+    /* 0x0F2 */ s16 unkF2;
+    /* 0x0F4 */ s16 ddrx;
+    /* 0x0F6 */ s16 ddry;
+    /* 0x0F8 */ s16 ddrz;
+    /* 0x0FA */ u8 unkFA[6];
+    /* 0x100 */ s32 t;
+    /* 0x104 */ s32 t2;
+    /* 0x108 */ s32 cnt;
+    /* 0x10C */ s32 doneX;
+    /* 0x110 */ s32 doneY;
+    /* 0x114 */ s32 doneZ;
+    /* 0x118 */ s32 state;
+    /* 0x11C */ s32 flag;
+    /* 0x120 */ u8 unk120[4];
+    /* 0x124 */ s16 period;
+    /* 0x126 */ u8 unk126[6];
+    /* 0x12C */ s16 unk12C;
+    /* 0x12E */ s16 mode;
+    /* 0x130 */ s16 speed;
+    /* 0x132 */ u8 unk132[5];
+    /* 0x137 */ u8 unk137;
+    /* 0x138 */ u8 unk138;
+    /* 0x139 */ u8 unk139;
+} Anim;
+
+typedef struct {
     /* 0x00 */ u8 *base;
     /* 0x04 */ u8 *start;
     /* 0x08 */ u8 *pc;
@@ -9471,7 +9538,364 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010894);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800108A4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030F90);
+s32 func_80030F90(s32 arg, s32 flag) {
+    Anim *o = (Anim *)arg;
+    u8 f = flag;
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    s32 r;
+
+    if (o->mode != 10 && o->mode < 90) {
+        if (o->sx != o->sxT) {
+            o->sx = o->dsx * o->t + o->sx0;
+            if (o->dsx >= 0) {
+                if (o->sx >= o->sxT) {
+                    o->sx = o->sxT;
+                    o->doneX = 1;
+                }
+            } else if (o->sx <= o->sxT) {
+                o->sx = o->sxT;
+                o->doneX = 1;
+            }
+        } else {
+            o->doneX = 1;
+        }
+        if (o->sy != o->syT) {
+            o->sy = o->dsy * o->t + o->sy0;
+            if (o->dsy >= 0) {
+                if (o->sy >= o->syT) {
+                    o->sy = o->syT;
+                    o->doneY = 1;
+                }
+            } else if (o->sy <= o->syT) {
+                o->sy = o->syT;
+                o->doneY = 1;
+            }
+        } else {
+            o->doneY = 1;
+        }
+        if (o->sz != o->szT) {
+            o->sz = o->dsz * o->t + o->sz0;
+            if (o->dsz >= 0) {
+                if (o->sz >= o->szT) {
+                    o->sz = o->szT;
+                    o->doneZ = 1;
+                }
+            } else if (o->sz <= o->szT) {
+                o->sz = o->szT;
+                o->doneZ = 1;
+            }
+        } else {
+            o->doneZ = 1;
+        }
+        o->rotX = o->rx0 + o->drx * o->t + o->ddrx * o->t2 * o->t2 / 64;
+        o->rotY = o->ry0 + o->dry * o->t + o->ddry * o->t2 * o->t2 / 64;
+        o->rotZ = o->rz0 + o->drz * o->t + o->ddrz * o->t2 * o->t2 / 64;
+    }
+    func_8001F01C(o, &v0);
+    switch (o->mode) {
+    case 6:
+        o->state = -1;
+    case 0:
+    case 47:
+    case 48:
+    case 49:
+    case 56:
+    case 69:
+    case 82:
+    case 90:
+        o->posX = o->px;
+        o->posY = o->py;
+        o->posZ = o->pz;
+        break;
+    case 1:
+    case 11:
+    case 12:
+    case 13:
+    case 29:
+    case 30:
+    case 31:
+    case 50:
+    case 57:
+    case 63:
+    case 70:
+    case 76:
+    case 83:
+        func_80030130(o);
+        break;
+    case 2:
+    case 14:
+    case 15:
+    case 16:
+    case 32:
+    case 33:
+    case 34:
+    case 51:
+    case 58:
+    case 64:
+    case 71:
+    case 77:
+    case 84:
+        func_800301D0(o);
+        break;
+    case 3:
+    case 17:
+    case 18:
+    case 19:
+    case 35:
+    case 36:
+    case 37:
+    case 52:
+    case 59:
+    case 65:
+    case 72:
+    case 78:
+    case 85:
+        func_80030264(o);
+        break;
+    case 4:
+    case 20:
+    case 21:
+    case 22:
+    case 38:
+    case 39:
+    case 40:
+    case 53:
+    case 60:
+    case 66:
+    case 73:
+    case 79:
+    case 86:
+        func_800302E0(o);
+        break;
+    case 5:
+    case 23:
+    case 24:
+    case 25:
+    case 41:
+    case 42:
+    case 43:
+    case 54:
+    case 61:
+    case 67:
+    case 74:
+    case 80:
+    case 87:
+        func_8003035C((u8 *)o);
+        break;
+    case 7:
+    case 26:
+    case 27:
+    case 28:
+    case 44:
+    case 45:
+    case 46:
+    case 55:
+    case 62:
+    case 68:
+    case 75:
+    case 81:
+    case 88:
+        func_80030440((u8 *)o);
+        break;
+    case 8:
+    case 89:
+        func_8003058C((u8 *)o);
+        break;
+    }
+    if (o->state != -1 && o->mode != 0 && o->mode < 90) {
+        func_8001EEA0(o, f);
+        func_8001EEA0((u8 *)o + 0x4C, 0);
+        func_8001F01C(o, &v1);
+        func_8001F01C((u8 *)o + 0x4C, &v2);
+        r = func_80030A34(&v0, &v1, &v2, o->unk12C);
+        if (r == 1) {
+            switch (o->mode) {
+            case 11:
+            case 14:
+            case 17:
+            case 20:
+            case 23:
+            case 26:
+                o->mode = 0;
+                func_80030CA8((u8 *)o);
+                break;
+            case 12:
+            case 15:
+            case 18:
+            case 21:
+            case 24:
+            case 27:
+                o->mode = 0;
+                o->posX = o->px2;
+                o->posY = o->py2;
+                o->posZ = o->pz2;
+                o->px = o->px2;
+                o->py = o->py2;
+                o->pz = o->pz2;
+                func_80030CA8((u8 *)o);
+                o->sxT = o->sx;
+                o->syT = o->sy;
+                o->szT = o->sz;
+                o->swT = o->sw;
+                o->drx = 0;
+                o->dry = 0;
+                o->drz = 0;
+                o->ddrx = 0;
+                o->ddry = 0;
+                o->ddrz = 0;
+                break;
+            case 13:
+            case 16:
+            case 19:
+            case 22:
+            case 25:
+            case 28:
+                func_80030CA8((u8 *)o);
+                break;
+            case 50:
+            case 51:
+            case 52:
+            case 53:
+            case 54:
+            case 55:
+                o->unk139 = 1;
+                break;
+            case 76:
+            case 77:
+            case 78:
+            case 79:
+            case 80:
+            case 81:
+                o->mode = 0;
+                o->posX = o->px2;
+                o->posY = o->py2;
+                o->posZ = o->pz2;
+                o->px = o->px2;
+                o->py = o->py2;
+                o->pz = o->pz2;
+            case 63:
+            case 64:
+            case 65:
+            case 66:
+            case 67:
+            case 68:
+                o->unk137 = 2;
+                o->speed = -abs(o->speed);
+                break;
+            }
+            o->state = 1;
+        } else if (r == -1) {
+            o->state = 2;
+        }
+    }
+    if (o->mode < 90 && o->mode != 0 && o->state == -1) {
+        o->state = 0;
+    }
+    if (o->flag != 0) {
+        switch (o->mode) {
+    case 31:
+    case 34:
+    case 37:
+    case 40:
+    case 43:
+    case 46:
+    case 49:
+            func_80030CA8((u8 *)o);
+            break;
+        }
+    }
+    if (o->mode < 90) {
+        o->t++;
+        o->t2++;
+        if (o->period != 0 && o->flag == 0 && o->period < o->cnt++) {
+            o->cnt = o->period;
+            switch (o->mode) {
+            case 29:
+            case 32:
+            case 35:
+            case 38:
+            case 41:
+            case 44:
+            case 47:
+                o->mode = 0;
+                func_80030CA8((u8 *)o);
+                break;
+            case 30:
+            case 33:
+            case 36:
+            case 39:
+            case 42:
+            case 45:
+            case 48:
+                o->mode = 0;
+                func_80030CA8((u8 *)o);
+                o->sxT = o->sx;
+                o->syT = o->sy;
+                o->szT = o->sz;
+                o->swT = o->sw;
+                o->drx = 0;
+                o->dry = 0;
+                o->drz = 0;
+                o->ddrx = 0;
+                o->ddry = 0;
+                o->ddrz = 0;
+                break;
+            case 31:
+            case 34:
+            case 37:
+            case 40:
+            case 43:
+            case 46:
+            case 49:
+                func_80030CA8((u8 *)o);
+                break;
+            case 56:
+            case 57:
+            case 58:
+            case 59:
+            case 60:
+            case 61:
+            case 62:
+                o->unk139 = 1;
+                break;
+            case 82:
+            case 83:
+            case 84:
+            case 85:
+            case 86:
+            case 87:
+            case 88:
+            case 89:
+                o->mode = 0;
+                func_80030CA8((u8 *)o);
+                o->sxT = o->sx;
+                o->syT = o->sy;
+                o->szT = o->sz;
+                o->swT = o->sw;
+                o->drx = 0;
+                o->dry = 0;
+                o->drz = 0;
+                o->ddrx = 0;
+                o->ddry = 0;
+                o->ddrz = 0;
+            case 69:
+            case 70:
+            case 71:
+            case 72:
+            case 73:
+            case 74:
+            case 75:
+                o->unk137 = 2;
+                o->speed = -abs(o->speed);
+                break;
+            }
+            o->flag = 1;
+        }
+    }
+    func_8001EEA0(o, f);
+}
 
 void func_80031754(void *arg0) {
     if ((*(s16 *)((s8 *)arg0 + 0x12E)) >= 0x5B) {
