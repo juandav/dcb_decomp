@@ -19,6 +19,9 @@ D_800897EE = 0x800897EE; // size:0x2
 // Floor grid height, a halfword the code addresses on its own
 D_801D69FA = 0x801D69FA; // size:0x2
 
+// The scratchpad (a fixed hardware address), not a symbol
+D_1F800004 = 0x1F800004; // ignore:true
+
 // Game functions only reached through function pointers
 func_800141B8 = 0x800141B8; // type:func
 func_8001491C = 0x8001491C; // type:func
