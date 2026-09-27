@@ -8920,7 +8920,101 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80039730);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003B210);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003D4C4);
+void func_8003B210(s32, s32);
+void func_80044800(void);
+void func_80044AB0(void *, s32);
+
+#define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
+#define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
+
+void func_8003D4C4(void) {
+    char buf[8];
+    Rect16 rect;
+    u8 rgb[4] = "@@@";
+    s32 i;
+    s32 j;
+    s32 done;
+    s8 c;
+    s32 color;
+    s32 z;
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 30; j++) {
+            func_8003B210(i * 30 + j, i);
+        }
+    }
+    func_80044800();
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 8; j++) {
+            c = PLAYER(i)->unk1C2[j];
+            if (c >= 0) {
+                func_80044AB0(SPRITE(c), c);
+                if (SPRITE_KIND(c) == 0x1C) {
+                    break;
+                }
+            }
+        }
+        c = PLAYER(i)->unk1CD;
+        if (c >= 0) {
+            func_80044AB0(SPRITE(c), c);
+        }
+        done = 0;
+        for (j = 0; j < 3; j++) {
+            c = PLAYER(i)->unk1CA[j];
+            if (c >= 0) {
+                if (!done) {
+                    ((u8 *)SPRITE(c))[0x14] = PLAYER(i)->unk178_19;
+                    done = 1;
+                    if (SPRITE_KIND(c) < 0x1D) {
+                        color = PLAYER(i)->unk178_15 ? 3 : 7;
+                        func_8004480C(SPRITE(c), c);
+                        z = *(s32 *)((u8 *)SPRITE(c) + 0x38);
+                        func_800299DC(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30, 0,
+                                      0x1A, z);
+                        sprintf(buf, "%4d", PLAYER(i)->unk126[0]);
+                        func_80028D18(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
+                                      (s32)buf, color, z);
+                        rect.x = 0x60;
+                        rect.y = 0xDB;
+                        rect.w = 0x26;
+                        rect.h = 0xC;
+                        func_80027228(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
+                                      &rect, rgb, getTPage(0, 2, D_801D6B12, D_801D6B14), 0xC, z);
+                        done = 1;
+                    }
+                }
+                func_80044AB0(SPRITE(c), c);
+            }
+        }
+        for (j = 0; j < 30; j++) {
+            c = PLAYER(i)->unk19B[j];
+            if (c >= 0) {
+                func_80044AB0(SPRITE(c), c);
+                if (SPRITE_KIND(c) == 10) {
+                    break;
+                }
+            }
+        }
+        for (j = 3; j >= 0; j--) {
+            c = PLAYER(i)->unk1B9[j];
+            if (c >= 0) {
+                func_80044AB0(SPRITE(c), c);
+            }
+        }
+        for (j = 0; j < 30; j++) {
+            c = PLAYER(i)->unk17D[j];
+            if (c >= 0) {
+                func_80044AB0(SPRITE(c), c);
+                if (SPRITE_KIND(c) == 0) {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/* the original file padded its strings with an empty word here */
+__asm__(".section .rodata\n\t.word 0\n\t.section .text\n");
 
 void func_8003D9C0(Panel *p, s16 x, s16 y, s32 speed) {
     if (speed == 0) {
@@ -9306,7 +9400,7 @@ void func_8003EB50(void) {
     func_8001AFF0(0x7F);
 }
 
-s32 func_8003D4C4();
+void func_8003D4C4(void);
 s32 func_8003E4F0();
 void func_80042824(s32);
 s32 func_80042E78();
