@@ -655,7 +655,16 @@ void *startIntrVSync(void) {
     return func_80056D78;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056D0C);
+void func_80056D0C(void) {
+    int i;
+
+    D_80070AE8++;
+    for (i = 0; i < 8; i++) {
+        if (D_80070AC8[i] != NULL) {
+            D_80070AC8[i]();
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056D78);
 
