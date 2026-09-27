@@ -46,6 +46,14 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    GCC 2.8's queue path: the address goes to a register (`la v0,sym`), the old
    value is loaded into a temp, and the add and the store are queued
    (`lw v1,0(v0); move a0,v1; addiu v1,v1,1; ... sw v1,0(v0)`, trapIntr).
+9. cse's COST macro uses GCC 2.8's notreg_cost: a lowpart SUBREG of a wider
+   integer register costs what the register does, not rtx_cost * 2, so cse
+   keeps `(subreg:HI (reg:SI n) 0)` over an equal HImode pseudo and a short
+   field is loaded twice, `lh` for a compare and `lhu` for its raw value
+   (libgpu func_80065C54/func_80065CEC).
+10. local-alloc ties the register holding a called function pointer to the
+   call's result register ($v0), as with GCC 2.8's mips.md, whose call
+   patterns take the address as a register operand (libgpu func_800649E8).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -312,6 +320,154 @@ def patch(src, dst):
     put(cave, b"\xf3\x0f\x1e\xfb", code)
     put(0x080AE8D5, bytes.fromhex("837d0c007413"),
         b"\xe9" + (cave - (0x080AE8D5 + 5)).to_bytes(4, "little", signed=True) + b"\x90")
+
+    # 9. cse's COST: GCC 2.8's notreg_cost. A lowpart SUBREG of a wider
+    #    integer REG costs what the REG does (0 cheap, 1 pseudo, 2 hard)
+    #    instead of rtx_cost (x, SET) * 2 = 4, so cse_insn takes it over an
+    #    equivalent pseudo, e.g. `(subreg:HI (reg:SI 73) 0)` for a short
+    #    that was loaded sign-extended, and keeps both loads of the field
+    #    (libgpu func_80065C54: `lh` for the compare, `lhu` for the value).
+    #    New function after increment_mem; the rtx_cost calls of the COST
+    #    macro in cse.c go to it and their `* 2` becomes a plain move.
+    def notreg_cost(code, jump):
+        fix = {}
+
+        def br(opcode, label):  # forward branch to a label below (rel8, or rel32 for 0f 8x)
+            code.extend(opcode + bytes(1 if len(opcode) == 1 else 4))
+            fix.setdefault(label, []).append((len(code), len(opcode)))
+
+        def label(name):
+            for at, n in fix.pop(name, []):
+                if n == 1:
+                    assert len(code) - at < 0x80
+                    code[at - 1] = len(code) - at
+                else:
+                    code[at - 4:at] = (len(code) - at).to_bytes(4, "little")
+
+        code += b"\x53"                            # push %ebx
+        code += b"\x8b\x44\x24\x08"                # mov 8(%esp),%eax      (x)
+        code += b"\x66\x83\x38\x36"                # cmpw $SUBREG,(%eax)
+        br(b"\x0f\x85", "other")
+        code += b"\x8b\x48\x04"                    # mov 4(%eax),%ecx      (SUBREG_REG)
+        code += b"\x66\x83\x39\x34"                # cmpw $REG,(%ecx)
+        br(b"\x0f\x85", "other")
+        code += b"\x0f\xb6\x50\x02"                # movzbl 2(%eax),%edx   (GET_MODE (x))
+        code += b"\x0f\xb6\x59\x02"                # movzbl 2(%ecx),%ebx   (its REG's mode)
+        mode_class, mode_size = (0x082BCA80).to_bytes(4, "little"), (0x082BCB00).to_bytes(4, "little")
+        code += b"\x83\x3c\x95" + mode_class + b"\x01"  # cmpl $MODE_INT,mode_class(,%edx,4)
+        br(b"\x0f\x85", "other")
+        code += b"\x83\x3c\x9d" + mode_class + b"\x01"  # cmpl $MODE_INT,mode_class(,%ebx,4)
+        br(b"\x0f\x85", "other")
+        code += b"\x8b\x14\x95" + mode_size        # mov mode_size(,%edx,4),%edx
+        code += b"\x3b\x14\x9d" + mode_size        # cmp mode_size(,%ebx,4),%edx
+        br(b"\x0f\x8d", "other")                   # jge (not narrower)
+        code += b"\x50"                            # push x
+        jump(b"\xe8", 0x080DAA26)                  # call subreg_lowpart_p
+        code += b"\x83\xc4\x04\x85\xc0"            # add $4,%esp; test %eax,%eax
+        br(b"\x0f\x84", "other")
+        # TRULY_NOOP_TRUNCATION is 1 without -mips3. CHEAP_REG, as insert has it:
+        code += b"\x8b\x44\x24\x08\x8b\x48\x04"    # mov x,%eax; mov 4(%eax),%ecx
+        code += b"\x8b\x51\x04"                    # mov 4(%ecx),%edx      (REGNO)
+        code += b"\xf6\x41\x03\x08"                # testb $8,3(%ecx)      (REG_USERVAR_P)
+        br(b"\x74", "fixed")
+        code += b"\x83\xfa\x43"                    # cmp $FIRST_PSEUDO_REGISTER-1,%edx
+        br(b"\x7e", "zero")
+        label("fixed")
+        code += b"\x83\xfa\x1e"                    # cmp $FRAME_POINTER_REGNUM,%edx
+        br(b"\x74", "zero")
+        code += b"\x83\xfa\x1d"                    # cmp $STACK_POINTER_REGNUM,%edx
+        br(b"\x74", "zero")
+        code += b"\x85\xd2"                        # test %edx,%edx        (ARG_POINTER_REGNUM)
+        br(b"\x74", "zero")
+        code += b"\x83\xfa\x43"                    # cmp $FIRST_PSEUDO_REGISTER-1,%edx
+        br(b"\x7e", "hard")
+        code += b"\x83\xfa\x47"                    # cmp $LAST_VIRTUAL_REGISTER,%edx
+        br(b"\x7e", "zero")
+        code += b"\xb8\x01\x00\x00\x00\x5b\xc3"    # pseudo: return 1
+        label("hard")
+        code += b"\x80\xba" + (0x082D42E0).to_bytes(4, "little") + b"\x00"  # cmpb $0,fixed_regs(%edx)
+        br(b"\x75", "class")
+        code += b"\x80\xba" + (0x082D4220).to_bytes(4, "little") + b"\x00"  # cmpb $0,global_regs(%edx)
+        br(b"\x74", "two")
+        label("class")
+        code += b"\x83\x3c\x95" + (0x082BE500).to_bytes(4, "little") + b"\x00"  # REGNO_REG_CLASS != NO_REGS
+        br(b"\x75", "zero")
+        label("two")
+        code += b"\xb8\x02\x00\x00\x00\x5b\xc3"    # return 2
+        label("zero")
+        code += b"\x31\xc0\x5b\xc3"                # return 0
+        label("other")
+        code += b"\xff\x74\x24\x0c\xff\x74\x24\x0c"  # push outer_code; push x
+        jump(b"\xe8", 0x080F8E96)                  # call rtx_cost
+        code += b"\x83\xc4\x08\x01\xc0\x5b\xc3"    # add $8,%esp; add %eax,%eax; pop %ebx; ret
+        assert not fix
+
+    # Patches 9 and 10 go in the rest of bc_expand_expr, after increment_mem.
+    free = [cave + len(code)]
+
+    def in_bc(build):
+        start = (free[0] + 15) & ~15
+        code = bytearray()
+
+        def jump(opcode, target):
+            code.extend(opcode)
+            code.extend((target - (start + len(code) + 4)).to_bytes(4, "little", signed=True))
+
+        build(code, jump)
+        if start + len(code) > 0x080AAEA3 + 0x9B5:
+            sys.exit("patch_cc1: no room left in bc_expand_expr")
+        d[fo(start):fo(start) + len(code)] = code
+        free[0] = start + len(code)
+        return start
+
+    start = in_bc(notreg_cost)
+    for site, double, move in (
+            (0x080FA621, b"\x01\xc0", b"\x89\xc0"),          # insert
+            (0x080FD7E7, b"\x01\xc0", b"\x89\xc0"),          # find_best_addr
+            (0x080FD9DC, b"\x01\xc0", b"\x89\xc0"),
+            (0x080FDB0B, b"\x01\xc0", b"\x89\xc0"),
+            (0x08103FB1, b"\x01\xc0", b"\x89\xc0"),          # fold_rtx
+            (0x081047B0, b"\x8d\x1c\x00", b"\x89\xc3\x90"),  # (lea (%eax,%eax),%ebx)
+            (0x081048F4, b"\x01\xc0", b"\x89\xc0"),
+            (0x08104C54, b"\x8d\x1c\x00", b"\x89\xc3\x90"),
+            (0x08104DDD, b"\x01\xc0", b"\x89\xc0"),
+            (0x08108B72, b"\x01\xc0", b"\x89\xc0"),          # cse_insn
+            (0x08108CF4, b"\x01\xc0", b"\x89\xc0"),
+            (0x08108E2C, b"\x01\xc0", b"\x89\xc0"),
+            (0x08108FAE, b"\x01\xc0", b"\x89\xc0"),
+            (0x08109759, b"\x8d\x1c\x00", b"\x89\xc3\x90"),
+            (0x08109857, b"\x01\xc0", b"\x89\xc0"),
+            (0x0810C394, b"\x8d\x34\x00", b"\x89\xc6\x90"),  # cse_set_around_loop
+            (0x0810C4D9, b"\x01\xc0", b"\x89\xc0")):
+        put(site, b"\xe8" + (0x080F8E96 - (site + 5)).to_bytes(4, "little", signed=True)
+            + b"\x83\xc4\x10" + double,
+            b"\xe8" + (start - (site + 5)).to_bytes(4, "little", signed=True)
+            + b"\x83\xc4\x10" + move)
+
+    # 10. block_alloc+1015, where an operand is tied to the output operand 0:
+    #    GCC 2.8's mips.md matches the address of a call as
+    #    `(call (mem (match_operand 1 "call_insn_operand" "ri")) ...)`, so the
+    #    register holding a function pointer is an operand that dies in the
+    #    call_value insn and local-alloc suggests $v0 (its output) for it; ours
+    #    has the whole MEM as operand 1 ("m") and doesn't. For a CALL_INSN,
+    #    take the register inside that MEM, as for a 'p' operand (libgpu
+    #    func_800649E8: `lh v1,6(s0); lw v0,D_80076754; ... jalr v0`).
+    #    Locals: r1 -0x60, insn -0x5c.
+    def tie_call_address(code, jump):
+        code += b"\x0f\xb6\x00\x3c\x70"            # movzbl (%eax),%eax; cmp $'p',%al (replaced)
+        jump(b"\x0f\x84", 0x08147A53)             # je (the PLUS/MULT loop)
+        code += b"\x8b\x45\xa4"                    # mov -0x5c(%ebp),%eax  (insn)
+        code += b"\x66\x83\x38\x1d"                # cmpw $CALL_INSN,(%eax)
+        jump(b"\x0f\x85", 0x08147A68)
+        code += b"\x8b\x45\xa0"                    # mov -0x60(%ebp),%eax  (r1)
+        code += b"\x66\x83\x38\x39"                # cmpw $MEM,(%eax)
+        jump(b"\x0f\x85", 0x08147A68)
+        code += b"\x8b\x40\x04\x89\x45\xa0"        # r1 = XEXP (r1, 0)
+        jump(b"\xe9", 0x08147A68)
+
+    start = in_bc(tie_call_address)
+    put(0x08147A41, b"\x0f\xb6\x00\x3c\x70",
+        b"\xe9" + (start - (0x08147A41 + 5)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
