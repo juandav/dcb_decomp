@@ -1,2 +1,7 @@
 D_800767F0 = 0x800767F0;
 D_801DBFB0 = 0x801DBFB0;
+
+/* libgcc comparisons: the PsyQ soft-float library has one routine for all of them */
+__gtdf2 = __cmpdf2;
+__ledf2 = __cmpdf2;
+__ltdf2 = __cmpdf2;

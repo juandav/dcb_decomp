@@ -277,7 +277,25 @@ void _spu_FsetRXX(int reg, u_long value, int mode) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetRXXa);
+long _spu_FsetRXXa(long reg, u_long addr) {
+    long r = reg;
+    u_short v;
+
+    if (D_8006EF48 != 0 && addr % D_8006EF50 != 0) {
+        addr += D_8006EF50;
+        addr &= ~D_8006EF54;
+    }
+    v = addr >> D_8006EF4C;
+    switch (r) {
+    case -1:
+        return v & 0xFFFF;
+    case -2:
+        return addr;
+    default:
+        D_8006EF24[r] = v;
+        return addr;
+    }
+}
 
 extern u_long *D_8006EF34;
 
