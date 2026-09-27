@@ -17,4 +17,20 @@ short _SsVmGetSeqVol(short seq_sep_no, short *voll, short *volr) {
     return D_801D96F4.seq_sep_no;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmSeqKeyOff);
+extern char D_801D96D4;
+extern long D_8006F564;
+extern short D_801D96F8;
+extern VmVoice D_801D8EB0[];
+
+void _SsVmKeyOffNow(int);
+
+void _SsVmSeqKeyOff(short seq_sep_no) {
+    u_char i;
+
+    for (i = 0; i < D_801D96D4; i++) {
+        if (!(D_8006F564 & (1 << i)) && D_801D8EB0[i].unk10 == seq_sep_no) {
+            D_801D96F8 = i;
+            _SsVmKeyOffNow(0);
+        }
+    }
+}

@@ -35,7 +35,9 @@ typedef struct VmVoice {
     /* 0x00 */ short unk0;
     /* 0x02 */ short unk2;
     /* 0x04 */ short unk4;
-    /* 0x06 */ u8 unk6[0x17];
+    /* 0x06 */ u8 unk6[0xA];
+    /* 0x10 */ short unk10;
+    /* 0x12 */ u8 unk12[0xB];
     /* 0x1D */ u8 unk1D;
     /* 0x1E */ u8 unk1E[0x1A];
 } VmVoice;
@@ -124,8 +126,8 @@ typedef struct SpuReverbRegs {
 
 /* libsnd per-sequence state, D_801D8618[seq][sep] */
 typedef struct SeqStruct {
-    /* 0x00 */ long unk0;
-    /* 0x04 */ long unk4;
+    /* 0x00 */ u_char *unk0;
+    /* 0x04 */ u_char *unk4;
     /* 0x08 */ u8 unk8[0xC];
     /* 0x14 */ char unk14;
     /* 0x15 */ u8 unk15[2];
@@ -146,7 +148,9 @@ typedef struct SeqStruct {
     /* 0x5A */ u_short volr;
     /* 0x5C */ u8 unk5C[4];
     /* 0x60 */ u_short vol[16];
-    /* 0x80 */ u8 unk80[0x10];
+    /* 0x80 */ u8 unk80[8];
+    /* 0x88 */ long unk88;
+    /* 0x8C */ u8 unk8C[4];
     /* 0x90 */ long delta;
     /* 0x94 */ u8 unk94[4];
     /* 0x98 */ long flags;
