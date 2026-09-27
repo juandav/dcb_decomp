@@ -8559,7 +8559,42 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_800113D0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800416D8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80041A1C);
+extern s32 D_800113C0;
+extern s32 D_800113D0;
+void func_8003EC4C();
+
+void func_80041A1C(void) {
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_800113C0, D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x800, func_8001B144, &D_800113D0, func_800148B0());
+    ((Unk8006E054 *)D_8006E054)->unk0 = (u8 *)func_80014C08(0x7FFFFFFF);
+    ((Unk8006E054 *)D_8006E054)->unk1010[0x12] = 0;
+    func_800149B8(0, -1, 0, 0x800, func_8003EC4C, 0, func_800148B0(), 0, 0);
+    if (func_80014C08(0x7FFFFFFF) != 0) {
+        if (++PLAYER_DATA(0).unk1E >= 1000) {
+            PLAYER_DATA(0).unk1E = 999;
+        }
+        if (++PLAYER_DATA(1).unk1C >= 1000) {
+            PLAYER_DATA(1).unk1C = 999;
+        }
+    } else {
+        if (++PLAYER_DATA(0).unk1C >= 1000) {
+            PLAYER_DATA(0).unk1C = 999;
+        }
+        if (++PLAYER_DATA(1).unk1E >= 1000) {
+            PLAYER_DATA(1).unk1E = 999;
+        }
+    }
+    func_8002CC44(0);
+    func_8002CC44(1);
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\openseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x800, D_801EB2E8, func_800148B0(), 0, 0, 0);
+}
 
 extern s32 D_8006E294;
 extern s32 D_801D8344;
