@@ -241,11 +241,13 @@ void _patch_card_info(void);
 extern GpuDriver *D_80076750;
 extern int (*D_80076754)(char *fmt, ...);
 typedef struct GpuDebug {
-    /* 0x0 */ u_char type;
+    /* 0x0 */ volatile u_char type;
     /* 0x1 */ u_char queue;
     /* 0x2 */ u_char level;
     /* 0x3 */ u_char reverse;
-    /* 0x4 */ u8 unk4[8];
+    /* 0x4 */ u_short w;
+    /* 0x6 */ u_short h;
+    /* 0x8 */ u8 unk8[4];
     /* 0x0C */ void (*drawSyncCallback)();
     /* 0x10 */ DRAWENV draw;
     /* 0x6C */ DISPENV disp;

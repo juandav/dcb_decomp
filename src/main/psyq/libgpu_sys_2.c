@@ -8,7 +8,35 @@ extern void (*D_8006F59C[])();
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_8001389C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetGraph);
+extern u_long D_80076710[];
+extern short D_800767D8[3][2];
+extern short D_800767E4[3][2];
+void func_8006A754(u_long);
+int func_80066C0C(int mode);
+void func_800674DC(u_char *p, int c, int n);
+
+int ResetGraph(int mode) {
+    switch (mode & 7) {
+    case 0:
+    case 3:
+        printf("ResetGraph:jtb=%08x,env=%08x\n", D_80076710, &D_80076758);
+    case 5:
+        func_800674DC((u_char *)&D_80076758, 0, sizeof(GpuDebug));
+        ResetCallback();
+        func_8006A754((u_long)D_80076750 & 0xFFFFFF);
+        D_80076758.type = func_80066C0C(mode);
+        D_80076758.queue = 1;
+        D_80076758.w = D_800767D8[D_80076758.type][0];
+        D_80076758.h = D_800767E4[D_80076758.type][0];
+        func_800674DC((u_char *)&D_80076758.draw, -1, sizeof(DRAWENV));
+        func_800674DC((u_char *)&D_80076758.disp, -1, sizeof(DISPENV));
+        return D_80076758.type;
+    }
+    if (D_80076758.level >= 2) {
+        D_80076754("ResetGraph(%d)...\n", mode);
+    }
+    return D_80076750->unk34(1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
 
