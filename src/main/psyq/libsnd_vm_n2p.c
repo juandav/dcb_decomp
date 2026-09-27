@@ -1,7 +1,5 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", note2pitch);
-
 typedef struct SvmCur {
     /* 0x00 */ u8 unk0[2];
     /* 0x02 */ char note;
@@ -16,6 +14,15 @@ typedef struct SvmCur {
 
 extern SvmCur D_801D96E0;
 extern VagAtr *D_801D96D0;
+
+u_short note2pitch(void) {
+    u_char shift = D_801D96E0.shift;
+
+    if (shift >= 0x80) {
+        shift = 0x7F;
+    }
+    return SsPitchFromNote(D_801D96E0.note, 0, D_801D96E0.center, shift);
+}
 
 u_short note2pitch2(short note, short fine) {
     short i = D_801D96E0.prog * 16 + D_801D96E0.tone;
