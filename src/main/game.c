@@ -8074,7 +8074,22 @@ extern s32 D_801D8170;
 extern s32 D_801D8174;
 extern s32 D_801D8178;
 extern s32 D_801D817C;
-extern void *D_801D8190[2];
+typedef struct {
+    /* 0x00 */ char name[20];
+    /* 0x14 */ s32 attr;
+    /* 0x18 */ s32 size;
+    /* 0x1C */ void *next;
+    /* 0x20 */ s32 head;
+    /* 0x24 */ char system[4];
+} DirEntry;
+
+typedef struct {
+    /* 0x000 */ s32 count;
+    /* 0x004 */ s32 blocks;
+    /* 0x008 */ DirEntry files[15];
+} CardDir;
+
+extern CardDir *D_801D8190[2];
 extern u8 *D_801D81A0;
 
 void func_8002BC80(void) {
@@ -8500,7 +8515,32 @@ s32 func_8002C9E8(s32 arg0, void *arg1, s32 arg2) {
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105E4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CAC8);
+DirEntry *firstfile(char *, DirEntry *);
+DirEntry *func_8006A874(DirEntry *);
+
+void func_8002CAC8(s32 port) {
+    char name[8];
+    DirEntry *d;
+    s32 count;
+    s32 total;
+
+    count = 0;
+    total = 0;
+    sprintf(name, "bu%1d0:*", port);
+    d = D_801D8190[port]->files;
+    if (firstfile(name, d) == d) {
+        do {
+            total += d->size;
+            count++;
+            d++;
+        } while (func_8006A874(d) == d);
+    }
+    D_801D8190[port]->count = count;
+    D_801D8190[port]->blocks = total /= 8192;
+}
+
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_800105FC);
+
 
 s32 func_8002CBA0(s32 len, u8 *p) {
     s32 i;
