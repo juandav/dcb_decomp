@@ -59,7 +59,7 @@ void runDuelTurnLoop(void) {
                         }
                         PLAYER(0)->unk17D[29] = cardId;
                     }
-                    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 2, func_800148B0(), 0, 0);
+                    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 2, getCurrentTaskId(), 0, 0);
                     func_80014C08(0x7FFFFFFF);
                 }
             }

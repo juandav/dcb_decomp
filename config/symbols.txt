@@ -1,6 +1,6 @@
 // Game
 main = 0x80013E4C; // type:func
-func_80013F04 = 0x80013F04; // type:func
+setTaskVsyncMode = 0x80013F04; // type:func
 
 // Strings used by functions already decompiled to C; kept as INCLUDE_RODATA
 PATH_OPENSEG_BIN = 0x80010598; // force_not_migration:True
@@ -209,8 +209,8 @@ GRID_DEPTH = 0x801D69FA; // size:0x2
 D_1F800004 = 0x1F800004; // ignore:true
 
 // Game functions only reached through function pointers
-func_800141B8 = 0x800141B8; // type:func
-func_8001491C = 0x8001491C; // type:func
+handleVsyncPreemption = 0x800141B8; // type:func
+getTaskWaitFrames = 0x8001491C; // type:func
 runRenderLoop = 0x80015328; // type:func
 runMainTask = 0x800155F4; // type:func
 readDiscFileU16 = 0x800162F0; // type:func
@@ -257,12 +257,12 @@ isScreenFadeActive = 0x8001F058; // type:func
 screenFadeTask = 0x8001F094; // type:func
 loadGteVertex1 = 0x8001F5CC; // type:func
 loadGteVertex2 = 0x8001F630; // type:func
-func_80020E34 = 0x80020E34; // type:func
-func_80020E94 = 0x80020E94; // type:func
-func_80020ED4 = 0x80020ED4; // type:func
-func_80020F24 = 0x80020F24; // type:func
-func_80020F54 = 0x80020F54; // type:func
-func_8002195C = 0x8002195C; // type:func
+createScriptContext = 0x80020E34; // type:func
+initScriptContext = 0x80020E94; // type:func
+allocScriptRegisters = 0x80020ED4; // type:func
+freeScriptContext = 0x80020F24; // type:func
+runScriptToNextEvent = 0x80020F54; // type:func
+setScriptBusy = 0x8002195C; // type:func
 applyRootMotion = 0x80021964; // type:func
 runModelAnimationTask = 0x80022B98; // type:func
 resumeModelAnimation = 0x80022D00; // type:func
@@ -1307,3 +1307,26 @@ DUEL_PLAYERS = 0x801D8348;
 CROSS_EFFECT_SHORT_NAMES = 0x8006E47C;
 CROSS_EFFECT_NAMES = 0x8006E4BC;
 DUEL_VRAM_CLEAR_RECT = 0x80011350;
+
+// Script
+clearScriptBusy = 0x80021954; // type:func
+TASKS = 0x80077BA0;
+CURRENT_TASK = 0x80077A0C;
+TASK_LIST_END = 0x80077AE0;
+KERNEL_TCB = 0x80077ADC;
+VSYNC_EVENT = 0x80077AD8;
+TASK_GP = 0x80077C30;
+TASK_VSYNC_MODE = 0x80077A08;
+PREEMPTED_TASK = 0x80077A10;
+PREEMPTED_TASK_PRIORITY = 0x80077A1A;
+CURRENT_TASK_PRIORITY = 0x80077A18;
+
+// Main
+startTaskScheduler = 0x80013FA4; // type:func
+selectNextTask = 0x800142D0; // type:func
+createTask = 0x80014364; // type:func
+killTask = 0x80014614; // type:func
+exitCurrentTask = 0x80014748; // type:func
+killOtherTasks = 0x80014840; // type:func
+getCurrentTaskId = 0x800148B0; // type:func
+wakeTask = 0x800148C8; // type:func

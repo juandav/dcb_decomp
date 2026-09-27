@@ -62,7 +62,7 @@ void loadSoundEffectBank(s32 bankId) {
         /* written as a word here, read as a halfword by the SFX players */
         SFX_BASE_NOTE = SE_BANK_INFO[bankId][0xF];
         sprintf(name, "A:\\SE%d.PAK", bankId);
-        pak = (u8 *)loadFileTagged((s32 *)name, func_800148B0(), -2);
+        pak = (u8 *)loadFileTagged((s32 *)name, getCurrentTaskId(), -2);
         if (pak == 0) {
             bank->id = 0xFF;
         } else {
@@ -103,7 +103,7 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
     slot->id = trackId;
     ((SndState *)&SOUND_STATE)->vol[slotIndex] = volume;
     sprintf(name, "A:\\BGM\\BGM%02d.PAK", trackId);
-    pak = (u8 *)loadFileTagged((s32 *)name, func_800148B0(), -2);
+    pak = (u8 *)loadFileTagged((s32 *)name, getCurrentTaskId(), -2);
     if (pak == 0) {
         slot->id = 0xFF;
     } else {
@@ -171,7 +171,7 @@ void func_8002B3E4(void) {
 
 void playOpeningMovie(s32 movieMode, s32 parentTask) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, &PATH_OPENSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, &PATH_OPENSEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_801DFBAC(&PATH_DIGIMON_MOV);

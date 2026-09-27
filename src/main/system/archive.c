@@ -162,7 +162,7 @@ s32 decompressToHeap(s32 src, s32 heapTag) {
 }
 
 s32 decompressForTask(s32 src) {
-    return decompressToHeap(src, func_800148B0());
+    return decompressToHeap(src, getCurrentTaskId());
 }
 
 void sortArray(s8 *base, u32 count, s32 size, s32 (*cmp)(s8 *, s8 *)) {

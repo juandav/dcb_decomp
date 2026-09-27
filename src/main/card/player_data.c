@@ -203,7 +203,7 @@ s32 loadSkill(s32 skillId, s32 pak) {
     skill = (s32)findPakChunk((Chunk *)pak, 2, skillId);
     if (skill == 0) {
         sprintf(path, &FMT_SKILL_PATH, skillId);
-        skill = loadFileTagged(path, func_800148B0(), 0x81);
+        skill = loadFileTagged(path, getCurrentTaskId(), 0x81);
     }
     return skill;
 }

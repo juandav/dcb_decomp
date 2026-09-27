@@ -4,66 +4,66 @@
 #include "dcb/script.h"
 #include "dcb/heap.h"
 
-void *func_80020E34(void *arg0) {
-    s32 temp_v0_2;
-    void *temp_v0;
+void *createScriptContext(void *scriptData) {
+    s32 codeStart;
+    void *script;
 
-    temp_v0 = allocTaskHeapBlock(0x28);
-    (*(void **)((s8 *)temp_v0 + 0)) = arg0;
-    temp_v0_2 = arg0 + 0x10;
-    (*(s32 *)((s8 *)temp_v0 + 4)) = temp_v0_2;
-    (*(s32 *)((s8 *)temp_v0 + 8)) = temp_v0_2;
-    (*(s32 *)((s8 *)temp_v0 + 0xC)) = 0;
-    (*(s32 *)((s8 *)temp_v0 + 0x10)) = (s32) (*(s32 *)((s8 *)arg0 + 8));
-    func_80021954(temp_v0);
-    return temp_v0;
+    script = allocTaskHeapBlock(0x28);
+    (*(void **)((s8 *)script + 0)) = scriptData;
+    codeStart = scriptData + 0x10;
+    (*(s32 *)((s8 *)script + 4)) = codeStart;
+    (*(s32 *)((s8 *)script + 8)) = codeStart;
+    (*(s32 *)((s8 *)script + 0xC)) = 0;
+    (*(s32 *)((s8 *)script + 0x10)) = (s32) (*(s32 *)((s8 *)scriptData + 8));
+    clearScriptBusy(script);
+    return script;
 }
 
-void func_80020E94(void *arg0, void *arg1) {
-    s32 temp_v0;
+void initScriptContext(void *scriptData, void *script) {
+    s32 codeStart;
 
-    (*(void **)((s8 *)arg1 + 0)) = arg0;
-    temp_v0 = arg0 + 0x10;
-    (*(s32 *)((s8 *)arg1 + 4)) = temp_v0;
-    (*(s32 *)((s8 *)arg1 + 8)) = temp_v0;
-    (*(s32 *)((s8 *)arg1 + 0xC)) = 0;
-    (*(s32 *)((s8 *)arg1 + 0x10)) = (s32) (*(s32 *)((s8 *)arg0 + 8));
-    func_80021954(arg1);
+    (*(void **)((s8 *)script + 0)) = scriptData;
+    codeStart = scriptData + 0x10;
+    (*(s32 *)((s8 *)script + 4)) = codeStart;
+    (*(s32 *)((s8 *)script + 8)) = codeStart;
+    (*(s32 *)((s8 *)script + 0xC)) = 0;
+    (*(s32 *)((s8 *)script + 0x10)) = (s32) (*(s32 *)((s8 *)scriptData + 8));
+    clearScriptBusy(script);
 }
 
-s32 *func_80020ED4(s32 n) {
-    s32 *p = allocTaskHeapBlock(n * 4);
-    s32 *q = p;
+s32 *allocScriptRegisters(s32 count) {
+    s32 *regs = allocTaskHeapBlock(count * 4);
+    s32 *cursor = regs;
     s32 i;
 
-    for (i = 0; i < n; i++) {
-        *q++ = 0;
+    for (i = 0; i < count; i++) {
+        *cursor++ = 0;
     }
-    return p;
+    return regs;
 }
 
-void func_80020F24(void *arg0, void *arg1) {
-    freeHeapBlock(arg1);
-    freeHeapBlock(arg0);
+void freeScriptContext(void *script, void *regs) {
+    freeHeapBlock(regs);
+    freeHeapBlock(script);
 }
 
-s32 func_80020F54(Script *s, s32 *regs) {
+s32 runScriptToNextEvent(Script *script, s32 *regs) {
     u8 *pc;
     u16 op;
     s32 skip;
     s32 cond;
     s32 i;
-    u32 next;
-    u16 *arg;
+    u32 unalignedPc;
+    u16 *operand;
 
-    if (s->busy != 0) {
+    if (script->busy != 0) {
         return -1;
     }
     skip = 0;
-    pc = s->pc;
-    s->event = 0;
+    pc = script->pc;
+    script->event = 0;
     cond = 0;
-    if (s->size > s->offset) {
+    if (script->size > script->offset) {
         do {
             op = *(u16 *)pc;
             switch (op) {
@@ -71,9 +71,9 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = 0;
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = 0;
                 }
                 pc += OP_A(cur) + 4;
                 break;
@@ -82,7 +82,7 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    pc = s->start;
+                    pc = script->start;
                     pc += *(s32 *)(cur + 4);
                     break;
                 }
@@ -237,9 +237,9 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = OP_A(cur);
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = OP_A(cur);
                 }
                 pc += 4;
                 break;
@@ -248,17 +248,17 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    arg = (u16 *)(cur + 4);
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = OP_A(cur);
+                    operand = (u16 *)(cur + 4);
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = OP_A(cur);
                     for (i = 0; i < 1; i++) {
-                        if (arg[0] == 0) {
-                            s->params[i] = arg[1];
+                        if (operand[0] == 0) {
+                            script->params[i] = operand[1];
                         } else {
-                            s->params[i] = regs[arg[1]];
+                            script->params[i] = regs[operand[1]];
                         }
-                        arg += 2;
+                        operand += 2;
                     }
                 }
                 pc += 8;
@@ -268,17 +268,17 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    arg = (u16 *)(cur + 4);
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = OP_A(cur);
+                    operand = (u16 *)(cur + 4);
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = OP_A(cur);
                     for (i = 0; i < 2; i++) {
-                        if (arg[0] == 0) {
-                            s->params[i] = arg[1];
+                        if (operand[0] == 0) {
+                            script->params[i] = operand[1];
                         } else {
-                            s->params[i] = regs[arg[1]];
+                            script->params[i] = regs[operand[1]];
                         }
-                        arg += 2;
+                        operand += 2;
                     }
                 }
                 pc += 12;
@@ -288,17 +288,17 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    arg = (u16 *)(cur + 4);
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = OP_A(cur);
+                    operand = (u16 *)(cur + 4);
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = OP_A(cur);
                     for (i = 0; i < 3; i++) {
-                        if (arg[0] == 0) {
-                            s->params[i] = arg[1];
+                        if (operand[0] == 0) {
+                            script->params[i] = operand[1];
                         } else {
-                            s->params[i] = regs[arg[1]];
+                            script->params[i] = regs[operand[1]];
                         }
-                        arg += 2;
+                        operand += 2;
                     }
                 }
                 pc += 16;
@@ -308,17 +308,17 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 u8 *cur = pc;
 
                 if (!skip) {
-                    arg = (u16 *)(cur + 4);
-                    s->event = pc;
-                    s->eventOp = op;
-                    s->eventArg = OP_A(cur);
+                    operand = (u16 *)(cur + 4);
+                    script->event = pc;
+                    script->eventOp = op;
+                    script->eventArg = OP_A(cur);
                     for (i = 0; i < 4; i++) {
-                        if (arg[0] == 0) {
-                            s->params[i] = arg[1];
+                        if (operand[0] == 0) {
+                            script->params[i] = operand[1];
                         } else {
-                            s->params[i] = regs[arg[1]];
+                            script->params[i] = regs[operand[1]];
                         }
-                        arg += 2;
+                        operand += 2;
                     }
                 }
                 pc += 20;
@@ -330,19 +330,19 @@ s32 func_80020F54(Script *s, s32 *regs) {
                 cond = 0;
                 skip = 1;
             }
-            next = (u32)pc + 3;
-            pc = (u8 *)(next & ~3);
-            s->offset = pc - s->base;
-        } while (s->event == 0 && s->offset < s->size);
+            unalignedPc = (u32)pc + 3;
+            pc = (u8 *)(unalignedPc & ~3);
+            script->offset = pc - script->base;
+        } while (script->event == 0 && script->offset < script->size);
     }
-    s->pc = pc;
-    return s->event != 0;
+    script->pc = pc;
+    return script->event != 0;
 }
 
-void func_80021954(void *arg0) {
-    (*(s16 *)((s8 *)arg0 + 0x24)) = 0;
+void clearScriptBusy(void *script) {
+    (*(s16 *)((s8 *)script + 0x24)) = 0;
 }
 
-void func_8002195C(void *arg0, s16 arg1) {
-    (*(s16 *)((s8 *)arg0 + 0x24)) = arg1;
+void setScriptBusy(void *script, s16 busyValue) {
+    (*(s16 *)((s8 *)script + 0x24)) = busyValue;
 }

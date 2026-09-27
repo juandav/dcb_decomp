@@ -188,13 +188,13 @@ void runRenderLoop(void) {
 void runMainTask(void) {
     s32 mainTaskId;
 
-    mainTaskId = func_800148B0();
+    mainTaskId = getCurrentTaskId();
     initMemoryCard();
     initPads();
     func_8006A884(0);
     initDiscDrive();
     initGraphics();
-    func_80014840();
+    killOtherTasks();
     closeAllDiscFiles();
     resetHeap(0);
     initSound(mainTaskId);
@@ -204,7 +204,7 @@ void runMainTask(void) {
     initPlayerData();
     resetScrollingBackground();
     for (;;) {
-        func_80014840();
+        killOtherTasks();
         closeAllDiscFiles();
         resetHeap(0);
         func_80014C08(0xA);

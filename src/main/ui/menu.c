@@ -257,7 +257,7 @@ void initDialog(u8 *dialog, u8 *text, u32 flags) {
 }
 
 s8 runDialog(void *dialog) {
-    func_800149B8(0, -1, 0, 0x400, &dialogTask, dialog, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x400, &dialogTask, dialog, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     return (*(s8 *)((s8 *)dialog + 0xA5));
 }
@@ -265,7 +265,7 @@ s8 runDialog(void *dialog) {
 s32 runDialogForPad(s32 *dialog, s32 pad) {
     s32 task;
 
-    task = func_800148B0();
+    task = getCurrentTaskId();
     (*(s8 *)((s8 *)dialog + 0xA6)) = (s8) pad;
     func_800149B8(0, -1, 0, 0x400, dialogTask, dialog, task, 0, 0);
     func_80014C08(0x7FFFFFFF);

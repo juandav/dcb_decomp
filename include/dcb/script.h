@@ -21,12 +21,12 @@ typedef struct {
     /* 0x24 */ s16 busy;
 } Script;
 
-void func_80021954(void *arg0);
-void *func_80020E34(void *arg0);
-void func_80020E94(void *arg0, void *arg1);
-s32 *func_80020ED4(s32 n);
-void func_80020F24(void *arg0, void *arg1);
-s32 func_80020F54(Script *s, s32 *regs);
-void func_8002195C(void *arg0, s16 arg1);
+void clearScriptBusy(void *script);
+void *createScriptContext(void *scriptData);
+void initScriptContext(void *scriptData, void *script);
+s32 *allocScriptRegisters(s32 count);
+void freeScriptContext(void *script, void *regs);
+s32 runScriptToNextEvent(Script *script, s32 *regs);
+void setScriptBusy(void *script, s16 busyValue);
 
 #endif /* DCB_SCRIPT_H */

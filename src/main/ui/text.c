@@ -34,7 +34,7 @@ void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize) {
     SYSTEM_CLUT_X = vramX + 0x20;
     SYSTEM_CLUT_Y = vramY + 0xF8;
     SPRITE_POOL_SIZE = poolSize;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", func_800148B0());
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", getCurrentTaskId());
     tim = (u32 *)func_80014C08(0x7FFFFFFF);
     uploadTim(tim, SYSTEM_TEX_X, SYSTEM_TEX_Y, -2, -2);
     image = &LOADED_TIM;

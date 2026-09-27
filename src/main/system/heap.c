@@ -115,7 +115,7 @@ void *allocPermanentHeapBlock(s32 size) {
 }
 
 void *allocTaskHeapBlock(s32 size) {
-    return allocHeapBlock(size, func_800148B0());
+    return allocHeapBlock(size, getCurrentTaskId());
 }
 
 void *shrinkHeapBlock(void *ptr, s32 size) {
