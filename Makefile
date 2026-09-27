@@ -37,6 +37,12 @@ CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 MASPSXFLAGS := --aspsx-version=2.86
 # game.c holds many original source files; see tools/fix_jtbl_align.py
 ALIGN_FIX := $(PYTHON) tools/fix_jtbl_align.py
+# The PsyQ libraries were built with GCC 2.7.2 -O2, and their ASPSX moved the
+# instruction before `j $31` into its delay slot (tools/aspsx_reorder.py)
+$(BUILDDIR)/src/main/psyq.c.o: GCC_VERSION := 2.7.2
+$(BUILDDIR)/src/main/psyq.c.o: CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
+	-fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused
+$(BUILDDIR)/src/main/psyq.c.o: ALIGN_FIX := $(PYTHON) tools/aspsx_reorder.py
 ASFLAGS := -EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0 $(INC)
 LDFLAGS := -nostdlib --no-check-sections -Map $(MAP) \
 	   -T $(GENDIR)/main.ld \
