@@ -48,7 +48,7 @@ extern VmVoice D_800815D0[];
 
 /* libpad per-port command state */
 typedef struct PadPort {
-    /* 0x00 */ long unk0;
+    /* 0x00 */ u_short *unk0;
     /* 0x04 */ long unk4;
     /* 0x08 */ long unk8;
     /* 0x0C */ struct PadPort *unkC;
@@ -86,7 +86,7 @@ typedef struct PadPort {
     /* 0xE3 */ u_char unkE3;
     /* 0xE4 */ u_char unkE4;
     /* 0xE5 */ u8 unkE5;
-    /* 0xE6 */ short unkE6;
+    /* 0xE6 */ u_short unkE6;
     /* 0xE8 */ u8 unkE8;
     /* 0xE9 */ u_char unkE9;
     /* 0xEA */ u_char unkEA;
