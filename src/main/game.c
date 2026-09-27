@@ -7382,7 +7382,24 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80026D30);
 void func_80026D84(void) {
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80026D8C);
+double func_80026D8C(double x) {
+    double r;
+    double s;
+
+    if (x <= 0) {
+        return 0;
+    }
+    if (x > 1.0) {
+        r = x;
+    } else {
+        r = 1.0;
+    }
+    do {
+        s = r;
+        r = (x / s + s) * 0.5;
+    } while (r < s);
+    return s;
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010190);
 
