@@ -5590,7 +5590,28 @@ block_9:
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E034);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E26C);
+extern u8 D_801EEE90[];
+
+void func_8002E26C(void) {
+    do {
+        func_80014C08(D_800794F0);
+    } while (D_801D81B8 <= 0 || (&D_801D81B8)[8] <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
+    *((s8 *)D_801D8340 + 0x811) = 1;
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\sugseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_8002B858(1);
+    func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    D_80079544 = 0;
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, "P:\\kawseg.bin", D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    func_8002B858(0);
+    *((s8 *)D_801D8340 + 0x811) = 0;
+}
 
 typedef struct {
     s8 bg;
