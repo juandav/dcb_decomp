@@ -113,7 +113,52 @@ void func_8005AA7C(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005AB4C);
+int func_8005AB4C(int retry) {
+    u_char mode;
+
+    func_8005B1C4(0);
+    func_8005A3A4(0);
+    if (D_80070B4C & 1) {
+        func_8005A7A4(NULL);
+    }
+    if (func_8005B174() & CdlStatShellOpen) {
+        if ((VSync(-1) & 0x3F) == 0) {
+            puts("CdRead: Shell open...\n");
+        }
+        CdControlF(CdlNop, NULL);
+        D_80070FD8->stime = VSync(-1);
+        D_80070FD8->rest = -1;
+        return D_80070FD8->rest;
+    }
+    if (retry) {
+        puts("CdRead: retry...\n");
+        CdControl(CdlPause, NULL, NULL);
+        if (CdControl(CdlSetloc, (u_char *)func_8005B194(), NULL) == 0) {
+            D_80070FD8->rest = -1;
+            return D_80070FD8->rest;
+        }
+    }
+    func_8005B1A4();
+    mode = D_80070FD8[0].mode;
+    if (mode != func_8005B184() || retry) {
+        if (CdControl(CdlSetmode, &mode, NULL) == 0) {
+            D_80070FD8->rest = -1;
+            return D_80070FD8->rest;
+        }
+    }
+    D_80070FD8->pos = CdPosToInt(func_8005B194());
+    func_8005A3A4((long)func_8005A808);
+    if (D_80070B4C & 1) {
+        func_8005A7A4(func_8005AA7C);
+    }
+    D_80070FD8->cur = D_80070FD8->addr;
+    CdControlF(CdlReadN, NULL);
+    D_80070FD8->rest = D_80070FD8->nsector;
+    D_80070FD8->ctime = VSync(-1);
+    return D_80070FD8->rest;
+}
+
+__asm__(".section .rodata\n\t.space 12\n\t.section .text\n");
 
 static __inline__ int cd_read_wait(void) {
     u_long t;
