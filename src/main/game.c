@@ -1322,7 +1322,33 @@ s32 func_8001B144(s32 name, s32 arg1) {
     return buf;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B248);
+s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
+    s32 size;
+    s32 f;
+    s32 buf;
+
+    size = 0;
+    while (D_8006DEF0 != 0) {
+        func_80014C08(D_800794F0);
+    }
+    D_8006DEF0 = 1;
+    f = func_80015AD8((s32)name, 1);
+    buf = 0;
+    if (f != 0) {
+        size = *(s32 *)((s8 *)f + 0x24);
+        buf = (s32)func_8001ABCC(size, arg2);
+        if (buf == 0) {
+            func_80015EAC((s32 *)f);
+        } else {
+            func_80015F34(f, size, (s32 *)buf);
+            func_80015EAC((s32 *)f);
+        }
+    }
+    D_801D4848 = size;
+    func_80014A48(arg1, buf);
+    D_8006DEF0 = 0;
+    return buf;
+}
 
 s32 func_80014A48();
 extern s32 D_800794F0;
@@ -1737,7 +1763,29 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D33C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D464);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D5B4);
+void func_800678E4(void *);
+void func_8001E75C(void *, u8, u8, u8);
+void SetDrawTPage(void *, s32, s32, s32);
+
+void func_8001D5B4(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 semi) {
+    func_800678E4(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 s32 AddPrim(s32 *, s32);
 s32 RotAverageNclip3(s32, s32, s32, s32, s32, s32, s32 *, s32 *, s32 *);
