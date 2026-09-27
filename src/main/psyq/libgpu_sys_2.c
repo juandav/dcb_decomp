@@ -229,7 +229,41 @@ void SetDrawOffset(DR_OFFSET *p, u_short *ofs) {
     p->code[1] = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawEnv);
+u_long func_80065C54(short x, short y);
+u_long func_80065CEC(short x, short y);
+u_long func_80065C34(int dfe, int dtd, int tpage);
+u_long func_80065D84(short x, short y);
+u_long func_80065DA0(RECT *tw);
+
+#define LIMIT(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env) {
+    u_long *p = (u_long *)dr_env;
+    RECT r;
+    int len;
+
+    p[1] = func_80065C54(env->clip.x, env->clip.y);
+    p[2] = func_80065CEC(env->clip.w + env->clip.x - 1, env->clip.y + env->clip.h - 1);
+    p[3] = func_80065D84(env->ofs[0], env->ofs[1]);
+    p[4] = func_80065C34(env->dfe, env->dtd, env->tpage);
+    p[5] = func_80065DA0(&env->tw);
+    p[6] = 0xE6000000;
+    len = 7;
+    if (env->isbg) {
+        r.x = env->clip.x;
+        r.y = env->clip.y;
+        r.w = env->clip.w;
+        r.h = env->clip.h;
+        r.w = LIMIT(r.w, 0, D_80076758.w - 1);
+        r.h = LIMIT(r.h, 0, D_80076758.h - 1);
+        r.x -= env->ofs[0];
+        r.y -= env->ofs[1];
+        p[len++] = 0x60000000 | (env->b0 << 16) | (env->g0 << 8) | env->r0;
+        p[len++] = *(u_long *)&r.x;
+        p[len++] = *(u_long *)&r.w;
+    }
+    setlen(p, len - 1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800659C4);
 
