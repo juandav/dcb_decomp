@@ -192,15 +192,26 @@ typedef struct {
 } Entry12;
 
 typedef struct {
-    /* 0x00 */ u8 unk0[0x14];
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2;
+    /* 0x04 */ Rect16 view;
+    /* 0x0C */ Rect16 rect;
     /* 0x14 */ Rect16 cur;
-    /* 0x1C */ u8 unk1C[8];
+    /* 0x1C */ Rect16 from;
     /* 0x24 */ Rect16 delta;
-    /* 0x2C */ u8 unk2C[0x10];
+    /* 0x2C */ s32 unk2C;
+    /* 0x30 */ s16 unk30[4];
+    /* 0x38 */ u8 unk38;
+    /* 0x39 */ u8 unk39;
+    /* 0x3A */ u8 unk3A[2];
     /* 0x3C */ u8 unk3C;
     /* 0x3D */ u8 unk3D;
-    /* 0x3E */ u8 unk3E[3];
+    /* 0x3E */ u8 unk3E;
+    /* 0x3F */ u8 unk3F;
+    /* 0x40 */ u8 unk40;
     /* 0x41 */ s8 unk41;
+    /* 0x42 */ u8 unk42;
+    /* 0x43 */ u8 unk43;
 } Unk80016F38;
 
 typedef struct {
@@ -1644,7 +1655,91 @@ void func_80016BEC(void) {
     D_800897E8 = D_800793A0->unk40BC;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016C08);
+void func_80016C08(void *arg0, void *arg1, s32 arg2, s16 *arg3, s32 a4, s32 a5, s32 a6, s32 a7) {
+    Unk80016F38 *w = arg0;
+    Rect16 *r = arg1;
+    Rect16 *from = (Rect16 *)arg2;
+    Rect16 *view = (Rect16 *)arg3;
+
+    if (r == (Rect16 *)-1) {
+        w->rect.x = 0;
+        w->rect.y = 0;
+        w->rect.w = 0;
+        w->rect.h = 0;
+    } else {
+        w->rect = *r;
+    }
+    if (from == (Rect16 *)-1) {
+        w->from.x = w->rect.x + w->rect.w / 2;
+        w->from.y = w->rect.y + w->rect.h / 2;
+        w->from.w = 0;
+        w->from.h = 0;
+    } else {
+        w->from = *from;
+    }
+    if (view == (Rect16 *)-1) {
+        w->view.x = 0;
+        w->view.y = 0;
+        w->view.w = w->rect.w;
+        w->view.h = w->rect.h;
+    } else {
+        w->view = *view;
+        if (w->view.x < 0) {
+            w->view.x = 0;
+        }
+        if (w->view.y < 0) {
+            w->view.y = 0;
+        }
+        if (w->view.w == 0) {
+            w->view.w = w->rect.w;
+        }
+        if (w->view.h == 0) {
+            w->view.h = w->rect.h;
+        }
+        if (w->view.w < w->rect.w) {
+            w->view.w = w->rect.w;
+        }
+        if (w->view.h < w->rect.h) {
+            w->view.h = w->rect.h;
+        }
+        if (w->view.x >= w->view.w - w->rect.w) {
+            w->view.x = w->view.w - w->rect.w;
+        }
+        if (w->view.y >= w->view.h - w->rect.h) {
+            w->view.y = w->view.h - w->rect.h;
+        }
+    }
+    w->cur = w->rect;
+    w->delta.x = w->cur.x - w->from.x;
+    w->delta.y = w->cur.y - w->from.y;
+    w->delta.w = w->cur.w - w->from.w;
+    w->delta.h = w->cur.h - w->from.h;
+    w->unk0 = w->rect.x - w->view.x;
+    w->unk2 = w->rect.y - w->view.y;
+    w->unk30[0] = w->view.x;
+    w->unk30[1] = w->view.y;
+    w->unk30[2] = w->view.x;
+    w->unk30[3] = w->view.y;
+    w->unk3C = a7;
+    w->unk3D = 0;
+    w->unk3E = 0;
+    w->unk3F = a4;
+    w->unk41 = 0;
+    w->unk42 = a5;
+    if ((u32)a6 > 256) {
+        w->unk40 = 0xFF;
+    } else {
+        w->unk40 = a6;
+    }
+    w->unk38 = 0;
+    w->unk39 = 0;
+    if ((a5 >> 4) < 5) {
+        w->unk43 = 0;
+    } else {
+        w->unk43 = 1;
+    }
+    w->unk2C = 0;
+}
 
 void func_80016F38(Unk80016F38 *p, Rect16 *r) {
     s32 dx;
