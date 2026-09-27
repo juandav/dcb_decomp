@@ -48,7 +48,7 @@ libsnd_miditime
 libsnd_playmode
 libsnd_sssattr
 libsnd_sssmv
-libsnd_ssstart
+libsnd_ssstart nocse
 libsnd_sscall
 libsnd_cres
 libsnd_pause
