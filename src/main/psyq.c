@@ -1800,7 +1800,23 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CD4C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CD84);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CE58);
+void func_8006CE58(PadPort *port) {
+    switch (port->unk46) {
+    case 2:
+        func_8006D32C(port, port->unk47[0]);
+        return;
+    case 3:
+        func_8006D34C(port, port->unk47[0]);
+        return;
+    case 4:
+        if (port->unk47[1] == 0) {
+            func_8006D36C(port, port->unk47[0]);
+            return;
+        }
+        func_8006D38C(port);
+        return;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CF00);
 
