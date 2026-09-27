@@ -151,7 +151,27 @@ void func_8004B428(void) {
     *D_8006EF38 = (*D_8006EF38 & 0xF0FFFFFF) | 0x20000000;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004B450);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8004B450(void) {
+    *D_8006EF38 = (*D_8006EF38 & 0xF0FFFFFF) | 0x22000000;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_Fw1ts);
 
