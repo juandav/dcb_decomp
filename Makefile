@@ -61,6 +61,13 @@ PSYQ_GCC28_OBJ := $(PSYQ_GCC28:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_GCC28_OBJ): GCC_VERSION := 2.8.1
 $(PSYQ_GCC28_OBJ): CC1FLAGS += -mno-split-addresses
 $(PSYQ_GCC28_OBJ): CC1_POST := $(PYTHON) tools/unfill_epilogue.py
+
+# Others come from GCC 2.7.2 run without the second CSE pass, as all of
+# DW3's PsyQ: the first pass kept the address of a global in a register and
+# the second one would put the constant address back
+PSYQ_NOCSE := $(shell awk '$$2 == "nocse" {print $$1}' config/psyq_objects.txt)
+PSYQ_NOCSE_OBJ := $(PSYQ_NOCSE:%=$(BUILDDIR)/src/main/psyq/%.c.s)
+$(PSYQ_NOCSE_OBJ): CC1FLAGS += -fno-rerun-cse-after-loop
 ASFLAGS := -EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0 $(INC)
 LDFLAGS := -nostdlib --no-check-sections -Map $(MAP) \
 	   -T $(GENDIR)/main.ld \

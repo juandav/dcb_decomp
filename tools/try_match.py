@@ -2,11 +2,13 @@
 """Compile a C file with the project toolchain and compare every function in it
 byte-wise against SLUS_013.28, with relocated fields masked.
 
-usage: tools/try_match.py [--psyq|--gcc28] draft.c [func ...]
+usage: tools/try_match.py [--psyq|--gcc28|--nocse] draft.c [func ...]
 
 --psyq builds like src/main/psyq.c: GCC 2.7.2 -O2 and tools/aspsx_reorder.py.
 --gcc28 builds like the PsyQ objects that came from GCC 2.8.1
 -mno-split-addresses (tools/unfill_epilogue.py before maspsx).
+--nocse builds like the PsyQ objects marked nocse: --psyq plus
+-fno-rerun-cse-after-loop.
 
 Functions that differ are printed side by side (ours | original) with the
 differing instructions marked with **.
@@ -17,8 +19,9 @@ D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
 args=sys.argv[1:]
 gcc28='--gcc28' in args
-psyq='--psyq' in args or gcc28
-args=[a for a in args if a not in ('--psyq','--gcc28')]
+nocse='--nocse' in args
+psyq='--psyq' in args or gcc28 or nocse
+args=[a for a in args if a not in ('--psyq','--gcc28','--nocse')]
 src=args[0]; want=set(args[1:])
 seg='psyq' if psyq else 'game'
 w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
@@ -29,6 +32,7 @@ if gcc28:
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 elif psyq:
     cc1=f"{D}/bin/gcc-2.7.2-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
+    if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:
     cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused"
