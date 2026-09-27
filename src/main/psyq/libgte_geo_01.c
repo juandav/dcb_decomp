@@ -26,7 +26,28 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", csqrt_1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", csqrt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", catan);
+extern long D_80071868[];
+
+int catan(int a) {
+    long x[14], y[14], z[14];
+    int i;
+
+    x[0] = 0x1000;
+    y[0] = a;
+    z[0] = 0;
+    for (i = 0; i < 12; i++) {
+        if (y[i] < 0) {
+            x[i + 1] = x[i] - (y[i] >> i);
+            y[i + 1] = y[i] + (x[i] >> i);
+            z[i + 1] = z[i] - D_80071868[i];
+        } else {
+            x[i + 1] = x[i] + (y[i] >> i);
+            y[i + 1] = y[i] - (x[i] >> i);
+            z[i + 1] = z[i] + D_80071868[i];
+        }
+    }
+    return z[12];
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B864);
 
