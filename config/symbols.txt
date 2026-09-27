@@ -11,6 +11,9 @@ D_800108A4 = 0x800108A4; // force_not_migration:True
 // Panel pool VRAM position, a halfword the code addresses on its own
 D_800897EE = 0x800897EE; // size:0x2
 
+// Floor grid height, a halfword the code addresses on its own
+D_801D69FA = 0x801D69FA; // size:0x2
+
 // Game functions only reached through function pointers
 func_800141B8 = 0x800141B8; // type:func
 func_8001491C = 0x8001491C; // type:func
