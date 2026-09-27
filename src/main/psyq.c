@@ -764,7 +764,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800580D4);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StCdInterrupt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058A10);
+void func_80058A10(long *dst, long *src, u_long n) {
+    u_long i = 0;
+
+    if (n != 0) {
+        do {
+            *dst++ = *src++;
+            i++;
+        } while (i < n);
+    }
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013394);
 
