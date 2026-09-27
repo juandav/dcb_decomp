@@ -5379,7 +5379,16 @@ void func_8001F580(s32 flag, u32 i, u8 *base) {
     gte_lwc2(20, 0, base);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F5A4);
+void func_8001F5A4(s32 flag, u32 i, u8 *base) {
+    u8 *p;
+
+    p = base + (i >> 16);
+    gte_lwc2(12, 0, p);
+    gte_lwc2(17, 4, p);
+    base += i & 0xFFFF;
+    gte_nclip();
+    gte_lwc2(20, 0, base);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F5CC);
 
