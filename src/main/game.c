@@ -421,12 +421,13 @@ typedef struct {
 
 
 typedef struct {
-    /* 0x000 */ s32 unk0[0x9F];
+    /* 0x000 */ s32 unk0[0x9E];
+    /* 0x278 */ u8 *unk278;
     /* 0x27C */ u8 *unk27C;
     /* 0x280 */ s32 unk280[2];
     /* 0x288 */ u8 unk288;
     /* 0x289 */ u8 unk289;
-    /* 0x28A */ u8 unk28A[2];
+    /* 0x28A */ s16 unk28A;
     /* 0x28C */ s8 unk28C[3];
     /* 0x28F */ u8 unk28F[3];
     /* 0x292 */ u8 unk292[6];
@@ -7147,7 +7148,29 @@ void func_80047364(s32 a) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047438);
+void func_80047438(s32 a) {
+    s32 j;
+    u8 id;
+    u8 alt;
+
+    for (j = 0; j < 3; j++) {
+        id = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288;
+        if (id != 0) {
+            if ((s8)((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 >= 0x63) {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 = 0x63;
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28A = func_80049934(0x62);
+            }
+            ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk278 = D_801D8408 + id * 0x13C;
+            alt = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0];
+            if (alt == 0) {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + id * 0x13C;
+            } else {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + alt * 0x13C;
+            }
+            func_80048230(a, j);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047620);
 
