@@ -398,7 +398,25 @@ int StoreImage2(RECT *rect, u_long *p) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage2);
+int MoveImage2(RECT *rect, int x, int y) {
+    func_800649E8(D_800139E0, rect);
+    D_80076894 = VSync(-1) + 240;
+    D_80076898 = 0;
+    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+        if (func_80066EB8()) {
+            return -1;
+        }
+    }
+    DMACallback(2, _GPU_ResetCallback);
+    if (rect->w == 0 || rect->h == 0) {
+        return -1;
+    }
+    D_800767F0[2] = *(u_long *)&rect->x;
+    D_800767F0[3] = (y << 16) | (x & 0xFFFF);
+    D_800767F0[4] = *(u_long *)&rect->w;
+    D_80076750->unk18(D_800767F0);
+    return 0;
+}
 
 int DrawOTag2(u_long *p) {
     if (D_80076758.level >= 2) {
