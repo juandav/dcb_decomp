@@ -327,7 +327,7 @@ u_long func_80065DA0(RECT *tw) {
     return ret;
 }
 
-extern u_long *D_80076860;
+extern volatile u_long *D_80076860;
 
 u_long func_80065E20(void) {
     return *D_80076860;
@@ -459,10 +459,10 @@ int func_800666FC(int (*func)(), u_long *param, int size, u_long value) {
     D_80076888 = SetIntrMask(0);
     dbg = &D_80076758;
     dbg->unk8 = 1;
-    if (dbg->queue == 0 || (D_80076880 == D_80076884 && !(*(volatile u_long *)D_8007686C & 0x01000000) &&
+    if (dbg->queue == 0 || (D_80076880 == D_80076884 && !(*D_8007686C & 0x01000000) &&
                             dbg->drawSyncCallback == NULL)) {
         do {
-        } while (!(*(volatile u_long *)D_80076860 & 0x04000000));
+        } while (!(*D_80076860 & 0x04000000));
         func(param, value);
         SetIntrMask(D_80076888);
         return 0;
@@ -533,7 +533,7 @@ int func_80066D48(int mode) {
                 return -1;
             }
         }
-        while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+        while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
             if (func_80066EB8()) {
                 return -1;
             }
@@ -544,7 +544,7 @@ int func_80066D48(int mode) {
     if (n) {
         func_800669AC();
     }
-    if ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+    if ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
         if (n == 0) {
             return 1;
         }
@@ -563,7 +563,7 @@ int func_80066FFC(int mode) {
     *D_80076860 = 0x10000007;
     if ((*D_8007685C & 0xFFFFFF) != 2) {
         *D_8007685C = (*D_80076860 & 0x3FFF) | 0xE1001000;
-        *(volatile u_long *)D_8007685C;
+        *D_8007685C;
         return 0;
     }
     if (!(mode & 8)) {
@@ -583,7 +583,7 @@ int LoadImage2(RECT *rect, u_long *p) {
     func_800649E8("LoadImage2", rect);
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
-    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+    while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
         if (func_80066EB8()) {
             return -1;
         }
@@ -597,7 +597,7 @@ int StoreImage2(RECT *rect, u_long *p) {
     func_800649E8(D_800139D4, rect);
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
-    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+    while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
         if (func_80066EB8()) {
             return -1;
         }
@@ -611,7 +611,7 @@ int MoveImage2(RECT *rect, int x, int y) {
     func_800649E8(D_800139E0, rect);
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
-    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+    while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
         if (func_80066EB8()) {
             return -1;
         }
@@ -633,7 +633,7 @@ int DrawOTag2(u_long *p) {
     }
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
-    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+    while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
         if (func_80066EB8()) {
             return -1;
         }
