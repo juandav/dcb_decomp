@@ -88,7 +88,21 @@ int DrawSync(int mode) {
     return D_80076750->sync(mode);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800649E8);
+void func_800649E8(char *name, RECT *rect) {
+    switch (D_80076758.level) {
+    case 1:
+        if (rect->w > D_80076758.w || rect->w + rect->x > D_80076758.w || rect->y > D_80076758.h ||
+            rect->y + rect->h > D_80076758.h || rect->w <= 0 || rect->x < 0 || rect->y < 0 || rect->h <= 0) {
+            D_80076754("%s:bad RECT", name);
+            D_80076754("(%d,%d)-(%d,%d)\n", rect->x, rect->y, rect->w, rect->h);
+        }
+        break;
+    case 2:
+        D_80076754("%s:", name);
+        D_80076754("(%d,%d)-(%d,%d)\n", rect->x, rect->y, rect->w, rect->h);
+        break;
+    }
+}
 
 int ClearImage(RECT *rect, u_char r, u_char g, u_char b) {
     func_800649E8("ClearImage", rect);

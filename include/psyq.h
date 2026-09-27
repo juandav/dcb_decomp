@@ -360,7 +360,7 @@ extern long D_8008217C;
 extern long D_80082180;
 extern long D_80082184;
 
-int func_800649E8(char *name, RECT *rect);
+void func_800649E8(char *name, RECT *rect);
 void func_8003B444(void);
 void func_8003B568(char *bufA, long lenA, char *bufB, long lenB);
 void func_8003B588(char *bufA, long lenA, char *bufB, long lenB);
