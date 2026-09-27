@@ -243,6 +243,10 @@ typedef struct {
     ((abe) ? setcode(p, getcode(p) | 0x02) : setcode(p, getcode(p) & ~0x02))
 #define addPrim(ot, p) setaddr(p, getaddr(ot)), setaddr(ot, p)
 #define getClut(x, y) (((y) << 6) | (((x) >> 4) & 0x3f))
+#define setSprt(p) setlen(p, 4), setcode(p, 0x64)
+#define setShadeTex(p, tge) \
+    ((tge) ? setcode(p, getcode(p) | 1) : setcode(p, getcode(p) & ~1))
+#define setRGB0(p, _r0, _g0, _b0) (p)->r0 = _r0, (p)->g0 = _g0, (p)->b0 = _b0
 #define getTPage(tp, abr, x, y)                                                        \
     ((((tp) & 0x3) << 7) | (((abr) & 0x3) << 5) | (((y) & 0x100) >> 4) | (((x) & 0x3ff) >> 6) | \
      (((y) & 0x200) << 2))
@@ -546,6 +550,11 @@ typedef struct {
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 extern s32 D_801D6B24;
+extern u16 D_801D6B10;
+extern u16 D_801D6B12;
+extern u16 D_801D6B14;
+extern u16 D_801D6B20;
+extern s16 D_801D6B22;
 s32 func_80029990(void);
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
 
@@ -3534,8 +3543,6 @@ void func_800271EC(s32 arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
     func_80027228(arg0, arg1, (Rect16 *)arg2, (u8 *)&D_8006DF98, arg3, arg4, arg5);
 }
 
-extern u16 D_801D6B20;
-extern s16 D_801D6B22;
 
 void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
     if (func_80029990() == 0) {
@@ -3564,8 +3571,6 @@ void func_80027410(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5,
     func_80027458(arg0, arg1, arg2, arg3, arg4, arg5, arg6, (u8 *)&D_8006DF98, arg7);
 }
 
-extern u16 D_801D6B12;
-extern u16 D_801D6B14;
 
 void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32 z) {
     if (func_80029990() == 0) {
@@ -3907,7 +3912,6 @@ void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
     }
 }
 
-extern u16 D_801D6B10;
 
 s32 func_80029990(void) {
     if (D_801D6B24 == D_800793A0->unk40B8 + D_801D6B10 * 0x1C) {
