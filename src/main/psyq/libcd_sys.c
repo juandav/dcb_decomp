@@ -12,7 +12,26 @@ int func_8005757C(char *a, char *b) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005759C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057860);
+typedef struct {
+    long key;
+    long unk4;
+    char name[0x24];
+} CdSysEntry;
+extern CdSysEntry D_801D9EFC[128];
+
+int func_80057860(long key, char *name) {
+    int i;
+
+    for (i = 0; i < 128; i++) {
+        if (D_801D9EFC[i].key == 0) {
+            break;
+        }
+        if (D_801D9EFC[i].key == key && strcmp(name, D_801D9EFC[i].name) == 0) {
+            return i + 1;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057904);
 
