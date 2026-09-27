@@ -918,7 +918,9 @@ int func_8005B304(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_getsector2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B414);
+void func_8005B414(void) {
+    CD_datasync();
+}
 
 int rsin(int a) {
     if (a < 0) {
