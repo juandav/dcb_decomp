@@ -588,7 +588,9 @@ int ResetCallback(void) {
     return D_80070AA8->resetCallback();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", InterruptCallback);
+void *InterruptCallback(int irq, void (*func)()) {
+    return D_80070AA8->interruptCallback(irq, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DMACallback);
 
