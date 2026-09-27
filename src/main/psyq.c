@@ -1716,7 +1716,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B584);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B5EC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B6E0);
+void func_8006B6E0(PadPort *port) {
+    u_char cmd = port->cmd;
+
+    port->cmd = 0;
+    port->prevCmd = cmd;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B6F0);
 
