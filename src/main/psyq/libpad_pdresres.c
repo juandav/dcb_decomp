@@ -54,7 +54,23 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C4F0);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C714);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006C990);
+int func_8006D3C0(void);
+
+long func_8006C990(void) {
+    volatile u_long *irq = D_800779D4;
+    volatile SioRegs *sio = D_800779D8;
+
+    *irq = ~0x80;
+    if (sio->stat & 0x80) {
+        do {
+            if (func_8006D3C0() != 0) {
+                return 0;
+            }
+        } while (D_800779D8->stat & 0x80);
+    }
+    D_800779D8->ctrl |= 0x10;
+    return 1;
+}
 
 void func_8006CA20(void) {
     while (!(D_800779D8->stat & 2)) {
