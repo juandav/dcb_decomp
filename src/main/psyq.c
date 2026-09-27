@@ -1478,7 +1478,11 @@ OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", AddPrim);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetSemiTrans);
+void SetSemiTrans(void *p, int abe) {
+    setSemiTrans(p, abe);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetShadeTex);
 
