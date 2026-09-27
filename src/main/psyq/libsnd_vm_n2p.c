@@ -30,4 +30,43 @@ u_short note2pitch2(short note, short fine) {
     return SsPitchFromNote(note, fine, D_801D96D0[i].center, D_801D96D0[i].shift);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsPitchFromNote);
+extern u_short D_8006F864[];
+extern u_short D_8006F87C[];
+
+u_short SsPitchFromNote(short note, short fine, u_char center, u_char shift) {
+    u_long pitch;
+    int s;
+    int q;
+    short f;
+    short n;
+    short octave;
+    short semi;
+
+    s = (short)(shift + fine);
+    q = s / 128;
+    note += q;
+    note -= center;
+    n = note;
+    f = s - q * 128;
+    if (f < 0) {
+        f += 128;
+        note--;
+        n = note + f / 128;
+    }
+    octave = n / 12 - 2;
+    semi = n % 12;
+    if (semi < 0) {
+        semi += 12;
+        octave = n / 12 - 3;
+    }
+    pitch = (D_8006F864[semi] * D_8006F87C[f]) >> 16;
+    if (octave >= 0) {
+        pitch = 0x3FFF;
+    } else {
+        pitch += 1 << (-octave - 1);
+        pitch >>= -octave;
+    }
+    return pitch;
+}
+
+OBJECT_END(3);
