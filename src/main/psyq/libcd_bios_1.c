@@ -31,7 +31,33 @@ int CD_vol(CdlATV *vol) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_flush);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_initvol);
+extern volatile u_short *D_80070F18;
+extern volatile u_char *D_80070F04;
+extern volatile u_char *D_80070F08;
+extern volatile u_char *D_80070F10;
+extern volatile u_char *D_80070F14;
+
+int CD_initvol(void) {
+    CdlATV vol;
+
+    if (D_80070F18[0xDC] == 0 && D_80070F18[0xDD] == 0) {
+        D_80070F18[0xC0] = 0x3FFF;
+        D_80070F18[0xC1] = 0x3FFF;
+    }
+    D_80070F18[0xD8] = 0x3FFF;
+    D_80070F18[0xD9] = 0x3FFF;
+    D_80070F18[0xD5] = 0xC001;
+    vol.val0 = vol.val2 = 0x80;
+    vol.val1 = vol.val3 = 0;
+    *D_80070F04 = 2;
+    *D_80070F14 = vol.val0;
+    *D_80070F08 = vol.val1;
+    *D_80070F04 = 3;
+    *D_80070F10 = vol.val2;
+    *D_80070F14 = vol.val3;
+    *D_80070F08 = 0x20;
+    return 0;
+}
 
 extern long D_80070C40;
 
