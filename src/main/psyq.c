@@ -860,7 +860,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CdRead);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadSync);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B174);
+int func_8005B174(void) {
+    return D_80070C4C;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B184);
 
