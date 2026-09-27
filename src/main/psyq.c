@@ -2069,7 +2069,14 @@ int DecDCTinSync(int mode) {
     return func_800681D0();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCToutSync);
+extern volatile u_long *D_800769CC;
+
+int DecDCToutSync(int mode) {
+    if (mode != 0) {
+        return (*D_800769CC >> 24) & 1;
+    }
+    return func_80068264();
+}
 
 int DecDCTinCallback(void (*func)()) {
     return DMACallback(0, func);
