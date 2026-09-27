@@ -1978,7 +1978,11 @@ long func_8006B0B4(long v) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B0D4);
+int func_8006B0D4(void (*func)()) {
+    return DMACallback(3, func);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", PadGetState);
 
