@@ -70,7 +70,7 @@ libspu_s_sra
 libsnd_ut_rdep
 libsnd_ut_rev
 libspu_s_sr
-libsnd_ut_rfb
+libsnd_ut_rfb nocse
 libsnd_ut_sva
 libsnd_vm_aloc2
 libsnd_func_80034be8
