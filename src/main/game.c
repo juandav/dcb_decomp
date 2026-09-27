@@ -119,6 +119,18 @@ typedef struct {
     /* 0x1C */ u8 unk1C[2];
 } PadState;
 
+typedef struct Thread {
+    /* 0x00 */ u32 flags;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ struct Thread *next;
+    /* 0x0C */ struct Thread *prev;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ s32 stack;
+    /* 0x20 */ s32 regs[40];
+} Thread;
+
 typedef struct {
     /* 0x00 */ u8 unk0[0xE];
     /* 0x0E */ u16 clut;
@@ -725,7 +737,79 @@ void func_80013F04(s32 arg0) {
     func_8006A814();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80013FA4);
+extern s16 D_80077A18;
+extern s16 D_80077A1A;
+extern s16 D_80077A1C;
+extern s32 D_80077AE0;
+extern s32 D_80077ADC;
+extern s32 D_80077AD8;
+extern s32 D_80077BC0;
+extern Unk80077A0C *D_80077A0C;
+void func_800141B8();
+long func_8006A794(unsigned long, long, long, long (*)());
+long func_8006A7C4(long);
+s32 SetRCnt(u32, u16, s32);
+s32 StartRCnt(u32);
+
+s32 func_80013FA4(s32 mode, s32 size, s32 pc, s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 *p;
+    s32 *t;
+    s32 *tcb;
+    s32 *src;
+    s32 *dst;
+    s32 i;
+    s32 j;
+    s32 stack;
+    s32 ev;
+
+    func_8006A804();
+    D_80077A08 = mode;
+    for (p = (s32 *)&D_80077BA0, i = 0x1F; i >= 0; i--, p += 0x30) {
+        *p = 0;
+    }
+    D_80077A18 = D_80077A1A = *(u16 *)&D_80077A1C = 0xFFFF;
+    D_80077A0C = (Unk80077A0C *)((Thread *)&D_80077BA0 - 1);
+    ((Thread *)&D_80077AE0)->flags = 0x8000FFFF;
+    ((Thread *)&D_80077AE0)->next = (Thread *)D_80077A0C + 1;
+    if (D_80077A08 != 0) {
+        ((Thread *)&D_80077AE0)->prev = (Thread *)&D_80077AE0;
+    } else {
+        D_80077AEC = &D_80077BA0;
+    }
+    ((Thread *)&D_80077AE0)->unk14 = -1;
+    tcb = *(s32 **)0x108;
+    D_80077ADC = *tcb;
+    src = (s32 *)(D_80077ADC + 8);
+    dst = &D_80077BC0;
+    for (j = 0x27; j >= 0; j--) {
+        *dst++ = *src++;
+    }
+    t = (s32 *)&D_80077BA0;
+    t[0] = 0xA0000000;
+    t[0x28] = pc;
+    t[0x2B] = 0x4000FF04;
+    t[0xC] = a0;
+    t[0xD] = a1;
+    t[0xE] = a2;
+    t[0xF] = a3;
+    t[2] = (s32)&D_80077AE0;
+    t[3] = (s32)&D_80077AE0;
+    t[5] = 0;
+    t[6] = 0;
+    stack = (s32)func_8001ABCC(size, -3);
+    if (stack == 0) {
+        return -6;
+    }
+    t[7] = stack;
+    t[0x25] = stack + (size & ~7) - 0x20;
+    ev = func_8006A794(0xF2000003, 2, 0x1000, (long (*)())func_800141B8);
+    func_8006A7C4(ev);
+    SetRCnt(0xF2000003, 1, 0x1000);
+    StartRCnt(0xF2000003);
+    D_80077AD8 = ev;
+    func_8006A814();
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800141B8);
 
