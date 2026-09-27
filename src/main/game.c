@@ -800,6 +800,53 @@ typedef struct {
     s32 t[3];
 } MATRIX;
 
+typedef struct GsCOORDINATE2 {
+    /* 0x00 */ u32 flg;
+    /* 0x04 */ MATRIX coord;
+    /* 0x24 */ MATRIX workm;
+    /* 0x44 */ void *param;
+    /* 0x48 */ struct GsCOORDINATE2 *super;
+    /* 0x4C */ struct GsCOORDINATE2 *sub;
+} GsCOORDINATE2;
+
+typedef struct {
+    /* 0x0 */ u32 attribute;
+    /* 0x4 */ GsCOORDINATE2 *coord2;
+    /* 0x8 */ u32 *tmd;
+    /* 0xC */ u32 id;
+} GsDOBJ4;
+
+typedef struct {
+    /* 0x00 */ AnimChan pos[3];
+    /* 0x30 */ AnimChan rot[3];
+    /* 0x60 */ AnimChan scale[3];
+} BoneKeys;
+
+typedef struct {
+    /* 0x0000 */ s32 unk0;
+    /* 0x0004 */ s16 nobj;
+    /* 0x0006 */ s16 id;
+    /* 0x0008 */ u8 unk8[0x20];
+    /* 0x0028 */ GsCOORDINATE2 root;
+    /* 0x0078 */ GsCOORDINATE2 coord[32];
+    /* 0x0A78 */ SVECTOR rot;
+    /* 0x0A80 */ SVECTOR rots[32];
+    /* 0x0B80 */ GsDOBJ4 obj[32];
+    /* 0x0D80 */ BoneKeys keys[32];
+    /* 0x1F80 */ s16 *bonepos[32];
+    /* 0x2000 */ u8 unk2000[0x6B0];
+    /* 0x26B0 */ s8 parent[32];
+    /* 0x26D0 */ s32 unk26D0;
+    /* 0x26D4 */ s32 unk26D4;
+    /* 0x26D8 */ s32 unk26D8;
+    /* 0x26DC */ void *data;
+    /* 0x26E0 */ s32 unk26E0;
+    /* 0x26E4 */ Rect16 prect;
+    /* 0x26EC */ Rect16 crect;
+    /* 0x26F4 */ void *pak;
+    /* 0x26F8 */ u8 clut[0x200];
+} Model;
+
 typedef struct {
     /* 0x0 */ s16 id;
     /* 0x2 */ s16 vab;
@@ -5905,25 +5952,6 @@ void *func_800236B4(s32 id) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002371C);
 
-typedef struct {
-    /* 0x00 */ AnimChan pos[3];
-    /* 0x30 */ AnimChan rot[3];
-    /* 0x60 */ AnimChan scale[3];
-} BoneKeys;
-
-typedef struct {
-    /* 0x0000 */ u8 unk0[0xB80];
-    /* 0x0B80 */ struct {
-        u32 attribute;
-        void *coord2;
-        u32 *tmd;
-        u32 id;
-    } obj[32];
-    /* 0x0D80 */ BoneKeys keys[32];
-    /* 0x1F80 */ u8 unk1F80[0x730];
-    /* 0x26B0 */ u8 name[32];
-} Model;
-
 s32 func_8002371C(u8 *);
 void func_800234AC(u8 *);
 void StoreImage2(Rect16 *, u32 *);
@@ -6021,7 +6049,7 @@ skip:
     *(s16 *)(m + 4) = *(u16 *)data;
     data += 4;
     for (i = 0; i < 32; i++) {
-        ((Model *)m)->name[i] = *data++;
+        ((Model *)m)->parent[i] = *data++;
     }
     data = (u8 *)func_80023468(m, (s32 *)data);
     if (kind == 0) {
