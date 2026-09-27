@@ -364,7 +364,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndCrescendo);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndPause);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndPlay);
+void _SsSndPlay(short a, short b) {
+    _SsSeqPlay(a, b);
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSeqPlay);
 
