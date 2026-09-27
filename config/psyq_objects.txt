@@ -98,7 +98,7 @@ libspu_s_snc
 libsnd_vm_noff
 libsnd_vm_nowof
 libsnd_vm_nowon
-libsnd_vm_pb
+libsnd_vm_pb gcc2.8
 libsnd_vm_prog2
 libsnd_vm_seq
 libsnd_vm_stav
