@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/stage.h"
+#include "dcb/game_flow.h"
 #include "dcb/archive.h"
 #include "dcb/decompress.h"
 #include "dcb/sort.h"
