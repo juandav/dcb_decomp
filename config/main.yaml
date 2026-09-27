@@ -62,6 +62,7 @@ segments:
       - [0x8C0, .rodata, model]
       - [0x90C, .rodata, scene3d]
       - [0x9C0, .rodata, game_b]
+      - [0xD78, .rodata, sound]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
       # the game's own startup and interrupt glue, written in assembly
@@ -86,6 +87,7 @@ segments:
       - [0x145F0, c, scene3d]
       - [0x1603C, c, libmath]
       - [0x17690, c, game_b]
+      - [0x1B5EC, c, sound]
       - [0x3AE10, c, psyq]
       - [0x5E53C, data, game]
       - [0x5F714, data, psyq]
