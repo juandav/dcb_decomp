@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/sound.h"
 #include "dcb/archive.h"
+#include "dcb/decompress.h"
 #include "dcb/sort.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"

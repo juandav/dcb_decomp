@@ -16,12 +16,5 @@ extern u8 LZ_WINDOW[0x1000];
 void *findPakChunk(Chunk *cursor, s32 id, s32 sub);
 void truncatePakAtChunk(Chunk *cursor, s32 id, s32 sub);
 void truncatePakTextures(Chunk *pak);
-s32 readBitstreamBit(void);
-u32 readBitstreamBits(s32 bitCount);
-s32 readHuffmanTree(void);
-s32 decompressForTask(s32 src);
-s32 decompressArchiveEntry(s32 archive, s32 index);
-void decompressLzHuffman(u32 outputSize);
-s32 decompressToHeap(s32 src, s32 heapTag);
 
 #endif /* DCB_ARCHIVE_H */

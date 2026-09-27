@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/archive.h"
+#include "dcb/decompress.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/main.h"
