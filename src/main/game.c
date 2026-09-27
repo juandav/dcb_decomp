@@ -128,6 +128,15 @@ typedef struct {
     /* 0x1C */ u8 unk1C[2];
 } PadState;
 
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+} FadePoly;
+
 typedef struct Thread {
     /* 0x00 */ u32 flags;
     /* 0x04 */ s32 unk4;
@@ -357,8 +366,15 @@ typedef struct {
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 
 typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 w, h;
+} TILE;
+
+typedef struct {
     /* 0x00 */ DR_MODE dm[2];
-    /* 0x10 */ u8 prim[2][0x10];
+    /* 0x10 */ TILE prim[2];
     /* 0x30 */ Rect16 unk30;
     /* 0x38 */ Rect16 unk38;
     /* 0x40 */ Rect16 unk40;
@@ -523,7 +539,8 @@ typedef struct {
     /* 0x15C */ s16 unk15C;
     /* 0x15E */ s16 unk15E;
     /* 0x160 */ s16 unk160;
-    /* 0x162 */ u8 unk162[0x16];
+    /* 0x162 */ u8 unk162[0xE];
+    /* 0x170 */ s16 unk170[4];
     /* 0x178 */ u32 unk178_0 : 15;
     /* 0x178 */ u32 unk178_15 : 2;
     /* 0x178 */ u32 unk178_17 : 2;
@@ -1727,7 +1744,7 @@ void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
 
     for (i = 0; i < 2; i++) {
         setDrawMode(&p->dm[i], 0, 0, GetTPage(0, 1, 0, 0));
-        func_8001E6EC(0x11, p->prim[i], 1, 0);
+        func_8001E6EC(0x11, &p->prim[i], 1, 0);
     }
     func_800191C0(p, arg1, arg2);
 }
@@ -1766,7 +1783,28 @@ void func_800192E0(void *arg0, Bytes4 *arg1) {
     *(Bytes4 *)((s8 *)arg0 + 0x48) = *arg1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800192FC);
+extern u8 D_800794F4;
+
+void func_800192FC(Unk800190F4 *p, s32 ot) {
+    if (p->unk4D < 6) {
+        p->unk40.x = p->unk30.x + (p->unk38.x - p->unk30.x) * p->unk4D / 6;
+        p->unk40.y = p->unk30.y + (p->unk38.y - p->unk30.y) * p->unk4D / 6;
+        p->unk40.w = p->unk30.w + (p->unk38.w - p->unk30.w) * p->unk4D / 6;
+        p->unk40.h = p->unk30.h + (p->unk38.h - p->unk30.h) * p->unk4D / 6;
+        p->unk4D++;
+    } else {
+        p->unk40 = p->unk38;
+    }
+    (p->prim + D_800794F4)->x0 = p->unk40.x - 2;
+    (p->prim + D_800794F4)->y0 = p->unk40.y - 1;
+    (p->prim + D_800794F4)->w = p->unk40.w + 4;
+    (p->prim + D_800794F4)->h = p->unk40.h + 2;
+    (p->prim + D_800794F4)->r0 = p->unk48.b[0] * p->unk4C / 128;
+    (p->prim + D_800794F4)->g0 = p->unk48.b[1] * p->unk4C / 128;
+    (p->prim + D_800794F4)->b0 = p->unk48.b[2] * p->unk4C / 128;
+    addPrim(&D_800793A0->ot[ot], &p->prim[D_800794F4]);
+    addPrim(&D_800793A0->ot[ot], &p->dm[D_800794F4]);
+}
 
 void func_80016C08(void *, void *, s32, s16 *, s32, s32, s32, s32);
 
@@ -1898,7 +1936,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
 void func_80028D18(s32, s32, s32, s32, s32);
 void func_8002BB58(u32);
-void func_800192FC(void *, s32);
+void func_800192FC(Unk800190F4 *, s32);
 extern PadState *D_80089840[];
 
 void func_8001A40C(u8 *w) {
@@ -1935,7 +1973,7 @@ void func_8001A40C(u8 *w) {
         }
         func_80028D18(*(s16 *)(w + 0xAC), y, *(s32 *)(w + 0x98), 7, *(s16 *)(w + 0x3A));
         func_80028D18(*(s16 *)(w + 0xB0), y, *(s32 *)(w + 0x9C), 7, *(s16 *)(w + 0x3A));
-        func_800192FC(w + 0x44, *(s16 *)(w + 0x3A));
+        func_800192FC((Unk800190F4 *)(w + 0x44), *(s16 *)(w + 0x3A));
     }
 }
 
@@ -3935,7 +3973,46 @@ void func_8001F068(s32 arg0, s32 arg1, s32 arg2) {
     D_801D69E4 = arg0 * 0xFF;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F094);
+extern FadePoly D_801D69A0[2];
+extern u32 D_801D69D0[2][2];
+extern u8 D_800794F4;
+
+void func_8001F094(s32 dir, s32 abr, s32 speed) {
+    while (D_801D69E0 != 0) {
+        func_80014C08(D_800794F0);
+    }
+    D_801D69E8 = dir;
+    D_801D69EC = abr;
+    D_801D69F0 = speed;
+    D_801D69E0 = 1;
+    D_801D69E4 = dir * 0xFF;
+    while (D_801D69E0 != 0) {
+        func_80014C08(D_800794F0);
+        if (D_801D69E8 != 0) {
+            if ((D_801D69E4 -= D_801D69F0) < 0) {
+                D_801D69E4 = 0;
+                break;
+            }
+        } else if ((D_801D69E4 += D_801D69F0) >= 0x100) {
+            D_801D69E4 = 0xFF;
+        }
+        SetDrawTPage(D_801D69D0[D_800794F4], 0, 0, GetTPage(0, D_801D69EC, 0, 0));
+        func_8001E6EC(8, &D_801D69A0[D_800794F4], 1, 0);
+        func_8001E75C(&D_801D69A0[D_800794F4], (u8)D_801D69E4, (u8)D_801D69E4, (u8)D_801D69E4);
+        SetSemiTrans(&D_801D69A0[D_800794F4], 1);
+        D_801D69A0[D_800794F4].x0 = 0;
+        D_801D69A0[D_800794F4].y0 = 0;
+        D_801D69A0[D_800794F4].x1 = 320;
+        D_801D69A0[D_800794F4].y1 = 0;
+        D_801D69A0[D_800794F4].x2 = 0;
+        D_801D69A0[D_800794F4].y2 = 240;
+        D_801D69A0[D_800794F4].x3 = 320;
+        D_801D69A0[D_800794F4].y3 = 240;
+        AddPrim((s32 *)D_800793A0->ot, (s32)&D_801D69A0[D_800794F4]);
+        AddPrim((s32 *)D_800793A0->ot, (s32)D_801D69D0[D_800794F4]);
+    }
+    D_801D69E0 = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F3C0);
 
@@ -8682,9 +8759,80 @@ s32 func_8004080C(s32 idx, s32 p) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040A48);
+s32 func_80040A48(s32 p, s32 deck) {
+    Rect16 r;
+    Rect16 unused;
+    s8 *card;
+    s32 c;
+    s32 k;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040D88);
+    if (deck == -1) {
+        return -1;
+    }
+    c = func_80040764(p);
+    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk292[0]);
+    card = (s8 *)&PLAYER_DATA(p).unk80[deck] + 0x13C;
+    PLAYER(p)->cards[c % 30].card = card;
+    r.x = ((p << 8) + (deck + 3) * 40 >> 1) + 0x2C0;
+    r.y = 0xC8;
+    r.w = 0x14;
+    r.h = 0x28;
+    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
+    for (k = 0; k < 3; k++) {
+        if (PLAYER(p)->unk1CA[k] == c) {
+            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
+            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
+            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk178_30 = 0;
+            PLAYER(p)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10);
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[deck + 1];
+            return 0;
+        }
+    }
+    return -1;
+}
+
+s32 func_80040D88(s32 p, s32 deck) {
+    Rect16 r;
+    Rect16 unused;
+    s8 *card;
+    s32 c;
+    s32 k;
+
+    if (deck == -1) {
+        return -1;
+    }
+    c = func_80040764(p);
+    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk288);
+    card = (s8 *)&PLAYER_DATA(p).unk80[deck];
+    PLAYER(p)->cards[c % 30].card = card;
+    r.x = ((p << 8) + deck * 40 >> 1) + 0x2C0;
+    r.y = 0xC8;
+    r.w = 0x14;
+    r.h = 0x28;
+    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
+    for (k = 0; k < 3; k++) {
+        if (PLAYER(p)->unk1CA[k] == c) {
+            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
+            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
+            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk178_30 = 0;
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[0];
+            return 0;
+        }
+    }
+    return -1;
+}
 
 s32 func_800410B4(s32 arg0, s32 arg1) {
     s32 i;
@@ -9179,9 +9327,56 @@ void func_80045AB8(s32 arg0) {
     } while (i < 0x12D);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045B18);
+void *func_80046088(s32);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045E1C);
+s8 func_80045B18(s32 p, s32 id, s32 n) {
+    s32 k;
+
+    if (id >= 0xAC && id <= 0xBE) {
+        return -3;
+    }
+    for (k = PLAYER_DATA(p).unk14B2[id] & 7; k < 6; k++) {
+        func_80045968(p, id, k);
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x50;
+        return -2;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0 && !(PLAYER_DATA(p).unk14B2[id] & 0x40)) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x20;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) + n >= 7) {
+        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
+        PLAYER_DATA(p).unk14B2[id] |= 0x56;
+        return -1;
+    }
+    PLAYER_DATA(p).unk14B2[id] += n;
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    }
+    if (((u8 *)func_80046088(id))[0x19] == 0) {
+        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    }
+    PLAYER_DATA(p).unk14B2[id] |= 0xC0;
+    func_8002CC44(p);
+    return PLAYER_DATA(p).unk14B2[id] & 7;
+}
+
+s8 func_80045E1C(s32 p, s32 id, s32 n) {
+    if (id >= 0xAC && id <= 0xBE) {
+        return -3;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0) {
+        return -2;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) - n < 0) {
+        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
+        return -1;
+    }
+    PLAYER_DATA(p).unk14B2[id] -= n;
+    func_8002CC44(p);
+    return PLAYER_DATA(p).unk14B2[id] & 7;
+}
 
 
 s32 func_80045F5C(s32 arg0, s32 arg1) {
