@@ -74,7 +74,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 unk0;
-    /* 0x02 */ s16 unk2;
+    /* 0x02 */ u16 unk2;
     /* 0x04 */ s16 unk4;
     /* 0x06 */ s16 unk6;
     /* 0x08 */ s16 unk8;
@@ -243,6 +243,10 @@ typedef struct {
     ((abe) ? setcode(p, getcode(p) | 0x02) : setcode(p, getcode(p) & ~0x02))
 #define addPrim(ot, p) setaddr(p, getaddr(ot)), setaddr(ot, p)
 #define getClut(x, y) (((y) << 6) | (((x) >> 4) & 0x3f))
+#define setSprt(p) setlen(p, 4), setcode(p, 0x64)
+#define setShadeTex(p, tge) \
+    ((tge) ? setcode(p, getcode(p) | 1) : setcode(p, getcode(p) & ~1))
+#define setRGB0(p, _r0, _g0, _b0) (p)->r0 = _r0, (p)->g0 = _g0, (p)->b0 = _b0
 #define getTPage(tp, abr, x, y)                                                        \
     ((((tp) & 0x3) << 7) | (((abr) & 0x3) << 5) | (((y) & 0x100) >> 4) | (((x) & 0x3ff) >> 6) | \
      (((y) & 0x200) << 2))
@@ -332,6 +336,11 @@ typedef struct Panel {
 } Panel;
 
 typedef struct {
+    /* 0x000 */ u8 unk0[0x10C];
+    /* 0x10C */ s32 unk10C[3];
+} Unk80030CA8;
+
+typedef struct {
     /* 0x00 */ u16 cards[30];
     /* 0x3C */ char name[0x31];
     /* 0x6D */ u8 unk6D;
@@ -412,12 +421,13 @@ typedef struct {
 
 
 typedef struct {
-    /* 0x000 */ s32 unk0[0x9F];
+    /* 0x000 */ s32 unk0[0x9E];
+    /* 0x278 */ u8 *unk278;
     /* 0x27C */ u8 *unk27C;
     /* 0x280 */ s32 unk280[2];
     /* 0x288 */ u8 unk288;
     /* 0x289 */ u8 unk289;
-    /* 0x28A */ u8 unk28A[2];
+    /* 0x28A */ s16 unk28A;
     /* 0x28C */ s8 unk28C[3];
     /* 0x28F */ u8 unk28F[3];
     /* 0x292 */ u8 unk292[6];
@@ -434,7 +444,9 @@ typedef struct {
     /* 0x0030 */ u8 unk30[0xC];
     /* 0x003C */ u8 unk3C[0x44];
     /* 0x0080 */ Deck unk80[3];
-    /* 0x0848 */ u8 unk848[0xC6A];
+    /* 0x0848 */ u8 unk848[0x278];
+    /* 0x0AC0 */ u16 unkAC0[0x9F];
+    /* 0x0BFE */ u8 unkBFE[0x8B4];
     /* 0x14B2 */ u8 unk14B2[0x12D];
     /* 0x15DF */ u8 unk15DF;
     /* 0x15E0 */ u16 unk15E0[301][6];
@@ -544,6 +556,11 @@ typedef struct {
 typedef struct { u8 unk0[0x1F80]; s16 *unk1F80[8]; } Unk1F80;
 
 extern s32 D_801D6B24;
+extern u16 D_801D6B10;
+extern u16 D_801D6B12;
+extern u16 D_801D6B14;
+extern u16 D_801D6B20;
+extern s16 D_801D6B22;
 s32 func_80029990(void);
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
 
@@ -1171,7 +1188,48 @@ s32 func_8001A164(s32 *arg0, s32 arg1) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A40C);
+void func_80028D18(s32, s32, s32, s32, s32);
+void func_8002BB58(u32);
+void func_800192FC(void *, s32);
+extern PadState *D_80089840[];
+
+void func_8001A40C(u8 *w) {
+    Rect16 r;
+    s32 x;
+    s32 y;
+
+    x = *(s16 *)w + (*(s16 *)(w + 0xA8) - w[0xA7] * 2) / 2;
+    y = *(s16 *)(w + 2) + 2;
+    if (*(s32 *)(w + 0x94) != 0) {
+        func_80028D18(x, y, *(s32 *)(w + 0x94), 7, *(s16 *)(w + 0x3A));
+    }
+    y = *(s16 *)(w + 2) + *(s16 *)(w + 0xAA) - 0xE;
+    if (w[0xA4] != 0) {
+        if (w[0xB4] == 0) {
+            if ((D_80089840[w[0xA6]]->unk2 & 0x8000) && (s8)w[0xA5] != 1) {
+                w[0xA5] = 1;
+                r.x = *(s16 *)(w + 0xAC);
+                r.y = y;
+                r.w = *(s16 *)(w + 0xAE);
+                r.h = 0xC;
+                func_80019280((Unk800190F4 *)(w + 0x44), &r);
+                func_8002BB58(2);
+            }
+            if ((D_80089840[w[0xA6]]->unk2 & 0x2000) && (s8)w[0xA5] != 2) {
+                w[0xA5] = 2;
+                r.x = *(s16 *)(w + 0xB0);
+                r.y = y;
+                r.w = *(s16 *)(w + 0xB2);
+                r.h = 0xC;
+                func_80019280((Unk800190F4 *)(w + 0x44), &r);
+                func_8002BB58(2);
+            }
+        }
+        func_80028D18(*(s16 *)(w + 0xAC), y, *(s32 *)(w + 0x98), 7, *(s16 *)(w + 0x3A));
+        func_80028D18(*(s16 *)(w + 0xB0), y, *(s32 *)(w + 0x9C), 7, *(s16 *)(w + 0x3A));
+        func_800192FC(w + 0x44, *(s16 *)(w + 0x3A));
+    }
+}
 
 void func_8001A6B0(void);
 
@@ -1179,7 +1237,6 @@ void *func_8001ACEC(s32);
 s32 PadInitDirect(void *, void *);
 s32 PadStartCom(void);
 extern s32 D_800897F8;
-extern PadState *D_80089840[];
 extern s32 D_8008983C;
 void func_8001A600(void) {
     s32 i;
@@ -1700,7 +1757,62 @@ s32 func_8001BD60(void) {
     return i;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BDEC);
+extern s32 D_801D487C;
+extern u8 *D_801D4874;
+extern u8 D_801D5988[0x1000];
+
+void func_8001BDEC(u32 size) {
+    s32 pos;
+    s32 i;
+    s32 k;
+    u32 out;
+    s32 root;
+    s32 sym;
+    s32 off;
+    u8 c;
+
+    D_801D487C = 0x1000;
+    out = 0;
+    root = 0;
+    pos = 0xFEE;
+    for (k = 0; k < pos; k++) {
+        D_801D5988[k] = 0;
+    }
+    while (out < size) {
+        if (D_801D487C == 0x1000) {
+            D_801D4878 = 0x110;
+            root = func_8001BD60();
+            D_801D487C = 0;
+        }
+        sym = root;
+        while (sym >= 0x110) {
+            if (func_8001BC38() != 0) {
+                sym = (&D_801D5108)[sym];
+            } else {
+                sym = (&D_801D4888)[sym];
+            }
+        }
+        D_801D487C++;
+        if (sym < 0x100) {
+            *D_801D4874++ = sym;
+            D_801D5988[pos] = sym;
+            pos++;
+            pos &= 0xFFF;
+            out++;
+        } else {
+            sym -= 0xFD;
+            off = func_8001BCA4(12);
+            for (i = 0; i < sym; i++) {
+                c = D_801D5988[(off + i) & 0xFFF];
+                *D_801D4874++ = c;
+                D_801D5988[pos] = c;
+                pos++;
+            pos &= 0xFFF;
+            }
+            out += sym;
+        }
+    }
+}
 
 void func_8001C078(s32);
 
@@ -1709,11 +1821,10 @@ void func_8001BFCC(s32 arg0, s32 arg1) {
 }
 
 u32 func_8001BCA4(s32);
-s32 func_8001BDEC(s32);
+void func_8001BDEC(u32);
 extern s32 D_801D4868;
 extern u32 D_801D486C;
 extern u8 *D_801D4870;
-extern s32 D_801D4874;
 
 s32 func_8001BFF8(s32 arg0, s32 arg1) {
     s32 temp_s0;
@@ -1726,7 +1837,7 @@ s32 func_8001BFF8(s32 arg0, s32 arg1) {
     temp_s0 = func_8001BCA4(0x10);
     temp_s0_2 = (temp_s0 << 0x10) | func_8001BCA4(0x10);
     temp_v0 = func_8001ABCC(temp_s0_2, arg1);
-    D_801D4874 = temp_v0;
+    D_801D4874 = (u8 *)temp_v0;
     func_8001BDEC(temp_s0_2);
     return temp_v0;
 }
@@ -3532,8 +3643,6 @@ void func_800271EC(s32 arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
     func_80027228(arg0, arg1, (Rect16 *)arg2, (u8 *)&D_8006DF98, arg3, arg4, arg5);
 }
 
-extern u16 D_801D6B20;
-extern s16 D_801D6B22;
 
 void func_80027228(s32 x, s32 y, Rect16 *r, u8 *rgb, u16 tpage, s32 n, s32 z) {
     if (func_80029990() == 0) {
@@ -3562,8 +3671,6 @@ void func_80027410(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5,
     func_80027458(arg0, arg1, arg2, arg3, arg4, arg5, arg6, (u8 *)&D_8006DF98, arg7);
 }
 
-extern u16 D_801D6B12;
-extern u16 D_801D6B14;
 
 void func_80027458(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 n, u8 *rgb, s32 z) {
     if (func_80029990() == 0) {
@@ -3905,7 +4012,6 @@ void func_8002961C(s32 x, s32 y, u8 *s, u8 *rgb, s32 n, s32 z) {
     }
 }
 
-extern u16 D_801D6B10;
 
 s32 func_80029990(void) {
     if (D_801D6B24 == D_800793A0->unk40B8 + D_801D6B10 * 0x1C) {
@@ -5315,7 +5421,35 @@ s32 func_80030718(SVECTOR *a, SVECTOR *b, SVECTOR *c) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030828);
+void func_80030828(SVECTOR *a, SVECTOR *p, SVECTOR *b, VECTOR *out) {
+    VECTOR d;
+    VECTOR ap;
+    VECTOR n;
+    VECTOR proj;
+    s32 t;
+
+    d.vx = b->vx - a->vx;
+    d.vy = b->vy - a->vy;
+    d.vz = b->vz - a->vz;
+    if (SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz) < 20000) {
+        VectorNormal(&d, &n);
+    } else {
+        d.vx >>= 4;
+        d.vy >>= 4;
+        d.vz >>= 4;
+        VectorNormal(&d, &n);
+    }
+    ap.vx = p->vx - a->vx;
+    ap.vy = p->vy - a->vy;
+    ap.vz = p->vz - a->vz;
+    t = (n.vx * ap.vx + n.vy * ap.vy + n.vz * ap.vz) >> 12;
+    proj.vx = t * n.vx >> 12;
+    proj.vy = t * n.vy >> 12;
+    proj.vz = t * n.vz >> 12;
+    out->vx = a->vx + proj.vx;
+    out->vy = a->vy + proj.vy;
+    out->vz = a->vz + proj.vz;
+}
 
 s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2) {
     s32 v;
@@ -5390,9 +5524,46 @@ s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030CA8);
+void func_80030CA8(u8 *p) {
+    s32 i;
 
-s32 func_80030CA8(void *);
+    p[0x139] = *(s16 *)(p + 0x12E) >= 0x5B;
+    *(s32 *)(p + 0x118) = -1;
+    for (i = 0; i < 3; i++) {
+        ((Unk80030CA8 *)p)->unk10C[i] = 0;
+    }
+    *(s32 *)(p + 0x108) = 0;
+    *(s32 *)(p + 0x11C) = 0;
+    *(s32 *)(p + 0x100) = 0;
+    *(s32 *)(p + 0x104) = 0;
+    if (*(s16 *)(p + 0x12E) != 0 && *(s16 *)(p + 0x12E) != 0x5A) {
+        *(s32 *)(p + 0x38) = *(s32 *)(p + 0xAC);
+        *(s32 *)(p + 0x3C) = *(s32 *)(p + 0xB0);
+        *(s32 *)(p + 0x40) = *(s32 *)(p + 0xB4);
+        *(s16 *)(p + 0x30) = *(s16 *)(p + 0xE4);
+        *(s16 *)(p + 0x32) = *(s16 *)(p + 0xE6);
+        *(s16 *)(p + 0x34) = *(s16 *)(p + 0xE8);
+        *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4);
+        *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6);
+        *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8);
+        *(s32 *)(p + 0x6C) = *(s16 *)(p + 0xDC);
+        *(s32 *)(p + 0x70) = *(s16 *)(p + 0xDE);
+        *(s32 *)(p + 0x74) = *(s16 *)(p + 0xE0);
+        func_80030BC4((SVECTOR *)(p + 0xD4), (SVECTOR *)(p + 0xDC), (VECTOR *)(p + 0x9C));
+    } else {
+        *(s32 *)(p + 0xAC) = *(s32 *)(p + 0x38);
+        *(s32 *)(p + 0xB0) = *(s32 *)(p + 0x3C);
+        *(s32 *)(p + 0xB4) = *(s32 *)(p + 0x40);
+        *(s16 *)(p + 0xE4) = *(s16 *)(p + 0x30);
+        *(s16 *)(p + 0xE6) = *(s16 *)(p + 0x32);
+        *(s16 *)(p + 0xE8) = *(s16 *)(p + 0x34);
+        *(s16 *)(p + 0xD4) = *(s32 *)(p + 0x20);
+        *(s16 *)(p + 0xD6) = *(s32 *)(p + 0x24);
+        *(s16 *)(p + 0xD8) = *(s32 *)(p + 0x28);
+    }
+}
+
+void func_80030CA8(u8 *);
 
 void *func_80030E3C(void *arg0) {
     func_8001EFDC(arg0, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xD4)), (s32) (*(s16 *)((s8 *)arg0 + 0xD6)), (s32) (*(s16 *)((s8 *)arg0 + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE8)));
@@ -6869,7 +7040,35 @@ void *func_80046088(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046118);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800461C0);
+void func_800461C0(s32 a) {
+    u8 count[0x12D];
+    SavedDeck *decks;
+    s32 i;
+    s32 j;
+    s32 missing;
+
+    decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
+    for (i = 0; i < 0x9F; i++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unkAC0[i] & 0x8000) {
+            for (j = 0; j < 0x12D; j++) {
+                count[j] = 0;
+            }
+            for (j = 0; j < 30; j++) {
+                count[decks[i].cards[j]]++;
+            }
+            missing = 0;
+            for (j = 0; j < 0x12D; j++) {
+                if ((((Unk8006E050 *)D_8006E050)[a].unk14B2[j] & 7) < count[j]) {
+                    missing = 1;
+                    break;
+                }
+            }
+            if (!missing) {
+                ((Unk8006E050 *)D_8006E050)[a].unkAC0[i] |= 0x4000;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004635C);
 
@@ -7040,7 +7239,29 @@ void func_80047364(s32 a) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047438);
+void func_80047438(s32 a) {
+    s32 j;
+    u8 id;
+    u8 alt;
+
+    for (j = 0; j < 3; j++) {
+        id = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288;
+        if (id != 0) {
+            if ((s8)((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 >= 0x63) {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 = 0x63;
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28A = func_80049934(0x62);
+            }
+            ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk278 = D_801D8408 + id * 0x13C;
+            alt = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0];
+            if (alt == 0) {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + id * 0x13C;
+            } else {
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + alt * 0x13C;
+            }
+            func_80048230(a, j);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047620);
 
