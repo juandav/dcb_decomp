@@ -41,6 +41,11 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    label itself (GCC 2.8), so the label kills the registers a REG_DEAD note
    left pending before the jump. A branch can then take an insn that sets
    one of its own inputs from its target (prnt: `bne v1,v0,L; sltiu v0,..`).
+8. expand_increment: a post-increment whose value is used, of a MEM that the
+   add insn can't take (`if (count++ > N)` on a global), goes through
+   GCC 2.8's queue path: the address goes to a register (`la v0,sym`), the old
+   value is loaded into a temp, and the add and the store are queued
+   (`lw v1,0(v0); move a0,v1; addiu v1,v1,1; ... sw v1,0(v0)`, trapIntr).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -226,6 +231,87 @@ def patch(src, dst):
     #    and keep JUMP_LABEL in %eax.
     o = fo(0x0817247B)
     put(0x0817247B, b"\x83\xec\x0c\x50\xe8" + d[o + 5:o + 9] + b"\x83\xc4\x10", b"\x90" * 12)
+
+    # 8. expand_increment+1111 (the post-increment fallback, reached when the
+    #    queued add can't take OP0): as GCC 2.8, for a MEM with an add insn
+    #      addr = general_operand (XEXP (op0, 0), mode)
+    #             ? force_reg (Pmode, XEXP (op0, 0)) : copy_to_reg (XEXP (op0, 0));
+    #      op0 = change_address (op0, VOIDmode, addr);
+    #      temp = force_reg (GET_MODE (op0), op0);
+    #      if (! insn_operand_predicate[icode][2] (op1, mode))
+    #        op1 = force_reg (mode, op1);
+    #      enqueue_insn (op0, gen_move_insn (op0, temp));
+    #      return enqueue_insn (temp, GEN_FCN (icode) (temp, temp, op1));
+    #    Locals: op0 %edi, post 0xc(%ebp), mode -0x24, icode -0x1c, op1 -0x3c.
+    #    The code goes over bc_expand_expr (only used with -fbytecode), since
+    #    the page after the text segment is full.
+    def increment_mem(code, jump):
+        def short(opcode):  # 8-bit forward branch, fixed up by `here`
+            code.extend(opcode + b"\x00")
+            return len(code)
+
+        def here(at):
+            code[at - 1] = len(code) - at
+
+        code += b"\x83\x7d\x0c\x00"                # cmpl $0,post  (the replaced insns)
+        jump(b"\x0f\x84", 0x080AE8EE)             # je (preincrement)
+        code += b"\x81\x7d\xe4\x51\x01\x00\x00"    # cmpl $CODE_FOR_nothing,icode
+        jump(b"\x0f\x84", 0x080AE8DB)             # je back
+        code += b"\x66\x83\x3f\x39"                # cmpw $MEM,(%edi)
+        jump(b"\x0f\x85", 0x080AE8DB)             # jne back
+        code += b"\xff\x75\xdc\xff\x77\x04"        # push mode; push XEXP (op0, 0)
+        jump(b"\xe8", 0x08184AD9)                  # call general_operand
+        code += b"\x83\xc4\x08\x8b\x57\x04\x85\xc0"  # add $8,%esp; mov 4(%edi),%edx; test
+        copy = short(b"\x74")                      # je copy
+        code += b"\x52\x6a\x04"                    # push addr; push $SImode
+        jump(b"\xe8", 0x080C276E)                  # call force_reg
+        code += b"\x83\xc4\x08"
+        have = short(b"\xeb")                      # jmp have
+        here(copy)
+        code += b"\x52"                            # push addr
+        jump(b"\xe8", 0x080C2639)                  # call copy_to_reg
+        code += b"\x83\xc4\x04"
+        here(have)
+        code += b"\x50\x6a\x00\x57"                # push addr; push $VOIDmode; push op0
+        jump(b"\xe8", 0x080DB2AB)                  # call change_address
+        code += b"\x83\xc4\x0c\x89\xc7"            # add $12,%esp; mov %eax,%edi
+        code += b"\x57\x0f\xb6\x47\x02\x50"        # push op0; push GET_MODE (op0)
+        jump(b"\xe8", 0x080C276E)                  # call force_reg
+        code += b"\x83\xc4\x08\x89\xc6"            # add $8,%esp; mov %eax,%esi  (temp)
+        code += b"\x8b\x55\xe4\x8d\x04\x92"        # mov icode,%edx; lea (%edx,%edx,4),%eax
+        code += b"\x8b\x04\xc5" + (0x082B7388).to_bytes(4, "little")  # insn_operand_predicate[icode][2]
+        code += b"\xff\x75\xdc\xff\x75\xc4\xff\xd0"  # push mode; push op1; call *%eax
+        code += b"\x83\xc4\x08\x85\xc0"            # add $8,%esp; test
+        ok = short(b"\x75")                        # jne ok
+        code += b"\xff\x75\xc4\xff\x75\xdc"        # push op1; push mode
+        jump(b"\xe8", 0x080C276E)                  # call force_reg
+        code += b"\x83\xc4\x08\x89\x45\xc4"        # add $8,%esp; mov %eax,op1
+        here(ok)
+        code += b"\x56\x57"                        # push temp; push op0
+        jump(b"\xe8", 0x080C9ADD)                  # call gen_move_insn
+        code += b"\x83\xc4\x08\x50\x57"            # add $8,%esp; push %eax; push op0
+        jump(b"\xe8", 0x0809ECB6)                  # call enqueue_insn
+        code += b"\x83\xc4\x08\x8b\x55\xe4"        # add $8,%esp; mov icode,%edx
+        code += b"\x8b\x04\x95" + (0x082B6E20).to_bytes(4, "little")  # insn_gen_function[icode]
+        code += b"\xff\x75\xc4\x56\x56\xff\xd0"    # push op1; push temp; push temp; call *%eax
+        code += b"\x83\xc4\x0c\x50\x56"            # add $12,%esp; push %eax; push temp
+        jump(b"\xe8", 0x0809ECB6)                  # call enqueue_insn
+        code += b"\x83\xc4\x08"                    # add $8,%esp
+        jump(b"\xe9", 0x080AE93F)                  # jmp to the epilogue (returns %eax)
+
+    cave = 0x080AAEA3
+    code = bytearray()
+
+    def jump(opcode, target):
+        code.extend(opcode)
+        code.extend((target - (cave + len(code) + 4)).to_bytes(4, "little", signed=True))
+
+    increment_mem(code, jump)
+    if len(code) > 0x9B5:
+        sys.exit("patch_cc1: increment_mem doesn't fit")
+    put(cave, b"\xf3\x0f\x1e\xfb", code)
+    put(0x080AE8D5, bytes.fromhex("837d0c007413"),
+        b"\xe9" + (cave - (0x080AE8D5 + 5)).to_bytes(4, "little", signed=True) + b"\x90")
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
