@@ -1250,7 +1250,9 @@ DISPENV *GetDispEnv(DISPENV *env) {
     return env;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetODE);
+int GetODE(void) {
+    return D_80076750->status() >> 31;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawArea);
 
