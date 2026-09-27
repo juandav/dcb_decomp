@@ -12054,7 +12054,28 @@ s32 func_80040278(s32 arg0) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800402CC);
+s32 func_80047B84(s32 a, s32 id);
+
+s32 func_800402CC(s32 p) {
+    s32 i;
+    s32 j;
+    s32 c;
+
+    for (i = 0; i < 30; i++) {
+        if (PLAYER(p)->unk17D[i] != -1) {
+            c = PLAYER(p)->unk17D[i];
+            if (func_80047B84(p, PLAYER(p)->cards[c % 30].id) >= 0) {
+                for (j = i; j > 0; j--) {
+                    PLAYER(p)->unk17D[j] = PLAYER(p)->unk17D[j - 1];
+                }
+                PLAYER(p)->unk17D[0] = -1;
+                return c;
+            }
+        }
+    }
+    return -1;
+}
+
 
 s32 func_800403F8(s32 arg0, s32 arg1) {
     s32 i;
