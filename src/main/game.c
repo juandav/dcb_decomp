@@ -10776,6 +10776,8 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010C9C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80034260);
 
+INCLUDE_ASM("asm/main/nonmatchings/game", func_80038F68);
+
 void func_8003917C(void) {
     s32 diff;
     s32 p;
@@ -11350,7 +11352,7 @@ void func_8003E94C(void) {
 }
 
 s32 func_801F8998(s32, s32, s32, s32, s32);
-extern s32 D_80038F68;
+void func_80038F68();
 extern void *D_8006E054;
 extern s32 func_80034260;
 extern s32 func_80041E00;
@@ -11362,7 +11364,7 @@ void func_8003E9F4(s32 arg0) {
     (*(s32 *)((s8 *)D_801D8340 + 0x58)) = func_801F8998(0, 0x26, 0x2E, 0xA, 1);
     func_800149B8(0x1E, -1, 0, 0x800, &func_80034260, 0, 0, 0, 0);
     if ((arg0 != 0) && ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) == 0)) {
-        func_800149B8(0, -1, 0, 0x800, &D_80038F68, 0, 0, 0, 0);
+        func_800149B8(0, -1, 0, 0x800, func_80038F68, 0, 0, 0, 0);
     }
     func_800149B8(0, -1, 0, 0x800, &func_80041E00, 0, 0, 0, 0);
     if (arg0 != 0) {
