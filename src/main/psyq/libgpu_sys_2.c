@@ -283,7 +283,19 @@ void func_80066E84(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066EB8);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066FFC);
+int func_80066FFC(int mode) {
+    *D_80076860 = 0x10000007;
+    if ((*D_8007685C & 0xFFFFFF) != 2) {
+        *D_8007685C = (*D_80076860 & 0x3FFF) | 0xE1001000;
+        *(volatile u_long *)D_8007685C;
+        return 0;
+    }
+    if (!(mode & 8)) {
+        return 1;
+    }
+    *D_80076860 = 0x09000001;
+    return 2;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", LoadImage2);
 
