@@ -732,7 +732,9 @@ int CdPosToInt(CdlLOC *p) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdSearchFile);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005757C);
+int func_8005757C(char *a, char *b) {
+    return strncmp(a, b, 12) == 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005759C);
 
