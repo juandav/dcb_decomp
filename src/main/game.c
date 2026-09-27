@@ -153,13 +153,23 @@ typedef struct Thread {
     /* 0x20 */ s32 regs[40];
 } Thread;
 
+/* a sprite with its DR_TPAGE and DR_TWINs */
 typedef struct {
-    /* 0x00 */ u8 unk0[0xE];
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u8 r0;
+    /* 0x05 */ u8 g0;
+    /* 0x06 */ u8 b0;
+    /* 0x07 */ u8 code;
+    /* 0x08 */ s16 x0;
+    /* 0x0A */ s16 y0;
+    /* 0x0C */ u8 u0;
+    /* 0x0D */ u8 v0;
     /* 0x0E */ u16 clut;
     /* 0x10 */ s16 unk10;
     /* 0x12 */ s16 unk12;
-    /* 0x14 */ u8 tpage[0x14];
-    /* 0x28 */ u8 twin[0xC];
+    /* 0x14 */ u32 tpage[2];
+    /* 0x1C */ u32 twin[3];
+    /* 0x28 */ u32 twin0[3];
 } FadeBuf;
 
 typedef struct {
@@ -175,6 +185,8 @@ typedef struct {
     /* 0x76 */ s16 h;
     /* 0x78 */ s16 x;
     /* 0x7A */ s16 y;
+    /* 0x7C */ u16 unk7C;
+    /* 0x7E */ u16 unk7E;
 } Fade;
 
 typedef struct {
@@ -3618,8 +3630,8 @@ void func_8001BDEC(u32 size) {
 
 s32 func_8001C078(s32);
 
-void func_8001BFCC(s32 arg0, s32 arg1) {
-    func_8001C078(arg0 + ((s32 *)arg0)[arg1]);
+s32 func_8001BFCC(s32 arg0, s32 arg1) {
+    return func_8001C078(arg0 + ((s32 *)arg0)[arg1]);
 }
 
 u32 func_8001BCA4(s32);
@@ -8430,7 +8442,77 @@ void func_8002FAD8(s8 arg0) {
     D_801D8266 = arg0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002FAE4);
+extern u8 D_800794F4;
+
+void func_8002FAE4(void) {
+    Fade *f;
+    s32 tim;
+    s16 r[4];
+    u8 db;
+
+    if (D_801D81F8.tim == 0 || *(u16 *)&D_801D81F8.mode == 0xFFFF) {
+        return;
+    }
+    switch (D_801D81F8.unk6E) {
+    case 0:
+        if ((s8)D_801D81F8.unk6F < 30) {
+            D_801D81F8.unk6F++;
+        }
+        break;
+    case 1:
+        if ((s8)D_801D81F8.unk6F >= -59) {
+            D_801D81F8.unk6F--;
+        }
+        break;
+    }
+    f = &D_801D81F8;
+    f->unk70 = (f->unk70 + (s8)f->unk6F) % 7680;
+    if (f->mode != f->unk6D) {
+        if (f->unk6D == -1) {
+            if (f->unk72 == 0) {
+                tim = func_8001BFCC(f->tim, f->mode);
+                func_8001B438((u32 *)tim, f->x, f->y, f->w, f->h);
+                if (f->mode != 6) {
+                    f->unk7C = 0x40;
+                } else {
+                    D_801D81F8.unk7C = 0x80;
+                }
+                D_801D81F8.unk7E = 0x80;
+                DrawSync(0);
+                func_8001AE90((void *)tim);
+            }
+            D_801D81F8.unk72 += 6;
+            if (D_801D81F8.unk72 > 0x80) {
+                D_801D81F8.unk72 = 0x80;
+                D_801D81F8.unk6D = D_801D81F8.mode;
+            }
+        } else {
+            D_801D81F8.unk72 -= 6;
+            if (D_801D81F8.unk72 < 0) {
+                D_801D81F8.unk72 = 0;
+                D_801D81F8.unk6D = -1;
+            }
+        }
+    }
+    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].twin0);
+    db = D_800794F4;
+    D_801D81F8.buf[db].x0 = -((D_801D81F8.unk70 / 60) & 1);
+    D_801D81F8.buf[D_800794F4].y0 = 0;
+    D_801D81F8.buf[D_800794F4].u0 = (D_801D81F8.unk70 / 60) & 0xFE;
+    D_801D81F8.buf[D_800794F4].v0 = D_801D81F8.unk70 / 60;
+    D_801D81F8.buf[D_800794F4].r0 = D_801D81F8.unk72;
+    D_801D81F8.buf[D_800794F4].g0 = D_801D81F8.unk72;
+    D_801D81F8.buf[D_800794F4].b0 = D_801D81F8.unk72;
+    r[0] = (D_801D81F8.x % 64) * 4;
+    r[1] = D_801D81F8.y % 256;
+    r[2] = D_801D81F8.unk7C;
+    r[3] = D_801D81F8.unk7E;
+    SetTexWindow(D_801D81F8.buf[D_800794F4].twin, r);
+    addPrim(&D_800793A0->ot[0xFFF], &D_801D81F8.buf[D_800794F4]);
+    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].twin);
+    addPrim(&D_800793A0->ot[0xFFF], D_801D81F8.buf[D_800794F4].tpage);
+}
+
 
 void func_80030130(void *arg0) {
     s32 t;
