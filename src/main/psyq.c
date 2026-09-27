@@ -421,7 +421,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetReverb);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsUtSetReverbFeedback);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80051C70);
+void func_80051C70(void) {
+    SpuSetReverb(0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80051C90);
 
