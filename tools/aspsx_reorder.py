@@ -125,6 +125,8 @@ def main():
         )
     )
     out = []
+    # index in out of the slot this pass filled after a call
+    call_slot = -1
     i = 0
     while i < len(lines):
         line = lines[i]
@@ -143,6 +145,7 @@ def main():
             prev = split(out[k]) if k >= 0 else None
             prev_la = prev
             prev2 = None
+            after_call_slot = False
             at_label = False
             if prev:
                 m = k - 1
@@ -151,6 +154,18 @@ def main():
                 prev2 = split(out[m]) if m >= 0 else None
                 # a branch target stays where it is
                 at_label = m >= 0 and out[m].split("#", 1)[0].strip().endswith(":")
+                # nor does the instruction after a call whose slot GCC
+                # filled (CdRead); after one ASPSX filled itself it moves
+                n = m - 1
+                while n >= 0 and not out[n].split("#", 1)[0].strip():
+                    n -= 1
+                prev3 = split(out[n]) if n >= 0 else None
+                after_call_slot = (
+                    prev3 is not None
+                    and prev3[0] in ("jal", "jalr")
+                    and m != call_slot
+                    and "branch/jump" not in out[m]
+                )
                 # (a split la or store to a symbol leaves its lui there)
                 if at_label and prev[0] != "la" and not (
                     STORES.match(prev[0])
@@ -180,7 +195,8 @@ def main():
                 # a conditional branch left in reorder mode only takes a store
                 # into its slot: GCC's reorg doesn't move volatile stores
                 idx_store = False
-                if reg_store and not at_label and not (prev2 and BRANCHES.match(prev2[0])):
+                if (reg_store and not at_label and not after_call_slot
+                        and not (prev2 and BRANCHES.match(prev2[0]))):
                     moved = out.pop(k)
                     out.append(line)
                     out.append(moved)
@@ -201,11 +217,14 @@ def main():
                 and not LOADS.match(prev[0])
                 and not (prev2 and LOADS.match(prev2[0]) and prev2[1][:1] == ["$31"])
                 and not (prev2 and BRANCHES.match(prev2[0]))
+                and not after_call_slot
             )
             if movable:
                 moved = out.pop(k)
                 out.append(line)
                 out.append(moved)
+                if ins[0] == "jal":
+                    call_slot = len(out) - 1
                 i += 2
                 continue
             la_addr = (
@@ -222,6 +241,8 @@ def main():
                 out[k] = f"lui\t{reg},%hi({sym})"
                 out.append(line)
                 out.append(f"addiu\t{reg},{reg},%lo({sym})")
+                if ins[0] == "jal":
+                    call_slot = len(out) - 1
                 i += 2
                 continue
             if idx_store and not (prev2 and BRANCHES.match(prev2[0])):
@@ -231,6 +252,8 @@ def main():
                 out[k] = f".set\tnoat\nlui\t$at,%hi({sym})\naddu\t$at,$at,{base}"
                 out.append(line)
                 out.append(f"{prev[0]}\t{reg},%lo({sym})($at)\n.set\tat")
+                if ins[0] == "jal":
+                    call_slot = len(out) - 1
                 i += 2
                 continue
             if sym_store and not (prev2 and BRANCHES.match(prev2[0])):
@@ -239,6 +262,8 @@ def main():
                 out[k] = f".set\tnoat\nlui\t$at,%hi({sym})"
                 out.append(line)
                 out.append(f"{prev[0]}\t{reg},%lo({sym})($at)\n.set\tat")
+                if ins[0] == "jal":
+                    call_slot = len(out) - 1
                 i += 2
                 continue
             if (
@@ -253,6 +278,8 @@ def main():
                 out[k] = f"lui\t{reg},%hi({sym})"
                 out.append(line)
                 out.append(f"addiu\t{reg},{reg},%lo({sym})")
+                if ins[0] == "jal":
+                    call_slot = len(out) - 1
                 i += 2
                 continue
         out.append(line)
