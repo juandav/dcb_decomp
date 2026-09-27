@@ -88,7 +88,11 @@ typedef struct {
 } Unk801D6A4C;
 
 typedef struct {
-    u8 pad0[0x54];
+    /* 0x00 */ u8 pad0[8];
+    /* 0x08 */ void (*unk8[16])(Unk800793A0 *, s32);
+    /* 0x48 */ s32 unk48;
+    /* 0x4C */ s32 unk4C;
+    /* 0x50 */ s32 unk50;
     s16 unk54;
     s16 unk56;
     s16 unk58;
@@ -1396,7 +1400,81 @@ void func_800152AC(void) {
     func_80014D64();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80015328);
+extern s32 D_8006DD4C;
+void func_8001A9B0(void);
+s32 func_80014C08(s32);
+void func_80014AC8(void);
+void SetDispMask(s32);
+void ClearOTagR(u32 *, s32);
+void func_8002FAE4(void);
+void func_800271D0(void);
+void func_80016BEC(void);
+void func_80014EF0(void);
+s32 DrawSync(s32);
+void GsSwapDispBuff(void);
+void PutDispEnv(DISPENV *);
+void PutDrawEnv(DRAWENV *);
+void DrawOTag(u32 *);
+
+void func_80015328(void) {
+    Unk800794F8 *g;
+    s32 n;
+    void (**cb)(Unk800793A0 *, s32);
+
+    g = (Unk800794F8 *)&D_800794F8;
+    g->unk8[0] = 0;
+    D_800794EC = 0;
+    for (; g->unk48 <= 0; g->unk48++) {
+        func_8001A9B0();
+        func_80014C08(1);
+        g->unk50 = D_800794EC;
+        if (D_800794EC == 0) {
+            g->unk50 = 1;
+        }
+        D_800794EC = 0;
+    }
+    SetDispMask(1);
+    D_800794F4 = 0;
+    D_800793A0 = &g->unk98[0];
+    ClearOTagR(g->unk98[0].ot, 0x1000);
+    for (;;) {
+        n = D_800794F0;
+        func_8001A9B0();
+        while (n >= 2 || g->unk48 == 0) {
+            func_80014AC8();
+            n--;
+        }
+        D_800794F4 ^= 1;
+        D_800793A0 = &g->unk98[D_800794F4];
+        ClearOTagR(D_800793A0->ot, 0x1000);
+        if (D_800793A8.mode != 0) {
+            addPrim(&D_800793A0->ot[0], &D_800793A8.stp[1]);
+            addPrim(&D_800793A0->ot[0xFFF], &D_800793A8.stp[0]);
+        }
+        func_8002FAE4();
+        func_800271D0();
+        func_80016BEC();
+        if (D_8006DD4C != 0) {
+            for (cb = g->unk8; *cb != 0; cb++) {
+                (*cb)(D_800793A0, D_800794F4);
+            }
+        }
+        func_80014EF0();
+        func_80014AC8();
+        DrawSync(0);
+        if (g->unk4C != 0) {
+            GsSwapDispBuff();
+        }
+        PutDispEnv(&D_800793A0->disp);
+        PutDrawEnv(&D_800793A0->draw);
+        DrawOTag(&D_800793A0->ot[0xFFF]);
+        g->unk50 = D_800794EC;
+        if (D_800794EC == 0) {
+            g->unk50 = 1;
+        }
+        D_800794EC = 0;
+    }
+}
 
 void func_80015328();
 void func_8002BC58(void);
