@@ -1502,7 +1502,18 @@ void GsSetAmbient(long r, long g, long b) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", gte_init);
+extern short D_801DBE16;
+extern short D_801DBE14;
+
+void gte_init(void) {
+    InitGeom();
+    func_80062B44(0, 0, 0);
+    func_8005C484(0, 0);
+    D_801DBE16 = 0;
+    D_801DBE14 = 0;
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062B44);
 
