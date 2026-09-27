@@ -65,6 +65,9 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 12. -fforce-mem no longer loads a MEM into a register before extending it
    (GCC 2.8), so `(int)s.byte` is one `zero_extend (mem)` that cse doesn't
    replace with a value just stored there (SetGraphDebug reloads D.level).
+13. global-alloc's prune_preferences checks conflicts in both directions
+   (GCC 2.8), so a pseudo doesn't take a register that a conflicting
+   lower-priority pseudo prefers (_spu_note2pitch).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -533,6 +536,31 @@ def patch(src, dst):
     start = in_bc(extend_from_mem)
     put(0x080C819C, bytes.fromhex("c7c030192c08"),
         b"\xe9" + (start - (0x080C819C + 5)).to_bytes(4, "little", signed=True))
+
+    # 13. prune_preferences+695: global.c records a conflict only in the row
+    #    of the allocno that becomes live second, so `CONFLICTP (allocno, j)`
+    #    misses half of them. GCC 2.8 tests both directions when it merges
+    #    the preferences of conflicting lower-priority allocnos into
+    #    regs_someone_prefers; with only one, a higher-priority pseudo takes
+    #    a register a conflicting one prefers (libspu _spu_note2pitch: the
+    #    n/12 quotient in a1 instead of v1). Locals: allocno -0x2c, j -0x30;
+    #    %ebx is the function's GOT pointer.
+    def conflict_both_ways(code, jump):
+        code += b"\x8b\x83\x4c\xa4\x00\x00"        # mov allocno_order,%eax
+        code += b"\x8b\x55\xd0\x8b\x04\x90"        # allocno_order[j]
+        code += b"\x0f\xaf\x83\x5c\xa4\x00\x00"    # * allocno_row_words
+        code += b"\x8b\x55\xd4\x89\xd1"            # mov allocno,%edx; mov %edx,%ecx
+        code += b"\xc1\xfa\x05\x01\xd0"            # + allocno / INT_BITS
+        code += b"\x8b\x93\x58\xa4\x00\x00"        # mov conflicts,%edx
+        code += b"\x8b\x04\x82"                    # the word
+        code += b"\x83\xe1\x1f\xd3\xe8\xa8\x01"    # >> allocno % INT_BITS; test $1
+        jump(b"\x0f\x85", 0x0814C795)             # jne (merge)
+        jump(b"\xe9", 0x0814C88F)                  # jmp (next j)
+
+    start = in_bc(conflict_both_ways)
+    o = fo(0x0814C78F)
+    put(0x0814C78F, b"\x0f\x84" + d[o + 2:o + 6],
+        b"\x0f\x84" + (start - (0x0814C78F + 6)).to_bytes(4, "little", signed=True))
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
