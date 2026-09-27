@@ -38,7 +38,16 @@ int ResetGraph(int mode) {
     return D_80076750->unk34(1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
+int SetGraphDebug(int level) {
+    int old = D_80076758.level;
+
+    D_80076758.level = level;
+    if (D_80076758.level) {
+        D_80076754("SetGraphDebug:level:%d,type:%d reverse:%d\n", D_80076758.level, D_80076758.type,
+                   D_80076758.reverse);
+    }
+    return old;
+}
 
 int SetGraphQueue(int mode) {
     u_char old = D_80076758.queue;
