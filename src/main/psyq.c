@@ -1841,7 +1841,17 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _patch_pad);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _remove_ChgclrPAD);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B0B4);
+extern long D_801DDCA4;
+
+long func_8006B0B4(long v) {
+    long *p = &D_801DDCA4;
+    long old = *p;
+
+    *p = v;
+    return old;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B0D4);
 
