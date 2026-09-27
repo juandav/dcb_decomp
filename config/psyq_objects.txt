@@ -35,7 +35,7 @@ libsnd_de_8
 libsnd_de_9
 libsnd_de_10
 libsnd_de_11
-libsnd_de_12
+libsnd_de_12 gcc2.8
 libsnd_de_13
 libsnd_de_14
 libsnd_de_16
