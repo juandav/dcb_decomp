@@ -141,8 +141,8 @@ $(BUILDDIR)/%.c.o: %.c
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
 	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/main/%,%,$*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
-	@# the game's data lives in asm/; a C file's empty .data/.bss must not
-	@# realign the sections they are linked into (gas gives them 16)
+	@# gas aligns .data and .bss to 16; psylink packed the game's objects
+	@# to 4, so the sections they are linked into keep their layout
 	@$(OBJCOPY) --set-section-alignment .data=4 --set-section-alignment .bss=4 $@
 
 # Local labels get the object's name so the outputs can be joined

@@ -2,8 +2,9 @@
 """Lay out GCC jump tables where the original ones are.
 
 GCC aligns each jump table to 8 bytes relative to the start of its file's
-rodata. src/main/game.c holds many of the original source files, so that
-start is not where it was in the original build. This filter reads maspsx
+rodata. The modules in src/ don't always start where the original source
+files did, so that start is not always where it was in the original build.
+This filter reads maspsx
 output on stdin and, for each jump table of a function whose original table
 sits at an address that is 4 modulo 8, emits `.align 2` instead of
 `.align 3` and pads the table with zero words up to the size splat gave the
@@ -13,7 +14,8 @@ table).
 The original tables are read from splat's full disassembly of each C
 segment (asm/main/<segment>.s). The file's own rodata start (its .rodata
 subsegment in config/main.yaml, given the unit path such as gfx/prim as
-argument) decides which tables sit 4 bytes past an 8-byte boundary relative to that start.
+argument) decides which tables sit 4 bytes past an 8-byte boundary
+relative to that start.
 """
 
 import os
