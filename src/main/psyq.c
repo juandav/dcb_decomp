@@ -1703,7 +1703,9 @@ void SetInitPadFlag(int num) {
     D_80077928 = num;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ReadInitPadFlag);
+long ReadInitPadFlag(void) {
+    return D_80077928;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", PAD_init);
 
