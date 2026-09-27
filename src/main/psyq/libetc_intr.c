@@ -55,7 +55,33 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056860);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056A30);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056B78);
+typedef struct {
+    /* 0x00 */ u_short inited;
+    /* 0x02 */ u_short unk2;
+    /* 0x04 */ u8 unk4[0x2E];
+    /* 0x32 */ u_short mask;
+    /* 0x34 */ u_long dpcr;
+    /* 0x38 */ u_long buf[1];
+} IntrEnv;
+extern IntrEnv D_8006FA20;
+extern volatile u_long *D_80070AB4;
+extern volatile u_short *D_80070AAC;
+void func_8006A804(void);
+void func_8006A7E4(void);
+
+void *func_80056B78(void) {
+    if (D_8006FA20.inited == 0) {
+        return NULL;
+    }
+    func_8006A804();
+    D_8006FA20.mask = *D_80070AB0;
+    D_8006FA20.dpcr = *D_80070AB4;
+    *D_80070AAC = *D_80070AB0 = 0;
+    *D_80070AB4 &= 0x77777777;
+    func_8006A7E4();
+    D_8006FA20.inited = 0;
+    return &D_8006FA20;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056C18);
 
