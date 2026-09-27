@@ -467,33 +467,3 @@ char *STR_BATTLE_RANKS[8] = {
     "Battle Master", "Battle Lord", "Battle King", "Battle Emperor",
 };
 u8 COMPLETE_SET_CARD_COUNTS[6] = { 0x22, 0x23, 0x22, 0x24, 0x21, 0x6E };
-
-s32 verifySaveChecksum(s32 len, u8 *data) {
-    s32 i;
-    u8 xorSum = 0;
-    u8 sum = 0;
-
-    for (i = 0; i < len; i++) {
-        xorSum ^= *data;
-        sum += *data;
-        data++;
-    }
-    if (data[0] != xorSum || data[1] != sum) {
-        return 1;
-    }
-    return 0;
-}
-
-void writeSaveChecksum(s32 len, u8 *data) {
-    s32 i;
-    u8 xorSum = 0;
-    u8 sum = 0;
-
-    for (i = 0; i < len; i++) {
-        xorSum ^= *data;
-        sum += *data;
-        data++;
-    }
-    data[0] = xorSum;
-    data[1] = sum;
-}

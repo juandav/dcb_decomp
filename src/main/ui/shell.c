@@ -9,6 +9,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/memcard.h"
+#include "dcb/save_checksum.h"
 #include "dcb/player_rank.h"
 #include "dcb/menu.h"
 #include "dcb/sound.h"

@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/memcard.h"
+#include "dcb/save_checksum.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/main.h"
