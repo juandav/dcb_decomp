@@ -2652,7 +2652,59 @@ void func_800176E4(Rect16 *a, Rect16 *b) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800177E8);
+s32 func_800177E8(Unk80016F38 *w) {
+    s32 rem;
+    s32 dx;
+    s32 dy;
+    s32 v;
+    s32 ox;
+    s32 oy;
+
+    rem = (s8)w->unk3C - (s8)w->unk3D;
+    w->unk41 = 0;
+    v = w->delta.x;
+    if (v < 0) {
+        w->from.x = w->cur.x - v * rem / (s8)w->unk3C;
+    } else {
+        dx = v * rem - 1;
+        w->from.x = w->cur.x - (dx + (s8)w->unk3C) / (s8)w->unk3C;
+    }
+    v = w->delta.y;
+    if (v < 0) {
+        w->from.y = w->cur.y - v * rem / (s8)w->unk3C;
+    } else {
+        dy = v * rem - 1;
+        w->from.y = w->cur.y - (dy + (s8)w->unk3C) / (s8)w->unk3C;
+    }
+    w->from.w = w->cur.w - w->delta.w * rem / (s8)w->unk3C;
+    w->from.h = w->cur.h - w->delta.h * rem / (s8)w->unk3C;
+    if ((s8)w->unk3E < 6) {
+        w->view.x = w->unk30[0] + (w->unk30[2] - w->unk30[0]) * (s8)w->unk3E / 6;
+        w->view.y = w->unk30[1] + (w->unk30[3] - w->unk30[1]) * (s8)w->unk3E / 6;
+        w->unk3E++;
+    } else {
+        w->view.x = w->unk30[2];
+        w->view.y = w->unk30[3];
+    }
+    ox = w->delta.w * rem / (s8)w->unk3C / 2;
+    if (ox < 0) {
+        ox = abs(w->delta.w * (s8)w->unk3D / (s8)w->unk3C) / 2;
+    }
+    ox += w->view.x;
+    oy = w->delta.h * rem / (s8)w->unk3C / 2;
+    if (oy < 0) {
+        oy = abs(w->delta.h * (s8)w->unk3D / (s8)w->unk3C) / 2;
+    }
+    oy += w->view.y;
+    w->unk0 = w->from.x - ox;
+    w->unk2 = w->from.y - oy;
+    w->unk3D += D_800794F0;
+    if ((s8)w->unk3D > (s8)w->unk3C) {
+        w->unk3D = w->unk3C;
+        w->unk41 = 1;
+    }
+    return w->unk41;
+}
 
 void func_8001EC3C(u8 *, u8, u8, u8, u8);
 void func_8001EA64(void *, s16, s16, s16, s16);
