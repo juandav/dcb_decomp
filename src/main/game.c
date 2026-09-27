@@ -126,6 +126,26 @@ typedef struct {
 
 typedef struct {
     u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 u1, v1;
+    u16 tpage;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+    u8 u2, v2;
+    u16 pad2;
+    u8 r3, g3, b3, p3;
+    s16 x3, y3;
+    u8 u3, v3;
+    u16 pad3;
+} POLY_GT4;
+
+typedef struct {
+    u32 tag;
     u8 r0;
     u8 g0;
     u8 b0;
@@ -1814,7 +1834,40 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001C810);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CA54);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CCB4);
+void func_800677E4(POLY_GT4 *);
+void func_8001E7B8(void *, u8, u8, u8);
+void func_8001E804(void *, u8, u8, u8);
+
+void func_8001CCB4(POLY_GT4 *p, POLY_GT4 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, u8 *rgb3, s32 tpage,
+                   s32 clut, Rect16 *uv, Rect16 *xy, u8 semi) {
+    func_800677E4(p);
+    p->tpage = tpage;
+    p->clut = clut;
+    if (semi) {
+        SetSemiTrans(p, 1);
+    } else {
+        SetSemiTrans(p, 0);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    if (rgb3 != 0) {
+        func_8001E804(p, rgb3[0], rgb3[1], rgb3[2]);
+    }
+    if (uv != 0) {
+        func_8001EC3C((u8 *)p, uv->x, uv->y, uv->w, uv->h);
+    }
+    if (xy != 0) {
+        func_8001EA64(p, xy->x, xy->y, xy->w, xy->h);
+    }
+    *dst = *p;
+}
 
 void func_80067784(void *);
 void func_8001EA64(void *, s16, s16, s16, s16);
@@ -1846,7 +1899,37 @@ void func_8001CE74(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, s16
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CFDC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D1AC);
+void func_80067744(void *);
+
+void func_8001D1AC(s32 *p, s32 *dst, u8 *rgb0, u8 *rgb1, u8 *rgb2, s32 abr, void *tp0, void *tp1,
+                   u8 semi) {
+    func_80067744(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb0 != 0) {
+        func_8001E75C(p, rgb0[0], rgb0[1], rgb0[2]);
+    }
+    if (rgb1 != 0) {
+        func_8001E76C(p, rgb1[0], rgb1[1], rgb1[2]);
+    }
+    if (rgb2 != 0) {
+        func_8001E7B8(p, rgb2[0], rgb2[1], rgb2[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    dst[5] = p[5];
+    dst[6] = p[6];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 void func_80067704(void *);
 void func_8001E75C(void *, u8, u8, u8);
