@@ -47,7 +47,31 @@ u_long _spu_Fr(char *addr, u_long size) {
     return size;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetRXX);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void _spu_FsetRXX(int reg, u_long value, int mode) {
+    if (mode == 0) {
+        D_8006EF24[reg] = value;
+    } else {
+        D_8006EF24[reg] = value >> D_8006EF4C;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetRXXa);
 
