@@ -7,6 +7,7 @@
 #include "dcb/duel.h"
 #include "dcb/cpu_decision.h"
 #include "dcb/duel_rules.h"
+#include "dcb/card_zones.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
 #include "dcb/scene3d.h"
