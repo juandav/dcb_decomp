@@ -9,7 +9,7 @@ libspu_s_n2p
 libspu_s_sca
 libsnd_ssclose
 libsnd_ssinit
-libsnd_ssinit_c
+libsnd_ssinit_c gcc2.8
 libsnd_cc_0
 libsnd_cc_6
 libsnd_cc_7
