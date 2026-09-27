@@ -27,7 +27,7 @@ CC1 ?= bin/gcc-$(GCC_VERSION)-psx/cc1
 MASPSX := $(PYTHON) external/maspsx/maspsx.py
 OBJDIFF ?= bin/objdiff-cli-linux-x86_64
 
-INC := -Iinclude
+INC := -Iinclude -Iexternal/psyq_headers/psyq_lib47/include
 
 CPPFLAGS := $(INC) -undef -nostdinc \
 	    -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx \
