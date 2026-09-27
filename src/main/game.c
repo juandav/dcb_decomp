@@ -5588,7 +5588,57 @@ block_9:
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E034);
+extern u8 *D_801D8348[];
+extern void *D_801D81AC;
+extern void *D_801D81B0;
+void func_8002E7B8(void);
+void func_8002E42C(s32 n);
+
+void func_8002E034(s32 bg) {
+    s32 pak;
+    s32 i;
+    u8 *s;
+
+    if (*((s8 *)D_801D8340 + 0x811) == 1) {
+        do {
+            func_80014C08(D_800794F0);
+        } while (*((s8 *)D_801D8340 + 0x811) == 1);
+    }
+    *((s8 *)D_801D8340 + 0x811) = 1;
+    *((s8 *)D_801D8340 + 0x813) = 0;
+    pak = func_8001B144((s32) "A:\\BATTLE.PAK", func_800148B0());
+    if (pak != 0) {
+        func_8001B5BC(func_8001BB44((Chunk *)pak, 5, 0x68));
+        D_801D81AC = (void *)func_8002DC30(999, pak);
+        D_801D81B0 = (void *)func_8002DC30(998, pak);
+        func_8001BC14((Chunk *)pak);
+    }
+    func_8002E42C(bg);
+    D_801D81B8 = (&D_801D81B8)[8] = -1;
+    *((s8 *)D_801D8340 + 0x811) = 0;
+    do {
+        func_80014C08(D_800794F0);
+        for (i = 0; i < 2; i++) {
+            s = *(u8 **)(D_801D8348[i] + 0x114);
+            if (s != 0 && s[0xE5] != (&D_801D81B8)[i * 8]) {
+                func_8002DEA0(i, s);
+            }
+        }
+    } while (*((s8 *)D_801D8340 + 0x813) == 0);
+    for (i = 0; i < 2; i++) {
+        if ((&D_801D81B8)[i * 8] > 0) {
+            func_80022DBC(i);
+            func_800235C8(i);
+        }
+    }
+    func_8002E7B8();
+    func_8001AFF0(0x1F4);
+    func_8001AFF0(0x84);
+    func_8001AFF0(0x1F5);
+    func_8001AFF0(0x85);
+    func_8001AFF0(0x81);
+    *((s8 *)D_801D8340 + 0x813) = 0;
+}
 
 extern u8 D_801EEE90[];
 
@@ -6755,7 +6805,6 @@ void func_8003E94C(void) {
 s32 func_801F8998(s32, s32, s32, s32, s32);
 extern s32 D_80038F68;
 extern void *D_8006E054;
-extern s32 func_8002E034;
 extern s32 func_80034260;
 extern s32 func_80041E00;
 
