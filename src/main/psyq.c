@@ -666,7 +666,14 @@ void func_80056D0C(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056D78);
+void *func_80056D78(int index, void (*func)()) {
+    void (*old)() = D_80070AC8[index];
+
+    if (func != old) {
+        D_80070AC8[index] = func;
+    }
+    return old;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056DA4);
 
