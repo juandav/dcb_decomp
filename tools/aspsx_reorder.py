@@ -193,7 +193,8 @@ def main():
             )
             if ins[0] in CONDBR:
                 # a conditional branch left in reorder mode only takes a store
-                # into its slot: GCC's reorg doesn't move volatile stores
+                # (a register-based one; GCC's reorg doesn't move volatile
+                # stores), a store to a symbol, or the low half of a `la`
                 idx_store = False
                 if (reg_store and not at_label and not after_call_slot
                         and not (prev2 and BRANCHES.match(prev2[0]))):
@@ -202,7 +203,7 @@ def main():
                     out.append(moved)
                     i += 2
                     continue
-                if not sym_store:
+                if not sym_store and not (prev_la and prev_la[0] == "la"):
                     prev = prev_la = None
             movable = (
                 prev is not None
