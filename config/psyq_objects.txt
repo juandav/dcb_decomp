@@ -202,4 +202,4 @@ libpad_pdent3
 libpad_pdmaiini nocse
 libpad_pddirini
 libpad_pddirres
-libpad_pdresres
+libpad_pdresres gcc2.8
