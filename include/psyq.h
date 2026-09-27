@@ -134,7 +134,8 @@ typedef struct SpuReverbRegs {
 typedef struct SeqStruct {
     /* 0x00 */ u_char *unk0;
     /* 0x04 */ u_char *unk4;
-    /* 0x08 */ u8 unk8[0xC];
+    /* 0x08 */ u_char *unk8;
+    /* 0x0C */ u8 unkC[8];
     /* 0x14 */ char unk14;
     /* 0x15 */ u8 unk15[2];
     /* 0x17 */ u_char channel;
