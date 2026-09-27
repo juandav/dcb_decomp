@@ -1334,7 +1334,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTag2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _GPU_ResetCallback);
+void _GPU_ResetCallback(void) {
+    DMACallback(2, func_800669AC);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800674DC);
 
