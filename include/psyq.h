@@ -272,7 +272,6 @@ extern McrdGlobal D_80082068;
 void *DMACallback(int dma, void (*func)());
 void *InterruptCallback(int irq, void (*func)());
 void *VSyncCallbacks(int ch, void (*func)());
-u_short SetIntrMask(u_short mask);
 int CD_ready();
 void init_ring_status(int start, u_int count);
 long sin_1(long a);

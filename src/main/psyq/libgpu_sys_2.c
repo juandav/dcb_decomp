@@ -334,7 +334,40 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666FC);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800669AC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066C0C);
+extern volatile long D_80076880;
+extern volatile long D_80076884;
+extern long D_80076890;
+extern volatile u_long *D_8007687C;
+extern u_char D_801DC130[];
+int func_80066FFC(int mode);
+/* libetc.h has no prototype for it */
+int SetIntrMask(int mask);
+
+int func_80066C0C(int mode) {
+    D_80076890 = SetIntrMask(0);
+    D_80076880 = D_80076884 = 0;
+    switch (mode & 7) {
+    case 0:
+    case 5:
+        *D_8007686C = 0x401;
+        *D_8007687C |= 0x800;
+        *D_80076860 = 0;
+        func_800674DC(D_801DC130, 0, 0x1800);
+        break;
+    case 1:
+    case 3:
+        *D_8007686C = 0x401;
+        *D_8007687C |= 0x800;
+        *D_80076860 = 0x2000000;
+        *D_80076860 = 0x1000000;
+        break;
+    }
+    SetIntrMask(D_80076890);
+    if (mode & 7) {
+        return 0;
+    }
+    return func_80066FFC(mode);
+}
 
 void func_80066E84(void);
 int func_80066EB8(void);
