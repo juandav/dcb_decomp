@@ -116,7 +116,7 @@ segments:
       - [0x5E544, data, startup]
       - [0x5E54C, .data, system/system]
       - [0x5E550, .data, system/cd_file]
-      - [0x5E570, data, ui/window]
+      - [0x5E570, .data, ui/window]
       - [0x5E6F0, .data, system/loader]
       - [0x5E6F4, .data, gfx/prim_util]
       - [0x5E760, .data, gfx/tmd_sort]
