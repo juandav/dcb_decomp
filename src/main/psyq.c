@@ -738,7 +738,17 @@ void *func_80056D78(int index, void (*func)()) {
     return old;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056DA4);
+void func_80056DA4(long *p, int n) {
+    int i = n - 1;
+
+    if (n != 0) {
+        do {
+            *p++ = 0;
+        } while (i-- != 0);
+    }
+}
+
+OBJECT_END(3);
 
 void *startIntrDMA(void) {
     func_8005704C((long *)D_80070AFC, 8);
