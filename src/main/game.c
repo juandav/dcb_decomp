@@ -330,6 +330,8 @@ typedef struct {
     /* 0x26D0 */ s32 unk26D0;
     /* 0x26D4 */ s32 unk26D4;
     /* 0x26D8 */ s32 unk26D8;
+    /* 0x26DC */ u8 unk26DC[0x18];
+    /* 0x26F4 */ void *unk26F4;
 } Model2220;
 
 typedef struct {
@@ -5562,10 +5564,42 @@ void func_8002DC90(s32 arg0) {
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_800107F8);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002DCB0);
+s32 func_8002DCB0(s32 slot, s32 id, s8 kind, s32 anims) {
+    char path[32];
+    s32 pak;
+
+    if (kind == 1) {
+        sprintf(path, "G:\\%03d.PAK", id);
+    } else {
+        sprintf(path, "F:\\%03d.PAK", id);
+    }
+    pak = func_8001B248((s32 *)path, func_800148B0(), slot + 0x1F4);
+    if (func_8002386C(slot, id, -1, pak, kind) == 0) {
+        return pak;
+    }
+    if (anims != 0) {
+        func_800230B8(slot, 0, 0, pak);
+        func_800230B8(slot, 7, 7, pak);
+        func_800230B8(slot, 1, 1, pak);
+        func_800230B8(slot, 2, 2, pak);
+        func_800230B8(slot, 3, 3, pak);
+        func_800230B8(slot, 4, 4, pak);
+        func_800230B8(slot, 5, 5, pak);
+        func_800230B8(slot, 6, 6, pak);
+    } else {
+        func_80023094(D_801D6A4C->unk13C[slot],
+                      (s32 *)func_8001BFF8(
+                          (s32)func_8001BB44((Chunk *)((Model2220 *)D_801D6A4C->unk13C[slot])->unk26F4, 1, 7), slot + 0x84),
+                      7);
+        func_80023148(slot, 7);
+    }
+    D_801D6A4C->unk114[slot] = -1;
+    func_8001BC14((Chunk *)pak);
+    return pak;
+}
 
 void *func_8002DBEC(s32);
-s32 func_8002DCB0(s32, s32, s32, s32);
+s32 func_8002DCB0(s32, s32, s8, s32);
 extern s32 D_801D81B8;
 
 extern void *D_801D8340;
