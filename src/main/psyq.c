@@ -486,7 +486,11 @@ u_long _SpuGetAnyVoice(int lo, int hi) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetReverbVoice);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuGetReverbVoice);
+u_long SpuGetReverbVoice(void) {
+    return _SpuGetAnyVoice(0xCC, 0xCD);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetKey);
 
