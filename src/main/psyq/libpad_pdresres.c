@@ -173,7 +173,29 @@ int func_8006D3C0(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D460);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D4A8);
+extern long D_800779A0;
+extern long D_800779B0;
+extern long D_8007799C;
+extern void (*D_80077990)(void);
+extern void (*D_8007798C)(void);
+extern int D_800779E0;
+extern void (*D_80077978)();
+int func_8006C714(PadPort *p, long arg);
+
+int func_8006D4A8(PadPort *p) {
+    if (D_800779A0 == D_800779B0 && D_8007799C != 0) {
+        D_80077990();
+        D_8007798C();
+    }
+    if (D_800779E0 != 0) {
+        D_80077978(p->unkC);
+        D_80077978(p->unkC + 1);
+    }
+    if (p->cmd != 0) {
+        return func_8006C714(p, p->cmd);
+    }
+    return func_8006C714(p, 0x42);
+}
 
 extern int D_800779E0;
 extern void (*D_80077978)();
