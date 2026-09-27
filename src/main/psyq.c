@@ -830,7 +830,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A344);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A364);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A384);
+void func_8005A384(void) {
+    CD_ready();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A3A4);
 
