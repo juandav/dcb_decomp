@@ -9,6 +9,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/memcard.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"

@@ -6,6 +6,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/model_anim.h"
 
 void initModelScene(void) {

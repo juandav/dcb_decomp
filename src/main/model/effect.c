@@ -6,6 +6,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/menu.h"
 #include "dcb/prim3d.h"
 #include "dcb/prim_util.h"

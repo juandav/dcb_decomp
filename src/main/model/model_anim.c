@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/model_anim.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 void applyRootMotion(u8 *model) {
     u8 *bones;

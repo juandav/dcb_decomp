@@ -81,6 +81,7 @@ segments:
       - [0x2F70, .rodata, ui/shell]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
+      - [0x4704, c, system/task]
       # the game's own startup and interrupt glue, written in assembly
       - [0x5170, asm, startup]
       - [0x54F0, c, system/system]

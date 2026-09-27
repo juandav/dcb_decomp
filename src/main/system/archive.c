@@ -4,6 +4,7 @@
 #include "dcb/archive.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 void *findPakChunk(Chunk *cursor, s32 id, s32 sub) {
     Chunk *header;

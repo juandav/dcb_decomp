@@ -6,6 +6,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/model.h"
 #include "dcb/model_anim.h"
 #include "dcb/player_data.h"

@@ -6,6 +6,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 s32 SOUND_LOAD_BUSY = 0;
 extern s8 D_8006E00C[];

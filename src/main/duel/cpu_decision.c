@@ -13,6 +13,7 @@
 #include "dcb/effect.h"
 #include "dcb/duel_util.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/menu.h"
 #include "dcb/shell.h"
 #include "dcb/sound.h"

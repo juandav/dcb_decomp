@@ -7,6 +7,7 @@
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/model.h"
 #include "dcb/stage.h"
 #include "dcb/tmd_sort.h"

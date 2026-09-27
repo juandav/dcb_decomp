@@ -5,6 +5,7 @@
 #include "dcb/card_db.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 void loadPresetDeckForPlayer(s32 player) {
     SavedDeck *presetDecks;

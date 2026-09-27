@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 void resetHeap(s32 initialize) {
     s32 *block;

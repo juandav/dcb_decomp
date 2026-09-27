@@ -5,6 +5,7 @@
 #include "dcb/cd_file.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 s32 FILE_LOADER_BUSY = 0;
 

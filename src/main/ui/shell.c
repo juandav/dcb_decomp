@@ -5,6 +5,7 @@
 #include "dcb/card_db.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/memcard.h"
 #include "dcb/menu.h"
 #include "dcb/sound.h"

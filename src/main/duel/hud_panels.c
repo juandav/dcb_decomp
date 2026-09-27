@@ -11,6 +11,7 @@
 #include "dcb/card_zones.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/scene3d.h"
 #include "dcb/sound.h"
 #include "dcb/stage.h"

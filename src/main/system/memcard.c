@@ -4,6 +4,7 @@
 #include "dcb/memcard.h"
 #include "dcb/heap.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/sound.h"
 
 s32 PLAYER_PROFILES = 0;

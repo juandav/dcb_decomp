@@ -8,6 +8,7 @@
 #include "game.h"
 #include "dcb/libmath.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 INCLUDE_ASM("asm/main/nonmatchings/libmath", __negdf2);
 
