@@ -6447,7 +6447,39 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80026D8C);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010190);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80026E90);
+void func_80027044(void);
+
+void func_80026E90(s32 x, s32 y, s32 n) {
+    Rect16 r;
+    u32 *tim;
+    SprtPacket *p;
+    s32 i;
+    TIM_IMAGE *image;
+
+    D_801D6B12 = x;
+    D_801D6B14 = y;
+    D_801D6B20 = x + 0x20;
+    D_801D6B22 = y + 0xF8;
+    D_801D6B10 = n;
+    func_800149B8(0, -1, 0, 0x800, func_8001B144, "B:\\SYSTEM.TIM", func_800148B0());
+    tim = (u32 *)func_80014C08(0x7FFFFFFF);
+    func_8001B438(tim, D_801D6B12, D_801D6B14, -2, -2);
+    image = &D_801D4850;
+    r.x = D_801D6B20;
+    r.y = D_801D6B22;
+    r.w = 0x20;
+    r.h = 8;
+    LoadImage((s16 *)&r, (s32)image->caddr);
+    DrawSync(0);
+    func_8001AE90(tim);
+    p = func_8001ACEC(D_801D6B10 * sizeof(SprtPacket) * 2);
+    for (i = 0; i < 2; i++) {
+        DB(i).unk40B8 = (s32)(p + D_801D6B10 * i);
+    }
+    func_80027044();
+    D_801D6B24 = D_800793A0->unk40B8;
+}
+
 
 void func_80027044(void) {
     s32 i;
