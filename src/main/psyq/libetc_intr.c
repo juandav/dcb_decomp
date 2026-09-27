@@ -51,21 +51,58 @@ u_short SetIntrMask(u_short mask) {
     return old;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056788);
-
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056860);
-
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056A30);
-
 typedef struct {
     /* 0x00 */ u_short inited;
     /* 0x02 */ u_short unk2;
-    /* 0x04 */ u8 unk4[0x2E];
+    /* 0x04 */ void (*handlers[11])();
+    /* 0x30 */ u_short enabled;
     /* 0x32 */ u_short mask;
     /* 0x34 */ u_long dpcr;
     /* 0x38 */ u_long buf[1];
 } IntrEnv;
 extern IntrEnv D_8006FA20;
+
+INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056788);
+
+INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056860);
+
+void func_8006A884(int);
+void func_8006A894(int, int);
+
+void *func_80056A30(int irq, void (*func)()) {
+    void (*old)() = D_8006FA20.handlers[irq];
+    int mask;
+
+    if (func != old && D_8006FA20.inited) {
+        mask = *D_80070AB0;
+        *D_80070AB0 = 0;
+        if (func != NULL) {
+            D_8006FA20.handlers[irq] = func;
+            mask |= 1 << irq;
+            D_8006FA20.enabled |= 1 << irq;
+        } else {
+            D_8006FA20.handlers[irq] = NULL;
+            mask &= ~(1 << irq);
+            D_8006FA20.enabled &= ~(1 << irq);
+        }
+        if (irq == 0) {
+            func_8006A884(func == NULL);
+            func_8006A894(3, func == NULL);
+        }
+        if (irq == 4) {
+            func_8006A894(0, func == NULL);
+        }
+        if (irq == 5) {
+            func_8006A894(1, func == NULL);
+        }
+        if (irq == 6) {
+            func_8006A894(2, func == NULL);
+        }
+        *D_80070AB0 = mask;
+    }
+    return old;
+}
+
 extern volatile u_long *D_80070AB4;
 extern volatile u_short *D_80070AAC;
 void func_8006A804(void);
