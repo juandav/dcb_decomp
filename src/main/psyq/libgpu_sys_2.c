@@ -41,7 +41,17 @@ u_long DrawSyncCallback(void (*func)()) {
     return old;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDispMask);
+void func_800674DC(u_char *p, int c, int n);
+
+void SetDispMask(int mask) {
+    if (D_80076758.level >= 2) {
+        D_80076754("SetDispMask(%d)...\n", mask);
+    }
+    if (mask == 0) {
+        func_800674DC((u_char *)&D_80076758.disp, -1, sizeof(DISPENV));
+    }
+    D_80076750->unk10(mask ? 0x03000000 : 0x03000001);
+}
 
 int DrawSync(int mode) {
     if (D_80076758.level >= 2) {
@@ -223,7 +233,7 @@ void _GPU_ResetCallback(void) {
     DMACallback(2, func_800669AC);
 }
 
-void func_800674DC(u_char *p, u_char c, int n) {
+void func_800674DC(u_char *p, int c, int n) {
     int i = n - 1;
 
     if (n != 0) {
