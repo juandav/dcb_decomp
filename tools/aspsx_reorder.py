@@ -13,6 +13,9 @@ goes into the slot.
 
 A load delay nop that maspsx emits after a label belongs before it.
 
+The mfhi/mflo that ends an expanded div/rem has no load delay: ASPSX used its
+result in the next instruction (_spu_FsetRXXa), maspsx puts a nop there.
+
 usage: aspsx_reorder.py < maspsx_output.s > output.s
 """
 
@@ -100,9 +103,26 @@ def nops_before_labels(lines):
     return out
 
 
+def no_nop_after_div(lines):
+    """Drop the load delay nop maspsx puts after an expanded div's mfhi/mflo."""
+    out = []
+    for line in lines:
+        if (
+            line.startswith("nop")
+            and "DEBUG: Reuse of" in line
+            and out
+            and out[-1].strip() in ("# EXPAND_DIV END", "# EXPAND_DIVU END")
+        ):
+            continue
+        out.append(line)
+    return out
+
+
 def main():
     lines = delay_slot_hazards(
-        loads_without_at(nops_before_labels(sys.stdin.read().split("\n")))
+        loads_without_at(
+            nops_before_labels(no_nop_after_div(sys.stdin.read().split("\n")))
+        )
     )
     out = []
     i = 0
