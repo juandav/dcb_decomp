@@ -38,6 +38,8 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
+  # the C files already exist; psyq is split under src/main/psyq/
+  create_c_files: False
 
 segments:
   - name: header
