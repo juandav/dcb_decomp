@@ -317,7 +317,13 @@ u_long func_80065C34(int dfe, int dtd, int tpage) {
     return (dtd ? 0xE1000200 : 0xE1000000) | (dfe ? 0x400 : 0) | (tpage & 0x9FF);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065C54);
+#define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+u_long func_80065C54(short x, short y) {
+    x = CLAMP(x, 0, D_80076758.w - 1);
+    y = CLAMP(y, 0, D_80076758.h - 1);
+    return 0xE3000000 | ((y & 0x3FF) << 10) | (x & 0x3FF);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065CEC);
 
