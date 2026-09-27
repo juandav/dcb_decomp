@@ -5999,7 +5999,38 @@ s32 func_80022ED0(s32 key, s32 n, KeyValue **pp) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80022F34);
+s32 func_80022F34(s32 id, s32 anim, s32 slot, Chunk *pak) {
+    char name[24];
+    KeyValue *e;
+    s32 p;
+    s32 n;
+
+    e = (KeyValue *)D_801D6A4C->unk19C;
+    p = func_80022ED0((id << 8) | 0x10000000 | anim, 32, &e);
+    if (p == 0) {
+        if (e == 0) {
+            return 0;
+        }
+        if (id > 1000) {
+            sprintf(name, "M:\\HDF%d\\%d_%d.hdf", id / 10, id / 10, id % 10);
+            n = id;
+        } else {
+            sprintf(name, "M:\\HDF%03d\\%c.hdf", id, anim + 'a');
+            n = anim;
+        }
+        p = (s32)func_8001BB44(pak, 1, n);
+        if (p == 0) {
+            p = func_8001B248((s32 *)name, func_800148B0(), slot + 0x5A);
+            if (p == 0) {
+                return 0;
+            }
+            e->key = (id << 8) | 0x10000000 | anim;
+            e->value = p;
+        }
+    }
+    return p;
+}
+
 
 void func_80023094(Model2220 *m, s32 *p, s32 i) {
     m->unk2220[i].unk0 = *p++;
