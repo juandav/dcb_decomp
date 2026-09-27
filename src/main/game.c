@@ -823,6 +823,53 @@ typedef struct {
 } Unk13C;
 
 typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+} LINE_G2;
+
+typedef struct {
+    /* 0x00 */ u8 unk0[0x30];
+    /* 0x30 */ s16 unk30;
+    /* 0x32 */ s16 unk32;
+    /* 0x34 */ s16 unk34;
+    /* 0x36 */ u8 unk36[0x16];
+    /* 0x4C */ LINE_G2 line[2];
+    /* 0x74 */ s16 unk74;
+    /* 0x76 */ s16 unk76;
+    /* 0x78 */ s16 unk78;
+    /* 0x7A */ s16 unk7A;
+    /* 0x7C */ s16 unk7C;
+    /* 0x7E */ u16 unk7E;
+    /* 0x80 */ s16 unk80;
+    /* 0x82 */ s16 unk82;
+    /* 0x84 */ s16 unk84;
+    /* 0x86 */ s16 unk86;
+} Particle;
+
+typedef struct {
+    /* 0x000 */ Unk13C base;
+    /* 0x13C */ void *parent;
+    /* 0x140 */ Particle *p;
+    /* 0x144 */ u8 rgb[3];
+    /* 0x147 */ u8 unk147;
+    /* 0x148 */ s8 drgb[3];
+    /* 0x14B */ u8 unk14B;
+    /* 0x14C */ u16 frames;
+    /* 0x14E */ s16 unk14E;
+    /* 0x150 */ s16 unk150;
+    /* 0x152 */ u16 count;
+    /* 0x154 */ s16 unk154;
+    /* 0x156 */ s16 unk156;
+    /* 0x158 */ s8 unk158;
+    /* 0x159 */ u8 own;
+    /* 0x15A */ u8 unk15A;
+    /* 0x15B */ s8 kind;
+} Particles;
+
+typedef struct {
     s16 id;
     s16 sub;
     s32 size;
@@ -9318,7 +9365,126 @@ void func_80032AA0(Obj32 *p) {
     func_8001AE90(p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80032B44);
+
+Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s16 a6, s16 frames, s16 a8, s16 a9,
+                         s16 count, s16 a11, s16 a12, s16 a13, s16 kind, s16 semi, s32 flags, s32 a17) {
+    Particles *o;
+    Particle *p;
+    LINE_G2 *l;
+    s32 i;
+    s32 k;
+    s32 angle;
+
+    o = func_8001AD0C(0x15C);
+    o->p = p = func_8001AD0C(count * 0x88);
+    k = 0;
+    if (src == 0) {
+        o->parent = (u8 *)D_801D6A4C + 0x78;
+        o->own = 0;
+    } else {
+        o->base = *src;
+        func_80030E3C(o);
+        o->parent = o;
+        o->own = 1;
+    }
+    o->unk14E = a11;
+    o->unk154 = a17;
+    o->unk15A = flags & 1;
+    o->count = count;
+    o->unk150 = 0;
+    o->frames = frames;
+    o->rgb[0] = c0[0];
+    o->rgb[1] = c0[1];
+    o->rgb[2] = c0[2];
+    o->drgb[0] = (c1[0] - o->rgb[0]) / o->frames;
+    o->drgb[1] = (c1[1] - o->rgb[1]) / o->frames;
+    o->drgb[2] = (c1[2] - o->rgb[2]) / o->frames;
+    o->unk158 = a9 == 0 ? 1 : -1;
+    o->kind = kind;
+    for (i = 0; i < o->count; i++, p++) {
+        if (o->kind == 0) {
+            l = &p->line[0];
+            func_800678E4(l);
+            setSemiTrans(l, semi);
+            l = &p->line[1];
+            func_800678E4(l);
+            setSemiTrans(l, semi);
+        } else {
+            l = &p->line[0];
+            func_80067904(l);
+            setSemiTrans(l, semi);
+            l->r0 = c0[0];
+            l->g0 = c0[1];
+            l->b0 = c0[2];
+            l->r1 = c1[0];
+            l->g1 = c1[1];
+            l->b1 = c1[2];
+            l++;
+            func_80067904(l);
+            setSemiTrans(l, semi);
+            l->r0 = c0[0];
+            l->g0 = c0[1];
+            l->b0 = c0[2];
+            l->r1 = c1[0];
+            l->g1 = c1[1];
+            l->b1 = c1[2];
+        }
+        func_8001EFDC(p, (s32)o->parent, 0, 0, 0, 0, 0, 0);
+        p->unk7C = a5 * 8;
+        p->unk7E = rand() % a8 + 1;
+        if (sy == 0) {
+            sy = 1;
+        }
+        if (sx == 0) {
+            sx = 1;
+        }
+        if (a13 < 3) {
+            p->unk32 = rand() % sx - sx / 2;
+            p->unk30 = rand() % sy - sy / 2;
+            p->unk34 = 0;
+            p->unk7A = 0;
+        } else {
+            p->unk32 = 0;
+            p->unk30 = 0;
+            p->unk34 = 0;
+            p->unk7A = sx - 0xB4;
+        }
+        p->unk80 = p->unk7E * frames;
+        p->unk78 = 0;
+        p->unk76 = 0;
+        p->unk74 = 0;
+        if (a12 != 0) {
+            switch ((s16)(a13 % 3)) {
+            case 0:
+                angle = i << 12;
+                k = angle / o->count;
+                p->unk76 = a12;
+                break;
+            case 1:
+                k = rand() % 4096;
+                p->unk76 = a12;
+                break;
+            case 2:
+                k = rand() % 4096;
+                p->unk76 = rand() % a12;
+                break;
+            }
+            p->unk34 = k;
+        }
+        p->unk82 = rand() & 0xFFF;
+        p->unk84 = rand() & 0x1FF;
+        if (i & 1) {
+            p->unk84 = -p->unk84;
+        }
+    }
+    o->unk147 = flags & 2;
+    if (a6 == 0) {
+        o->unk156 = 0;
+    } else {
+        o->unk156 = (a6 - a5) * 8 / o->frames;
+    }
+    return o;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80033258);
 
