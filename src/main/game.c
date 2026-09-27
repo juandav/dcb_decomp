@@ -103,6 +103,30 @@ typedef struct {
 } PadState;
 
 typedef struct {
+    /* 0x00 */ u8 unk0[0xE];
+    /* 0x0E */ u16 clut;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ u8 tpage[0x14];
+    /* 0x28 */ u8 twin[0xC];
+} FadeBuf;
+
+typedef struct {
+    /* 0x00 */ FadeBuf buf[2];
+    /* 0x68 */ s32 tim;
+    /* 0x6C */ s8 mode;
+    /* 0x6D */ s8 unk6D;
+    /* 0x6E */ u8 unk6E;
+    /* 0x6F */ u8 unk6F;
+    /* 0x70 */ s16 unk70;
+    /* 0x72 */ s16 unk72;
+    /* 0x74 */ s16 w;
+    /* 0x76 */ s16 h;
+    /* 0x78 */ s16 x;
+    /* 0x7A */ s16 y;
+} Fade;
+
+typedef struct {
     /* 0x00 */ s32 unk0;
     /* 0x04 */ u8 loc[4];
     /* 0x08 */ u8 unk8[0x14];
@@ -5966,7 +5990,7 @@ void func_8002F79C(void) {
 s32 SetTexWindow(void *, s16 *);
 void func_8001E6EC(s32, void *, s32, s32);
 extern s32 D_800108A4;
-extern s32 D_801D81F8;
+extern Fade D_801D81F8;
 extern s32 D_801D8220;
 
 void func_8002F7A8(void) {
@@ -6010,7 +6034,31 @@ void func_8002F8E8(void) {
     func_8002FAA8();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F920);
+void func_8002F920(s32 mode, s32 x, s32 y, s32 w, s32 h) {
+    s32 i;
+
+    if (D_801D81F8.unk72 != 0 && D_801D81F8.unk72 != 0x80) {
+        do {
+            func_80014C08(D_800794F0);
+        } while (D_801D81F8.unk72 != 0 && D_801D81F8.unk72 != 0x80);
+    }
+    if (D_801D81F8.unk72 == 0) {
+        D_801D81F8.unk6D = -1;
+    }
+    D_801D81F8.mode = mode;
+    if (mode >= 0) {
+        D_801D81F8.x = x;
+        D_801D81F8.y = y;
+        D_801D81F8.w = w;
+        D_801D81F8.h = h;
+        for (i = 0; i < 2; i++) {
+            (D_801D81F8.buf + i)->clut = getClut(w, h);
+            SetDrawTPage((D_801D81F8.buf + i)->tpage, 0, 0, GetTPage(0, 0, x, y));
+        }
+    }
+    D_801D81F8.unk6E = 0;
+    D_801D81F8.unk6F = 0x1E;
+}
 
 void func_8002FAA8(void) {
     s8 *p;
