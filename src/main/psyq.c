@@ -1547,7 +1547,11 @@ void func_80067864(TILE_1 *p) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067884);
+void func_80067884(TILE_8 *p) {
+    setTile8(p);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800678A4);
 
