@@ -766,7 +766,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057BA0);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdRead2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057C98);
+void func_80057C98(void) {
+    StCdInterrupt();
+}
+
+OBJECT_END(3);
 
 void StClearRing(void) {
     D_801D98DC = 0;
