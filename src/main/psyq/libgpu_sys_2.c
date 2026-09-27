@@ -12,7 +12,19 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetGraph);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphQueue);
+int SetGraphQueue(int mode) {
+    u_char old = D_80076758.queue;
+
+    if (D_80076758.level >= 2) {
+        D_80076754("SetGrapQue(%d)...\n", mode);
+    }
+    if (mode != D_80076758.queue) {
+        D_80076750->unk34(1);
+        D_80076758.queue = mode;
+        DMACallback(2, NULL);
+    }
+    return old;
+}
 
 int GetGraphDebug(void) {
     return D_80076758.level;
