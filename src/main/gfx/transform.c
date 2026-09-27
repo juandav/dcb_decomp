@@ -4,6 +4,18 @@
 #include "dcb/transform.h"
 #include "dcb/prim_util.h"
 
+void resetMatrixRotation(void *matrix) {
+    (*(s16 *)((s8 *)matrix + 0)) = 0x1000;
+    (*(s16 *)((s8 *)matrix + 6)) = 0;
+    (*(s16 *)((s8 *)matrix + 0xC)) = 0;
+    (*(s16 *)((s8 *)matrix + 2)) = 0;
+    (*(s16 *)((s8 *)matrix + 8)) = 0x1000;
+    (*(s16 *)((s8 *)matrix + 0xE)) = 0;
+    (*(s16 *)((s8 *)matrix + 4)) = 0;
+    (*(s16 *)((s8 *)matrix + 0xA)) = 0;
+    (*(s16 *)((s8 *)matrix + 0x10)) = 0x1000;
+}
+
 void constrainRotationAxis(s32 axisMode, s16 *rot, void *matrix) {
     s32 mode;
 

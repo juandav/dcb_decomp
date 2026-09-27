@@ -30,6 +30,5 @@ void setPolyFT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
 void setPolyF4Rect(void *poly, s16 x, s16 y, s16 w, s16 h);
 void setPolyGT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h);
 void setPolyFT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h);
-void resetMatrixRotation(void *matrix);
 
 #endif /* DCB_PRIM_UTIL_H */

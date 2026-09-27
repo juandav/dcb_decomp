@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/fade.h"
 #include "dcb/prim_util.h"
+#include "dcb/transform.h"
 
 void initScreenFade(void) {
     SCREEN_FADE_ACTIVE = 0;
