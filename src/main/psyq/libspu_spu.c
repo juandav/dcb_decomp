@@ -8,7 +8,24 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004AC20);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FiDMA);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_Fr_);
+extern volatile u_long *D_8006EF28;
+extern volatile u_long *D_8006EF2C;
+extern volatile u_long *D_8006EF30;
+extern long D_8006EF74;
+void _spu_Fw1ts(void);
+void func_8004B450(void);
+
+void _spu_Fr_(u_char *addr, u_short spuAddr, u_long size) {
+    D_8006EF24[0xD3] = spuAddr;
+    _spu_Fw1ts();
+    D_8006EF24[0xD5] |= 0x30;
+    _spu_Fw1ts();
+    func_8004B450();
+    *D_8006EF28 = (u_long)addr;
+    *D_8006EF2C = (size << 16) | 0x10;
+    D_8006EF74 = 1;
+    *D_8006EF30 = 0x1000200;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_t);
 
