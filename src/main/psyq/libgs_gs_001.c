@@ -51,4 +51,32 @@ void GsInitGraph2(u_short x, u_short y, u_short intmode, u_short dith, u_short v
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80061ADC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSortClear);
+/* BLK_FILL */
+typedef struct {
+    /* 0x0 */ u_long tag;
+    /* 0x4 */ u_char r0, g0, b0, code;
+    /* 0x8 */ u_short x0, y0;
+    /* 0xC */ u_short w, h;
+} BlkFill;
+
+extern BlkFill D_801DBD68[2];
+extern short D_801DBD88[2];
+extern short D_801DBD8C[2];
+extern DISPENV D_801DBE00;
+extern long D_801DBE28;
+extern u_short D_801DBE2C;
+
+void GsSortClear(u_char r, u_char g, u_char b, GsOT *otp) {
+    D_801DBD68[D_801DBE24].r0 = r;
+    D_801DBD68[D_801DBE24].g0 = g;
+    D_801DBD68[D_801DBE24].b0 = b;
+    D_801DBD68[D_801DBE24].x0 = D_801DBD88[D_801DBE24];
+    D_801DBD68[D_801DBE24].y0 = D_801DBD8C[D_801DBE24];
+    D_801DBD68[D_801DBE24].h = D_801DBE2C;
+    if (D_801DBE00.isrgb24) {
+        D_801DBD68[D_801DBE24].w = D_801DBE28 * 3 / 2;
+    } else {
+        D_801DBD68[D_801DBE24].w = D_801DBE28;
+    }
+    AddPrim(otp->tag, &D_801DBD68[D_801DBE24]);
+}
