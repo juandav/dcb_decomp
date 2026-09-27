@@ -612,7 +612,9 @@ int RestartCallback(void) {
     return D_80070AA8->restartCallback();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CheckCallback);
+int CheckCallback(void) {
+    return D_8006FA22;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GetIntrMask);
 
