@@ -832,7 +832,7 @@ extern s32 D_80077ADC;
 extern s32 D_80077AD8;
 extern s32 D_80077BC0;
 extern Unk80077A0C *D_80077A0C;
-void func_800141B8();
+long func_800141B8();
 long func_8006A794(unsigned long, long, long, long (*)());
 long func_8006A7C4(long);
 s32 SetRCnt(u32, u16, s32);
@@ -898,7 +898,41 @@ s32 func_80013FA4(s32 mode, s32 size, s32 pc, s32 a0, s32 a1, s32 a2, s32 a3) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800141B8);
+extern void *D_80077A10;
+extern void *D_80077A14;
+void func_80014CF0(void);
+
+long func_800141B8(void) {
+    Thread *t;
+    s32 *ctx;
+    s32 *regs;
+    s32 i;
+
+    t = (Thread *)D_80077A0C;
+    func_80014CF0();
+    ctx = (s32 *)(D_80077ADC + 8);
+    regs = t->regs;
+    for (i = 0x27; i >= 0; i--) {
+        *regs++ = *ctx++;
+    }
+    t->flags |= 0x20000000;
+    if ((D_80077A1A = D_80077A18) == 0) {
+        if (D_80077A08 == 0) {
+            D_80077A14 = &D_80077BA0;
+            D_80077A1C = 0;
+        }
+    } else {
+        D_80077A10 = t;
+        t = (Thread *)&D_80077BA0;
+        D_80077A0C = (Unk80077A0C *)t;
+        D_80077A18 = D_80077BA0;
+        ctx = (s32 *)(D_80077ADC + 8);
+        regs = t->regs;
+        for (i = 0x27; i >= 0; i--) {
+            *ctx++ = *regs++;
+        }
+    }
+}
 
 extern void *D_80077A10;
 extern void *D_80077A14;
