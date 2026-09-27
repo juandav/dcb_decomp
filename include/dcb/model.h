@@ -28,17 +28,6 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak);
 void setModelAnimationData(Model2220 *model, s32 *data, s32 anim);
 s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak);
 void loadModelAnimationFile(s32 slot, s32 anim, s32 index);
-void relocateOmdObjects(Tmd18 *tmd);
-void linkOmdObject(s32 tmd, void *obj, s32 index);
-s32 *readModelBonePositions(u8 *model, s32 *data);
-void unloadModel(s32 slot);
-void unloadAllModels(void);
-void *findLoadedModelById(s32 id);
-s32 reuseLoadedModelTexture(u8 *);
-void initModelBoneHierarchy(Model *model);
-s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format);
-void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot);
-void loadTmdModelFromDisc(s32 slot, s32 id, s32 vramSlot);
 s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly);
 void applyAnimationFirstFrame(s32 slot, s32 anim);
 

@@ -14,6 +14,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/model.h"
+#include "dcb/model_load.h"
 
 void initPlayerData(void) {
     void *session;

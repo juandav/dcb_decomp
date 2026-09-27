@@ -13,6 +13,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/model.h"
+#include "dcb/model_load.h"
 #include "dcb/model_anim.h"
 #include "dcb/player_data.h"
 #include "dcb/prim_util.h"

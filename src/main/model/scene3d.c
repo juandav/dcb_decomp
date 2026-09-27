@@ -12,6 +12,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/model.h"
+#include "dcb/model_load.h"
 #include "dcb/stage.h"
 #include "dcb/tmd_sort.h"
 #include "dcb/frame_callback.h"
