@@ -195,7 +195,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetCommonAttr);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004C300);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSeqClose);
+void SsSeqClose(short seq) {
+    func_8004C300(seq);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSepClose);
 
