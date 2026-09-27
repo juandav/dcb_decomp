@@ -147,7 +147,18 @@ void DrawOTag(u_long *p) {
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013A1C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", PutDrawEnv);
+void func_800659C4(DR_ENV *dr, DRAWENV *env);
+
+DRAWENV *PutDrawEnv(DRAWENV *env) {
+    if (D_80076758.level >= 2) {
+        D_80076754("PutDrawEnv(%08x)...\n", env);
+    }
+    func_800659C4(&env->dr_env, env);
+    termPrim(&env->dr_env);
+    D_80076750->addque(D_80076750->unk18, &env->dr_env, sizeof(DR_ENV), 0);
+    memcpy((u_char *)&D_80076758.draw, (u_char *)env, sizeof(DRAWENV));
+    return env;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTagEnv);
 
