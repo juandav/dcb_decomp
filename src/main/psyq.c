@@ -915,7 +915,11 @@ int func_8005A784(CdlATV *vol) {
     return 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A7A4);
+int func_8005A7A4(void (*func)()) {
+    return DMACallback(3, func);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A7D4);
 
