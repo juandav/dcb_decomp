@@ -1,12 +1,33 @@
 #include "psyq.h"
 
-extern void (*D_8005B850[2])(void);
+extern long D_80070C40;
+extern long D_80070F58[];
+int CD_cw(u_char com, u_char *param, u_char *result, int async);
+int CD_sync(int mode, u_char *result);
 
-extern void (*D_8005B850[2])(void);
+static __inline__ int cd_cw(u_char com, u_char *param, u_char *result, int async) {
+    long old = D_80070C40;
+    int count = 4;
 
-extern void (*D_8006F59C[])();
+    while (count--) {
+        D_80070C40 = 0;
+        if (com != CdlNop && (*(u_char *)&D_80070C4C & CdlStatShellOpen)) {
+            CD_cw(CdlNop, NULL, NULL, 0);
+        }
+        if (param == NULL || D_80070F58[com] == 0 || CD_cw(CdlSetloc, param, result, 0) == 0) {
+            D_80070C40 = old;
+            if (CD_cw(com, param, result, async) == 0) {
+                return 0;
+            }
+        }
+    }
+    D_80070C40 = old;
+    return -1;
+}
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControl);
+int CdControl(u_char com, u_char *param, u_char *result) {
+    return cd_cw(com, param, result, 0) == 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlF);
 
