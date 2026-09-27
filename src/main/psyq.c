@@ -1541,7 +1541,11 @@ void func_80067844(SPRT *p) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067864);
+void func_80067864(TILE_1 *p) {
+    setTile1(p);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067884);
 
