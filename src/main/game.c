@@ -4482,7 +4482,23 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010190);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80026E90);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80027044);
+void func_80027044(void) {
+    s32 i;
+    s32 j;
+
+    if (D_801D6B10 == 0) {
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < D_801D6B10; j++) {
+            setDrawMode(&((SprtPacket *)DB(i).unk40B8)[j].dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            setSprt(&((SprtPacket *)DB(i).unk40B8)[j].sp);
+            setSemiTrans(&((SprtPacket *)DB(i).unk40B8)[j].sp, 1);
+            setShadeTex(&((SprtPacket *)DB(i).unk40B8)[j].sp, 0);
+            setRGB0(&((SprtPacket *)DB(i).unk40B8)[j].sp, 0x80, 0x80, 0x80);
+        }
+    }
+}
 
 extern s32 D_801D6B24;
 
