@@ -5,6 +5,7 @@
 #include "dcb/scene3d.h"
 #include "dcb/wire_grid.h"
 #include "dcb/effect.h"
+#include "dcb/effect_object.h"
 #include "dcb/duel_util.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"

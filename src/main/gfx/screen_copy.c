@@ -5,6 +5,7 @@
 #include "dcb/vblank.h"
 #include "dcb/cd_file.h"
 #include "dcb/effect.h"
+#include "dcb/effect_object.h"
 #include "dcb/duel_util.h"
 #include "dcb/fade.h"
 #include "dcb/heap.h"
