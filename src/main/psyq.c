@@ -1505,7 +1505,11 @@ void func_80067784(POLY_F4 *p) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800677A4);
+void func_800677A4(POLY_FT4 *p) {
+    setPolyFT4(p);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800677C4);
 
