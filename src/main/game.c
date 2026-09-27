@@ -8476,7 +8476,7 @@ void func_8003EB50(void) {
 
 s32 func_8003D4C4();
 s32 func_8003E4F0();
-s32 func_80042824(s16);
+void func_80042824(s32);
 s32 func_80042E78();
 s32 func_80043D00(s16);
 s32 func_80044074(s16);
@@ -9240,7 +9240,108 @@ void func_8004269C(SprtInfo *info, s32 arg1, s32 z) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80042824);
+void func_80042824(s32 c) {
+    POLY_FT4 *p;
+    u8 *buf;
+
+    buf = (u8 *)D_800793A0->unk4078[11];
+    p = (POLY_FT4 *)(buf + 0x1E0);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0;
+    p->y0 = 0xB;
+    p->x1 = 0xA0;
+    p->y1 = 0xB;
+    p->x2 = 0;
+    p->y2 = 0x7A;
+    p->x3 = 0xA0;
+    p->y3 = 0x7A;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x208);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0x13F;
+    p->y0 = 0xB;
+    p->x1 = 0x9F;
+    p->y1 = 0xB;
+    p->x2 = 0x13F;
+    p->y2 = 0x7A;
+    p->x3 = 0x9F;
+    p->y3 = 0x7A;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x230);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0;
+    p->y0 = 0xE8;
+    p->x1 = 0xA0;
+    p->y1 = 0xE8;
+    p->x2 = 0;
+    p->y2 = 0x79;
+    p->x3 = 0xA0;
+    p->y3 = 0x79;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+    p = (POLY_FT4 *)(buf + 0x258);
+    func_8001E6EC(0xC, p, 0, 0);
+    p->r0 = c;
+    p->g0 = c;
+    p->b0 = c;
+    p->u0 = 0;
+    p->v0 = 0x47;
+    p->u1 = 0xA0;
+    p->v1 = 0x47;
+    p->u2 = 0;
+    p->v2 = 0xB6;
+    p->u3 = 0xA0;
+    p->v3 = 0xB6;
+    p->x0 = 0x13F;
+    p->y0 = 0xE8;
+    p->x1 = 0x9F;
+    p->y1 = 0xE8;
+    p->x2 = 0x13F;
+    p->y2 = 0x79;
+    p->x3 = 0x9F;
+    p->y3 = 0x79;
+    p->tpage = 0x1C;
+    p->clut = 0x7C33;
+    addPrim(&D_800793A0->ot[0xFFF], p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042BBC);
 
