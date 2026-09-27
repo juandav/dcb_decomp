@@ -1663,7 +1663,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTinSync);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCToutSync);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTinCallback);
+int DecDCTinCallback(void (*func)()) {
+    return DMACallback(0, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCToutCallback);
 
