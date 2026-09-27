@@ -72,7 +72,52 @@ void DecDCTReset(int mode) {
     func_80067FC4(mode);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTGetEnv);
+/* libpress.h's DECDCTENV; that header clashes with the DecDCTout here */
+typedef struct {
+    u_char iq_y[64];
+    u_char iq_c[64];
+    short dct[64];
+} DECDCTENV;
+
+typedef struct DctIqTable {
+    /* 0x00 */ u_long head;
+    /* 0x04 */ u_char iq_y[64];
+    /* 0x44 */ u_char iq_c[64];
+} DctIqTable;
+
+typedef struct DctTable {
+    /* 0x00 */ u_long head;
+    /* 0x04 */ short dct[64];
+} DctTable;
+
+extern DctIqTable D_800768A8;
+extern DctTable D_8007692C;
+
+DECDCTENV *DecDCTGetEnv(DECDCTENV *env) {
+    u_long *src;
+    u_long *dst;
+    int i;
+
+    dst = (u_long *)env->iq_y;
+    src = (u_long *)D_800768A8.iq_y;
+    i = 16;
+    while (i--) {
+        *dst++ = *src++;
+    }
+    dst = (u_long *)env->iq_c;
+    src = (u_long *)D_800768A8.iq_c;
+    i = 16;
+    while (i--) {
+        *dst++ = *src++;
+    }
+    dst = (u_long *)env->dct;
+    src = (u_long *)D_8007692C.dct;
+    i = 32;
+    while (i--) {
+        *dst++ = *src++;
+    }
+    return env;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTPutEnv);
 
