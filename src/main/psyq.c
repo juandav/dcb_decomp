@@ -647,7 +647,13 @@ void func_80056C90(long *p, int n) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", startIntrVSync);
+void *startIntrVSync(void) {
+    *D_80070AEC = 0x100;
+    D_80070AE8 = 0;
+    func_80056DA4((long *)D_80070AC8, 8);
+    InterruptCallback(0, func_80056D0C);
+    return func_80056D78;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056D0C);
 
