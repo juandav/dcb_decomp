@@ -80,7 +80,5 @@ void showStatChangePopup(s32 player, s32 newValue, s32 stat);
 void renderStatPopups(void);
 void drawHudPanelContents(s32 panelIndex, s32 z);
 void showDpGainPopup(s32 player);
-void tickCardMotion(s32 cardIndex, s32 player);
-void renderBoardCards(void);
 
 #endif /* DCB_BATTLE_HUD_H */

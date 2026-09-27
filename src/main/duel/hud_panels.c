@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/battle_hud.h"
+#include "dcb/card_motion.h"
 #include "dcb/card_render.h"
 #include "dcb/duel.h"
 #include "dcb/cpu_decision.h"
