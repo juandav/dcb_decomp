@@ -1667,7 +1667,9 @@ int DecDCTinCallback(void (*func)()) {
     return DMACallback(0, func);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCToutCallback);
+int DecDCToutCallback(void (*func)()) {
+    return DMACallback(1, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067FC4);
 
