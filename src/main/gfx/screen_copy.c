@@ -10,6 +10,7 @@
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/loader.h"
+#include "dcb/display.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/memcard.h"

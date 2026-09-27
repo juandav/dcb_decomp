@@ -95,6 +95,7 @@ segments:
       - [0xB280, c, system/heap]
       - [0xB888, c, system/angle]
       - [0xB90C, c, system/loader]
+      - [0xC10C, c, gfx/display]
       - [0xC344, c, system/archive]
       - [0xCA20, c, gfx/prim]
       - [0xDED0, c, gfx/prim3d]
