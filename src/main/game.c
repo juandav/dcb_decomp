@@ -3071,7 +3071,72 @@ s32 func_8001A164(s32 *arg0, s32 arg1) {
     return (s32) (*(s8 *)((s8 *)arg0 + 0xA5));
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A1D8);
+void func_8001A40C(u8 *w);
+
+void func_8001A1D8(u8 *w, s32 arg1) {
+    Rect16 r;
+    s32 x;
+    s32 width;
+    u16 mask;
+    PadState **pads;
+    s32 on;
+
+    D_8008983C = 0;
+    if ((s8)w[0xA5] == 1) {
+        x = *(s16 *)(w + 0xAC);
+        width = *(s16 *)(w + 0xAE);
+    } else {
+        x = *(s16 *)(w + 0xB0);
+        width = *(s16 *)(w + 0xB2);
+    }
+    r.x = x;
+    r.y = (240 - *(s16 *)(w + 0xAA)) / 2 + *(s16 *)(w + 0xAA) - 14;
+    r.w = width;
+    r.h = 12;
+    func_800191C0((Unk800190F4 *)(w + 0x44), &r, (Bytes4 *)-1);
+    pads = D_80089840;
+    on = 1;
+    do {
+        func_80014C08(D_800794F0);
+        func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
+        if (*(void (**)(void))(w + 0xA0) != 0) {
+            (*(void (**)(void))(w + 0xA0))();
+        }
+        if (w[0xA4] != 0) {
+            if (w[0xB5] != 0) {
+                mask = 0x40;
+            } else {
+                mask = 0x50;
+            }
+        } else {
+            mask = 0x40;
+        }
+        if (pads[w[0xA6]]->unk2 & mask) {
+            break;
+        }
+    } while (w[0xB4] == 0);
+    if (w[0xB4] != 0) {
+        w[0xA5] = 3;
+    } else if (pads[w[0xA6]]->unk2 & 0x10) {
+        w[0xA5] = 0;
+        w[0xB4] = on;
+        func_8002BB58(0);
+    } else {
+        w[0xB4] = on;
+        func_8002BB58(1);
+    }
+    func_80016F38((Unk80016F38 *)w, (Rect16 *)-1);
+    do {
+        func_80014C08(D_800794F0);
+        func_800170F0((Unk80016F38 *)w, func_8001A40C, 0);
+        if (*(void (**)(void))(w + 0xA0) != 0) {
+            (*(void (**)(void))(w + 0xA0))();
+        }
+    } while (*(s8 *)(w + 0x41) == 0);
+    D_8008983C = 1;
+    func_80014A48(arg1, (s8)w[0xA5]);
+    func_80014A90();
+}
 
 void func_80028D18(s32, s32, s32, s32, s32);
 void func_8002BB58(u32);
