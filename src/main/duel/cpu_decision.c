@@ -1,0 +1,17 @@
+#include "dcb/cpu_decision.h"
+#include "common.h"
+#include "gte.h"
+#include "game.h"
+#include "dcb/duel.h"
+#include "dcb/battle_hud.h"
+#include "dcb/card_db.h"
+#include "dcb/duel_rules.h"
+#include "dcb/effect.h"
+#include "dcb/main.h"
+#include "dcb/menu.h"
+#include "dcb/shell.h"
+#include "dcb/sound.h"
+#include "dcb/stage.h"
+#include "dcb/window.h"
+
+INCLUDE_ASM("asm/main/nonmatchings/duel/cpu_decision", runCpuDecisionTask);

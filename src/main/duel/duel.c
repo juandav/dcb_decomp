@@ -1211,5 +1211,3 @@ void runDuelTurnLoop(void) {
         }
     }
 }
-
-INCLUDE_ASM("asm/main/nonmatchings/duel/duel", runCpuDecisionTask);
