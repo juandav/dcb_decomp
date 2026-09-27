@@ -1013,7 +1013,53 @@ s32 func_800162F0(CdFile *f) {
     return *f->cur++ + (*f->cur++ << 8);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016500);
+s32 func_80016500(CdFile *f) {
+    u8 result[8];
+    s16 i;
+    s32 v;
+    s32 w;
+    s32 r;
+
+    if (f->avail < 4) {
+        i = 0;
+        v = 0;
+        while (f->avail != 0 && i++ < 4) {
+            v |= *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        if (f->remaining <= 0) {
+            return -1;
+        }
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            do {
+                f->cur = f->buf;
+            } while (CdRead(2, f->buf, 0x80) == 0);
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        f->avail = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            f->avail = f->remaining + 0x1000;
+        }
+        if (f->avail + i < 4) {
+            return -1;
+        }
+        while (f->avail != 0 && i++ < 4) {
+            v |= *f->cur++ << ((i - 1) * 8);
+            f->avail--;
+        }
+        return v;
+    }
+    f->avail -= 4;
+    w = (((f->cur[3] << 8) + f->cur[2] << 8) + f->cur[1] << 8) + f->cur[0];
+    f->cur += 4;
+    return w;
+}
 
 s8 *func_80016724(s8 *buf, s32 n, CdFile *f) {
     s8 *p;
