@@ -6,7 +6,27 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsInit3D);
+typedef struct {
+    short offx;
+    short offy;
+} GsPosition;
+extern GsPosition D_801DBD98;
+extern int D_801DBE28;
+extern int D_801DBE2C;
+extern int D_801DBE30;
+extern int D_801DBE34;
+extern int D_801DBE38;
+
+void GsInit3D(void) {
+    D_801DBD98.offx = D_801DBE28 / 2;
+    D_801DBD98.offy = D_801DBE2C / 2;
+    GsSetDrawBuffOffset();
+    D_801DBE38 = 10;
+    D_801DBE34 = 0;
+    D_801DBE30 = 0x3FFF;
+}
+
+OBJECT_END(3);
 
 typedef struct {
     u_long vert_top;
