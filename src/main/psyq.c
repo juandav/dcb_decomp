@@ -211,7 +211,14 @@ OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsInit);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsInit);
+void SsInit(void) {
+    ResetCallback();
+    func_8004C5B0();
+    SpuClearReverbWorkArea(7);
+    _SsInit();
+}
+
+OBJECT_END(2);
 
 void func_8004C5B0(void) {
     _SpuInit(0);
