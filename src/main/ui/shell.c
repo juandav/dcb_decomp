@@ -11,6 +11,7 @@
 #include "dcb/sound.h"
 #include "dcb/stage.h"
 #include "dcb/system.h"
+#include "dcb/screen_copy.h"
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 #include "dcb/text.h"

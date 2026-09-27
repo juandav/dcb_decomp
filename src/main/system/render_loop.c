@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/system.h"
+#include "dcb/screen_copy.h"
 #include "dcb/cd_file.h"
 #include "dcb/effect.h"
 #include "dcb/duel_util.h"
