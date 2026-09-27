@@ -28,6 +28,12 @@ It had no post-reload CSE either: it loads a constant again where ours copies
 a register that already holds it (`li $a0,3` for ResetGraph(3) after a
 compare with 3 in func_80061958), so reload_cse_regs() returns at once.
 
+Its MIPS I register set left the one FP condition code register usable, as
+GCC 2.7.2 does; 2.8.1 fixes all eight, which leaves one register less in
+loop.c's hoisting threshold (2 * (1 + non-fixed registers)), so the original
+hoists loop invariants ours keeps in the loop (CD_ready's table addresses).
+The CONDITIONAL_REGISTER_USAGE loop in init_reg_sets_1 now starts at $fcc1.
+
 usage: sn_cc1.py cc1 patched_cc1
 """
 import os, shutil, sys
@@ -83,8 +89,12 @@ with open(src, 'rb') as f:
     # mark_target_live_regs+83: `if (target == 0)` -> `if (!helper ())`
     site = sym('mark_target_live_regs') + 83
     test = b'\xe8' + rel32(site, cave) + b'\x85\xc0\x75\x2e'
+    # init_reg_sets_1+0xab: `cmp $3,%edx; jg; movl $ST_REG_FIRST,-0x10(%ebp)`
+    fcc = offset('init_reg_sets_1') + 0xab
+    assert raw[fcc:fcc + 12] == bytes.fromhex('83fa037f3cc745f043000000')
 
     patches = [(offset('mips_can_use_return_insn'), b'\x31\xc0\xc3'),
+               (fcc + 8, b'\x44'),
                (offset('reload_cse_regs'), b'\xc3'),
                (offset('mips_expand_epilogue') + 180, blk),
                (offset('iterator_loop_prologue'), live),
