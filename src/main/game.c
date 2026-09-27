@@ -3205,7 +3205,59 @@ s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb) {
     return done == 3;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E4E8);
+void func_8001E4E8(u8 dir, s16 step, u8 *state, u8 *prim) {
+    s16 c;
+
+    switch (*state) {
+    case 0:
+        if (dir == 0) {
+            func_8001E75C(prim, 0, 0, 0);
+        } else {
+            func_8001E75C(prim, 0x80, 0x80, 0x80);
+        }
+        SetSemiTrans(prim, 1);
+        *state = 1;
+        break;
+    case 1:
+        if (dir == 0) {
+            func_8001E75C(prim, 0, 0, 0);
+        } else {
+            func_8001E75C(prim, 0x80, 0x80, 0x80);
+        }
+        SetSemiTrans(prim, 1);
+        *state = 2;
+        break;
+    case 2:
+        c = prim[4];
+        if (dir == 0) {
+            c += step;
+            if (c >= 0x80) {
+                SetSemiTrans(prim, 0);
+                func_8001E75C(prim, 0x80, 0x80, 0x80);
+                *state = 3;
+                break;
+            }
+        } else {
+            c -= step;
+            if (c <= 0) {
+                SetSemiTrans(prim, 0);
+                func_8001E75C(prim, 0x80, 0x80, 0x80);
+                *state = 3;
+                break;
+            }
+        }
+        func_8001E75C(prim, c, c, c);
+        return;
+    case 3:
+        SetSemiTrans(prim, 0);
+        func_8001E75C(prim, 0x80, 0x80, 0x80);
+        *state = 4;
+        break;
+    case 4:
+        *state = 5;
+        break;
+    }
+}
 
 
 void func_8001E6A4(s32 arg0, s16 arg1, s16 arg2) {
