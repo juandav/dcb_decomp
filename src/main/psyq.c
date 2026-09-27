@@ -598,7 +598,11 @@ long SpuSetTransferMode(long mode) {
     return m;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabTransCompleted);
+short SsVabTransCompleted(short immediateFlag) {
+    return SpuIsTransferCompleted(immediateFlag);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuIsTransferCompleted);
 
