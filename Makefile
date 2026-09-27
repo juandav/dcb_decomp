@@ -73,6 +73,9 @@ $(PSYQ_GCC28_OBJ): CC1 := $(SN_CC1)
 $(PSYQ_GCC28_OBJ): CC1FLAGS += -mno-split-addresses
 # putchar() has _putchar() and _putchar_flash() inlined
 $(BUILDDIR)/src/main/psyq/libc2_putchar.c.s: CC1FLAGS += -finline-functions
+# StRingStatus's loop recomputes its ring address every time: that libcd
+# object was built without strength reduction
+$(BUILDDIR)/src/main/psyq/libcd_bios_1_2.c.s: CC1FLAGS += -fno-strength-reduce
 $(PSYQ_GCC28_OBJ): CC1_POST := $(PYTHON) tools/unfill_epilogue.py
 $(PSYQ_GCC28_OBJ): $(SN_CC1)
 $(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
