@@ -489,9 +489,18 @@ typedef struct {
     /* 0x0000 */ u8 unk0[0x12];
     /* 0x0012 */ u16 unk12;
     /* 0x0014 */ s16 unk14;
-    /* 0x0016 */ u8 unk16[0xE];
+    /* 0x0016 */ u8 unk16[2];
+    /* 0x0018 */ u16 unk18;
+    /* 0x001A */ u16 unk1A;
+    /* 0x001C */ u16 unk1C;
+    /* 0x001E */ u8 unk1E[6];
     /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ s32 unk28;
+    /* 0x0028 */ u32 rankA : 3;
+    /* 0x0028 */ u32 rankB : 3;
+    /* 0x0028 */ u32 rankC : 3;
+    /* 0x0029 */ u32 unk28_9 : 2;
+    /* 0x0029 */ u32 unk28_11 : 1;
+    /* 0x0029 */ u32 unk28_12 : 20;
     /* 0x002C */ s32 unk2C;
     /* 0x0030 */ u8 unk30[0xC];
     /* 0x003C */ u8 unk3C[0x44];
@@ -5619,7 +5628,170 @@ void func_8002CC04(s32 len, u8 *p) {
     p[1] = sum;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CC44);
+extern u8 D_8006E0B8[6];
+extern u8 *D_801D8408;
+
+#define PLAYER_DATA(p) (((Unk8006E050 *)D_8006E050)[p])
+
+void func_8002CC44(s32 p) {
+    s32 count[6];
+    s32 total;
+    s32 rank;
+    s32 i;
+    s32 n;
+
+    rank = PLAYER_DATA(p).rankA;
+    switch (rank) {
+    case 0:
+        if (PLAYER_DATA(p).unk18 < 10) {
+            break;
+        }
+        rank = 1;
+    case 1:
+        if (PLAYER_DATA(p).unk18 < 25) {
+            break;
+        }
+        rank = 2;
+    case 2:
+        if (PLAYER_DATA(p).unk18 < 50) {
+            break;
+        }
+        rank = 3;
+    case 3:
+        if (PLAYER_DATA(p).unk18 < 100) {
+            break;
+        }
+        rank = 4;
+    case 4:
+        if (PLAYER_DATA(p).unk18 < 200) {
+            break;
+        }
+        rank = 5;
+    case 5:
+        if (PLAYER_DATA(p).unk18 < 300) {
+            break;
+        }
+        rank = 6;
+    case 6:
+        if (PLAYER_DATA(p).unk18 < 500) {
+            break;
+        }
+        rank = 7;
+    }
+    PLAYER_DATA(p).rankA = rank;
+
+    total = 0;
+    for (i = 0; i < 6; i++) {
+        count[i] = 0;
+    }
+    for (i = 0; i < 0xAC; i++) {
+        n = PLAYER_DATA(p).unk14B2[i] & 7;
+        if (n != 0) {
+            total += n;
+            count[D_801D8408[i * 0x13C + 0x1A] >> 4]++;
+        }
+    }
+    for (i = 0xBF; i < 0x125; i++) {
+        n = PLAYER_DATA(p).unk14B2[i] & 7;
+        if (n != 0) {
+            total += n;
+            count[5]++;
+        }
+    }
+    for (i = 0x125; i < 0x12D; i++) {
+        n = PLAYER_DATA(p).unk14B2[i] & 7;
+        if (n != 0) {
+            total += n;
+            count[5]++;
+        }
+    }
+    n = 0;
+    for (i = 0; i < 6; i++) {
+        if (count[i] == D_8006E0B8[i]) {
+            n++;
+        }
+    }
+
+    rank = PLAYER_DATA(p).rankB;
+    switch (rank) {
+    case 0:
+        if (total < 100) {
+            break;
+        }
+        rank = 1;
+    case 1:
+        if (total < 200) {
+            break;
+        }
+        rank = 2;
+    case 2:
+        if (n <= 0) {
+            break;
+        }
+        rank = 3;
+    case 3:
+        if (n < 3) {
+            break;
+        }
+        rank = 4;
+    case 4:
+        if (n < 5) {
+            break;
+        }
+        rank = 5;
+    case 5:
+        if (n < 6) {
+            break;
+        }
+        rank = 6;
+    case 6:
+        if (PLAYER_DATA(p).unk28_11) {
+            break;
+        }
+        rank = 7;
+    }
+    PLAYER_DATA(p).rankB = rank;
+
+    rank = PLAYER_DATA(p).rankC;
+    switch (rank) {
+    case 0:
+        if (PLAYER_DATA(p).unk1C < 10) {
+            break;
+        }
+        rank = 1;
+    case 1:
+        if (PLAYER_DATA(p).unk1C < 20) {
+            break;
+        }
+        rank = 2;
+    case 2:
+        if (PLAYER_DATA(p).unk1C < 30) {
+            break;
+        }
+        rank = 3;
+    case 3:
+        if (PLAYER_DATA(p).unk1C < 40) {
+            break;
+        }
+        rank = 4;
+    case 4:
+        if (PLAYER_DATA(p).unk1C < 60) {
+            break;
+        }
+        rank = 5;
+    case 5:
+        if (PLAYER_DATA(p).unk1C < 80) {
+            break;
+        }
+        rank = 6;
+    case 6:
+        if (PLAYER_DATA(p).unk1C < 100) {
+            break;
+        }
+        rank = 7;
+    }
+    PLAYER_DATA(p).rankC = rank;
+}
 
 s32 func_8002D51C();
 void func_800457FC();
