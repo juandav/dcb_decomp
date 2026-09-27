@@ -878,7 +878,27 @@ extern s16 D_80077A1A;
 extern s16 D_80077A1C;
 extern s32 D_80077AE0;
 extern Unk80077A0C *D_80077A0C;
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800142D0);
+void *func_800142D0(void *t) {
+    s16 *p = *(s16 **)((s8 *)t + 0xC);
+    s16 prio = *p;
+
+    if (*p > 0 && prio == D_80077A1A) {
+        D_80077A14 = p;
+        D_80077A1C = prio;
+        p = D_80077A10;
+        D_80077A1A = -1;
+    } else {
+        prio = *p;
+        if ((u16)prio > (u16)D_80077A1C) {
+            prio = D_80077A1C;
+            p = D_80077A14;
+            *(u16 *)&D_80077A1C = 0xFFFF;
+        }
+    }
+    D_80077A0C = p;
+    D_80077A18 = prio;
+    return p;
+}
 
 extern s32 D_80077C30;
 
@@ -1021,7 +1041,7 @@ s32 func_80014614(s32 arg0) {
     return 0;
 }
 
-void func_800142D0(void *);
+void *func_800142D0(void *);
 
 void func_80014748(void) {
     void *t;
