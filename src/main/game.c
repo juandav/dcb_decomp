@@ -8598,7 +8598,55 @@ s16 func_800317A8(void *arg0, s16 arg1) {
     return arg1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80031970);
+s32 rsin(s32);
+s32 rcos(s32);
+
+void func_80031970(Obj32 *o) {
+    SVECTOR *v;
+    s32 i;
+    s16 x;
+    s16 y;
+
+    v = o->unk16C;
+    for (i = 0; i < o->n; i++) {
+        x = rsin((i << 12) / o->n) * o->unk19C[0] / 4096;
+        y = rcos((i << 12) / o->n) * o->unk19C[0] / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[3];
+        v++;
+        x = rsin(((i + 1) << 12) / o->n) * o->unk19C[0] / 4096;
+        y = rcos(((i + 1) << 12) / o->n) * o->unk19C[0] / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[3];
+        v++;
+        x = rsin((i << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
+        y = rcos((i << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[3] + (o->unk19C[4] - o->unk19C[3]) * o->unk19C[2] / 100;
+        v++;
+        x = rsin(((i + 1) << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
+        y = rcos(((i + 1) << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[3] + (o->unk19C[4] - o->unk19C[3]) * o->unk19C[2] / 100;
+        v++;
+        x = rsin((i << 12) / o->n) * o->unk19C[1] / 4096;
+        y = rcos((i << 12) / o->n) * o->unk19C[1] / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[4];
+        v++;
+        x = rsin(((i + 1) << 12) / o->n) * o->unk19C[1] / 4096;
+        y = rcos(((i + 1) << 12) / o->n) * o->unk19C[1] / 4096;
+        v->vx = x;
+        v->vy = y;
+        v->vz = o->unk19C[4];
+        v++;
+    }
+}
 
 extern u8 D_8006DEF4[];
 void func_80031970(Obj32 *);
