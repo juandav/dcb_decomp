@@ -1,5 +1,7 @@
 #include "psyq.h"
 
+__asm__(".section .rodata\n\t.asciz \"$Id: intr.c,v 1.75 1997/02/07 09:00:36 makoto Exp $\"\n\t.align 2\n\t.section .text\n");
+
 extern void (*D_8005B850[2])(void);
 
 extern void (*D_8005B850[2])(void);

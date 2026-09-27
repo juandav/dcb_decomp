@@ -45,4 +45,15 @@ int VSync(int mode) {
     return delta;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005655C);
+void func_8005655C(long count, long timeout) {
+    volatile long t = timeout << 15;
+
+    while (D_80070AE8 < count) {
+        if (--t == -1) {
+            puts("VSync: timeout\n");
+            func_8006A884(0);
+            func_8006A894(3, 0);
+            return;
+        }
+    }
+}
