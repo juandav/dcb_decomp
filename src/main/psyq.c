@@ -1450,7 +1450,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800678E4);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067904);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067924);
+void func_80067924(LINE_F3 *p) {
+    setLineF3(p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetLineG3);
 
