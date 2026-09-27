@@ -113,23 +113,23 @@ typedef struct {
 } Unk800794F8;
 
 typedef struct {
-    /* 0x00 */ s16 unk0;
+    /* 0x00 */ u16 unk0;
     /* 0x02 */ u16 unk2;
-    /* 0x04 */ s16 unk4;
-    /* 0x06 */ s16 unk6;
+    /* 0x04 */ u16 unk4;
+    /* 0x06 */ u16 unk6;
     /* 0x08 */ s16 unk8;
     /* 0x0A */ s16 unkA;
     /* 0x0C */ s16 unkC;
     /* 0x0E */ s16 unkE;
-    /* 0x10 */ u8 unk10;
-    /* 0x11 */ u8 unk11;
+    /* 0x10 */ s8 unk10;
+    /* 0x11 */ s8 unk11;
     /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
+    /* 0x14 */ u16 unk14;
     /* 0x16 */ s16 repeatDelay;
     /* 0x18 */ s16 repeatRate;
     /* 0x1A */ u8 unk1A;
     /* 0x1B */ u8 unk1B;
-    /* 0x1C */ u8 unk1C[2];
+    /* 0x1C */ s16 unk1C;
 } PadState;
 
 typedef struct {
@@ -3148,9 +3148,90 @@ void func_8001A6B0(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001A7A4);
+s32 PadGetState(s32);
+s32 PadInfoMode(s32, s32, s32);
 
-s32 func_8001A7A4(s32, void *, void *);
+s32 func_8001A7A4(s32 port, PadState *pad, u8 *buf) {
+    s32 skip;
+    s32 changed;
+    u16 pressed;
+    s32 cur;
+    s16 t;
+
+    if (buf[1] == 0x80) {
+        pad->unk0 = 0;
+        pad->unk6 = 0;
+        pad->unk4 = 0;
+        pad->unk2 = 0;
+        return 0;
+    }
+    pad->unk1A = PadGetState(port);
+    pad->unk1B = PadInfoMode(port, 1, 0);
+    pad->unk1C = PadInfoMode(port, 2, 0);
+    if (pad->unk1A == 0 || buf[0] != 0) {
+        pad->unk0 = 0;
+        pad->unk6 = 0;
+        pad->unk4 = 0;
+        pad->unk2 = 0;
+        return 0;
+    }
+    skip = 0;
+    switch (pad->unk1B) {
+    case 1:
+    case 3:
+    case 6:
+        skip = 1;
+        break;
+    case 2:
+    case 4:
+    case 5:
+    case 7:
+        break;
+    }
+    if (skip) {
+        return 0;
+    }
+    changed = pad->unk0;
+    pad->unk0 = ~((buf[2] << 8) | buf[3]);
+    changed ^= pad->unk0;
+    pressed = changed & pad->unk0;
+    pad->unk2 = pressed;
+    pad->unk4 = changed & ~pad->unk0;
+    pad->unk6 = pressed;
+    if (pad->unk10) {
+        cur = pad->unk0;
+        if (cur == pad->unk14 && cur != 0) {
+            t = pad->unk12;
+            pad->unk12 = t + ((Unk800794F8 *)&D_800794F8)->unk50;
+            if (pad->unk11 == 0) {
+                if (pad->unk12 < pad->repeatDelay) {
+                    return 0;
+                }
+                if (t != 0) {
+                    pad->unk11 = 1;
+                    pad->unk12 = 0;
+                    pad->unk6 = pressed | cur;
+                }
+            } else {
+                if (pad->unk12 < pad->repeatRate) {
+                    return 0;
+                }
+                pad->unk12 = 0;
+                pad->unk6 |= cur;
+            }
+        } else {
+            pad->unk14 = cur;
+            pad->unk11 = 0;
+            pad->unk12 = 0;
+        }
+    } else if (pad->unk4) {
+        pad->unk10 = 1;
+    }
+    return 0;
+}
+
+
+s32 func_8001A7A4(s32, PadState *, u8 *);
 extern s32 D_800897F8;
 extern s32 D_8008983C;
 
@@ -3161,7 +3242,7 @@ void func_8001A9B0(void) {
     var_s1 = 0;
     do {
         temp_s0 = D_80089840[var_s1];
-        func_8001A7A4(var_s1 * 0x10, temp_s0, (s8 *)&D_800897F8 + var_s1 * 0x22);
+        func_8001A7A4(var_s1 * 0x10, temp_s0, (u8 *)&D_800897F8 + var_s1 * 0x22);
         if (D_8008983C != 0) {
             (*(u16 *)((s8 *)temp_s0 + 8)) = (u16) (*(u16 *)((s8 *)temp_s0 + 0));
             (*(u16 *)((s8 *)temp_s0 + 0xE)) = (u16) (*(u16 *)((s8 *)temp_s0 + 6));
