@@ -47,7 +47,7 @@ libsnd_midiprog
 libsnd_miditime gcc2.8
 libsnd_miditime_2
 libsnd_miditime_3
-libsnd_playmode
+libsnd_playmode gcc2.8
 libsnd_sssattr
 libsnd_sssmv
 libsnd_ssstart gcc2.8
