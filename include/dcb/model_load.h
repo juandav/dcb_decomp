@@ -2,7 +2,7 @@
 #define DCB_MODEL_LOAD_H
 
 #include "game.h"
-#include "dcb/model.h"
+#include "dcb/anim_control.h"
 
 void relocateOmdObjects(Tmd18 *tmd);
 void linkOmdObject(s32 tmd, void *obj, s32 index);

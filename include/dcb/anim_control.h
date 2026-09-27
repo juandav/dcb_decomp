@@ -1,5 +1,5 @@
-#ifndef DCB_MODEL_H
-#define DCB_MODEL_H
+#ifndef DCB_ANIM_CONTROL_H
+#define DCB_ANIM_CONTROL_H
 
 #include "game.h"
 
@@ -31,4 +31,4 @@ void loadModelAnimationFile(s32 slot, s32 anim, s32 index);
 s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly);
 void applyAnimationFirstFrame(s32 slot, s32 anim);
 
-#endif /* DCB_MODEL_H */
+#endif /* DCB_ANIM_CONTROL_H */

@@ -1,7 +1,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
-#include "dcb/model.h"
+#include "dcb/anim_control.h"
 #include "dcb/archive.h"
 #include "dcb/decompress.h"
 #include "dcb/sort.h"
