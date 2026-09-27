@@ -12428,12 +12428,15 @@ void func_800395A0(void) {
 typedef struct {
     /* 0x00 */ u8 unk0[4];
     /* 0x04 */ s16 clut;
-    /* 0x06 */ u8 unk6[7];
+    /* 0x06 */ u8 unk6[6];
+    /* 0x0C */ u8 flags;
     /* 0x0D */ u8 state;
     /* 0x0E */ u8 unkE[2];
     /* 0x10 */ s16 x;
     /* 0x12 */ s16 y;
-    /* 0x14 */ u8 unk14[0x10];
+    /* 0x14 */ u8 unk14[8];
+    /* 0x1C */ s32 z;
+    /* 0x20 */ u8 unk20[4];
 } InfoPanel;
 
 extern u8 *D_8006E47C[];
@@ -13181,7 +13184,67 @@ void func_8003E3C8(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003E4F0);
+#define PANEL(i) (((InfoPanel *)D_801D83EC)[i])
+
+void func_8003E4F0(void) {
+    s32 p;
+    s32 i;
+    s32 d;
+    s32 step;
+    s32 count;
+
+    for (i = 0; i < 2; i++) {
+        func_8003DBBC(i);
+        func_8003DD9C(i);
+        func_8003E298(i);
+        func_8003DF48(i);
+        func_8003E11C(i);
+        func_8003E3C8(i);
+    }
+    for (p = 0; p < 2; p++) {
+        PLAYER(p)->unk11C[4] = func_8004110C(p);
+        if (func_80040764(p) == -1) {
+            for (i = 0; i < 4; i++) {
+                PLAYER(p)->unk126[i] = 0;
+                PLAYER(p)->unk11C[i] = 0;
+            }
+        }
+        for (i = 0; i < 5; i++) {
+            d = PLAYER(p)->unk126[i] - PLAYER(p)->unk11C[i];
+            step = (d < 0 ? -d : d) / 16 + 1;
+            if (PLAYER(p)->unk126[i] < PLAYER(p)->unk11C[i]) {
+                PLAYER(p)->unk126[i] += step;
+                if (PLAYER(p)->unk126[i] > PLAYER(p)->unk11C[i]) {
+                    PLAYER(p)->unk126[i] = PLAYER(p)->unk11C[i];
+                }
+            } else if (PLAYER(p)->unk126[i] > PLAYER(p)->unk11C[i]) {
+                PLAYER(p)->unk126[i] -= step;
+                if (PLAYER(p)->unk126[i] < PLAYER(p)->unk11C[i]) {
+                    PLAYER(p)->unk126[i] = PLAYER(p)->unk11C[i];
+                }
+            }
+        }
+    }
+    count = 0;
+    for (p = 0; p < 2; p++) {
+        for (i = 0; i < 5; i++) {
+            if (PLAYER(p)->unk126[i] != PLAYER(p)->unk11C[i]) {
+                count++;
+            }
+        }
+    }
+    if (count != 0 && !(((Unk8006E050 *)D_8006E050)->unk24 & 3)) {
+        func_8002B498(0xAA);
+    }
+    func_800395A0();
+    for (i = 0; i < 12; i++) {
+        if (PANEL(i).flags & 0x80) {
+            func_8004269C((SprtInfo *)&PANEL(i), i, i * 2 + PANEL(i).z + 1);
+            func_80039730(i, i * 2 + PANEL(i).z);
+        }
+    }
+}
+
 
 s32 func_801F8200();
 s32 func_801F8854();
@@ -13277,7 +13340,7 @@ void func_8003EB50(void) {
 }
 
 void func_8003D4C4(void);
-s32 func_8003E4F0();
+void func_8003E4F0(void);
 void func_80042824(s32);
 s32 func_80042E78();
 void func_80043D00(s32);
