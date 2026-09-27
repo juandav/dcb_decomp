@@ -2,4 +2,8 @@
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSetNrpnVabAttr14);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004DF40);
+void func_8004DF40(short vabId, short prog, short tone, VagAtr vag, short fn, unsigned char data) {
+    SsUtSetReverbType(data);
+}
+
+OBJECT_END(3);
