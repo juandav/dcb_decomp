@@ -1073,7 +1073,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDfastTG4NL);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDfastTG4L);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsInitGraph);
+void GsInitGraph(u_short x, u_short y, u_short intmode, u_short dith, u_short vrammode) {
+    func_80061958(x, y, intmode, dith, vrammode);
+    gte_init();
+    D_801DBE24 = 0;
+    func_80061ADC(x, y);
+    GsSetDrawBuffClip();
+    GsSetDrawBuffOffset();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80061958);
 
