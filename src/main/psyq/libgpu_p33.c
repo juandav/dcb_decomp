@@ -44,7 +44,11 @@ void SetDrawStp(DR_STP *p, int pbw) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawMode);
+void SetDrawMode(DR_MODE *p, int dfe, int dtd, int tpage, RECT *tw) {
+    setDrawMode(p, dfe, dtd, tpage, tw);
+}
+
+OBJECT_END(3);
 
 extern u_long *D_801DD930;
 
