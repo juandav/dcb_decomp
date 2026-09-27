@@ -207,7 +207,7 @@ typedef struct {
     /* 0x30 */ s16 unk30[4];
     /* 0x38 */ u8 unk38;
     /* 0x39 */ u8 unk39;
-    /* 0x3A */ u8 unk3A[2];
+    /* 0x3A */ s16 z;
     /* 0x3C */ u8 unk3C;
     /* 0x3D */ u8 unk3D;
     /* 0x3E */ u8 unk3E;
@@ -2223,7 +2223,111 @@ void func_8001705C(s16 *arg0, s32 arg1, s32 arg2) {
     arg0[0x1B] = arg2;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800170F0);
+#define WP ((PanelPrims *)D_800897E8)
+extern u8 D_8006DD70[][15];
+s32 func_800177E8(Unk80016F38 *);
+void func_800176E4(Rect16 *a, Rect16 *b);
+void GetDispEnv(DISPENV *);
+void SetDrawArea(DR_AREA *, Rect16 *);
+void func_80027DB8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_80028228(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_80017B88(Rect16 *, s32, s32, s32, s32, s32);
+
+s32 func_800170F0(Unk80016F38 *w, void (*draw)(), s32 z) {
+    DISPENV env;
+    Rect16 r;
+    Rect16 r2;
+    Rect16 r3;
+    Rect16 unused;
+    s32 ret;
+    s32 kind;
+    s32 y;
+
+    w->z = z;
+    ret = func_800177E8(w);
+    if (w->from.x >= 320) {
+        return ret;
+    }
+    if (w->from.y >= 240) {
+        return ret;
+    }
+    if (w->from.x + w->from.w <= 0) {
+        return ret;
+    }
+    if (w->from.y + w->from.h <= 0) {
+        return ret;
+    }
+    if ((w->from.w | w->from.h) == 0) {
+        return ret;
+    }
+    {
+        GetDispEnv(&env);
+        r.x = w->from.x + env.disp[0] - 2;
+        r.y = w->from.y + env.disp[1] - 1;
+        r.w = w->from.w + 4;
+        r.h = w->from.h + 2;
+        func_800176E4(&r, (Rect16 *)&env);
+        r2.x = w->unk0 + w->view.x + env.disp[0] - 2;
+        r2.y = w->unk2 + w->view.y + env.disp[1] - 1;
+        r2.w = w->rect.w + 4;
+        r2.h = w->rect.h + 2;
+        if (w->unk3F & 2) {
+            r2.w -= 8;
+        }
+        if (w->unk3F & 4) {
+            r2.h -= 8;
+        }
+        func_800176E4(&r2, &r);
+        SetDrawArea((DR_AREA *)&WP->unk264[0x18], (Rect16 *)&env);
+        addPrim(&D_800793A0->ot[z], &WP->unk264[0x18]);
+        if (w->unk2C != 0 && (w->unk3F & 8) && (kind = D_8006DD70[(w->unk42 >> 4) - 1][0xE]) != 0) {
+            switch (kind) {
+            case 1:
+                r3.x = r.x;
+                r3.y = r.y - 7;
+                r3.w = r.w;
+                r3.h = 5;
+                func_80027DB8(w->from.x, w->from.y - 8, w->unk2C, w->unk39, z);
+                break;
+            case 2:
+                r3.x = r.x - 7;
+                r3.y = r.y;
+                r3.w = 5;
+                r3.h = r.h;
+                y = w->from.y;
+                func_80028228(w->from.x - 9, y + strlen((u8 *)w->unk2C) * 5, w->unk2C, w->unk39, z);
+                break;
+            case 3:
+                r3.x = r.x - 6;
+                r3.y = r.y;
+                r3.w = 5;
+                r3.h = r.h;
+                y = w->from.y;
+                func_80028228(w->from.x - 8, y + strlen((u8 *)w->unk2C) * 5, w->unk2C, w->unk39, z);
+                break;
+            case 4:
+                r3.x = r.x;
+                r3.y = r.y - 10;
+                r3.w = r.w;
+                r3.h = 5;
+                func_80027DB8(w->from.x, w->from.y - 11, w->unk2C, w->unk39, z);
+                break;
+            }
+            func_800176E4(&r3, (Rect16 *)&env);
+            SetDrawArea((DR_AREA *)&WP->unk264[0x24], &r3);
+            addPrim(&D_800793A0->ot[z], &WP->unk264[0x24]);
+        }
+        func_80018694(w, z);
+        func_80018B8C(w, z);
+        SetDrawArea((DR_AREA *)&WP->unk264[0], &r);
+        addPrim(&D_800793A0->ot[z], &WP->unk264[0]);
+        draw(w, &D_800793A0->ot[z]);
+        SetDrawArea((DR_AREA *)&WP->unk264[0xC], &r2);
+        addPrim(&D_800793A0->ot[z], &WP->unk264[0xC]);
+        func_80017B88(&w->from, w->unk42, w->unk3F & 1, w->unk40, w->unk38, z);
+    }
+    return ret;
+}
 
 void func_800176E4(Rect16 *a, Rect16 *b) {
     if (a->x < b->x) {
@@ -11540,7 +11644,7 @@ void func_80049E40(void *arg0) {
     func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012DF8, 7, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
 }
 
-s32 func_800170F0(s32 *, s32 *, s32);
+s32 func_800170F0(Unk80016F38 *, void (*)(), s32);
 extern s32 D_801D8410;
 extern s32 D_801D8460;
 extern s32 D_801D84B0;
@@ -11548,10 +11652,10 @@ extern s32 D_801D84F4;
 void func_80049A14();
 
 void func_80049E80(void) {
-    func_800170F0(&D_801D8460, &func_80049E40, 0xA);
-    func_800170F0(&D_801D84F4, &func_80049E00, 0xA);
-    func_800170F0(&D_801D84B0, &func_80049DC0, 0xA);
-    func_800170F0(&D_801D8410, &func_80049A14, 0xA);
+    func_800170F0((Unk80016F38 *)&D_801D8460, &func_80049E40, 0xA);
+    func_800170F0((Unk80016F38 *)&D_801D84F4, &func_80049E00, 0xA);
+    func_800170F0((Unk80016F38 *)&D_801D84B0, &func_80049DC0, 0xA);
+    func_800170F0((Unk80016F38 *)&D_801D8410, &func_80049A14, 0xA);
 }
 
 extern s32 D_801D8548;
