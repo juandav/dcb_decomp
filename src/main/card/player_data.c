@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/player_data.h"
 #include "dcb/archive.h"
+#include "dcb/sort.h"
 #include "dcb/card_db.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"

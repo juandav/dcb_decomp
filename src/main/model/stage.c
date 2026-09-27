@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/stage.h"
 #include "dcb/archive.h"
+#include "dcb/sort.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/loader.h"

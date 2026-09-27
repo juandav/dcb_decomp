@@ -4,6 +4,7 @@
 #include "game.h"
 #include "dcb/effect.h"
 #include "dcb/archive.h"
+#include "dcb/sort.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/loader.h"

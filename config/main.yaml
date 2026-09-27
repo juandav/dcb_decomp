@@ -98,6 +98,7 @@ segments:
       - [0xBC38, c, gfx/vram_upload]
       - [0xC10C, c, gfx/display]
       - [0xC344, c, system/archive]
+      - [0xC8A8, c, system/sort]
       - [0xCA20, c, gfx/prim]
       - [0xDED0, c, gfx/prim3d]
       - [0xEBC8, c, gfx/prim_util]
