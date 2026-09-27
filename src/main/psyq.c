@@ -616,7 +616,9 @@ int CheckCallback(void) {
     return D_8006FA22;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetIntrMask);
+u_short GetIntrMask(void) {
+    return *D_80070AB0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetIntrMask);
 
