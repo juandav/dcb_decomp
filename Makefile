@@ -51,6 +51,7 @@ $(PSYQ_OBJ): GCC_VERSION := 2.7.2
 $(PSYQ_OBJ): CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	-fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused
 $(PSYQ_OBJ): ALIGN_FIX := $(PYTHON) tools/aspsx_reorder.py
+$(PSYQ_OBJ): MASPSXFLAGS += --expand-div
 
 # Some objects come from a GCC 2.8.1 without split addresses: it keeps the
 # address of a global in a register and reaches its fields from there. It
