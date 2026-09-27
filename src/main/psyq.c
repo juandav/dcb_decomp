@@ -1174,7 +1174,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphDebug);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetGraphQueue);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetGraphDebug);
+int GetGraphDebug(void) {
+    return D_80076758.level;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawSyncCallback);
 
