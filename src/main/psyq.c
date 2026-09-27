@@ -2043,7 +2043,12 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", ReadTIM);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067BE8);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTReset);
+void DecDCTReset(int mode) {
+    if (mode == 0) {
+        ResetCallback();
+    }
+    func_80067FC4(mode);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTGetEnv);
 
