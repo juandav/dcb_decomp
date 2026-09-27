@@ -1634,7 +1634,12 @@ long GetRCnt(unsigned long spec) {
     return D_8007790C[c * 8];
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StartRCnt);
+long StartRCnt(u_long spec) {
+    int timer = spec & 0xFFFF;
+
+    D_80077908[1] |= D_80077910[timer];
+    return timer < 3;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StopRCnt);
 
