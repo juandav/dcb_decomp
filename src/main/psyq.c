@@ -480,7 +480,22 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSeqGetEof);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsGetSeqData);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsSndNextSep);
+void _SsSndNextSep(short seq, short sep) {
+    SeqStruct *score = &D_801D8618[seq][sep];
+
+    score->unk20 = 1;
+    score->unk21 = 0;
+    D_801D8618[seq][sep].flags &= ~0x100;
+    D_801D8618[seq][sep].flags &= ~8;
+    D_801D8618[seq][sep].flags &= ~2;
+    D_801D8618[seq][sep].flags &= ~4;
+    D_801D8618[seq][sep].flags &= ~0x200;
+    score->unk14 = 1;
+    score->unk0 = score->unk4;
+    D_801D8618[seq][sep].flags |= 1;
+}
+
+OBJECT_END(1);
 
 void _SsSndReplay(short seq, short sep) {
     SeqStruct *score = &D_801D8618[seq][sep];
