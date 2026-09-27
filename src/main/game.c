@@ -215,15 +215,29 @@ typedef struct {
     /* 0x12 */ s16 y;
 } SprtInfo;
 
+typedef struct {
+    /* 0x000 */ u8 unk0[0x13C];
+    /* 0x13C */ u8 unk13C[0x20];
+    /* 0x15C */ void *unk15C[2];
+    /* 0x164 */ void *unk164[2];
+    /* 0x16C */ void *unk16C;
+    /* 0x170 */ u8 unk170[0x3D];
+    /* 0x1AD */ s8 unk1AD;
+} Obj32;
+
 typedef struct Panel {
     /* 0x00 */ u8 unk0[0xC];
     /* 0x0C */ u8 unkC;
-    /* 0x0D */ u8 unkD[3];
+    /* 0x0D */ u8 unkD;
+    /* 0x0E */ u8 unkE;
+    /* 0x0F */ u8 unkF;
     /* 0x10 */ s16 unk10;
     /* 0x12 */ s16 unk12;
     /* 0x14 */ s16 unk14;
     /* 0x16 */ s16 unk16;
-    /* 0x18 */ u8 unk18[8];
+    /* 0x18 */ s16 unk18;
+    /* 0x1A */ s16 unk1A;
+    /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ struct Panel *parent;
 } Panel;
 
@@ -318,7 +332,8 @@ typedef struct {
     /* 0x0012 */ u16 unk12;
     /* 0x0014 */ u8 unk14[0x10];
     /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ u8 unk28[0x58];
+    /* 0x0028 */ u8 unk28[0x14];
+    /* 0x003C */ u8 unk3C[0x44];
     /* 0x0080 */ Deck unk80[3];
     /* 0x0848 */ u8 unk848[0xC6A];
     /* 0x14B2 */ u8 unk14B2[0x12D];
@@ -1455,13 +1470,25 @@ s32 func_8001BC38(void) {
     return D_801D486C >> 7;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BCA4);
+u32 func_8001BCA4(s32 n) {
+    u16 v;
+
+    v = 0;
+    while (D_801D4868 < n) {
+        n -= D_801D4868;
+        v |= (D_801D486C & ((1 << D_801D4868) - 1)) << n;
+        D_801D486C = *D_801D4870++;
+        D_801D4868 = 8;
+    }
+    D_801D4868 -= n;
+    return v | ((D_801D486C >> D_801D4868) & ((1 << n) - 1));
+}
 
 extern s32 D_801D4878;
 extern s32 D_801D4888;
 extern s32 D_801D5108;
 
-s32 func_8001BCA4(s32);
+u32 func_8001BCA4(s32);
 s32 func_8001BD60(void) {
     s32 i;
 
@@ -1486,7 +1513,7 @@ void func_8001BFCC(s32 arg0, s32 arg1) {
     func_8001C078(arg0 + ((s32 *)arg0)[arg1]);
 }
 
-s32 func_8001BCA4(s32);
+u32 func_8001BCA4(s32);
 s32 func_8001BDEC(s32);
 extern s32 D_801D4868;
 extern u32 D_801D486C;
@@ -4881,7 +4908,21 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80031F58);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003230C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80032AA0);
+void func_801E72D4(u8 *);
+
+void func_80032AA0(Obj32 *p) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        func_8001AE90(p->unk15C[i]);
+        func_8001AE90(p->unk164[i]);
+    }
+    if (p->unk1AD >= 0) {
+        func_801E72D4(p->unk13C);
+    }
+    func_8001AE90(p->unk16C);
+    func_8001AE90(p);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80032B44);
 
@@ -5041,7 +5082,25 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003B210);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003D4C4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003D9C0);
+void func_8003D9C0(Panel *p, s16 x, s16 y, s32 speed) {
+    if (speed == 0) {
+        speed = 1;
+    }
+    p->unkC |= 0x80;
+    if (p->parent != 0) {
+        p->unkC = p->parent->unkC;
+        p->unk18 = p->unk10 - p->parent->unk10;
+        p->unk1A = p->unk12 - p->parent->unk12;
+    } else {
+        p->unk18 = p->unk10;
+        p->unk1A = p->unk12;
+    }
+    p->unk14 = x;
+    p->unk16 = y;
+    p->unkE = speed;
+    p->unkF = speed;
+    p->unkD++;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DA64);
 
@@ -5061,7 +5120,7 @@ void func_8003DB64(Panel *p) {
 }
 
 extern u8 *D_801D83EC;
-s32 func_8003D9C0(void *, s16, s16, s32);
+void func_8003D9C0(Panel *, s16, s16, s32);
 s32 func_8003DA64();
 void func_8003DB64();
 
@@ -6447,7 +6506,9 @@ void func_8004949C(s32 arg0, s32 arg1, s32 arg2) {
     func_80048230(arg0, arg1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004950C);
+void func_8004950C(s32 a, s32 b) {
+    ((Unk8006E050 *)D_8006E050)[a].unk3C[b / 8] |= 1 << (b % 8);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800495B4);
 
