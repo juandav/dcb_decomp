@@ -1759,7 +1759,30 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CFDC);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D1AC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D33C);
+void func_80067704(void *);
+void func_8001E75C(void *, u8, u8, u8);
+void SetDrawTPage(void *, s32, s32, s32);
+
+void func_8001D33C(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, u8 semi) {
+    func_80067704(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001D464);
 
@@ -4072,7 +4095,30 @@ void func_8002B858(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002B900);
+extern s32 D_8006E03C;
+extern s32 D_8006E040;
+void func_8002B024(s32, s32, u8);
+
+void func_8002B900(s32 seq, s32 arg1, s32 arg2, s32 load) {
+    D_8006E040++;
+    do {
+        func_80014C08(D_800794F0);
+    } while (D_8006E03C != 0);
+    D_8006E03C = 1;
+    if (((SndState *)&D_801D8128)->cur >= 0) {
+        func_8002B7DC(2);
+        while (((SndState *)&D_801D8128)->cur >= 0) {
+            func_80014C08(D_800794F0);
+        }
+    }
+    if (load) {
+        func_8002B024(seq, arg1, arg2);
+    }
+    func_8002B858(seq);
+    D_8006E03C = 0;
+    D_8006E040--;
+    func_80014A90();
+}
 
 s32 func_80014C08(s32);
 extern s32 D_8006E040;
@@ -4085,7 +4131,6 @@ void func_8002BA24(void) {
 }
 
 extern s16 D_801D812A;
-extern s32 func_8002B900;
 
 void func_8002BA6C(s32 arg0, s32 arg1, s32 arg2) {
     s8 *base;
