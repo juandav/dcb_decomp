@@ -13766,7 +13766,25 @@ s32 func_80047B84(s32 a, s32 id) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047C38);
+void func_80047E64(s32 a, s32 b, s32 c);
+
+void func_80047C38(s32 a, s32 b, s32 c) {
+    s32 j;
+
+    for (j = 0; j < 3; j++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
+            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[c] != D_8006E520[b][c]) {
+                ((Unk8006E050 *)D_8006E050)[a].unk14B2[D_8006E520[b][c]] |= 0x50;
+                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[c] = D_8006E520[b][c];
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == 0) {
+                    func_80047E64(a, b, c);
+                }
+            }
+            return;
+        }
+    }
+}
+
 
 s32 func_80047D5C(s32 a, s32 b) {
     s32 j;
