@@ -819,7 +819,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_flush);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_initvol);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_initintr);
+extern long D_80070C40;
+
+void CD_initintr(void) {
+    D_80070C44 = 0;
+    D_80070C40 = 0;
+    D_80070C50 = 0;
+    D_80070C4C = 0;
+    ResetCallback();
+    InterruptCallback(2, func_8005A088);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_init);
 
@@ -872,7 +881,7 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CdRead);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadSync);
 
 int func_8005B174(void) {
-    return D_80070C4C;
+    return *(u_char *)&D_80070C4C;
 }
 
 extern u_char D_80070C5C;

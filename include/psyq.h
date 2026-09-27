@@ -383,7 +383,7 @@ long funcEvSpNewcardx(void);
 void func_8005A088();
 void _spu_FiDMA();
 
-extern u_char D_80070C4C;
+extern long D_80070C4C;
 extern long D_80070C50;
 extern long D_8005B9B0;
 extern long D_8005BA18;
