@@ -8,7 +8,30 @@ extern void (*D_8006F59C[])();
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _padInitDirPort);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B584);
+void func_8006B584(PadPort *p) {
+    int i;
+    u_char *q;
+
+    if (p->unk49 != 0) {
+        p->unk49 = 0;
+        p->unk46 = 0;
+        p->unkE6 = 0;
+        p->unk14 = NULL;
+        p->unk18 = NULL;
+        p->unkE3 = 0;
+        p->unkE4 = 0;
+        p->unkE6 = 0;
+        p->unkE9 = 0;
+        p->unkEA = 0;
+        p->unk0 = 0;
+        p->unk4 = 0;
+        p->unk8 = 0;
+        q = p->unk5D;
+        for (i = 0; i < 6; i++) {
+            *q++ = 0xFF;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B5EC);
 
