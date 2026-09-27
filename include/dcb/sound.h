@@ -33,7 +33,6 @@ extern s16 D_801D813E;
 extern s16 D_801D812A;
 
 void initSound();
-void playOpeningMovie(s32 movieMode, s32 parentTask);
 void loadSoundEffectBank(s32 bankId);
 void setReverbType(s32 reverbType);
 s32 openSlotVabHeader(void *slot, s16 vabId, s32 spuAddr);

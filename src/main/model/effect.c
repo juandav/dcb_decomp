@@ -16,6 +16,7 @@
 #include "dcb/prim3d.h"
 #include "dcb/prim_util.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/text.h"
 #include "dcb/transform.h"

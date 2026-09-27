@@ -115,6 +115,7 @@ segments:
       - [0x17690, c, ui/text]
       - [0x1ADDC, c, ui/str_util]
       - [0x1B5EC, c, system/sound]
+      - [0x1BBEC, c, system/opening_movie]
       - [0x1BC98, c, system/sound_play]
       - [0x1C358, c, system/memcard]
       - [0x1DC04, c, card/player_data]

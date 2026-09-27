@@ -17,6 +17,7 @@
 #include "dcb/pad.h"
 #include "dcb/player_data.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"

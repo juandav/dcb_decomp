@@ -17,6 +17,7 @@
 #include "dcb/player_data.h"
 #include "dcb/prim_util.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 
 BgEntry ARENA_STAGES[56] = {
