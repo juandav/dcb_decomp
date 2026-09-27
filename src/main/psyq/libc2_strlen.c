@@ -15,4 +15,28 @@ int strlen(char *s) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", strncmp);
+int strncmp(char *s1, char *s2, int n) {
+    if (s1 == NULL || s2 == NULL) {
+        int r = 0;
+
+        if (s1 != s2) {
+            r = -1;
+            if (s1 != NULL) {
+                r = 1;
+            }
+        }
+        return r;
+    }
+    while (--n >= 0) {
+        if (*s1 != *s2++) {
+            break;
+        }
+        if (*s1++ == 0) {
+            return 0;
+        }
+    }
+    if (n < 0) {
+        return 0;
+    }
+    return *s1 - s2[-1];
+}
