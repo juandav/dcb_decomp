@@ -735,7 +735,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CdRead2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057C98);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StClearRing);
+void StClearRing(void) {
+    D_801D98DC = 0;
+    D_801D98D8 = 0;
+    D_801D98D4 = 0;
+    D_801D98CC = 0;
+    init_ring_status(0, D_801D98F4);
+    D_801D98BC = 0;
+    D_801D98B4 = 0;
+    D_801D98B0 = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StUnSetRing);
 
