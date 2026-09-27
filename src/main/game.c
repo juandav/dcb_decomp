@@ -1762,7 +1762,33 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CA54);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CCB4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CE74);
+void func_80067784(void *);
+void func_8001EA64(void *, s16, s16, s16, s16);
+
+void func_8001CE74(s32 *p, s32 *dst, u8 *rgb, s32 abr, void *tp0, void *tp1, s16 *r, u8 semi) {
+    func_80067784(p);
+    if (semi) {
+        SetSemiTrans(p, 1);
+    }
+    if (rgb != 0) {
+        func_8001E75C(p, rgb[0], rgb[1], rgb[2]);
+    }
+    if (r != 0) {
+        func_8001EA64(p, r[0], r[1], r[2], r[3]);
+    }
+    dst[0] = p[0];
+    dst[1] = p[1];
+    dst[2] = p[2];
+    dst[3] = p[3];
+    dst[4] = p[4];
+    dst[5] = p[5];
+    if (tp0 != 0) {
+        SetDrawTPage(tp0, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+    if (tp1 != 0) {
+        SetDrawTPage(tp1, 0, 0, GetTPage(0, abr, 0, 0));
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001CFDC);
 
@@ -3013,7 +3039,7 @@ void func_80023094(Model2220 *m, s32 *p, s32 i) {
     m->unk2220[i].unk4 = p;
 }
 
-s32 func_80022F34(s16, s32, s32, s32);
+s32 func_80022F34(s32, s32, s32, Chunk *);
 void func_80023094(Model2220 *, s32 *, s32);
 
 s32 func_800230B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
@@ -3021,7 +3047,7 @@ s32 func_800230B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_s0;
 
     temp_s0 = D_801D6A4C->unk13C[arg0];
-    temp_v0 = func_80022F34((*(s16 *)((s8 *)temp_s0 + 6)), arg1, arg0, arg3);
+    temp_v0 = func_80022F34((*(s16 *)((s8 *)temp_s0 + 6)), arg1, arg0, (Chunk *)arg3);
     if (temp_v0 != 0) {
         func_80023094(temp_s0, (s32 *)temp_v0, arg2);
         return 1;
@@ -4523,7 +4549,7 @@ void func_8002CC04(s32 len, u8 *p) {
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002CC44);
 
 s32 func_8002D51C();
-s32 func_800457FC();
+void func_800457FC();
 
 extern void *D_8006E054;
 void func_8002D404(void) {
