@@ -16,7 +16,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057860);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057904);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80057BA0);
+int func_80057BA0(u_long *buf, int sector, int mode) {
+    CdlLOC loc;
+
+    CdIntToPos(sector, &loc);
+    CdControl(CdlSetloc, (u_char *)&loc, 0);
+    CdRead(buf, mode, 0x80);
+    return CdReadSync(0, 0) == 0;
+}
+
+OBJECT_END(3);
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013394);
 
