@@ -11,6 +11,7 @@
 #include "dcb/memcard.h"
 #include "dcb/menu.h"
 #include "dcb/sound.h"
+#include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/system.h"
 #include "dcb/screen_copy.h"

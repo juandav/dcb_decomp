@@ -7,6 +7,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/sound.h"
+#include "dcb/sound_play.h"
 
 s32 PLAYER_PROFILES = 0;
 void *D_8006E054 = 0;

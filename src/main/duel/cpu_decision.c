@@ -17,6 +17,7 @@
 #include "dcb/menu.h"
 #include "dcb/shell.h"
 #include "dcb/sound.h"
+#include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/window.h"
 
