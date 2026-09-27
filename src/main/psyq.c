@@ -1604,7 +1604,11 @@ void SetLineG4(LINE_G4 *p) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawTPage);
+void SetDrawTPage(DR_TPAGE *p, int dfe, int dtd, int tpage) {
+    setDrawTPage(p, dfe, dtd, tpage);
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", MargePrim);
 
