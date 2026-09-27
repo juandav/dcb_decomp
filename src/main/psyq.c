@@ -1270,7 +1270,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawEnv);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800659C4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065C34);
+u_long func_80065C34(int dfe, int dtd, int tpage) {
+    return (dtd ? 0xE1000200 : 0xE1000000) | (dfe ? 0x400 : 0) | (tpage & 0x9FF);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065C54);
 
