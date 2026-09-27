@@ -1629,7 +1629,11 @@ int rand(void) {
     return (D_801DDC10 >> 16) & 0x7FFF;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", srand);
+void srand(unsigned int seed) {
+    D_801DDC10 = seed;
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", strcat);
 
