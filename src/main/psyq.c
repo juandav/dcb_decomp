@@ -785,7 +785,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", init_ring_status);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StGetNext);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800580D4);
+extern long D_801D98E8, D_801D98C4, D_801D98E4;
+
+void func_800580D4(long a, long b, long c) {
+    D_801D98E8 = a;
+    D_801D98C4 = b;
+    D_801D98E4 = c;
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StCdInterrupt);
 
