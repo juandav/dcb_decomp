@@ -185,7 +185,7 @@ libcard_end
 libc2_bzero
 libc2_memcpy
 libc2_strcat
-libc2_strcmp
+libc2_strcmp gcc2.8
 libc2_strcpy
 libc2_strlen
 libc2_printf
