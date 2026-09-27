@@ -1591,7 +1591,11 @@ void func_80067974(LINE_F4 *p) {
     setLineF4(p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetLineG4);
+void SetLineG4(LINE_G4 *p) {
+    setLineG4(p);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawTPage);
 
