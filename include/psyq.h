@@ -39,9 +39,13 @@ typedef struct VmVoice {
     /* 0x02 */ short unk2;
     /* 0x04 */ short unk4;
     /* 0x06 */ u_short envx;
-    /* 0x08 */ u8 unk8[8];
+    /* 0x08 */ u8 unk8[6];
+    /* 0x0E */ short note;
     /* 0x10 */ short unk10;
-    /* 0x12 */ u8 unk12[8];
+    /* 0x12 */ u8 unk12[2];
+    /* 0x14 */ short prog;
+    /* 0x16 */ short tone;
+    /* 0x18 */ short vabId;
     /* 0x1A */ short prior;
     /* 0x1C */ u8 unk1C;
     /* 0x1D */ char unk1D;
@@ -146,7 +150,8 @@ typedef struct SeqStruct {
     /* 0x00 */ u_char *unk0;
     /* 0x04 */ u_char *unk4;
     /* 0x08 */ u_char *unk8;
-    /* 0x0C */ u8 unkC[8];
+    /* 0x0C */ u_char *unkC;
+    /* 0x10 */ u8 unk10[4];
     /* 0x14 */ char unk14;
     /* 0x15 */ u8 unk15[2];
     /* 0x17 */ u_char channel;
@@ -158,7 +163,7 @@ typedef struct SeqStruct {
     /* 0x20 */ char unk20;
     /* 0x21 */ char unk21;
     /* 0x22 */ char unk22;
-    /* 0x23 */ u_char unk23;
+    /* 0x23 */ char unk23;
     /* 0x24 */ u8 unk24[2];
     /* 0x26 */ char vabId;
     /* 0x27 */ u_char panpot[16];
