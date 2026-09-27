@@ -386,7 +386,21 @@ int StoreImage2(RECT *rect, u_long *p) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawOTag2);
+int DrawOTag2(u_long *p) {
+    if (D_80076758.level >= 2) {
+        D_80076754(D_80013A1C, p);
+    }
+    D_80076894 = VSync(-1) + 240;
+    D_80076898 = 0;
+    while ((*(volatile u_long *)D_8007686C & 0x1000000) || !(*(volatile u_long *)D_80076860 & 0x4000000)) {
+        if (func_80066EB8()) {
+            return -1;
+        }
+    }
+    DMACallback(2, _GPU_ResetCallback);
+    D_80076750->unk18(p);
+    return 0;
+}
 
 void _GPU_ResetCallback(void) {
     DMACallback(2, func_800669AC);
