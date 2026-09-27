@@ -18,12 +18,12 @@ s32 func_80049840(Entry12 *tbl, s32 a, s32 b) {
     s32 idx;
     s32 i;
 
-    v = ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk289;
-    idx = func_80047A98(a, b);
+    v = ((Unk8006E050 *)PLAYER_PROFILES)[a].unk80[b].unk289;
+    idx = getSlotPartnerIndex(a, b);
     if (idx >= 0) {
         for (i = 0; i < 0x80; i++) {
             if (tbl[i].unk4[idx] == v) {
-                if (func_800496E4(a, i) == 0) {
+                if (getPartnerAbilityState(a, i) == 0) {
                     return i;
                 }
                 return -1;
@@ -39,7 +39,7 @@ s32 func_80049934(s32 arg0) {
 }
 
 s32 func_8004994C(s32 a, s32 b) {
-    if ((s8)((s8)((Unk8006E050 *)D_8006E050)[a].unk80[b].unk289 % 5) != 0) {
+    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[a].unk80[b].unk289 % 5) != 0) {
         return -1;
     }
     return rand() % 4;

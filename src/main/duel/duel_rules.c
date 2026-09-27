@@ -16,20 +16,20 @@ void func_8003F9EC(s32 player) {
     decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
     if (((Unk8006E054 *)D_8006E054)->unk1008[player] != -1) {
         d = &decks[((Unk8006E054 *)D_8006E054)->unk1008[player]];
-        func_80047248(player);
+        backupPartners(player);
         strcpy(D_801D8348[player] + 1, d->name);
         for (i = 0; i < 30; i++) {
             id = d->cards[i];
-            func_80046BAC(D_801D8348[player] + 0x14 + i * 8, id);
-            k = func_80047A58(id);
+            setCardSlotFromId(D_801D8348[player] + 0x14 + i * 8, id);
+            k = getPartnerIndex(id);
             if (k >= 0) {
-                func_80047620(player, k, 0);
+                addPartner(player, k, 0);
                 if (d->unk6D != 0) {
-                    func_80047C38(player, k, d->unk6D - 1);
+                    unlockPartnerArmor(player, k, d->unk6D - 1);
                 }
             }
         }
-        func_80046A38(player, (Unk110 *)D_801D8348[player]);
+        linkDeckCardData(player, (Unk110 *)D_801D8348[player]);
     }
 }
 
@@ -73,12 +73,12 @@ void func_8003FB3C(s32 arg) {
         }
     }
     if (arg != 0) {
-        strcpy((char *)D_801D8348[0] + 0x1CE, (char *)D_8006E050);
+        strcpy((char *)D_801D8348[0] + 0x1CE, (char *)PLAYER_PROFILES);
         strcpy((char *)D_801D8348[1] + 0x1CE, (char *)D_8006E054 + 0x57);
         if (((Unk8006E054 *)D_8006E054)->unk4 == 0) {
             func_801EA708();
             for (i = 0; i < 2; i++) {
-                func_80046A38(i, D_801D8348[i]);
+                linkDeckCardData(i, D_801D8348[i]);
             }
         } else {
             func_8003F9EC(0);
@@ -92,16 +92,16 @@ void func_8003FB3C(s32 arg) {
             strcpy((char *)D_801D8348[1] + 1, ((Unk8006E054 *)D_8006E054)->unk8.name);
             for (i = 0; i < 30; i++) {
                 id = ((Unk8006E054 *)D_8006E054)->unk8.cards[i];
-                func_80046BAC(D_801D8348[1] + 0x14 + i * 8, id);
-                k = func_80047A58(id);
+                setCardSlotFromId(D_801D8348[1] + 0x14 + i * 8, id);
+                k = getPartnerIndex(id);
                 if (k >= 0) {
-                    func_80047620(1, k, 0);
+                    addPartner(1, k, 0);
                     if (((Unk8006E054 *)D_8006E054)->unk8.unk6D != 0) {
-                        func_80047C38(1, k, ((Unk8006E054 *)D_8006E054)->unk8.unk6D - 1);
+                        unlockPartnerArmor(1, k, ((Unk8006E054 *)D_8006E054)->unk8.unk6D - 1);
                     }
                 }
             }
-            func_80046A38(1, D_801D8348[1]);
+            linkDeckCardData(1, D_801D8348[1]);
         }
     } else {
         for (i = 0; i < 2; i++) {
@@ -243,7 +243,7 @@ s32 func_800402CC(s32 p) {
     for (i = 0; i < 30; i++) {
         if (PLAYER(p)->unk17D[i] != -1) {
             c = PLAYER(p)->unk17D[i];
-            if (func_80047B84(p, PLAYER(p)->cards[c % 30].id) >= 0) {
+            if (findPartnerSlot(p, PLAYER(p)->cards[c % 30].id) >= 0) {
                 for (j = i; j > 0; j--) {
                     PLAYER(p)->unk17D[j] = PLAYER(p)->unk17D[j - 1];
                 }
@@ -449,7 +449,7 @@ s32 func_80040A48(s32 p, s32 deck) {
         return -1;
     }
     c = func_80040764(p);
-    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk292[0]);
+    setCardSlotFromId(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk292[0]);
     card = (s8 *)&PLAYER_DATA(p).unk80[deck] + 0x13C;
     PLAYER(p)->cards[c % 30].card = card;
     r.x = ((p << 8) + (deck + 3) * 40 >> 1) + 0x2C0;
@@ -487,7 +487,7 @@ s32 func_80040D88(s32 p, s32 deck) {
         return -1;
     }
     c = func_80040764(p);
-    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk288);
+    setCardSlotFromId(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk288);
     card = (s8 *)&PLAYER_DATA(p).unk80[deck];
     PLAYER(p)->cards[c % 30].card = card;
     r.x = ((p << 8) + deck * 40 >> 1) + 0x2C0;
@@ -690,6 +690,6 @@ void func_80041584(s32 player) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", D_800113C0);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", PATH_KAWSEG_BIN);
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", D_800113D0);
+INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_rules", PATH_DECK2_DEK);

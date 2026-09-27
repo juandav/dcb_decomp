@@ -70,15 +70,15 @@ void func_8002DEA0(s32 arg0, void *arg1) {
             func_8001AFF0(arg0 + 0x84);
         }
         if (temp_s5 > 0) {
-            temp_s2 = func_8002DBEC(temp_s5);
+            temp_s2 = findDigimonCardByModelId(temp_s5);
             temp_v0 = func_8002DCB0(arg0, temp_s5, 0, 0);
             if (temp_v0 != 0) {
-                (*(s32 *)((s8 *)temp_s1 + 8)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x22)), temp_v0);
-                (*(s32 *)((s8 *)temp_s1 + 0xC)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x3E)), temp_v0);
-                (*(s32 *)((s8 *)temp_s1 + 0x10)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x5A)), temp_v0);
-                (*(s32 *)((s8 *)temp_s1 + 0x14)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x24)), temp_v0);
-                (*(s32 *)((s8 *)temp_s1 + 0x18)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x40)), temp_v0);
-                (*(s32 *)((s8 *)temp_s1 + 0x1C)) = func_8002DC30((s32) (*(s16 *)((s8 *)temp_s2 + 0x5C)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 8)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x22)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 0xC)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x3E)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 0x10)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x5A)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 0x14)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x24)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 0x18)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x40)), temp_v0);
+                (*(s32 *)((s8 *)temp_s1 + 0x1C)) = loadSkill((s32) (*(s16 *)((s8 *)temp_s2 + 0x5C)), temp_v0);
                 goto block_9;
             }
         } else {
@@ -104,8 +104,8 @@ void func_8002E034(s32 bg) {
     pak = func_8001B144((s32) "A:\\BATTLE.PAK", func_800148B0());
     if (pak != 0) {
         func_8001B5BC(func_8001BB44((Chunk *)pak, 5, 0x68));
-        D_801D81AC = (void *)func_8002DC30(999, pak);
-        D_801D81B0 = (void *)func_8002DC30(998, pak);
+        D_801D81AC = (void *)loadSkill(999, pak);
+        D_801D81B0 = (void *)loadSkill(998, pak);
         func_8001BC14((Chunk *)pak);
     }
     func_8002E42C(bg);
@@ -265,7 +265,7 @@ void func_8002EB1C(void) {
     func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    if (*(u8 *)(D_8006E050 + 0xF) == 0) {
+    if (*(u8 *)(PLAYER_PROFILES + 0xF) == 0) {
         func_8002B024(0, 0x6F, 0x7F);
         func_8002B858(0);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 0, func_800148B0(), 0);

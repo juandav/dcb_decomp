@@ -36,15 +36,15 @@ void func_80034260(void) {
         case 0:
             D_801D83EC[0x9D] = 1;
             D_801D83EC[0x175] = 1;
-            D_801D83D0.next = -1;
-            D_801D83D0.next2 = -1;
+            DUEL_MSG_BAR.next = -1;
+            DUEL_MSG_BAR.next2 = -1;
             func_80014C08(0x1E);
             if (PLAYER(1)->unk178_17 == 1 && ((u8 *)D_8006E054)[4] == 0x8C) {
                 for (i = 0, j = 0; i < 30; i++) {
-                    if ((u32)func_80047B84(0, PLAYER(0)->cards[i].id) < 3) {
+                    if ((u32)findPartnerSlot(0, PLAYER(0)->cards[i].id) < 3) {
                         j = 1;
                     }
-                    if ((u32)func_80048150(0, PLAYER(0)->cards[i].id) < 3) {
+                    if ((u32)findArmorPartnerSlot(0, PLAYER(0)->cards[i].id) < 3) {
                         j = 1;
                     }
                 }
@@ -85,10 +85,10 @@ void func_80034260(void) {
             break;
         case 2:
             DUEL->unk822 = 0;
-            D_801D83D0.unk3 = 0;
-            D_801D83D0.unk1 = PLAYER(ME)->unk178_17;
-            D_801D83D0.next = 0;
-            D_801D83D0.next2 = 0;
+            DUEL_MSG_BAR.unk3 = 0;
+            DUEL_MSG_BAR.unk1 = PLAYER(ME)->unk178_17;
+            DUEL_MSG_BAR.next = 0;
+            DUEL_MSG_BAR.next2 = 0;
             func_80033D08(0x3C);
             while (1) {
             wait:
@@ -130,8 +130,8 @@ void func_80034260(void) {
             break;
         case 4:
             DUEL->unk822 = 0;
-            D_801D83D0.next = 0;
-            D_801D83D0.next2 = 0;
+            DUEL_MSG_BAR.next = 0;
+            DUEL_MSG_BAR.next2 = 0;
             if (func_80040220(ME) == 0) {
                 DUEL->unk818 = 8;
             } else if (PLAYER(ME)->unk178_17 == 1) {
@@ -150,11 +150,11 @@ void func_80034260(void) {
             break;
         case 5:
             DUEL->unk822 = 1;
-            D_801D83D0.next2 = 1;
+            DUEL_MSG_BAR.next2 = 1;
             if (D_80089840[ME]->unkA & 0x10) {
                 func_8002B498(0xA0);
-                D_801D83D0.next = 3;
-                D_801D83D0.next2 = 0;
+                DUEL_MSG_BAR.next = 3;
+                DUEL_MSG_BAR.next2 = 0;
                 do {
                     func_80019EA4((u8 *)&D_801D8278, "This will discard all Cards.\nIs this OK?", 1);
                     func_800341EC();
@@ -185,8 +185,8 @@ void func_80034260(void) {
             break;
         case 6:
             DUEL->unk822 = 0;
-            D_801D83D0.next = 0x10;
-            D_801D83D0.next2 = 0;
+            DUEL_MSG_BAR.next = 0x10;
+            DUEL_MSG_BAR.next2 = 0;
             func_801ECC58(ME);
             DUEL->unk818 = 3;
             break;
@@ -240,9 +240,9 @@ void func_80034260(void) {
                     CUR_CARD = DUEL->unk804;
                     func_801EA558(CUR_CARD, ME);
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
-                    i = func_80047B84(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
+                    i = findPartnerSlot(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
                     if (i != -1) {
-                        if (func_80048014(ME, func_80047A58(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
+                        if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
                             func_80033D08(0x3C);
                             func_801F6214(1, ME);
                             func_80040A48(ME, i);
@@ -269,9 +269,9 @@ void func_80034260(void) {
                     func_801EC528(ME);
                     func_801EA558(CUR_CARD, ME);
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
-                    i = func_80047B84(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
+                    i = findPartnerSlot(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
                     if (i != -1) {
-                        if (func_80048014(ME, func_80047A58(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
+                        if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
                             D_801D83D4 = 5;
                             func_80019EA4((u8 *)&D_801D8278, "Do you want to Armor Digivolve?", 1);
                             func_800341EC();
@@ -311,8 +311,8 @@ void func_80034260(void) {
             break;
         case 10:
             DUEL->unk822 = 0;
-            D_801D83D0.next2 = 0;
-            D_801D83D0.next = 6;
+            DUEL_MSG_BAR.next2 = 0;
+            DUEL_MSG_BAR.next = 6;
             func_80019EA4((u8 *)&D_801D8278, "Is it OK to end the Preparation Phase?", 1);
             func_800341EC();
             switch (CHOICE) {
@@ -348,8 +348,8 @@ void func_80034260(void) {
                 if (DUEL->unk804 == -1) {
                     DUEL->unk818 = 0xE;
                 } else {
-                    D_801D83D0.unk3 = 1;
-                    D_801D83D0.next = 7;
+                    DUEL_MSG_BAR.unk3 = 1;
+                    DUEL_MSG_BAR.next = 7;
                     CUR_CARD = DUEL->unk804;
                     DUEL->unk80A = func_801ECBCC(CUR_CARD, ME);
                     func_80033D08(0x78);
@@ -375,9 +375,9 @@ void func_80034260(void) {
             break;
         case 13:
             DUEL->unk822 = 1;
-            D_801D83D0.unk3 = 1;
-            D_801D83D0.next = 7;
-            D_801D83D0.next2 = 7;
+            DUEL_MSG_BAR.unk3 = 1;
+            DUEL_MSG_BAR.next = 7;
+            DUEL_MSG_BAR.next2 = 7;
             if (func_801EBACC(ME, 2) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
                 if (PLAYER(ME)->cards[i % 30].state == 0) {
@@ -402,8 +402,8 @@ void func_80034260(void) {
                 if (DUEL->unk804 == -1) {
                     DUEL->unk818 = 0x13;
                 } else {
-                    D_801D83D0.unk3 = 1;
-                    D_801D83D0.next = 8;
+                    DUEL_MSG_BAR.unk3 = 1;
+                    DUEL_MSG_BAR.next = 8;
                     D_801D83EC[ME * 0xD8 + 0x55] = 6;
                     func_80033D08(0x1E);
                     CUR_CARD = DUEL->unk804;
@@ -418,9 +418,9 @@ void func_80034260(void) {
                 DUEL->unk818++;
                 func_801EC4CC(ME);
                 D_801D83EC[ME * 0xD8 + 0x55] = 6;
-                D_801D83D0.unk3 = 1;
-                D_801D83D0.next = 8;
-                D_801D83D0.next2 = 6;
+                DUEL_MSG_BAR.unk3 = 1;
+                DUEL_MSG_BAR.next = 8;
+                DUEL_MSG_BAR.next2 = 6;
                 func_80033D08(0x1E);
             }
             break;
@@ -518,7 +518,7 @@ void func_80034260(void) {
                     case 1:
                         mode = 3;
                         func_801F6214(8, ME);
-                        func_80040D88(ME, func_80048150(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
+                        func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
                         break;
                     }
                     break;
@@ -628,7 +628,7 @@ void func_80034260(void) {
                     break;
                 case 5:
                     func_801F6214(2, ME);
-                    func_80040D88(ME, func_80048150(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
+                    func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
                     while (func_80040764(ME) != -1) {
                         func_801EC608(func_80040764(ME), ME);
                         func_80033D08(0x14);
@@ -638,7 +638,7 @@ void func_80034260(void) {
                     break;
                 case 6:
                     func_801F6214(6, ME);
-                    func_80040D88(ME, func_80048150(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
+                    func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
                     func_801EC608(func_80040764(ME), ME);
                     PLAYER(ME)->unk178_15 = 0;
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
@@ -667,8 +667,8 @@ void func_80034260(void) {
                 if (DUEL->unk804 == -1) {
                     DUEL->unk818 = 0x17;
                 } else {
-                    D_801D83D0.unk3 = 1;
-                    D_801D83D0.next = 9;
+                    DUEL_MSG_BAR.unk3 = 1;
+                    DUEL_MSG_BAR.next = 9;
                     func_801F6214(0, ME);
                     CUR_CARD = DUEL->unk804;
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
@@ -689,8 +689,8 @@ void func_80034260(void) {
             break;
         case 21:
             DUEL->unk822 = 1;
-            D_801D83D0.unk3 = 1;
-            D_801D83D0.next = 9;
+            DUEL_MSG_BAR.unk3 = 1;
+            DUEL_MSG_BAR.next = 9;
             if (func_801EBACC(ME, 3) == 0) {
                 if (func_801E9F5C(PLAYER(ME)->unk1B9[DUEL->unk81C], ME) == 0) {
                     func_801EC528(ME);
@@ -712,9 +712,9 @@ void func_80034260(void) {
             break;
         case 22:
             DUEL->unk822 = 0;
-            D_801D83D0.unk3 = 1;
-            D_801D83D0.next2 = 0;
-            D_801D83D0.next = 0xA;
+            DUEL_MSG_BAR.unk3 = 1;
+            DUEL_MSG_BAR.next2 = 0;
+            DUEL_MSG_BAR.next = 0xA;
             D_801D83EC[ME * 0xD8 + 0x55] = 1;
             func_80019EA4((u8 *)&D_801D8278, "Is it OK to end the Digivolve Phase?", 1);
             func_800341EC();
@@ -740,8 +740,8 @@ void func_80034260(void) {
             PLAYER(ME)->unk114 = PLAYER(ME)->cards[func_80040764(ME) % 30].card;
             if (func_80040764(OPP) == -1) {
                 if (PLAYER(ME)->unk178_17 != 1) {
-                    D_801D83D0.unk3 = 2;
-                    D_801D83D0.next = 0xB;
+                    DUEL_MSG_BAR.unk3 = 2;
+                    DUEL_MSG_BAR.next = 0xB;
                     sprintf(buf, "Since %s has no Digimon,\nthere is no Battle Phase.", PLAYER(OPP)->unk1CE);
                     func_80019EA4((u8 *)&D_801D8278, buf, 0);
                     func_800341EC();
@@ -755,8 +755,8 @@ void func_80034260(void) {
             break;
         case 24:
             DUEL->unk822 = 0;
-            D_801D83D0.unk3 = 2;
-            D_801D83D0.next = 0xC;
+            DUEL_MSG_BAR.unk3 = 2;
+            DUEL_MSG_BAR.next = 0xC;
             for (i = 0; i < 2; i++) {
                 if (PLAYER(i)->unk178_17 == 1) {
                     DUEL->unk827 = i;
@@ -809,8 +809,8 @@ void func_80034260(void) {
                 D_801D83EC[0x109] = 4;
                 for (i = 0; i < 2; i++) {
                     PLAYER(i)->unk178_0 = PLAYER(i)->unk178_2;
-                    if (((Unk8006E050 *)D_8006E050)[i].unk36[PLAYER(i)->unk178_0] != 0xFFFF) {
-                        ((Unk8006E050 *)D_8006E050)[i].unk36[PLAYER(i)->unk178_0]++;
+                    if (((Unk8006E050 *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0] != 0xFFFF) {
+                        ((Unk8006E050 *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0]++;
                     }
                 }
                 func_80033D08(0x78);
@@ -819,12 +819,12 @@ void func_80034260(void) {
             break;
         case 26:
             DUEL->unk822 = 0;
-            D_801D83D0.next = 0xD;
-            D_801D83D0.unk1 = PLAYER(OPP)->unk178_17;
+            DUEL_MSG_BAR.next = 0xD;
+            DUEL_MSG_BAR.unk1 = PLAYER(OPP)->unk178_17;
             D_801D83EC[OPP * 0xD8 + 0x55] = 6;
             func_80033D08(0x1E);
             if (PLAYER(OPP)->unk178_17 == 1) {
-                D_801D83D0.next2 = 0;
+                DUEL_MSG_BAR.next2 = 0;
                 DUEL->unk827 = OPP;
                 DUEL->unk816 = 7;
                 func_80033E7C();
@@ -903,12 +903,12 @@ void func_80034260(void) {
             break;
         case 29:
             DUEL->unk822 = 0;
-            D_801D83D0.next = 0xE;
-            D_801D83D0.unk1 = PLAYER(ME)->unk178_17;
+            DUEL_MSG_BAR.next = 0xE;
+            DUEL_MSG_BAR.unk1 = PLAYER(ME)->unk178_17;
             D_801D83EC[ME * 0xD8 + 0x55] = 6;
             func_80033D08(0x1E);
             if (PLAYER(ME)->unk178_17 == 1) {
-                D_801D83D0.next2 = 0;
+                DUEL_MSG_BAR.next2 = 0;
                 DUEL->unk827 = ME;
                 DUEL->unk816 = 7;
                 func_80033E7C();
@@ -987,10 +987,10 @@ void func_80034260(void) {
             break;
         case 32:
             DUEL->unk822 = 0;
-            D_801D83D0.next2 = 0;
-            D_801D83D0.next = 0xF;
+            DUEL_MSG_BAR.next2 = 0;
+            DUEL_MSG_BAR.next = 0xF;
             func_80033D08(0x3C);
-            if (((Unk8006E050 *)D_8006E050)->unk20_3) {
+            if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
                 D_801D8330 = 0x20;
                 func_8001683C((s32)func_80033F34);
                 while (D_801D8330 != 0) {
@@ -1009,7 +1009,7 @@ void func_80034260(void) {
         case 34:
             DUEL->unk822 = 0;
             DUEL->unk81C = -1;
-            if (!((Unk8006E050 *)D_8006E050)->unk20_3) {
+            if (!((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
                 func_80014C08(0x3C);
                 DUEL->state = 1;
                 func_80014C08(2);
@@ -1037,7 +1037,7 @@ void func_80034260(void) {
         case 35:
             DUEL->unk822 = 0;
             over = 0;
-            if (((Unk8006E050 *)D_8006E050)->unk20_3) {
+            if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
                 a = DUEL->unk50;
                 b = DUEL->unk54;
                 j = a->unk178_17 & 1;
@@ -1160,10 +1160,10 @@ void func_80034260(void) {
                 PLAYER(DUEL->unk81E ^ 1)->unk110 |= 0x80;
                 PLAYER(DUEL->unk81E)->unk110 |= 0x100;
             }
-            if (func_80048150(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
+            if (findArmorPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
                 func_801FB444(DUEL->unk81E, 0xA);
                 PLAYER(DUEL->unk81E)->unk110 |= 0x4000;
-            } else if (func_80047B84(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
+            } else if (findPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
                 func_801FB444(DUEL->unk81E, 0xA);
                 PLAYER(DUEL->unk81E)->unk110 |= 0x4000;
             }

@@ -533,7 +533,7 @@ void func_8002CC44(s32 p) {
         n = PLAYER_DATA(p).unk14B2[i] & 7;
         if (n != 0) {
             total += n;
-            count[D_801D8408[i * 0x13C + 0x1A] >> 4]++;
+            count[DIGIMON_CARDS[i * 0x13C + 0x1A] >> 4]++;
         }
     }
     for (i = 0xBF; i < 0x125; i++) {

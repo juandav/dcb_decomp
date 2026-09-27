@@ -7,180 +7,180 @@
 #include "dcb/memcard.h"
 #include "dcb/shell.h"
 
-void func_800457FC(void) {
-    u8 *hdr;
+void loadCardDatabase(void) {
+    u8 *file;
     s32 i;
-    s32 n;
+    s32 cardId;
 
     func_800149B8(0, -1, 0, 0x800, func_8001B248, "B:\\CARD2.CDD", func_800148B0(), -2);
-    D_801D840C = hdr = (u8 *)func_80014C08(0x7FFFFFFF);
-    D_801D8408 = hdr + 8;
-    D_801D8400 = D_801D8408 + *(u16 *)(hdr + 4) * 0x13C;
-    D_801D8404 = D_801D8400 + hdr[6] * 0xE2;
-    n = 0;
+    CARD_DB_FILE = file = (u8 *)func_80014C08(0x7FFFFFFF);
+    DIGIMON_CARDS = file + 8;
+    OPTION_CARDS = DIGIMON_CARDS + *(u16 *)(file + 4) * 0x13C;
+    DIGIVOLVE_CARDS = OPTION_CARDS + file[6] * 0xE2;
+    cardId = 0;
     for (i = 0; i < 0xBF; i++) {
-        ((CardInfo *)D_801D8408)[i].id = n++;
+        ((CardInfo *)DIGIMON_CARDS)[i].id = cardId++;
     }
     for (i = 0; i < 0x66; i++) {
-        ((Unk801D8400 *)D_801D8400)[i].id = n++;
+        ((Unk801D8400 *)OPTION_CARDS)[i].id = cardId++;
     }
     for (i = 0; i < 8; i++) {
-        ((Unk801D8404 *)D_801D8404)[i].id = n++;
+        ((Unk801D8404 *)DIGIVOLVE_CARDS)[i].id = cardId++;
     }
 }
 
-void func_80045968(s32 a, s32 row, s32 n) {
-    s32 r;
+void func_80045968(s32 player, s32 cardId, s32 copy) {
+    s32 serial;
     s32 i;
 
 retry:
-    r = rand();
-    for (i = 0; i < n; i++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk15E0[row][i] == r) {
+    serial = rand();
+    for (i = 0; i < copy; i++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk15E0[cardId][i] == serial) {
             goto retry;
         }
     }
-    ((Unk8006E050 *)D_8006E050)[a].unk15E0[row][n] = r;
+    ((Unk8006E050 *)PLAYER_PROFILES)[player].unk15E0[cardId][copy] = serial;
 }
 
-void func_80045A58(s32 arg0) {
-    s32 row;
+void clearCollectionNewFlags(s32 player) {
+    s32 collection;
     s32 i;
     s32 *base;
-    u8 *p;
+    u8 *entry;
 
     i = 0;
     do {
-        base = &D_8006E050;
-        row = arg0 * 0x2774 + *base + 0x14B2;
-        p = (u8 *)(row + i);
-        *p &= 0x7F;
+        base = &PLAYER_PROFILES;
+        collection = player * 0x2774 + *base + 0x14B2;
+        entry = (u8 *)(collection + i);
+        *entry &= 0x7F;
         i++;
     } while (i < 0x12D);
 }
 
-void func_80045AB8(s32 arg0) {
-    s32 row;
+void clearCollectionFirstObtainedFlags(s32 player) {
+    s32 collection;
     s32 i;
     s32 *base;
-    u8 *p;
+    u8 *entry;
 
     i = 0;
     do {
-        base = &D_8006E050;
-        row = arg0 * 0x2774 + *base + 0x14B2;
-        p = (u8 *)(row + i);
-        *p &= 0xDF;
+        base = &PLAYER_PROFILES;
+        collection = player * 0x2774 + *base + 0x14B2;
+        entry = (u8 *)(collection + i);
+        *entry &= 0xDF;
         i++;
     } while (i < 0x12D);
 }
 
-s8 func_80045B18(s32 p, s32 id, s32 n) {
-    s32 k;
+s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
+    s32 copy;
 
-    if (id >= 0xAC && id <= 0xBE) {
+    if (cardId >= 0xAC && cardId <= 0xBE) {
         return -3;
     }
-    for (k = PLAYER_DATA(p).unk14B2[id] & 7; k < 6; k++) {
-        func_80045968(p, id, k);
+    for (copy = PLAYER_DATA(player).unk14B2[cardId] & 7; copy < 6; copy++) {
+        func_80045968(player, cardId, copy);
     }
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
-        PLAYER_DATA(p).unk14B2[id] |= 0x50;
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) == 6) {
+        PLAYER_DATA(player).unk14B2[cardId] |= 0x50;
         return -2;
     }
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0 && !(PLAYER_DATA(p).unk14B2[id] & 0x40)) {
-        PLAYER_DATA(p).unk14B2[id] |= 0x20;
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) == 0 && !(PLAYER_DATA(player).unk14B2[cardId] & 0x40)) {
+        PLAYER_DATA(player).unk14B2[cardId] |= 0x20;
     }
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) + n >= 7) {
-        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
-        PLAYER_DATA(p).unk14B2[id] |= 0x56;
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) + count >= 7) {
+        PLAYER_DATA(player).unk14B2[cardId] &= 0xF8;
+        PLAYER_DATA(player).unk14B2[cardId] |= 0x56;
         return -1;
     }
-    PLAYER_DATA(p).unk14B2[id] += n;
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 6) {
-        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    PLAYER_DATA(player).unk14B2[cardId] += count;
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) == 6) {
+        PLAYER_DATA(player).unk14B2[cardId] |= 0x10;
     }
-    if (((u8 *)func_80046088(id))[0x19] == 0) {
-        PLAYER_DATA(p).unk14B2[id] |= 0x10;
+    if (((u8 *)getCardData(cardId))[0x19] == 0) {
+        PLAYER_DATA(player).unk14B2[cardId] |= 0x10;
     }
-    PLAYER_DATA(p).unk14B2[id] |= 0xC0;
-    func_8002CC44(p);
-    return PLAYER_DATA(p).unk14B2[id] & 7;
+    PLAYER_DATA(player).unk14B2[cardId] |= 0xC0;
+    func_8002CC44(player);
+    return PLAYER_DATA(player).unk14B2[cardId] & 7;
 }
 
-s8 func_80045E1C(s32 p, s32 id, s32 n) {
-    if (id >= 0xAC && id <= 0xBE) {
+s8 removeCardFromCollection(s32 player, s32 cardId, s32 count) {
+    if (cardId >= 0xAC && cardId <= 0xBE) {
         return -3;
     }
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0) {
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) == 0) {
         return -2;
     }
-    if ((PLAYER_DATA(p).unk14B2[id] & 7) - n < 0) {
-        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
+    if ((PLAYER_DATA(player).unk14B2[cardId] & 7) - count < 0) {
+        PLAYER_DATA(player).unk14B2[cardId] &= 0xF8;
         return -1;
     }
-    PLAYER_DATA(p).unk14B2[id] -= n;
-    func_8002CC44(p);
-    return PLAYER_DATA(p).unk14B2[id] & 7;
+    PLAYER_DATA(player).unk14B2[cardId] -= count;
+    func_8002CC44(player);
+    return PLAYER_DATA(player).unk14B2[cardId] & 7;
 }
 
-s32 func_80045F5C(s32 arg0, s32 arg1) {
-    return (*(u8 *)((s8 *)(((arg0 * 0x2774) + D_8006E050 + arg1)) + 0x14B2)) & 7;
+s32 getOwnedCardCount(s32 player, s32 cardId) {
+    return (*(u8 *)((s8 *)(((player * 0x2774) + PLAYER_PROFILES + cardId)) + 0x14B2)) & 7;
 }
 
-s32 func_80045F94(s32 arg0, s32 arg1) {
-    switch (arg0) {
+s32 getCardId(s32 type, s32 index) {
+    switch (type) {
     case 0:
-        return arg1;
+        return index;
     case 1:
-        return arg1 + 0xBF;
+        return index + 0xBF;
     case 2:
-        return arg1 + 0x125;
+        return index + 0x125;
     }
     return -1;
 }
 
-s32 func_80045FE8(s32 id) {
-    if (id < 0xBF) {
-        return D_801D8408[id * 0x13C + 0x1A] >> 4;
+s32 getCardSpecialty(s32 cardId) {
+    if (cardId < 0xBF) {
+        return DIGIMON_CARDS[cardId * 0x13C + 0x1A] >> 4;
     }
-    if (id < 0x125) {
+    if (cardId < 0x125) {
         return 5;
     }
     return 6;
 }
 
-s32 func_80046038(s32 id) {
-    if (id < 0xBF) {
-        return D_801D8408[id * 0x13C + 0x1A] & 0xF;
+s32 getCardLevel(s32 cardId) {
+    if (cardId < 0xBF) {
+        return DIGIMON_CARDS[cardId * 0x13C + 0x1A] & 0xF;
     }
-    if (id < 0x125) {
+    if (cardId < 0x125) {
         return 4;
     }
     return 5;
 }
 
-void *func_80046088(s32 arg0) {
-    if (arg0 < 0xBF) {
-        return D_801D8408 + arg0 * 0x13C;
+void *getCardData(s32 cardId) {
+    if (cardId < 0xBF) {
+        return DIGIMON_CARDS + cardId * 0x13C;
     }
-    if (arg0 < 0x125) {
-        return D_801D8400 + (arg0 * 0xE2 - 0xA89E);
+    if (cardId < 0x125) {
+        return OPTION_CARDS + (cardId * 0xE2 - 0xA89E);
     }
-    return D_801D8404 + (arg0 * 0x70 - 0x8030);
+    return DIGIVOLVE_CARDS + (cardId * 0x70 - 0x8030);
 }
 
-void func_80046118(s32 p) {
+void markDeckCardsSeen(s32 player) {
     s32 i;
 
     for (i = 0; i < 30; i++) {
-        ((Unk8006E050 *)D_8006E050)[p].unk14B2[func_80045F94(((Player *)D_801D8348[p])->cards[i].state,
-                                                             ((Player *)D_801D8348[p])->cards[i].unk1)] |= 0x40;
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[getCardId(((Player *)D_801D8348[player])->cards[i].state,
+                                                             ((Player *)D_801D8348[player])->cards[i].unk1)] |= 0x40;
     }
 }
 
-void func_800461C0(s32 a) {
-    u8 count[0x12D];
+void markBuildableOpponentDecks(s32 player) {
+    u8 needed[0x12D];
     SavedDeck *decks;
     s32 i;
     s32 j;
@@ -188,89 +188,89 @@ void func_800461C0(s32 a) {
 
     decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
     for (i = 0; i < 0x9F; i++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unkAC0[i] & 0x8000) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unkAC0[i] & 0x8000) {
             for (j = 0; j < 0x12D; j++) {
-                count[j] = 0;
+                needed[j] = 0;
             }
             for (j = 0; j < 30; j++) {
-                count[decks[i].cards[j]]++;
+                needed[decks[i].cards[j]]++;
             }
             missing = 0;
             for (j = 0; j < 0x12D; j++) {
-                if ((((Unk8006E050 *)D_8006E050)[a].unk14B2[j] & 7) < count[j]) {
+                if ((((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[j] & 7) < needed[j]) {
                     missing = 1;
                     break;
                 }
             }
             if (!missing) {
-                ((Unk8006E050 *)D_8006E050)[a].unkAC0[i] |= 0x4000;
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unkAC0[i] |= 0x4000;
             }
         }
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/card/card_db", func_8004635C);
+INCLUDE_ASM("asm/main/nonmatchings/card/card_db", rollRewardCards);
 
-void func_80046864(s32 a) {
+void addRewardCardsToCollection(s32 player) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        ((Unk8006E050 *)D_8006E050)[a].unk276E[i] =
-            func_80045B18(a, ((Unk8006E050 *)D_8006E050)[a].unk2768[i], 1);
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk276E[i] =
+            addCardToCollection(player, ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2768[i], 1);
     }
 }
 
-void func_80046908(s32 i) {
-    s32 j;
+void countSeenCards(s32 player) {
+    s32 cardId;
 
-    ((Unk8006E050 *)D_8006E050)[i].unk12 = 0;
-    for (j = 0; j < 0x12D; j++) {
-        if (((Unk8006E050 *)D_8006E050)[i].unk14B2[j] & 0x40) {
-            ((Unk8006E050 *)D_8006E050)[i].unk12++;
+    ((Unk8006E050 *)PLAYER_PROFILES)[player].unk12 = 0;
+    for (cardId = 0; cardId < 0x12D; cardId++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[cardId] & 0x40) {
+            ((Unk8006E050 *)PLAYER_PROFILES)[player].unk12++;
         }
     }
 }
 
-void func_800469A4(s32 a) {
+void linkSavedDecks(s32 player) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        func_80046A38(a, &((Unk8006E050 *)D_8006E050)[a].unk2438[i]);
+        linkDeckCardData(player, &((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[i]);
     }
 }
 
-void func_80046A38(s32 a, Unk110 *d) {
-    CardSlot *c;
+void linkDeckCardData(s32 player, Unk110 *deck) {
+    CardSlot *cardSlot;
     s32 i;
-    s32 j;
+    s32 slot;
 
-    if (d->unk0 != 0) {
-        c = d->cards;
+    if (deck->unk0 != 0) {
+        cardSlot = deck->cards;
         for (i = 0; i < 30; i++) {
-            switch (c->state) {
+            switch (cardSlot->state) {
             case 0:
-                c->card = (s8 *)(D_801D8408 + c->unk1 * 0x13C);
-                for (j = 0; j < 3; j++) {
-                    if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 != 0 &&
-                        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == c->id) {
-                        c->card = (s8 *)&((Unk8006E050 *)D_8006E050)[a].unk80[j];
+                cardSlot->card = (s8 *)(DIGIMON_CARDS + cardSlot->unk1 * 0x13C);
+                for (slot = 0; slot < 3; slot++) {
+                    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 != 0 &&
+                        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == cardSlot->id) {
+                        cardSlot->card = (s8 *)&((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot];
                         break;
                     }
                 }
                 break;
             case 1:
-                c->card = (s8 *)(D_801D8400 + c->unk1 * 0xE2);
+                cardSlot->card = (s8 *)(OPTION_CARDS + cardSlot->unk1 * 0xE2);
                 break;
             case 2:
-                c->card = (s8 *)(D_801D8404 + c->unk1 * 0x70);
+                cardSlot->card = (s8 *)(DIGIVOLVE_CARDS + cardSlot->unk1 * 0x70);
                 break;
             }
-            c++;
+            cardSlot++;
         }
     }
 }
 
-void func_80046BAC(u8 *out, s32 id) {
+void setCardSlotFromId(u8 *out, s32 id) {
     s32 type;
 
     type = 2;
@@ -286,23 +286,23 @@ void func_80046BAC(u8 *out, s32 id) {
     }
     out[0] = type;
     out[1] = id;
-    *(s16 *)(out + 2) = func_80045F94(type, id);
+    *(s16 *)(out + 2) = getCardId(type, id);
 }
 
-s32 func_80046C0C(s32 unused, Unk110 *deck, s32 mask) {
+s32 countDeckCardsByFilter(s32 unused, Unk110 *deck, s32 mask) {
     s32 count;
     s32 i;
-    CardInfo *info;
+    CardInfo *card;
     s32 level;
-    s32 attr;
+    s32 specialty;
 
     count = 0;
     for (i = 0; i < 30; i++) {
         switch (deck->cards[i].state) {
         case 0:
-            info = (CardInfo *)(D_801D8408 + deck->cards[i].unk1 * 0x13C);
-            level = info->attr & 0xF;
-            attr = info->attr >> 4;
+            card = (CardInfo *)(DIGIMON_CARDS + deck->cards[i].unk1 * 0x13C);
+            level = card->attr & 0xF;
+            specialty = card->attr >> 4;
             if (mask & 0x1E00) {
                 if (mask & 0x1F) {
                     if ((mask >> (level + 9)) & 1) {
@@ -313,7 +313,7 @@ s32 func_80046C0C(s32 unused, Unk110 *deck, s32 mask) {
                 } else if ((mask >> (level + 9)) & 1) {
                     count++;
                 }
-            } else if ((mask >> attr) & 1) {
+            } else if ((mask >> specialty) & 1) {
                 if (!(mask & 0x20) || (deck->cards[i].unk1 >= 0xAC && deck->cards[i].unk1 < 0xBF)) {
                     count++;
                 }
@@ -336,13 +336,13 @@ s32 func_80046C0C(s32 unused, Unk110 *deck, s32 mask) {
     return count;
 }
 
-s32 func_80046D68(s32 a, Unk110 *src, s32 slot) {
-    Unk110 *d;
+s32 storeSavedDeck(s32 player, Unk110 *src, s32 slot) {
+    Unk110 *deck;
     s32 i;
 
     if (slot == -1) {
         for (slot = 0; slot < 3; slot++) {
-            if (PLAYER_DATA(a).unk2438[slot].unk0 == 0) {
+            if (PLAYER_DATA(player).unk2438[slot].unk0 == 0) {
                 break;
             }
         }
@@ -350,64 +350,64 @@ s32 func_80046D68(s32 a, Unk110 *src, s32 slot) {
             return -1;
         }
     }
-    d = &PLAYER_DATA(a).unk2438[slot];
-    *d = *src;
-    d->unk0 = 1;
-    d->unk108[0]++;
-    if (d->unk108[1] >= 10000) {
-        d->unk108[1] = 9999;
+    deck = &PLAYER_DATA(player).unk2438[slot];
+    *deck = *src;
+    deck->unk0 = 1;
+    deck->unk108[0]++;
+    if (deck->unk108[1] >= 10000) {
+        deck->unk108[1] = 9999;
     }
-    if (d->unk108[2] >= 10000) {
-        d->unk108[2] = 9999;
+    if (deck->unk108[2] >= 10000) {
+        deck->unk108[2] = 9999;
     }
     for (i = 0; i < 30; i++) {
-        switch (d->cards[i].state) {
+        switch (deck->cards[i].state) {
         case 0:
-            d->cards[i].card = (s8 *)(D_801D8408 + d->cards[i].unk1 * 0x13C);
-            d->cards[i].id = d->cards[i].unk1;
+            deck->cards[i].card = (s8 *)(DIGIMON_CARDS + deck->cards[i].unk1 * 0x13C);
+            deck->cards[i].id = deck->cards[i].unk1;
             break;
         case 1:
-            d->cards[i].card = (s8 *)(D_801D8400 + d->cards[i].unk1 * 0xE2);
-            d->cards[i].id = d->cards[i].unk1 + 0xBF;
+            deck->cards[i].card = (s8 *)(OPTION_CARDS + deck->cards[i].unk1 * 0xE2);
+            deck->cards[i].id = deck->cards[i].unk1 + 0xBF;
             break;
         case 2:
-            d->cards[i].card = (s8 *)(D_801D8404 + d->cards[i].unk1 * 0x70);
-            d->cards[i].id = d->cards[i].unk1 + 0x125;
+            deck->cards[i].card = (s8 *)(DIGIVOLVE_CARDS + deck->cards[i].unk1 * 0x70);
+            deck->cards[i].id = deck->cards[i].unk1 + 0x125;
             break;
         }
     }
     return 0;
 }
 
-s32 func_80046FB8(s32 a, Unk110 *out, s32 i) {
-    if (((Unk8006E050 *)D_8006E050)[a].unk2438[i].unk0 == 0) {
+s32 getSavedDeck(s32 player, Unk110 *out, s32 slot) {
+    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[slot].unk0 == 0) {
         return -1;
     }
-    *out = ((Unk8006E050 *)D_8006E050)[a].unk2438[i];
+    *out = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[slot];
     return 0;
 }
 
-s32 func_8004707C(s32 a, s32 b) {
+s32 deleteSavedDeck(s32 player, s32 slot) {
     s32 i;
 
-    if (((Unk8006E050 *)D_8006E050)[a].unk2438[b].unk0 == 0) {
+    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[slot].unk0 == 0) {
         return -1;
     }
-    ((Unk8006E050 *)D_8006E050)[a].unk2438[b].unk0 = 0;
+    ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[slot].unk0 = 0;
     for (i = 0; i < 2; i++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk2438[i].unk0 == 0) {
-            ((Unk8006E050 *)D_8006E050)[a].unk2438[i] = ((Unk8006E050 *)D_8006E050)[a].unk2438[i + 1];
-            ((Unk8006E050 *)D_8006E050)[a].unk2438[i + 1].unk0 = 0;
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[i].unk0 == 0) {
+            ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[i] = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[i + 1];
+            ((Unk8006E050 *)PLAYER_PROFILES)[player].unk2438[i + 1].unk0 = 0;
         }
     }
     return 0;
 }
 
-s32 func_800471F4(s32 arg0) {
-    s32 var_a0;
+s32 func_800471F4(s32 deckId) {
+    s32 baseDeckId;
 
-    var_a0 = arg0;
-    switch (var_a0) {
+    baseDeckId = deckId;
+    switch (baseDeckId) {
     case 0x75:
     case 0x79:
     case 0x7A:
@@ -416,13 +416,13 @@ s32 func_800471F4(s32 arg0) {
     case 0x7D:
     case 0x7E:
     case 0x7F:
-        var_a0 = 0x72;
+        baseDeckId = 0x72;
         break;
     case 0x80:
     case 0x81:
     case 0x82:
     case 0x83:
-        var_a0 = 0x77;
+        baseDeckId = 0x77;
         break;
     case 0x84:
     case 0x85:
@@ -433,136 +433,136 @@ s32 func_800471F4(s32 arg0) {
     case 0x8A:
     case 0x8B:
     case 0x8D:
-        var_a0 = D_8006E50C[var_a0 - 0x84];
+        baseDeckId = D_8006E50C[baseDeckId - 0x84];
         break;
     }
-    return var_a0;
+    return baseDeckId;
 }
 
-void func_80047248(s32 a) {
-    s32 j;
+void backupPartners(s32 player) {
+    s32 slot;
 
-    for (j = 0; j < 3; j++) {
-        ((Unk8006E054 *)D_8006E054)->unk78[a][j] = ((Unk8006E050 *)D_8006E050)[a].unk80[j];
-        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 = 0;
+    for (slot = 0; slot < 3; slot++) {
+        ((Unk8006E054 *)D_8006E054)->unk78[player][slot] = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot];
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 = 0;
     }
 }
 
-void func_80047364(s32 a) {
-    s32 j;
+void restorePartners(s32 player) {
+    s32 slot;
 
-    for (j = 0; j < 3; j++) {
-        ((Unk8006E050 *)D_8006E050)[a].unk80[j] =
-            ((Unk8006E054 *)D_8006E054)->unk78[a][j];
+    for (slot = 0; slot < 3; slot++) {
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot] =
+            ((Unk8006E054 *)D_8006E054)->unk78[player][slot];
     }
 }
 
-void func_80047438(s32 a) {
-    s32 j;
-    u8 id;
-    u8 alt;
+void refreshPartners(s32 player) {
+    s32 slot;
+    u8 cardId;
+    u8 armorCardId;
 
-    for (j = 0; j < 3; j++) {
-        id = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288;
-        if (id != 0) {
-            if ((s8)((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 >= 0x63) {
-                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk289 = 0x63;
-                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28A = func_80049934(0x62);
+    for (slot = 0; slot < 3; slot++) {
+        cardId = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288;
+        if (cardId != 0) {
+            if ((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 >= 0x63) {
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 = 0x63;
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28A = func_80049934(0x62);
             }
-            ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk278 = D_801D8408 + id * 0x13C;
-            alt = ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0];
-            if (alt == 0) {
-                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + id * 0x13C;
+            ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk278 = DIGIMON_CARDS + cardId * 0x13C;
+            armorCardId = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0];
+            if (armorCardId == 0) {
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk27C = DIGIMON_CARDS + cardId * 0x13C;
             } else {
-                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + alt * 0x13C;
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk27C = DIGIMON_CARDS + armorCardId * 0x13C;
             }
-            func_80048230(a, j);
+            updatePartnerStats(player, slot);
         }
     }
 }
 
-void func_80047620(s32 p, s32 k, s32 flag) {
-    s32 i;
+void addPartner(s32 player, s32 partner, s32 obtain) {
+    s32 slot;
     s32 j;
-    s32 c;
+    s32 cardId;
 
-    for (i = 0; i < 3; i++) {
-        if (PLAYER_DATA(p).unk80[i].unk288 == D_8006E518[k]) {
+    for (slot = 0; slot < 3; slot++) {
+        if (PLAYER_DATA(player).unk80[slot].unk288 == PARTNER_CARD_IDS[partner]) {
             return;
         }
-        if (PLAYER_DATA(p).unk80[i].unk288 == 0) {
-            PLAYER_DATA(p).unk80[i].unk278 = D_801D8408 + D_8006E518[k] * 0x13C;
-            PLAYER_DATA(p).unk80[i].unk27C = D_801D8408 + D_8006E518[k] * 0x13C;
-            PLAYER_DATA(p).unk80[i].unk288 = D_8006E518[k];
-            PLAYER_DATA(p).unk80[i].unk289 = 1;
-            PLAYER_DATA(p).unk80[i].unk28A = 0;
+        if (PLAYER_DATA(player).unk80[slot].unk288 == 0) {
+            PLAYER_DATA(player).unk80[slot].unk278 = DIGIMON_CARDS + PARTNER_CARD_IDS[partner] * 0x13C;
+            PLAYER_DATA(player).unk80[slot].unk27C = DIGIMON_CARDS + PARTNER_CARD_IDS[partner] * 0x13C;
+            PLAYER_DATA(player).unk80[slot].unk288 = PARTNER_CARD_IDS[partner];
+            PLAYER_DATA(player).unk80[slot].unk289 = 1;
+            PLAYER_DATA(player).unk80[slot].unk28A = 0;
             for (j = 0; j < 3; j++) {
-                PLAYER_DATA(p).unk80[i].unk28C[j] = -1;
+                PLAYER_DATA(player).unk80[slot].unk28C[j] = -1;
             }
             for (j = 0; j < 3; j++) {
-                PLAYER_DATA(p).unk80[i].unk28F[j] = 0;
+                PLAYER_DATA(player).unk80[slot].unk28F[j] = 0;
             }
-            PLAYER_DATA(p).unk80[i].unk292[0] = 0;
-            PLAYER_DATA(p).unk80[i].unk292[1] = 0;
-            PLAYER_DATA(p).unk80[i].unk292[2] = 0;
-            PLAYER_DATA(p).unk80[i].unk280 = 0;
+            PLAYER_DATA(player).unk80[slot].unk292[0] = 0;
+            PLAYER_DATA(player).unk80[slot].unk292[1] = 0;
+            PLAYER_DATA(player).unk80[slot].unk292[2] = 0;
+            PLAYER_DATA(player).unk80[slot].unk280 = 0;
             for (j = 0; j < 3; j++) {
-                PLAYER_DATA(p).unk80[i].unk282[j] = 0;
+                PLAYER_DATA(player).unk80[slot].unk282[j] = 0;
             }
-            func_80048230(p, i);
-            if (flag != 0) {
-                c = PLAYER_DATA(p).unk80[i].unk288;
-                PLAYER_DATA(p).unk14B2[c] = 1;
-                func_80045968(p, c, 0);
-                func_8002CC44(p);
-                func_8004950C(p, D_8006EEFC[k]);
-                PLAYER_DATA(p).unk14B2[D_8006E518[k]] |= 0xF0;
+            updatePartnerStats(player, slot);
+            if (obtain != 0) {
+                cardId = PLAYER_DATA(player).unk80[slot].unk288;
+                PLAYER_DATA(player).unk14B2[cardId] = 1;
+                func_80045968(player, cardId, 0);
+                func_8002CC44(player);
+                grantPartnerAbility(player, PARTNER_START_ABILITIES[partner]);
+                PLAYER_DATA(player).unk14B2[PARTNER_CARD_IDS[partner]] |= 0xF0;
             } else {
-                PLAYER_DATA(p).unk14B2[D_8006E518[k]] |= 0x50;
+                PLAYER_DATA(player).unk14B2[PARTNER_CARD_IDS[partner]] |= 0x50;
             }
             return;
         }
     }
 }
 
-void func_80047A38(s32 arg0, s32 arg1) {
-    func_80047620(arg0, arg1, 1);
+void obtainPartner(s32 player, s32 partner) {
+    addPartner(player, partner, 1);
 }
 
-s32 func_80047A58(s32 arg0) {
+s32 getPartnerIndex(s32 cardId) {
     s32 i;
 
     for (i = 0; i < 6; i++) {
-        if (arg0 == D_8006E518[i]) {
+        if (cardId == PARTNER_CARD_IDS[i]) {
             return i;
         }
     }
     return -1;
 }
 
-s32 func_80047A98(s32 a, s32 b) {
+s32 getSlotPartnerIndex(s32 player, s32 slot) {
     s32 i;
 
-    if (((Unk8006E050 *)D_8006E050)[a].unk80[b].unk288 == 0) {
+    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == 0) {
         return -1;
     }
     for (i = 0; i < 6; i++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk80[b].unk288 == D_8006E518[i]) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == PARTNER_CARD_IDS[i]) {
             return i;
         }
     }
     return -1;
 }
 
-s32 func_80047B84(s32 a, s32 id) {
+s32 findPartnerSlot(s32 player, s32 cardId) {
     s32 i;
-    s32 j;
+    s32 slot;
 
     for (i = 0; i < 6; i++) {
-        if (id == D_8006E518[i]) {
-            for (j = 0; j < 3; j++) {
-                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == id) {
-                    return j;
+        if (cardId == PARTNER_CARD_IDS[i]) {
+            for (slot = 0; slot < 3; slot++) {
+                if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == cardId) {
+                    return slot;
                 }
             }
             return 3;
@@ -571,16 +571,16 @@ s32 func_80047B84(s32 a, s32 id) {
     return -1;
 }
 
-void func_80047C38(s32 a, s32 b, s32 c) {
-    s32 j;
+void unlockPartnerArmor(s32 player, s32 partner, s32 armor) {
+    s32 slot;
 
-    for (j = 0; j < 3; j++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
-            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[c] != D_8006E520[b][c]) {
-                ((Unk8006E050 *)D_8006E050)[a].unk14B2[D_8006E520[b][c]] |= 0x50;
-                ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[c] = D_8006E520[b][c];
-                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == 0) {
-                    func_80047E64(a, b, c);
+    for (slot = 0; slot < 3; slot++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == PARTNER_CARD_IDS[partner]) {
+            if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28F[armor] != PARTNER_ARMOR_CARD_IDS[partner][armor]) {
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk14B2[PARTNER_ARMOR_CARD_IDS[partner][armor]] |= 0x50;
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28F[armor] = PARTNER_ARMOR_CARD_IDS[partner][armor];
+                if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0] == 0) {
+                    selectPartnerArmor(player, partner, armor);
                 }
             }
             return;
@@ -588,38 +588,38 @@ void func_80047C38(s32 a, s32 b, s32 c) {
     }
 }
 
-s32 func_80047D5C(s32 a, s32 b) {
-    s32 j;
-    s32 k;
-    s32 n;
+s32 countUnlockedPartnerArmors(s32 player, s32 partner) {
+    s32 slot;
+    s32 armor;
+    s32 count;
 
-    for (j = 0; j < 3; j++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
-            k = 0;
-            n = 0;
-            for (; k < 3; k++) {
-                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[k] != 0) {
-                    n++;
+    for (slot = 0; slot < 3; slot++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == PARTNER_CARD_IDS[partner]) {
+            armor = 0;
+            count = 0;
+            for (; armor < 3; armor++) {
+                if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28F[armor] != 0) {
+                    count++;
                 }
             }
-            return n;
+            return count;
         }
     }
     return 0;
 }
 
-void func_80047E64(s32 a, s32 b, s32 c) {
-    s32 j;
+void selectPartnerArmor(s32 player, s32 partner, s32 armor) {
+    s32 slot;
     s32 k;
 
-    if (b != -1 && D_8006E520[b][c] != 0) {
-        for (j = 0; j < 3; j++) {
-            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
+    if (partner != -1 && PARTNER_ARMOR_CARD_IDS[partner][armor] != 0) {
+        for (slot = 0; slot < 3; slot++) {
+            if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == PARTNER_CARD_IDS[partner]) {
                 for (k = 0; k < 3; k++) {
-                    if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[k] == D_8006E520[b][c]) {
-                        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] = D_8006E520[b][c];
-                        ((Unk8006E050 *)D_8006E050)[a].unk80[j].unk27C = D_801D8408 + D_8006E520[b][c] * 0x13C;
-                        func_80048230(a, j);
+                    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28F[k] == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
+                        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0] = PARTNER_ARMOR_CARD_IDS[partner][armor];
+                        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk27C = DIGIMON_CARDS + PARTNER_ARMOR_CARD_IDS[partner][armor] * 0x13C;
+                        updatePartnerStats(player, slot);
                         return;
                     }
                 }
@@ -628,21 +628,21 @@ void func_80047E64(s32 a, s32 b, s32 c) {
     }
 }
 
-s32 func_80048014(s32 a, s32 b) {
-    s32 j;
-    s32 k;
+s32 getSelectedArmorIndex(s32 player, s32 partner) {
+    s32 slot;
+    s32 armor;
 
-    if (b == -1) {
+    if (partner == -1) {
         return -1;
     }
-    for (j = 0; j < 3; j++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
-            if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == 0) {
+    for (slot = 0; slot < 3; slot++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 == PARTNER_CARD_IDS[partner]) {
+            if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0] == 0) {
                 return -1;
             }
-            for (k = 0; k < 3; k++) {
-                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == D_8006E520[b][k]) {
-                    return k;
+            for (armor = 0; armor < 3; armor++) {
+                if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0] == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
+                    return armor;
                 }
             }
         }
@@ -650,17 +650,17 @@ s32 func_80048014(s32 a, s32 b) {
     return -1;
 }
 
-s32 func_80048150(s32 a, s32 id) {
-    s32 i;
-    s32 k;
-    s32 j;
+s32 findArmorPartnerSlot(s32 player, s32 cardId) {
+    s32 partner;
+    s32 armor;
+    s32 slot;
 
-    for (i = 0; i < 6; i++) {
-        for (k = 0; k < 3; k++) {
-            if (D_8006E520[i][k] != 0 && id == D_8006E520[i][k]) {
-                for (j = 0; j < 3; j++) {
-                    if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk292[0] == id) {
-                        return j;
+    for (partner = 0; partner < 6; partner++) {
+        for (armor = 0; armor < 3; armor++) {
+            if (PARTNER_ARMOR_CARD_IDS[partner][armor] != 0 && cardId == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
+                for (slot = 0; slot < 3; slot++) {
+                    if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0] == cardId) {
+                        return slot;
                     }
                 }
                 return 3;
@@ -672,210 +672,210 @@ s32 func_80048150(s32 a, s32 id) {
 
 INCLUDE_RODATA("asm/main/nonmatchings/card/card_db", D_800119CC);
 
-s32 func_80048230(s32 p, s32 d) {
+s32 updatePartnerStats(s32 player, s32 slot) {
     s32 i;
     s32 j;
-    s32 k;
+    s32 ability;
     s32 n;
     s32 line;
     s32 col;
     s32 ret;
-    u8 *s;
+    u8 *supportText;
 
-    PLAYER_DATA(p).unk80[d].unk292[1] = 0;
-    PLAYER_DATA(p).unk80[d].unk292[2] = 0;
+    PLAYER_DATA(player).unk80[slot].unk292[1] = 0;
+    PLAYER_DATA(player).unk80[slot].unk292[2] = 0;
     ret = 0;
-    PLAYER_DATA(p).unk80[d].card[0] = *(CardInfo *)PLAYER_DATA(p).unk80[d].unk278;
-    PLAYER_DATA(p).unk80[d].card[1] = *(CardInfo *)PLAYER_DATA(p).unk80[d].unk27C;
-    if (PLAYER_DATA(p).unk80[d].card[0].attack[2].power == 0) {
-        PLAYER_DATA(p).unk80[d].card[0].attack[2].power = 100;
+    PLAYER_DATA(player).unk80[slot].card[0] = *(CardInfo *)PLAYER_DATA(player).unk80[slot].unk278;
+    PLAYER_DATA(player).unk80[slot].card[1] = *(CardInfo *)PLAYER_DATA(player).unk80[slot].unk27C;
+    if (PLAYER_DATA(player).unk80[slot].card[0].attack[2].power == 0) {
+        PLAYER_DATA(player).unk80[slot].card[0].attack[2].power = 100;
     }
-    if (PLAYER_DATA(p).unk80[d].card[1].attack[2].power == 0) {
-        PLAYER_DATA(p).unk80[d].card[1].attack[2].power = 100;
+    if (PLAYER_DATA(player).unk80[slot].card[1].attack[2].power == 0) {
+        PLAYER_DATA(player).unk80[slot].card[1].attack[2].power = 100;
     }
-    PLAYER_DATA(p).unk80[d].card[0].hp += PLAYER_DATA(p).unk80[d].unk280;
-    PLAYER_DATA(p).unk80[d].card[1].hp += PLAYER_DATA(p).unk80[d].unk280;
+    PLAYER_DATA(player).unk80[slot].card[0].hp += PLAYER_DATA(player).unk80[slot].unk280;
+    PLAYER_DATA(player).unk80[slot].card[1].hp += PLAYER_DATA(player).unk80[slot].unk280;
     for (i = 0; i < 3; i++) {
-        PLAYER_DATA(p).unk80[d].card[0].attack[i].power += PLAYER_DATA(p).unk80[d].unk282[i];
-        PLAYER_DATA(p).unk80[d].card[1].attack[i].power += PLAYER_DATA(p).unk80[d].unk282[i];
+        PLAYER_DATA(player).unk80[slot].card[0].attack[i].power += PLAYER_DATA(player).unk80[slot].unk282[i];
+        PLAYER_DATA(player).unk80[slot].card[1].attack[i].power += PLAYER_DATA(player).unk80[slot].unk282[i];
     }
     for (i = 0; i < 3; i++) {
-        k = PLAYER_DATA(p).unk80[d].unk28C[i];
-        if (k == -1) {
+        ability = PLAYER_DATA(player).unk80[slot].unk28C[i];
+        if (ability == -1) {
             continue;
         }
-        switch (D_8006E9B4[k].type) {
+        switch (PARTNER_ABILITIES[ability].type) {
         case 0:
-            PLAYER_DATA(p).unk80[d].card[0].hp += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].hp += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].hp += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].hp += PARTNER_ABILITIES[ability].value;
             break;
         case 1:
-            PLAYER_DATA(p).unk80[d].card[0].attack[0].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[0].attack[1].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[0].attack[2].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[0].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[1].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[2].power += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[0].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[1].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[2].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[0].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[1].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[2].power += PARTNER_ABILITIES[ability].value;
             break;
         case 2:
-            PLAYER_DATA(p).unk80[d].card[0].attack[0].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[0].power += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[0].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[0].power += PARTNER_ABILITIES[ability].value;
             break;
         case 3:
-            PLAYER_DATA(p).unk80[d].card[0].attack[1].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[1].power += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[1].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[1].power += PARTNER_ABILITIES[ability].value;
             break;
         case 4:
-            PLAYER_DATA(p).unk80[d].card[0].attack[2].power += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].attack[2].power += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].attack[2].power += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].attack[2].power += PARTNER_ABILITIES[ability].value;
             break;
         case 5:
-            PLAYER_DATA(p).unk80[d].card[0].unkE4 = D_8006E9B4[k].unk1;
-            PLAYER_DATA(p).unk80[d].card[1].unkE4 = D_8006E9B4[k].unk1;
-            if (D_8006E9B4[k].value != 0) {
-                PLAYER_DATA(p).unk80[d].card[0].attack[2].power += D_8006E9B4[k].value;
-                PLAYER_DATA(p).unk80[d].card[1].attack[2].power += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].unkE4 = PARTNER_ABILITIES[ability].unk1;
+            PLAYER_DATA(player).unk80[slot].card[1].unkE4 = PARTNER_ABILITIES[ability].unk1;
+            if (PARTNER_ABILITIES[ability].value != 0) {
+                PLAYER_DATA(player).unk80[slot].card[0].attack[2].power += PARTNER_ABILITIES[ability].value;
+                PLAYER_DATA(player).unk80[slot].card[1].attack[2].power += PARTNER_ABILITIES[ability].value;
             } else {
-                PLAYER_DATA(p).unk80[d].card[0].attack[2].power = 0;
-                PLAYER_DATA(p).unk80[d].card[1].attack[2].power = 0;
+                PLAYER_DATA(player).unk80[slot].card[0].attack[2].power = 0;
+                PLAYER_DATA(player).unk80[slot].card[1].attack[2].power = 0;
             }
             break;
         case 6:
-            PLAYER_DATA(p).unk80[d].card[0].level += D_8006E9B4[k].value;
-            PLAYER_DATA(p).unk80[d].card[1].level += D_8006E9B4[k].value;
+            PLAYER_DATA(player).unk80[slot].card[0].level += PARTNER_ABILITIES[ability].value;
+            PLAYER_DATA(player).unk80[slot].card[1].level += PARTNER_ABILITIES[ability].value;
             break;
         case 7:
             for (j = 0; j < 2; j++) {
-                PLAYER_DATA(p).unk80[d].card[0].unk74[j].unk0[0] = 0;
+                PLAYER_DATA(player).unk80[slot].card[0].unk74[j].unk0[0] = 0;
             }
             for (j = 0; j < 3; j++) {
-                PLAYER_DATA(p).unk80[d].card[0].unkB4[j].unk0[0] = 0;
+                PLAYER_DATA(player).unk80[slot].card[0].unkB4[j].unk0[0] = 0;
             }
             for (j = 0; j < 4; j++) {
                 for (n = 0; n < 0x15; n++) {
-                    PLAYER_DATA(p).unk80[d].card[0].text[j][n] = 0;
-                    PLAYER_DATA(p).unk80[d].card[1].text[j][n] = 0;
+                    PLAYER_DATA(player).unk80[slot].card[0].text[j][n] = 0;
+                    PLAYER_DATA(player).unk80[slot].card[1].text[j][n] = 0;
                 }
             }
-            j = D_8006E9B4[k].unk1;
+            j = PARTNER_ABILITIES[ability].unk1;
             if (j != 0) {
-                PLAYER_DATA(p).unk80[d].card[0].unk74[0] = D_8006E534[j - 1];
-                PLAYER_DATA(p).unk80[d].card[0].unk74[0].unkE = D_8006E9B4[k].value;
+                PLAYER_DATA(player).unk80[slot].card[0].unk74[0] = PARTNER_ABILITY_CONDITIONS[j - 1];
+                PLAYER_DATA(player).unk80[slot].card[0].unk74[0].unkE = PARTNER_ABILITIES[ability].value;
             }
-            if (D_8006E9B4[k].unk2 != 0) {
-                for (j = 0; j < D_8006E9B4[k].unk3; j++) {
-                    PLAYER_DATA(p).unk80[d].card[0].unkB4[j] = D_8006E774[D_8006E9B4[k].unk2 - 1 + j];
-                    PLAYER_DATA(p).unk80[d].card[0].unkB4[j].unkC = D_8006E9B4[k].value;
+            if (PARTNER_ABILITIES[ability].unk2 != 0) {
+                for (j = 0; j < PARTNER_ABILITIES[ability].unk3; j++) {
+                    PLAYER_DATA(player).unk80[slot].card[0].unkB4[j] = PARTNER_ABILITY_ACTIONS[PARTNER_ABILITIES[ability].unk2 - 1 + j];
+                    PLAYER_DATA(player).unk80[slot].card[0].unkB4[j].unkC = PARTNER_ABILITIES[ability].value;
                 }
             }
-            s = D_8006EDB4[k - 0x29];
+            supportText = PARTNER_ABILITY_TEXTS[ability - 0x29];
             line = 0;
             col = 0;
-            while (*s != 0) {
-                if (*s == '\n') {
+            while (*supportText != 0) {
+                if (*supportText == '\n') {
                     line++;
                     col = 0;
                 } else {
-                    PLAYER_DATA(p).unk80[d].card[0].text[line][col] = *s;
-                    PLAYER_DATA(p).unk80[d].card[1].text[line][col] = *s;
+                    PLAYER_DATA(player).unk80[slot].card[0].text[line][col] = *supportText;
+                    PLAYER_DATA(player).unk80[slot].card[1].text[line][col] = *supportText;
                     col++;
                 }
-                s++;
+                supportText++;
             }
-            PLAYER_DATA(p).unk80[d].card[0].unkE6 = D_8006E9B4[k].unk6;
-            PLAYER_DATA(p).unk80[d].card[1].unkE6 = D_8006E9B4[k].unk6;
+            PLAYER_DATA(player).unk80[slot].card[0].unkE6 = PARTNER_ABILITIES[ability].unk6;
+            PLAYER_DATA(player).unk80[slot].card[1].unkE6 = PARTNER_ABILITIES[ability].unk6;
             ret = 1;
             break;
         case 8:
-            switch (D_8006E9B4[k].unk1) {
+            switch (PARTNER_ABILITIES[ability].unk1) {
             case 0:
-                PLAYER_DATA(p).unk80[d].unk292[1] += D_8006E9B4[k].value;
+                PLAYER_DATA(player).unk80[slot].unk292[1] += PARTNER_ABILITIES[ability].value;
                 break;
             case 1:
-                PLAYER_DATA(p).unk80[d].unk292[2] += D_8006E9B4[k].value;
+                PLAYER_DATA(player).unk80[slot].unk292[2] += PARTNER_ABILITIES[ability].value;
                 break;
             }
             break;
         }
     }
     for (i = 0; i < 3; i++) {
-        if (PLAYER_DATA(p).unk80[d].card[0].attack[i].power < 0) {
-            PLAYER_DATA(p).unk80[d].card[0].attack[i].power = 0;
+        if (PLAYER_DATA(player).unk80[slot].card[0].attack[i].power < 0) {
+            PLAYER_DATA(player).unk80[slot].card[0].attack[i].power = 0;
         }
-        if (PLAYER_DATA(p).unk80[d].card[1].attack[i].power < 0) {
-            PLAYER_DATA(p).unk80[d].card[1].attack[i].power = 0;
+        if (PLAYER_DATA(player).unk80[slot].card[1].attack[i].power < 0) {
+            PLAYER_DATA(player).unk80[slot].card[1].attack[i].power = 0;
         }
     }
-    if (((u8)(PLAYER_DATA(p).unk80[d].card[0].unkE4 - 5) < 4) | ((u8)(PLAYER_DATA(p).unk80[d].card[1].unkE4 - 5) < 4)) {
-        if ((u8)(PLAYER_DATA(p).unk80[d].card[0].unkE4 - 5) < 4) {
-            PLAYER_DATA(p).unk80[d].card[0].attack[2].power = 0;
+    if (((u8)(PLAYER_DATA(player).unk80[slot].card[0].unkE4 - 5) < 4) | ((u8)(PLAYER_DATA(player).unk80[slot].card[1].unkE4 - 5) < 4)) {
+        if ((u8)(PLAYER_DATA(player).unk80[slot].card[0].unkE4 - 5) < 4) {
+            PLAYER_DATA(player).unk80[slot].card[0].attack[2].power = 0;
         }
-        if ((u8)(PLAYER_DATA(p).unk80[d].card[1].unkE4 - 5) < 4) {
-            PLAYER_DATA(p).unk80[d].card[1].attack[2].power = 0;
+        if ((u8)(PLAYER_DATA(player).unk80[slot].card[1].unkE4 - 5) < 4) {
+            PLAYER_DATA(player).unk80[slot].card[1].attack[2].power = 0;
         }
     }
     return ret;
 }
 
-void func_800493EC(s32 a, s32 b, s32 c, s32 v) {
-    if (func_800496E4(a, v) == 1) {
-        ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk28C[c] = v;
-        func_80048230(a, b);
+void equipPartnerAbility(s32 player, s32 slot, s32 abilitySlot, s32 ability) {
+    if (getPartnerAbilityState(player, ability) == 1) {
+        ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28C[abilitySlot] = ability;
+        updatePartnerStats(player, slot);
     }
 }
 
-void func_8004949C(s32 arg0, s32 arg1, s32 arg2) {
-    ((Unk8006E050 *)D_8006E050)[arg0].unk80[arg1].unk28C[arg2] = -1;
-    func_80048230(arg0, arg1);
+void unequipPartnerAbility(s32 player, s32 slot, s32 abilitySlot) {
+    ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28C[abilitySlot] = -1;
+    updatePartnerStats(player, slot);
 }
 
-void func_8004950C(s32 a, s32 b) {
-    ((Unk8006E050 *)D_8006E050)[a].unk3C[b / 8] |= 1 << (b % 8);
+void grantPartnerAbility(s32 player, s32 ability) {
+    ((Unk8006E050 *)PLAYER_PROFILES)[player].unk3C[ability / 8] |= 1 << (ability % 8);
 }
 
-s32 func_800495B4(s32 a, s32 b, s32 skip, s32 card) {
+s32 canEquipPartnerAbility(s32 player, s32 slot, s32 skipSlot, s32 ability) {
     s32 ok;
     s32 i;
-    s32 c;
+    s32 equipped;
 
     ok = 1;
     for (i = 0; i < 3; i++) {
-        if (skip == i) {
+        if (skipSlot == i) {
             continue;
         }
-        c = ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk28C[i];
-        if (c == -1) {
+        equipped = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28C[i];
+        if (equipped == -1) {
             continue;
         }
-        if (D_8006E9B4[card].type == 1) {
-            if (D_8006E9B4[c].type >= 1 && D_8006E9B4[c].type <= 4) {
+        if (PARTNER_ABILITIES[ability].type == 1) {
+            if (PARTNER_ABILITIES[equipped].type >= 1 && PARTNER_ABILITIES[equipped].type <= 4) {
                 ok = 0;
             }
-        } else if (D_8006E9B4[c].type == 1) {
-            if (D_8006E9B4[card].type >= 1 && D_8006E9B4[card].type <= 4) {
+        } else if (PARTNER_ABILITIES[equipped].type == 1) {
+            if (PARTNER_ABILITIES[ability].type >= 1 && PARTNER_ABILITIES[ability].type <= 4) {
                 ok = 0;
             }
-        } else if (D_8006E9B4[card].type == D_8006E9B4[c].type) {
+        } else if (PARTNER_ABILITIES[ability].type == PARTNER_ABILITIES[equipped].type) {
             ok = 0;
         }
     }
     return ok;
 }
 
-s32 func_800496E4(s32 a, s32 id) {
-    s32 j;
-    s32 k;
+s32 getPartnerAbilityState(s32 player, s32 ability) {
+    s32 slot;
+    s32 abilitySlot;
 
-    if (id < 0) {
+    if (ability < 0) {
         return 0;
     }
-    if (!((((Unk8006E050 *)D_8006E050)[a].unk3C[id / 8] >> (id % 8)) & 1)) {
+    if (!((((Unk8006E050 *)PLAYER_PROFILES)[player].unk3C[ability / 8] >> (ability % 8)) & 1)) {
         return 0;
     }
-    for (j = 0; j < 3; j++) {
-        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 != 0) {
-            for (k = 0; k < 3; k++) {
-                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28C[k] == id) {
+    for (slot = 0; slot < 3; slot++) {
+        if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk288 != 0) {
+            for (abilitySlot = 0; abilitySlot < 3; abilitySlot++) {
+                if (((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28C[abilitySlot] == ability) {
                     return 2;
                 }
             }
