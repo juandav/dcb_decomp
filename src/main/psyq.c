@@ -1305,7 +1305,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066660);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666A8);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666D8);
+int func_800666D8(int arg0, int arg1, int arg2) {
+    return func_800666FC(arg0, arg1, 0, arg2);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800666FC);
 
