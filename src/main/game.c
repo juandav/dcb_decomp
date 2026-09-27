@@ -216,6 +216,18 @@ typedef struct {
 } SprtInfo;
 
 typedef struct {
+    /* 0x00 */ s32 unk0[5];
+    /* 0x14 */ s32 unk14;
+} Obj18;
+
+typedef struct {
+    /* 0x00 */ s32 id;
+    /* 0x04 */ s32 flags;
+    /* 0x08 */ s32 nobj;
+    /* 0x0C */ Obj18 obj[1];
+} Tmd18;
+
+typedef struct {
     /* 0x00 */ u32 *data;
     /* 0x04 */ u32 *work;
     /* 0x08 */ u32 *ot;
@@ -2740,7 +2752,21 @@ void func_80023128(s32 arg0, s32 arg1, s32 arg2) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80023148);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023408);
+void func_80023408(Tmd18 *t) {
+    Obj18 *o;
+    s32 n;
+    s32 i;
+
+    if (t->flags == 0) {
+        t->flags = 1;
+        n = t->nobj;
+        o = t->obj;
+        for (i = 0; i < n; i++) {
+            o->unk14 = (s32)t + o->unk14;
+            o++;
+        }
+    }
+}
 
 void func_80023454(s32 arg0, void *arg1, s32 arg2) {
     (*(s32 *)((s8 *)arg1 + 0xC)) = (s32) (arg2 + 1);
@@ -2748,7 +2774,15 @@ void func_80023454(s32 arg0, void *arg1, s32 arg2) {
     (*(s32 *)((s8 *)arg1 + 8)) = arg0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023468);
+s32 *func_80023468(u8 *m, s32 *p) {
+    s32 i;
+
+    for (i = 0; i < *(s16 *)(m + 4); i++) {
+        ((Unk1F80 *)m)->unk1F80[i] = (s16 *)(p + 1);
+        p += 3;
+    }
+    return p;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800234AC);
 
@@ -4451,7 +4485,15 @@ void func_8002F7A8(void) {
     D_801D8260 = func_80014C08(0x7FFFFFFF);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F8E8);
+void func_8002FAA8(void);
+
+void func_8002F8E8(void) {
+    s8 *p = (s8 *)&D_801D81F8;
+
+    func_8001AE90(*(void **)(p + 0x68));
+    *(void **)(p + 0x68) = 0;
+    func_8002FAA8();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F920);
 
