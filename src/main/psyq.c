@@ -608,7 +608,9 @@ int StopCallback(void) {
     return D_80070AA8->stopCallback();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RestartCallback);
+int RestartCallback(void) {
+    return D_80070AA8->restartCallback();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CheckCallback);
 
