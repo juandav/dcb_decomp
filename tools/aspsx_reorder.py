@@ -114,13 +114,15 @@ def main():
             prev = split(out[k]) if k >= 0 else None
             prev_la = prev
             prev2 = None
+            at_label = False
             if prev:
                 m = k - 1
                 while m >= 0 and not out[m].split("#", 1)[0].strip():
                     m -= 1
                 prev2 = split(out[m]) if m >= 0 else None
                 # a branch target stays where it is
-                if m >= 0 and out[m].split("#", 1)[0].strip().endswith(":"):
+                at_label = m >= 0 and out[m].split("#", 1)[0].strip().endswith(":")
+                if at_label and prev[0] != "la":
                     prev = None
             sym_store = (
                 prev is not None
@@ -136,6 +138,7 @@ def main():
             )
             movable = (
                 prev is not None
+                and not at_label
                 and not sym_store
                 and not idx_store
                 and not BRANCHES.match(prev[0])
@@ -191,7 +194,8 @@ def main():
                 and prev[1][0] != "$31"
                 and not (prev2 and BRANCHES.match(prev2[0]))
             ):
-                # ASPSX expands la and moves its second half into the slot
+                # ASPSX expands la and moves its second half into the slot,
+                # even when the la is a branch target: its lui stays there
                 reg, sym = prev[1]
                 out[k] = f"lui\t{reg},%hi({sym})"
                 out.append(line)
