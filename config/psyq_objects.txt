@@ -137,6 +137,7 @@ libcd_bios_1 gcc2.8
 libcd_bios_1_2 gcc2.8
 libcd_s_002
 libcd_s_016
+libcd_cdread gcc2.8
 libgpu_sys
 libmcrd_libmcrd
 libcd_s_021
