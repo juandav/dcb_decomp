@@ -66,7 +66,7 @@ libsnd_ssvol_2
 libsnd_tempo
 libsnd_ut_ako
 libsnd_ut_gpa
-libsnd_ut_gva
+libsnd_ut_gva gcc2.8
 libsnd_ut_rdel nocse
 libspu_s_srmp
 libspu_s_sra
