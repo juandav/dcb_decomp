@@ -60,6 +60,7 @@ libsnd_sssv
 libsnd_sstable
 libsnd_sstick
 libsnd_ssvol
+libsnd_ssvol_2
 libsnd_tempo
 libsnd_ut_ako
 libsnd_ut_gpa
