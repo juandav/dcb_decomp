@@ -1484,7 +1484,11 @@ void SetSemiTrans(void *p, int abe) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetShadeTex);
+void SetShadeTex(void *p, int tge) {
+    setShadeTex(p, tge);
+}
+
+OBJECT_END(2);
 
 void func_80067704(POLY_F3 *p) {
     setPolyF3(p);
