@@ -10228,6 +10228,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80041E00);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042174);
 
+INCLUDE_RODATA("asm/main/nonmatchings/game", D_80011440);
+
 void func_8004269C(SprtInfo *info, s32 arg1, s32 z) {
     if (func_80029990() == 0) {
         CUR_SPRT->sp.x0 = info->x;

@@ -619,3 +619,4 @@ PadStopCom = 0x8006B3A0; // type:func
 PadInitDirect = 0x8006B3E4; // type:func
 _padInitDirPort = 0x8006B494; // type:func
 _dirFailAuto = 0x8006BDC4; // type:func
+D_80011440 = 0x80011440; // force_not_migration:True
