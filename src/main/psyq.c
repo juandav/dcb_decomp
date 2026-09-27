@@ -637,7 +637,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056B78);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056C18);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056C90);
+void func_80056C90(long *p, int n) {
+    int i = n - 1;
+
+    if (n != 0) {
+        do {
+            *p++ = 0;
+        } while (i-- != 0);
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", startIntrVSync);
 
