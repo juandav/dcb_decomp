@@ -290,6 +290,23 @@ typedef struct {
 } POLY_FT4;
 
 typedef struct {
+    /* 0x000 */ POLY_FT4 ft4a[4];
+    /* 0x0A0 */ u8 linea[4][0x14];
+    /* 0x0F0 */ u8 lineF0[0xC];
+    /* 0x0FC */ u8 unkFC;
+    /* 0x0FD */ u8 unkFD;
+    /* 0x0FE */ u8 unkFE[6];
+    /* 0x104 */ u8 tpage[8];
+    /* 0x10C */ u8 unk10C[0xC];
+    /* 0x118 */ u8 twin[0xC];
+    /* 0x124 */ u8 lineb[4][0x14];
+    /* 0x174 */ POLY_FT4 ft4b[2];
+    /* 0x1C4 */ u8 linec[4][0x14];
+    /* 0x214 */ POLY_FT4 ft4c[2];
+    /* 0x264 */ u8 unk264[0x30];
+} PanelPrims;
+
+typedef struct {
     u32 tag;
     u8 r0;
     u8 g0;
@@ -1436,7 +1453,63 @@ void func_800168C4(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016948);
+extern Unk800793A0 *D_800793A0;
+extern s32 D_800897E8;
+extern u16 D_800897EC;
+extern u16 D_800897EE;
+extern u16 D_800897F0;
+extern u16 D_800897F2;
+extern u16 D_800897F4;
+u32 GetTPage(s32, s32, s32, s32);
+void func_8001E6EC(s32, void *, s32, s32);
+void SetDrawTPage(void *, s32, s32, s32);
+s32 SetTexWindow(void *, s16 *);
+
+void func_80016948(s32 n) {
+    PanelPrims *buf;
+    PanelPrims *p;
+    s16 r[4];
+    u32 tpage;
+    s32 i;
+    s32 k;
+    s32 j;
+
+    D_800897EC = n;
+    D_800897EE = 0x3C0;
+    D_800897F0 = 0x100;
+    D_800897F2 = 0x3E0;
+    D_800897F4 = 0x1F8;
+    buf = func_8001ACEC(D_800897EC * sizeof(PanelPrims) * 2);
+    tpage = GetTPage(0, 0, D_800897EE, D_800897F0);
+    for (i = 0; i < 2; i++) {
+        p = (PanelPrims *)(((Unk800794F8 *)&D_800794F8)->unk98[i].unk40BC = (s32)(buf + D_800897EC * i));
+        for (k = 0; k < D_800897EC; k++, p++) {
+            for (j = 0; j < 4; j++) {
+                func_8001E6EC(0xC, &p->ft4a[j], 0, 0);
+                p->ft4a[j].tpage = tpage;
+                func_8001E6EC(0xE, p->linea[j], 0, 0);
+                func_8001E6EC(0xE, p->lineb[j], 0, 0);
+                func_8001E6EC(0xE, p->linec[j], 0, 0);
+            }
+            for (j = 0; j < 2; j++) {
+                func_8001E6EC(0xC, &p->ft4b[j], 0, 0);
+                p->ft4b[j].tpage = tpage;
+                func_8001E6EC(0xC, &p->ft4c[j], 0, 0);
+                p->ft4c[j].tpage = tpage;
+            }
+            func_8001E6EC(0xE, p->lineF0, 0, 0);
+            p->unkFC = 0;
+            p->unkFD = 0;
+            SetDrawTPage(p->tpage, 0, 1, tpage);
+            r[0] = 0;
+            r[1] = 0;
+            r[2] = 0;
+            r[3] = 0;
+            SetTexWindow(p->twin, r);
+        }
+    }
+    D_800897E8 = D_800793A0->unk40BC;
+}
 
 extern Unk800793A0 *D_800793A0;
 extern s32 D_800897E8;
@@ -1525,8 +1598,6 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80018694);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80018B8C);
 
-extern int D_800897E8;
-extern unsigned short D_800897EC;
 extern char D_80010008[];
 extern int printf(const char *, ...);
 
