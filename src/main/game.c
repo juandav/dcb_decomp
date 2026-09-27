@@ -1652,9 +1652,59 @@ s32 func_8001AB64(void) {
     return max;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001ABCC);
+void func_80014970(void);
+void func_800149A0(void);
 
-void *func_8001ABCC(s32, s32);
+void *func_8001ABCC(s32 size, s32 tag) {
+    s32 *p;
+    s32 *q;
+    s32 i;
+    s32 addr;
+    s32 avail;
+    s32 res;
+
+    size = (size + 3) & ~3;
+    if (size == 0) {
+        return 0;
+    }
+    func_80014970();
+    p = &D_80089848;
+    i = 0x3FF;
+    if ((addr = D_80089848) != 0) {
+        do {
+            if (addr >= 0) {
+                avail = p[1];
+                if (avail >= size) {
+                    res = addr | 0x80000000;
+                    p[0] = res;
+                    p[1] = size;
+                    avail -= size;
+                    p[2] = tag;
+                    if (avail != 0) {
+                        addr += size;
+                        q = &D_80089848 + 0x3FF * 3;
+                        for (i--; i > 0; i--) {
+                            q[0] = q[-3];
+                            q[1] = q[-2];
+                            q[2] = q[-1];
+                            q -= 3;
+                        }
+                        q[0] = addr;
+                        q[1] = avail;
+                        q[2] = -1;
+                    }
+                    func_800149A0();
+                    return (void *)res;
+                }
+            }
+            i--;
+            p += 3;
+        } while (i >= 0 && (addr = p[0]) != 0);
+    }
+    func_800149A0();
+    return 0;
+}
+
 void *func_8001ACEC(s32 arg0) {
     return func_8001ABCC(arg0, -2);
 }
