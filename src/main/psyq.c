@@ -1610,7 +1610,13 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", MargePrim);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetTexWindow);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawStp);
+void SetDrawStp(DR_STP *p, int pbw) {
+    setlen(p, 2);
+    p->code[0] = pbw ? 0xE6000001 : 0xE6000000;
+    p->code[1] = 0;
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawMode);
 
