@@ -302,6 +302,10 @@ typedef struct {
 typedef struct {
     /* 0x0000 */ u8 unk0[0x2220];
     /* 0x2220 */ Unk2220 unk2220[16];
+    /* 0x22A0 */ u8 unk22A0[0x430];
+    /* 0x26D0 */ s32 unk26D0;
+    /* 0x26D4 */ s32 unk26D4;
+    /* 0x26D8 */ s32 unk26D8;
 } Model2220;
 
 typedef struct {
@@ -5588,10 +5592,47 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E034);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E26C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002E42C);
+typedef struct {
+    s8 bg;
+    u8 unk1;
+    u8 unk2;
+    s8 flags;
+    u8 rgb[3];
+    u8 unk7;
+} BgEntry;
 
+extern BgEntry D_8006E0C0[];
+extern s32 D_8006DF80;
 extern u8 D_801D6A60[3];
 extern s32 D_801D81A8;
+
+void func_8002E42C(s32 n) {
+    char path[32];
+
+    if (n < 0) {
+        n = rand() % 12 + 0x2C;
+    }
+    sprintf(path, "F:\\bg%d.pak", D_8006E0C0[n].bg + 900);
+    func_800149B8(0, -1, 0, 0x400, func_8001B248, path, func_800148B0(), 0x81);
+    D_801D81A8 = func_80014C08(0x7FFFFFFF);
+    func_8002386C(0x17, D_8006E0C0[n].bg + 900, 0, D_801D81A8, 0);
+    D_801D6A4C->unk114[0x17] = -1;
+    ((Model2220 *)D_801D6A4C->unk13C[23])->unk26D4 = 0xA0000;
+    ((Model2220 *)D_801D6A4C->unk13C[23])->unk26D0 = 0x280000;
+    if (D_8006E0C0[n].flags & 2) {
+        func_800230B8(0x17, 0, 0, D_801D81A8);
+        func_80023148(0x17, 0);
+        func_80022D34(0x17, 0, -2, 0);
+    }
+    D_801D6A4C->unk114[0x18] = D_801D6A4C->unk114[0x19] = 0;
+    D_801D6A4C->unk114[0x1B] = D_8006E0C0[n].unk2;
+    D_801D6A4C->unk114[0x1A] = D_8006E0C0[n].unk1;
+    *(s32 *)&D_801D6A4C->unk114[0x24] = D_8006E0C0[n].flags;
+    D_801D6A60[0] = D_8006E0C0[n].rgb[0];
+    D_801D6A60[1] = D_8006E0C0[n].rgb[1];
+    D_801D6A60[2] = D_8006E0C0[n].rgb[2];
+    D_8006DF80 = D_8006E0C0[n].unk7;
+}
 
 void func_8002E658(s16 id) {
     Unk801D6A4C *p;
