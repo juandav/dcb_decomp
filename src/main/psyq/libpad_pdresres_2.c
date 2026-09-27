@@ -198,7 +198,29 @@ int func_8006CD4C(u_char *p) {
     return (((p[0xE3] + 1) >> 1) << 2) + (u_short)(((p[0xE9] * 5 + 3) & ~3) + 4) + *(u_short *)(p + 0xEC);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CD84);
+extern int (*D_8007797C)();
+void func_8006CE58(PadPort *port);
+int func_8006CF00(PadPort *p);
+
+int func_8006CD84(PadPort *p, u_char *buf) {
+    u_char *size;
+    u_char *mem;
+
+    if (buf == NULL || p->unk4 != NULL || D_8007797C() != 0) {
+        return 0;
+    }
+    mem = (u_char *)((((long)buf + 3) >> 2) << 2);
+    p->unk49 = 4;
+    p->unk0 = (u_short *)mem;
+    p->unk46 = 1;
+    p->unk14 = func_8006CE58;
+    p->unk18 = func_8006CF00;
+    p->unk47[0] = 0;
+    size = mem + ((p->unkE3 + 1) >> 1) * 4;
+    p->unk4 = (PadActInfo *)size;
+    p->unk8 = (long)(size + ((p->unkE9 * 5 + 3) & 0xFFC));
+    return 1;
+}
 
 void func_8006CE58(PadPort *port) {
     switch (port->unk46) {
