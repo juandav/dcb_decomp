@@ -488,6 +488,8 @@ def main():
                 and not (prev2 and LOADS.match(prev2[0]) and prev2[1][:1] == ["$31"])
                 and not (prev2 and BRANCHES.match(prev2[0]))
                 and not after_call_slot
+                # nor into the slot of a call through a register (func_800669AC)
+                and not (ins[0] == "jal" and ins[1][-1].startswith("$"))
             )
             if movable:
                 moved = out.pop(k)
