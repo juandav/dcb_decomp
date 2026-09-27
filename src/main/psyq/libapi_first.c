@@ -61,6 +61,27 @@ struct DIRENTRY *firstfile(char *name, struct DIRENTRY *dir) {
     return func_8006ACB4(name, dir);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006ABB0);
+static __inline__ void restore_device(long (*func)()) {
+    DevEntry *dev;
+    DevEntry *table = DEV_TABLE;
+    u_long count = DEV_TABLE_SIZE / sizeof(DevEntry);
+
+    for (dev = table; dev < table + count; dev++) {
+        if (dev->name != NULL && strcmp(dev->name, D_801DDC48) == 0) {
+            dev->func = func;
+            return;
+        }
+    }
+}
+
+long func_8006ABB0(long *fcb, long a1, long a2) {
+    if (*fcb == 0) {
+        *fcb = 1;
+    }
+    restore_device(D_801DDC40);
+    return D_801DDC40(fcb, a1, a2);
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006ACB4);
