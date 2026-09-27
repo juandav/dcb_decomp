@@ -117,7 +117,7 @@ libspu_s_stm
 libsnd_vs_vtc
 libspu_s_itc
 libetc_vsync
-libetc_intr nocse
+libetc_intr
 libetc_intr_vb
 libetc_intr_dma
 libetc_vmode

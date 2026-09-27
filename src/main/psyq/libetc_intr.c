@@ -94,7 +94,44 @@ void *func_80056788(void) {
     return &D_8006FA20;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056860);
+extern long D_80070AB8;
+void func_8006A7D4(void);
+
+void func_80056860(void) {
+    int i;
+    u_short mask;
+    short pending;
+
+    if (D_8006FA20.inited == 0) {
+        printf("unexpected interrupt(%04x)\n", *D_80070AAC);
+        func_8006A7D4();
+    }
+    D_8006FA20.unk2 = 1;
+    while ((mask = D_8006FA20.enabled & *D_80070AAC & *D_80070AB0) != 0) {
+        for (i = 0; mask != 0 && i < 11; i++, mask >>= 1) {
+            if (mask & 1) {
+                *D_80070AAC = ~(1 << i);
+                if (D_8006FA20.handlers[i] != NULL) {
+                    D_8006FA20.handlers[i]();
+                }
+            }
+        }
+    }
+    pending = *D_80070AAC & *D_80070AB0;
+    if (pending) {
+        if (D_80070AB8++ > 0x800) {
+            printf("intr timeout(%04x:%04x)\n", *D_80070AAC, *D_80070AB0);
+            D_80070AB8 = 0;
+            *D_80070AAC = 0;
+        }
+    } else {
+        D_80070AB8 = 0;
+    }
+    D_8006FA20.unk2 = 0;
+    func_8006A7D4();
+}
+
+__asm__(".section .rodata\n\t.space 4\n\t.section .text\n");
 
 void func_8006A884(int);
 void func_8006A894(int, int);
