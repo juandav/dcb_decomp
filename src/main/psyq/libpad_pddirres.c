@@ -59,7 +59,38 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BA48);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BB58);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _dirFailAuto);
+extern void (*D_80077964)(PadPort *p);
+
+void _dirFailAuto(PadPort *p) {
+    p->unk4C++;
+    switch (p->unk46) {
+    case 0:
+        break;
+    case 1:
+        if (p->unk4A < 11) {
+            p->unk4A++;
+            return;
+        }
+        p->unk49 = 2;
+        p->unk46 = 0xFF;
+        return;
+    default:
+        if (p->unk4A < 11) {
+            p->unk4A++;
+            return;
+        }
+        if (p->unk49 != 0) {
+            D_80077964(p);
+        }
+        break;
+    }
+    if (*p->unk3C != 0xF3) {
+        p->unk30[0] = 0xFF;
+        p->unk30[1] = 0;
+        p->unkE8 = 0;
+        p->unk35 = 0;
+    }
+}
 
 int func_8006BEA4(u_char *p) {
     if (*(u_short *)(p + 0xE6) == 0 || p[0x46] != 0xFF) {
