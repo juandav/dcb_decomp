@@ -18,7 +18,7 @@ libsnd_cc_11
 libsnd_cc_64
 libsnd_cc_91
 libsnd_cc_98
-libsnd_cc_99
+libsnd_cc_99 gcc2.8
 libsnd_cc_100
 libsnd_cc_101
 libsnd_cc_121
