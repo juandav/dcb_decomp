@@ -10771,7 +10771,74 @@ void func_80049E80(void) {
     func_800170F0(&D_801D8410, &func_80049A14, 0xA);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80049EF8);
+extern s32 D_801D8548;
+extern u8 *D_8006EF04[];
+
+void func_80049EF8(s32 n, s32 arg1) {
+    Rect16 r;
+    u8 buf[0x401];
+    s32 i;
+    s32 done;
+
+    done = 0;
+    D_801D8548 = n;
+    D_801D8538 = 20;
+    D_801D853C = 0;
+    D_801D8540 = 0;
+    D_801D854C = 0;
+    D_801D8544 = 0;
+    for (i = 0; i < 0x401; i++) {
+        buf[i] = 0;
+    }
+    D_801D8550 = (s32)buf;
+    D_801D8554 = buf;
+    D_801D8558 = D_8006EF04[D_801D8548];
+    r.x = 0x94;
+    r.y = 0x20;
+    r.w = 0xA0;
+    r.h = 0x54;
+    func_80016C08(&D_801D8410, &r, -1, (s16 *)-1, 8, 0x58, 0x80, 0xC);
+    ((Unk80016F38 *)&D_801D8410)->unk2C = (s32)"SHELL COMMAND";
+    ((Unk80016F38 *)&D_801D8410)->unk38 = 2;
+    ((Unk80016F38 *)&D_801D8410)->unk39 = 8;
+    func_8002BB58(3);
+    func_800293FC(D_80012D68);
+    r.w = (D_801D6B18 + 1) / 2 * 2;
+    r.h = (D_801D6B1C + 1) / 2 * 2;
+    func_80016C08(&D_801D84B0, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)-1);
+    ((Unk80016F38 *)&D_801D84B0)->unk38 = 2;
+    func_800293FC(D_80012DB8);
+    r.w = (D_801D6B18 + 1) / 2 * 2;
+    r.h = (D_801D6B1C + 1) / 2 * 2;
+    func_80016C08((Unk80016F38 *)&D_801D84B0 + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    func_80016F38((Unk80016F38 *)&D_801D84B0 + 1, (Rect16 *)-1);
+    ((Unk80016F38 *)&D_801D84B0)[1].unk38 = 2;
+    func_800293FC(D_80012DF8);
+    r.w = (D_801D6B18 + 1) / 2 * 2;
+    r.h = (D_801D6B1C + 1) / 2 * 2;
+    r.x = (0x140 - r.w) >> 1;
+    r.y = 0xB4 - r.h / 2;
+    func_80016C08(&D_801D8460, &r, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
+    ((Unk80016F38 *)&D_801D8460)->unk2C = (s32)"MESSAGE";
+    ((Unk80016F38 *)&D_801D8460)->unk38 = 4;
+    func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)-1);
+    func_8001683C((s32)func_80049E80);
+    do {
+        func_80014C08(D_800794F0);
+        if (D_801D854C != 0) {
+            done = 1;
+        }
+    } while (done == 0);
+    func_8002BB58(4);
+    func_80016F38((Unk80016F38 *)&D_801D8410, (Rect16 *)-1);
+    func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)-1);
+    func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)-1);
+    func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)-1);
+    func_80014C08(20);
+    func_80016878((s32)func_80049E80);
+    func_80014A48(arg1);
+}
 
 void func_8002F8E8(void);
 void func_8002B3EC(s32 arg0, s32 arg1);
