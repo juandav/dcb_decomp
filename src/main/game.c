@@ -5908,7 +5908,54 @@ void func_8002F3C4(s32 *arg0) {
     func_80014C08(2);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002F4F4);
+void D_801EA2F8();
+void D_801E6454();
+void D_801EB2E8();
+void func_8002F920(s32, s32, s32, s32, s32);
+s32 func_801EBD34(void);
+
+void func_8002F4F4(void) {
+    s32 stack;
+    s32 again;
+    s32 r;
+
+    stack = func_800148B0();
+    func_80014C08(2);
+    func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010864, D_80010C9C, func_800148B0());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(2);
+    do {
+        func_800149B8(0, -1, 0, 0x800, D_801EA2F8, stack, 0, 0, 0);
+        r = func_80014C08(0x7FFFFFFF);
+        again = 0;
+        switch (r) {
+        case 0:
+            func_8002F920(6, 0x380, 0, 0x380, 0x80);
+            func_800149B8(0, -1, 0, 0x800, D_801E6454, stack, 0, 0, 0);
+            func_80014C08(0x7FFFFFFF);
+            func_80014C08(2);
+            func_800149B8(0, -1, 0, 0x1000, func_8001B358, &D_80010874, D_80010C9C, func_800148B0());
+            func_80014C08(0x7FFFFFFF);
+            func_80014C08(2);
+            func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, func_800148B0(), 0, 0);
+            break;
+        case 1:
+            func_8002F920(6, 0x380, 0, 0x380, 0x80);
+            func_800149B8(0, -1, 0, 0x800, func_8002EB1C, 0, 0, 0, 0);
+            break;
+        case 2:
+            func_8002F920(7, 0x380, 0, 0x380, 0x80);
+            *((u8 *)D_8006E054 + 0x1028) = 0;
+            again = func_801EBD34();
+            if (again == 0) {
+                func_800149B8(0, -1, 0, 0x800, D_801EB2E8, stack, 0, 0, 0);
+            } else {
+                func_8002FAC8();
+            }
+            break;
+        }
+    } while (again);
+}
 
 extern s32 D_801D8260;
 
