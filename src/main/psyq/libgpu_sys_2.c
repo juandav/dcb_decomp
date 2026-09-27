@@ -559,7 +559,30 @@ int func_800666FC(int (*func)(), u_long *param, int size, u_long value) {
     return (D_80076880 - D_80076884) & 0x3F;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800669AC);
+extern long D_8007688C;
+
+int func_800669AC(void) {
+    if (*D_8007686C & 0x1000000) {
+        return 1;
+    }
+    D_8007688C = SetIntrMask(0);
+    while (D_80076880 != D_80076884 && !(*D_8007686C & 0x1000000)) {
+        if (((D_80076884 + 1) & 0x3F) == D_80076880 && D_80076758.drawSyncCallback == NULL) {
+            DMACallback(2, NULL);
+        }
+        while (!(*D_80076860 & 0x4000000)) {
+        }
+        D_801DC130[D_80076884].func(D_801DC130[D_80076884].param, D_801DC130[D_80076884].value);
+        D_80076884 = (D_80076884 + 1) & 0x3F;
+    }
+    SetIntrMask(D_8007688C);
+    if (D_80076880 == D_80076884 && !(*D_8007686C & 0x1000000) && D_80076758.unk8 &&
+        D_80076758.drawSyncCallback != NULL) {
+        D_80076758.unk8 = 0;
+        D_80076758.drawSyncCallback();
+    }
+    return (D_80076880 - D_80076884) & 0x3F;
+}
 
 extern long D_80076890;
 extern volatile u_long *D_8007687C;
