@@ -18,7 +18,29 @@ void GsSetDrawBuffClip(void) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSwapDispBuff);
+extern short D_801DBD88[2];
+extern short D_801DBD8C[2];
+extern DISPENV D_801DBE00;
+extern long D_801DBE20;
+
+void GsSwapDispBuff(void) {
+    long cnt;
+
+    D_801DBE00.disp.x = D_801DBD88[D_801DBE24];
+    D_801DBE00.disp.y = D_801DBD8C[D_801DBE24];
+    PutDispEnv(&D_801DBE00);
+    SetDispMask(1);
+    cnt = ++D_801DBE20;
+    if (cnt == 0) {
+        cnt = 1;
+    }
+    D_801DBE20 = cnt;
+    D_801DBE24 = D_801DBE24 == 0;
+    GsSetDrawBuffClip();
+    GsSetDrawBuffOffset();
+}
+
+OBJECT_END(3);
 
 extern MATRIX D_801DBEC0;
 
