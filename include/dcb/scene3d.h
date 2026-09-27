@@ -44,7 +44,6 @@ void renderSceneModels();
 void renderWireGrid();
 void createWireGrid(s32 width, s32 depth, s32 cols, s32 rows, s32 unused, s32 vertical);
 void freeWireGrid(void);
-s32 stepCameraTowardTarget(u8 *camera, s32 *pos, s32 distance, s16 *target);
 void initScene3D(s32 allocBuffers);
 
 #endif /* DCB_SCENE3D_H */

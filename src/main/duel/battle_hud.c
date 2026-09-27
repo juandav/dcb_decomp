@@ -12,6 +12,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/scene3d.h"
+#include "dcb/camera.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
