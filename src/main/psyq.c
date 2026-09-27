@@ -1554,7 +1554,17 @@ void _GPU_ResetCallback(void) {
     DMACallback(2, func_800669AC);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800674DC);
+void func_800674DC(u_char *p, u_char c, int n) {
+    int i = n - 1;
+
+    if (n != 0) {
+        do {
+            *p++ = c;
+        } while (i-- != 0);
+    }
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDefDrawEnv);
 
