@@ -351,11 +351,8 @@ typedef struct {
 
 typedef struct {
     /* 0x000 */ POLY_FT4 ft4a[4];
-    /* 0x0A0 */ u8 linea[4][0x14];
-    /* 0x0F0 */ u8 lineF0[0xC];
-    /* 0x0FC */ u8 unkFC;
-    /* 0x0FD */ u8 unkFD;
-    /* 0x0FE */ u8 unkFE[6];
+    /* 0x0A0 */ SPRT linea[4];
+    /* 0x0F0 */ SPRT frame;
     /* 0x104 */ u8 tpage[8];
     /* 0x10C */ u8 unk10C[0xC];
     /* 0x118 */ u8 twin[0xC];
@@ -658,12 +655,14 @@ typedef struct {
     /* 0x126 */ s16 unk126[5];
     /* 0x130 */ Popup unk130[5];
     /* 0x158 */ u8 unk158[4];
-    /* 0x15C */ s16 unk15C;
-    /* 0x15E */ s16 unk15E;
-    /* 0x160 */ s16 unk160;
-    /* 0x162 */ u8 unk162[0xE];
+    /* 0x15C */ s16 unk15C[3];
+    /* 0x162 */ u8 unk162[0xC];
+    /* 0x16E */ s16 unk16E;
     /* 0x170 */ s16 unk170[4];
-    /* 0x178 */ u32 unk178_0 : 15;
+    /* 0x178 */ u32 unk178_0 : 2;
+    /* 0x178 */ u32 unk178_2 : 2;
+    /* 0x178 */ u32 unk178_4 : 2;
+    /* 0x178 */ u32 unk178_6 : 9;
     /* 0x178 */ u32 unk178_15 : 2;
     /* 0x178 */ u32 unk178_17 : 2;
     /* 0x178 */ u32 unk178_19 : 3;
@@ -681,6 +680,7 @@ typedef struct {
     /* 0x1C2 */ s8 unk1C2[8];
     /* 0x1CA */ s8 unk1CA[3];
     /* 0x1CD */ s8 unk1CD;
+    /* 0x1CE */ char unk1CE[1];
 } Player;
 
 
@@ -699,20 +699,24 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 power;
-    /* 0x02 */ u8 unk2[0x1A];
+    /* 0x02 */ u8 unk2[4];
+    /* 0x06 */ char name[0x16];
 } CardAttack;
 
 typedef struct {
-    /* 0x000 */ u8 unk0[0x1C];
-    /* 0x01C */ u8 level;
+    /* 0x000 */ u8 unk0[3];
+    /* 0x003 */ char name[0x17];
+    /* 0x01A */ u8 attr;
+    /* 0x01B */ s8 unk1B;
+    /* 0x01C */ s8 level;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ s16 hp;
     /* 0x020 */ CardAttack attack[3];
     /* 0x074 */ CardRec20 unk74[2];
     /* 0x0B4 */ CardRec10 unkB4[3];
-    /* 0x0E4 */ u8 unkE4;
+    /* 0x0E4 */ s8 unkE4;
     /* 0x0E5 */ u8 unkE5;
-    /* 0x0E6 */ u8 unkE6;
+    /* 0x0E6 */ s8 unkE6;
     /* 0x0E7 */ u8 text[4][0x15];
     /* 0x13B */ u8 unk13B;
 } CardInfo;
@@ -768,12 +772,12 @@ typedef struct {
     /* 0x0050 */ s16 unk50;
     /* 0x0052 */ s16 unk52;
     /* 0x0054 */ s16 unk54;
-    /* 0x0056 */ s16 unk56;
+    /* 0x0056 */ u16 unk56;
     /* 0x0058 */ u8 unk58[0x28];
     /* 0x0080 */ Deck unk80[3];
     /* 0x0848 */ s16 unk848[0x20];
-    /* 0x0888 */ s16 unk888[0x8E];
-    /* 0x09A4 */ s16 unk9A4[0x8E];
+    /* 0x0888 */ u16 unk888[0x8E];
+    /* 0x09A4 */ u16 unk9A4[0x8E];
     /* 0x0AC0 */ u16 unkAC0[0x9F];
     /* 0x0BFE */ u16 unkBFE[0x9F];
     /* 0x0D3C */ s16 unkD3C[0xBF][3];
@@ -2296,7 +2300,7 @@ void func_80016948(s32 n) {
             for (j = 0; j < 4; j++) {
                 func_8001E6EC(0xC, &p->ft4a[j], 0, 0);
                 p->ft4a[j].tpage = tpage;
-                func_8001E6EC(0xE, p->linea[j], 0, 0);
+                func_8001E6EC(0xE, &p->linea[j], 0, 0);
                 func_8001E6EC(0xE, &p->lineb[j], 0, 0);
                 func_8001E6EC(0xE, &p->linec[j], 0, 0);
             }
@@ -2306,9 +2310,9 @@ void func_80016948(s32 n) {
                 func_8001E6EC(0xC, &p->ft4c[j], 0, 0);
                 p->ft4c[j].tpage = tpage;
             }
-            func_8001E6EC(0xE, p->lineF0, 0, 0);
-            p->unkFC = 0;
-            p->unkFD = 0;
+            func_8001E6EC(0xE, &p->frame, 0, 0);
+            p->frame.u0 = 0;
+            p->frame.v0 = 0;
             SetDrawTPage(p->tpage, 0, 1, tpage);
             r[0] = 0;
             r[1] = 0;
@@ -2465,14 +2469,26 @@ void func_8001705C(s16 *arg0, s32 arg1, s32 arg2) {
 }
 
 #define WP ((PanelPrims *)D_800897E8)
-extern u8 D_8006DD70[][15];
+typedef struct {
+    /* 0x0 */ u8 u[3];
+    /* 0x3 */ u8 v[3];
+    /* 0x6 */ u8 w[2];
+    /* 0x8 */ u8 h[2];
+    /* 0xA */ u8 left;
+    /* 0xB */ u8 top;
+    /* 0xC */ u8 right;
+    /* 0xD */ u8 bottom;
+    /* 0xE */ u8 label;
+} WindowStyle;
+
+extern WindowStyle D_8006DD70[];
 s32 func_800177E8(Unk80016F38 *);
 void func_800176E4(Rect16 *a, Rect16 *b);
 void GetDispEnv(DISPENV *);
 void SetDrawArea(DR_AREA *, Rect16 *);
 void func_80027DB8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80028228(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_80017B88(Rect16 *, s32, s32, s32, s32, s32);
+void func_80017B88(Rect16 *, u8, s32, s32, s32, s32);
 
 s32 func_800170F0(Unk80016F38 *w, void (*draw)(), s32 z) {
     DISPENV env;
@@ -2521,7 +2537,7 @@ s32 func_800170F0(Unk80016F38 *w, void (*draw)(), s32 z) {
         func_800176E4(&r2, &r);
         SetDrawArea((DR_AREA *)&WP->unk264[0x18], (Rect16 *)&env);
         addPrim(&D_800793A0->ot[z], &WP->unk264[0x18]);
-        if (w->unk2C != 0 && (w->unk3F & 8) && (kind = D_8006DD70[(w->unk42 >> 4) - 1][0xE]) != 0) {
+        if (w->unk2C != 0 && (w->unk3F & 8) && (kind = D_8006DD70[(w->unk42 >> 4) - 1].label) != 0) {
             switch (kind) {
             case 1:
                 r3.x = r.x;
@@ -8771,6 +8787,39 @@ s32 func_8002DCB0(s32, s32, s8, s32);
 extern s32 D_801D81B8;
 
 extern void *D_801D8340;
+
+typedef struct {
+    /* 0x000 */ u8 unk0[0x58];
+    /* 0x058 */ u8 *unk58;
+    /* 0x05C */ u8 unk5C[0x786];
+    /* 0x7E2 */ u8 unk7E2[9][4];
+    /* 0x806 */ u8 unk806[2];
+    /* 0x808 */ s16 fade;
+    /* 0x80A */ u8 unk80A[6];
+    /* 0x810 */ s8 state;
+    /* 0x811 */ s8 unk811;
+    /* 0x812 */ s8 unk812;
+    /* 0x813 */ s8 unk813;
+    /* 0x814 */ s8 unk814;
+    /* 0x815 */ s8 unk815;
+    /* 0x816 */ u8 unk816;
+    /* 0x817 */ s8 unk817;
+    /* 0x818 */ s8 unk818;
+    /* 0x819 */ u8 unk819[2];
+    /* 0x81B */ u8 unk81B;
+    /* 0x81C */ s8 unk81C;
+    /* 0x81D */ s8 unk81D;
+    /* 0x81E */ u8 unk81E;
+    /* 0x81F */ s8 unk81F;
+    /* 0x820 */ u8 unk820[4];
+    /* 0x824 */ s8 unk824;
+    /* 0x825 */ u8 unk825;
+    /* 0x826 */ u8 unk826;
+    /* 0x827 */ u8 unk827[0x15];
+    /* 0x83C */ s32 unk83C;
+} Duel;
+
+#define DUEL ((Duel *)D_801D8340)
 void func_8002DEA0(s32 arg0, void *arg1) {
     s32 temp_s5;
     s32 temp_s6;
@@ -10882,16 +10931,362 @@ void func_800395A0(void) {
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/game", D_800110F8);
+typedef struct {
+    /* 0x00 */ u8 unk0[4];
+    /* 0x04 */ s16 clut;
+    /* 0x06 */ u8 unk6[7];
+    /* 0x0D */ u8 state;
+    /* 0x0E */ u8 unkE[2];
+    /* 0x10 */ s16 x;
+    /* 0x12 */ s16 y;
+    /* 0x14 */ u8 unk14[0x10];
+} InfoPanel;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80039730);
+extern u8 *D_8006E47C[];
+extern u8 *D_8006E4BC[];
+extern u8 D_8006E4FC[];
+s32 func_80040220(s32);
+s32 func_80040124(s32);
+s32 func_80041214(s32);
+void func_80042BBC(s32, s32, s32, s32, u8 *);
+void func_800446A4(s32, s32, s32);
+void func_80044504(s32, s32, s32, s32, s32);
+
+#define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
+#define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
+
+void func_80039730(s32 n, s32 z) {
+    s32 p = n / 6;
+    InfoPanel *panel = (InfoPanel *)D_801D83EC + n;
+    char buf[72];
+    u8 rgb[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
+    char buf2[40];
+    u8 *cols[10];
+    CardInfo *card;
+    s32 color;
+    s32 i;
+    s32 k;
+    s32 rival;
+    s32 x;
+    s32 y;
+
+    switch (n) {
+    case 2:
+    case 8: {
+        s32 idx;
+
+        idx = func_80040764(p);
+        if (idx >= 0) {
+            color = PLAYER(p)->unk178_15 ? 3 : 7;
+            card = (CardInfo *)PLAYER(p)->cards[idx % 30].card;
+            func_80027DB8(panel->x - p * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
+            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[1]);
+            func_80028D18(panel->x + 42 + p * 25, panel->y + 11, (s32)buf, color, z);
+            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[2]);
+            func_80028D18(panel->x + 42 + p * 25, panel->y + 24, (s32)buf, color, z);
+            sprintf(buf, "*s0%4d", PLAYER(p)->unk126[3]);
+            func_80028D18(panel->x + 42 + p * 25, panel->y + 37, (s32)buf, color, z);
+            func_80027DB8(panel->x + 24 + p * 24, panel->y + 51, (s32)D_8006E47C[card->unkE4], 7, z);
+        }
+        sprintf(buf, "*s0%2d", PLAYER(p)->unk126[4]);
+        func_80028D18(panel->x + 6 + p * 93, panel->y + 9, (s32)buf, 7, z);
+        k = 8 - func_80041214(p);
+        if (k != 0) {
+            CUR_SPRT->sp.x0 = panel->x + 3 + p * 94;
+            CUR_SPRT->sp.y0 = panel->y + 50;
+            CUR_SPRT->sp.u0 = 0xF0;
+            CUR_SPRT->sp.v0 = 0x47;
+            CUR_SPRT->sp.clut = getClut(800, k + 0x1F7);
+            CUR_SPRT->sp.w = 16;
+            CUR_SPRT->sp.h = 8;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = 0x80;
+            CUR_SPRT->sp.g0 = 0x80;
+            CUR_SPRT->sp.b0 = 0x80;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+        }
+        break;
+    }
+    case 5:
+    case 11:
+        if (panel->state == 5) {
+            CUR_SPRT->sp.x0 = panel->x + 5;
+            CUR_SPRT->sp.y0 = panel->y - 56 + p * 64;
+            CUR_SPRT->sp.u0 = 0;
+            CUR_SPRT->sp.v0 = 0xBA;
+            CUR_SPRT->sp.clut = 0x7CF3;
+            CUR_SPRT->sp.w = 32;
+            CUR_SPRT->sp.h = 62;
+            setSemiTrans(&CUR_SPRT->sp, 1);
+            CUR_SPRT->sp.r0 = 0x80;
+            CUR_SPRT->sp.g0 = 0x80;
+            CUR_SPRT->sp.b0 = 0x80;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x3D);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+        }
+        break;
+    case 4:
+    case 10:
+        sprintf(buf, "%s Deck", PLAYER(p)->unk0 + 1);
+        func_80028D18(panel->x + 1 + (0x82 - func_800293FC((u8 *)buf)) / 2, panel->y + 0x33 + p * -50, (s32)buf, 7, z);
+        func_80028D18(panel->x + 0x85 + (0x78 - func_800293FC((u8 *)PLAYER(p)->unk1CE)) / 2, panel->y + 0x33 + p * -50,
+                      (s32)PLAYER(p)->unk1CE, 7, z);
+        k = func_80040220(p) >= 8 ? 7 : 2;
+        sprintf(buf, "*s0%2d", func_80040220(p));
+        func_80028D18(panel->x + 4 + p * 0xEC, panel->y + 0x1E + p * 14, (s32)buf, k, z);
+        sprintf(buf, "*s0%2d", func_80040124(p));
+        func_80028D18(panel->x + 4 + p * 0xEC, panel->y + 6 + p * 14, (s32)buf, 7, z);
+        for (k = 0; k < PLAYER(p)->unk17C; k++) {
+            func_800446A4(panel->x + 0xDF + p * -0xDD, panel->y + 4 + p * 13 + k * 15, 0x4A);
+        }
+        break;
+    case 0:
+    case 6: {
+        s32 back;
+        s32 shift;
+
+        if (*(s16 *)(DUEL->unk58 + 2) == -1) {
+            break;
+        }
+        back = DUEL->unk7E2[DUEL->unk826][0];
+        if (back == 1) {
+            if (func_80029990() != 0) {
+                break;
+            }
+            CUR_SPRT->sp.x0 = panel->x;
+            CUR_SPRT->sp.y0 = panel->y + 7;
+            CUR_SPRT->sp.u0 = (DUEL->unk826 & 1) << 6;
+            CUR_SPRT->sp.v0 = ((DUEL->unk826 >> 1) << 6) + 0x40;
+            CUR_SPRT->sp.clut = (0x1FF - DUEL->unk826) << 6;
+            CUR_SPRT->sp.w = 64;
+            CUR_SPRT->sp.h = 64;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = 0x80;
+            CUR_SPRT->sp.g0 = 0x80;
+            CUR_SPRT->sp.b0 = 0x80;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x9A);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+        } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
+            func_80042BBC(panel->x, panel->y + 7, z, p, 0);
+        } else {
+            func_80042BBC(panel->x, panel->y + 7, z, p, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
+        }
+        if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19) {
+            func_80028D18(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
+            break;
+        }
+        if (DUEL->unk81C == 4) {
+            if (DUEL->unk81D == 4) {
+                sprintf(buf2, "*h-1All-or-Nothing\nGamble!\nCards left in the\nOnline Deck are %d.",
+                        func_80040220(DUEL->unk81B));
+            } else {
+                sprintf(buf2, "*h-1Cards left in the\nOnline Deck is %d.", func_80040220(DUEL->unk81B));
+            }
+            func_80028D18(panel->x + 0x8E, panel->y + 0x10, (s32)buf2, 7, z);
+            break;
+        }
+        for (i = 0; i < 10; i++) {
+            cols[i] = rgb[0];
+        }
+        switch (DUEL->unk81D) {
+        case 1:
+            cols[0] = rgb[1];
+            cols[1] = rgb[1];
+            cols[7] = rgb[1];
+            cols[8] = rgb[1];
+            cols[9] = rgb[1];
+            break;
+        case 2:
+            for (i = 0; i < 10; i++) {
+                cols[i] = rgb[1];
+            }
+            cols[1] = rgb[0];
+            break;
+        case 3:
+        case 6:
+            cols[1] = rgb[1];
+            cols[7] = rgb[1];
+            cols[8] = rgb[1];
+            cols[9] = rgb[1];
+            break;
+        case 4:
+            for (i = 0; i < 10; i++) {
+                cols[i] = rgb[1];
+            }
+            cols[7] = rgb[0];
+            cols[8] = rgb[0];
+            break;
+        case 5:
+            for (i = 0; i < 10; i++) {
+                cols[i] = rgb[1];
+            }
+            cols[9] = rgb[0];
+            break;
+        }
+        switch (PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].state) {
+        case 0:
+            card = (CardInfo *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            sprintf(buf, "*s0%2d", card->unk1B);
+            func_80028D48(panel->x + 0x7A, panel->y + 0x17, (s32)buf, (s32 *)cols[0], 7, z);
+            sprintf(buf, "*s0%2d", card->level);
+            func_80028D48(panel->x + 0x7C, panel->y + 0x2D, (s32)buf, (s32 *)cols[1], 7, z);
+            if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
+                if (DUEL->unk81C < 4 && DUEL->unk81B == DUEL->unk817) {
+                    if (DUEL->unk81D == 1) {
+                        shift = card->attr & 0xF;
+                    } else {
+                        shift = PLAYER(p)->unk178_15;
+                    }
+                    shift--;
+                    color = 3;
+                    if (shift <= 0) {
+                        color = 7;
+                        shift = 0;
+                    }
+                    sprintf(buf, "*s0%4d", (card->hp >> shift) / 10 * 10);
+                    func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], color, z);
+                    for (i = 0; i < 3; i++) {
+                        sprintf(buf, "*s0%4d", (card->attack[i].power >> shift) / 10 * 10);
+                        x = panel->x;
+                        y = panel->y;
+                        func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], color, z);
+                    }
+                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+                } else if (DUEL->unk81C == 6) {
+                    color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+                    for (i = 0; i < 4; i++) {
+                        sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                        x = panel->x;
+                        y = panel->y;
+                        func_80028D48(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                    }
+                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+                } else {
+                    sprintf(buf, "*s0%4d", card->hp);
+                    func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                    for (i = 0; i < 3; i++) {
+                        sprintf(buf, "*s0%4d", card->attack[i].power);
+                        x = panel->x;
+                        y = panel->y;
+                        func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                    }
+                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+                }
+            } else if (DUEL->unk81C == 6) {
+                color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+                for (i = 0; i < 4; i++) {
+                    sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                    x = panel->x;
+                    y = panel->y;
+                    func_80028D48(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                }
+                func_800299DC(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+            } else {
+                sprintf(buf, "*s0%4d", card->hp);
+                func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                for (i = 0; i < 3; i++) {
+                    sprintf(buf, "*s0%4d", card->attack[i].power);
+                    x = panel->x;
+                    y = panel->y;
+                    func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                }
+                func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+            }
+            func_80027DE8(panel->x + 0x44, panel->y + 0x40, D_8006E47C[card->unkE4], 7, cols[6], z);
+            if (D_8006E4FC[card->unkE4] != 0) {
+                func_800299DC(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+            }
+            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
+            func_800299DC(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
+            if (card->unkE6 != 0) {
+                func_800299DC(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
+            }
+            for (i = 0; i < 4; i++) {
+                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)cols[7], 7, z);
+            }
+            break;
+        case 1: {
+            s8 *opt;
+
+            opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            func_800299DC(panel->x + 0xC3, panel->y + 1, 0, 5, z);
+            if (opt[0x8C] != 0) {
+                func_800299DC(panel->x + 0xE3, panel->y + 2, 0, opt[0x8C] + 0x14, z);
+            }
+            for (i = 0; i < 4; i++) {
+                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x8D + i * 21), (s32 *)cols[8], 7,
+                              z);
+            }
+            break;
+        }
+        case 2: {
+            s8 *opt;
+
+            opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            func_800299DC(panel->x + 0xC3, panel->y + 1, 0, 6, z);
+            for (i = 0; i < 4; i++) {
+                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x1B + i * 21), (s32 *)cols[9], 7,
+                              z);
+            }
+            break;
+        }
+        }
+        break;
+    }
+    case 1:
+    case 7:
+        card = (CardInfo *)PLAYER(p)->cards[func_80040764(p) % 30].card;
+        color = PLAYER(p)->unk178_15 ? 3 : 7;
+        func_80028D18(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
+        sprintf(buf, "*s0%4d", PLAYER(p)->unk11C[0]);
+        func_80028D18(panel->x + 0x82, panel->y + 1, (s32)buf, color, z);
+        func_80029A0C(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, rgb[0], z);
+        func_80029A0C(panel->x + 0xB6, panel->y + 2, 0, PLAYER(p)->unk178_19, rgb[0], z);
+        for (k = 0; k < 3; k++) {
+            func_80028D18(panel->x + 0x25, panel->y + 13 + k * 12, (s32)card->attack[k].name, 7, z);
+            sprintf(buf, "*s0%4d", PLAYER(p)->unk15C[k]);
+            func_80028D18(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)buf, color, z);
+        }
+        func_80028D18(panel->x + 0x47, panel->y + 0x32, (s32)D_8006E4BC[card->unkE4], 7, z);
+        if (D_8006E4FC[card->unkE4] != 0) {
+            func_800299DC(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+        }
+        if (PLAYER(p)->unk178_2 != 3) {
+            if (PLAYER(p)->unk178_4 != PLAYER(p)->unk178_2) {
+                PLAYER(p)->unk16E = 0;
+            }
+            PLAYER(p)->unk178_4 = PLAYER(p)->unk178_2;
+            if (PLAYER(p)->unk16E < 28) {
+                PLAYER(p)->unk16E++;
+                panel->clut = getClut(784, p * 8 + 0x1F0 + PLAYER(p)->unk16E / 4);
+            } else {
+                panel->clut = getClut(784, p * 8 + 0x1F7);
+            }
+        } else {
+            PLAYER(p)->unk178_4 = 3;
+            panel->clut = getClut(784, p * 8 + 0x1F0);
+        }
+        rival = DUEL->unk817 != p;
+        func_80044504(panel->x + 0xA7, panel->y + 0x32, rival, 0x80, z);
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003B210);
 
 void func_8003B210(s32, s32);
 void func_80044800(void);
 typedef struct {
-    /* 0x00 */ u32 rgbc;
+    /* 0x00 */ u8 rgbc[4];
     /* 0x04 */ u8 fade[4];
     /* 0x08 */ u8 from[3];
     /* 0x0B */ u8 t;
@@ -10913,8 +11308,6 @@ typedef struct {
 
 void func_80044AB0(CardSprite *, s32);
 
-#define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
-#define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
 
 void func_8003D4C4(void) {
     char buf[8];
@@ -11833,12 +12226,12 @@ s32 func_8004080C(s32 idx, s32 p) {
             PLAYER(p)->unk1CA[k] = idx;
             PLAYER(p)->unk178_19 = ((u8)card[0x1A] >> 4);
             PLAYER(p)->unk11C[0] = (*(s16 *)(card + 0x1E) >> shift) / 10 * 10;
-            PLAYER(p)->unk15C = (*(s16 *)(card + 0x20) >> shift) / 10 * 10;
-            PLAYER(p)->unk15E = (*(s16 *)(card + 0x3C) >> shift) / 10 * 10;
-            PLAYER(p)->unk160 = (*(s16 *)(card + 0x58) >> shift) / 10 * 10;
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk15C[0] = (*(s16 *)(card + 0x20) >> shift) / 10 * 10;
+            PLAYER(p)->unk15C[1] = (*(s16 *)(card + 0x3C) >> shift) / 10 * 10;
+            PLAYER(p)->unk15C[2] = (*(s16 *)(card + 0x58) >> shift) / 10 * 10;
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
             PLAYER(p)->unk178_30 = 0;
             return 0;
         }
@@ -11869,12 +12262,12 @@ s32 func_80040A48(s32 p, s32 deck) {
         if (PLAYER(p)->unk1CA[k] == c) {
             PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
             PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
-            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
-            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
-            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk15C[0] = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15C[1] = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk15C[2] = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
             PLAYER(p)->unk178_30 = 0;
             PLAYER(p)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10);
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[deck + 1];
@@ -11907,12 +12300,12 @@ s32 func_80040D88(s32 p, s32 deck) {
         if (PLAYER(p)->unk1CA[k] == c) {
             PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
             PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
-            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
-            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
-            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk15C[0] = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15C[1] = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk15C[2] = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
             PLAYER(p)->unk178_30 = 0;
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[0];
             return 0;
@@ -12664,7 +13057,7 @@ void func_80044AB0(CardSprite *o, s32 k) {
     v[3].vx = (o->scale * 40) / 8192;
     v[3].vy = (o->scale * 48) / 8192;
     v[3].vz = 0;
-    col = &o->rgbc;
+    col = (u32 *)o->rgbc;
     fade = (u32 *)o->fade;
     buf = (RawPolyFT4 *)D_800793A0->unk4078[10];
     nclip = RotAverageNclip4((s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], (s32)&sxy[0], (s32)&sxy[1],
