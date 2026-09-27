@@ -462,7 +462,19 @@ typedef struct {
     /* 0x11C */ s16 unk11C[5];
     /* 0x126 */ s16 unk126[5];
     /* 0x130 */ Popup unk130[5];
-    /* 0x158 */ u8 unk158[0x25];
+    /* 0x158 */ u8 unk158[4];
+    /* 0x15C */ s16 unk15C;
+    /* 0x15E */ s16 unk15E;
+    /* 0x160 */ s16 unk160;
+    /* 0x162 */ u8 unk162[0x16];
+    /* 0x178 */ u32 unk178_0 : 15;
+    /* 0x178 */ u32 unk178_15 : 2;
+    /* 0x178 */ u32 unk178_17 : 2;
+    /* 0x178 */ u32 unk178_19 : 3;
+    /* 0x178 */ u32 unk178_22 : 8;
+    /* 0x178 */ u32 unk178_30 : 1;
+    /* 0x178 */ u32 unk178_31 : 1;
+    /* 0x17C */ u8 unk17C;
     /* 0x17D */ s8 unk17D[30];
     /* 0x19B */ s8 unk19B[30];
     /* 0x1B9 */ s8 unk1B9[4];
@@ -7992,7 +8004,36 @@ s32 func_800407B4(s32 arg0) {
     return count;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8004080C);
+s32 func_8004080C(s32 idx, s32 p) {
+    s8 *card;
+    s32 shift;
+    s32 k;
+
+    if (idx == -1) {
+        return -1;
+    }
+    card = PLAYER(p)->cards[idx % 30].card;
+    shift = PLAYER(p)->unk178_15 - 1;
+    if (shift < 0) {
+        shift = 0;
+    }
+    for (k = 2; k >= 0; k--) {
+        if (PLAYER(p)->unk1CA[k] == -1 || PLAYER(p)->unk1CA[k] == idx) {
+            PLAYER(p)->unk1CA[k] = idx;
+            PLAYER(p)->unk178_19 = ((u8)card[0x1A] >> 4);
+            PLAYER(p)->unk11C[0] = (*(s16 *)(card + 0x1E) >> shift) / 10 * 10;
+            PLAYER(p)->unk15C = (*(s16 *)(card + 0x20) >> shift) / 10 * 10;
+            PLAYER(p)->unk15E = (*(s16 *)(card + 0x3C) >> shift) / 10 * 10;
+            PLAYER(p)->unk160 = (*(s16 *)(card + 0x58) >> shift) / 10 * 10;
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk178_30 = 0;
+            return 0;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80040A48);
 
