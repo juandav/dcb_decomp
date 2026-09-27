@@ -3,9 +3,8 @@
 
 Each C file of the game (src/main/<subsystem>/<module>.c) is a unit, like
 jype0/dw_decomp does: its target object is splat's full disassembly of that
-segment (asm/main/<path>.s), plus the segment's .data and .bss if splat
-split any out (asm/main/data/<path>.{data,bss}.s). The game's data that no
-module owns yet (asm/main/data/game.{data,bss}.s, still assembly) is
+segment (asm/main/<path>.s), which holds its .rodata and .data too. The
+game's data that no module owns (asm/main/data/game.*.s, the .bss) is
 reported with main.
 
 objdiff counts a data section as matched only when all of it matches, so
@@ -130,8 +129,7 @@ def unit(module: str, data: list) -> dict:
 
 
 def data_objects(name: str) -> list:
-    """splat's .data and .bss objects for the segment NAME (its .rodata is
-    already in the segment's full disassembly)."""
+    """splat's data objects for the data segment NAME."""
     paths = [f"expected/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
     return [p for p in paths if (ROOT / p).exists()]
 
@@ -139,10 +137,7 @@ def data_objects(name: str) -> list:
 def main() -> None:
     units = []
     for module in game_modules():
-        data = data_objects(module)
-        if module == "main":
-            data += data_objects(UNOWNED_DATA)
-        units.append(unit(module, data))
+        units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main" else []))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",
