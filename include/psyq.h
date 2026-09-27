@@ -52,7 +52,7 @@ typedef struct PadPort {
     /* 0x04 */ long unk4;
     /* 0x08 */ long unk8;
     /* 0x0C */ struct PadPort *unkC;
-    /* 0x10 */ u8 unk10[4];
+    /* 0x10 */ struct PadPort *unk10;
     /* 0x14 */ void (*unk14)();
     /* 0x18 */ void (*unk18)();
     /* 0x1C */ u8 unk1C[4];
@@ -61,7 +61,7 @@ typedef struct PadPort {
     /* 0x25 */ u8 unk25[3];
     /* 0x28 */ u_char *actTable;
     /* 0x2C */ u_char *data;
-    /* 0x30 */ u8 unk30[4];
+    /* 0x30 */ u_char *unk30;
     /* 0x34 */ u_char actLen;
     /* 0x35 */ u8 unk35;
     /* 0x36 */ u_char len;
