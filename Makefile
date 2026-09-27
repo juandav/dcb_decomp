@@ -139,7 +139,7 @@ $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
-	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(notdir $*) > $(@:.o=.s)
+	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/main/%,%,$*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
 	@# the game's data lives in asm/; a C file's empty .data/.bss must not
 	@# realign the sections they are linked into (gas gives them 16)

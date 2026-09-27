@@ -14,7 +14,7 @@ maspsx).
 Functions that differ are printed side by side (ours | original) with the
 differing instructions marked with **.
 """
-import sys,subprocess,struct,re,os,tempfile
+import sys,subprocess,struct,re,os,tempfile,glob
 from elftools.elf.elffile import ELFFile
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
@@ -24,7 +24,6 @@ nocse='--nocse' in args
 psyq='--psyq' in args or gcc28 or nocse
 args=[a for a in args if a not in ('--psyq','--gcc28','--nocse')]
 src=args[0]; want=set(args[1:])
-seg='psyq' if psyq else 'game'
 w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
 pre=""
 if gcc28:
@@ -85,8 +84,9 @@ for l in dis.splitlines():
 for i,(off,name) in enumerate(syms):
     if want and name not in want: continue
     m=re.match(r'func_([0-9A-F]{8})',name)
-    asm=f'{D}/asm/main/nonmatchings/{seg}/{name}.s'
-    if not os.path.exists(asm): print(name,'?'); continue
+    found=glob.glob(f'{D}/asm/main/*matchings/**/{name}.s',recursive=True)
+    if not found: print(name,'?'); continue
+    asm=found[0]
     t=open(asm).read()
     size=int(re.search(r'nonmatching \w+, 0x([0-9A-F]+)',t).group(1),16)
     addr=int(re.search(r'glabel '+name+r'\n\s+/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)

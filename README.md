@@ -70,9 +70,18 @@ decompiled once the whole executable still matches.
 |---|---|
 | `config/main.yaml` | splat config for `SLUS_013.28` |
 | `config/symbols.txt` | known symbols |
-| `src/main/game.c` | game code, `0x80013E4C`-`0x8004A610` |
-| `src/main/psyq.c` | PsyQ libraries, `0x8004A610`-`0x8006DD3C` |
-| `include/` | headers and assembler macros |
+| `src/main/` | game code, `0x80013E4C`-`0x8004A610`: `main.c`, `libmath.c` (soft-float) and one folder per subsystem |
+| `src/main/system/` | system setup, heap, CD files and archives, pad, memory card, sound |
+| `src/main/gfx/` | primitives, transforms, TMD sorting, fades |
+| `src/main/model/` | models and their animation, 3D scenes, stages, effects |
+| `src/main/ui/` | windows, menus, text and strings, the game shell |
+| `src/main/duel/` | the card duel, its rules and battle HUD |
+| `src/main/card/` | card data and card rendering, player data |
+| `src/main/script/` | the script interpreter |
+| `src/main/psyq/` | PsyQ libraries, `0x8004A610`-`0x8006DD3C`, one file per library object |
+| `include/game.h` | types and declarations shared by several modules |
+| `include/dcb/` | one header per module: its own types, data and functions |
+| `include/` | other headers and assembler macros |
 | `tools/` | build helpers |
 
 Memory map of `SLUS_013.28` (psylink puts `.rodata` in front of `.text`):
@@ -102,15 +111,13 @@ both side by side when they differ.
 
 ### Where to start
 
-- `src/main/game.c` is a single file for now. splat reports likely file
-  boundaries from the jump tables in `.rodata` (at `0x84C`, `0x860`, `0xF94`,
-  `0x10B0`, `0x18C4`, `0x1F38`, `0x2F4C` and `0x3618`), which are a good first
-  hint to split it into the original source files.
+- Each binary gets its own folder under `src/`; inside it, the files are
+  grouped by subsystem. New modules go in the folder of their subsystem.
 - The PsyQ functions were named from the
   [PsyQ 4.7 signatures](https://github.com/lab313ru/psx_psyq_signatures).
-  They can be split into one file per library object in the same way.
 - The game loads overlays from `P.DRV` (`ENDSEG`, `EVOSEG`, ...) above
-  `0x801DF000`; they are not part of the build yet.
+  `0x801DF000`; they are not part of the build yet. Each will get its own
+  `src/<overlay>/` folder.
 
 ## Links
 
