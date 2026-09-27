@@ -214,13 +214,13 @@ typedef struct SeqStruct {
     /* 0x88 */ long unk88;
     /* 0x8C */ long unk8C;
     /* 0x90 */ long delta;
-    /* 0x94 */ long unk94;
+    /* 0x94 */ u_long unk94;
     /* 0x98 */ long flags;
     /* 0x9C */ long unk9C;
     /* 0xA0 */ long unkA0;
     /* 0xA4 */ long unkA4;
     /* 0xA8 */ long unkA8;
-    /* 0xAC */ long unkAC;
+    /* 0xAC */ u_long unkAC;
 } SeqStruct;
 
 /* libsnd decoded ADSR */
