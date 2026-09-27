@@ -8021,7 +8021,64 @@ block_6:
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C1C0);
+s32 func_8002C1C0(s32 port) {
+    s32 r;
+    s32 tries;
+    s32 retry;
+
+    tries = 0;
+    retry = 0;
+loop:
+    func_8002BF60();
+    func_80068814(port * 16);
+    r = func_8002BE84(1);
+    if (r == 1 || r == 2) {
+        if (retry >= 5) {
+            return 1;
+        }
+        retry++;
+    } else {
+        if (r == 3) {
+            if (retry < 3) {
+                retry++;
+                goto wait;
+            }
+            retry++;
+            if (r == 3) {
+                func_8002C094();
+                _card_clear(port * 16);
+                r = func_8002BFB8(1);
+                if (r == 1 || r == 2) {
+                    retry = 0;
+                    if (tries >= 5) {
+                        return 1;
+                    }
+                    tries++;
+                    goto wait;
+                }
+            }
+        }
+        func_8002BF60();
+        func_80068824(port * 16);
+        r = func_8002BE84(0);
+        if (r == 0) {
+            goto done;
+        }
+        retry = 0;
+        if (tries >= 5) {
+            if (r == 3) {
+                return 2;
+            }
+            return 1;
+        }
+        tries++;
+    }
+wait:
+    func_80014C08(4);
+    goto loop;
+done:
+    return 0;
+}
 
 s32 _card_format(s32);
 
