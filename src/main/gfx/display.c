@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
 #include "dcb/cd_file.h"
 #include "dcb/heap.h"
 #include "dcb/angle.h"

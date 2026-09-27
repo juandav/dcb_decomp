@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/card_db.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
 #include "dcb/display.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
