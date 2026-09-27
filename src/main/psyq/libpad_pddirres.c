@@ -234,7 +234,69 @@ int func_8006BA48(PadPort *p) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BB58);
+int func_8006CADC(PadPort *p);
+
+void func_8006BB58(PadPort *p) {
+    int old;
+    u_char st;
+    int i;
+
+    if ((*p->unk3C & 0xF0) == 0) {
+        p->unk30[0] = 0xFF;
+        p->unk30[1] = 0;
+        p->unkE8 = 0;
+        p->unk35 = 0;
+        D_80077964(p);
+        return;
+    }
+    old = p->unkE8;
+    p->unkE8 = *(volatile u_char *)p->unk3C >> 4;
+    if (p->unkE8 == 0xF) {
+        p->unkE8 = old;
+    } else {
+        p->unk30[0] = 0;
+        p->unk30[1] = p->unk3C[0];
+        p->unk35 = p->unk44;
+        for (i = 2; i < p->unk44; i++) {
+            p->unk30[i] = p->unk3C[i];
+        }
+    }
+    if ((p->unk3C[1] == 0 && (p->unk46 != 1 || p->unk14 != NULL) && p->unk50 == 0) || p->unkE8 != old) {
+        D_80077964(p);
+    }
+    st = p->unk46;
+    p->unk4A = 0;
+    if (st == 0xFF) {
+        return;
+    }
+    if (st != 0 && p->cmd == 0) {
+        return;
+    }
+    if (st >= 2 && st < 0xFE && *p->unk3C != 0xF3) {
+        D_80077964(p);
+        return;
+    }
+    switch (p->unk46) {
+    case 0:
+        p->unk49 = 1;
+        p->unk46++;
+        break;
+    case 1:
+        p->unk47[0] = 0;
+        p->unk46++;
+        break;
+    case 0xFE:
+        p->unk46 = 0xFF;
+        break;
+    default:
+        if (p->unk18 != NULL) {
+            p->unk46 += p->unk18(p);
+        } else {
+            p->unk46 += func_8006CADC(p);
+        }
+        break;
+    }
+}
 
 extern void (*D_80077964)(PadPort *p);
 
