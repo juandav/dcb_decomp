@@ -178,6 +178,33 @@ static __inline__ int cd_read_wait(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadBreak);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdRead);
+int CdRead(int sectors, u_long *buf, int mode) {
+    cd_read_wait();
+    D_80070FD8->mode = mode;
+    switch (D_80070FD8->mode & (CdlModeSize0 | CdlModeSize1)) {
+    case 0:
+        D_80070FD8->size = 0x200;
+        break;
+    case CdlModeSize1:
+        D_80070FD8->size = 0x249;
+        break;
+    default:
+        D_80070FD8->size = 0x246;
+        break;
+    }
+    D_80070FD8->mode |= CdlModeSize1;
+    D_80070FD8->addr = buf;
+    D_80070FD8->nsector = sectors;
+    D_80070FD8->oldSync = func_8005B1C4(0);
+    D_80070FD8->oldReady = func_8005A3A4(0);
+    if (D_80070B4C & 1) {
+        D_80070FD8->oldData = func_8005A7A4(NULL);
+    }
+    D_80070FD8->stime = VSync(-1);
+    if (func_8005B174() & (CdlStatPlay | CdlStatSeek | CdlStatRead)) {
+        CdControlB(CdlPause, NULL, NULL);
+    }
+    return func_8005AB4C(0) > 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdReadSync);
