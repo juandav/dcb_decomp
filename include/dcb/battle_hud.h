@@ -90,13 +90,7 @@ void tickStatusPanel(s32 player);
 void func_8003E11C(s32 player);
 void tickAttackPanel(s32 player);
 void tickCardInfoPanel(s32 player);
-void initDuelState(s32 isCpuDuel);
-void startDuelScene(void);
-void spawnDuelTasks(s32 isCpuDuel);
-void teardownDuelScene(void);
 void renderBoardCards(void);
 void tickBattleHud(void);
-void renderDuelFrame(void);
-void runDuel();
 
 #endif /* DCB_BATTLE_HUD_H */

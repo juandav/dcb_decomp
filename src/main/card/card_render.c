@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/card_render.h"
 #include "dcb/battle_hud.h"
+#include "dcb/duel_session.h"
 #include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
