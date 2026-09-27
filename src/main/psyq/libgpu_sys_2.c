@@ -426,7 +426,46 @@ int func_80066148(RECT *rect, u_long *p) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066384);
+int func_80066384(RECT *rect, u_long *p) {
+    int size;
+    int blocks;
+    int n;
+
+    func_80066E84();
+    rect->w = LIMIT(rect->w, 0, D_80076758.w);
+    rect->h = LIMIT(rect->h, 0, D_80076758.h);
+    size = (rect->w * rect->h + 1) / 2;
+    if (size <= 0) {
+        return -1;
+    }
+    n = size % 16;
+    blocks = size / 16;
+    while (!(*D_80076860 & 0x4000000)) {
+        if (func_80066EB8()) {
+            return -1;
+        }
+    }
+    *D_80076860 = 0x4000000;
+    *D_8007685C = 0x1000000;
+    *D_8007685C = 0xC0000000;
+    *D_8007685C = *(u_long *)&rect->x;
+    *D_8007685C = *(u_long *)&rect->w;
+    while (!(*D_80076860 & 0x8000000)) {
+        if (func_80066EB8()) {
+            return -1;
+        }
+    }
+    while (n--) {
+        *p++ = *D_8007685C;
+    }
+    if (blocks) {
+        *D_80076860 = 0x4000003;
+        *D_80076864 = (u_long)p;
+        *D_80076868 = (blocks << 16) | 0x10;
+        *D_8007686C = 0x1000200;
+    }
+    return 0;
+}
 
 void func_80066604(u_long value) {
     *D_80076860 = value;
