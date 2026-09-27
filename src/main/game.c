@@ -434,7 +434,9 @@ typedef struct {
     /* 0x0030 */ u8 unk30[0xC];
     /* 0x003C */ u8 unk3C[0x44];
     /* 0x0080 */ Deck unk80[3];
-    /* 0x0848 */ u8 unk848[0xC6A];
+    /* 0x0848 */ u8 unk848[0x278];
+    /* 0x0AC0 */ u16 unkAC0[0x9F];
+    /* 0x0BFE */ u8 unkBFE[0x8B4];
     /* 0x14B2 */ u8 unk14B2[0x12D];
     /* 0x15DF */ u8 unk15DF;
     /* 0x15E0 */ u16 unk15E0[301][6];
@@ -6869,7 +6871,35 @@ void *func_80046088(s32 arg0) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046118);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800461C0);
+void func_800461C0(s32 a) {
+    u8 count[0x12D];
+    SavedDeck *decks;
+    s32 i;
+    s32 j;
+    s32 missing;
+
+    decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
+    for (i = 0; i < 0x9F; i++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unkAC0[i] & 0x8000) {
+            for (j = 0; j < 0x12D; j++) {
+                count[j] = 0;
+            }
+            for (j = 0; j < 30; j++) {
+                count[decks[i].cards[j]]++;
+            }
+            missing = 0;
+            for (j = 0; j < 0x12D; j++) {
+                if ((((Unk8006E050 *)D_8006E050)[a].unk14B2[j] & 7) < count[j]) {
+                    missing = 1;
+                    break;
+                }
+            }
+            if (!missing) {
+                ((Unk8006E050 *)D_8006E050)[a].unkAC0[i] |= 0x4000;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8004635C);
 
