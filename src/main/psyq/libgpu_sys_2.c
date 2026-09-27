@@ -67,7 +67,10 @@ int ClearImage(RECT *rect, u_char r, u_char g, u_char b) {
     return D_80076750->addque(D_80076750->unkC, rect, 8, (b << 16) | (g << 8) | r);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearImage2);
+int ClearImage2(RECT *rect, u_char r, u_char g, u_char b) {
+    func_800649E8("ClearImage2", rect);
+    return D_80076750->addque(D_80076750->unkC, rect, 8, 0x80000000 | (b << 16) | (g << 8) | r);
+}
 
 int LoadImage(RECT *rect, u_long *p) {
     func_800649E8("LoadImage", rect);
