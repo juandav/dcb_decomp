@@ -79,7 +79,20 @@ int StoreImage(RECT *rect, u_long *p) {
     return D_80076750->addque(D_80076750->unk1C, rect, 8, (long)p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", MoveImage);
+extern char D_800139E0[];
+extern u_long D_800767F0[5];
+
+int MoveImage(RECT *rect, int x, int y) {
+    func_800649E8(D_800139E0, rect);
+    if (rect->w == 0 || rect->h == 0) {
+        return -1;
+    }
+    D_800767F0[2] = *(u_long *)&rect->x;
+    D_800767F0[3] = (y << 16) | (x & 0xFFFF);
+    D_800767F0[4] = *(u_long *)&rect->w;
+    return D_80076750->addque(D_80076750->unk18, D_800767F0, sizeof(D_800767F0), 0);
+}
+
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139D4);
 
