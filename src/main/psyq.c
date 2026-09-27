@@ -1714,7 +1714,18 @@ void SetDrawTPage(DR_TPAGE *p, int dfe, int dtd, int tpage) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", MargePrim);
+int MargePrim(void *p0, void *p1) {
+    int len = getlen(p0) + getlen(p1) + 1;
+
+    if (len > 16) {
+        return -1;
+    }
+    setlen(p0, len);
+    *(u_long *)p1 = 0;
+    return 0;
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetTexWindow);
 
