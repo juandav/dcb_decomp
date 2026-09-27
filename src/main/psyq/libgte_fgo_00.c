@@ -14,7 +14,55 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", RotAverage3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTNF3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTG3NL);
+extern u_char D_801DBFA4;
+void func_8005D104(u_long *sz0, u_long *sz1, u_long *sz2);
+POLY_GT3 *RCpolyGT3A(POLY_GT3 *pk, DIVPOLYGON3 *divp, long n, CRVECTOR3 *cr);
+
+u_long *GsTMDdivTG3NL(TMD_P_TG3 *op, SVECTOR *vp, SVECTOR *np, POLY_GT3 *pk, u_long n, u_long shift, GsOT *ot,
+                      DIVPOLYGON3 *divp) {
+    RVECTOR *r0;
+    RVECTOR *r1;
+    RVECTOR *r2;
+    CRVECTOR3 *cr;
+    long p;
+    u_short otz;
+    long flag;
+    u_long col;
+    u_long i;
+
+    col = 0x34808080;
+    r0 = &divp->r0;
+    r1 = &divp->r1;
+    r2 = &divp->r2;
+    cr = &divp->cr[0];
+    cr->r0 = r0;
+    cr->r1 = r1;
+    cr->r2 = r2;
+    for (i = 0; i < n; op++, i++) {
+        r0->v = vp[op->v0];
+        r1->v = vp[op->v1];
+        r2->v = vp[op->v2];
+        if (RotAverageNclip3(&r0->v, &r1->v, &r2->v, (long *)&r0->sxy, (long *)&r1->sxy, (long *)&r2->sxy, &p,
+                             (long *)&otz, &flag) <= 0) {
+            continue;
+        }
+        func_8005D104(&r0->sz, &r1->sz, &r2->sz);
+        divp->ot = ot->org + ((otz - ot->offset) >> shift);
+        divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
+        divp->clut = op->clut;
+        divp->tpage = op->tpage;
+        *(u_long *)&r0->c = col;
+        *(u_long *)&r1->c = col;
+        *(u_long *)&r2->c = col;
+        *(u_long *)r0->uv = *(u_long *)&op->tu0;
+        *(u_long *)r1->uv = *(u_long *)&op->tu1;
+        *(u_long *)r2->uv = *(u_long *)&op->tu2;
+        pk = RCpolyGT3A(pk, divp, 0, cr);
+    }
+    return (u_long *)pk;
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsTMDdivTNG3);
 
