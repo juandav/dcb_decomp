@@ -153,7 +153,7 @@ libgte_func_8002b018
 libgte_fgo_00
 libgte_patchgte
 libgs_gs_001 gcc2.8
-libgs_gs_0022
+libgs_gs_0022 nocse
 libgs_gs_003 nocse
 libgs_matrix9
 libgte_mtx_004
