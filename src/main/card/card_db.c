@@ -1,6 +1,11 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/card_db.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/memcard.h"
+#include "dcb/shell.h"
 
 void func_800457FC(void) {
     u8 *hdr;

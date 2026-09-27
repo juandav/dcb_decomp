@@ -1,6 +1,14 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/card_render.h"
+#include "dcb/battle_hud.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/memcard.h"
+#include "dcb/prim_util.h"
+#include "dcb/text.h"
 
 void func_800416D8(s32 n) {
     u8 *buf;

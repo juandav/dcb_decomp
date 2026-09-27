@@ -1,6 +1,15 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/scene3d.h"
+#include "dcb/effect.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/model.h"
+#include "dcb/stage.h"
+#include "dcb/tmd_sort.h"
+#include "dcb/window.h"
 
 void func_80023DF0(Unk800793A0 *db, s32 idx) {
     MATRIX ls;

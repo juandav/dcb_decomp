@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/tmd_sort.h"
+#include "dcb/main.h"
 
 INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F3C0);
 

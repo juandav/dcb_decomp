@@ -1,6 +1,10 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/memcard.h"
+#include "dcb/heap.h"
+#include "dcb/main.h"
+#include "dcb/sound.h"
 
 void func_8002BB58(u32 arg0) {
     s32 var_a0;

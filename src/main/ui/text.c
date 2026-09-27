@@ -1,6 +1,10 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/text.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
 
 void func_80026E90(s32 x, s32 y, s32 n) {
     Rect16 r;

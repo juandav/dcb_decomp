@@ -1,6 +1,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/prim_util.h"
 
 s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb) {
     s16 vr;

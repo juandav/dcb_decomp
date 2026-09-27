@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/transform.h"
+#include "dcb/prim_util.h"
 
 void func_8001ED30(s32 arg0, s16 *arg1, void *arg2) {
     s32 axis;

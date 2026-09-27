@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/script.h"
+#include "dcb/heap.h"
 
 void *func_80020E34(void *arg0) {
     s32 temp_v0_2;

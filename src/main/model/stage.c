@@ -1,6 +1,16 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/stage.h"
+#include "dcb/archive.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/model.h"
+#include "dcb/model_anim.h"
+#include "dcb/player_data.h"
+#include "dcb/prim_util.h"
+#include "dcb/sound.h"
 
 s32 func_8002DCB0(s32 slot, s32 id, s8 kind, s32 anims) {
     char path[32];

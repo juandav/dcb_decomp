@@ -1,6 +1,12 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/model.h"
+#include "dcb/archive.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/model_anim.h"
 
 void func_80022C4C(void) {
     Unk801D6A4C *p;

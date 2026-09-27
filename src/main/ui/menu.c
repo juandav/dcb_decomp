@@ -1,6 +1,12 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/menu.h"
+#include "dcb/main.h"
+#include "dcb/memcard.h"
+#include "dcb/prim_util.h"
+#include "dcb/text.h"
+#include "dcb/window.h"
 
 void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
     s32 i;

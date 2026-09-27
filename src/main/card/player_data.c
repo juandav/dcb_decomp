@@ -1,6 +1,13 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/player_data.h"
+#include "dcb/archive.h"
+#include "dcb/card_db.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/model.h"
 
 void func_8002D404(void) {
     void *p;

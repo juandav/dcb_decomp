@@ -1,6 +1,17 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/duel.h"
+#include "dcb/battle_hud.h"
+#include "dcb/card_db.h"
+#include "dcb/duel_rules.h"
+#include "dcb/effect.h"
+#include "dcb/main.h"
+#include "dcb/menu.h"
+#include "dcb/shell.h"
+#include "dcb/sound.h"
+#include "dcb/stage.h"
+#include "dcb/window.h"
 
 void func_80034260(void) {
     char buf[0x88];

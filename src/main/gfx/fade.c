@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/fade.h"
+#include "dcb/prim_util.h"
 
 void func_8001F040(void) {
     D_801D69E0 = 0;

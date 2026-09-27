@@ -1,6 +1,16 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/battle_hud.h"
+#include "dcb/card_render.h"
+#include "dcb/duel.h"
+#include "dcb/duel_rules.h"
+#include "dcb/heap.h"
+#include "dcb/main.h"
+#include "dcb/scene3d.h"
+#include "dcb/sound.h"
+#include "dcb/stage.h"
+#include "dcb/text.h"
 
 void func_8003917C(void) {
     s32 diff;

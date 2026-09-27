@@ -79,7 +79,9 @@ decompiled once the whole executable still matches.
 | `src/main/card/` | card data and card rendering, player data |
 | `src/main/script/` | the script interpreter |
 | `src/main/psyq/` | PsyQ libraries, `0x8004A610`-`0x8006DD3C`, one file per library object |
-| `include/` | headers and assembler macros |
+| `include/game.h` | types and declarations shared by several modules |
+| `include/dcb/` | one header per module: its own types, data and functions |
+| `include/` | other headers and assembler macros |
 | `tools/` | build helpers |
 
 Memory map of `SLUS_013.28` (psylink puts `.rodata` in front of `.text`):

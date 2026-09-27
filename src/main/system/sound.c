@@ -1,6 +1,11 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/sound.h"
+#include "dcb/archive.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
 
 void func_8002ADEC(void) {
     s8 *p;

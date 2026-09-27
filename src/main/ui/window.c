@@ -1,6 +1,10 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/window.h"
+#include "dcb/heap.h"
+#include "dcb/prim_util.h"
+#include "dcb/text.h"
 
 void func_8001683C(s32 arg0) {
     s32 *var_v0;

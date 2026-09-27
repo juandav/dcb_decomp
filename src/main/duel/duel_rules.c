@@ -1,6 +1,10 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/duel_rules.h"
+#include "dcb/card_db.h"
+#include "dcb/heap.h"
+#include "dcb/main.h"
 
 void func_8003F9EC(s32 player) {
     SavedDeck *decks;

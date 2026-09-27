@@ -1,6 +1,9 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/archive.h"
+#include "dcb/heap.h"
+#include "dcb/main.h"
 
 void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
     Chunk *c;

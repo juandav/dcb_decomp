@@ -1,6 +1,17 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/shell.h"
+#include "dcb/card_db.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/memcard.h"
+#include "dcb/menu.h"
+#include "dcb/sound.h"
+#include "dcb/stage.h"
+#include "dcb/system.h"
+#include "dcb/text.h"
+#include "dcb/window.h"
 
 s32 func_80049840(Entry12 *tbl, s32 a, s32 b) {
     s8 v;

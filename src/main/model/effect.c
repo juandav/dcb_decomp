@@ -1,6 +1,17 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/effect.h"
+#include "dcb/archive.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/menu.h"
+#include "dcb/prim3d.h"
+#include "dcb/prim_util.h"
+#include "dcb/sound.h"
+#include "dcb/text.h"
+#include "dcb/transform.h"
 
 void func_8002FAE4(void) {
     Fade *f;

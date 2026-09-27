@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/model_anim.h"
+#include "dcb/main.h"
 
 void func_80021964(u8 *m) {
     u8 *k;

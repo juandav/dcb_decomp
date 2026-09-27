@@ -1,6 +1,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/prim3d.h"
 
 void func_8001D6D0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, s32 arg5) {
     s32 sp28;

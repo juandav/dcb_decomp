@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/cd_file.h"
+#include "dcb/text.h"
 
 void func_800157B0(void) {
     u8 param[8];

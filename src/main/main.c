@@ -1,5 +1,8 @@
 #include "common.h"
 #include "game.h"
+#include "dcb/main.h"
+#include "dcb/heap.h"
+#include "dcb/system.h"
 
 int main(void) {
     Rect16 r;

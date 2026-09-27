@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/str_util.h"
+#include "dcb/text.h"
 
 s8 *func_8002A5DC(s8 *buf, s8 pad, s32 n, s32 width) {
     s8 *q;

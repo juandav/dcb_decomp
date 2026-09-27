@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/pad.h"
+#include "dcb/heap.h"
 
 void func_8001A600(void) {
     s32 i;

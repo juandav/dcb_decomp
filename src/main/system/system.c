@@ -1,6 +1,20 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
+#include "dcb/system.h"
+#include "dcb/cd_file.h"
+#include "dcb/effect.h"
+#include "dcb/fade.h"
+#include "dcb/heap.h"
+#include "dcb/loader.h"
+#include "dcb/main.h"
+#include "dcb/memcard.h"
+#include "dcb/pad.h"
+#include "dcb/player_data.h"
+#include "dcb/sound.h"
+#include "dcb/stage.h"
+#include "dcb/text.h"
+#include "dcb/window.h"
 
 void func_80014CF0(void) {
     s32 i;
