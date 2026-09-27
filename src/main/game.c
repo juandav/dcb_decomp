@@ -215,6 +215,18 @@ typedef struct {
     /* 0x12 */ s16 y;
 } SprtInfo;
 
+typedef struct Panel {
+    /* 0x00 */ u8 unk0[0xC];
+    /* 0x0C */ u8 unkC;
+    /* 0x0D */ u8 unkD[3];
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ u8 unk18[8];
+    /* 0x20 */ struct Panel *parent;
+} Panel;
+
 typedef struct {
     /* 0x00 */ s32 unk0[5];
     /* 0x14 */ s32 unk14;
@@ -906,7 +918,7 @@ int func_80019084(void) {
 }
 
 u32 GetTPage(s32, s32, s32, s32);
-s32 func_8001E6EC(s32, void *, s32, s32);
+void func_8001E6EC(s32, void *, s32, s32);
 void func_800191C0(Unk800190F4 *, Rect16 *, Bytes4 *);
 
 void func_800190F4(Unk800190F4 *p, Rect16 *arg1, Bytes4 *arg2) {
@@ -1311,7 +1323,20 @@ void func_8001B438(u32 *tim, s16 px, s16 py, s16 cx, s16 cy) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B5BC);
+void func_8001B5BC(u32 *addr) {
+    TIM_IMAGE img;
+
+    OpenTIM(addr);
+    while (ReadTIM(&img) != 0) {
+        if (img.caddr != 0) {
+            LoadImage((s16 *)img.crect, (s32)img.caddr);
+        }
+        if (img.paddr != 0) {
+            LoadImage((s16 *)img.prect, (s32)img.paddr);
+        }
+    }
+    DrawSync(0);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B634);
 
@@ -1417,11 +1442,21 @@ void func_8001BC14(Chunk *arg0) {
     func_8001BB94(arg0, 5, -1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BC38);
+extern s32 D_801D4868;
+extern u32 D_801D486C;
+extern u8 *D_801D4870;
+
+s32 func_8001BC38(void) {
+    if (--D_801D4868 >= 0) {
+        return (D_801D486C >> D_801D4868) & 1;
+    }
+    D_801D4868 = 7;
+    D_801D486C = *D_801D4870++;
+    return D_801D486C >> 7;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BCA4);
 
-s32 func_8001BC38();
 extern s32 D_801D4878;
 extern s32 D_801D4888;
 extern s32 D_801D5108;
@@ -1454,8 +1489,8 @@ void func_8001BFCC(s32 arg0, s32 arg1) {
 s32 func_8001BCA4(s32);
 s32 func_8001BDEC(s32);
 extern s32 D_801D4868;
-extern s32 D_801D486C;
-extern s32 D_801D4870;
+extern u32 D_801D486C;
+extern u8 *D_801D4870;
 extern s32 D_801D4874;
 
 s32 func_8001BFF8(s32 arg0, s32 arg1) {
@@ -1465,7 +1500,7 @@ s32 func_8001BFF8(s32 arg0, s32 arg1) {
 
     D_801D4868 = 0;
     D_801D486C = 0;
-    D_801D4870 = arg0;
+    D_801D4870 = (u8 *)arg0;
     temp_s0 = func_8001BCA4(0x10);
     temp_s0_2 = (temp_s0 << 0x10) | func_8001BCA4(0x10);
     temp_v0 = func_8001ABCC(temp_s0_2, arg1);
@@ -1928,7 +1963,15 @@ void func_8001E6A4(s32 arg0, s16 arg1, s16 arg2) {
     DrawSync(0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001E6EC);
+extern void (*D_8006DF0C[])(void *);
+void SetSemiTrans(void *, s32);
+void SetShadeTex(void *, s32);
+
+void func_8001E6EC(s32 type, void *p, s32 abe, s32 tge) {
+    D_8006DF0C[type](p);
+    SetSemiTrans(p, abe);
+    SetShadeTex(p, tge);
+}
 
 void func_8001E75C(void *arg0, u8 arg1, u8 arg2, u8 arg3) {
     (*(u8 *)((s8 *)arg0 + 4)) = arg1;
@@ -2719,7 +2762,29 @@ void func_80022E58(void) {
     func_8001AFF0(0x82);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80022ED0);
+typedef struct {
+    s32 key;
+    s32 value;
+} KeyValue;
+
+s32 func_80022ED0(s32 key, s32 n, KeyValue **pp) {
+    KeyValue *e;
+    KeyValue *free;
+    s32 i;
+
+    e = *pp;
+    free = 0;
+    for (i = 0; i < n; i++, e++) {
+        if (e->key == key) {
+            return e->value;
+        }
+        if (free == 0 && e->key == 0) {
+            free = e;
+        }
+    }
+    *pp = free;
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80022F34);
 
@@ -4449,7 +4514,7 @@ void func_8002F79C(void) {
 }
 
 s32 SetTexWindow(void *, s16 *);
-s32 func_8001E6EC(s32, void *, s32, s32);
+void func_8001E6EC(s32, void *, s32, s32);
 extern s32 D_800108A4;
 extern s32 D_801D81F8;
 extern s32 D_801D8220;
@@ -4980,12 +5045,25 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003D9C0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DA64);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DB64);
+void func_8003DB64(Panel *p) {
+    s16 x;
+    s16 y;
+
+    x = p->unk14;
+    y = p->unk16;
+    if (p->parent != 0) {
+        p->unkC = p->parent->unkC;
+        x += p->parent->unk10;
+        y += p->parent->unk12;
+    }
+    p->unk10 = x;
+    p->unk12 = y;
+}
 
 extern u8 *D_801D83EC;
 s32 func_8003D9C0(void *, s16, s16, s32);
 s32 func_8003DA64();
-s32 func_8003DB64();
+void func_8003DB64();
 
 void func_8003DBBC(s32 arg0) {
     void *p;
