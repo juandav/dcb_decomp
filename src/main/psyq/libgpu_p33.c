@@ -259,4 +259,14 @@ int func_800681D0(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068264);
+int func_80068264(void) {
+    volatile int cnt = 0x100000;
+
+    while (*D_800769CC & 0x1000000) {
+        if (--cnt == -1) {
+            func_80068310("MDEC_out_sync");
+            return -1;
+        }
+    }
+    return 0;
+}
