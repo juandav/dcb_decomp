@@ -7,6 +7,205 @@
 #include "dcb/memcard.h"
 #include "dcb/shell.h"
 
+u8 D_8006E50C[10] = { 0x55, 0x5C, 0x5A, 0x52, 0x58, 0x4F, 0xD, 0, 0x30, 0 };
+u8 PARTNER_CARD_IDS[6] = { 0xAF, 0xB6, 0xBE, 0xB8, 0xB7, 0xBB };
+u8 PARTNER_ARMOR_CARD_IDS[6][3] = {
+    { 0xAC, 0xB9, 0xAD },
+    { 0xB3, 0xBC, 0 },
+    { 0xBD, 0xB0, 0 },
+    { 0xB5, 0xB2, 0 },
+    { 0xB4, 0xAE, 0 },
+    { 0xBA, 0xB1, 0 },
+};
+CardRec20 PARTNER_ABILITY_CONDITIONS[18] = {
+    { { 1, 0, 2 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 2 }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 2 }, 0, { 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 2 }, 0, { 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 2 }, 0, { 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0xD }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0xD }, 0, { 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0xD }, 0, { 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 3, 0, 0, 0, 0, 0, 4 }, 0, { 0 } },
+    { { 1, 0, 0x12 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0x12 }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0x12 }, 0, { 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0x16 }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3 } },
+    { { 1, 0, 0x18 }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3 } },
+    { { 1, 0, 0x1C }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3 } },
+    { { 1, 0, 0x19 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 } },
+    { { 1, 0, 0x1B }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3 } },
+    { { 1, 0, 0xD }, 0, { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5 } },
+};
+CardRec10 PARTNER_ABILITY_ACTIONS[36] = {
+    { { 1, 0xA, 0, 0, 0xB }, 0, { 0 } },
+    { { 1, 0xA, 0, 0, 0xB }, 0, { 0, 2 } },
+    { { 1, 4, 0, 0, 5 }, 0, { 0 } },
+    { { 1, 4, 0, 0, 5 }, 0, { 0, 2 } },
+    { { 1, 6, 0, 0, 7 }, 0, { 0 } },
+    { { 1, 6, 0, 0, 7 }, 0, { 0, 2 } },
+    { { 1, 8, 0, 0, 9 }, 0, { 0 } },
+    { { 1, 8, 0, 0, 9 }, 0, { 0, 2 } },
+    { { 1, 0xA }, 0, { 0 } },
+    { { 1, 0xB }, 0, { 0 } },
+    { { 1, 0x33 }, 0, { 0 } },
+    { { 1, 5 }, 0, { 0 } },
+    { { 1, 7 }, 0, { 0 } },
+    { { 1, 9 }, 0, { 0 } },
+    { { 1, 0x34 }, 0, { 0 } },
+    { { 1, 0x31 }, 0, { 0 } },
+    { { 1, 0x2E }, 0, { 0 } },
+    { { 1, 0x2A }, 0, { 0 } },
+    { { 1, 0x25 }, 0, { 0 } },
+    { { 1, 0x21 }, 0, { 0 } },
+    { { 1, 0x22 }, 0, { 0 } },
+    { { 1, 0x2C }, 0, { 0 } },
+    { { 1, 0x19, 0, 0, 0, 0, 2 }, 0, { 0 } },
+    { { 1, 1, 0, 0, 0, 0, 1 }, 0, { 0 } },
+    { { 1, 0, 0, 0, 0, 0, 0x1A }, 0, { 0 } },
+    { { 1 }, 0, { 0 } },
+    { { 1, 0x11 }, 0, { 0 } },
+    { { 1, 0x30 }, 0, { 0 } },
+    { { 1, 0x1B }, 0, { 0 } },
+    { { 1, 0x11, 0, 0, 0, 0, 0x11 }, 0, { 0 } },
+    { { 1, 0xA, 0, 0, 0, 0, 0xB, 0, 0, 0, 2 }, 0, { 0, 3 } },
+    { { 1, 2, 0, 0, 3 }, 0, { 0 } },
+    { { 1, 0xA, 0, 0, 0, 0, 3 }, 0, { 0 } },
+    { { 1, 0x35 }, 0, { 0 } },
+    { { 1, 2, 0, 0, 3 }, 0, { 0 } },
+    { { 1, 0xA, 0, 0, 0, 0, 0xB, 0, 0, 0, 0x64 }, 0, { 0 } },
+};
+CardEffect PARTNER_ABILITIES[128] = {
+    { 0, 0, 0, 0, 0x32, 0 },
+    { 0, 0, 0, 0, 0x64, 0 },
+    { 0, 0, 0, 0, 0x96, 0 },
+    { 0, 0, 0, 0, 0xC8, 0 },
+    { 0, 0, 0, 0, 0x12C, 0 },
+    { 0, 0, 0, 0, 0x190, 0 },
+    { 0, 0, 0, 0, 0x1F4, 0 },
+    { 1, 0, 0, 0, 0x32, 0 },
+    { 1, 0, 0, 0, 0x64, 0 },
+    { 1, 0, 0, 0, 0xC8, 0 },
+    { 2, 0, 0, 0, 0x64, 0 },
+    { 2, 0, 0, 0, 0x96, 0 },
+    { 2, 0, 0, 0, 0xC8, 0 },
+    { 2, 0, 0, 0, 0xFA, 0 },
+    { 2, 0, 0, 0, 0x12C, 0 },
+    { 3, 0, 0, 0, 0x32, 0 },
+    { 3, 0, 0, 0, 0x64, 0 },
+    { 3, 0, 0, 0, 0x96, 0 },
+    { 3, 0, 0, 0, 0xC8, 0 },
+    { 3, 0, 0, 0, 0xFA, 0 },
+    { 4, 0, 0, 0, 0x32, 0 },
+    { 4, 0, 0, 0, 0x64, 0 },
+    { 4, 0, 0, 0, 0x96, 0 },
+    { 4, 0, 0, 0, 0xC8, 0 },
+    { 5, 2, 0, 0, -0x64, 0 },
+    { 5, 3, 0, 0, -0x64, 0 },
+    { 5, 4, 0, 0, -0x64, 0 },
+    { 5, 5, 0, 0, 0, 0 },
+    { 5, 6, 0, 0, 0, 0 },
+    { 5, 7, 0, 0, 0, 0 },
+    { 5, 0xB, 0, 0, -0xC8, 0 },
+    { 5, 0xC, 0, 0, -0xC8, 0 },
+    { 5, 0xD, 0, 0, -0xC8, 0 },
+    { 5, 0xE, 0, 0, -0xC8, 0 },
+    { 5, 0xF, 0, 0, -0xC8, 0 },
+    { 5, 1, 0, 0, -0xC8, 0 },
+    { 5, 0xA, 0, 0, -0x64, 0 },
+    { 5, 9, 0, 0, -0xC8, 0 },
+    { 6, 0, 0, 0, 0xA, 0 },
+    { 6, 0, 0, 0, 0x14, 0 },
+    { 6, 0, 0, 0, 0x1E, 0 },
+    { 7, 0, 1, 1, 0x32, 1 },
+    { 7, 0, 1, 1, 0x64, 1 },
+    { 7, 0, 1, 1, 0xC8, 1 },
+    { 7, 0, 1, 1, 0x12C, 1 },
+    { 7, 0, 2, 1, 2, 1 },
+    { 7, 0, 3, 1, 0x12C, 1 },
+    { 7, 0, 3, 1, 0x190, 1 },
+    { 7, 0, 3, 1, 0x1F4, 1 },
+    { 7, 0, 4, 1, 2, 1 },
+    { 7, 0, 4, 1, 3, 1 },
+    { 7, 0, 5, 1, 0xC8, 1 },
+    { 7, 0, 5, 1, 0x12C, 1 },
+    { 7, 0, 5, 1, 0x190, 1 },
+    { 7, 0, 6, 1, 2, 1 },
+    { 7, 0, 6, 1, 3, 1 },
+    { 7, 0, 7, 1, 0x64, 1 },
+    { 7, 0, 7, 1, 0xC8, 1 },
+    { 7, 0, 7, 1, 0x12C, 1 },
+    { 7, 0, 8, 1, 2, 1 },
+    { 7, 0, 8, 1, 3, 1 },
+    { 7, 0, 0x21, 1, 0, 1 },
+    { 7, 0, 0x22, 1, 0, 2 },
+    { 7, 0, 0xB, 1, 0, 2 },
+    { 7, 0, 0xC, 1, 0, 1 },
+    { 7, 0, 0xD, 1, 0, 1 },
+    { 7, 0, 0xE, 1, 0, 1 },
+    { 7, 0xA, 0xF, 1, 0, 2 },
+    { 7, 0xB, 0xF, 1, 0, 2 },
+    { 7, 0xC, 0xF, 1, 0, 2 },
+    { 7, 1, 2, 1, 2, 1 },
+    { 7, 1, 2, 1, 3, 1 },
+    { 7, 2, 2, 1, 2, 1 },
+    { 7, 2, 2, 1, 3, 1 },
+    { 7, 3, 2, 1, 2, 1 },
+    { 7, 3, 2, 1, 3, 1 },
+    { 7, 4, 2, 1, 2, 1 },
+    { 7, 4, 2, 1, 3, 1 },
+    { 7, 5, 2, 1, 2, 1 },
+    { 7, 5, 2, 1, 3, 1 },
+    { 7, 0, 0x1A, 1, 0, 2 },
+    { 7, 0, 0x1A, 1, 1, 2 },
+    { 7, 0, 0x1A, 1, 2, 2 },
+    { 7, 0, 0x1A, 1, 3, 2 },
+    { 7, 0, 0x1A, 1, 4, 2 },
+    { 7, 0, 0x18, 1, 0, 2 },
+    { 7, 0, 0x17, 3, 0, 2 },
+    { 7, 1, 0xA, 1, 0, 1 },
+    { 7, 2, 0xA, 1, 0, 1 },
+    { 7, 3, 0xA, 1, 0, 1 },
+    { 7, 4, 0xA, 1, 0, 1 },
+    { 7, 5, 0xA, 1, 0, 1 },
+    { 7, 0, 9, 2, 0, 1 },
+    { 7, 6, 1, 1, 0xC8, 1 },
+    { 7, 7, 1, 1, 0x12C, 1 },
+    { 7, 8, 1, 1, 0x190, 1 },
+    { 7, 0, 0x1B, 1, 0, 2 },
+    { 7, 0, 0x1B, 1, 1, 2 },
+    { 7, 0, 0x1B, 1, 2, 2 },
+    { 7, 0, 0x1E, 1, 0, 2 },
+    { 7, 0, 0x20, 1, 0xC8, 2 },
+    { 7, 0, 0x20, 1, 0x12C, 2 },
+    { 7, 0, 0x20, 1, 0x190, 2 },
+    { 7, 0, 0x1F, 2, 0x190, 2 },
+    { 7, 0, 0x1F, 2, 0x258, 2 },
+    { 7, 9, 0x20, 1, 0x1F4, 2 },
+    { 7, 9, 0x20, 1, 0x2BC, 2 },
+    { 7, 0, 0x1C, 1, 0x12C, 1 },
+    { 7, 0, 0x1C, 1, 0x258, 1 },
+    { 7, 0, 0x1C, 1, 0x3E8, 1 },
+    { 7, 0xD, 0x1D, 1, 1, 2 },
+    { 7, 0xD, 0x1D, 1, 2, 2 },
+    { 7, 0xE, 0x13, 1, 2, 2 },
+    { 7, 0xE, 0x13, 1, 3, 2 },
+    { 7, 0xE, 0x13, 1, 4, 2 },
+    { 7, 0xF, 0x14, 1, 2, 2 },
+    { 7, 0xF, 0x14, 1, 3, 2 },
+    { 7, 0x10, 0x15, 1, 1, 2 },
+    { 7, 0, 0x16, 1, 0, 3 },
+    { 7, 0x11, 0x10, 1, 4, 2 },
+    { 7, 0x11, 0x11, 2, 0, 2 },
+    { 7, 6, 0x23, 2, 0xC8, 1 },
+    { 7, 0x12, 0x23, 2, 0xC8, 1 },
+    { 8, 0, 0, 0, 0xA, 0 },
+    { 8, 0, 0, 0, 0x14, 0 },
+    { 8, 0, 0, 0, 0x1E, 0 },
+    { 8, 1, 0, 0, 0xA, 0 },
+    { 8, 1, 0, 0, 0x14, 0 },
+};
+
 void loadCardDatabase(void) {
     u8 *file;
     s32 i;
@@ -670,7 +869,235 @@ s32 findArmorPartnerSlot(s32 player, s32 cardId) {
     return -1;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/card/card_db", D_800119CC);
+/* the support effect text of each ability from 0x29 on */
+u8 *PARTNER_ABILITY_TEXTS[82] = {
+    "Boost Attack\n"
+    "Power +50.",
+    "Boost Attack\n"
+    "Power +100.",
+    "Boost Attack\n"
+    "Power +200.",
+    "Boost Attack\n"
+    "Power +300.",
+    "Attack Power\n"
+    "is Doubled.",
+    "Boost *b0 Attack\n"
+    "Power +300.",
+    "Boost *b0 Attack\n"
+    "Power +400.",
+    "Boost *b0 Attack\n"
+    "Power +500.",
+    "*b0 Attack\n"
+    "Power is Doubled.",
+    "*b0 Attack\n"
+    "Power is Tripled.",
+    "Boost *b1 Attack\n"
+    "Power +200.",
+    "Boost *b1 Attack\n"
+    "Power +300.",
+    "Boost *b1 Attack\n"
+    "Power +400.",
+    "*b1 Attack\n"
+    "Power is Doubled.",
+    "*b1 Attack\n"
+    "Power is Tripled.",
+    "Boost *b2 Attack\n"
+    "Power +100.",
+    "Boost *b2 Attack\n"
+    "Power +200.",
+    "Boost *b2 Attack\n"
+    "Power +300.",
+    "*b2 Attack\n"
+    "Power is Doubled.",
+    "*b2 Attack\n"
+    "Power is Tripled.",
+    "Attack Power\n"
+    "becomes the same\n"
+    "as HP.",
+    "Attack becomes\n"
+    "\"1st Attack.\"",
+    "Attack is\n"
+    "\"Eat-up HP.\"",
+    "Lower Opponent's\n"
+    "*b0 Attack\n"
+    "Power to 0.",
+    "Lower Opponent's\n"
+    "*b1 Attack\n"
+    "Power to 0.",
+    "Lower Opponent's\n"
+    "*b2 Attack\n"
+    "Power to 0.",
+    "*b0 Counterattack:\n"
+    "(Attack Second).",
+    "*b1 Counterattack:\n"
+    "(Attack Second).",
+    "*b2 Counterattack:\n"
+    "(Attack Second).",
+    "If Opponent's\n"
+    "Specialty is *a0,\n"
+    "own Attack Power\n"
+    "is Doubled.",
+    "If Opponent's\n"
+    "Specialty is *a0,\n"
+    "own Attack power\n"
+    "is Tripled.",
+    "If Opponent's\n"
+    "Specialty is *a1,\n"
+    "own Attack power\n"
+    "is Doubled.",
+    "If Opponent's\n"
+    "Specialty is *a1,\n"
+    "own Attack power\n"
+    "is Tripled.",
+    "If Opponent's\n"
+    "Specialty is *a2,\n"
+    "own Attack power\n"
+    "is Doubled.",
+    "If Opponent's\n"
+    "Specialty is *a2,\n"
+    "own Attack power\n"
+    "is Tripled.",
+    "If Opponent's\n"
+    "Specialty is *a3,\n"
+    "own Attack power\n"
+    "is Doubled.",
+    "If Opponent's\n"
+    "Specialty is *a3,\n"
+    "own Attack power\n"
+    "is Tripled.",
+    "If Opponent's\n"
+    "Specialty is *a4,\n"
+    "own Attack power\n"
+    "is Doubled.",
+    "If Opponent's\n"
+    "Specialty is *a4,\n"
+    "own Attack power\n"
+    "is Tripled.",
+    "Change own\n"
+    "Speciality to *a0.",
+    "Change own\n"
+    "Speciality to *a1.",
+    "Change own\n"
+    "Speciality to *a2.",
+    "Change own\n"
+    "Speciality to *a3.",
+    "Change own\n"
+    "Speciality to *a4.",
+    "Opponent's\n"
+    "Speciality becomes\n"
+    "same as Player's.",
+    "Swap Specialities\n"
+    "with Opponent's.",
+    "If Opponent's\n"
+    "Specialty is *a0,\n"
+    "lower his Attack\n"
+    "power to 0.",
+    "If Opponent's\n"
+    "Specialty is *a1,\n"
+    "lower his Attack\n"
+    "power to 0.",
+    "If Opponent's\n"
+    "Specialty is *a2,\n"
+    "lower his Attack\n"
+    "power to 0.",
+    "If Opponent's\n"
+    "Specialty is *a3,\n"
+    "lower his Attack\n"
+    "power to 0.",
+    "If Opponent's\n"
+    "Specialty is *a4,\n"
+    "lower his Attack\n"
+    "power to 0.",
+    "Lower both\n"
+    "Players' Attack\n"
+    "Power to 0.",
+    "If *e3 Level,\n"
+    "boost Attack\n"
+    "Power +200.",
+    "If *e4 Level,\n"
+    "boost Attack\n"
+    "Power +300.",
+    "If *e5 Level,\n"
+    "boost Attack\n"
+    "Power +400.",
+    "Opponent will use\n"
+    "*b0 Button.",
+    "Opponent will use\n"
+    "*b1 Button.",
+    "Opponent will use\n"
+    "*b2 Button.",
+    "Opponent will use\n"
+    "the same Attack.",
+    "Recover HP +200.",
+    "Recover HP +300.",
+    "Recover HP +400.",
+    "Attack Power is\n"
+    "halved.\n"
+    "Recover HP +400.",
+    "Attack Power is\n"
+    "halved.\n"
+    "Recover HP +600.",
+    "If HP is less\n"
+    "than Opponent's,\n"
+    "recover HP +500.",
+    "If HP is less\n"
+    "than Opponent's,\n"
+    "recover HP +700.",
+    "If KO'd in\n"
+    "a Round, revive\n"
+    "with 300 HP.",
+    "If KO'd in\n"
+    "a Round, revive\n"
+    "with 600 HP.",
+    "If KO'd in\n"
+    "a Round, revive\n"
+    "with 1000 HP.",
+    "Discard 1 Card\n"
+    "from Opponent's\n"
+    "Hand at random.",
+    "Discard 2 Cards\n"
+    "from Opponent's\n"
+    "Hand at random.",
+    "Discard Opponent's\n"
+    "Top 2 DP Cards\n"
+    "shown.",
+    "Discard Opponent's\n"
+    "Top 3 DP Cards\n"
+    "shown.",
+    "Discard Opponent's\n"
+    "Top 4 DP Cards\n"
+    "shown.",
+    "Discard Top\n"
+    "2 Cards\n"
+    "from Opponent's\n"
+    "Online Deck.",
+    "Discard Top\n"
+    "3 Cards\n"
+    "from Opponent's\n"
+    "Online Deck.",
+    "Move the Top\n"
+    "Card from own\n"
+    "Offline Pile to\n"
+    "own Offline Deck.",
+    "Opponent's Support\n"
+    "Effect has\n"
+    "been Voided.",
+    "Draw until there\n"
+    "are 4 Cards.",
+    "Draw Partner\n"
+    "Card from\n"
+    "the Online Deck.\n"
+    "Shuffle the Deck.",
+    "If *e3 Level,\n"
+    "boost HP +200.\n"
+    "Boost all Attack\n"
+    "Powers +100.",
+    "If *ea Level,\n"
+    "boost HP +200.\n"
+    "Boost all Attack\n"
+    "Powers +100.",
+};
+u8 PARTNER_START_ABILITIES[6] = { 0xA, 0xF, 0, 0x26, 0x64, 0x14 };
 
 s32 updatePartnerStats(s32 player, s32 slot) {
     s32 i;

@@ -3,9 +3,8 @@
 
 Each C file of the game (src/main/<subsystem>/<module>.c) is a unit, like
 jype0/dw_decomp does: its target object is splat's full disassembly of that
-segment (asm/main/<path>.s), plus the segment's .data and .bss if splat
-split any out (asm/main/data/<path>.{data,bss}.s). The game's data that no
-module owns yet (asm/main/data/game.{data,bss}.s, still assembly) is
+segment (asm/main/<path>.s), which holds its .rodata and .data too. The
+game's data that no module owns (asm/main/data/game.*.s, the .bss) is
 reported with main.
 
 objdiff counts a data section as matched only when all of it matches, so
@@ -57,25 +56,34 @@ def link(out: str, parts: list) -> None:
     subprocess.run(["mipsel-linux-gnu-ld", "-r", "-o", out] + parts, cwd=ROOT, check=True)
 
 
-def rodata_bytes(path: str) -> bytes:
-    """The contents of PATH's .rodata (empty if it has none)."""
+def section_bytes(path: str, name: str) -> bytes:
+    """The contents of PATH's section NAME (empty if it has none)."""
     with open(ROOT / path, "rb") as f:
-        section = ELFFile(f).get_section_by_name(".rodata")
+        section = ELFFile(f).get_section_by_name(name)
         return section.data() if section else b""
 
 
-def pad_rodata(base: str, target: str) -> None:
-    """Pad BASE's .rodata with the zeros that end TARGET's.
+def pad_sections(base: str, target: str) -> None:
+    """Pad BASE's .rodata and .data with the zeros that end TARGET's.
 
-    splat counts the padding after a module's last string as part of it;
-    GCC leaves it to the linker, which fills the same zeros in the ROM."""
-    ours, theirs = rodata_bytes(base), rodata_bytes(target)
-    extra = theirs[len(ours):]
-    if 0 < len(extra) < 8 and not any(extra):
-        padded = ROOT / (base + ".rodata.bin")
-        padded.write_bytes(ours + extra)
-        subprocess.run(["mipsel-linux-gnu-objcopy", "--update-section", f".rodata={padded}", base], cwd=ROOT, check=True)
-        padded.unlink()
+    splat counts the padding after a module's last datum as part of it;
+    GCC leaves it to the linker, which fills the same zeros in the ROM.
+    ld -r pads them and keeps the sections' relocations."""
+    pads = {}
+    for name in (".rodata", ".data"):
+        ours, theirs = section_bytes(base, name), section_bytes(target, name)
+        extra = theirs[len(ours):]
+        if ours and 0 < len(extra) < 8 and not any(extra):
+            pads[name] = len(extra)
+    if not pads:
+        return
+    script = ROOT / (base + ".ld")
+    script.write_text("SECTIONS {\n" + "".join(
+        f"  {name} 0 : {{ *({name}) . += {n}; }}\n" for name, n in pads.items()) + "}\n")
+    padded = base + ".padded"
+    subprocess.run(["mipsel-linux-gnu-ld", "-r", "-T", str(script), "-o", padded, base], cwd=ROOT, check=True)
+    (ROOT / padded).replace(ROOT / base)
+    script.unlink()
 
 
 def rodata_symbols(path: str) -> list:
@@ -109,18 +117,57 @@ def name_rodata(base: str, target: str) -> None:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
 
 
+def relocate_data_by_section(path: str) -> None:
+    """Make PATH's .data relocations into its own .rodata section-relative.
+
+    splat names the strings a table in .data points to, so the original's
+    relocations use those symbols; GCC relocates against .rodata plus the
+    offset, stored in the word. Same data, written differently: rewrite
+    them the way GCC does."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        names = [s.name for s in elf.iter_sections()]
+        if ".rel.data" not in names or ".rodata" not in names:
+            return
+        rodata = names.index(".rodata")
+        data = elf.get_section_by_name(".data")
+        rel = elf.get_section_by_name(".rel.data")
+        symtab = elf.get_section_by_name(".symtab")
+        section_sym = next(i for i, s in enumerate(symtab.iter_symbols())
+                           if s["st_info"]["type"] == "STT_SECTION" and s["st_shndx"] == rodata)
+        patches = []
+        for r in rel.iter_relocations():
+            sym = symtab.get_symbol(r["r_info_sym"])
+            if r["r_info_type"] == 2 and sym["st_shndx"] == rodata and sym["st_info"]["type"] != "STT_SECTION":
+                patches.append((r, sym["st_value"]))
+        if not patches:
+            return
+        blob = bytearray((ROOT / path).read_bytes())
+        for i, r in enumerate(rel.iter_relocations()):
+            match = [v for rr, v in patches if rr["r_offset"] == r["r_offset"]]
+            if not match:
+                continue
+            entry = rel["sh_offset"] + i * rel["sh_entsize"]
+            info = (section_sym << 8) | r["r_info_type"]
+            blob[entry + 4:entry + 8] = info.to_bytes(4, "little")
+            word = data["sh_offset"] + r["r_offset"]
+            value = int.from_bytes(blob[word:word + 4], "little") + match[0]
+            blob[word:word + 4] = (value & 0xFFFFFFFF).to_bytes(4, "little")
+    (ROOT / path).write_bytes(blob)
+
+
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
     target = f"expected/asm/main/{module}.s.o"
-    if data:
-        target_all = f"expected/report/main/{module}.s.o"
-        link(target_all, [target] + data)
-        target = target_all
+    target_all = f"expected/report/main/{module}.s.o"
+    link(target_all, [target] + data)
+    target = target_all
+    relocate_data_by_section(target)
     base = f"build/report/main/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
     (ROOT / base).write_bytes((ROOT / f"build/src/main/{module}.c.o").read_bytes())
+    pad_sections(base, target)
     name_rodata(base, target)
-    pad_rodata(base, target)
     return {
         "name": f"main/{module}",
         "target_path": target,
@@ -130,8 +177,7 @@ def unit(module: str, data: list) -> dict:
 
 
 def data_objects(name: str) -> list:
-    """splat's .data and .bss objects for the segment NAME (its .rodata is
-    already in the segment's full disassembly)."""
+    """splat's data objects for the data segment NAME."""
     paths = [f"expected/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
     return [p for p in paths if (ROOT / p).exists()]
 
@@ -139,10 +185,7 @@ def data_objects(name: str) -> list:
 def main() -> None:
     units = []
     for module in game_modules():
-        data = data_objects(module)
-        if module == "main":
-            data += data_objects(UNOWNED_DATA)
-        units.append(unit(module, data))
+        units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main" else []))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",

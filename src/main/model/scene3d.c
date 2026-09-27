@@ -11,6 +11,11 @@
 #include "dcb/tmd_sort.h"
 #include "dcb/window.h"
 
+s32 D_8006DF80 = 0xFF;
+s32 D_8006DF84 = 1;
+u8 D_8006DF88 = 0;
+u8 D_8006DF8C[12] = { 0 };
+
 void func_80023DF0(Unk800793A0 *db, s32 idx) {
     MATRIX ls;
     SVECTOR sv;

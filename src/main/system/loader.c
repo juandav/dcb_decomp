@@ -6,6 +6,8 @@
 #include "dcb/heap.h"
 #include "dcb/main.h"
 
+s32 D_8006DEF0 = 0;
+
 void func_8001B10C(s32 arg0, s32 arg1) {
     func_80014A48(arg1, func_80015848(arg0) == 0 ? 1 : -1);
 }

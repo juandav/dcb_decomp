@@ -6,6 +6,9 @@
 #include "dcb/main.h"
 #include "dcb/sound.h"
 
+s32 PLAYER_PROFILES = 0;
+void *D_8006E054 = 0;
+
 void func_8002BB58(u32 arg0) {
     s32 var_a0;
 
@@ -446,7 +449,20 @@ void func_8002CAC8(s32 port) {
     D_801D8190[port]->blocks = total /= 8192;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", D_800105FC);
+/* the rank titles, lowest first */
+char *D_8006E058[8] = {
+    "Beginner Tamer", "Regular Tamer", "Mid Level Tamer", "High Level Tamer",
+    "Expert Tamer", "Master Tamer", "Genius Tamer", "Invincible Tamer",
+};
+char *D_8006E078[8] = {
+    "General Public", "Hobby Collector", "Serious Collector", "Top Level Collector",
+    "Famous Collector", "Great Collector", "Perfect Collector", "Legendary Collector",
+};
+char *D_8006E098[8] = {
+    "Battle Beginner", "Battle Expert", "Battle Specialist", "Battle Champion",
+    "Battle Master", "Battle Lord", "Battle King", "Battle Emperor",
+};
+u8 D_8006E0B8[6] = { 0x22, 0x23, 0x22, 0x24, 0x21, 0x6E };
 
 s32 func_8002CBA0(s32 len, u8 *p) {
     s32 i;

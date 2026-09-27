@@ -4,6 +4,13 @@
 #include "dcb/tmd_sort.h"
 #include "dcb/main.h"
 
+Unk8006DF60 D_8006DF60[4] = {
+    { 0x002F0000, 0x103C0000 },
+    { 0x002F0040, 0x103D0040 },
+    { 0x002F0080, 0x103E0080 },
+    { 0x002F00C0, 0x103F00C0 },
+};
+
 INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", func_8001F3C0);
 
 void func_8001F518(u32 i0, u32 *idx, u8 *base) {
