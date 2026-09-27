@@ -7349,31 +7349,31 @@ s32 func_80024E44(u8 *cam, s32 *pos, s32 cur, s16 *target) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800250F4);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002583C);
+INCLUDE_ASM("asm/main/nonmatchings/game", __negdf2);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002584C);
+INCLUDE_ASM("asm/main/nonmatchings/game", __subdf3);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80025854);
+INCLUDE_ASM("asm/main/nonmatchings/game", __adddf3);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80025874);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80025BDC);
+INCLUDE_ASM("asm/main/nonmatchings/game", __divdf3);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80025C00);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80025EE4);
+INCLUDE_ASM("asm/main/nonmatchings/game", __muldf3);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80025F08);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80026128);
+INCLUDE_ASM("asm/main/nonmatchings/game", __cmpdf2);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002627C);
+INCLUDE_ASM("asm/main/nonmatchings/game", __floatsidf);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002631C);
+INCLUDE_ASM("asm/main/nonmatchings/game", __fixdfsi);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80026578);
+INCLUDE_ASM("asm/main/nonmatchings/game", __subsf3);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80026974);
+INCLUDE_ASM("asm/main/nonmatchings/game", __mulsf3);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80026C70);
 
