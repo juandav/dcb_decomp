@@ -37,6 +37,10 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
    mode (4 bytes for SImode) instead of BIGGEST_ALIGNMENT (8), like GCC 2.8's
    `inherent_size == total_size ? 0 : -1`. Two spilled pseudos then sit at
    0x5C/0x60 instead of 0x60/0x68 (libmcrd MemCardGetDirentry's frame).
+7. mark_target_live_regs: its forward scan follows a simple jump to the
+   label itself (GCC 2.8), so the label kills the registers a REG_DEAD note
+   left pending before the jump. A branch can then take an insn that sets
+   one of its own inputs from its target (prnt: `bne v1,v0,L; sltiu v0,..`).
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -214,6 +218,14 @@ def patch(src, dst):
     # 6. alter_reg+348: `assign_stack_local (mode, total_size, -1)` for a
     #    pseudo with no slot to reuse -> align 0 (the mode's alignment).
     put(0x08161CD9, b"\x6a\xff", b"\x6a\x00")
+
+    # 7. mark_target_live_regs+3822: the forward scan follows a simple jump
+    #    to `JUMP_LABEL` itself, as GCC 2.8's find_dead_or_set_registers does,
+    #    not to `next_active_insn (JUMP_LABEL)`: the label then kills the
+    #    registers left pending dead (REG_DEAD) before the jump. Drop the call
+    #    and keep JUMP_LABEL in %eax.
+    o = fo(0x0817247B)
+    put(0x0817247B, b"\x83\xec\x0c\x50\xe8" + d[o + 5:o + 9] + b"\x83\xc4\x10", b"\x90" * 12)
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
