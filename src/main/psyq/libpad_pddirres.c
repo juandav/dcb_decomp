@@ -6,7 +6,46 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _padInitDirPort);
+void bzero(void *p, int n);
+extern u_char D_801DDE90[];
+extern u_char D_801DDED8[];
+extern void (*D_80077960)();
+extern void (*D_80077964)(PadPort *p);
+extern void (*D_80077968)();
+extern void (*D_8007796C)();
+extern PadPort *(*D_80077974)(int);
+extern void (*D_80077984)();
+extern int (*D_80077978)();
+extern int (*D_8007797C)();
+extern void (*D_80077980)();
+extern PadPort *D_80077994;
+void func_8006B5EC();
+void func_8006B584(PadPort *p);
+void func_8006B6F0();
+void func_8006B7AC();
+PadPort *func_8006BA28(int port);
+void func_8006B6E0(PadPort *port);
+int func_8006BA48();
+int func_8006BEA4();
+void func_8006BB58();
+
+void _padInitDirPort(void) {
+    bzero(D_801DDCB0, sizeof(D_801DDCB0));
+    D_80077994 = D_801DDCB0;
+    D_801DDCB0[0].unk3C = D_801DDE90;
+    D_801DDCB0[0].unk40 = D_801DDED8;
+    D_801DDCB0[1].unk3C = D_801DDE90 + 0x23;
+    D_801DDCB0[1].unk40 = D_801DDED8 + 0x23;
+    D_80077960 = func_8006B5EC;
+    D_80077964 = func_8006B584;
+    D_80077968 = func_8006B6F0;
+    D_8007796C = func_8006B7AC;
+    D_80077974 = func_8006BA28;
+    D_80077984 = func_8006B6E0;
+    D_80077978 = func_8006BA48;
+    D_8007797C = func_8006BEA4;
+    D_80077980 = func_8006BB58;
+}
 
 void func_8006B584(PadPort *p) {
     int i;

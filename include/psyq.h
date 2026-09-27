@@ -80,7 +80,8 @@ typedef struct PadPort {
     /* 0x39 */ u_char unk39;
     /* 0x3A */ u8 unk3A[2];
     /* 0x3C */ u_char *unk3C;
-    /* 0x40 */ u8 unk40[6];
+    /* 0x40 */ u_char *unk40;
+    /* 0x44 */ u8 unk44[2];
     /* 0x46 */ u_char unk46;
     /* 0x47 */ u_char unk47[2];
     /* 0x49 */ u_char unk49;
