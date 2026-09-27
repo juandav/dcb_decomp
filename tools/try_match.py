@@ -2,9 +2,11 @@
 """Compile a C file with the project toolchain and compare every function in it
 byte-wise against SLUS_013.28, with relocated fields masked.
 
-usage: tools/try_match.py [--psyq] draft.c [func ...]
+usage: tools/try_match.py [--psyq|--gcc28] draft.c [func ...]
 
 --psyq builds like src/main/psyq.c: GCC 2.7.2 -O2 and tools/aspsx_reorder.py.
+--gcc28 builds like the PsyQ objects that came from GCC 2.8.1
+-mno-split-addresses (tools/unfill_epilogue.py before maspsx).
 
 Functions that differ are printed side by side (ours | original) with the
 differing instructions marked with **.
@@ -14,18 +16,24 @@ from elftools.elf.elffile import ELFFile
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
 args=sys.argv[1:]
-psyq='--psyq' in args
-args=[a for a in args if a!='--psyq']
+gcc28='--gcc28' in args
+psyq='--psyq' in args or gcc28
+args=[a for a in args if a not in ('--psyq','--gcc28')]
 src=args[0]; want=set(args[1:])
 seg='psyq' if psyq else 'game'
 w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
-if psyq:
+pre=""
+if gcc28:
+    cc1=f"{D}/bin/gcc-2.8.1-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
+    pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
+    post=f"| python3 {D}/tools/aspsx_reorder.py"
+elif psyq:
     cc1=f"{D}/bin/gcc-2.7.2-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:
     cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused"
     post=""
-cmd=f"mipsel-linux-gnu-cpp -P -undef -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86 < {w}.s {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
+cmd=f"mipsel-linux-gnu-cpp -P -undef -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86 {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
 if r.returncode: print(r.stderr); sys.exit(1)
 if r.stderr.strip(): print(r.stderr.strip())
