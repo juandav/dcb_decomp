@@ -620,7 +620,12 @@ u_short GetIntrMask(void) {
     return *D_80070AB0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetIntrMask);
+u_short SetIntrMask(u_short mask) {
+    u_short old = *D_80070AB0;
+
+    *D_80070AB0 = mask;
+    return old;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056788);
 
