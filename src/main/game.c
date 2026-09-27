@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gte.h"
 
 typedef struct {
     /* 0x00 */ char unk0[0x14];
@@ -5339,7 +5340,34 @@ void func_8001F094(s32 dir, s32 abr, s32 speed) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F3C0);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F518);
+void func_8001F518(u32 i0, u32 *idx, u8 *base) {
+    u8 *v0;
+    u8 *v1;
+    u8 *v2;
+    u8 *c0;
+    u8 *c1;
+    u32 i1;
+    u32 i2;
+
+    v0 = base + (i0 >> 16);
+    gte_lwc2(12, 0, v0);
+    gte_lwc2(17, 4, v0);
+    i1 = idx[1];
+    i2 = idx[2];
+    v1 = base + (i1 >> 16);
+    v2 = base + (i2 >> 16);
+    gte_lwc2(13, 0, v1);
+    gte_lwc2(18, 4, v1);
+    gte_lwc2(14, 0, v2);
+    gte_lwc2(19, 4, v2);
+    c0 = base + (i0 & 0xFFFF);
+    gte_nclip();
+    c1 = base + (i1 & 0xFFFF);
+    base += i2 & 0xFFFF;
+    gte_lwc2(20, 0, c0);
+    gte_lwc2(21, 0, c1);
+    gte_lwc2(22, 0, base);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F580);
 
