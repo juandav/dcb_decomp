@@ -42,6 +42,9 @@ D_80012868 = 0x80012868;
 D_80012A40 = 0x80012A40;
 D_80012BA8 = 0x80012BA8;
 
+// Background table: bytes (colours) that splat would otherwise read as pointers
+D_8006E0C0 = 0x8006E0C0; // type:u8 size:0x1C0
+
 // Panel pool VRAM position, a halfword the code addresses on its own
 D_800897EE = 0x800897EE; // size:0x2
 
