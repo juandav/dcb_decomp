@@ -77,7 +77,7 @@ def reloc_bad(o,word,line):
     if a is None or b is None: return n!=want[0]
     if t==6: a+=(word&0xffff)-((word&0x8000)<<1)
     return a!=b
-dis=subprocess.run(['mipsel-linux-gnu-objdump','-d','--no-show-raw-insn',w+'.o'],capture_output=True,text=True).stdout
+dis=subprocess.run(['mipsel-linux-gnu-objdump','-d','-z','--no-show-raw-insn',w+'.o'],capture_output=True,text=True).stdout
 mine={}
 for l in dis.splitlines():
     m=re.match(r'\s+([0-9a-f]+):\s+(.*)',l)
