@@ -1,4 +1,5 @@
 #include "psyq.h"
+#include <stdarg.h>
 
 extern u_short D_8006EF3C;
 
@@ -17,6 +18,7 @@ void func_8004AC20(u_char *addr, u_long size);
 long _spu_init(long mode) {
     int i;
     u_int n;
+    volatile u_short *p;
 
     *D_8006EF34 |= 0xB0000;
     D_8006EF40 = 0;
@@ -46,8 +48,8 @@ long _spu_init(long mode) {
     D_8006EF24[0xC7] = 0xFFFF;
     D_8006EF24[0xCC] = 0;
     D_8006EF24[0xCD] = 0;
-    for (i = 0; i < 10; i++) {
-        D_801D8560[i] = 0;
+    for (i = 0, p = D_801D8560; i < 10; i++) {
+        *p++ = 0;
     }
     if (mode == 0) {
         D_8006EF3C = 0x200;
@@ -97,6 +99,7 @@ extern volatile u_long *D_8006EF2C;
 extern volatile u_long *D_8006EF30;
 extern long D_8006EF74;
 void _spu_Fw1ts(void);
+void func_8004B428(void);
 void func_8004B450(void);
 
 void _spu_Fr_(u_char *addr, u_short spuAddr, u_long size) {
@@ -111,7 +114,77 @@ void _spu_Fr_(u_char *addr, u_short spuAddr, u_long size) {
     *D_8006EF30 = 0x1000200;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_t);
+extern long D_8006EF78;
+extern long D_8006EF7C;
+
+long _spu_t(long mode, ...) {
+    va_list args;
+    u_int i;
+    u_short ck;
+    u_long count;
+    u_long dma;
+
+    va_start(args, mode);
+    switch (mode) {
+    case 2:
+        count = va_arg(args, u_long);
+        D_8006EF3C = count >> D_8006EF4C;
+        D_8006EF24[0xD3] = D_8006EF3C;
+        break;
+    case 1:
+        D_8006EF74 = 0;
+        i = 0;
+        while (D_8006EF24[0xD3] != D_8006EF3C) {
+            if (++i > 0xF00) {
+                return -2;
+            }
+        }
+        D_8006EF24[0xD5] = (D_8006EF24[0xD5] & ~0x30) | 0x20;
+        break;
+    case 0:
+        D_8006EF74 = 1;
+        i = 0;
+        while (D_8006EF24[0xD3] != D_8006EF3C) {
+            if (++i > 0xF00) {
+                return -2;
+            }
+        }
+        D_8006EF24[0xD5] = (D_8006EF24[0xD5] & ~0x30) | 0x30;
+        break;
+    case 3:
+        if (D_8006EF74 == 1) {
+            ck = 0x30;
+        } else {
+            ck = 0x20;
+        }
+        i = 0;
+        while ((D_8006EF24[0xD5] & 0x30) != ck) {
+            if (++i > 0xF00) {
+                return -2;
+            }
+        }
+        if (D_8006EF74 == 1) {
+            func_8004B450();
+        } else {
+            func_8004B428();
+        }
+        count = va_arg(args, u_long);
+        D_8006EF78 = count;
+        count = va_arg(args, u_long);
+        D_8006EF7C = count / 64;
+        D_8006EF7C += (count % 64) ? 1 : 0;
+        *D_8006EF28 = D_8006EF78;
+        *D_8006EF2C = (D_8006EF7C << 16) | 0x10;
+        if (D_8006EF74 == 1) {
+            dma = 0x1000200;
+        } else {
+            dma = 0x1000201;
+        }
+        *D_8006EF30 = dma;
+        break;
+    }
+    return 0;
+}
 
 void func_8004AC20(u_char *addr, u_long size);
 

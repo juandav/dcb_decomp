@@ -1,6 +1,6 @@
 obj___fixsfsi nocse
 libspu_s_crwa
-libspu_spu
+libspu_spu gcc2.8
 libspu_s_ini nocse
 libspu_s_dcb
 libspu_s_m_util
