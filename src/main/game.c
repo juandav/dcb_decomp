@@ -450,7 +450,7 @@ typedef struct {
     /* 0x004 */ s32 unk4[4];
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ s32 unk104;
-    /* 0x108 */ s16 unk108[3];
+    /* 0x108 */ u16 unk108[3];
     /* 0x10E */ u8 unk10E[2];
 } Unk110;
 
@@ -8510,7 +8510,48 @@ void func_80046BAC(u8 *out, s32 id) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80046C0C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046D68);
+s32 func_80046D68(s32 a, Unk110 *src, s32 slot) {
+    Unk110 *d;
+    s32 i;
+
+    if (slot == -1) {
+        for (slot = 0; slot < 3; slot++) {
+            if (PLAYER_DATA(a).unk2438[slot].unk0 == 0) {
+                break;
+            }
+        }
+        if (slot >= 3) {
+            return -1;
+        }
+    }
+    d = &PLAYER_DATA(a).unk2438[slot];
+    *d = *src;
+    d->unk0 = 1;
+    d->unk108[0]++;
+    if (d->unk108[1] >= 10000) {
+        d->unk108[1] = 9999;
+    }
+    if (d->unk108[2] >= 10000) {
+        d->unk108[2] = 9999;
+    }
+    for (i = 0; i < 30; i++) {
+        switch (d->cards[i].state) {
+        case 0:
+            d->cards[i].card = (s8 *)(D_801D8408 + d->cards[i].unk1 * 0x13C);
+            d->cards[i].id = d->cards[i].unk1;
+            break;
+        case 1:
+            d->cards[i].card = (s8 *)(D_801D8400 + d->cards[i].unk1 * 0xE2);
+            d->cards[i].id = d->cards[i].unk1 + 0xBF;
+            break;
+        case 2:
+            d->cards[i].card = (s8 *)(D_801D8404 + d->cards[i].unk1 * 0x70);
+            d->cards[i].id = d->cards[i].unk1 + 0x125;
+            break;
+        }
+    }
+    return 0;
+}
 
 s32 func_80046FB8(s32 a, Unk110 *out, s32 i) {
     if (((Unk8006E050 *)D_8006E050)[a].unk2438[i].unk0 == 0) {
