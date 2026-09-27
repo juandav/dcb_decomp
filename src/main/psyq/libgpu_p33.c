@@ -247,6 +247,16 @@ void func_80068144(u_long *addr, u_long size) {
     *D_800769CC = 0x1000200;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800681D0);
+int func_800681D0(void) {
+    volatile int cnt = 0x100000;
+
+    while (*D_800769EC & 0x20000000) {
+        if (--cnt == -1) {
+            func_80068310("MDEC_in_sync");
+            return -1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068264);
