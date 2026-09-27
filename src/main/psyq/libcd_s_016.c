@@ -33,7 +33,14 @@ int CdControlF(u_char com, u_char *param) {
     return cd_cw(com, param, NULL, 1) == 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlB);
+int CdControlB(u_char com, u_char *param, u_char *result) {
+    if (cd_cw(com, param, result, 0)) {
+        return 0;
+    }
+    return CD_sync(0, result) == CdlComplete;
+}
+
+OBJECT_END(1);
 
 int func_8005A784(CdlATV *vol) {
     CD_vol(vol);
