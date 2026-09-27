@@ -391,7 +391,11 @@ void SsSeqStop(short seq) {
     _SsSndStop(seq, 0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSepStop);
+void SsSepStop(short a, short b) {
+    _SsSndStop(a, b);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsSetSerialVol);
 
