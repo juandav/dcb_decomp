@@ -6410,13 +6410,176 @@ void func_80029A0C(s32 x, s32 y, s32 kind, s32 n, u8 *rgb, s32 z) {
     }
 }
 
-void func_80029EFC(s32, s32, s32, s32, s32 *, s32, s32);
+s32 func_80029EFC(s32, s32, s32, s32, u8 *, s32, u8 *);
 
 void func_80029EC4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5) {
-    func_80029EFC(arg0, arg1, arg2, arg3, &D_8006DF98, arg4, arg5);
+    func_80029EFC(arg0, arg1, arg2, arg3, (u8 *)&D_8006DF98, arg4, (u8 *)arg5);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80029EFC);
+s32 func_80029EFC(s32 x, s32 y, s32 n, s32 arg3, u8 *rgb, s32 z, u8 *s) {
+    s32 left;
+    s32 spacing;
+    s32 lineSpacing;
+    s32 space;
+    s32 c;
+
+    left = x;
+    spacing = 0;
+    lineSpacing = 0;
+    space = 6;
+    if (func_80029990() != 0) {
+        return;
+    }
+    while (*s != 0) {
+        if ((u8)(*s + 0x7F) >= 0x18) {
+            switch (*s) {
+            case '\\':
+                s++;
+                if (*s == 'n') {
+                    s++;
+                    x = left;
+                    y += 13 + lineSpacing;
+                } else {
+                    s++;
+                }
+                break;
+            case 'a':
+                s++;
+                c = *s++;
+                func_80029A0C(x, y + 1, 0, c - '0', rgb, z);
+                x += 12 + spacing;
+                break;
+            case 'b':
+                s++;
+                c = *s++;
+                func_80029A0C(x, y + 1, 0, c - ')', rgb, z);
+                x += 12 + spacing;
+                break;
+            case 'c':
+                s++;
+                n = *s - '0';
+                s++;
+                break;
+            case 'd':
+                s++;
+                c = *s++;
+                func_80029A0C(x, y + 1, 0, c - 0x1C, rgb, z);
+                x += 12 + spacing;
+                break;
+            case 'e':
+                s++;
+                if (*s < '4') {
+                    c = *s - '#';
+                } else if (*s == 'a') {
+                    c = 0x11;
+                } else {
+                    c = *s - '"';
+                }
+                func_80029A0C(x, y + 1, 0, c, rgb, z);
+                x += 12 + spacing;
+                s++;
+                break;
+            case 'g':
+                s++;
+                c = *s++;
+                func_80029A0C(x, y, 2, c - '0', rgb, z);
+                x += 25 + spacing;
+                break;
+            case 'h':
+                s++;
+                if (*s == '-') {
+                    s++;
+                    lineSpacing = '0' - *s;
+                    s++;
+                } else {
+                    lineSpacing = *s - '0';
+                    s++;
+                }
+                break;
+            case 'w':
+                s++;
+                if (*s == '-') {
+                    s++;
+                    spacing = '0' - *s;
+                    s++;
+                } else {
+                    spacing = *s - '0';
+                    s++;
+                }
+                break;
+            case 'z':
+                s++;
+                if (space == 6) {
+                    space = 12;
+                } else {
+                    space = 6;
+                }
+                break;
+            case ' ':
+                s++;
+                x += space + spacing;
+                break;
+            case '\n':
+                s++;
+                x = left;
+                y += 13;
+                y += lineSpacing;
+                break;
+            case 's':
+                s += 2;
+                break;
+            default:
+                if ((u32)(*s - '0') < 10) {
+                    if (func_80029990() != 0) {
+                        return x - left;
+                    }
+                    CUR_SPRT->sp.x0 = x;
+                    CUR_SPRT->sp.y0 = y;
+                    CUR_SPRT->sp.u0 = 0x6C;
+                    CUR_SPRT->sp.v0 = 0x30;
+                    CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+                    CUR_SPRT->sp.w = 12;
+                    CUR_SPRT->sp.h = 12;
+                    setSemiTrans(&CUR_SPRT->sp, 1);
+                    CUR_SPRT->sp.r0 = 0x80;
+                    CUR_SPRT->sp.g0 = 0x80;
+                    CUR_SPRT->sp.b0 = 0x80;
+                    setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+                    addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+                    addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+                    D_801D6B24 += sizeof(SprtPacket);
+                    x += 6 + spacing;
+                }
+                s++;
+                break;
+            }
+        } else {
+            if (func_80029990() != 0) {
+                return x - left;
+            }
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0x6C;
+            CUR_SPRT->sp.v0 = 0x30;
+            CUR_SPRT->sp.clut = getClut(D_801D6B20 + (n % 2) * 16, D_801D6B22 + n / 2);
+            CUR_SPRT->sp.w = 12;
+            CUR_SPRT->sp.h = 12;
+            setSemiTrans(&CUR_SPRT->sp, 1);
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(0, 0, D_801D6B12, D_801D6B14));
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->sp);
+            addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
+            D_801D6B24 += sizeof(SprtPacket);
+            x += 12 + spacing;
+            s += 2;
+        }
+    }
+    D_801D6B18 = x - left;
+    D_801D6B1C = y + 12;
+    return x - left;
+}
 
 s8 *func_8002A5B4(s8 *d, s8 *s) {
     if ((*d = *s) == 0) {
