@@ -76,7 +76,19 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTGetEnv);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTPutEnv);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTin);
+void DecDCTin(u_long *buf, int mode) {
+    if (mode & 1) {
+        *buf &= ~0x08000000;
+    } else {
+        *buf |= 0x08000000;
+    }
+    if (mode & 2) {
+        *buf |= 0x02000000;
+    } else {
+        *buf &= ~0x02000000;
+    }
+    func_800680B4(buf, *(u_short *)buf);
+}
 
 void DecDCTout(void) {
     func_80068144();
