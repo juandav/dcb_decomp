@@ -7767,7 +7767,47 @@ s8 *func_8002A5B4(s8 *d, s8 *s) {
     return func_8002A5B4(d + 1, s + 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002A5DC);
+s8 *func_8002A5DC(s8 *buf, s8 pad, s32 n, s32 width) {
+    s8 *q;
+    s8 *r;
+    s32 cnt;
+    s8 c;
+
+    buf += width;
+    q = buf;
+    *buf = 0;
+    cnt = 0;
+    do {
+        q--;
+        c = n % 10 + '0';
+        *q = c;
+        n /= 10;
+        if (--width <= 0 && n != 0) {
+            buf++;
+            for (r = buf; q < r; r--) {
+                *r = r[-1];
+            }
+            q++;
+        }
+        if (++cnt % 3 == 0) {
+            if (n == 0) {
+                break;
+            }
+            *--q = ',';
+            if (--width <= 0) {
+                buf++;
+                for (r = buf; q < r; r--) {
+                    *r = r[-1];
+                }
+                q++;
+            }
+        }
+    } while (n != 0);
+    while (--width >= 0) {
+        *--q = pad;
+    }
+    return buf;
+}
 
 s8 *func_8002A710(s8 *buf, s8 pad, s32 n, s32 width) {
     s8 *q;
