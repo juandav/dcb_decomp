@@ -532,7 +532,8 @@ typedef struct {
     /* 0x15C */ s16 unk15C;
     /* 0x15E */ s16 unk15E;
     /* 0x160 */ s16 unk160;
-    /* 0x162 */ u8 unk162[0x16];
+    /* 0x162 */ u8 unk162[0xE];
+    /* 0x170 */ s16 unk170[4];
     /* 0x178 */ u32 unk178_0 : 15;
     /* 0x178 */ u32 unk178_15 : 2;
     /* 0x178 */ u32 unk178_17 : 2;
@@ -8730,9 +8731,80 @@ s32 func_8004080C(s32 idx, s32 p) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040A48);
+s32 func_80040A48(s32 p, s32 deck) {
+    Rect16 r;
+    Rect16 unused;
+    s8 *card;
+    s32 c;
+    s32 k;
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80040D88);
+    if (deck == -1) {
+        return -1;
+    }
+    c = func_80040764(p);
+    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk292[0]);
+    card = (s8 *)&PLAYER_DATA(p).unk80[deck] + 0x13C;
+    PLAYER(p)->cards[c % 30].card = card;
+    r.x = ((p << 8) + (deck + 3) * 40 >> 1) + 0x2C0;
+    r.y = 0xC8;
+    r.w = 0x14;
+    r.h = 0x28;
+    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
+    for (k = 0; k < 3; k++) {
+        if (PLAYER(p)->unk1CA[k] == c) {
+            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
+            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
+            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk178_30 = 0;
+            PLAYER(p)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10);
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[deck + 1];
+            return 0;
+        }
+    }
+    return -1;
+}
+
+s32 func_80040D88(s32 p, s32 deck) {
+    Rect16 r;
+    Rect16 unused;
+    s8 *card;
+    s32 c;
+    s32 k;
+
+    if (deck == -1) {
+        return -1;
+    }
+    c = func_80040764(p);
+    func_80046BAC(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk288);
+    card = (s8 *)&PLAYER_DATA(p).unk80[deck];
+    PLAYER(p)->cards[c % 30].card = card;
+    r.x = ((p << 8) + deck * 40 >> 1) + 0x2C0;
+    r.y = 0xC8;
+    r.w = 0x14;
+    r.h = 0x28;
+    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
+    for (k = 0; k < 3; k++) {
+        if (PLAYER(p)->unk1CA[k] == c) {
+            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
+            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
+            PLAYER(p)->unk15C = *(s16 *)(card + 0x20);
+            PLAYER(p)->unk15E = *(s16 *)(card + 0x3C);
+            PLAYER(p)->unk160 = *(s16 *)(card + 0x58);
+            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C;
+            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15E;
+            PLAYER(p)->unk11C[3] = PLAYER(p)->unk160;
+            PLAYER(p)->unk178_30 = 0;
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[0];
+            return 0;
+        }
+    }
+    return -1;
+}
 
 s32 func_800410B4(s32 arg0, s32 arg1) {
     s32 i;
