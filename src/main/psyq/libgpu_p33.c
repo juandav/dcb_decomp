@@ -99,7 +99,33 @@ int DecDCToutCallback(void (*func)()) {
     return DMACallback(1, func);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067FC4);
+extern volatile u_long *D_800769C0;
+extern volatile u_long *D_800769EC;
+extern u_long D_800768A8[];
+extern u_long D_8007692C[];
+
+void func_80067FC4(int mode) {
+    switch (mode) {
+    case 0:
+        *D_800769EC = 0x80000000;
+        *D_800769C0 = 0;
+        *D_800769CC = 0;
+        *D_800769EC = 0x60000000;
+        func_800680B4(D_800768A8, 32);
+        func_800680B4(D_8007692C, 32);
+        break;
+    case 1:
+        *D_800769EC = 0x80000000;
+        *D_800769C0 = 0;
+        *D_800769CC = 0;
+        *D_800769CC;
+        *D_800769EC = 0x60000000;
+        break;
+    default:
+        printf("MDEC_rest:bad option(%d)\n", mode);
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800680B4);
 
