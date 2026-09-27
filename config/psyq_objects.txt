@@ -134,6 +134,7 @@ libcd_c_009
 libcd_c_010
 libcd_c_011
 libcd_bios_1 gcc2.8
+libcd_bios_1_2 gcc2.8
 libcd_s_002
 libcd_s_016
 libgpu_sys

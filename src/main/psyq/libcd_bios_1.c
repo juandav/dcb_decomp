@@ -99,5 +99,3 @@ void CD_set_test_parmnum(int num) {
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A088);
-
-INCLUDE_ASM("asm/main/nonmatchings/psyq", StRingStatus);
