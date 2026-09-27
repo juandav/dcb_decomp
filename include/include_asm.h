@@ -40,4 +40,16 @@ __asm__(".include \"include/labels.inc\"\n");
 
 #endif /* !defined(M2CTX) && !defined(PERMUTER) */
 
+/*
+ * ASPSX pads the .text of every PsyQ library object to a multiple of 16
+ * bytes. Put this after the last function of a library object that is
+ * written in C, with the number of padding nops that follow it. Not every
+ * object before it is a multiple of 16, so .align can't be used.
+ */
+#if !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+#define OBJECT_END(NOPS) __asm__(".section .text\n\t.fill " #NOPS ", 4, 0\n")
+#else
+#define OBJECT_END(NOPS)
+#endif
+
 #endif /* INCLUDE_ASM_H */

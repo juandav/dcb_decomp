@@ -1,0 +1,214 @@
+obj___fixsfsi nocse
+libspu_s_crwa
+libspu_spu gcc2.8
+libspu_s_ini nocse
+libspu_s_dcb
+libspu_s_m_util
+libspu_s_sva
+libspu_s_n2p
+libspu_s_sca
+libsnd_ssclose
+libsnd_ssinit
+libsnd_ssinit_c gcc2.8
+libsnd_cc_0
+libsnd_cc_6
+libsnd_cc_7
+libsnd_cc_10 gcc2.8
+libsnd_cc_11
+libsnd_cc_64
+libsnd_cc_91
+libsnd_cc_98
+libsnd_cc_99 gcc2.8
+libsnd_cc_100
+libsnd_cc_101
+libsnd_cc_121
+libsnd_de_0 gcc2.8
+libsnd_de_1 gcc2.8
+libsnd_de_2 gcc2.8
+libsnd_de_3 gcc2.8
+libsnd_de_4
+libsnd_ccadsr gcc2.8
+libsnd_de_5
+libsnd_de_6
+libsnd_de_7
+libsnd_de_8
+libsnd_de_9
+libsnd_de_10
+libsnd_de_11
+libsnd_de_12 gcc2.8
+libsnd_de_13 gcc2.8
+libsnd_de_14 gcc2.8
+libsnd_de_16
+libsnd_midibend
+libsnd_midicc gcc2.8
+libsnd_midimeta gcc2.8
+libsnd_midinote
+libsnd_midiprog
+libsnd_miditime gcc2.8
+libsnd_miditime_2 gcc2.8
+libsnd_miditime_3
+libsnd_playmode gcc2.8
+libsnd_sssattr
+libsnd_sssmv
+libsnd_ssstart gcc2.8
+libsnd_sscall
+libsnd_cres
+libsnd_pause
+libsnd_midiread gcc2.8
+libsnd_next
+libsnd_replay
+libsnd_ssstop
+libsnd_sssv
+libsnd_sstable
+libsnd_sstick gcc2.8
+libsnd_ssvol gcc2.8
+libsnd_ssvol_2
+libsnd_tempo
+libsnd_ut_ako
+libsnd_ut_gpa
+libsnd_ut_gva gcc2.8
+libsnd_ut_rdel nocse
+libspu_s_srmp
+libspu_s_sra
+libsnd_ut_rdep nocse
+libsnd_ut_rev nocse
+libspu_s_sr nocse
+libsnd_ut_rfb nocse
+libsnd_ut_sva
+libsnd_vm_aloc2
+libsnd_func_80034be8
+libsnd_func_80034bf8
+libsnd_vm_f
+libspu_s_snv
+libspu_s_sav
+libspu_s_gnv
+libspu_s_gav
+libspu_s_srv
+libspu_s_grv
+libspu_s_sk gcc2.8
+libspu_s_gvex
+libsnd_vm_init gcc2.8
+libspu_s_m_init
+libspu_s_it
+libsnd_vm_key
+libsnd_vm_aloc1 gcc2.8
+libsnd_vm_n2p nocse
+libsnd_vm_no1 gcc2.8
+libspu_s_snc
+libsnd_vm_noff
+libsnd_vm_nowof
+libsnd_vm_nowon gcc2.8
+libsnd_vm_pb gcc2.8
+libsnd_vm_prog2
+libsnd_vm_seq
+libsnd_vm_stav
+libsnd_vm_vol
+libsnd_vm_vsu nocse
+libsnd_func_80034bf8_2
+libsnd_func_80034be8_2
+libsnd_vs_vab
+libspu_s_m_f gcc2.8
+libspu_s_m_int
+libsnd_vs_vh
+libsnd_vs_vh_2 gcc2.8
+libsnd_vs_vtb
+libspu_s_stsa
+libspu_s_stm
+libsnd_vs_vtc
+libspu_s_itc
+libetc_vsync
+libetc_intr nocse
+libetc_intr_vb
+libetc_intr_dma
+libetc_vmode
+libcd_cdrom
+libcd_event
+libcd_sys
+libcd_cdread2
+libcd_c_002
+libcd_c_003
+libcd_c_004
+libcd_c_005
+libcd_c_007
+libcd_c_008
+libcd_c_009
+libcd_c_010
+libcd_c_011
+libcd_bios_1 gcc2.8
+libcd_bios_1_2 gcc2.8
+libcd_s_002
+libcd_s_016
+libcd_cdread gcc2.8
+libgpu_sys
+libmcrd_libmcrd
+libcd_s_021
+libcd_bios_2
+libcd_s_021_2
+libgte_geo_00
+libgte_geo_01
+libgte_msc01
+libgte_mtx_03
+libgte_mtx_04
+libgte_mtx_06
+libgte_mtx_08
+libgte_reg12
+libgte_func_8002b018
+libgte_fgo_00
+libgte_fgo_00_2 gcc2.8
+libgte_patchgte
+libgs_gs_001 gcc2.8
+libgs_gs_0022 nocse
+libgs_gs_003 nocse
+libgs_matrix9
+libgte_mtx_004
+libgs_gs_104 nocse
+libgs_gs_107
+libgte_mtx_11
+libgs_gs_108 gcc2.8
+libgs_gs_108_2
+libgs_gs_121
+libgs_gs_123
+libgs_gs_131
+libgs_matrix8
+libgs_gs_119
+libgs_gs_133
+libgpu_sys_2
+libgpu_e03
+libgpu_e04
+libgpu_p00
+libgpu_p01
+libgpu_p06
+libgpu_p10
+libgpu_p22
+libgpu_p33
+libgpu_sys_3
+libcard_card
+libcard_init
+libcard_patch
+libcard_end
+libc2_bzero
+libc2_memcpy
+libc2_strcat
+libc2_strcmp gcc2.8
+libc2_strcpy
+libc2_strlen
+libc2_printf
+libc2_prnt
+libc2_memchr
+libc2_putchar gcc2.8
+libc2_sprintf gcc2.8
+libc2_puts
+libc2_setjmp
+libpad_func_80024c98
+libapi_counter
+libapi_first
+libapi_pad
+libapi_patch
+libapi_chclrpad
+libpad_pdent2
+libpad_pdent3
+libpad_pdmaiini nocse
+libpad_pddirini
+libpad_pddirres gcc2.8
+libpad_pdresres
+libpad_pdresres_2 gcc2.8

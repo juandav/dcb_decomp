@@ -9,6 +9,9 @@ D_80010884 = 0x80010884; // force_not_migration:True
 D_800108A4 = 0x800108A4; // force_not_migration:True
 D_80012FAC = 0x80012FAC; // force_not_migration:True
 
+// Rank titles, only referenced from a data table
+D_800105FC = 0x800105FC; // force_not_migration:True
+
 // Panel pool VRAM position, a halfword the code addresses on its own
 D_800897EE = 0x800897EE; // size:0x2
 
@@ -19,6 +22,7 @@ D_801D69FA = 0x801D69FA; // size:0x2
 func_800141B8 = 0x800141B8; // type:func
 func_8001491C = 0x8001491C; // type:func
 func_80015328 = 0x80015328; // type:func
+func_800155F4 = 0x800155F4; // type:func
 func_800162F0 = 0x800162F0; // type:func
 func_80016500 = 0x80016500; // type:func
 func_80016724 = 0x80016724; // type:func
@@ -145,6 +149,7 @@ func_80033CD4 = 0x80033CD4; // type:func
 func_80033D9C = 0x80033D9C; // type:func
 func_80033F34 = 0x80033F34; // type:func
 func_80034260 = 0x80034260; // type:func
+func_80038F68 = 0x80038F68; // type:func
 func_8003EB88 = 0x8003EB88; // type:func
 func_8003EC4C = 0x8003EC4C; // type:func
 func_80040064 = 0x80040064; // type:func
@@ -618,3 +623,4 @@ PadStopCom = 0x8006B3A0; // type:func
 PadInitDirect = 0x8006B3E4; // type:func
 _padInitDirPort = 0x8006B494; // type:func
 _dirFailAuto = 0x8006BDC4; // type:func
+D_80011440 = 0x80011440; // force_not_migration:True

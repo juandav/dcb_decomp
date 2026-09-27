@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Write objdiff.json with one unit per C file under src/.
 
+src/main/psyq/ holds one file per PsyQ library object; they are linked into a
+single build/src/main/psyq.c.o and form the main/psyq unit.
+
 Target objects are splat's full disassembly of each C segment
 (expected/asm/<segment>/<file>.s.o); base objects are the files built from
 src/, where every function still behind INCLUDE_ASM carries a .NON_MATCHING
@@ -33,9 +36,13 @@ def category_for(name: str) -> str:
 
 def main() -> None:
     units = []
-    for src in sorted((ROOT / "src").rglob("*.c")):
-        rel = src.relative_to(ROOT / "src").with_suffix("")
-        name = rel.as_posix()
+    names = [
+        src.relative_to(ROOT / "src").with_suffix("").as_posix()
+        for src in (ROOT / "src").rglob("*.c")
+        if not src.is_relative_to(ROOT / "src/main/psyq")
+    ]
+    names.append("main/psyq")
+    for name in sorted(names):
         units.append(
             {
                 "name": name,
