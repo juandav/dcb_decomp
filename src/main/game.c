@@ -461,12 +461,31 @@ typedef struct {
 } SprtInfo;
 
 typedef struct {
+    u8 b[8];
+} Bytes8;
+
+typedef struct {
     /* 0x000 */ u8 unk0[0x13C];
     /* 0x13C */ u8 unk13C[0x20];
-    /* 0x15C */ void *unk15C[2];
-    /* 0x164 */ void *unk164[2];
+    /* 0x15C */ u8 *unk15C[2];
+    /* 0x164 */ u8 *unk164[2];
     /* 0x16C */ void *unk16C;
-    /* 0x170 */ u8 unk170[0x3D];
+    /* 0x170 */ Bytes8 unk170;
+    /* 0x178 */ s32 unk178;
+    /* 0x17C */ s32 unk17C;
+    /* 0x180 */ s32 n;
+    /* 0x184 */ u8 type;
+    /* 0x185 */ Bytes4 unk185;
+    /* 0x189 */ Bytes4 unk189;
+    /* 0x18D */ Bytes4 unk18D;
+    /* 0x194 */ s32 unk194;
+    /* 0x198 */ s32 unk198;
+    /* 0x19C */ s16 unk19C[5];
+    /* 0x1A6 */ s16 unk1A6;
+    /* 0x1A8 */ s16 unk1A8;
+    /* 0x1AA */ u8 unk1AA;
+    /* 0x1AB */ u8 unk1AB;
+    /* 0x1AC */ u8 unk1AC;
     /* 0x1AD */ s8 unk1AD;
 } Obj32;
 
@@ -8010,7 +8029,69 @@ s16 func_800317A8(void *arg0, s16 arg1) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80031970);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80031F58);
+extern u8 D_8006DEF4[];
+void func_80031970(Obj32 *);
+s32 func_801E6C78(s32, s32, Obj32 *, u8 *, s32);
+
+Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n, u8 abr, u8 tp, s32 type,
+                     s16 p0, s16 p1, s16 p2, s16 p3, s16 p4, Bytes8 *q, s32 r, s32 s, s32 t, u8 u1, u8 u2,
+                     s32 w, s32 x) {
+    Obj32 *o;
+    u8 *prim;
+    s32 i;
+    s32 j;
+
+    o = func_8001AD0C(0x1B0);
+    o->type = type;
+    o->n = n;
+    o->unk19C[0] = p0;
+    o->unk19C[1] = p1;
+    o->unk19C[2] = p2;
+    o->unk19C[3] = p3;
+    o->unk19C[4] = p4;
+    o->unk16C = func_8001AD0C(n * 48);
+    func_80031970(o);
+    if (type == 13) {
+        o->unk170 = *q;
+        o->unk178 = r;
+        o->unk17C = s;
+        if (t >= 0 && func_801E6C78(t, 1, o, o->unk13C, x) != 0) {
+            o->unk1AD = 1;
+        } else {
+            o->unk1AD = -1;
+        }
+    } else {
+        o->unk1AD = -1;
+    }
+    o->unk198 = tp;
+    o->unk1A6 = id;
+    o->unk1A8 = -1;
+    o->unk185 = *a;
+    o->unk189 = *b;
+    o->unk18D = *c;
+    *(Unk13C *)o = *src;
+    func_80030E3C(o);
+    o->unk1AB = u2;
+    o->unk194 = w;
+    o->unk1AA = u1;
+    o->unk1AC = abr;
+    for (i = 0; i < 2; i++) {
+        if (o->type < 10) {
+            o->unk15C[i] = func_8001AD0C(o->n * 16);
+        } else {
+            o->unk15C[i] = 0;
+        }
+        prim = o->unk164[i] = func_8001AD0C(D_8006DEF4[o->type] * o->n * 2);
+        for (j = 0; j < o->n * 2; j++) {
+            func_8001E6EC(o->type, prim, abr, 0);
+            if (o->type < 10) {
+                SetDrawTPage(o->unk15C[i] + j * 8, 0, 0, GetTPage(0, tp, 0, 0));
+            }
+            prim += D_8006DEF4[o->type];
+        }
+    }
+    return o;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003230C);
 
