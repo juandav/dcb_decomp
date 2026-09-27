@@ -102,7 +102,32 @@ u_long _spu_FgetRXXa(int reg, int mode) {
     return v << D_8006EF4C;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetPCR);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void _spu_FsetPCR(int flag) {
+    *D_8006EF34 &= 0xFFF8FFFF;
+    if (flag) {
+        *D_8006EF34 |= 0x30000;
+    } else {
+        *D_8006EF34 |= 0x50000;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004B428);
 
