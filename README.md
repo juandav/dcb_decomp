@@ -95,6 +95,9 @@ Memory map of `SLUS_013.28` (psylink puts `.rodata` in front of `.text`):
 
 ## Contributing
 
+The naming, layout and pull request conventions are in
+[CONTRIBUTING.md](CONTRIBUTING.md); they follow the Digimon World decomp.
+
 Every function starts as an `INCLUDE_ASM` line in `src/`. To decompile one,
 replace that line with C, rebuild and run `make compare`. objdiff
 (`make objdiff`, then open the project in objdiff) shows the differences per
