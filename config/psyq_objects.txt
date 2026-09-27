@@ -91,7 +91,7 @@ libsnd_vm_init
 libspu_s_m_init
 libspu_s_it
 libsnd_vm_key
-libsnd_vm_aloc1
+libsnd_vm_aloc1 gcc2.8
 libsnd_vm_n2p nocse
 libsnd_vm_no1
 libspu_s_snc
