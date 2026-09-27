@@ -5150,14 +5150,55 @@ s32 func_8002BC2C(void) {
 }
 
 s32 InitCARD(s32);
-s32 func_8002BC80();
+void func_8002BC80(void);
 
 void func_8002BC58(void) {
     InitCARD(0);
     func_8002BC80();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002BC80);
+long func_8006A794(unsigned long, long, long, long (*)());
+long func_8006A7C4(long);
+void StartCARD(void);
+void func_80068804(void);
+extern s32 D_801D8160;
+extern s32 D_801D8164;
+extern s32 D_801D8168;
+extern s32 D_801D816C;
+extern s32 D_801D8170;
+extern s32 D_801D8174;
+extern s32 D_801D8178;
+extern s32 D_801D817C;
+extern void *D_801D8190[2];
+extern u8 *D_801D81A0;
+
+void func_8002BC80(void) {
+    s32 i;
+
+    VSync(2);
+    D_801D8160 = func_8006A794(0xF4000001, 4, 0x2000, 0);
+    D_801D8164 = func_8006A794(0xF4000001, 0x8000, 0x2000, 0);
+    D_801D8168 = func_8006A794(0xF4000001, 0x100, 0x2000, 0);
+    D_801D816C = func_8006A794(0xF4000001, 0x2000, 0x2000, 0);
+    D_801D8170 = func_8006A794(0xF0000011, 4, 0x2000, 0);
+    D_801D8174 = func_8006A794(0xF0000011, 0x8000, 0x2000, 0);
+    D_801D8178 = func_8006A794(0xF0000011, 0x100, 0x2000, 0);
+    D_801D817C = func_8006A794(0xF0000011, 0x2000, 0x2000, 0);
+    StartCARD();
+    func_80068804();
+    func_8006A7C4(D_801D8160);
+    func_8006A7C4(D_801D8164);
+    func_8006A7C4(D_801D8168);
+    func_8006A7C4(D_801D816C);
+    func_8006A7C4(D_801D8170);
+    func_8006A7C4(D_801D8174);
+    func_8006A7C4(D_801D8178);
+    func_8006A7C4(D_801D817C);
+    for (i = 0; i < 2; i++) {
+        D_801D8190[i] = func_8001ACEC(0x260);
+    }
+    D_801D81A0 = func_8001ACEC(0x200);
+}
 
 s32 func_8006A7B4(s32);
 extern s32 D_801D8198;
