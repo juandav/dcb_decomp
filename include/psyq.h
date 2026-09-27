@@ -317,7 +317,6 @@ extern volatile u_char *D_80070F08;
 extern volatile u_char *D_80070F10;
 extern volatile u_char *D_80070F14;
 extern u_long *D_80070AEC;
-extern long D_80070AE8;
 extern void (*D_80070AC8[8])();
 extern int D_801DDF28;
 extern int D_801DDF24;

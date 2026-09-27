@@ -6,6 +6,8 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
+extern long D_80070AE8;
+
 void *startIntrVSync(void) {
     *D_80070AEC = 0x100;
     D_80070AE8 = 0;
