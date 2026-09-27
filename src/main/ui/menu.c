@@ -8,6 +8,7 @@
 #include "dcb/save_checksum.h"
 #include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
+#include "dcb/transform.h"
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 #include "dcb/frame_callback.h"

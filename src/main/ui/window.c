@@ -6,6 +6,7 @@
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 #include "dcb/prim_util.h"
+#include "dcb/transform.h"
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 

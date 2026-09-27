@@ -110,7 +110,7 @@ segments:
       - [0xCEA4, c, gfx/prim_pair]
       - [0xDED0, c, gfx/prim3d]
       - [0xEBC8, c, gfx/prim_util]
-      - [0xF530, c, gfx/transform]
+      - [0xF504, c, gfx/transform]
       - [0xF840, c, gfx/fade]
       - [0xFBC0, c, gfx/tmd_sort]
       - [0x11634, c, script/script]
