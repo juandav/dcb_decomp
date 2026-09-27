@@ -709,7 +709,9 @@ void func_800571A0(void) {
     func_8006A784(0xF0000003, 0x20);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800571C8);
+void func_800571C8(void) {
+    func_8006A784(0xF0000003, 0x40);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800571F0);
 
