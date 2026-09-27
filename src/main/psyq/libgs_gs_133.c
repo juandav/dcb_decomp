@@ -47,7 +47,52 @@ void GsGetLw(GsCOORDINATE2 *coord, MATRIX *m) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLs);
+extern MATRIX D_801DBEA0;
+
+void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m) {
+    GsCOORDINATE2 *co;
+    int i;
+    int j;
+    int flg;
+
+    co = coord;
+    i = 0;
+    j = 100;
+    for (;; i++) {
+        D_801DBF00[i] = co;
+        if (co->super == NULL) {
+            if (co->flg == D_801DBE20 || co->flg == 0) {
+                co->workm = co->coord;
+                flg = D_801DBE20;
+                *m = co->workm;
+                co->flg = flg;
+            } else if (j == 100) {
+                *m = D_801DBF00[0]->workm;
+                i = 0;
+            } else {
+                i = j + 1;
+                *m = D_801DBF00[i]->workm;
+            }
+            break;
+        }
+        if (co->flg == D_801DBE20) {
+            *m = co->workm;
+            break;
+        }
+        if (co->flg == 0) {
+            j = i;
+        }
+        co = co->super;
+    }
+    for (; i > 0; i--) {
+        GsMulCoord3(m, &D_801DBF00[i - 1]->coord);
+        D_801DBF00[i - 1]->workm = *m;
+        D_801DBF00[i - 1]->flg = D_801DBE20;
+    }
+    GsMulCoord2(&D_801DBEA0, m);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsGetLws);
 
