@@ -337,7 +337,8 @@ typedef struct {
     /* 0x0080 */ Deck unk80[3];
     /* 0x0848 */ u8 unk848[0xC6A];
     /* 0x14B2 */ u8 unk14B2[0x12D];
-    /* 0x15DF */ u8 unk15DF[0xE59];
+    /* 0x15DF */ u8 unk15DF;
+    /* 0x15E0 */ u16 unk15E0[306][6];
     /* 0x2438 */ Unk110 unk2438[3];
     /* 0x2768 */ s16 unk2768[3];
     /* 0x276E */ s8 unk276E[3];
@@ -4680,7 +4681,19 @@ void func_800302E0(void *arg0) {
     (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x24)));
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003035C);
+void func_8003035C(u8 *p) {
+    s32 h;
+    s32 sx;
+    s32 cz;
+
+    func_80030130(p);
+    h = -*(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) +
+        *(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) * *(s32 *)(p + 0x100) / 56;
+    sx = h * rsin(*(s16 *)(p + 0xE8)) >> 12;
+    cz = h * rcos(*(s16 *)(p + 0xE8)) >> 12;
+    *(s32 *)(p + 0x20) -= sx;
+    *(s32 *)(p + 0x24) += cz;
+}
 
 s32 rcos(s32);
 
@@ -6155,7 +6168,19 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001174C);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800457FC);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045968);
+void func_80045968(s32 a, s32 row, s32 n) {
+    s32 r;
+    s32 i;
+
+retry:
+    r = rand();
+    for (i = 0; i < n; i++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk15E0[row][i] == r) {
+            goto retry;
+        }
+    }
+    ((Unk8006E050 *)D_8006E050)[a].unk15E0[row][n] = r;
+}
 
 void func_80045A58(s32 arg0) {
     s32 row;
