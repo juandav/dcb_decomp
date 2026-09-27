@@ -864,7 +864,11 @@ int func_8005B174(void) {
     return D_80070C4C;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B184);
+extern u_char D_80070C5C;
+
+int func_8005B184(void) {
+    return D_80070C5C;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B194);
 
