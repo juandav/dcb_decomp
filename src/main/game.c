@@ -10856,7 +10856,28 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_8003B210);
 
 void func_8003B210(s32, s32);
 void func_80044800(void);
-void func_80044AB0(void *, s32);
+typedef struct {
+    /* 0x00 */ u32 rgbc;
+    /* 0x04 */ u8 fade[4];
+    /* 0x08 */ u8 from[3];
+    /* 0x0B */ u8 t;
+    /* 0x0C */ u8 to[3];
+    /* 0x0F */ u8 num;
+    /* 0x10 */ u16 clut;
+    /* 0x12 */ u16 tpage;
+    /* 0x14 */ u8 pal;
+    /* 0x15 */ u8 flags;
+    /* 0x16 */ u8 u;
+    /* 0x17 */ u8 v;
+    /* 0x18 */ VECTOR pos;
+    /* 0x28 */ SVECTOR rot;
+    /* 0x30 */ s32 scale;
+    /* 0x34 */ s16 sx;
+    /* 0x36 */ s16 sy;
+    /* 0x38 */ s32 z;
+} CardSprite;
+
+void func_80044AB0(CardSprite *, s32);
 
 #define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
 #define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
@@ -12553,7 +12574,197 @@ void func_8004480C(void *arg0, s32 k) {
     PopMatrix();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80044AB0);
+/* a POLY_FT4 filled in whole words */
+typedef struct {
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u32 rgbc;
+    /* 0x08 */ u32 xy0;
+    /* 0x0C */ u32 uv0;
+    /* 0x10 */ u32 xy1;
+    /* 0x14 */ u32 uv1;
+    /* 0x18 */ u32 xy2;
+    /* 0x1C */ u32 uv2;
+    /* 0x20 */ u32 xy3;
+    /* 0x24 */ u32 uv3;
+} RawPolyFT4;
+
+s32 RotAverage4(SVECTOR *, SVECTOR *, SVECTOR *, SVECTOR *, s32 *, s32 *, s32 *, s32 *, s32 *, s32 *);
+void func_801F8E34(void *, s32);
+
+void func_80044AB0(CardSprite *o, s32 k) {
+    MATRIX m;
+    SVECTOR v[4];
+    SVECTOR w[4];
+    s32 sxy[4];
+    s32 p;
+    s32 otz;
+    s32 flag;
+    s32 nclip;
+    u32 *col;
+    u32 *fade;
+    RawPolyFT4 *buf;
+    RawPolyFT4 *pk;
+    u8 *duel;
+    u8 *t;
+    u16 clut;
+    u16 tpage;
+    u8 u0, v0, u1, v1, u2, v2, u3, v3;
+
+    if (!(o->flags & 0x80)) {
+        return;
+    }
+    PushMatrix();
+    func_80045700(&o->pos, &o->rot, &m);
+    CompMatrix((MATRIX *)((u8 *)D_801D6A4C + 0x78), &m, &m);
+    SetRotMatrix((s32)&m);
+    func_8005C444(&m);
+    v[0].vx = -(o->scale * 40) / 8192;
+    v[0].vy = -(o->scale * 48) / 8192;
+    v[0].vz = 0;
+    v[1].vx = (o->scale * 40) / 8192;
+    v[1].vy = -(o->scale * 48) / 8192;
+    v[1].vz = 0;
+    v[2].vx = -(o->scale * 40) / 8192;
+    v[2].vy = (o->scale * 48) / 8192;
+    v[2].vz = 0;
+    v[3].vx = (o->scale * 40) / 8192;
+    v[3].vy = (o->scale * 48) / 8192;
+    v[3].vz = 0;
+    col = &o->rgbc;
+    fade = (u32 *)o->fade;
+    buf = (RawPolyFT4 *)D_800793A0->unk4078[10];
+    nclip = RotAverageNclip4((s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], (s32)&sxy[0], (s32)&sxy[1],
+                             (s32)&sxy[2], (s32)&sxy[3], &p, &otz, &flag);
+    if (nclip <= 0) {
+        otz = RotAverage4(&v[1], &v[0], &v[3], &v[2], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+    }
+    if ((o->flags & 0x20) && func_80029990() == 0) {
+        CUR_SPRT->sp.x0 = sxy[0] - 10;
+        CUR_SPRT->sp.y0 = (sxy[0] >> 16) + 6;
+        CUR_SPRT->sp.u0 = (u8)(o->num / 5) * 60;
+        CUR_SPRT->sp.v0 = (u8)(o->num % 5) * 21 - 0x80;
+        CUR_SPRT->sp.clut = 0x7DF2;
+        CUR_SPRT->sp.w = 60;
+        CUR_SPRT->sp.h = 21;
+        setSemiTrans(&CUR_SPRT->sp, 1);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
+        addPrim(&D_800793A0->ot[0], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[0], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+    o->z = 0x57 - *(s16 *)(D_801D833C + k * 36 + 0x20);
+    duel = D_801D8340;
+    if (*(s8 *)(duel + 0x81C) >= 0) {
+        t = *(u8 **)(duel + 0x58);
+        if (k == *(s16 *)(t + 2)) {
+            *(CardSprite **)(t + 4) = o;
+            o->z = 0x33;
+            func_801F8E34(*(u8 **)(duel + 0x58), 0x33);
+        }
+    }
+    if (o->flags & 0x40) {
+        if (o->t < 16) {
+            o->t++;
+        } else if ((o->to[0] | o->to[1] | o->to[2]) == 0) {
+            o->flags &= ~0x40;
+        }
+        o->fade[0] = o->from[0] + (o->to[0] - o->from[0]) * o->t / 16;
+        o->fade[1] = o->from[1] + (o->to[1] - o->from[1]) * o->t / 16;
+        o->fade[2] = o->from[2] + (o->to[2] - o->from[2]) * o->t / 16;
+        o->sx = sxy[0];
+        o->sy = sxy[0] >> 16;
+        pk = &buf[D_801D83F0++];
+        pk->tag = 0x09000000;
+        pk->rgbc = *fade;
+        pk->xy0 = sxy[0];
+        pk->uv0 = 0x7DB24080;
+        pk->xy1 = sxy[1];
+        pk->uv1 = 0x3E40A8;
+        pk->xy2 = sxy[2];
+        pk->uv2 = 0x7080;
+        pk->xy3 = sxy[3];
+        pk->uv3 = 0x70A8;
+        addPrim(&D_800793A0->ot[o->z], pk);
+    }
+    if (nclip <= 0) {
+        otz = RotAverage4(&v[1], &v[0], &v[3], &v[2], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+        tpage = 0x1C;
+        clut = 0x7C32;
+        u0 = 0xA0;
+        v0 = 0x6F;
+        u1 = 0xC8;
+        v1 = 0x6F;
+        u2 = 0xA0;
+        v2 = 0x9F;
+        u3 = 0xC8;
+        v3 = 0x9F;
+    } else {
+        w[0].vx = -(o->scale * 18) / 4096;
+        w[0].vy = (o->scale * -19) / 4096;
+        w[0].vz = 0;
+        w[1].vx = (o->scale * 18) / 4096;
+        w[1].vy = (o->scale * -19) / 4096;
+        w[1].vz = 0;
+        w[2].vx = -(o->scale * 18) / 4096;
+        w[2].vy = (o->scale * 17) / 4096;
+        w[2].vz = 0;
+        w[3].vx = (o->scale * 18) / 4096;
+        w[3].vy = (o->scale * 17) / 4096;
+        w[3].vz = 0;
+        u0 = o->u + 2;
+        v0 = o->v + 2;
+        u1 = o->u + 38;
+        v1 = v0;
+        u2 = u0;
+        v2 = o->v + 38;
+        u3 = u1;
+        v3 = v2;
+        otz = RotAverage4(&w[0], &w[1], &w[2], &w[3], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+        clut = o->clut;
+        tpage = o->tpage;
+        pk = &buf[D_801D83F0++];
+        pk->tag = 0x09000000;
+        pk->rgbc = *col;
+        pk->xy0 = sxy[0];
+        pk->uv0 = (clut << 16) | (v0 << 8) | u0;
+        pk->xy1 = sxy[1];
+        pk->uv1 = (tpage << 16) | (v1 << 8) | u1;
+        pk->xy2 = sxy[2];
+        pk->uv2 = (v2 << 8) | u2;
+        pk->xy3 = sxy[3];
+        pk->uv3 = (v3 << 8) | u3;
+        addPrim(&D_800793A0->ot[o->z], pk);
+        otz = RotAverage4(&v[0], &v[1], &v[2], &v[3], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+        tpage = 0x1C;
+        clut = getClut(800, 497 + o->pal);
+        u0 = 0xCC;
+        v0 = 0x6F;
+        u1 = 0xF4;
+        v1 = 0x6F;
+        u2 = 0xCC;
+        v2 = 0x9F;
+        u3 = 0xF4;
+        v3 = 0x9F;
+    }
+    o->sx = sxy[0];
+    o->sy = sxy[0] >> 16;
+    pk = &buf[D_801D83F0++];
+    pk->tag = 0x09000000;
+    pk->rgbc = *col;
+    pk->xy0 = sxy[0];
+    pk->uv0 = (clut << 16) | (v0 << 8) | u0;
+    pk->xy1 = sxy[1];
+    pk->uv1 = (tpage << 16) | (v1 << 8) | u1;
+    pk->xy2 = sxy[2];
+    pk->uv2 = (v2 << 8) | u2;
+    pk->xy3 = sxy[3];
+    pk->uv3 = (v3 << 8) | u3;
+    addPrim(&D_800793A0->ot[o->z], pk);
+    PopMatrix();
+}
 
 MATRIX *MulMatrix(MATRIX *, MATRIX *);
 MATRIX *MatrixNormal(MATRIX *, MATRIX *);
