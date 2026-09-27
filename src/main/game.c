@@ -336,6 +336,11 @@ typedef struct Panel {
 } Panel;
 
 typedef struct {
+    /* 0x000 */ u8 unk0[0x10C];
+    /* 0x10C */ s32 unk10C[3];
+} Unk80030CA8;
+
+typedef struct {
     /* 0x00 */ u16 cards[30];
     /* 0x3C */ char name[0x31];
     /* 0x6D */ u8 unk6D;
@@ -5321,7 +5326,35 @@ s32 func_80030718(SVECTOR *a, SVECTOR *b, SVECTOR *c) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030828);
+void func_80030828(SVECTOR *a, SVECTOR *p, SVECTOR *b, VECTOR *out) {
+    VECTOR d;
+    VECTOR ap;
+    VECTOR n;
+    VECTOR proj;
+    s32 t;
+
+    d.vx = b->vx - a->vx;
+    d.vy = b->vy - a->vy;
+    d.vz = b->vz - a->vz;
+    if (SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz) < 20000) {
+        VectorNormal(&d, &n);
+    } else {
+        d.vx >>= 4;
+        d.vy >>= 4;
+        d.vz >>= 4;
+        VectorNormal(&d, &n);
+    }
+    ap.vx = p->vx - a->vx;
+    ap.vy = p->vy - a->vy;
+    ap.vz = p->vz - a->vz;
+    t = (n.vx * ap.vx + n.vy * ap.vy + n.vz * ap.vz) >> 12;
+    proj.vx = t * n.vx >> 12;
+    proj.vy = t * n.vy >> 12;
+    proj.vz = t * n.vz >> 12;
+    out->vx = a->vx + proj.vx;
+    out->vy = a->vy + proj.vy;
+    out->vz = a->vz + proj.vz;
+}
 
 s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2) {
     s32 v;
@@ -5396,9 +5429,46 @@ s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out) {
     return -1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80030CA8);
+void func_80030CA8(u8 *p) {
+    s32 i;
 
-s32 func_80030CA8(void *);
+    p[0x139] = *(s16 *)(p + 0x12E) >= 0x5B;
+    *(s32 *)(p + 0x118) = -1;
+    for (i = 0; i < 3; i++) {
+        ((Unk80030CA8 *)p)->unk10C[i] = 0;
+    }
+    *(s32 *)(p + 0x108) = 0;
+    *(s32 *)(p + 0x11C) = 0;
+    *(s32 *)(p + 0x100) = 0;
+    *(s32 *)(p + 0x104) = 0;
+    if (*(s16 *)(p + 0x12E) != 0 && *(s16 *)(p + 0x12E) != 0x5A) {
+        *(s32 *)(p + 0x38) = *(s32 *)(p + 0xAC);
+        *(s32 *)(p + 0x3C) = *(s32 *)(p + 0xB0);
+        *(s32 *)(p + 0x40) = *(s32 *)(p + 0xB4);
+        *(s16 *)(p + 0x30) = *(s16 *)(p + 0xE4);
+        *(s16 *)(p + 0x32) = *(s16 *)(p + 0xE6);
+        *(s16 *)(p + 0x34) = *(s16 *)(p + 0xE8);
+        *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4);
+        *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6);
+        *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8);
+        *(s32 *)(p + 0x6C) = *(s16 *)(p + 0xDC);
+        *(s32 *)(p + 0x70) = *(s16 *)(p + 0xDE);
+        *(s32 *)(p + 0x74) = *(s16 *)(p + 0xE0);
+        func_80030BC4((SVECTOR *)(p + 0xD4), (SVECTOR *)(p + 0xDC), (VECTOR *)(p + 0x9C));
+    } else {
+        *(s32 *)(p + 0xAC) = *(s32 *)(p + 0x38);
+        *(s32 *)(p + 0xB0) = *(s32 *)(p + 0x3C);
+        *(s32 *)(p + 0xB4) = *(s32 *)(p + 0x40);
+        *(s16 *)(p + 0xE4) = *(s16 *)(p + 0x30);
+        *(s16 *)(p + 0xE6) = *(s16 *)(p + 0x32);
+        *(s16 *)(p + 0xE8) = *(s16 *)(p + 0x34);
+        *(s16 *)(p + 0xD4) = *(s32 *)(p + 0x20);
+        *(s16 *)(p + 0xD6) = *(s32 *)(p + 0x24);
+        *(s16 *)(p + 0xD8) = *(s32 *)(p + 0x28);
+    }
+}
+
+void func_80030CA8(u8 *);
 
 void *func_80030E3C(void *arg0) {
     func_8001EFDC(arg0, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xD4)), (s32) (*(s16 *)((s8 *)arg0 + 0xD6)), (s32) (*(s16 *)((s8 *)arg0 + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE8)));
