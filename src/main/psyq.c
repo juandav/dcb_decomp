@@ -1191,7 +1191,10 @@ int DrawSync(int mode) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800649E8);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearImage);
+int ClearImage(RECT *rect, u_char r, u_char g, u_char b) {
+    func_800649E8("ClearImage", rect);
+    return D_80076750->addque(D_80076750->unkC, rect, 8, (b << 16) | (g << 8) | r);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearImage2);
 
