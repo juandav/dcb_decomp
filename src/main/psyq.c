@@ -129,7 +129,27 @@ void _spu_FsetPCR(int flag) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004B428);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8004B428(void) {
+    *D_8006EF38 = (*D_8006EF38 & 0xF0FFFFFF) | 0x20000000;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004B450);
 
