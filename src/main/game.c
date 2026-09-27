@@ -5517,7 +5517,17 @@ u32 func_80020370(u32 *data, u32 *ot, u32 packet, void *arg3) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80020440);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002060C);
+void func_8002060C(s32 flag, u32 i, u8 *base) {
+    u8 *p;
+
+    p = base + (i >> 16);
+    gte_lwc2(12, 0, p);
+    gte_lwc2(17, 4, p);
+    base += i & 0xFFFF;
+    gte_nclip();
+    gte_lwc2(20, 0, base);
+    gte_lwc2(25, 4, base);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80020638);
 
