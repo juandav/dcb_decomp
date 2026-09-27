@@ -30,7 +30,7 @@ pre=""
 if gcc28:
     # the cc1 without `return` insns that the Makefile uses (tools/sn_cc1.py)
     sn=f"{D}/build/cc1-2.8.1-sn"
-    if not os.path.exists(sn) or os.path.getmtime(sn)<os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"):
+    if not os.path.exists(sn) or os.path.getmtime(sn)<max(os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"),os.path.getmtime(f"{D}/tools/sn_cc1.py")):
         subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{D}/bin/gcc-2.8.1-psx/cc1",sn],check=True)
     cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
     pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
