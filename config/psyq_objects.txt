@@ -52,7 +52,7 @@ libsnd_ssstart nocse
 libsnd_sscall
 libsnd_cres
 libsnd_pause
-libsnd_midiread
+libsnd_midiread gcc2.8
 libsnd_next
 libsnd_replay
 libsnd_ssstop
