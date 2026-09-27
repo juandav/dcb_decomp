@@ -117,7 +117,7 @@ segments:
       - [0x145F0, c, model/scene3d]
       - [0x1603C, c, libmath]
       - [0x17690, c, ui/text]
-      - [0x1ADDC, c, ui/str_util]
+      - [0x1ADB4, c, ui/str_util]
       - [0x1B5EC, c, system/sound]
       - [0x1BBEC, c, system/opening_movie]
       - [0x1BC98, c, system/sound_play]

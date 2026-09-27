@@ -21,6 +21,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 #include "dcb/transform.h"
 
 void waitDuelFrames(s32 frames) {

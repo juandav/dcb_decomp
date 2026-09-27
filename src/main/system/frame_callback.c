@@ -6,6 +6,7 @@
 #include "dcb/angle.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 void addFrameCallback(s32 callback) {
     s32 *slot;

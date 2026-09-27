@@ -1021,10 +1021,3 @@ s32 func_80029EFC(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *tex
     TEXT_HEIGHT = y + 12;
     return x - startX;
 }
-
-s8 *copyString(s8 *dst, s8 *src) {
-    if ((*dst = *src) == 0) {
-        return dst;
-    }
-    return copyString(dst + 1, src + 1);
-}

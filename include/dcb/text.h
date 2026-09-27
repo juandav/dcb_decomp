@@ -14,7 +14,6 @@ extern u8 FONT_GLYPH_METRICS[];
 s32 isSpritePoolFull(void);
 void resetSpritePool(void);
 void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize);
-s8 *copyString(s8 *dst, s8 *src);
 void drawSmallText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 void drawVerticalText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 s32 measureText(u8 *);

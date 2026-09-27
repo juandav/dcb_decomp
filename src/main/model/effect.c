@@ -20,6 +20,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 #include "dcb/transform.h"
 
 s16 ATTACK_ICON_ORIGIN_X[3] = { 0x80, -0x40, 0x140 };

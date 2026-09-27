@@ -7,6 +7,7 @@
 #include "dcb/angle.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 WindowStyle WINDOW_STYLES[8] = {
     { { 0xE0, 0xEA, 0xEC }, { 0xE0, 0xEF, 0xF1 }, { 9, 7 }, { 0xE, 7 }, 2, 4, 0, 0xFE, 1 },

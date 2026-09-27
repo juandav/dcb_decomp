@@ -10,6 +10,7 @@
 #include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
