@@ -1697,7 +1697,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006ABB0);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006ACB4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetInitPadFlag);
+extern long D_80077928;
+
+void SetInitPadFlag(int num) {
+    D_80077928 = num;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ReadInitPadFlag);
 
