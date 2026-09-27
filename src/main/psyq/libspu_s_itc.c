@@ -1,6 +1,30 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuIsTransferCompleted);
+extern long D_8006EF94;
+extern long D_8006EF58;
+extern long D_8006EF8C;
+
+long SpuIsTransferCompleted(long flag) {
+    long ret;
+
+    if (D_8006EF94 == 1 || D_8006EF58 == 1) {
+        return 1;
+    }
+    ret = func_8006A7B4(D_8006EF8C);
+    if (flag == 1) {
+        if (ret == 0) {
+            while (func_8006A7B4(D_8006EF8C) == 0) {
+            }
+        }
+        ret = 1;
+        D_8006EF58 = ret;
+    } else if (ret == 1) {
+        D_8006EF58 = ret;
+    }
+    return ret;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", __SN_ENTRY_POINT);
 
