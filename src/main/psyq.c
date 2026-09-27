@@ -1774,7 +1774,11 @@ void func_8006CA20(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CA48);
+void func_8006CA48(PadPort *port, u_char cmd, u_char *data, u_char len) {
+    port->cmd = cmd;
+    port->data = data;
+    port->len = len;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CA58);
 
