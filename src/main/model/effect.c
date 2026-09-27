@@ -13,6 +13,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/menu.h"
+#include "dcb/dialog.h"
 #include "dcb/prim3d.h"
 #include "dcb/prim_util.h"
 #include "dcb/sound.h"

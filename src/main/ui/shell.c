@@ -12,6 +12,7 @@
 #include "dcb/save_checksum.h"
 #include "dcb/player_rank.h"
 #include "dcb/menu.h"
+#include "dcb/dialog.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"

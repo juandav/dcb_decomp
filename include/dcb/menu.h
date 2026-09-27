@@ -44,10 +44,5 @@ void openMenu(void *menu, void *win, Unk800190F4 *highlight, Bytes4 *color);
 void centerMenuOnCursor(void *menu);
 void drawCursorHighlight(Unk800190F4 *highlight, s32 z);
 s32 updateMenuCursor(Menu *menu);
-void initDialog(u8 *dialog, u8 *text, u32 flags);
-void dialogTask();
-void drawDialogBody(u8 *dialog);
-s32 runDialogForPad(s32 *dialog, s32 pad);
-s8 runDialog(void *dialog);
 
 #endif /* DCB_MENU_H */
