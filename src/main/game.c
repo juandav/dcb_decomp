@@ -5503,7 +5503,51 @@ u32 *func_8001F6C4(u32 *p, u32 *ot, s32 gouraud, u32 code) {
     return next;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F768);
+u32 *func_8001F768(u32 *p, u32 *ot, s32 gouraud, u32 code) {
+    register u32 rgb asm("$8");
+    u32 *next;
+    u32 len;
+    u32 z;
+    u32 tag;
+
+    gte_mfc2(20, rgb);
+    gte_swc2(12, 8, p);
+    p[1] = rgb | code;
+    next = p;
+    if (gouraud) {
+        gte_swc2(2, 12, p);
+        gte_swc2(21, 16, p);
+        gte_swc2(13, 20, p);
+        gte_swc2(4, 24, p);
+        gte_swc2(22, 28, p);
+        gte_swc2(14, 32, p);
+        gte_swc2(3, 36, p);
+        gte_mfc2(7, z);
+        len = 0x0C000000;
+        next = p + 13;
+        gte_swc2(6, 40, p);
+        gte_swc2(0, 44, p);
+        gte_swc2(5, 48, p);
+    } else {
+        gte_swc2(2, 12, p);
+        gte_swc2(13, 16, p);
+        gte_swc2(4, 20, p);
+        gte_swc2(14, 24, p);
+        gte_swc2(3, 28, p);
+        gte_swc2(0, 32, p);
+        gte_swc2(5, 36, p);
+        gte_mfc2(7, z);
+        len = 0x09000000;
+        next += 10;
+    }
+    if (z >= (u32)SORT_WORK->unk20) {
+        return p;
+    }
+    tag = len | ot[z];
+    ot[z] = (u32)p;
+    *p = tag;
+    return next;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001F824);
 
