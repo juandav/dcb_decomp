@@ -2214,7 +2214,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BB58);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _dirFailAuto);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BEA4);
+int func_8006BEA4(u_char *p) {
+    if (*(u_short *)(p + 0xE6) == 0 || p[0x46] != 0xFF) {
+        return 1;
+    }
+    return 0;
+}
+
+OBJECT_END(1);
 
 int func_8006BED4(void) {
     if (!(D_800779D4[1] & 1)) {
