@@ -825,7 +825,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_init);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_datasync);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_set_test_parmnum);
+extern int D_80070EE8;
+
+void CD_set_test_parmnum(int num) {
+    D_80070EE8 = num;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A088);
 
