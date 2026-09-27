@@ -57,6 +57,7 @@ segments:
       # psylink places .rdata ahead of .text
       - [0x800, .rodata, menu]
       - [0x830, .rodata, pad]
+      - [0x84C, .rodata, heap]
       - [0x9C0, .rodata, game_b]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
@@ -67,6 +68,7 @@ segments:
       - [0x703C, c, window]
       - [0x98F4, c, menu]
       - [0xAE00, c, pad]
+      - [0xB280, c, heap]
       - [0x1603C, c, libmath]
       - [0x17690, c, game_b]
       - [0x3AE10, c, psyq]
