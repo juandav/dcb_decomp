@@ -24,7 +24,7 @@ extern s32 D_801D6B28;
 extern s32 D_801D8128;
 extern s32 D_8006DFFC;
 extern s8 *D_8006E000[];
-extern s16 D_8006E048;
+extern s32 D_8006E048;
 extern s32 D_80010598;
 extern s32 D_800105A8;
 extern s32 D_8006E044;

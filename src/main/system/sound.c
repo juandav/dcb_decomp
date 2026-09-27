@@ -7,6 +7,21 @@
 #include "dcb/loader.h"
 #include "dcb/main.h"
 
+s32 D_8006DFFC = 0;
+extern s8 D_8006E00C[];
+extern s8 D_8006E01C[];
+extern s8 D_8006E02C[];
+s8 *D_8006E000[3] = { D_8006E00C, D_8006E02C, D_8006E01C };
+/* a name, then the note played at byte 15 */
+s8 D_8006E00C[16] = { 'S', 'E', '0', [15] = 0x3C };
+s8 D_8006E01C[16] = { 'S', 'E', '1', [15] = 0x24 };
+s8 D_8006E02C[16] = { 'S', 'E', '2', [15] = 0x3C };
+s32 D_8006E03C = 0;
+s32 D_8006E040 = 0;
+s32 D_8006E044 = 0x12;
+s32 D_8006E048 = 0x24;
+u16 D_8006E04C = 0x3C;
+
 void func_8002ADEC(void) {
     s8 *p;
 
@@ -45,7 +60,7 @@ void func_8002AEA4(s32 id) {
         }
         se->id = id;
         /* written as a word here, read as a halfword by the SFX players */
-        *(s32 *)&D_8006E048 = D_8006E000[id][0xF];
+        D_8006E048 = D_8006E000[id][0xF];
         sprintf(name, "A:\\SE%d.PAK", id);
         pak = (u8 *)func_8001B248((s32 *)name, func_800148B0(), -2);
         if (pak == 0) {
