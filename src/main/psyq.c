@@ -1556,7 +1556,11 @@ DISPENV *SetDefDispEnv(DISPENV *env, int x, int y, int w, int h) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetTPage);
+u_short GetTPage(int tp, int abr, int x, int y) {
+    return getTPage(tp, abr, x, y);
+}
+
+OBJECT_END(1);
 
 u_short func_80067644(int x, int y) {
     return (y << 6) | ((x >> 4) & 0x3F);
