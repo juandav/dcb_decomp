@@ -1303,7 +1303,55 @@ s32 func_80015848(s32 arg0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800158B0);
+extern FileEntry D_8006DD50;
+
+FileEntry *func_800158B0(CdFile *f, char *name, s32 key) {
+    u8 result[8];
+    FileEntry *e;
+    s32 n;
+    s32 i;
+    s32 r;
+
+    if (key == 0x80 && *(s32 *)name == 0) {
+        return &D_8006DD50;
+    }
+    for (;;) {
+        if (f->remaining <= 0) {
+            return 0;
+        }
+        CdIntToPos(f->sector, f->loc);
+        e = (FileEntry *)f->buf;
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            while (CdRead(2, (u8 *)e, 0x80) == 0) {
+            }
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        n = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            n = f->remaining + 0x1000;
+        }
+        for (; n > 0; n -= 0x20, e++) {
+            if (e->key == 0) {
+                return 0;
+            }
+            if (e->key == key) {
+                for (i = 0; i < 4; i++) {
+                    if (e->name[i] != *(s32 *)(name + (i << 2))) {
+                        break;
+                    }
+                }
+                if (i == 4) {
+                    return e;
+                }
+            }
+        }
+    }
+}
 
 FileEntry *func_80015A3C(char *name, s32 key) {
     FileEntry *e;
