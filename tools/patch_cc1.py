@@ -71,6 +71,10 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 14. jump_optimize turns `if (...) { x = a; goto l; } x = b;` into
    `x = a; if (...) goto l; x = b;` (GCC 2.8), so the ROM sets x before
    the test (SpuSetNoiseClock's `bltz v0,END; li a1,0`).
+15. jump_optimize's store-flag conversion of `x = a; if (...) x = b;` with A
+   or B zero needs, with cheap branches, a power of two as the other value
+   (GCC 2.8), so SpuSetCommonAttr's `x < 0 ? 0 : x` clamps stay branches
+   instead of `nor/sra/and`.
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -745,6 +749,54 @@ def patch(src, dst):
     put(cave, b"\xf3\x0f\x1e\xfb", code)
     put(0x080F38C0, bytes.fromhex("c7c0ac522d08"),
         b"\xe9" + (cave - (0x080F38C0 + 5)).to_bytes(4, "little", signed=True) + b"\x90")
+
+    # 15. jump_optimize's store-flag conversion of `x = a; if (...) x = b;`
+    #    with A or B zero (+6104 and +6134): as in GCC 2.8, when branches are
+    #    cheap (BRANCH_COST < 2, the R3000) it also needs
+    #    exact_log2 (INTVAL (other value)) >= 0 (STORE_FLAG_VALUE is 1). That
+    #    INTVAL is also taken of a REG (its regno), as 2.8 does. So `vol = 0;
+    #    if (v >= 0) vol = v;` stays a branch instead of becoming
+    #    `nor/sra/and` (SpuSetCommonAttr's clamps). Locals: temp2 -0x90,
+    #    temp3 -0x128; mips_cpu R6000/R4000 (2, 3) make BRANCH_COST 2.
+    def store_flag_guard(code, jump):
+        def cheap_or_pow2(yes, no):  # BRANCH_COST >= 2 || exact_log2 (INTVAL (%eax)) >= 0
+            code.extend(b"\x8b\x15" + (0x082D536C).to_bytes(4, "little"))  # mov mips_cpu,%edx
+            code.extend(b"\x83\xfa\x03")
+            jump(b"\x0f\x84", yes)
+            code.extend(b"\x83\xfa\x02")
+            jump(b"\x0f\x84", yes)
+            code.extend(b"\x8b\x40\x04\x85\xc0")        # INTVAL; test
+            jump(b"\x0f\x84", no)
+            code.extend(b"\x89\xc2\xf7\xda\x21\xc2\x39\xc2")  # (x & -x) == x
+            jump(b"\x0f\x84", yes)
+            jump(b"\xe9", no)
+
+        a = len(code)
+        jump(b"\x0f\x85", 0x080F3CDA)               # temp2 != 0 (the replaced je)
+        code.extend(b"\x8b\x85" + (-0x128).to_bytes(4, "little", signed=True))  # temp2 == 0: temp3
+        cheap_or_pow2(0x080F3DC0, 0x080F3CDA)
+        b = len(code)
+        jump(b"\x0f\x85", 0x080F3D10)               # temp3 != 0 (the replaced jne)
+        code.extend(b"\x8b\x85" + (-0x90).to_bytes(4, "little", signed=True))   # temp3 == 0: temp2
+        cheap_or_pow2(0x080F3CEA, 0x080F3D10)
+        return a, b
+
+    start = (free[0] + 15) & ~15
+    code = bytearray()
+
+    def jump(opcode, target):
+        code.extend(opcode)
+        code.extend((target - (start + len(code) + 4)).to_bytes(4, "little", signed=True))
+
+    a, b = store_flag_guard(code, jump)
+    if start + len(code) > 0x080AAEA3 + 0x9B5:
+        sys.exit("patch_cc1: no room left in bc_expand_expr")
+    d[fo(start):fo(start) + len(code)] = code
+    free[0] = start + len(code)
+    for site, target in ((0x080F3CD4, start + a), (0x080F3CE8, start + b)):
+        o = fo(site)
+        put(site, d[o:o + 2] + d[o + 2:o + 6],
+            b"\xe9" + (target - (site + 5)).to_bytes(4, "little", signed=True) + b"\x90")
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst + ".tmp"
