@@ -751,7 +751,17 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056E20);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056FA0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005704C);
+void func_8005704C(long *p, int n) {
+    int i = n - 1;
+
+    if (n != 0) {
+        do {
+            *p++ = 0;
+        } while (i-- != 0);
+    }
+}
+
+OBJECT_END(1);
 
 extern long D_80070B28;
 
