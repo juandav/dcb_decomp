@@ -1762,7 +1762,14 @@ void DecDCTout(void) {
     func_80068144();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTinSync);
+u_long func_800682F8(void);
+
+int DecDCTinSync(int mode) {
+    if (mode != 0) {
+        return (func_800682F8() >> 29) & 1;
+    }
+    return func_800681D0();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCToutSync);
 
