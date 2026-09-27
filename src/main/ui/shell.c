@@ -345,7 +345,7 @@ void quitToTitleOrPlayEnding(s32 mode) {
 
     parentTask = func_800148B0();
     if (mode == 0) {
-        func_8002F8E8();
+        freeScrollingBackground();
         func_80014C08(10);
         ClearImage(&vramRect, 0, 0, 0);
         DrawSync(0);
@@ -382,14 +382,14 @@ void quitToTitleOrPlayEnding(s32 mode) {
         func_80014A90();
     } else {
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
         func_80014C08(0x7FFFFFFF);
         func_80014C08(10);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, PATH_SAISEG_BIN, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, PATH_SAISEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);

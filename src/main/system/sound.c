@@ -171,7 +171,7 @@ void func_8002B3E4(void) {
 
 void playOpeningMovie(s32 movieMode, s32 parentTask) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, &PATH_OPENSEG_BIN, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, &PATH_OPENSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_801DFBAC(&PATH_DIGIMON_MOV);

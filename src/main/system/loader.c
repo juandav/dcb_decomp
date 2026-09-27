@@ -239,5 +239,5 @@ void initDisplayBuffers(s32 w, s32 h, s32 interlace) {
         setRGB0(&DB(i).draw, 0, 0, 0);
         DB(i).disp.isrgb24 = interlace;
     }
-    D_80079544 = 0;
+    SCENE_3D_ENABLED = 0;
 }

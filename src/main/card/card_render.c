@@ -19,7 +19,7 @@ void startCpuDuel(s32 deckIndex) {
     s32 result;
 
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
@@ -43,7 +43,7 @@ void startCpuDuel(s32 deckIndex) {
         updatePlayerRanks(0);
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     ((u8 *)((Unk8006E054 *)D_8006E054)->unk100C)[0x1A6] = result;
@@ -52,7 +52,7 @@ void startCpuDuel(s32 deckIndex) {
 
 void startVersusDuel(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
@@ -77,7 +77,7 @@ void startVersusDuel(void) {
     updatePlayerRanks(0);
     updatePlayerRanks(1);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", D_80010C9C, func_800148B0());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, func_800148B0());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x800, D_801EB2E8, func_800148B0(), 0, 0, 0);
@@ -773,7 +773,7 @@ void projectCardSprite(void *cardSprite, s32 spriteIndex) {
     }
     PushMatrix();
     buildRotTransMatrix((VECTOR *)(sprite + 0x18), (SVECTOR *)(sprite + 0x28), &matrix);
-    CompMatrix((MATRIX *)((u8 *)D_801D6A4C + 0x78), &matrix, &matrix);
+    CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     func_8005C444(&matrix);
     vertices[0].vx = -(*(s32 *)(sprite + 0x30) * 40) / 8192;
@@ -823,7 +823,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     }
     PushMatrix();
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
-    CompMatrix((MATRIX *)((u8 *)D_801D6A4C + 0x78), &matrix, &matrix);
+    CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     func_8005C444(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;

@@ -13,241 +13,241 @@
 #include "dcb/text.h"
 #include "dcb/transform.h"
 
-s16 D_8006E280[3] = { 0x80, -0x40, 0x140 };
-s16 D_8006E288[2][3] = { { -0xF0, 0x99, 0x99 }, { 0xF0, 0x1C, 0x1C } };
+s16 ATTACK_ICON_ORIGIN_X[3] = { 0x80, -0x40, 0x140 };
+s16 ATTACK_ICON_ORIGIN_Y[2][3] = { { -0xF0, 0x99, 0x99 }, { 0xF0, 0x1C, 0x1C } };
 
-void func_8002FAE4(void) {
-    Fade *f;
+void renderScrollingBackground(void) {
+    Fade *bg;
     s32 tim;
-    s16 r[4];
-    u8 db;
+    s16 texWindow[4];
+    u8 buffer;
 
-    if (D_801D81F8.tim == 0 || *(u16 *)&D_801D81F8.mode == 0xFFFF) {
+    if (SCROLL_BACKGROUND.tim == 0 || *(u16 *)&SCROLL_BACKGROUND.mode == 0xFFFF) {
         return;
     }
-    switch (D_801D81F8.unk6E) {
+    switch (SCROLL_BACKGROUND.unk6E) {
     case 0:
-        if ((s8)D_801D81F8.unk6F < 30) {
-            D_801D81F8.unk6F++;
+        if ((s8)SCROLL_BACKGROUND.unk6F < 30) {
+            SCROLL_BACKGROUND.unk6F++;
         }
         break;
     case 1:
-        if ((s8)D_801D81F8.unk6F >= -59) {
-            D_801D81F8.unk6F--;
+        if ((s8)SCROLL_BACKGROUND.unk6F >= -59) {
+            SCROLL_BACKGROUND.unk6F--;
         }
         break;
     }
-    f = &D_801D81F8;
-    f->unk70 = (f->unk70 + (s8)f->unk6F) % 7680;
-    if (f->mode != f->unk6D) {
-        if (f->unk6D == -1) {
-            if (f->unk72 == 0) {
-                tim = decompressArchiveEntry(f->tim, f->mode);
-                uploadTim((u32 *)tim, f->x, f->y, f->w, f->h);
-                if (f->mode != 6) {
-                    f->unk7C = 0x40;
+    bg = &SCROLL_BACKGROUND;
+    bg->unk70 = (bg->unk70 + (s8)bg->unk6F) % 7680;
+    if (bg->mode != bg->unk6D) {
+        if (bg->unk6D == -1) {
+            if (bg->unk72 == 0) {
+                tim = decompressArchiveEntry(bg->tim, bg->mode);
+                uploadTim((u32 *)tim, bg->x, bg->y, bg->w, bg->h);
+                if (bg->mode != 6) {
+                    bg->unk7C = 0x40;
                 } else {
-                    D_801D81F8.unk7C = 0x80;
+                    SCROLL_BACKGROUND.unk7C = 0x80;
                 }
-                D_801D81F8.unk7E = 0x80;
+                SCROLL_BACKGROUND.unk7E = 0x80;
                 DrawSync(0);
                 freeHeapBlock((void *)tim);
             }
-            D_801D81F8.unk72 += 6;
-            if (D_801D81F8.unk72 > 0x80) {
-                D_801D81F8.unk72 = 0x80;
-                D_801D81F8.unk6D = D_801D81F8.mode;
+            SCROLL_BACKGROUND.unk72 += 6;
+            if (SCROLL_BACKGROUND.unk72 > 0x80) {
+                SCROLL_BACKGROUND.unk72 = 0x80;
+                SCROLL_BACKGROUND.unk6D = SCROLL_BACKGROUND.mode;
             }
         } else {
-            D_801D81F8.unk72 -= 6;
-            if (D_801D81F8.unk72 < 0) {
-                D_801D81F8.unk72 = 0;
-                D_801D81F8.unk6D = -1;
+            SCROLL_BACKGROUND.unk72 -= 6;
+            if (SCROLL_BACKGROUND.unk72 < 0) {
+                SCROLL_BACKGROUND.unk72 = 0;
+                SCROLL_BACKGROUND.unk6D = -1;
             }
         }
     }
-    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].twin0);
-    db = FRAME_BUFFER_INDEX;
-    D_801D81F8.buf[db].x0 = -((D_801D81F8.unk70 / 60) & 1);
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].y0 = 0;
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].u0 = (D_801D81F8.unk70 / 60) & 0xFE;
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].v0 = D_801D81F8.unk70 / 60;
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].r0 = D_801D81F8.unk72;
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].g0 = D_801D81F8.unk72;
-    D_801D81F8.buf[FRAME_BUFFER_INDEX].b0 = D_801D81F8.unk72;
-    r[0] = (D_801D81F8.x % 64) * 4;
-    r[1] = D_801D81F8.y % 256;
-    r[2] = D_801D81F8.unk7C;
-    r[3] = D_801D81F8.unk7E;
-    SetTexWindow(D_801D81F8.buf[FRAME_BUFFER_INDEX].twin, r);
-    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &D_801D81F8.buf[FRAME_BUFFER_INDEX]);
-    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].twin);
-    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], D_801D81F8.buf[FRAME_BUFFER_INDEX].tpage);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin0);
+    buffer = FRAME_BUFFER_INDEX;
+    SCROLL_BACKGROUND.buf[buffer].x0 = -((SCROLL_BACKGROUND.unk70 / 60) & 1);
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].y0 = 0;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].u0 = (SCROLL_BACKGROUND.unk70 / 60) & 0xFE;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].v0 = SCROLL_BACKGROUND.unk70 / 60;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].r0 = SCROLL_BACKGROUND.unk72;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].g0 = SCROLL_BACKGROUND.unk72;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].b0 = SCROLL_BACKGROUND.unk72;
+    texWindow[0] = (SCROLL_BACKGROUND.x % 64) * 4;
+    texWindow[1] = SCROLL_BACKGROUND.y % 256;
+    texWindow[2] = SCROLL_BACKGROUND.unk7C;
+    texWindow[3] = SCROLL_BACKGROUND.unk7E;
+    SetTexWindow(SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin, texWindow);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX]);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].tpage);
 }
 
-void func_80030130(void *arg0) {
-    s32 t;
-    s32 sum;
+void updateEffectLinearMotion(void *fx) {
+    s32 accelTerm;
+    s32 distance;
 
-    t = (*(s16 *)((s8 *)arg0 + 0x122)) * (*(s32 *)((s8 *)arg0 + 0x104)) * (*(s32 *)((s8 *)arg0 + 0x104));
-    sum = (*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)) + t;
-    (*(s32 *)((s8 *)arg0 + 0x20)) = (*(s16 *)((s8 *)arg0 + 0xD4)) + ((sum * (*(s32 *)((s8 *)arg0 + 0x9C))) >> 12);
-    (*(s32 *)((s8 *)arg0 + 0x24)) = (*(s16 *)((s8 *)arg0 + 0xD6)) + ((sum * (*(s32 *)((s8 *)arg0 + 0xA0))) >> 12);
-    (*(s32 *)((s8 *)arg0 + 0x28)) = (*(s16 *)((s8 *)arg0 + 0xD8)) + ((sum * (*(s32 *)((s8 *)arg0 + 0xA4))) >> 12);
+    accelTerm = (*(s16 *)((s8 *)fx + 0x122)) * (*(s32 *)((s8 *)fx + 0x104)) * (*(s32 *)((s8 *)fx + 0x104));
+    distance = (*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)) + accelTerm;
+    (*(s32 *)((s8 *)fx + 0x20)) = (*(s16 *)((s8 *)fx + 0xD4)) + ((distance * (*(s32 *)((s8 *)fx + 0x9C))) >> 12);
+    (*(s32 *)((s8 *)fx + 0x24)) = (*(s16 *)((s8 *)fx + 0xD6)) + ((distance * (*(s32 *)((s8 *)fx + 0xA0))) >> 12);
+    (*(s32 *)((s8 *)fx + 0x28)) = (*(s16 *)((s8 *)fx + 0xD8)) + ((distance * (*(s32 *)((s8 *)fx + 0xA4))) >> 12);
 }
 
-void func_800301D0(void *arg0) {
-    func_80030130(arg0);
-    *(s32 *)((s8 *)arg0 + 0x24) +=
-        -*(s16 *)((s8 *)arg0 + 0x120) * *(s32 *)((s8 *)arg0 + 0x100) +
-        *(s16 *)((s8 *)arg0 + 0x120) * *(s32 *)((s8 *)arg0 + 0x100) *
-            *(s32 *)((s8 *)arg0 + 0x100) / 56;
+void updateEffectArcMotion(void *fx) {
+    updateEffectLinearMotion(fx);
+    *(s32 *)((s8 *)fx + 0x24) +=
+        -*(s16 *)((s8 *)fx + 0x120) * *(s32 *)((s8 *)fx + 0x100) +
+        *(s16 *)((s8 *)fx + 0x120) * *(s32 *)((s8 *)fx + 0x100) *
+            *(s32 *)((s8 *)fx + 0x100) / 56;
 }
 
-void func_80030264(void *arg0) {
-    s32 temp_a1;
+void updateEffectWaveXMotion(void *fx) {
+    s32 phase;
 
-    func_80030130(arg0);
-    temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
-    (*(s32 *)((s8 *)arg0 + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x20)));
+    updateEffectLinearMotion(fx);
+    phase = (*(s16 *)((s8 *)fx + 0x128)) + ((*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)));
+    (*(s32 *)((s8 *)fx + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)fx + 0x12A)) * rsin(phase * (*(s16 *)((s8 *)fx + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)fx + 0x20)));
 }
 
-void func_800302E0(void *arg0) {
-    s32 temp_a1;
+void updateEffectWaveYMotion(void *fx) {
+    s32 phase;
 
-    func_80030130(arg0);
-    temp_a1 = (*(s16 *)((s8 *)arg0 + 0x128)) + ((*(s16 *)((s8 *)arg0 + 0x120)) * (*(s32 *)((s8 *)arg0 + 0x100)));
-    (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)arg0 + 0x12A)) * rsin(temp_a1 * (*(s16 *)((s8 *)arg0 + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)arg0 + 0x24)));
+    updateEffectLinearMotion(fx);
+    phase = (*(s16 *)((s8 *)fx + 0x128)) + ((*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)));
+    (*(s32 *)((s8 *)fx + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)fx + 0x12A)) * rsin(phase * (*(s16 *)((s8 *)fx + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)fx + 0x24)));
 }
 
-void func_8003035C(u8 *p) {
-    s32 h;
-    s32 sx;
-    s32 cz;
+void updateEffectTiltedArcMotion(u8 *fx) {
+    s32 height;
+    s32 offsetX;
+    s32 offsetY;
 
-    func_80030130(p);
-    h = -*(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) +
-        *(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) * *(s32 *)(p + 0x100) / 56;
-    sx = h * rsin(*(s16 *)(p + 0xE8)) >> 12;
-    cz = h * rcos(*(s16 *)(p + 0xE8)) >> 12;
-    *(s32 *)(p + 0x20) -= sx;
-    *(s32 *)(p + 0x24) += cz;
+    updateEffectLinearMotion(fx);
+    height = -*(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) +
+        *(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) * *(s32 *)(fx + 0x100) / 56;
+    offsetX = height * rsin(*(s16 *)(fx + 0xE8)) >> 12;
+    offsetY = height * rcos(*(s16 *)(fx + 0xE8)) >> 12;
+    *(s32 *)(fx + 0x20) -= offsetX;
+    *(s32 *)(fx + 0x24) += offsetY;
 }
 
-void func_80030440(u8 *p) {
-    s32 d;
-    s32 h;
-    s32 sx;
-    s32 cz;
+void func_80030440(u8 *fx) {
+    s32 distance;
+    s32 height;
+    s32 offsetX;
+    s32 offsetY;
 
-    d = *(s16 *)(p + 0x120) * *(s32 *)(p + 0x100);
-    *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4) + (d * *(s32 *)(p + 0x9C) >> 12);
-    *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6) + (d * *(s32 *)(p + 0xA0) >> 12);
-    *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8) + (d * *(s32 *)(p + 0xA4) >> 12);
-    h = -*(s16 *)(p + 0x120) * *(s32 *)(p + 0x100) +
-        *(s16 *)(p + 0x122) * *(s32 *)(p + 0x100) * *(s32 *)(p + 0x100) / 56;
-    sx = h * rsin(*(s16 *)(p + 0xE8)) >> 12;
-    cz = h * rcos(*(s16 *)(p + 0xE8)) >> 12;
-    *(s32 *)(p + 0x20) -= sx;
-    *(s32 *)(p + 0x24) += cz;
+    distance = *(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100);
+    *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4) + (distance * *(s32 *)(fx + 0x9C) >> 12);
+    *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6) + (distance * *(s32 *)(fx + 0xA0) >> 12);
+    *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8) + (distance * *(s32 *)(fx + 0xA4) >> 12);
+    height = -*(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) +
+        *(s16 *)(fx + 0x122) * *(s32 *)(fx + 0x100) * *(s32 *)(fx + 0x100) / 56;
+    offsetX = height * rsin(*(s16 *)(fx + 0xE8)) >> 12;
+    offsetY = height * rcos(*(s16 *)(fx + 0xE8)) >> 12;
+    *(s32 *)(fx + 0x20) -= offsetX;
+    *(s32 *)(fx + 0x24) += offsetY;
 }
 
-void func_8003058C(u8 *p) {
+void updateEffectShakeMotion(u8 *fx) {
     s32 x;
     s32 y;
     s32 z;
 
-    x = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
-    y = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
-    z = *(s16 *)(p + 0x120) / 2 - rand() % *(s16 *)(p + 0x120);
-    *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4) + x;
-    *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6) + y;
-    *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8) + z;
+    x = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
+    y = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
+    z = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
+    *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4) + x;
+    *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6) + y;
+    *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8) + z;
 }
 
-s32 func_80030694(SVECTOR *a, SVECTOR *b) {
-    VECTOR d;
+s32 getVectorDistance(SVECTOR *from, SVECTOR *to) {
+    VECTOR delta;
 
-    d.vx = b->vx - a->vx;
-    d.vy = b->vy - a->vy;
-    d.vz = b->vz - a->vz;
-    return SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
+    delta.vx = to->vx - from->vx;
+    delta.vy = to->vy - from->vy;
+    delta.vz = to->vz - from->vz;
+    return SquareRoot0(delta.vx * delta.vx + delta.vy * delta.vy + delta.vz * delta.vz);
 }
 
-s32 func_80030718(SVECTOR *a, SVECTOR *b, SVECTOR *c) {
-    VECTOR ab;
-    VECTOR cb;
-    VECTOR ca;
-    s32 d0;
-    s32 d1;
+s32 isPointAlongSegment(SVECTOR *start, SVECTOR *end, SVECTOR *point) {
+    VECTOR dir;
+    VECTOR toEnd;
+    VECTOR toStart;
+    s32 dotEnd;
+    s32 dotStart;
 
-    ab.vx = b->vx - a->vx;
-    ab.vy = b->vy - a->vy;
-    ab.vz = b->vz - a->vz;
-    cb.vx = b->vx - c->vx;
-    cb.vy = b->vy - c->vy;
-    cb.vz = b->vz - c->vz;
-    ca.vx = a->vx - c->vx;
-    ca.vy = a->vy - c->vy;
-    ca.vz = a->vz - c->vz;
-    d0 = (cb.vx * ab.vx + cb.vy * ab.vy + cb.vz * ab.vz) >> 12;
-    d1 = (ca.vx * ab.vx + ca.vy * ab.vy + ca.vz * ab.vz) >> 12;
-    if ((d0 <= 0 && d1 >= 0) || (d0 >= 0 && d1 <= 0)) {
+    dir.vx = end->vx - start->vx;
+    dir.vy = end->vy - start->vy;
+    dir.vz = end->vz - start->vz;
+    toEnd.vx = end->vx - point->vx;
+    toEnd.vy = end->vy - point->vy;
+    toEnd.vz = end->vz - point->vz;
+    toStart.vx = start->vx - point->vx;
+    toStart.vy = start->vy - point->vy;
+    toStart.vz = start->vz - point->vz;
+    dotEnd = (toEnd.vx * dir.vx + toEnd.vy * dir.vy + toEnd.vz * dir.vz) >> 12;
+    dotStart = (toStart.vx * dir.vx + toStart.vy * dir.vy + toStart.vz * dir.vz) >> 12;
+    if ((dotEnd <= 0 && dotStart >= 0) || (dotEnd >= 0 && dotStart <= 0)) {
         return 1;
     }
     return 0;
 }
 
-void func_80030828(SVECTOR *a, SVECTOR *p, SVECTOR *b, VECTOR *out) {
-    VECTOR d;
-    VECTOR ap;
-    VECTOR n;
+void projectPointOntoLine(SVECTOR *start, SVECTOR *point, SVECTOR *end, VECTOR *out) {
+    VECTOR dir;
+    VECTOR toPoint;
+    VECTOR unitDir;
     VECTOR proj;
-    s32 t;
+    s32 along;
 
-    d.vx = b->vx - a->vx;
-    d.vy = b->vy - a->vy;
-    d.vz = b->vz - a->vz;
-    if (SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz) < 20000) {
-        VectorNormal(&d, &n);
+    dir.vx = end->vx - start->vx;
+    dir.vy = end->vy - start->vy;
+    dir.vz = end->vz - start->vz;
+    if (SquareRoot0(dir.vx * dir.vx + dir.vy * dir.vy + dir.vz * dir.vz) < 20000) {
+        VectorNormal(&dir, &unitDir);
     } else {
-        d.vx >>= 4;
-        d.vy >>= 4;
-        d.vz >>= 4;
-        VectorNormal(&d, &n);
+        dir.vx >>= 4;
+        dir.vy >>= 4;
+        dir.vz >>= 4;
+        VectorNormal(&dir, &unitDir);
     }
-    ap.vx = p->vx - a->vx;
-    ap.vy = p->vy - a->vy;
-    ap.vz = p->vz - a->vz;
-    t = (n.vx * ap.vx + n.vy * ap.vy + n.vz * ap.vz) >> 12;
-    proj.vx = t * n.vx >> 12;
-    proj.vy = t * n.vy >> 12;
-    proj.vz = t * n.vz >> 12;
-    out->vx = a->vx + proj.vx;
-    out->vy = a->vy + proj.vy;
-    out->vz = a->vz + proj.vz;
+    toPoint.vx = point->vx - start->vx;
+    toPoint.vy = point->vy - start->vy;
+    toPoint.vz = point->vz - start->vz;
+    along = (unitDir.vx * toPoint.vx + unitDir.vy * toPoint.vy + unitDir.vz * toPoint.vz) >> 12;
+    proj.vx = along * unitDir.vx >> 12;
+    proj.vy = along * unitDir.vy >> 12;
+    proj.vz = along * unitDir.vz >> 12;
+    out->vx = start->vx + proj.vx;
+    out->vy = start->vy + proj.vy;
+    out->vz = start->vz + proj.vz;
 }
 
-s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2) {
-    s32 v;
+s32 isWithinDistance(SVECTOR *a, SVECTOR *b, s32 radius) {
+    s32 dist;
 
-    v = func_80030694(arg0, arg1);
-    if (-arg2 < v && v < arg2) {
+    dist = getVectorDistance(a, b);
+    if (-radius < dist && dist < radius) {
         return 1;
     }
     return 0;
 }
 
-s32 func_80030A34(SVECTOR *a, SVECTOR *b, SVECTOR *c, s16 r) {
-    SVECTOR sv;
-    VECTOR v;
+s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16 radius) {
+    SVECTOR closest;
+    VECTOR closestPoint;
 
-    if (func_80030718(a, b, c) != 0) {
-        func_80030828(a, c, b, &v);
-        sv.vx = v.vx;
-        sv.vy = v.vy;
-        sv.vz = v.vz;
-        if (func_800309F0(c, &sv, r) != 0) {
+    if (isPointAlongSegment(prevPos, curPos, target) != 0) {
+        projectPointOntoLine(prevPos, target, curPos, &closestPoint);
+        closest.vx = closestPoint.vx;
+        closest.vy = closestPoint.vy;
+        closest.vz = closestPoint.vz;
+        if (isWithinDistance(target, &closest, radius) != 0) {
             return 1;
         }
         return -1;
@@ -255,176 +255,176 @@ s32 func_80030A34(SVECTOR *a, SVECTOR *b, SVECTOR *c, s16 r) {
     return 0;
 }
 
-Unk13C *func_80030AE4(Unk13C *src) {
-    Unk13C *dst;
+Unk13C *cloneEffectObject(Unk13C *template) {
+    Unk13C *fx;
 
-    dst = allocTaskHeapBlock(0x13C);
-    *dst = *src;
-    func_80030E3C(dst);
-    return dst;
+    fx = allocTaskHeapBlock(0x13C);
+    *fx = *template;
+    initEffectObject(fx);
+    return fx;
 }
 
-void func_80030B6C(s32 arg0) {
+void updateEffectObject(s32 fx) {
     PushMatrix();
-    func_80030F90(arg0, 0);
+    tickEffectMotion(fx, 0);
     PopMatrix();
 }
 
-void func_80030BA4(void *arg0) {
-    freeHeapBlock(arg0);
+void freeEffectObject(void *fx) {
+    freeHeapBlock(fx);
 }
 
-s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out) {
-    VECTOR d;
+s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir) {
+    VECTOR delta;
 
-    d.vx = b->vx - a->vx;
-    d.vy = b->vy - a->vy;
-    d.vz = b->vz - a->vz;
-    if (SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz) < 20000) {
-        VectorNormal(&d, out);
+    delta.vx = to->vx - from->vx;
+    delta.vy = to->vy - from->vy;
+    delta.vz = to->vz - from->vz;
+    if (SquareRoot0(delta.vx * delta.vx + delta.vy * delta.vy + delta.vz * delta.vz) < 20000) {
+        VectorNormal(&delta, dir);
         return 1;
     }
-    d.vx >>= 4;
-    d.vy >>= 4;
-    d.vz >>= 4;
-    VectorNormal(&d, out);
+    delta.vx >>= 4;
+    delta.vy >>= 4;
+    delta.vz >>= 4;
+    VectorNormal(&delta, dir);
     return -1;
 }
 
-void func_80030CA8(u8 *p) {
+void restartEffectMotion(u8 *fx) {
     s32 i;
 
-    p[0x139] = *(s16 *)(p + 0x12E) >= 0x5B;
-    *(s32 *)(p + 0x118) = -1;
+    fx[0x139] = *(s16 *)(fx + 0x12E) >= 0x5B;
+    *(s32 *)(fx + 0x118) = -1;
     for (i = 0; i < 3; i++) {
-        ((Unk80030CA8 *)p)->unk10C[i] = 0;
+        ((Unk80030CA8 *)fx)->unk10C[i] = 0;
     }
-    *(s32 *)(p + 0x108) = 0;
-    *(s32 *)(p + 0x11C) = 0;
-    *(s32 *)(p + 0x100) = 0;
-    *(s32 *)(p + 0x104) = 0;
-    if (*(s16 *)(p + 0x12E) != 0 && *(s16 *)(p + 0x12E) != 0x5A) {
-        *(s32 *)(p + 0x38) = *(s32 *)(p + 0xAC);
-        *(s32 *)(p + 0x3C) = *(s32 *)(p + 0xB0);
-        *(s32 *)(p + 0x40) = *(s32 *)(p + 0xB4);
-        *(s16 *)(p + 0x30) = *(s16 *)(p + 0xE4);
-        *(s16 *)(p + 0x32) = *(s16 *)(p + 0xE6);
-        *(s16 *)(p + 0x34) = *(s16 *)(p + 0xE8);
-        *(s32 *)(p + 0x20) = *(s16 *)(p + 0xD4);
-        *(s32 *)(p + 0x24) = *(s16 *)(p + 0xD6);
-        *(s32 *)(p + 0x28) = *(s16 *)(p + 0xD8);
-        *(s32 *)(p + 0x6C) = *(s16 *)(p + 0xDC);
-        *(s32 *)(p + 0x70) = *(s16 *)(p + 0xDE);
-        *(s32 *)(p + 0x74) = *(s16 *)(p + 0xE0);
-        func_80030BC4((SVECTOR *)(p + 0xD4), (SVECTOR *)(p + 0xDC), (VECTOR *)(p + 0x9C));
+    *(s32 *)(fx + 0x108) = 0;
+    *(s32 *)(fx + 0x11C) = 0;
+    *(s32 *)(fx + 0x100) = 0;
+    *(s32 *)(fx + 0x104) = 0;
+    if (*(s16 *)(fx + 0x12E) != 0 && *(s16 *)(fx + 0x12E) != 0x5A) {
+        *(s32 *)(fx + 0x38) = *(s32 *)(fx + 0xAC);
+        *(s32 *)(fx + 0x3C) = *(s32 *)(fx + 0xB0);
+        *(s32 *)(fx + 0x40) = *(s32 *)(fx + 0xB4);
+        *(s16 *)(fx + 0x30) = *(s16 *)(fx + 0xE4);
+        *(s16 *)(fx + 0x32) = *(s16 *)(fx + 0xE6);
+        *(s16 *)(fx + 0x34) = *(s16 *)(fx + 0xE8);
+        *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4);
+        *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6);
+        *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8);
+        *(s32 *)(fx + 0x6C) = *(s16 *)(fx + 0xDC);
+        *(s32 *)(fx + 0x70) = *(s16 *)(fx + 0xDE);
+        *(s32 *)(fx + 0x74) = *(s16 *)(fx + 0xE0);
+        getDirectionVector((SVECTOR *)(fx + 0xD4), (SVECTOR *)(fx + 0xDC), (VECTOR *)(fx + 0x9C));
     } else {
-        *(s32 *)(p + 0xAC) = *(s32 *)(p + 0x38);
-        *(s32 *)(p + 0xB0) = *(s32 *)(p + 0x3C);
-        *(s32 *)(p + 0xB4) = *(s32 *)(p + 0x40);
-        *(s16 *)(p + 0xE4) = *(s16 *)(p + 0x30);
-        *(s16 *)(p + 0xE6) = *(s16 *)(p + 0x32);
-        *(s16 *)(p + 0xE8) = *(s16 *)(p + 0x34);
-        *(s16 *)(p + 0xD4) = *(s32 *)(p + 0x20);
-        *(s16 *)(p + 0xD6) = *(s32 *)(p + 0x24);
-        *(s16 *)(p + 0xD8) = *(s32 *)(p + 0x28);
+        *(s32 *)(fx + 0xAC) = *(s32 *)(fx + 0x38);
+        *(s32 *)(fx + 0xB0) = *(s32 *)(fx + 0x3C);
+        *(s32 *)(fx + 0xB4) = *(s32 *)(fx + 0x40);
+        *(s16 *)(fx + 0xE4) = *(s16 *)(fx + 0x30);
+        *(s16 *)(fx + 0xE6) = *(s16 *)(fx + 0x32);
+        *(s16 *)(fx + 0xE8) = *(s16 *)(fx + 0x34);
+        *(s16 *)(fx + 0xD4) = *(s32 *)(fx + 0x20);
+        *(s16 *)(fx + 0xD6) = *(s32 *)(fx + 0x24);
+        *(s16 *)(fx + 0xD8) = *(s32 *)(fx + 0x28);
     }
 }
 
-void *func_80030E3C(void *arg0) {
-    initTransform(arg0, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xD4)), (s32) (*(s16 *)((s8 *)arg0 + 0xD6)), (s32) (*(s16 *)((s8 *)arg0 + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)arg0 + 0xE8)));
-    initTransform(arg0 + 0x4C, (*(s32 *)((s8 *)arg0 + 0x98)), (s32) (*(s16 *)((s8 *)arg0 + 0xDC)), (s32) (*(s16 *)((s8 *)arg0 + 0xDE)), (s32) (*(s16 *)((s8 *)arg0 + 0xE0)), 0, 0, 0);
-    (*(s32 *)((s8 *)arg0 + 0x14)) = 0;
-    (*(s32 *)((s8 *)arg0 + 0x18)) = 0;
-    (*(s32 *)((s8 *)arg0 + 0x1C)) = 0;
-    (*(s32 *)((s8 *)arg0 + 0x38)) = (s32) (*(s32 *)((s8 *)arg0 + 0xAC));
-    (*(s32 *)((s8 *)arg0 + 0x3C)) = (s32) (*(s32 *)((s8 *)arg0 + 0xB0));
-    (*(s32 *)((s8 *)arg0 + 0x40)) = (s32) (*(s32 *)((s8 *)arg0 + 0xB4));
-    (*(u16 *)((s8 *)arg0 + 0x30)) = (u16) (*(s16 *)((s8 *)arg0 + 0xE4));
-    (*(u16 *)((s8 *)arg0 + 0x32)) = (u16) (*(s16 *)((s8 *)arg0 + 0xE6));
-    (*(u16 *)((s8 *)arg0 + 0x34)) = (u16) (*(s16 *)((s8 *)arg0 + 0xE8));
-    (*(s32 *)((s8 *)arg0 + 0x20)) = (s32) (*(s16 *)((s8 *)arg0 + 0xD4));
-    (*(s32 *)((s8 *)arg0 + 0x24)) = (s32) (*(s16 *)((s8 *)arg0 + 0xD6));
-    (*(s32 *)((s8 *)arg0 + 0x28)) = (s32) (*(s16 *)((s8 *)arg0 + 0xD8));
-    func_80030CA8(arg0);
-    (*(s32 *)((s8 *)arg0 + 0x6C)) = (s32) (*(s16 *)((s8 *)arg0 + 0xDC));
-    (*(s32 *)((s8 *)arg0 + 0x70)) = (s32) (*(s16 *)((s8 *)arg0 + 0xDE));
-    (*(s32 *)((s8 *)arg0 + 0x74)) = (s32) (*(s16 *)((s8 *)arg0 + 0xE0));
-    func_80030BC4(arg0 + 0xD4, arg0 + 0xDC, arg0 + 0x9C);
-    (*(s32 *)((s8 *)arg0 + 0xFC)) = 0;
-    (*(s16 *)((s8 *)arg0 + 0x132)) = 0;
-    (*(s8 *)((s8 *)arg0 + 0x138)) = 0;
-    return arg0;
+void *initEffectObject(void *fx) {
+    initTransform(fx, (*(s32 *)((s8 *)fx + 0x98)), (s32) (*(s16 *)((s8 *)fx + 0xD4)), (s32) (*(s16 *)((s8 *)fx + 0xD6)), (s32) (*(s16 *)((s8 *)fx + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE8)));
+    initTransform(fx + 0x4C, (*(s32 *)((s8 *)fx + 0x98)), (s32) (*(s16 *)((s8 *)fx + 0xDC)), (s32) (*(s16 *)((s8 *)fx + 0xDE)), (s32) (*(s16 *)((s8 *)fx + 0xE0)), 0, 0, 0);
+    (*(s32 *)((s8 *)fx + 0x14)) = 0;
+    (*(s32 *)((s8 *)fx + 0x18)) = 0;
+    (*(s32 *)((s8 *)fx + 0x1C)) = 0;
+    (*(s32 *)((s8 *)fx + 0x38)) = (s32) (*(s32 *)((s8 *)fx + 0xAC));
+    (*(s32 *)((s8 *)fx + 0x3C)) = (s32) (*(s32 *)((s8 *)fx + 0xB0));
+    (*(s32 *)((s8 *)fx + 0x40)) = (s32) (*(s32 *)((s8 *)fx + 0xB4));
+    (*(u16 *)((s8 *)fx + 0x30)) = (u16) (*(s16 *)((s8 *)fx + 0xE4));
+    (*(u16 *)((s8 *)fx + 0x32)) = (u16) (*(s16 *)((s8 *)fx + 0xE6));
+    (*(u16 *)((s8 *)fx + 0x34)) = (u16) (*(s16 *)((s8 *)fx + 0xE8));
+    (*(s32 *)((s8 *)fx + 0x20)) = (s32) (*(s16 *)((s8 *)fx + 0xD4));
+    (*(s32 *)((s8 *)fx + 0x24)) = (s32) (*(s16 *)((s8 *)fx + 0xD6));
+    (*(s32 *)((s8 *)fx + 0x28)) = (s32) (*(s16 *)((s8 *)fx + 0xD8));
+    restartEffectMotion(fx);
+    (*(s32 *)((s8 *)fx + 0x6C)) = (s32) (*(s16 *)((s8 *)fx + 0xDC));
+    (*(s32 *)((s8 *)fx + 0x70)) = (s32) (*(s16 *)((s8 *)fx + 0xDE));
+    (*(s32 *)((s8 *)fx + 0x74)) = (s32) (*(s16 *)((s8 *)fx + 0xE0));
+    getDirectionVector(fx + 0xD4, fx + 0xDC, fx + 0x9C);
+    (*(s32 *)((s8 *)fx + 0xFC)) = 0;
+    (*(s16 *)((s8 *)fx + 0x132)) = 0;
+    (*(s8 *)((s8 *)fx + 0x138)) = 0;
+    return fx;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010864);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", PATH_OPENSEG);
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010874);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", PATH_SAISEG);
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010884);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", PATH_EVOSEG);
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010894);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", PATH_SUBSEG);
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_800108A4);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", PATH_BG_ARC);
 
-s32 func_80030F90(s32 arg, s32 flag) {
-    Anim *o = (Anim *)arg;
-    u8 f = flag;
-    SVECTOR v0;
-    SVECTOR v1;
-    SVECTOR v2;
-    s32 r;
+s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
+    Anim *fx = (Anim *)fxAddr;
+    u8 applyMode = applyFlag;
+    SVECTOR prevPos;
+    SVECTOR curPos;
+    SVECTOR targetPos;
+    s32 hit;
 
-    if (o->mode != 10 && o->mode < 90) {
-        if (o->sx != o->sxT) {
-            o->sx = o->dsx * o->t + o->sx0;
-            if (o->dsx >= 0) {
-                if (o->sx >= o->sxT) {
-                    o->sx = o->sxT;
-                    o->doneX = 1;
+    if (fx->mode != 10 && fx->mode < 90) {
+        if (fx->sx != fx->sxT) {
+            fx->sx = fx->dsx * fx->t + fx->sx0;
+            if (fx->dsx >= 0) {
+                if (fx->sx >= fx->sxT) {
+                    fx->sx = fx->sxT;
+                    fx->doneX = 1;
                 }
-            } else if (o->sx <= o->sxT) {
-                o->sx = o->sxT;
-                o->doneX = 1;
+            } else if (fx->sx <= fx->sxT) {
+                fx->sx = fx->sxT;
+                fx->doneX = 1;
             }
         } else {
-            o->doneX = 1;
+            fx->doneX = 1;
         }
-        if (o->sy != o->syT) {
-            o->sy = o->dsy * o->t + o->sy0;
-            if (o->dsy >= 0) {
-                if (o->sy >= o->syT) {
-                    o->sy = o->syT;
-                    o->doneY = 1;
+        if (fx->sy != fx->syT) {
+            fx->sy = fx->dsy * fx->t + fx->sy0;
+            if (fx->dsy >= 0) {
+                if (fx->sy >= fx->syT) {
+                    fx->sy = fx->syT;
+                    fx->doneY = 1;
                 }
-            } else if (o->sy <= o->syT) {
-                o->sy = o->syT;
-                o->doneY = 1;
+            } else if (fx->sy <= fx->syT) {
+                fx->sy = fx->syT;
+                fx->doneY = 1;
             }
         } else {
-            o->doneY = 1;
+            fx->doneY = 1;
         }
-        if (o->sz != o->szT) {
-            o->sz = o->dsz * o->t + o->sz0;
-            if (o->dsz >= 0) {
-                if (o->sz >= o->szT) {
-                    o->sz = o->szT;
-                    o->doneZ = 1;
+        if (fx->sz != fx->szT) {
+            fx->sz = fx->dsz * fx->t + fx->sz0;
+            if (fx->dsz >= 0) {
+                if (fx->sz >= fx->szT) {
+                    fx->sz = fx->szT;
+                    fx->doneZ = 1;
                 }
-            } else if (o->sz <= o->szT) {
-                o->sz = o->szT;
-                o->doneZ = 1;
+            } else if (fx->sz <= fx->szT) {
+                fx->sz = fx->szT;
+                fx->doneZ = 1;
             }
         } else {
-            o->doneZ = 1;
+            fx->doneZ = 1;
         }
-        o->rotX = o->rx0 + o->drx * o->t + o->ddrx * o->t2 * o->t2 / 64;
-        o->rotY = o->ry0 + o->dry * o->t + o->ddry * o->t2 * o->t2 / 64;
-        o->rotZ = o->rz0 + o->drz * o->t + o->ddrz * o->t2 * o->t2 / 64;
+        fx->rotX = fx->rx0 + fx->drx * fx->t + fx->ddrx * fx->t2 * fx->t2 / 64;
+        fx->rotY = fx->ry0 + fx->dry * fx->t + fx->ddry * fx->t2 * fx->t2 / 64;
+        fx->rotZ = fx->rz0 + fx->drz * fx->t + fx->ddrz * fx->t2 * fx->t2 / 64;
     }
-    getTransformWorldPos(o, &v0);
-    switch (o->mode) {
+    getTransformWorldPos(fx, &prevPos);
+    switch (fx->mode) {
     case 6:
-        o->state = -1;
+        fx->state = -1;
     case 0:
     case 47:
     case 48:
@@ -433,9 +433,9 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 69:
     case 82:
     case 90:
-        o->posX = o->px;
-        o->posY = o->py;
-        o->posZ = o->pz;
+        fx->posX = fx->px;
+        fx->posY = fx->py;
+        fx->posZ = fx->pz;
         break;
     case 1:
     case 11:
@@ -450,7 +450,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 70:
     case 76:
     case 83:
-        func_80030130(o);
+        updateEffectLinearMotion(fx);
         break;
     case 2:
     case 14:
@@ -465,7 +465,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 71:
     case 77:
     case 84:
-        func_800301D0(o);
+        updateEffectArcMotion(fx);
         break;
     case 3:
     case 17:
@@ -480,7 +480,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 72:
     case 78:
     case 85:
-        func_80030264(o);
+        updateEffectWaveXMotion(fx);
         break;
     case 4:
     case 20:
@@ -495,7 +495,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 73:
     case 79:
     case 86:
-        func_800302E0(o);
+        updateEffectWaveYMotion(fx);
         break;
     case 5:
     case 23:
@@ -510,7 +510,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 74:
     case 80:
     case 87:
-        func_8003035C((u8 *)o);
+        updateEffectTiltedArcMotion((u8 *)fx);
         break;
     case 7:
     case 26:
@@ -525,29 +525,29 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 75:
     case 81:
     case 88:
-        func_80030440((u8 *)o);
+        func_80030440((u8 *)fx);
         break;
     case 8:
     case 89:
-        func_8003058C((u8 *)o);
+        updateEffectShakeMotion((u8 *)fx);
         break;
     }
-    if (o->state != -1 && o->mode != 0 && o->mode < 90) {
-        updateTransformMatrix(o, f);
-        updateTransformMatrix((u8 *)o + 0x4C, 0);
-        getTransformWorldPos(o, &v1);
-        getTransformWorldPos((u8 *)o + 0x4C, &v2);
-        r = func_80030A34(&v0, &v1, &v2, o->unk12C);
-        if (r == 1) {
-            switch (o->mode) {
+    if (fx->state != -1 && fx->mode != 0 && fx->mode < 90) {
+        updateTransformMatrix(fx, applyMode);
+        updateTransformMatrix((u8 *)fx + 0x4C, 0);
+        getTransformWorldPos(fx, &curPos);
+        getTransformWorldPos((u8 *)fx + 0x4C, &targetPos);
+        hit = checkEffectHitTarget(&prevPos, &curPos, &targetPos, fx->unk12C);
+        if (hit == 1) {
+            switch (fx->mode) {
             case 11:
             case 14:
             case 17:
             case 20:
             case 23:
             case 26:
-                o->mode = 0;
-                func_80030CA8((u8 *)o);
+                fx->mode = 0;
+                restartEffectMotion((u8 *)fx);
                 break;
             case 12:
             case 15:
@@ -555,24 +555,24 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 21:
             case 24:
             case 27:
-                o->mode = 0;
-                o->posX = o->px2;
-                o->posY = o->py2;
-                o->posZ = o->pz2;
-                o->px = o->px2;
-                o->py = o->py2;
-                o->pz = o->pz2;
-                func_80030CA8((u8 *)o);
-                o->sxT = o->sx;
-                o->syT = o->sy;
-                o->szT = o->sz;
-                o->swT = o->sw;
-                o->drx = 0;
-                o->dry = 0;
-                o->drz = 0;
-                o->ddrx = 0;
-                o->ddry = 0;
-                o->ddrz = 0;
+                fx->mode = 0;
+                fx->posX = fx->px2;
+                fx->posY = fx->py2;
+                fx->posZ = fx->pz2;
+                fx->px = fx->px2;
+                fx->py = fx->py2;
+                fx->pz = fx->pz2;
+                restartEffectMotion((u8 *)fx);
+                fx->sxT = fx->sx;
+                fx->syT = fx->sy;
+                fx->szT = fx->sz;
+                fx->swT = fx->sw;
+                fx->drx = 0;
+                fx->dry = 0;
+                fx->drz = 0;
+                fx->ddrx = 0;
+                fx->ddry = 0;
+                fx->ddrz = 0;
                 break;
             case 13:
             case 16:
@@ -580,7 +580,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 22:
             case 25:
             case 28:
-                func_80030CA8((u8 *)o);
+                restartEffectMotion((u8 *)fx);
                 break;
             case 50:
             case 51:
@@ -588,7 +588,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 53:
             case 54:
             case 55:
-                o->unk139 = 1;
+                fx->unk139 = 1;
                 break;
             case 76:
             case 77:
@@ -596,33 +596,33 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 79:
             case 80:
             case 81:
-                o->mode = 0;
-                o->posX = o->px2;
-                o->posY = o->py2;
-                o->posZ = o->pz2;
-                o->px = o->px2;
-                o->py = o->py2;
-                o->pz = o->pz2;
+                fx->mode = 0;
+                fx->posX = fx->px2;
+                fx->posY = fx->py2;
+                fx->posZ = fx->pz2;
+                fx->px = fx->px2;
+                fx->py = fx->py2;
+                fx->pz = fx->pz2;
             case 63:
             case 64:
             case 65:
             case 66:
             case 67:
             case 68:
-                o->unk137 = 2;
-                o->speed = -abs(o->speed);
+                fx->unk137 = 2;
+                fx->speed = -abs(fx->speed);
                 break;
             }
-            o->state = 1;
-        } else if (r == -1) {
-            o->state = 2;
+            fx->state = 1;
+        } else if (hit == -1) {
+            fx->state = 2;
         }
     }
-    if (o->mode < 90 && o->mode != 0 && o->state == -1) {
-        o->state = 0;
+    if (fx->mode < 90 && fx->mode != 0 && fx->state == -1) {
+        fx->state = 0;
     }
-    if (o->flag != 0) {
-        switch (o->mode) {
+    if (fx->flag != 0) {
+        switch (fx->mode) {
     case 31:
     case 34:
     case 37:
@@ -630,16 +630,16 @@ s32 func_80030F90(s32 arg, s32 flag) {
     case 43:
     case 46:
     case 49:
-            func_80030CA8((u8 *)o);
+            restartEffectMotion((u8 *)fx);
             break;
         }
     }
-    if (o->mode < 90) {
-        o->t++;
-        o->t2++;
-        if (o->period != 0 && o->flag == 0 && o->period < o->cnt++) {
-            o->cnt = o->period;
-            switch (o->mode) {
+    if (fx->mode < 90) {
+        fx->t++;
+        fx->t2++;
+        if (fx->period != 0 && fx->flag == 0 && fx->period < fx->cnt++) {
+            fx->cnt = fx->period;
+            switch (fx->mode) {
             case 29:
             case 32:
             case 35:
@@ -647,8 +647,8 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 41:
             case 44:
             case 47:
-                o->mode = 0;
-                func_80030CA8((u8 *)o);
+                fx->mode = 0;
+                restartEffectMotion((u8 *)fx);
                 break;
             case 30:
             case 33:
@@ -657,18 +657,18 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 42:
             case 45:
             case 48:
-                o->mode = 0;
-                func_80030CA8((u8 *)o);
-                o->sxT = o->sx;
-                o->syT = o->sy;
-                o->szT = o->sz;
-                o->swT = o->sw;
-                o->drx = 0;
-                o->dry = 0;
-                o->drz = 0;
-                o->ddrx = 0;
-                o->ddry = 0;
-                o->ddrz = 0;
+                fx->mode = 0;
+                restartEffectMotion((u8 *)fx);
+                fx->sxT = fx->sx;
+                fx->syT = fx->sy;
+                fx->szT = fx->sz;
+                fx->swT = fx->sw;
+                fx->drx = 0;
+                fx->dry = 0;
+                fx->drz = 0;
+                fx->ddrx = 0;
+                fx->ddry = 0;
+                fx->ddrz = 0;
                 break;
             case 31:
             case 34:
@@ -677,7 +677,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 43:
             case 46:
             case 49:
-                func_80030CA8((u8 *)o);
+                restartEffectMotion((u8 *)fx);
                 break;
             case 56:
             case 57:
@@ -686,7 +686,7 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 60:
             case 61:
             case 62:
-                o->unk139 = 1;
+                fx->unk139 = 1;
                 break;
             case 82:
             case 83:
@@ -696,18 +696,18 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 87:
             case 88:
             case 89:
-                o->mode = 0;
-                func_80030CA8((u8 *)o);
-                o->sxT = o->sx;
-                o->syT = o->sy;
-                o->szT = o->sz;
-                o->swT = o->sw;
-                o->drx = 0;
-                o->dry = 0;
-                o->drz = 0;
-                o->ddrx = 0;
-                o->ddry = 0;
-                o->ddrz = 0;
+                fx->mode = 0;
+                restartEffectMotion((u8 *)fx);
+                fx->sxT = fx->sx;
+                fx->syT = fx->sy;
+                fx->szT = fx->sz;
+                fx->swT = fx->sw;
+                fx->drx = 0;
+                fx->dry = 0;
+                fx->drz = 0;
+                fx->ddrx = 0;
+                fx->ddry = 0;
+                fx->ddrz = 0;
             case 69:
             case 70:
             case 71:
@@ -715,643 +715,643 @@ s32 func_80030F90(s32 arg, s32 flag) {
             case 73:
             case 74:
             case 75:
-                o->unk137 = 2;
-                o->speed = -abs(o->speed);
+                fx->unk137 = 2;
+                fx->speed = -abs(fx->speed);
                 break;
             }
-            o->flag = 1;
+            fx->flag = 1;
         }
     }
-    updateTransformMatrix(o, f);
+    updateTransformMatrix(fx, applyMode);
 }
 
-void func_80031754(void *arg0) {
-    if ((*(s16 *)((s8 *)arg0 + 0x12E)) >= 0x5B) {
-        if ((*(s16 *)((s8 *)arg0 + 0x128)) > (*(s32 *)((s8 *)arg0 + 0x100))) {
-            (*(s32 *)((s8 *)arg0 + 0x100)) += 1;
+void tickEffectStartDelay(void *fx) {
+    if ((*(s16 *)((s8 *)fx + 0x12E)) >= 0x5B) {
+        if ((*(s16 *)((s8 *)fx + 0x128)) > (*(s32 *)((s8 *)fx + 0x100))) {
+            (*(s32 *)((s8 *)fx + 0x100)) += 1;
             return;
         }
-        (*(s32 *)((s8 *)arg0 + 0x100)) = 0;
-        (*(s8 *)((s8 *)arg0 + 0x139)) = 0;
-        (*(s16 *)((s8 *)arg0 + 0x12E)) = (s16) ((u16) (*(s16 *)((s8 *)arg0 + 0x12E)) - 0x64);
+        (*(s32 *)((s8 *)fx + 0x100)) = 0;
+        (*(s8 *)((s8 *)fx + 0x139)) = 0;
+        (*(s16 *)((s8 *)fx + 0x12E)) = (s16) ((u16) (*(s16 *)((s8 *)fx + 0x12E)) - 0x64);
     }
 }
 
-s16 func_800317A8(void *arg0, s16 arg1) {
-    u8 *o;
+s16 updateEffectBrightness(void *fxObj, s16 brightness) {
+    u8 *fx;
 
-    o = arg0;
-    switch (o[0x137]) {
+    fx = fxObj;
+    switch (fx[0x137]) {
     case 1:
-        arg1 = (*(s32 *)(o + 0x38)) / 16;
-        if ((*(s32 *)(o + 0x38)) > 0x1000) {
-            arg1 = 0x100 - ((*(s32 *)(o + 0x38)) - 0x1000) / 16;
+        brightness = (*(s32 *)(fx + 0x38)) / 16;
+        if ((*(s32 *)(fx + 0x38)) > 0x1000) {
+            brightness = 0x100 - ((*(s32 *)(fx + 0x38)) - 0x1000) / 16;
         }
         break;
     case 2:
-        arg1 += (*(u16 *)(o + 0x130));
+        brightness += (*(u16 *)(fx + 0x130));
         break;
     case 3:
-        if (o[0x138] == 2) {
+        if (fx[0x138] == 2) {
             break;
         }
-        if (o[0x138] == 0) {
-            arg1 += (*(u16 *)(o + 0x130));
-            if (arg1 > 0x100) {
-                arg1 = 0x100;
-                o[0x138] = 1;
+        if (fx[0x138] == 0) {
+            brightness += (*(u16 *)(fx + 0x130));
+            if (brightness > 0x100) {
+                brightness = 0x100;
+                fx[0x138] = 1;
             }
         } else {
-            arg1 -= (*(u16 *)(o + 0x130));
-            if (arg1 < 0) {
-                arg1 = 0;
-                o[0x138] = 2;
+            brightness -= (*(u16 *)(fx + 0x130));
+            if (brightness < 0) {
+                brightness = 0;
+                fx[0x138] = 2;
             }
         }
         break;
     case 4:
-        if (o[0x138] == 0) {
-            arg1 += (*(u16 *)(o + 0x130));
-            if (arg1 > 0x100) {
-                arg1 = 0x100;
-                o[0x138] = 1;
+        if (fx[0x138] == 0) {
+            brightness += (*(u16 *)(fx + 0x130));
+            if (brightness > 0x100) {
+                brightness = 0x100;
+                fx[0x138] = 1;
             }
         } else {
-            arg1 -= (*(u16 *)(o + 0x130));
-            if (arg1 < 0) {
-                arg1 = 0;
-                o[0x138] = 0;
+            brightness -= (*(u16 *)(fx + 0x130));
+            if (brightness < 0) {
+                brightness = 0;
+                fx[0x138] = 0;
             }
         }
         break;
     case 5:
-        o[0x138] += (*(u16 *)(o + 0x130));
-        if ((s8)o[0x138] >= 0) {
-            arg1 = o[0x138] + 0x80;
+        fx[0x138] += (*(u16 *)(fx + 0x130));
+        if ((s8)fx[0x138] >= 0) {
+            brightness = fx[0x138] + 0x80;
         } else {
-            arg1 = 0xFF - (o[0x138] & 0x7F);
+            brightness = 0xFF - (fx[0x138] & 0x7F);
         }
         break;
     }
-    if (arg1 < 0) {
-        arg1 = 0;
+    if (brightness < 0) {
+        brightness = 0;
     }
-    if (arg1 > 0x100) {
-        arg1 = 0x100;
+    if (brightness > 0x100) {
+        brightness = 0x100;
     }
-    if ((*(s16 *)(o + 0x12E)) == 0xA) {
-        arg1 = (*(s16 *)(o + 0x132));
+    if ((*(s16 *)(fx + 0x12E)) == 0xA) {
+        brightness = (*(s16 *)(fx + 0x132));
     } else {
-        (*(s16 *)(o + 0x132)) = arg1;
+        (*(s16 *)(fx + 0x132)) = brightness;
     }
-    return arg1;
+    return brightness;
 }
 
-void func_80031970(Obj32 *o) {
-    SVECTOR *v;
+void buildRingEffectMesh(Obj32 *ring) {
+    SVECTOR *vertex;
     s32 i;
     s16 x;
     s16 y;
 
-    v = o->unk16C;
-    for (i = 0; i < o->n; i++) {
-        x = rsin((i << 12) / o->n) * o->unk19C[0] / 4096;
-        y = rcos((i << 12) / o->n) * o->unk19C[0] / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[3];
-        v++;
-        x = rsin(((i + 1) << 12) / o->n) * o->unk19C[0] / 4096;
-        y = rcos(((i + 1) << 12) / o->n) * o->unk19C[0] / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[3];
-        v++;
-        x = rsin((i << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
-        y = rcos((i << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[3] + (o->unk19C[4] - o->unk19C[3]) * o->unk19C[2] / 100;
-        v++;
-        x = rsin(((i + 1) << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
-        y = rcos(((i + 1) << 12) / o->n) * (o->unk19C[0] + (o->unk19C[1] - o->unk19C[0]) * o->unk19C[2] / 100) / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[3] + (o->unk19C[4] - o->unk19C[3]) * o->unk19C[2] / 100;
-        v++;
-        x = rsin((i << 12) / o->n) * o->unk19C[1] / 4096;
-        y = rcos((i << 12) / o->n) * o->unk19C[1] / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[4];
-        v++;
-        x = rsin(((i + 1) << 12) / o->n) * o->unk19C[1] / 4096;
-        y = rcos(((i + 1) << 12) / o->n) * o->unk19C[1] / 4096;
-        v->vx = x;
-        v->vy = y;
-        v->vz = o->unk19C[4];
-        v++;
+    vertex = ring->unk16C;
+    for (i = 0; i < ring->n; i++) {
+        x = rsin((i << 12) / ring->n) * ring->unk19C[0] / 4096;
+        y = rcos((i << 12) / ring->n) * ring->unk19C[0] / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[3];
+        vertex++;
+        x = rsin(((i + 1) << 12) / ring->n) * ring->unk19C[0] / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * ring->unk19C[0] / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[3];
+        vertex++;
+        x = rsin((i << 12) / ring->n) * (ring->unk19C[0] + (ring->unk19C[1] - ring->unk19C[0]) * ring->unk19C[2] / 100) / 4096;
+        y = rcos((i << 12) / ring->n) * (ring->unk19C[0] + (ring->unk19C[1] - ring->unk19C[0]) * ring->unk19C[2] / 100) / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[3] + (ring->unk19C[4] - ring->unk19C[3]) * ring->unk19C[2] / 100;
+        vertex++;
+        x = rsin(((i + 1) << 12) / ring->n) * (ring->unk19C[0] + (ring->unk19C[1] - ring->unk19C[0]) * ring->unk19C[2] / 100) / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * (ring->unk19C[0] + (ring->unk19C[1] - ring->unk19C[0]) * ring->unk19C[2] / 100) / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[3] + (ring->unk19C[4] - ring->unk19C[3]) * ring->unk19C[2] / 100;
+        vertex++;
+        x = rsin((i << 12) / ring->n) * ring->unk19C[1] / 4096;
+        y = rcos((i << 12) / ring->n) * ring->unk19C[1] / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[4];
+        vertex++;
+        x = rsin(((i + 1) << 12) / ring->n) * ring->unk19C[1] / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * ring->unk19C[1] / 4096;
+        vertex->vx = x;
+        vertex->vy = y;
+        vertex->vz = ring->unk19C[4];
+        vertex++;
     }
 }
 
-Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n, u8 abr, u8 tp, s32 type,
-                     s16 p0, s16 p1, s16 p2, s16 p3, s16 p4, Bytes8 *q, s32 r, s32 s, s32 t, u8 u1, u8 u2,
+Obj32 *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, Unk13C *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
+                     s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
                      s32 w, s32 x) {
-    Obj32 *o;
+    Obj32 *ring;
     u8 *prim;
     s32 i;
     s32 j;
 
-    o = allocTaskHeapBlock(0x1B0);
-    o->type = type;
-    o->n = n;
-    o->unk19C[0] = p0;
-    o->unk19C[1] = p1;
-    o->unk19C[2] = p2;
-    o->unk19C[3] = p3;
-    o->unk19C[4] = p4;
-    o->unk16C = allocTaskHeapBlock(n * 48);
-    func_80031970(o);
-    if (type == 13) {
-        o->unk170 = *q;
-        o->unk178 = r;
-        o->unk17C = s;
-        if (t >= 0 && func_801E6C78(t, 1, o, o->unk13C, x) != 0) {
-            o->unk1AD = 1;
+    ring = allocTaskHeapBlock(0x1B0);
+    ring->type = primType;
+    ring->n = segments;
+    ring->unk19C[0] = innerRadius;
+    ring->unk19C[1] = outerRadius;
+    ring->unk19C[2] = midPercent;
+    ring->unk19C[3] = innerZ;
+    ring->unk19C[4] = outerZ;
+    ring->unk16C = allocTaskHeapBlock(segments * 48);
+    buildRingEffectMesh(ring);
+    if (primType == 13) {
+        ring->unk170 = *texCoords;
+        ring->unk178 = tpage;
+        ring->unk17C = clut;
+        if (texAnimId >= 0 && func_801E6C78(texAnimId, 1, ring, ring->unk13C, x) != 0) {
+            ring->unk1AD = 1;
         } else {
-            o->unk1AD = -1;
+            ring->unk1AD = -1;
         }
     } else {
-        o->unk1AD = -1;
+        ring->unk1AD = -1;
     }
-    o->unk198 = tp;
-    o->unk1A6 = id;
-    o->unk1A8 = -1;
-    o->unk185 = *a;
-    o->unk189 = *b;
-    o->unk18D = *c;
-    *(Unk13C *)o = *src;
-    func_80030E3C(o);
-    o->unk1AB = u2;
-    o->unk194 = w;
-    o->unk1AA = u1;
-    o->unk1AC = abr;
+    ring->unk198 = texDepth;
+    ring->unk1A6 = brightness;
+    ring->unk1A8 = -1;
+    ring->unk185 = *innerColor;
+    ring->unk189 = *midColor;
+    ring->unk18D = *outerColor;
+    *(Unk13C *)ring = *template;
+    initEffectObject(ring);
+    ring->unk1AB = u2;
+    ring->unk194 = w;
+    ring->unk1AA = u1;
+    ring->unk1AC = abr;
     for (i = 0; i < 2; i++) {
-        if (o->type < 10) {
-            o->unk15C[i] = allocTaskHeapBlock(o->n * 16);
+        if (ring->type < 10) {
+            ring->unk15C[i] = allocTaskHeapBlock(ring->n * 16);
         } else {
-            o->unk15C[i] = 0;
+            ring->unk15C[i] = 0;
         }
-        prim = o->unk164[i] = allocTaskHeapBlock(PRIM_SIZES[o->type] * o->n * 2);
-        for (j = 0; j < o->n * 2; j++) {
-            initPrimByType(o->type, prim, abr, 0);
-            if (o->type < 10) {
-                SetDrawTPage(o->unk15C[i] + j * 8, 0, 0, GetTPage(0, tp, 0, 0));
+        prim = ring->unk164[i] = allocTaskHeapBlock(PRIM_SIZES[ring->type] * ring->n * 2);
+        for (j = 0; j < ring->n * 2; j++) {
+            initPrimByType(ring->type, prim, abr, 0);
+            if (ring->type < 10) {
+                SetDrawTPage(ring->unk15C[i] + j * 8, 0, 0, GetTPage(0, texDepth, 0, 0));
             }
-            prim += PRIM_SIZES[o->type];
+            prim += PRIM_SIZES[ring->type];
         }
     }
-    return o;
+    return ring;
 }
 
-void func_8003230C(Obj32 *o) {
-    u8 c0[8];
-    u8 c1[8];
-    u8 c2[8];
-    SVECTOR *v;
+void renderRingEffect(Obj32 *ring) {
+    u8 innerRgb[8];
+    u8 midRgb[8];
+    u8 outerRgb[8];
+    SVECTOR *vertex;
     s32 i;
 
-    if (o->unk0[0x139] != 0) {
-        func_80031754(o);
+    if (ring->unk0[0x139] != 0) {
+        tickEffectStartDelay(ring);
         return;
     }
     PushMatrix();
-    func_80030F90((s32)o, o->unk1AA);
-    o->unk1A6 = func_800317A8(o, o->unk1A6);
-    if (o->unk1A6 == 0) {
+    tickEffectMotion((s32)ring, ring->unk1AA);
+    ring->unk1A6 = updateEffectBrightness(ring, ring->unk1A6);
+    if (ring->unk1A6 == 0) {
         PopMatrix();
         return;
     }
-    v = o->unk16C;
-    if (o->unk1A6 != o->unk1A8) {
-        c0[0] = o->unk185.b[0] * o->unk1A6 / 256;
-        c0[1] = o->unk185.b[1] * o->unk1A6 / 256;
-        c0[2] = o->unk185.b[2] * o->unk1A6 / 256;
-        c1[0] = o->unk189.b[0] * o->unk1A6 / 256;
-        c1[1] = o->unk189.b[1] * o->unk1A6 / 256;
-        c1[2] = o->unk189.b[2] * o->unk1A6 / 256;
-        c2[0] = o->unk18D.b[0] * o->unk1A6 / 256;
-        c2[1] = o->unk18D.b[1] * o->unk1A6 / 256;
-        c2[2] = o->unk18D.b[2] * o->unk1A6 / 256;
+    vertex = ring->unk16C;
+    if (ring->unk1A6 != ring->unk1A8) {
+        innerRgb[0] = ring->unk185.b[0] * ring->unk1A6 / 256;
+        innerRgb[1] = ring->unk185.b[1] * ring->unk1A6 / 256;
+        innerRgb[2] = ring->unk185.b[2] * ring->unk1A6 / 256;
+        midRgb[0] = ring->unk189.b[0] * ring->unk1A6 / 256;
+        midRgb[1] = ring->unk189.b[1] * ring->unk1A6 / 256;
+        midRgb[2] = ring->unk189.b[2] * ring->unk1A6 / 256;
+        outerRgb[0] = ring->unk18D.b[0] * ring->unk1A6 / 256;
+        outerRgb[1] = ring->unk18D.b[1] * ring->unk1A6 / 256;
+        outerRgb[2] = ring->unk18D.b[2] * ring->unk1A6 / 256;
     }
-    switch (o->type) {
+    switch (ring->type) {
     case 9: {
-        u8 *p;
-        u8 *q;
-        u8 *tp;
+        u8 *prim;
+        u8 *otherPrim;
+        u8 *tpagePrim;
 
-        p = o->unk164[FRAME_BUFFER_INDEX];
-        q = o->unk164[FRAME_BUFFER_INDEX ^ 1];
-        tp = o->unk15C[FRAME_BUFFER_INDEX];
-        for (i = 0; i < o->n; i++) {
-            if (o->unk1A6 != o->unk1A8) {
-                setPrimRgb0(p, c0[0], c0[1], c0[2]);
-                setPrimRgb1(p, c0[0], c0[1], c0[2]);
-                setPrimRgb2(p, c1[0], c1[1], c1[2]);
-                setPrimRgb3(p, c1[0], c1[1], c1[2]);
-                setPrimRgb0(q, c0[0], c0[1], c0[2]);
-                setPrimRgb1(q, c0[0], c0[1], c0[2]);
-                setPrimRgb2(q, c1[0], c1[1], c1[2]);
-                setPrimRgb3(q, c1[0], c1[1], c1[2]);
+        prim = ring->unk164[FRAME_BUFFER_INDEX];
+        otherPrim = ring->unk164[FRAME_BUFFER_INDEX ^ 1];
+        tpagePrim = ring->unk15C[FRAME_BUFFER_INDEX];
+        for (i = 0; i < ring->n; i++) {
+            if (ring->unk1A6 != ring->unk1A8) {
+                setPrimRgb0(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb1(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb2(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb3(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb0(otherPrim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb1(otherPrim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb2(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb3(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
             }
-            transformAndAddPolyG4((s32)p, (s32)tp, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AC, o->unk1AB, o->unk194);
-            p += 0x24;
-            q += 0x24;
-            tp += 8;
-            if (o->unk1A6 != o->unk1A8) {
-                setPrimRgb0(p, c1[0], c1[1], c1[2]);
-                setPrimRgb1(p, c1[0], c1[1], c1[2]);
-                setPrimRgb2(p, c2[0], c2[1], c2[2]);
-                setPrimRgb3(p, c2[0], c2[1], c2[2]);
-                setPrimRgb0(q, c1[0], c1[1], c1[2]);
-                setPrimRgb1(q, c1[0], c1[1], c1[2]);
-                setPrimRgb2(q, c2[0], c2[1], c2[2]);
-                setPrimRgb3(q, c2[0], c2[1], c2[2]);
+            transformAndAddPolyG4((s32)prim, (s32)tpagePrim, (s32)&vertex[0], (s32)&vertex[1], (s32)&vertex[2], (s32)&vertex[3], ring->unk1AC, ring->unk1AB, ring->unk194);
+            prim += 0x24;
+            otherPrim += 0x24;
+            tpagePrim += 8;
+            if (ring->unk1A6 != ring->unk1A8) {
+                setPrimRgb0(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb1(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb2(prim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb3(prim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb0(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb1(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb2(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb3(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
             }
-            transformAndAddPolyG4((s32)p, (s32)tp, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AC, o->unk1AB, o->unk194);
-            p += 0x24;
-            q += 0x24;
-            tp += 8;
-            v += 6;
+            transformAndAddPolyG4((s32)prim, (s32)tpagePrim, (s32)&vertex[2], (s32)&vertex[3], (s32)&vertex[4], (s32)&vertex[5], ring->unk1AC, ring->unk1AB, ring->unk194);
+            prim += 0x24;
+            otherPrim += 0x24;
+            tpagePrim += 8;
+            vertex += 6;
         }
         break;
     }
     case 13: {
-        u8 *p;
-        u8 *q;
+        u8 *prim;
+        u8 *otherPrim;
 
-        if (o->unk1AD >= 0) {
-            func_801E7020(o->unk13C);
+        if (ring->unk1AD >= 0) {
+            func_801E7020(ring->unk13C);
         }
-        p = o->unk164[FRAME_BUFFER_INDEX];
-        q = o->unk164[FRAME_BUFFER_INDEX ^ 1];
-        for (i = 0; i < o->n; i++) {
-            setPrimQuadUvRect(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
-            *(u16 *)(p + 0x1A) = o->unk178;
-            *(u16 *)(p + 0xE) = o->unk17C;
-            if (o->unk1A6 != o->unk1A8) {
-                setPrimRgb0(p, c0[0], c0[1], c0[2]);
-                setPrimRgb1(p, c0[0], c0[1], c0[2]);
-                setPrimRgb2(p, c1[0], c1[1], c1[2]);
-                setPrimRgb3(p, c1[0], c1[1], c1[2]);
-                setPrimRgb0(q, c0[0], c0[1], c0[2]);
-                setPrimRgb1(q, c0[0], c0[1], c0[2]);
-                setPrimRgb2(q, c1[0], c1[1], c1[2]);
-                setPrimRgb3(q, c1[0], c1[1], c1[2]);
+        prim = ring->unk164[FRAME_BUFFER_INDEX];
+        otherPrim = ring->unk164[FRAME_BUFFER_INDEX ^ 1];
+        for (i = 0; i < ring->n; i++) {
+            setPrimQuadUvRect(prim, ring->unk170.b[0], ring->unk170.b[2], ring->unk170.b[4], ring->unk170.b[6]);
+            *(u16 *)(prim + 0x1A) = ring->unk178;
+            *(u16 *)(prim + 0xE) = ring->unk17C;
+            if (ring->unk1A6 != ring->unk1A8) {
+                setPrimRgb0(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb1(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb2(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb3(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb0(otherPrim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb1(otherPrim, innerRgb[0], innerRgb[1], innerRgb[2]);
+                setPrimRgb2(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb3(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
             }
-            transformAndAddPolyGT4((s32)p, (s32)&v[0], (s32)&v[1], (s32)&v[2], (s32)&v[3], o->unk1AB, o->unk194);
-            p += 0x34;
-            q += 0x34;
-            setPrimQuadUvRect(p, o->unk170.b[0], o->unk170.b[2], o->unk170.b[4], o->unk170.b[6]);
-            *(u16 *)(p + 0x1A) = o->unk178;
-            *(u16 *)(p + 0xE) = o->unk17C;
-            if (o->unk1A6 != o->unk1A8) {
-                setPrimRgb0(p, c1[0], c1[1], c1[2]);
-                setPrimRgb1(p, c1[0], c1[1], c1[2]);
-                setPrimRgb2(p, c2[0], c2[1], c2[2]);
-                setPrimRgb3(p, c2[0], c2[1], c2[2]);
-                setPrimRgb0(q, c1[0], c1[1], c1[2]);
-                setPrimRgb1(q, c1[0], c1[1], c1[2]);
-                setPrimRgb2(q, c2[0], c2[1], c2[2]);
-                setPrimRgb3(q, c2[0], c2[1], c2[2]);
+            transformAndAddPolyGT4((s32)prim, (s32)&vertex[0], (s32)&vertex[1], (s32)&vertex[2], (s32)&vertex[3], ring->unk1AB, ring->unk194);
+            prim += 0x34;
+            otherPrim += 0x34;
+            setPrimQuadUvRect(prim, ring->unk170.b[0], ring->unk170.b[2], ring->unk170.b[4], ring->unk170.b[6]);
+            *(u16 *)(prim + 0x1A) = ring->unk178;
+            *(u16 *)(prim + 0xE) = ring->unk17C;
+            if (ring->unk1A6 != ring->unk1A8) {
+                setPrimRgb0(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb1(prim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb2(prim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb3(prim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb0(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb1(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
+                setPrimRgb2(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
+                setPrimRgb3(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
             }
-            transformAndAddPolyGT4((s32)p, (s32)&v[2], (s32)&v[3], (s32)&v[4], (s32)&v[5], o->unk1AB, o->unk194);
-            p += 0x34;
-            q += 0x34;
-            v += 6;
+            transformAndAddPolyGT4((s32)prim, (s32)&vertex[2], (s32)&vertex[3], (s32)&vertex[4], (s32)&vertex[5], ring->unk1AB, ring->unk194);
+            prim += 0x34;
+            otherPrim += 0x34;
+            vertex += 6;
         }
         break;
     }
     }
     PopMatrix();
-    o->unk1A8 = o->unk1A6;
+    ring->unk1A8 = ring->unk1A6;
 }
 
-void func_80032AA0(Obj32 *p) {
+void freeRingEffect(Obj32 *ring) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        freeHeapBlock(p->unk15C[i]);
-        freeHeapBlock(p->unk164[i]);
+        freeHeapBlock(ring->unk15C[i]);
+        freeHeapBlock(ring->unk164[i]);
     }
-    if (p->unk1AD >= 0) {
-        func_801E72D4(p->unk13C);
+    if (ring->unk1AD >= 0) {
+        func_801E72D4(ring->unk13C);
     }
-    freeHeapBlock(p->unk16C);
-    freeHeapBlock(p);
+    freeHeapBlock(ring->unk16C);
+    freeHeapBlock(ring);
 }
 
-Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s16 a6, s16 frames, s16 a8, s16 a9,
-                         s16 count, s16 a11, s16 a12, s16 a13, s16 kind, s16 semi, s32 flags, s32 a17) {
-    Particles *o;
-    Particle *p;
-    LINE_G2 *l;
+Particles *createStreakParticles(u8 *startColor, u8 *endColor, Unk13C *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
+                         s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz) {
+    Particles *fx;
+    Particle *particle;
+    LINE_G2 *line;
     s32 i;
-    s32 k;
+    s32 spinAngle;
     s32 angle;
 
-    o = allocTaskHeapBlock(0x15C);
-    o->p = p = allocTaskHeapBlock(count * 0x88);
-    k = 0;
-    if (src == 0) {
-        o->parent = (u8 *)D_801D6A4C + 0x78;
-        o->own = 0;
+    fx = allocTaskHeapBlock(0x15C);
+    fx->p = particle = allocTaskHeapBlock(count * 0x88);
+    spinAngle = 0;
+    if (template == 0) {
+        fx->parent = (u8 *)SCENE_3D + 0x78;
+        fx->own = 0;
     } else {
-        o->base = *src;
-        func_80030E3C(o);
-        o->parent = o;
-        o->own = 1;
+        fx->base = *template;
+        initEffectObject(fx);
+        fx->parent = fx;
+        fx->own = 1;
     }
-    o->unk14E = a11;
-    o->unk154 = a17;
-    o->unk15A = flags & 1;
-    o->count = count;
-    o->unk150 = 0;
-    o->frames = frames;
-    o->rgb[0] = c0[0];
-    o->rgb[1] = c0[1];
-    o->rgb[2] = c0[2];
-    o->drgb[0] = (c1[0] - o->rgb[0]) / o->frames;
-    o->drgb[1] = (c1[1] - o->rgb[1]) / o->frames;
-    o->drgb[2] = (c1[2] - o->rgb[2]) / o->frames;
-    o->unk158 = a9 == 0 ? 1 : -1;
-    o->kind = kind;
-    for (i = 0; i < o->count; i++, p++) {
-        if (o->kind == 0) {
-            l = &p->line[0];
-            func_800678E4(l);
-            setSemiTrans(l, semi);
-            l = &p->line[1];
-            func_800678E4(l);
-            setSemiTrans(l, semi);
+    fx->unk14E = zOffset;
+    fx->unk154 = fixedOtz;
+    fx->unk15A = flags & 1;
+    fx->count = count;
+    fx->unk150 = 0;
+    fx->frames = frames;
+    fx->rgb[0] = startColor[0];
+    fx->rgb[1] = startColor[1];
+    fx->rgb[2] = startColor[2];
+    fx->drgb[0] = (endColor[0] - fx->rgb[0]) / fx->frames;
+    fx->drgb[1] = (endColor[1] - fx->rgb[1]) / fx->frames;
+    fx->drgb[2] = (endColor[2] - fx->rgb[2]) / fx->frames;
+    fx->unk158 = reverse == 0 ? 1 : -1;
+    fx->kind = kind;
+    for (i = 0; i < fx->count; i++, particle++) {
+        if (fx->kind == 0) {
+            line = &particle->line[0];
+            func_800678E4(line);
+            setSemiTrans(line, semi);
+            line = &particle->line[1];
+            func_800678E4(line);
+            setSemiTrans(line, semi);
         } else {
-            l = &p->line[0];
-            func_80067904(l);
-            setSemiTrans(l, semi);
-            l->r0 = c0[0];
-            l->g0 = c0[1];
-            l->b0 = c0[2];
-            l->r1 = c1[0];
-            l->g1 = c1[1];
-            l->b1 = c1[2];
-            l++;
-            func_80067904(l);
-            setSemiTrans(l, semi);
-            l->r0 = c0[0];
-            l->g0 = c0[1];
-            l->b0 = c0[2];
-            l->r1 = c1[0];
-            l->g1 = c1[1];
-            l->b1 = c1[2];
+            line = &particle->line[0];
+            func_80067904(line);
+            setSemiTrans(line, semi);
+            line->r0 = startColor[0];
+            line->g0 = startColor[1];
+            line->b0 = startColor[2];
+            line->r1 = endColor[0];
+            line->g1 = endColor[1];
+            line->b1 = endColor[2];
+            line++;
+            func_80067904(line);
+            setSemiTrans(line, semi);
+            line->r0 = startColor[0];
+            line->g0 = startColor[1];
+            line->b0 = startColor[2];
+            line->r1 = endColor[0];
+            line->g1 = endColor[1];
+            line->b1 = endColor[2];
         }
-        initTransform(p, (s32)o->parent, 0, 0, 0, 0, 0, 0);
-        p->unk7C = a5 * 8;
-        p->unk7E = rand() % a8 + 1;
-        if (sy == 0) {
-            sy = 1;
+        initTransform(particle, (s32)fx->parent, 0, 0, 0, 0, 0, 0);
+        particle->unk7C = length * 8;
+        particle->unk7E = rand() % speedRange + 1;
+        if (spreadY == 0) {
+            spreadY = 1;
         }
-        if (sx == 0) {
-            sx = 1;
+        if (spreadX == 0) {
+            spreadX = 1;
         }
-        if (a13 < 3) {
-            p->unk32 = rand() % sx - sx / 2;
-            p->unk30 = rand() % sy - sy / 2;
-            p->unk34 = 0;
-            p->unk7A = 0;
+        if (pattern < 3) {
+            particle->unk32 = rand() % spreadX - spreadX / 2;
+            particle->unk30 = rand() % spreadY - spreadY / 2;
+            particle->unk34 = 0;
+            particle->unk7A = 0;
         } else {
-            p->unk32 = 0;
-            p->unk30 = 0;
-            p->unk34 = 0;
-            p->unk7A = sx - 0xB4;
+            particle->unk32 = 0;
+            particle->unk30 = 0;
+            particle->unk34 = 0;
+            particle->unk7A = spreadX - 0xB4;
         }
-        p->unk80 = p->unk7E * frames;
-        p->unk78 = 0;
-        p->unk76 = 0;
-        p->unk74 = 0;
-        if (a12 != 0) {
-            switch ((s16)(a13 % 3)) {
+        particle->unk80 = particle->unk7E * frames;
+        particle->unk78 = 0;
+        particle->unk76 = 0;
+        particle->unk74 = 0;
+        if (spin != 0) {
+            switch ((s16)(pattern % 3)) {
             case 0:
                 angle = i << 12;
-                k = angle / o->count;
-                p->unk76 = a12;
+                spinAngle = angle / fx->count;
+                particle->unk76 = spin;
                 break;
             case 1:
-                k = rand() % 4096;
-                p->unk76 = a12;
+                spinAngle = rand() % 4096;
+                particle->unk76 = spin;
                 break;
             case 2:
-                k = rand() % 4096;
-                p->unk76 = rand() % a12;
+                spinAngle = rand() % 4096;
+                particle->unk76 = rand() % spin;
                 break;
             }
-            p->unk34 = k;
+            particle->unk34 = spinAngle;
         }
-        p->unk82 = rand() & 0xFFF;
-        p->unk84 = rand() & 0x1FF;
+        particle->unk82 = rand() & 0xFFF;
+        particle->unk84 = rand() & 0x1FF;
         if (i & 1) {
-            p->unk84 = -p->unk84;
+            particle->unk84 = -particle->unk84;
         }
     }
-    o->unk147 = flags & 2;
-    if (a6 == 0) {
-        o->unk156 = 0;
+    fx->unk147 = flags & 2;
+    if (endLength == 0) {
+        fx->unk156 = 0;
     } else {
-        o->unk156 = (a6 - a5) * 8 / o->frames;
+        fx->unk156 = (endLength - length) * 8 / fx->frames;
     }
-    return o;
+    return fx;
 }
 
-void func_80033258(Particles *o) {
-    Particle *p;
-    LINE_G2 *l;
-    SVECTOR *v;
+void renderStreakParticles(Particles *fx) {
+    Particle *particle;
+    LINE_G2 *line;
+    SVECTOR *vertex;
     s32 limit;
     s32 i;
-    s32 t;
-    s32 d;
-    u32 z;
+    s32 frame;
+    s32 length;
+    u32 otz;
     s16 dx;
     s16 dz;
-    s32 a;
+    s32 interp;
     u8 r;
     u8 g;
-    u8 bl;
-    s32 b;
+    u8 b;
+    s32 flag;
 
-    p = o->p;
+    particle = fx->p;
     limit = 10000;
-    if (o->own != 0) {
-        if (((u8 *)o)[0x139] != 0) {
-            func_80031754(o);
+    if (fx->own != 0) {
+        if (((u8 *)fx)[0x139] != 0) {
+            tickEffectStartDelay(fx);
             return;
         }
         PushMatrix();
-        func_80030F90((s32)o, o->unk15A);
+        tickEffectMotion((s32)fx, fx->unk15A);
         PopMatrix();
-        limit = (*(s16 *)((u8 *)o + 0x124) + o->frames - 1) / o->frames * o->frames;
+        limit = (*(s16 *)((u8 *)fx + 0x124) + fx->frames - 1) / fx->frames * fx->frames;
     }
     PushMatrix();
-    if (o->kind == 0) {
-        if (o->unk147 == 0) {
-        for (i = 0; i < o->count; i++) {
-            t = o->unk150 + i;
-            if (t < limit) {
-                l = &p->line[FRAME_BUFFER_INDEX];
-                v = (SVECTOR *)&p->unk74;
-                t %= o->frames;
-                updateTransformMatrix(p, 0);
-                if (o->unk158 < 0) {
-                    v->vz = p->unk80 - p->unk7E * t;
+    if (fx->kind == 0) {
+        if (fx->unk147 == 0) {
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->unk150 + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->unk74;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->unk158 < 0) {
+                    vertex->vz = particle->unk80 - particle->unk7E * frame;
                 } else {
-                    v->vz = p->unk7E * t;
+                    vertex->vz = particle->unk7E * frame;
                 }
-                v->vz += o->unk14E;
-                d = (p->unk7C + o->unk156 * t) * o->unk158 / 8;
-                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
-                    v->vz += d;
-                    z = RotTransPers((s32)v, (s32)&l->r1, &a, &b);
-                    if (z < 0x1000U) {
-                        if (o->unk154 != 0) {
-                            z = o->unk154;
+                vertex->vz += fx->unk14E;
+                length = (particle->unk7C + fx->unk156 * frame) * fx->unk158 / 8;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vz += length;
+                    otz = RotTransPers((s32)vertex, (s32)&line->r1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->unk154 != 0) {
+                            otz = fx->unk154;
                         }
-                        r = o->rgb[0] + o->drgb[0] * t;
-                        g = o->rgb[1] + o->drgb[1] * t;
-                        bl = o->rgb[2] + o->drgb[2] * t;
-                        l->r0 = r;
-                        l->g0 = g;
-                        l->b0 = bl;
-                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
+                        r = fx->rgb[0] + fx->drgb[0] * frame;
+                        g = fx->rgb[1] + fx->drgb[1] * frame;
+                        b = fx->rgb[2] + fx->drgb[2] * frame;
+                        line->r0 = r;
+                        line->g0 = g;
+                        line->b0 = b;
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
                     }
                 }
             }
-            p++;
+            particle++;
         }
         } else {
-        for (i = 0; i < o->count; i++) {
-            t = o->unk150 + i;
-            if (t < limit) {
-                l = &p->line[FRAME_BUFFER_INDEX];
-                v = (SVECTOR *)&p->unk74;
-                t %= o->frames;
-                updateTransformMatrix(p, 0);
-                if (o->unk158 < 0) {
-                    v->vz = p->unk80 - p->unk7E * t;
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->unk150 + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->unk74;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->unk158 < 0) {
+                    vertex->vz = particle->unk80 - particle->unk7E * frame;
                 } else {
-                    v->vz = p->unk7E * t;
+                    vertex->vz = particle->unk7E * frame;
                 }
-                v->vz += o->unk14E;
-                d = (p->unk7C + o->unk156 * t) * o->unk158 / 16;
-                v->vx += dx = d * rsin(p->unk82) / 4096;
-                v->vz += dz = d * rcos(p->unk82) / 4096;
-                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
-                    v->vx -= dx;
-                    v->vz -= dz;
-                    z = RotTransPers((s32)v, (s32)&l->r1, &a, &b);
-                    if (z < 0x1000U) {
-                        if (o->unk154 != 0) {
-                            z = o->unk154;
+                vertex->vz += fx->unk14E;
+                length = (particle->unk7C + fx->unk156 * frame) * fx->unk158 / 16;
+                vertex->vx += dx = length * rsin(particle->unk82) / 4096;
+                vertex->vz += dz = length * rcos(particle->unk82) / 4096;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vx -= dx;
+                    vertex->vz -= dz;
+                    otz = RotTransPers((s32)vertex, (s32)&line->r1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->unk154 != 0) {
+                            otz = fx->unk154;
                         }
-                        r = o->rgb[0] + o->drgb[0] * t;
-                        g = o->rgb[1] + o->drgb[1] * t;
-                        bl = o->rgb[2] + o->drgb[2] * t;
-                        l->r0 = r;
-                        l->g0 = g;
-                        l->b0 = bl;
-                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
+                        r = fx->rgb[0] + fx->drgb[0] * frame;
+                        g = fx->rgb[1] + fx->drgb[1] * frame;
+                        b = fx->rgb[2] + fx->drgb[2] * frame;
+                        line->r0 = r;
+                        line->g0 = g;
+                        line->b0 = b;
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
                     }
                 }
             }
-            p->unk82 += p->unk84;
-            p++;
+            particle->unk82 += particle->unk84;
+            particle++;
         }
         }
     } else {
-        if (o->unk147 == 0) {
-        for (i = 0; i < o->count; i++) {
-            t = o->unk150 + i;
-            if (t < limit) {
-                l = &p->line[FRAME_BUFFER_INDEX];
-                v = (SVECTOR *)&p->unk74;
-                t %= o->frames;
-                updateTransformMatrix(p, 0);
-                if (o->unk158 < 0) {
-                    v->vz = p->unk80 - p->unk7E * t;
+        if (fx->unk147 == 0) {
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->unk150 + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->unk74;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->unk158 < 0) {
+                    vertex->vz = particle->unk80 - particle->unk7E * frame;
                 } else {
-                    v->vz = p->unk7E * t;
+                    vertex->vz = particle->unk7E * frame;
                 }
-                v->vz += o->unk14E;
-                d = (p->unk7C + o->unk156 * t) * o->unk158 / 8;
-                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
-                    v->vz += d;
-                    z = RotTransPers((s32)v, (s32)&l->x1, &a, &b);
-                    if (z < 0x1000U) {
-                        if (o->unk154 != 0) {
-                            z = o->unk154;
+                vertex->vz += fx->unk14E;
+                length = (particle->unk7C + fx->unk156 * frame) * fx->unk158 / 8;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vz += length;
+                    otz = RotTransPers((s32)vertex, (s32)&line->x1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->unk154 != 0) {
+                            otz = fx->unk154;
                         }
-                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
                     }
                 }
             }
-            p++;
+            particle++;
         }
         } else {
-        for (i = 0; i < o->count; i++) {
-            t = o->unk150 + i;
-            if (t < limit) {
-                l = &p->line[FRAME_BUFFER_INDEX];
-                v = (SVECTOR *)&p->unk74;
-                t %= o->frames;
-                updateTransformMatrix(p, 0);
-                if (o->unk158 < 0) {
-                    v->vz = p->unk80 - p->unk7E * t;
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->unk150 + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->unk74;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->unk158 < 0) {
+                    vertex->vz = particle->unk80 - particle->unk7E * frame;
                 } else {
-                    v->vz = p->unk7E * t;
+                    vertex->vz = particle->unk7E * frame;
                 }
-                v->vz += o->unk14E;
-                d = (p->unk7C + o->unk156 * t) * o->unk158 / 16;
-                v->vx += dx = d * rsin(p->unk82) / 4096;
-                v->vz += dz = d * rcos(p->unk82) / 4096;
-                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
-                    v->vx -= dx;
-                    v->vz -= dz;
-                    z = RotTransPers((s32)v, (s32)&l->x1, &a, &b);
-                    if (z < 0x1000U) {
-                        if (o->unk154 != 0) {
-                            z = o->unk154;
+                vertex->vz += fx->unk14E;
+                length = (particle->unk7C + fx->unk156 * frame) * fx->unk158 / 16;
+                vertex->vx += dx = length * rsin(particle->unk82) / 4096;
+                vertex->vz += dz = length * rcos(particle->unk82) / 4096;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vx -= dx;
+                    vertex->vz -= dz;
+                    otz = RotTransPers((s32)vertex, (s32)&line->x1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->unk154 != 0) {
+                            otz = fx->unk154;
                         }
-                        addPrim(&CURRENT_FRAME_BUFFER->ot[z], l);
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
                     }
                 }
             }
-            p->unk82 += p->unk84;
-            p++;
+            particle->unk82 += particle->unk84;
+            particle++;
         }
         }
     }
-    o->unk150++;
+    fx->unk150++;
     PopMatrix();
 }
 
-void func_80033CD4(void *arg0) {
-    freeHeapBlock((*(void **)((s8 *)arg0 + 0x140)));
-    freeHeapBlock(arg0);
+void freeStreakParticles(void *fx) {
+    freeHeapBlock((*(void **)((s8 *)fx + 0x140)));
+    freeHeapBlock(fx);
 }
 
-void func_80033D08(s32 n) {
-    while (n > 0) {
+void waitDuelFrames(s32 frames) {
+    while (frames > 0) {
         func_80014C08(FRAME_INTERVAL);
         if (((s8 *)D_801D8340)[0x823] == 0) {
-            n--;
+            frames--;
         }
         if (((s8 *)D_801D8340)[0x815] != 0) {
             ((s8 *)D_801D8340)[0x815] = 0;
@@ -1362,7 +1362,7 @@ void func_80033D08(s32 n) {
 }
 
 s32 func_80033D9C(void) {
-    void *var_v0_2;
+    void *pad;
 
     if ((*(s8 *)((s8 *)D_801D8340 + 0x815)) != 0) {
         (*(s8 *)((s8 *)D_801D8340 + 0x815)) = 0;
@@ -1370,19 +1370,19 @@ s32 func_80033D9C(void) {
         return -1;
     }
     if ((((u32) (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178)) >> 0x11) & 3) == 1) {
-        var_v0_2 = *PAD_STATES;
+        pad = *PAD_STATES;
     } else {
-        var_v0_2 = PAD_STATES[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
+        pad = PAD_STATES[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
     }
-    if (!((*(u16 *)((s8 *)var_v0_2 + 0xA)) & 0x40)) {
+    if (!((*(u16 *)((s8 *)pad + 0xA)) & 0x40)) {
         return 0;
     }
     playSoundEffect(0xA0);
     return 1;
 }
 
-void func_80033E7C(void) {
-    s32 n;
+void waitForCpuDecision(void) {
+    s32 waited;
 
     (*(s32 *)((s8 *)D_801D8340 + 0x7FC)) = 0;
     while (1) {
@@ -1399,21 +1399,21 @@ void func_80033E7C(void) {
         if ((*(s8 *)((s8 *)D_801D8340 + 0x816)) == 0) {
             return;
         }
-        n = (*(s32 *)((s8 *)D_801D8340 + 0x7FC))++;
-        if (n >= 0xF1) {
+        waited = (*(s32 *)((s8 *)D_801D8340 + 0x7FC))++;
+        if (waited >= 0xF1) {
             return;
         }
     }
 }
 
-void func_80033F34(void) {
+void renderAttackChoiceIcons(void) {
     s32 i;
     s32 j;
     s32 x;
     s32 y;
 
-    if (D_801D8330 != 0) {
-        D_801D8330--;
+    if (ATTACK_ICON_TIMER != 0) {
+        ATTACK_ICON_TIMER--;
     }
     for (i = 0; i < 2; i++) {
         x = 0x80;
@@ -1422,11 +1422,11 @@ void func_80033F34(void) {
             if (isSpritePoolFull() != 0) {
                 return;
             }
-            if (D_801D8330 == 0 && ((*(u32 *)(D_801D8348[i] + 0x178) >> 2) & 3) != j) {
+            if (ATTACK_ICON_TIMER == 0 && ((*(u32 *)(D_801D8348[i] + 0x178) >> 2) & 3) != j) {
                 continue;
             }
-            CUR_SPRT->sp.x0 = x + (x - D_8006E280[j]) * D_801D8330 / 32;
-            CUR_SPRT->sp.y0 = y + (y - D_8006E288[i][j]) * D_801D8330 / 32;
+            CUR_SPRT->sp.x0 = x + (x - ATTACK_ICON_ORIGIN_X[j]) * ATTACK_ICON_TIMER / 32;
+            CUR_SPRT->sp.y0 = y + (y - ATTACK_ICON_ORIGIN_Y[i][j]) * ATTACK_ICON_TIMER / 32;
             CUR_SPRT->sp.u0 = j * 64 + 64;
             CUR_SPRT->sp.v0 = 0xBA;
             CUR_SPRT->sp.clut = 0x7FF0;
@@ -1444,16 +1444,16 @@ void func_80033F34(void) {
     }
 }
 
-void func_800341EC(void) {
-    s32 var_a1;
-    u32 temp_v0;
+void runDuelMessageWindow(void) {
+    s32 padIndex;
+    u32 playerFlags;
 
-    temp_v0 = (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178));
-    var_a1 = (temp_v0 >> 0x11) & 1;
-    if (((temp_v0 >> 0x11) & 3) == 1) {
-        var_a1 = 0;
+    playerFlags = (*(u32 *)((s8 *)(D_801D8348[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178));
+    padIndex = (playerFlags >> 0x11) & 1;
+    if (((playerFlags >> 0x11) & 3) == 1) {
+        padIndex = 0;
     }
-    runDialogForPad(&D_801D8278, var_a1);
+    runDialogForPad(&D_801D8278, padIndex);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect", D_80010C9C);
+INCLUDE_RODATA("asm/main/nonmatchings/model/effect", OVERLAY_LOAD_ADDR);

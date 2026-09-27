@@ -3,7 +3,7 @@
 
 #include "game.h"
 
-#define PULSE(n) (D_8006DF88 + (n) * 12)
+#define PULSE(n) (GRID_PULSE_PHASE + (n) * 12)
 
 typedef struct {
     u32 tag;
@@ -23,28 +23,28 @@ typedef struct {
     /* 0x571 */ s8 unk571;
 } ModelLink;
 
-extern MATRIX D_801D6A08;
-extern MATRIX D_801D6A28;
-extern SVECTOR D_801D6A78;
-extern void *D_801D6A58[];
-extern SVECTOR *D_801D6A50;
-extern s32 *D_801D6A48;
-extern s16 D_801D69F8;
-extern s16 D_801D69FA;
-extern s16 D_801D69FC;
-extern s16 D_801D69FE;
-extern s16 D_801D6A00;
-extern s32 D_8006DF84;
-extern u8 D_8006DF88;
+extern MATRIX SCENE_LIGHT_MATRIX;
+extern MATRIX SCENE_LIGHT_COLORS;
+extern SVECTOR SCENE_WORLD_ROTATION;
+extern void *GRID_LINE_PRIMS[];
+extern SVECTOR *GRID_VERTICES;
+extern s32 *GRID_SCREEN_XY;
+extern s16 GRID_WIDTH;
+extern s16 GRID_DEPTH;
+extern s16 GRID_COLUMNS;
+extern s16 GRID_ROWS;
+extern s16 GRID_LINE_COUNT;
+extern s32 GRID_VISIBLE;
+extern u8 GRID_PULSE_PHASE;
 extern s32 D_8007956C;
 
-void func_800243B0(s32 h);
-void func_80024420(void);
-void func_80023DF0();
-void func_800246E0();
-void func_80024B08(s32 w, s32 h, s32 cols, s32 rows, s32 unused, s32 vertical);
-void func_80024DD4(void);
-s32 func_80024E44(u8 *cam, s32 *pos, s32 cur, s16 *target);
-void func_80024460(s32);
+void setupSceneProjection(s32 projection);
+void setupSceneLighting(void);
+void renderSceneModels();
+void renderWireGrid();
+void createWireGrid(s32 width, s32 depth, s32 cols, s32 rows, s32 unused, s32 vertical);
+void freeWireGrid(void);
+s32 stepCameraTowardTarget(u8 *camera, s32 *pos, s32 distance, s16 *target);
+void initScene3D(s32 allocBuffers);
 
 #endif /* DCB_SCENE3D_H */

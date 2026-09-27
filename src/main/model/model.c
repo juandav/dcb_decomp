@@ -8,71 +8,71 @@
 #include "dcb/main.h"
 #include "dcb/model_anim.h"
 
-void func_80022C4C(void) {
-    Unk801D6A4C *p;
+void initModelScene(void) {
+    Unk801D6A4C *scene;
 
-    p = D_801D6A4C = allocHeapBlock(0x29C, 0x7F);
-    bzero(p, 0x29C);
-    GsInitCoordinate2(NULL, &D_801D6A4C->root);
-    D_80079544 = 1;
+    scene = SCENE_3D = allocHeapBlock(0x29C, 0x7F);
+    bzero(scene, 0x29C);
+    GsInitCoordinate2(NULL, &SCENE_3D->root);
+    SCENE_3D_ENABLED = 1;
 }
 
-void func_80022CA4(s32 arg0) {
-    void *temp_v1;
-    void *temp_v1_2;
+void pauseModelAnimation(s32 slot) {
+    void *model;
+    void *model2;
 
-    temp_v1 = D_801D6A4C->unk13C[arg0];
-    if ((*(s32 *)((s8 *)temp_v1 + 0x2208)) <= 0) {
-        (*(s32 *)((s8 *)temp_v1 + 0x2208)) = -1;
+    model = SCENE_3D->unk13C[slot];
+    if ((*(s32 *)((s8 *)model + 0x2208)) <= 0) {
+        (*(s32 *)((s8 *)model + 0x2208)) = -1;
         return;
     }
-    temp_v1_2 = D_801D6A4C->unk13C[arg0];
-    (*(s32 *)((s8 *)temp_v1_2 + 0x2208)) = (s32) -(*(s32 *)((s8 *)temp_v1_2 + 0x2208));
+    model2 = SCENE_3D->unk13C[slot];
+    (*(s32 *)((s8 *)model2 + 0x2208)) = (s32) -(*(s32 *)((s8 *)model2 + 0x2208));
 }
 
-void func_80022D00(s32 arg0) {
-    s32 temp_v0;
-    void *temp_v1;
+void resumeModelAnimation(s32 slot) {
+    s32 timer;
+    void *model;
 
-    temp_v1 = D_801D6A4C->unk13C[arg0];
-    temp_v0 = (*(s32 *)((s8 *)temp_v1 + 0x2208));
-    if (temp_v0 < 0) {
-        (*(s32 *)((s8 *)temp_v1 + 0x2208)) = -temp_v0;
+    model = SCENE_3D->unk13C[slot];
+    timer = (*(s32 *)((s8 *)model + 0x2208));
+    if (timer < 0) {
+        (*(s32 *)((s8 *)model + 0x2208)) = -timer;
     }
 }
 
-s32 func_80022D34(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    void *temp_a0;
-    void *temp_v1;
-    s32 temp_v0;
+s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly) {
+    void *model;
+    void *animState;
+    s32 frameCount;
 
-    temp_a0 = D_801D6A4C->unk13C[arg0];
-    temp_v1 = (s8 *)temp_a0 + 0x2200;
-    temp_v0 = ((Model2220 *)temp_a0)->unk2220[arg1].unk0;
-    (*(s32 *)((s8 *)temp_a0 + 0x26D8)) = arg3;
-    (*(s32 *)((s8 *)temp_v1 + 4)) = temp_v0;
-    (*(s32 *)((s8 *)temp_v1 + 0x14)) = temp_v0;
-    (*(s32 *)((s8 *)temp_a0 + 0x2200)) = arg1;
-    if (arg2 == -2) {
-        arg2 = (*(s16 *)((s8 *)((Model2220 *)temp_a0)->unk2220[arg1].unk4 + 0x1A));
+    model = SCENE_3D->unk13C[slot];
+    animState = (s8 *)model + 0x2200;
+    frameCount = ((Model2220 *)model)->unk2220[anim].unk0;
+    (*(s32 *)((s8 *)model + 0x26D8)) = rootOnly;
+    (*(s32 *)((s8 *)animState + 4)) = frameCount;
+    (*(s32 *)((s8 *)animState + 0x14)) = frameCount;
+    (*(s32 *)((s8 *)model + 0x2200)) = anim;
+    if (nextAnim == -2) {
+        nextAnim = (*(s16 *)((s8 *)((Model2220 *)model)->unk2220[anim].unk4 + 0x1A));
     }
-    (*(s32 *)((s8 *)temp_v1 + 0x18)) = arg2;
-    (*(s32 *)((s8 *)temp_v1 + 0xC)) = 0;
-    (*(s32 *)((s8 *)temp_v1 + 0x1C)) = 0x3F800000;
-    return func_80022100(temp_a0, 0, -1);
+    (*(s32 *)((s8 *)animState + 0x18)) = nextAnim;
+    (*(s32 *)((s8 *)animState + 0xC)) = 0;
+    (*(s32 *)((s8 *)animState + 0x1C)) = 0x3F800000;
+    return loadNextAnimationKeyframe(model, 0, -1);
 }
 
-void func_80022DBC(s32 arg0) {
+void unloadModelAnimations(s32 slot) {
     s32 key;
     s32 i;
 
-    key = *(s16 *)((s8 *)D_801D6A4C->unk13C[arg0] + 6);
-    freeHeapBlocksByTag(arg0 + 0x5A);
+    key = *(s16 *)((s8 *)SCENE_3D->unk13C[slot] + 6);
+    freeHeapBlocksByTag(slot + 0x5A);
     key = (key << 8) | 0x10000000;
     for (i = 0; i < 0x20; i++) {
-        if ((D_801D6A4C->unk19C[i].key & ~0xFF) == key) {
-            D_801D6A4C->unk19C[i].key = 0;
-            D_801D6A4C->unk19C[i].value = 0;
+        if ((SCENE_3D->unk19C[i].key & ~0xFF) == key) {
+            SCENE_3D->unk19C[i].key = 0;
+            SCENE_3D->unk19C[i].value = 0;
         }
     }
 }
@@ -81,203 +81,203 @@ void func_80022E58(void) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if ((D_801D6A4C->unk19C[i].key & 0x0FFFFF00) >= 0x3E80) {
-            D_801D6A4C->unk19C[i].key = 0;
-            D_801D6A4C->unk19C[i].value = 0;
+        if ((SCENE_3D->unk19C[i].key & 0x0FFFFF00) >= 0x3E80) {
+            SCENE_3D->unk19C[i].key = 0;
+            SCENE_3D->unk19C[i].value = 0;
         }
     }
     freeHeapBlocksByTag(0x82);
 }
 
-s32 func_80022ED0(s32 key, s32 n, KeyValue **pp) {
-    KeyValue *e;
-    KeyValue *free;
+s32 findAnimationCacheEntry(s32 key, s32 count, KeyValue **freeEntry) {
+    KeyValue *entry;
+    KeyValue *emptyEntry;
     s32 i;
 
-    e = *pp;
-    free = 0;
-    for (i = 0; i < n; i++, e++) {
-        if (e->key == key) {
-            return e->value;
+    entry = *freeEntry;
+    emptyEntry = 0;
+    for (i = 0; i < count; i++, entry++) {
+        if (entry->key == key) {
+            return entry->value;
         }
-        if (free == 0 && e->key == 0) {
-            free = e;
+        if (emptyEntry == 0 && entry->key == 0) {
+            emptyEntry = entry;
         }
     }
-    *pp = free;
+    *freeEntry = emptyEntry;
     return 0;
 }
 
-s32 func_80022F34(s32 id, s32 anim, s32 slot, Chunk *pak) {
-    char name[24];
-    KeyValue *e;
-    s32 p;
-    s32 n;
+s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
+    char path[24];
+    KeyValue *cacheEntry;
+    s32 animData;
+    s32 chunkSub;
 
-    e = (KeyValue *)D_801D6A4C->unk19C;
-    p = func_80022ED0((id << 8) | 0x10000000 | anim, 32, &e);
-    if (p == 0) {
-        if (e == 0) {
+    cacheEntry = (KeyValue *)SCENE_3D->unk19C;
+    animData = findAnimationCacheEntry((id << 8) | 0x10000000 | anim, 32, &cacheEntry);
+    if (animData == 0) {
+        if (cacheEntry == 0) {
             return 0;
         }
         if (id > 1000) {
-            sprintf(name, "M:\\HDF%d\\%d_%d.hdf", id / 10, id / 10, id % 10);
-            n = id;
+            sprintf(path, "M:\\HDF%d\\%d_%d.hdf", id / 10, id / 10, id % 10);
+            chunkSub = id;
         } else {
-            sprintf(name, "M:\\HDF%03d\\%c.hdf", id, anim + 'a');
-            n = anim;
+            sprintf(path, "M:\\HDF%03d\\%c.hdf", id, anim + 'a');
+            chunkSub = anim;
         }
-        p = (s32)findPakChunk(pak, 1, n);
-        if (p == 0) {
-            p = loadFileTagged((s32 *)name, func_800148B0(), slot + 0x5A);
-            if (p == 0) {
+        animData = (s32)findPakChunk(pak, 1, chunkSub);
+        if (animData == 0) {
+            animData = loadFileTagged((s32 *)path, func_800148B0(), slot + 0x5A);
+            if (animData == 0) {
                 return 0;
             }
-            e->key = (id << 8) | 0x10000000 | anim;
-            e->value = p;
+            cacheEntry->key = (id << 8) | 0x10000000 | anim;
+            cacheEntry->value = animData;
         }
     }
-    return p;
+    return animData;
 }
 
-void func_80023094(Model2220 *m, s32 *p, s32 i) {
-    m->unk2220[i].unk0 = *p++;
-    m->unk2220[i].unk4 = p;
+void setModelAnimationData(Model2220 *model, s32 *data, s32 anim) {
+    model->unk2220[anim].unk0 = *data++;
+    model->unk2220[anim].unk4 = data;
 }
 
-s32 func_800230B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 temp_v0;
-    void *temp_s0;
+s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak) {
+    s32 animData;
+    void *model;
 
-    temp_s0 = D_801D6A4C->unk13C[arg0];
-    temp_v0 = func_80022F34((*(s16 *)((s8 *)temp_s0 + 6)), arg1, arg0, (Chunk *)arg3);
-    if (temp_v0 != 0) {
-        func_80023094(temp_s0, (s32 *)temp_v0, arg2);
+    model = SCENE_3D->unk13C[slot];
+    animData = loadAnimationData((*(s16 *)((s8 *)model + 6)), anim, slot, (Chunk *)pak);
+    if (animData != 0) {
+        setModelAnimationData(model, (s32 *)animData, index);
         return 1;
     }
     return 0;
 }
 
-void func_80023128(s32 arg0, s32 arg1, s32 arg2) {
-    func_800230B8(arg0, arg1, arg2, 0);
+void loadModelAnimationFile(s32 slot, s32 anim, s32 index) {
+    loadModelAnimation(slot, anim, index, 0);
 }
 
-void func_80023148(s32 slot, s32 anim) {
-    u8 *m;
-    BoneAnim *b;
-    u8 *c;
-    SVECTOR *r;
-    s16 *key;
-    s32 *p0;
-    s32 *p3;
-    s32 *p6;
+void applyAnimationFirstFrame(s32 slot, s32 anim) {
+    u8 *model;
+    BoneAnim *bone;
+    u8 *coord;
+    SVECTOR *rot;
+    s16 *keyframe;
+    s32 *rotChan;
+    s32 *posChan;
+    s32 *scaleChan;
     s32 i;
     s32 j;
 
-    m = D_801D6A4C->unk13C[slot];
-    b = (BoneAnim *)(m + 0xD80);
-    c = m + 0x78;
-    r = (SVECTOR *)(m + 0xA80);
-    key = (s16 *)((u8 *)((Model2220 *)m)->unk2220[anim].unk4 + 4);
-    for (i = 0; i < *(s16 *)(m + 4) + 1; i++, key += 12, b++, c += 0x50, r++) {
-        for (j = 0, p0 = &b->ch[0].val, p3 = &b->ch[3].val, p6 = &b->ch[6].val; j < 3; j++) {
-            *(s32 *)((u8 *)p0 + (j << 4)) = *(s32 *)((u8 *)p3 + (j << 4)) = *(s32 *)((u8 *)p6 + (j << 4)) = 0;
+    model = SCENE_3D->unk13C[slot];
+    bone = (BoneAnim *)(model + 0xD80);
+    coord = model + 0x78;
+    rot = (SVECTOR *)(model + 0xA80);
+    keyframe = (s16 *)((u8 *)((Model2220 *)model)->unk2220[anim].unk4 + 4);
+    for (i = 0; i < *(s16 *)(model + 4) + 1; i++, keyframe += 12, bone++, coord += 0x50, rot++) {
+        for (j = 0, rotChan = &bone->ch[0].val, posChan = &bone->ch[3].val, scaleChan = &bone->ch[6].val; j < 3; j++) {
+            *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }
-        b->ch[0].unk0 = key[0] << 20;
-        b->ch[1].unk0 = key[1] << 20;
-        b->ch[2].unk0 = key[2] << 20;
-        b->ch[3].unk0 = key[4] << 16;
-        b->ch[4].unk0 = key[5] << 16;
-        b->ch[5].unk0 = key[6] << 16;
-        b->ch[6].unk0 = key[8] << 16;
-        b->ch[7].unk0 = key[9] << 16;
-        b->ch[8].unk0 = key[10] << 16;
-        if (i < *(s16 *)(m + 4)) {
-            r->vx = b->ch[0].unk0 / 0x100000;
-            r->vy = b->ch[1].unk0 / 0x100000;
-            r->vz = b->ch[2].unk0 / 0x100000;
-            *(s32 *)(c + 0x18) = (s16)(b->ch[3].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][0];
-            *(s32 *)(c + 0x1C) = (s16)(b->ch[4].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][1];
-            *(s32 *)(c + 0x20) = (s16)(b->ch[5].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][2];
-            ((Model2220 *)m)->scale[i][0] = (s16)(b->ch[6].unk0 >> 16);
-            ((Model2220 *)m)->scale[i][1] = (s16)(b->ch[7].unk0 >> 16);
-            ((Model2220 *)m)->scale[i][2] = (s16)(b->ch[8].unk0 >> 16);
-            RotMatrixYXZ(r, c + 4);
-            *(s32 *)c = 0;
-            ScaleMatrix(c + 4, ((Model2220 *)m)->scale[i]);
+        bone->ch[0].unk0 = keyframe[0] << 20;
+        bone->ch[1].unk0 = keyframe[1] << 20;
+        bone->ch[2].unk0 = keyframe[2] << 20;
+        bone->ch[3].unk0 = keyframe[4] << 16;
+        bone->ch[4].unk0 = keyframe[5] << 16;
+        bone->ch[5].unk0 = keyframe[6] << 16;
+        bone->ch[6].unk0 = keyframe[8] << 16;
+        bone->ch[7].unk0 = keyframe[9] << 16;
+        bone->ch[8].unk0 = keyframe[10] << 16;
+        if (i < *(s16 *)(model + 4)) {
+            rot->vx = bone->ch[0].unk0 / 0x100000;
+            rot->vy = bone->ch[1].unk0 / 0x100000;
+            rot->vz = bone->ch[2].unk0 / 0x100000;
+            *(s32 *)(coord + 0x18) = (s16)(bone->ch[3].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][0];
+            *(s32 *)(coord + 0x1C) = (s16)(bone->ch[4].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][1];
+            *(s32 *)(coord + 0x20) = (s16)(bone->ch[5].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][2];
+            ((Model2220 *)model)->scale[i][0] = (s16)(bone->ch[6].unk0 >> 16);
+            ((Model2220 *)model)->scale[i][1] = (s16)(bone->ch[7].unk0 >> 16);
+            ((Model2220 *)model)->scale[i][2] = (s16)(bone->ch[8].unk0 >> 16);
+            RotMatrixYXZ(rot, coord + 4);
+            *(s32 *)coord = 0;
+            ScaleMatrix(coord + 4, ((Model2220 *)model)->scale[i]);
         }
     }
-    func_80022CA4(slot);
+    pauseModelAnimation(slot);
 }
 
-void func_80023408(Tmd18 *t) {
-    Obj18 *o;
-    s32 n;
+void relocateOmdObjects(Tmd18 *tmd) {
+    Obj18 *obj;
+    s32 objCount;
     s32 i;
 
-    if (t->flags == 0) {
-        t->flags = 1;
-        n = t->nobj;
-        o = t->obj;
-        for (i = 0; i < n; i++) {
-            o->unk14 = (s32)t + o->unk14;
-            o++;
+    if (tmd->flags == 0) {
+        tmd->flags = 1;
+        objCount = tmd->nobj;
+        obj = tmd->obj;
+        for (i = 0; i < objCount; i++) {
+            obj->unk14 = (s32)tmd + obj->unk14;
+            obj++;
         }
     }
 }
 
-void func_80023454(s32 arg0, void *arg1, s32 arg2) {
-    (*(s32 *)((s8 *)arg1 + 0xC)) = (s32) (arg2 + 1);
-    (*(s32 *)((s8 *)arg1 + 0)) = 0;
-    (*(s32 *)((s8 *)arg1 + 8)) = arg0;
+void linkOmdObject(s32 tmd, void *obj, s32 index) {
+    (*(s32 *)((s8 *)obj + 0xC)) = (s32) (index + 1);
+    (*(s32 *)((s8 *)obj + 0)) = 0;
+    (*(s32 *)((s8 *)obj + 8)) = tmd;
 }
 
-s32 *func_80023468(u8 *m, s32 *p) {
+s32 *readModelBonePositions(u8 *model, s32 *data) {
     s32 i;
 
-    for (i = 0; i < *(s16 *)(m + 4); i++) {
-        ((Unk1F80 *)m)->unk1F80[i] = (s16 *)(p + 1);
-        p += 3;
+    for (i = 0; i < *(s16 *)(model + 4); i++) {
+        ((Unk1F80 *)model)->unk1F80[i] = (s16 *)(data + 1);
+        data += 3;
     }
-    return p;
+    return data;
 }
 
-void func_800234AC(Model *m) {
-    GsCOORDINATE2 *c;
+void initModelBoneHierarchy(Model *model) {
+    GsCOORDINATE2 *coord;
     s8 *parent;
-    GsDOBJ4 *o;
+    GsDOBJ4 *obj;
     s32 i;
 
-    c = m->coord;
-    GsInitCoordinate2(&D_801D6A4C->root, &m->root);
-    for (i = 0, parent = m->parent, o = m->obj; i < m->nobj; i++, parent++, o++, c++) {
-        o->coord2 = c;
+    coord = model->coord;
+    GsInitCoordinate2(&SCENE_3D->root, &model->root);
+    for (i = 0, parent = model->parent, obj = model->obj; i < model->nobj; i++, parent++, obj++, coord++) {
+        obj->coord2 = coord;
         if (*parent < 0) {
-            GsInitCoordinate2(&m->root, c);
+            GsInitCoordinate2(&model->root, coord);
         } else {
-            GsInitCoordinate2(&m->coord[*parent], c);
+            GsInitCoordinate2(&model->coord[*parent], coord);
         }
-        c->coord.t[0] = m->bonepos[i][0];
-        c->coord.t[1] = m->bonepos[i][1];
-        c->coord.t[2] = m->bonepos[i][2];
+        coord->coord.t[0] = model->bonepos[i][0];
+        coord->coord.t[1] = model->bonepos[i][1];
+        coord->coord.t[2] = model->bonepos[i][2];
     }
 }
 
-void func_800235C8(s32 arg0) {
-    D_801D6A4C->unk114[arg0] = 0;
-    D_801D6A4C->unk13C[arg0] = 0;
-    freeHeapBlocksByTag(arg0 + 0x40);
+void unloadModel(s32 slot) {
+    SCENE_3D->unk114[slot] = 0;
+    SCENE_3D->unk13C[slot] = 0;
+    freeHeapBlocksByTag(slot + 0x40);
 }
 
-void func_8002360C(void) {
+void unloadAllModels(void) {
     s32 i;
 
     for (i = 0; i < 24; i++) {
-        if (D_801D6A4C->unk114[i] != 0) {
-            func_80022DBC(i);
-            D_801D6A4C->unk114[i] = 0;
+        if (SCENE_3D->unk114[i] != 0) {
+            unloadModelAnimations(i);
+            SCENE_3D->unk114[i] = 0;
             /* sic: the original clears the wrong slot */
-            D_801D6A4C->unk13C[i - 0x40] = 0;
+            SCENE_3D->unk13C[i - 0x40] = 0;
         }
     }
     func_80014C08(FRAME_INTERVAL);
@@ -286,143 +286,143 @@ void func_8002360C(void) {
     }
 }
 
-void *func_800236B4(s32 id) {
+void *findLoadedModelById(s32 id) {
     s32 i;
 
     for (i = 0; i < 0x18; i++) {
-        if (D_801D6A4C->unk114[i] != 0 &&
-            *(s16 *)((u8 *)D_801D6A4C->unk13C[i] + 6) == id) {
-            return D_801D6A4C->unk13C[i];
+        if (SCENE_3D->unk114[i] != 0 &&
+            *(s16 *)((u8 *)SCENE_3D->unk13C[i] + 6) == id) {
+            return SCENE_3D->unk13C[i];
         }
     }
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model/model", func_8002371C);
+INCLUDE_ASM("asm/main/nonmatchings/model/model", reuseLoadedModelTexture);
 
-s32 func_8002386C(s32 slot, s32 id, s32 pos, s32 pak, s8 kind) {
-    char buf[16];
+s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
+    char path[16];
     TIM_IMAGE tim;
-    u8 *m;
+    u8 *model;
     u8 *data;
     u32 *img;
-    s32 u;
-    s32 v;
+    s32 texX;
+    s32 texY;
     s32 i;
     s32 j;
 
     if (slot >= 0x18) {
         return 0;
     }
-    if (D_801D6A4C->unk13C[slot] != 0) {
-        func_80022DBC(slot);
-        func_800235C8(slot);
+    if (SCENE_3D->unk13C[slot] != 0) {
+        unloadModelAnimations(slot);
+        unloadModel(slot);
     }
     func_80014C08(FRAME_INTERVAL);
-    m = D_801D6A4C->unk13C[slot] = allocHeapBlock(0x28F8, slot + 0x40);
-    bzero(m, 0x28F8);
-    *(s32 *)(m + 0x26F4) = pak;
-    func_80022CA4(slot);
-    RotMatrixYXZ(m + 0xA78, m + 0x2C);
-    *(s32 *)(m + 0x28) = 0;
-    *(s32 *)(m + 0x20) = 0x1000;
-    *(s32 *)(m + 0x1C) = 0x1000;
-    *(s32 *)(m + 0x18) = 0x1000;
+    model = SCENE_3D->unk13C[slot] = allocHeapBlock(0x28F8, slot + 0x40);
+    bzero(model, 0x28F8);
+    *(s32 *)(model + 0x26F4) = pak;
+    pauseModelAnimation(slot);
+    RotMatrixYXZ(model + 0xA78, model + 0x2C);
+    *(s32 *)(model + 0x28) = 0;
+    *(s32 *)(model + 0x20) = 0x1000;
+    *(s32 *)(model + 0x1C) = 0x1000;
+    *(s32 *)(model + 0x18) = 0x1000;
     for (i = 0; i < 32; i++) {
         for (j = 0; j < 3; j++) {
-            ((Model *)m)->keys[i].rot[j].unk0 = 0;
-            ((Model *)m)->keys[i].pos[j].unk0 = 0;
-            ((Model *)m)->keys[i].scale[j].unk0 = 0x10000000;
+            ((Model *)model)->keys[i].rot[j].unk0 = 0;
+            ((Model *)model)->keys[i].pos[j].unk0 = 0;
+            ((Model *)model)->keys[i].scale[j].unk0 = 0x10000000;
         }
     }
-    if (pos < 0) {
-        pos = (slot >> 1) + (slot & 1) * 16 + 5;
+    if (vramSlot < 0) {
+        vramSlot = (slot >> 1) + (slot & 1) * 16 + 5;
     }
-    *(s32 *)(m + 0x26D4) = (pos - 5) << 16;
-    *(s32 *)(m + 0x26D0) = ((((pos & 0x10) << 10) | ((pos & 0xF) * 4)) - 0x14) << 16;
-    *(s16 *)(m + 6) = id;
+    *(s32 *)(model + 0x26D4) = (vramSlot - 5) << 16;
+    *(s32 *)(model + 0x26D0) = ((((vramSlot & 0x10) << 10) | ((vramSlot & 0xF) * 4)) - 0x14) << 16;
+    *(s16 *)(model + 6) = id;
     if (id > 1000) {
-        sprintf(buf, "M:\\%d_%d.omd", id / 10, id % 10);
+        sprintf(path, "M:\\%d_%d.omd", id / 10, id % 10);
     } else {
-        sprintf(buf, "M:\\%03d.omd", id);
+        sprintf(path, "M:\\%03d.omd", id);
     }
     data = findPakChunk((Chunk *)pak, 0, id);
     if (data == 0) {
-        data = (u8 *)loadFileTagged((s32 *)buf, func_800148B0(), slot + 0x40);
+        data = (u8 *)loadFileTagged((s32 *)path, func_800148B0(), slot + 0x40);
         if (data == 0) {
             return 0;
         }
-        *(s32 *)m = LOADED_FILE_SIZE;
+        *(s32 *)model = LOADED_FILE_SIZE;
     } else {
-        *(s32 *)m = ((s32 *)data)[-1];
+        *(s32 *)model = ((s32 *)data)[-1];
     }
-    *(u8 **)(m + 0x26DC) = data;
-    if (pos != 0) {
+    *(u8 **)(model + 0x26DC) = data;
+    if (vramSlot != 0) {
         i = 0;
         img = findPakChunk((Chunk *)pak, 5, id);
         if (img == 0) {
-            if (func_8002371C(m) == 0) {
+            if (reuseLoadedModelTexture(model) == 0) {
                 goto skip;
             }
-            sprintf(buf, "M:\\%s", data);
+            sprintf(path, "M:\\%s", data);
             i = 1;
-            img = (u32 *)loadFile(buf, func_800148B0());
+            img = (u32 *)loadFile(path, func_800148B0());
         }
         if (img != 0) {
-            u = (pos & 0xF) << 6;
-            v = (pos & 0x10) << 4;
-            uploadTimListOffset(img, u - 0x140, v);
+            texX = (vramSlot & 0xF) << 6;
+            texY = (vramSlot & 0x10) << 4;
+            uploadTimListOffset(img, texX - 0x140, texY);
             OpenTIM(img);
             ReadTIM(&tim);
-            *(Rect16 *)(m + 0x26E4) = *tim.prect;
-            *(Rect16 *)(m + 0x26EC) = *tim.crect;
-            ((Rect16 *)(m + 0x26EC))->x += u - 0x140;
-            ((Rect16 *)(m + 0x26EC))->y += v;
-            ((Rect16 *)(m + 0x26E4))->x += u - 0x140;
-            ((Rect16 *)(m + 0x26E4))->y += v;
+            *(Rect16 *)(model + 0x26E4) = *tim.prect;
+            *(Rect16 *)(model + 0x26EC) = *tim.crect;
+            ((Rect16 *)(model + 0x26EC))->x += texX - 0x140;
+            ((Rect16 *)(model + 0x26EC))->y += texY;
+            ((Rect16 *)(model + 0x26E4))->x += texX - 0x140;
+            ((Rect16 *)(model + 0x26E4))->y += texY;
             if (i) {
                 freeHeapBlock(img);
             }
         }
     }
 skip:
-    StoreImage2((Rect16 *)(m + 0x26EC), (u32 *)(m + 0x26F8));
+    StoreImage2((Rect16 *)(model + 0x26EC), (u32 *)(model + 0x26F8));
     data += 0x10;
-    *(s16 *)(m + 4) = *(u16 *)data;
+    *(s16 *)(model + 4) = *(u16 *)data;
     data += 4;
     for (i = 0; i < 32; i++) {
-        ((Model *)m)->parent[i] = *data++;
+        ((Model *)model)->parent[i] = *data++;
     }
-    data = (u8 *)func_80023468(m, (s32 *)data);
-    if (kind == 0) {
-        for (i = 0; i < *(s16 *)(m + 4); i++) {
+    data = (u8 *)readModelBonePositions(model, (s32 *)data);
+    if (format == 0) {
+        for (i = 0; i < *(s16 *)(model + 4); i++) {
             if (i != 0) {
                 for (data += 4; *(s32 *)data != 0x30444D4F; data += 4) {
                 }
             }
-            ((Model *)m)->obj[i].tmd = 0;
-            func_80023408((Tmd18 *)data);
-            func_80023454((s32)(data + 12), &((Model *)m)->obj[i], i);
+            ((Model *)model)->obj[i].tmd = 0;
+            relocateOmdObjects((Tmd18 *)data);
+            linkOmdObject((s32)(data + 12), &((Model *)model)->obj[i], i);
         }
     } else {
-        for (i = 0; i < *(s16 *)(m + 4); i++) {
+        for (i = 0; i < *(s16 *)(model + 4); i++) {
             if (i != 0) {
                 for (data += 4; *(s32 *)data != 0x41 || ((s32 *)data)[1] != 0; data += 4) {
                 }
             }
-            ((Model *)m)->obj[i].tmd = 0;
+            ((Model *)model)->obj[i].tmd = 0;
             GsMapModelingData((u32 *)(data + 4));
-            GsLinkObject4((u32)(data + 12), &((Model *)m)->obj[i], 0);
+            GsLinkObject4((u32)(data + 12), &((Model *)model)->obj[i], 0);
         }
     }
-    func_800234AC((Model *)m);
+    initModelBoneHierarchy((Model *)model);
     return 1;
 }
 
-void func_80023DA4(s32 arg0, s32 arg1, s32 arg2) {
-    func_8002386C(arg0, arg1, arg2, 0, 0);
+void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
+    loadModel(slot, id, vramSlot, 0, 0);
 }
 
-void func_80023DC8(s32 arg0, s32 arg1, s32 arg2) {
-    func_8002386C(arg0, arg1, arg2, 0, 1);
+void loadTmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
+    loadModel(slot, id, vramSlot, 0, 1);
 }

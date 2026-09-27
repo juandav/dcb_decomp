@@ -160,7 +160,7 @@ void runRenderLoop(void) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[0], &SCREEN_COPY_EFFECT.stp[1]);
             addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &SCREEN_COPY_EFFECT.stp[0]);
         }
-        func_8002FAE4();
+        renderScrollingBackground();
         resetSpritePool();
         resetWindowPrimPool();
         if (RENDER_CALLBACKS_ENABLED != 0) {
@@ -202,7 +202,7 @@ void runMainTask(void) {
     initWindowPrimPool(0xD);
     resetDisplay(0x140, 0xF0, 0);
     initPlayerData();
-    func_8002F79C();
+    resetScrollingBackground();
     for (;;) {
         func_80014840();
         closeAllDiscFiles();
@@ -219,7 +219,7 @@ void runMainTask(void) {
         resetDisplay(0x140, 0xF0, 0);
         func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
         func_80014C08(0xA);
-        func_800149B8(0, -1, 0, 0x400, func_8002F4F4, 0, 0, 0, 0);
+        func_800149B8(0, -1, 0, 0x400, runTitleMenu, 0, 0, 0, 0);
         func_80014C08(0x7FFFFFFF);
         func_80014C08(0xA);
     }

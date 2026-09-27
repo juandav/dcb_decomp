@@ -122,42 +122,45 @@ typedef struct {
 } Particles;
 
 extern u8 PRIM_SIZES[];
-extern s16 D_8006E280[3];
-extern s16 D_8006E288[2][3];
+extern s16 ATTACK_ICON_ORIGIN_X[3];
+extern s16 ATTACK_ICON_ORIGIN_Y[2][3];
 
-void func_8002FAE4(void);
-s32 func_80030F90(s32, s32);
-void func_80030130(void *arg0);
-void func_800301D0(void *arg0);
-void func_80030264(void *arg0);
-void func_800302E0(void *arg0);
-void func_8003035C(u8 *p);
-void func_80030440(u8 *p);
-void func_8003058C(u8 *p);
-s32 func_80030694(SVECTOR *a, SVECTOR *b);
-s32 func_80030718(SVECTOR *a, SVECTOR *b, SVECTOR *c);
-s32 func_800309F0(SVECTOR *arg0, SVECTOR *arg1, s32 arg2);
-void func_80030828(SVECTOR *, SVECTOR *, SVECTOR *, VECTOR *);
-s32 func_80030A34(SVECTOR *a, SVECTOR *b, SVECTOR *c, s16 r);
-void *func_80030E3C(void *arg0);
-Unk13C *func_80030AE4(Unk13C *src);
-void func_80030B6C(s32 arg0);
-void func_80030BA4(void *arg0);
-s32 func_80030BC4(SVECTOR *a, SVECTOR *b, VECTOR *out);
-void func_80030CA8(u8 *);
-void func_80031970(Obj32 *);
-Obj32 *func_80031F58(s16 id, Bytes4 *a, Bytes4 *b, Bytes4 *c, Unk13C *src, s32 n, u8 abr, u8 tp, s32 type, s16 p0, s16 p1, s16 p2, s16 p3, s16 p4, Bytes8 *q, s32 r, s32 s, s32 t, u8 u1, u8 u2, s32 w, s32 x);
-void func_80031754(void *arg0);
-s16 func_800317A8(void *arg0, s16 arg1);
-void func_8003230C(Obj32 *o);
-void func_80032AA0(Obj32 *p);
-Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s16 a6, s16 frames, s16 a8, s16 a9, s16 count, s16 a11, s16 a12, s16 a13, s16 kind, s16 semi, s32 flags, s32 a17);
-void func_80033258(Particles *o);
-void func_80033CD4(void *arg0);
-void func_80033D08(s32 n);
+void renderScrollingBackground(void);
+s32 tickEffectMotion(s32 fxAddr, s32 applyFlag);
+void updateEffectLinearMotion(void *fx);
+void updateEffectArcMotion(void *fx);
+void updateEffectWaveXMotion(void *fx);
+void updateEffectWaveYMotion(void *fx);
+void updateEffectTiltedArcMotion(u8 *fx);
+void func_80030440(u8 *fx);
+void updateEffectShakeMotion(u8 *fx);
+s32 getVectorDistance(SVECTOR *from, SVECTOR *to);
+s32 isPointAlongSegment(SVECTOR *start, SVECTOR *end, SVECTOR *point);
+s32 isWithinDistance(SVECTOR *a, SVECTOR *b, s32 radius);
+void projectPointOntoLine(SVECTOR *start, SVECTOR *point, SVECTOR *end, VECTOR *out);
+s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16 radius);
+void *initEffectObject(void *fx);
+Unk13C *cloneEffectObject(Unk13C *template);
+void updateEffectObject(s32 fx);
+void freeEffectObject(void *fx);
+s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir);
+void restartEffectMotion(u8 *fx);
+void buildRingEffectMesh(Obj32 *ring);
+Obj32 *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, Unk13C *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
+                     s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
+                     s32 w, s32 x);
+void tickEffectStartDelay(void *fx);
+s16 updateEffectBrightness(void *fxObj, s16 brightness);
+void renderRingEffect(Obj32 *ring);
+void freeRingEffect(Obj32 *ring);
+Particles *createStreakParticles(u8 *startColor, u8 *endColor, Unk13C *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
+                         s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz);
+void renderStreakParticles(Particles *fx);
+void freeStreakParticles(void *fx);
+void waitDuelFrames(s32 frames);
 s32 func_80033D9C(void);
-void func_80033E7C(void);
-void func_80033F34(void);
-void func_800341EC(void);
+void waitForCpuDecision(void);
+void renderAttackChoiceIcons(void);
+void runDuelMessageWindow(void);
 
 #endif /* DCB_EFFECT_H */
