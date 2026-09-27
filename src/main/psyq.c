@@ -711,7 +711,11 @@ long SetVideoMode(long value) {
     return old;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GetVideoMode);
+long GetVideoMode(void) {
+    return D_80070B28;
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StSetRing);
 
