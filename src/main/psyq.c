@@ -912,7 +912,9 @@ int func_8005B1E4(void *madr, int size) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_getsector);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B304);
+int func_8005B304(void) {
+    return CD_getsector2() == 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_getsector2);
 
