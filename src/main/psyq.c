@@ -744,7 +744,11 @@ void func_800571C8(void) {
     func_8006A784(0xF0000003, 0x40);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800571F0);
+void func_800571F0(void) {
+    func_8006A784(0xF0000003, 0x40);
+}
+
+OBJECT_END(3);
 
 int CdPosToInt(CdlLOC *p) {
     return (btoi(p->minute) * 60 + btoi(p->second)) * 75 + btoi(p->sector) - 150;
