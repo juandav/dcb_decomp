@@ -2057,7 +2057,24 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068874);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068884);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", InitCARD);
+void InitCARD(long val) {
+    int ret;
+
+    func_8006A884(0);
+    VSync(0);
+    ret = func_8006A804();
+    if (ReadInitPadFlag() == 0) {
+        val = 0;
+    }
+    func_80068994(val);
+    _copy_memcard_patch();
+    _patch_card();
+    _patch_card2();
+    _patch_card_info();
+    if (ret == 1) {
+        func_8006A814();
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StartCARD);
 
