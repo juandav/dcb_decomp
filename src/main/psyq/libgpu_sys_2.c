@@ -18,7 +18,16 @@ int GetGraphDebug(void) {
     return D_80076758.level;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DrawSyncCallback);
+u_long DrawSyncCallback(void (*func)()) {
+    u_long old;
+
+    if (D_80076758.level >= 2) {
+        D_80076754("DrawSyncCallback(%08x)...\n", func);
+    }
+    old = (u_long)D_80076758.drawSyncCallback;
+    D_80076758.drawSyncCallback = func;
+    return old;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDispMask);
 
