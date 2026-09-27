@@ -41,9 +41,6 @@ extern s32 D_8007956C;
 void setupSceneProjection(s32 projection);
 void setupSceneLighting(void);
 void renderSceneModels();
-void renderWireGrid();
-void createWireGrid(s32 width, s32 depth, s32 cols, s32 rows, s32 unused, s32 vertical);
-void freeWireGrid(void);
 void initScene3D(s32 allocBuffers);
 
 #endif /* DCB_SCENE3D_H */

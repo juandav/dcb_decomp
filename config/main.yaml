@@ -120,6 +120,7 @@ segments:
       - [0x1344C, c, model/model]
       - [0x13C08, c, model/model_load]
       - [0x145F0, c, model/scene3d]
+      - [0x14EE0, c, model/wire_grid]
       - [0x15644, c, model/camera]
       - [0x1603C, c, libmath]
       - [0x17690, c, ui/text]
