@@ -355,6 +355,21 @@ typedef struct {
     SPRT sp;
 } SprtPacket;
 
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_AREA;
+
+typedef struct {
+    /* 0x0 */ s8 unk0;
+    /* 0x1 */ u8 unk1;
+    /* 0x2 */ u8 player;
+    /* 0x3 */ s8 unk3;
+    /* 0x4 */ s8 next;
+    /* 0x5 */ s8 cur;
+    /* 0x6 */ s8 y;
+} MsgBar;
+
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u8)(_len))
 #define setaddr(p, _addr) (((P_TAG *)(p))->addr = (u32)(_addr))
 #define getaddr(p) (u32)(((P_TAG *)(p))->addr)
@@ -8648,7 +8663,7 @@ s32 func_8003D4C4();
 s32 func_8003E4F0();
 void func_80042824(s32);
 s32 func_80042E78();
-s32 func_80043D00(s16);
+void func_80043D00(s32);
 s32 func_80044074(s16);
 s32 func_801EB53C(u8);
 s32 func_801F97F4();
@@ -9572,7 +9587,67 @@ void func_80042BBC(s32 x, s32 y, s32 z, s32 n, u8 *tex) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80042E78);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80043D00);
+extern MsgBar D_801D83D0;
+extern DR_AREA D_801D8358[2];
+extern DR_AREA D_801D8378[2];
+extern u8 *D_8006E29C[];
+void GetDispEnv(DISPENV *);
+void SetDrawArea(DR_AREA *, Rect16 *);
+
+void func_80043D00(s32 c) {
+    DISPENV env;
+    Rect16 r;
+    u8 rgb[4];
+    u8 buf[0x48];
+    u8 *s;
+    u8 *d;
+    s32 i;
+
+    if (D_801D83D0.next == -1) {
+        return;
+    }
+    rgb[0] = c;
+    rgb[1] = c;
+    rgb[2] = c;
+    GetDispEnv(&env);
+    SetDrawArea(&D_801D8358[D_800794F4], (Rect16 *)env.disp);
+    addPrim(&D_800793A0->ot[0xFFE], &D_801D8358[D_800794F4]);
+    if (D_801D83D0.cur != D_801D83D0.next) {
+        if (++D_801D83D0.y > 0x10) {
+            D_801D83D0.cur = D_801D83D0.next;
+            D_801D83D0.player = ((u8 *)D_801D8340)[0x817];
+        }
+    } else if (D_801D83D0.y != 0) {
+        D_801D83D0.y--;
+    }
+    if (D_801D83D0.cur != -1) {
+        s = D_8006E29C[D_801D83D0.cur];
+        d = buf;
+        do {
+            if (*s < 0x81 || *s >= 0x99) {
+                if (*s == '*' && s[1] == 'P') {
+                    s += 2;
+                    i = *s++ - '0';
+                    i ^= D_801D83D0.player;
+                    *d = 0;
+                    strcpy((char *)d, (char *)D_801D8348[i] + 0x1CE);
+                    d += strlen(D_801D8348[i] + 0x1CE);
+                    continue;
+                }
+            } else {
+                *d++ = *s++;
+            }
+            *d++ = *s++;
+        } while (s[-1] != 0);
+        func_80028D48(0x10, D_801D83D0.y + 0xE, (s32)buf, (s32 *)rgb, 7, 0xFFE);
+    }
+    r.x = env.disp[0] + 0x10;
+    r.y = env.disp[1] + 0xE;
+    r.w = 0x120;
+    r.h = 0xC;
+    SetDrawArea(&D_801D8378[D_800794F4], &r);
+    addPrim(&D_800793A0->ot[0xFFE], &D_801D8378[D_800794F4]);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80044074);
 
