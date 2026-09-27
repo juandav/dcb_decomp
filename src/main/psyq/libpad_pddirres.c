@@ -72,7 +72,35 @@ void func_8006B584(PadPort *p) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B5EC);
+extern long D_800779A0;
+extern long D_800779A4;
+extern long D_800779B4;
+extern long D_800779B8[];
+extern volatile SioRegs *D_80077948;
+int func_8006C0CC(PadPort *p);
+void _dirFailAuto(PadPort *p, long r);
+
+void func_8006B5EC(long r) {
+    PadPort *p;
+    int done;
+
+    do {
+        p = &D_801DDCB0[D_800779A0];
+        if (r != -9) {
+            if (r == 0) {
+                *(D_800779B8 + D_800779A0) = 0;
+            } else {
+                _dirFailAuto(p, r);
+                func_8006B6E0(p);
+            }
+        }
+        D_800779A4 = 0;
+        D_80077948->ctrl = 0;
+        D_800779A0++;
+        done = D_800779B4 < D_800779A0 ? 1 : func_8006C0CC(&D_801DDCB0[D_800779A0]);
+        r = 0xFFFF;
+    } while (!done);
+}
 
 void func_8006B6E0(PadPort *port) {
     u_char cmd = port->cmd;
@@ -137,7 +165,7 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BB58);
 
 extern void (*D_80077964)(PadPort *p);
 
-void _dirFailAuto(PadPort *p) {
+void _dirFailAuto(PadPort *p, long r) {
     p->unk4C++;
     switch (p->unk46) {
     case 0:
