@@ -18,6 +18,7 @@
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 void tickCardMotion(s32 cardIndex, s32 player) {
     CardAnim *anim;

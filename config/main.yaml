@@ -56,6 +56,7 @@ segments:
     subsegments:
       # psylink places .rdata ahead of .text
       - [0x800, .rodata, ui/menu]
+      - [0x828, .rodata, ui/dialog]
       - [0x830, .rodata, system/pad]
       - [0x84C, .rodata, gfx/prim_util]
       - [0x860, .rodata, script/script]
@@ -80,7 +81,8 @@ segments:
       - [0x1BC0, .rodata, duel/card_zones]
       - [0x1BE0, .rodata, card/card_render]
       - [0x2158, .rodata, card/card_db]
-      - [0x2F70, .rodata, ui/shell]
+      - [0x2F70, .rodata, ui/hacking_shell]
+      - [0x3728, .rodata, system/game_exit]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
       - [0x4704, c, system/task]
@@ -91,8 +93,10 @@ segments:
       - [0x5AAC, c, system/render_loop]
       - [0x5DF4, c, system/boot]
       - [0x5FB0, c, system/cd_file]
-      - [0x703C, c, ui/window]
+      - [0x703C, c, system/frame_callback]
+      - [0x7148, c, ui/window]
       - [0x98F4, c, ui/menu]
+      - [0xA6A4, c, ui/dialog]
       - [0xAE00, c, system/pad]
       - [0xB280, c, system/heap]
       - [0xB888, c, system/angle]
@@ -114,7 +118,7 @@ segments:
       - [0x145F0, c, model/scene3d]
       - [0x1603C, c, libmath]
       - [0x17690, c, ui/text]
-      - [0x1ADDC, c, ui/str_util]
+      - [0x1ADB4, c, ui/str_util]
       - [0x1B5EC, c, system/sound]
       - [0x1BBEC, c, system/opening_movie]
       - [0x1BC98, c, system/sound_play]
@@ -135,7 +139,9 @@ segments:
       - [0x30864, c, duel/card_zones]
       - [0x31ED8, c, card/card_render]
       - [0x35FFC, c, card/card_db]
-      - [0x3A040, c, ui/shell]
+      - [0x3A040, c, card/partner_level]
+      - [0x3A214, c, ui/hacking_shell]
+      - [0x3AADC, c, system/game_exit]
       - [0x3AE10, c, psyq]
       # the game's .data, split by the module that defines it
       - [0x5E53C, .data, main]
@@ -154,7 +160,7 @@ segments:
       - [0x5EA80, .data, model/effect]
       - [0x5EA94, .data, card/card_render]
       - [0x5ED0C, .data, card/card_db]
-      - [0x5F704, .data, ui/shell]
+      - [0x5F704, .data, ui/hacking_shell]
       - [0x5F714, data, psyq]
       - { start: 0x68208, type: bss, vram: 0x80077A08, name: game }
       - { start: 0x68208, type: bss, vram: 0x801D83D8, name: psyq }

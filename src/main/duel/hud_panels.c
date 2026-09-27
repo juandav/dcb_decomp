@@ -19,6 +19,7 @@
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 void startPanelMove(Panel *panel, s16 targetX, s16 targetY, s32 frames) {
     if (frames == 0) {

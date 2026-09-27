@@ -20,6 +20,7 @@
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 void initDuelState(s32 isCpuDuel) {
     void *block;

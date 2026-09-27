@@ -1,0 +1,59 @@
+#include "common.h"
+#include "gte.h"
+#include "game.h"
+#include "dcb/partner_level.h"
+#include "dcb/card_db.h"
+#include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
+#include "dcb/main.h"
+#include "dcb/task.h"
+#include "dcb/memcard.h"
+#include "dcb/save_checksum.h"
+#include "dcb/player_rank.h"
+#include "dcb/menu.h"
+#include "dcb/dialog.h"
+#include "dcb/sound.h"
+#include "dcb/opening_movie.h"
+#include "dcb/sound_play.h"
+#include "dcb/stage.h"
+#include "dcb/vblank.h"
+#include "dcb/screen_copy.h"
+#include "dcb/render_loop.h"
+#include "dcb/boot.h"
+#include "dcb/text.h"
+#include "dcb/str_util.h"
+#include "dcb/frame_callback.h"
+#include "dcb/window.h"
+
+s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
+    s8 level;
+    s32 partnerIndex;
+    s32 i;
+
+    level = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289;
+    partnerIndex = getSlotPartnerIndex(player, slot);
+    if (partnerIndex >= 0) {
+        for (i = 0; i < 0x80; i++) {
+            if (abilityTable[i].unk4[partnerIndex] == level) {
+                if (getPartnerAbilityState(player, i) == 0) {
+                    return i;
+                }
+                return -1;
+            }
+        }
+    }
+    return -1;
+}
+
+s32 getExpForNextLevel(s32 level) {
+    level++;
+    return (level + 2) * level;
+}
+
+s32 func_8004994C(s32 player, s32 slot) {
+    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 % 5) != 0) {
+        return -1;
+    }
+    return rand() % 4;
+}

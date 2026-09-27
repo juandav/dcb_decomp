@@ -1,5 +1,5 @@
-#ifndef DCB_SHELL_H
-#define DCB_SHELL_H
+#ifndef DCB_PARTNER_LEVEL_H
+#define DCB_PARTNER_LEVEL_H
 
 #include "game.h"
 
@@ -29,15 +29,8 @@ extern u8 *HACKING_SCRIPTS[];
 /* the same text as in startCpuDuel, kept as its own copy */
 extern char PATH_SAISEG_BIN[];
 
-void runHackingSequence(s32 scriptIndex, s32 parentTask);
 s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot);
 s32 getExpForNextLevel(s32 level);
 s32 func_8004994C(s32 player, s32 slot);
-void drawHackErrorText(void *win);
-void drawHackPartnerMovedText(void *win);
-void drawHackTauntText(void *win);
-void drawHackingTerminal();
-void drawHackingWindows(void);
-void quitToTitleOrPlayEnding(s32 mode);
 
-#endif /* DCB_SHELL_H */
+#endif /* DCB_PARTNER_LEVEL_H */

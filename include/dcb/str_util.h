@@ -18,4 +18,8 @@ void formatWideSignedNumber(s16 *buf, s32 value, s32 width);
 s16 *formatWideOrdinal(s16 *buf, s32 rank);
 s8 *formatOrdinalUpper(s8 *buf, s32 rank);
 
+#include "dcb/text.h"
+
+s8 *copyString(s8 *dst, s8 *src);
+
 #endif /* DCB_STR_UTIL_H */

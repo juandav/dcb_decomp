@@ -6,6 +6,7 @@
 #include "dcb/angle.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 void initVramSprite(void *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode) {
     s32 u;

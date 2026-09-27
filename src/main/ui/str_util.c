@@ -3,6 +3,20 @@
 #include "game.h"
 #include "dcb/str_util.h"
 #include "dcb/text.h"
+#include "dcb/heap.h"
+#include "dcb/angle.h"
+#include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
+#include "dcb/main.h"
+#include "dcb/task.h"
+
+s8 *copyString(s8 *dst, s8 *src) {
+    if ((*dst = *src) == 0) {
+        return dst;
+    }
+    return copyString(dst + 1, src + 1);
+}
 
 s8 *formatNumberWithCommas(s8 *buf, s8 pad, s32 value, s32 width) {
     s8 *digit;

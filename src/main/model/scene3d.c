@@ -14,6 +14,7 @@
 #include "dcb/model.h"
 #include "dcb/stage.h"
 #include "dcb/tmd_sort.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 s32 D_8006DF80 = 0xFF;

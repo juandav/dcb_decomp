@@ -1,7 +1,8 @@
+#include "dcb/hacking_shell.h"
 #include "common.h"
 #include "gte.h"
 #include "game.h"
-#include "dcb/shell.h"
+#include "dcb/partner_level.h"
 #include "dcb/card_db.h"
 #include "dcb/loader.h"
 #include "dcb/vram_upload.h"
@@ -12,6 +13,7 @@
 #include "dcb/save_checksum.h"
 #include "dcb/player_rank.h"
 #include "dcb/menu.h"
+#include "dcb/dialog.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
@@ -21,39 +23,9 @@
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
-
-s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
-    s8 level;
-    s32 partnerIndex;
-    s32 i;
-
-    level = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289;
-    partnerIndex = getSlotPartnerIndex(player, slot);
-    if (partnerIndex >= 0) {
-        for (i = 0; i < 0x80; i++) {
-            if (abilityTable[i].unk4[partnerIndex] == level) {
-                if (getPartnerAbilityState(player, i) == 0) {
-                    return i;
-                }
-                return -1;
-            }
-        }
-    }
-    return -1;
-}
-
-s32 getExpForNextLevel(s32 level) {
-    level++;
-    return (level + 2) * level;
-}
-
-s32 func_8004994C(s32 player, s32 slot) {
-    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 % 5) != 0) {
-        return -1;
-    }
-    return rand() % 4;
-}
 
 /* the hacking screens */
 u8 *HACKING_SCRIPTS[4] = {
@@ -175,11 +147,11 @@ u8 *HACKING_SCRIPTS[4] = {
     "\002\377\002\300",
 };
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_SYSTEM_ERROR);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_SYSTEM_ERROR);
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_PARTNER_MOVED);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_PARTNER_MOVED);
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_TAUNT);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_TAUNT);
 
 void drawHackingTerminal(s16 *win) {
     s16 rect[4];
@@ -346,64 +318,3 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     removeFrameCallback((s32)drawHackingWindows);
     func_80014A48(parentTask);
 }
-
-void quitToTitleOrPlayEnding(s32 mode) {
-    u8 dialog[0xB8];
-    Rect16 vramRect = { 0, 0, 480, 512 };
-    s32 parentTask;
-    s32 done;
-
-    parentTask = getCurrentTaskId();
-    if (mode == 0) {
-        freeScrollingBackground();
-        func_80014C08(10);
-        ClearImage(&vramRect, 0, 0, 0);
-        DrawSync(0);
-        func_80014C08(10);
-        done = 0;
-        stopMusic();
-        func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 1, parentTask);
-        func_80014C08(0x7FFFFFFF);
-        resetDisplay(0x140, 0xF0, 0);
-        func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
-        func_80014C08(2);
-        do {
-            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, parentTask, 0, 0);
-            func_80014C08(0x7FFFFFFF);
-            playMenuSound(3);
-            initDialog(dialog,
-                          "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
-                          "to continue.)",
-                          1);
-            runDialog(dialog);
-            switch ((s8)dialog[0xA5]) {
-            case 1:
-                done = 1;
-                break;
-            case 0:
-            case 2:
-                done = 0;
-                break;
-            }
-        } while (!done);
-        func_80014C08(20);
-        func_80014A48(0);
-        func_80014A90();
-    } else {
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(10);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, PATH_SAISEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
-    }
-}
-
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", PATH_SAISEG_BIN);

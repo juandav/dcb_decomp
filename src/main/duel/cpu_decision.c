@@ -15,11 +15,15 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 #include "dcb/menu.h"
-#include "dcb/shell.h"
+#include "dcb/dialog.h"
+#include "dcb/partner_level.h"
+#include "dcb/hacking_shell.h"
+#include "dcb/game_exit.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 INCLUDE_ASM("asm/main/nonmatchings/duel/cpu_decision", runCpuDecisionTask);

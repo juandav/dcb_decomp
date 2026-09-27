@@ -18,6 +18,7 @@
 #include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 s32 D_8006E294 = 0;
 s32 D_8006E298 = 0x808080;

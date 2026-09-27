@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/cd_file.h"
 #include "dcb/text.h"
+#include "dcb/str_util.h"
 
 FileEntry ROOT_DIRECTORY_ENTRY = { 0 };
 
