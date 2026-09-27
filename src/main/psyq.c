@@ -2282,7 +2282,9 @@ void func_8006CA58(PadPort *port) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CADC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CD4C);
+int func_8006CD4C(u_char *p) {
+    return (((p[0xE3] + 1) >> 1) << 2) + (u_short)(((p[0xE9] * 5 + 3) & ~3) + 4) + *(u_short *)(p + 0xEC);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CD84);
 
