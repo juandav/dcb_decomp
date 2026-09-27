@@ -173,7 +173,7 @@ void runDuelStageTask(s32 stageId) {
     do {
         func_80014C08(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
-            activeCard = *(u8 **)(D_801D8348[i] + 0x114);
+            activeCard = *(u8 **)(DUEL_PLAYERS[i] + 0x114);
             if (activeCard != 0 && activeCard[0xE5] != (&DUEL_DIGIMON_MODELS)[i * 8]) {
                 syncPlayerDigimonModel(i, activeCard);
             }

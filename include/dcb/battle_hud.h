@@ -71,32 +71,32 @@ typedef struct {
 } CardAnim;
 
 extern s32 D_8006E298;
-extern u8 *D_8006E47C[];
-extern u8 *D_8006E4BC[];
+extern u8 *CROSS_EFFECT_SHORT_NAMES[];
+extern u8 *CROSS_EFFECT_NAMES[];
 extern u8 D_8006E4FC[];
 
-void func_8003917C(void);
-void func_80039354(s32 p, s32 v, s32 k);
-void func_800395A0(void);
-void func_80039730(s32 n, s32 z);
-void func_80039220(s32 p);
-void func_8003B210(s32 c, s32 p);
-void func_8003D9C0(Panel *, s16, s16, s32);
-s32 func_8003DA64();
-void func_8003DB64();
-void func_8003DBBC(s32 arg0);
-void func_8003DD9C(s32 arg0);
-void func_8003DF48(s32 arg0);
-void func_8003E11C(s32 arg0);
-void func_8003E298(s32 arg0);
-void func_8003E3C8(s32 arg0);
-void func_8003E844(s32 arg0);
-void func_8003E94C(void);
-void func_8003E9F4(s32 arg0);
-void func_8003EB50(void);
-void func_8003D4C4(void);
-void func_8003E4F0(void);
-void func_8003EB88(void);
-void func_8003EC4C();
+void waitForStatCountersToSettle(void);
+void showStatChangePopup(s32 player, s32 newValue, s32 stat);
+void renderStatPopups(void);
+void drawHudPanelContents(s32 panelIndex, s32 z);
+void showDpGainPopup(s32 player);
+void tickCardMotion(s32 cardIndex, s32 player);
+void startPanelMove(Panel *panel, s16 targetX, s16 targetY, s32 frames);
+s32 stepPanelMove();
+void holdPanelAtTarget();
+void tickDeckPanel(s32 player);
+void func_8003DD9C(s32 player);
+void tickStatusPanel(s32 player);
+void func_8003E11C(s32 player);
+void tickAttackPanel(s32 player);
+void tickCardInfoPanel(s32 player);
+void initDuelState(s32 isCpuDuel);
+void startDuelScene(void);
+void spawnDuelTasks(s32 isCpuDuel);
+void teardownDuelScene(void);
+void renderBoardCards(void);
+void tickBattleHud(void);
+void renderDuelFrame(void);
+void runDuel();
 
 #endif /* DCB_BATTLE_HUD_H */

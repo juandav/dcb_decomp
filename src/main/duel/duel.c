@@ -13,17 +13,17 @@
 #include "dcb/stage.h"
 #include "dcb/window.h"
 
-void func_80034260(void) {
-    char buf[0x88];
-    s32 mode;
+void runDuelTurnLoop(void) {
+    char message[0x88];
+    s32 devolveOutcome;
     s32 i;
     s32 j;
-    s32 id;
-    s8 c;
-    s8 *card;
-    s32 over;
-    Player *a;
-    Player *b;
+    s32 cardId;
+    s8 handSlot;
+    s8 *cardData;
+    s32 knockedOut;
+    Player *firstAttacker;
+    Player *secondAttacker;
 
     while (DUEL->state < 0) {
         func_80014C08(FRAME_INTERVAL);
@@ -50,14 +50,14 @@ void func_80034260(void) {
                 }
                 if (j) {
                     for (i = 0; i < 3; i++) {
-                        id = func_800402CC(0);
-                        if (id == -1) {
+                        cardId = takePartnerCardFromOnlineDeck(0);
+                        if (cardId == -1) {
                             break;
                         }
                         for (j = 0; j < 29; j++) {
                             PLAYER(0)->unk17D[j] = PLAYER(0)->unk17D[j + 1];
                         }
-                        PLAYER(0)->unk17D[29] = id;
+                        PLAYER(0)->unk17D[29] = cardId;
                     }
                     func_800149B8(0, -1, 0, 0x800, runHackingSequence, 2, func_800148B0(), 0, 0);
                     func_80014C08(0x7FFFFFFF);
@@ -106,13 +106,13 @@ void func_80034260(void) {
         case 3:
             DUEL->unk822 = 0;
             D_801D83D7 = 0;
-            if (func_80040764(ME) >= 0) {
+            if (getActiveDigimonCard(ME) >= 0) {
                 DUEL->unk818 = 4;
-            } else if (func_80040570(ME) != 0) {
-                if (func_80040220(ME) == 0) {
+            } else if (checkHandHasDigimonCard(ME) != 0) {
+                if (countOnlineDeckCards(ME) == 0) {
                     D_801D83D4 = 2;
-                    sprintf(buf, "There are no more Cards, so %s loses!", PLAYER(ME)->unk1CE);
-                    initDialog((u8 *)&D_801D8278, buf, 0);
+                    sprintf(message, "There are no more Cards, so %s loses!", PLAYER(ME)->unk1CE);
+                    initDialog((u8 *)&D_801D8278, message, 0);
                     runDuelMessageWindow();
                     DUEL->unk81E = ME ^ 1;
                     DUEL->unk818 = 0x26;
@@ -132,7 +132,7 @@ void func_80034260(void) {
             DUEL->unk822 = 0;
             DUEL_MSG_BAR.next = 0;
             DUEL_MSG_BAR.next2 = 0;
-            if (func_80040220(ME) == 0) {
+            if (countOnlineDeckCards(ME) == 0) {
                 DUEL->unk818 = 8;
             } else if (PLAYER(ME)->unk178_17 == 1) {
                 DUEL->unk827 = ME;
@@ -217,7 +217,7 @@ void func_80034260(void) {
             break;
         case 8:
             DUEL->unk822 = 0;
-            if (func_80040764(ME) >= 0) {
+            if (getActiveDigimonCard(ME) >= 0) {
                 if (PLAYER(ME)->unk178_17 == 1) {
                     DUEL->unk818 = 0xB;
                 } else {
@@ -245,7 +245,7 @@ void func_80034260(void) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
                             waitDuelFrames(0x3C);
                             func_801F6214(1, ME);
-                            func_80040A48(ME, i);
+                            armorDigivolvePartner(ME, i);
                         }
                     }
                     waitDuelFrames(0x78);
@@ -258,7 +258,7 @@ void func_80034260(void) {
             break;
         case 9:
             DUEL->unk822 = 1;
-            if (func_80040220(ME) != 0) {
+            if (countOnlineDeckCards(ME) != 0) {
                 D_801D83D7 = 5;
             } else {
                 D_801D83D7 = 3;
@@ -287,7 +287,7 @@ void func_80034260(void) {
                                 break;
                             case 1:
                                 func_801F6214(1, ME);
-                                func_80040A48(ME, i);
+                                armorDigivolvePartner(ME, i);
                                 PLAYER(ME)->unk110 |= 8;
                                 func_801FA4E4(ME);
                                 DUEL->unk818 = 0xB;
@@ -303,7 +303,7 @@ void func_80034260(void) {
                         DUEL->unk818++;
                     }
                 }
-            } else if ((PAD_STATES[ME]->unkA & 0x10) && func_80040220(ME) != 0) {
+            } else if ((PAD_STATES[ME]->unkA & 0x10) && countOnlineDeckCards(ME) != 0) {
                 playSoundEffect(0xA1);
                 func_801EC528(ME);
                 DUEL->unk818 = 4;
@@ -364,9 +364,9 @@ void func_80034260(void) {
             DUEL->unk80A = -2;
             DUEL->unk80E = -1;
             DUEL->unk80C = -1;
-            if (func_80040570(ME) != 0) {
+            if (checkHandHasDigimonCard(ME) != 0) {
                 DUEL->unk818 = 0xE;
-            } else if (func_80041214(ME) != 0) {
+            } else if (countEmptyDpSlots(ME) != 0) {
                 func_801EC4CC(ME);
                 DUEL->unk818++;
             } else {
@@ -411,7 +411,7 @@ void func_80034260(void) {
                     waitDuelFrames(0x1E);
                     DUEL->unk818 = 0x10;
                 }
-            } else if (func_800406BC(ME) != 0) {
+            } else if (checkHandHasDigivolveCard(ME) != 0) {
                 DUEL->unk80A = -1;
                 DUEL->unk818 = 0x13;
             } else {
@@ -459,7 +459,7 @@ void func_80034260(void) {
                 } else if (PAD_STATES[ME]->unkA & 0x10) {
                     playSoundEffect(0xA1);
                     if (DUEL->unk80E >= 0) {
-                        func_801ECA30(func_800411C4(ME), ME, DUEL->unk80E);
+                        func_801ECA30(peekDpSlotTop(ME), ME, DUEL->unk80E);
                         DUEL->unk80E = -1;
                     }
                     D_801D83EC[ME * 0xD8 + 0x55] = 1;
@@ -470,10 +470,10 @@ void func_80034260(void) {
         case 16:
             DUEL->unk822 = 0;
             D_801D83D4 = 9;
-            mode = 0;
+            devolveOutcome = 0;
             if (func_801EA374(ME) == 0) {
-                card = PLAYER(ME)->cards[func_80041340(ME) % 30].card;
-                switch (card[0x1A]) {
+                cardData = PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
+                switch (cardData[0x1A]) {
                 case 4:
                     initDialog((u8 *)&D_801D8278, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
                     if (PLAYER(ME)->unk178_17 != 1) {
@@ -484,17 +484,17 @@ void func_80034260(void) {
                     switch (D_801D831D) {
                     case 0:
                     case 2:
-                        mode = 2;
+                        devolveOutcome = 2;
                         func_801EC8E0(ME, DUEL->unk80A);
                         DUEL->unk80A = -2;
                         D_801D83EC[ME * 0xD8 + 0x55] = 1;
                         break;
                     case 1:
-                        mode = 3;
+                        devolveOutcome = 3;
                         func_801F6214(9, ME);
-                        func_801EC608(func_80040764(ME), ME);
+                        func_801EC608(getActiveDigimonCard(ME), ME);
                         PLAYER(ME)->unk178_15 = 0;
-                        func_8004080C(func_80040764(ME), ME);
+                        placeActiveDigimon(getActiveDigimonCard(ME), ME);
                         PLAYER(ME)->unk11C[0] *= 2;
                         waitDuelFrames(0x14);
                         break;
@@ -510,32 +510,32 @@ void func_80034260(void) {
                     switch (D_801D831D) {
                     case 0:
                     case 2:
-                        mode = 2;
+                        devolveOutcome = 2;
                         func_801EC8E0(ME, DUEL->unk80A);
                         DUEL->unk80A = -2;
                         D_801D83EC[ME * 0xD8 + 0x55] = 1;
                         break;
                     case 1:
-                        mode = 3;
+                        devolveOutcome = 3;
                         func_801F6214(8, ME);
-                        func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
+                        armorDevolvePartner(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].id));
                         break;
                     }
                     break;
                 default:
-                    mode = 1;
+                    devolveOutcome = 1;
                     break;
                 }
             }
-            if (mode == 0 || mode == 3) {
+            if (devolveOutcome == 0 || devolveOutcome == 3) {
                 DUEL->unk80C = DUEL->unk80A;
-                i = func_80041408(ME);
+                i = takePlayedCard(ME);
                 D_801D833C[i * 0x24 + 0x22] = 8;
-                func_800400B4(i, ME);
+                discardCardToOfflineDeck(i, ME);
                 D_801D83EC[ME * 0xD8 + 0x55] = 1;
                 func_801EC528(ME);
             }
-            switch (mode) {
+            switch (devolveOutcome) {
             case 0:
                 DUEL->unk818 = 0x13;
                 break;
@@ -600,8 +600,8 @@ void func_80034260(void) {
             }
             if (i == 0 && func_801E9F5C(CUR_CARD, ME) == 0) {
                 func_801EC528(ME);
-                card = PLAYER(ME)->cards[func_80041340(ME) % 30].card;
-                switch (card[0x1A]) {
+                cardData = PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
+                switch (cardData[0x1A]) {
                 case 0:
                     func_801F6214(3, ME);
                     PLAYER(ME)->unk178_15 = 0;
@@ -621,16 +621,16 @@ void func_80034260(void) {
                     break;
                 case 3:
                     func_801F6214(7, ME);
-                    func_801EC608(func_80040764(ME), ME);
+                    func_801EC608(getActiveDigimonCard(ME), ME);
                     PLAYER(ME)->unk178_15 = 0;
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                     break;
                 case 5:
                     func_801F6214(2, ME);
-                    func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
-                    while (func_80040764(ME) != -1) {
-                        func_801EC608(func_80040764(ME), ME);
+                    armorDevolvePartner(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].id));
+                    while (getActiveDigimonCard(ME) != -1) {
+                        func_801EC608(getActiveDigimonCard(ME), ME);
                         waitDuelFrames(0x14);
                     }
                     PLAYER(ME)->unk178_15 = 0;
@@ -638,8 +638,8 @@ void func_80034260(void) {
                     break;
                 case 6:
                     func_801F6214(6, ME);
-                    func_80040D88(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[func_80040764(ME) % 30].id));
-                    func_801EC608(func_80040764(ME), ME);
+                    armorDevolvePartner(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].id));
+                    func_801EC608(getActiveDigimonCard(ME), ME);
                     PLAYER(ME)->unk178_15 = 0;
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
@@ -650,9 +650,9 @@ void func_80034260(void) {
                 DUEL->unk818 = 0x17;
             }
             if (DUEL->unk818 != 0x12 && DUEL->unk818 != 0xE && DUEL->unk818 != 0x13) {
-                i = func_80041408(ME);
+                i = takePlayedCard(ME);
                 D_801D833C[i * 0x24 + 0x22] = 8;
-                func_800400B4(i, ME);
+                discardCardToOfflineDeck(i, ME);
                 D_801D83EC[ME * 0xD8 + 0x55] = 1;
                 waitDuelFrames(0x14);
                 PLAYER(ME)->unk110 |= 0x40000000;
@@ -674,7 +674,7 @@ void func_80034260(void) {
                     DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                 }
-            } else if (func_80040570(ME) != 0) {
+            } else if (checkHandHasDigimonCard(ME) != 0) {
                 DUEL->unk818 = 0x16;
             } else if (func_801EA374(ME) != 0) {
                 DUEL->unk818 = 0x16;
@@ -737,13 +737,13 @@ void func_80034260(void) {
         case 23:
             DUEL->unk822 = 0;
             PLAYER(ME)->unk178_30 = 1;
-            PLAYER(ME)->unk114 = PLAYER(ME)->cards[func_80040764(ME) % 30].card;
-            if (func_80040764(OPP) == -1) {
+            PLAYER(ME)->unk114 = PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].card;
+            if (getActiveDigimonCard(OPP) == -1) {
                 if (PLAYER(ME)->unk178_17 != 1) {
                     DUEL_MSG_BAR.unk3 = 2;
                     DUEL_MSG_BAR.next = 0xB;
-                    sprintf(buf, "Since %s has no Digimon,\nthere is no Battle Phase.", PLAYER(OPP)->unk1CE);
-                    initDialog((u8 *)&D_801D8278, buf, 0);
+                    sprintf(message, "Since %s has no Digimon,\nthere is no Battle Phase.", PLAYER(OPP)->unk1CE);
+                    initDialog((u8 *)&D_801D8278, message, 0);
                     runDuelMessageWindow();
                 }
                 DUEL->unk818 = 0x25;
@@ -842,7 +842,7 @@ void func_80034260(void) {
                 DUEL->unk818 = 0x1D;
             } else {
                 DUEL->unk80A = -1;
-                if (func_80040468(OPP) == 4 && func_80040220(OPP) == 0) {
+                if (countEmptyHandSlots(OPP) == 4 && countOnlineDeckCards(OPP) == 0) {
                     initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
                     runDialogForPad(&D_801D8278, PLAYER(OPP)->unk178_17 & 1);
                     DUEL->unk818 = 0x1D;
@@ -857,9 +857,9 @@ void func_80034260(void) {
             D_801D83D7 = 7;
             if (func_801EBACC(OPP, 4) == 0) {
                 i = PLAYER(OPP)->unk1B9[DUEL->unk81C];
-                c = DUEL->unk81C;
-                if (c == 4) {
-                    DUEL->unk80A = c;
+                handSlot = DUEL->unk81C;
+                if (handSlot == 4) {
+                    DUEL->unk80A = handSlot;
                     func_801ECAC4(OPP);
                 } else {
                     if (PLAYER(OPP)->cards[i % 30].state == 2) {
@@ -926,7 +926,7 @@ void func_80034260(void) {
                 DUEL->unk818 = 0x20;
             } else {
                 DUEL->unk80A = -1;
-                if (func_80040468(ME) == 4 && func_80040220(ME) == 0) {
+                if (countEmptyHandSlots(ME) == 4 && countOnlineDeckCards(ME) == 0) {
                     initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
                     runDialogForPad(&D_801D8278, PLAYER(ME)->unk178_17 & 1);
                     DUEL->unk818 = 0x20;
@@ -941,9 +941,9 @@ void func_80034260(void) {
             D_801D83D7 = 7;
             if (func_801EBACC(ME, 4) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
-                c = DUEL->unk81C;
-                if (c == 4) {
-                    DUEL->unk80A = c;
+                handSlot = DUEL->unk81C;
+                if (handSlot == 4) {
+                    DUEL->unk80A = handSlot;
                     func_801ECAC4(ME);
                 } else {
                     if (PLAYER(ME)->cards[i % 30].state == 2) {
@@ -1036,104 +1036,104 @@ void func_80034260(void) {
             break;
         case 35:
             DUEL->unk822 = 0;
-            over = 0;
+            knockedOut = 0;
             if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
-                a = DUEL->unk50;
-                b = DUEL->unk54;
-                j = a->unk178_17 & 1;
+                firstAttacker = DUEL->unk50;
+                secondAttacker = DUEL->unk54;
+                j = firstAttacker->unk178_17 & 1;
                 func_80014C08(0x14);
-                if (a->unk178_11 && !b->unk178_6) {
+                if (firstAttacker->unk178_11 && !secondAttacker->unk178_6) {
                     func_801F6268(0x1B, j);
-                    a->unk11C[0] = 10;
+                    firstAttacker->unk11C[0] = 10;
                 }
-                if (b->unk162 == 0) {
+                if (secondAttacker->unk162 == 0) {
                     func_801F6268(0x1C, j);
-                } else if (a->unk178_12) {
+                } else if (firstAttacker->unk178_12) {
                     func_801F6268(0x1A, j);
-                    i = a->unk11C[0] + a->unk164;
-                    func_80039354(j, i, 0);
+                    i = firstAttacker->unk11C[0] + firstAttacker->unk164;
+                    showStatChangePopup(j, i, 0);
                     if (i > 9990) {
                         i = 9990;
                     }
-                    a->unk11C[0] = i;
+                    firstAttacker->unk11C[0] = i;
                     if (i != 0 && i % 1110 == 0) {
                         func_801FB444(j, 0x1A);
                     }
-                } else if (!a->unk178_11) {
+                } else if (!firstAttacker->unk178_11) {
                     func_801F6268(0x18, j);
                 }
-                i = b->unk11C[0] - b->unk162;
-                if (b->unk162 != 0) {
-                    func_80039354(j ^ 1, i, 0);
-                    if (b->unk162 != 0 && b->unk162 % 1110 == 0) {
+                i = secondAttacker->unk11C[0] - secondAttacker->unk162;
+                if (secondAttacker->unk162 != 0) {
+                    showStatChangePopup(j ^ 1, i, 0);
+                    if (secondAttacker->unk162 != 0 && secondAttacker->unk162 % 1110 == 0) {
                         func_801FB444(j, 0x19);
                     }
                 }
-                if (i == 0 && a->unk17C == 2) {
+                if (i == 0 && firstAttacker->unk17C == 2) {
                     func_801FB444(j, 0x13);
                 }
                 if (i < 0) {
                     i = 0;
                 }
-                b->unk11C[0] = i;
-                if (i != 0 && i % 1110 == 0 && b->unk162 != 0) {
+                secondAttacker->unk11C[0] = i;
+                if (i != 0 && i % 1110 == 0 && secondAttacker->unk162 != 0) {
                     func_801FB444(j ^ 1, 0x1A);
                 }
-                func_8003917C();
+                waitForStatCountersToSettle();
                 if (func_801ECF0C(j ^ 1) != 0) {
-                    over = 1;
+                    knockedOut = 1;
                 }
                 func_80014C08(0x14);
-                if (b->unk15A != 0) {
-                    if (b->unk178_11 && a->unk162 != 0) {
+                if (secondAttacker->unk15A != 0) {
+                    if (secondAttacker->unk178_11 && firstAttacker->unk162 != 0) {
                         func_801F6268(0x1B, j ^ 1);
-                        b->unk11C[0] = 10;
+                        secondAttacker->unk11C[0] = 10;
                     }
-                    if (a->unk162 == 0) {
+                    if (firstAttacker->unk162 == 0) {
                         func_801F6268(0x1C, j ^ 1);
-                    } else if (b->unk178_6 || b->unk178_12) {
-                        if (b->unk178_6) {
+                    } else if (secondAttacker->unk178_6 || secondAttacker->unk178_12) {
+                        if (secondAttacker->unk178_6) {
                             func_801F6268(0x19, j ^ 1);
                         }
-                        if (b->unk178_12) {
+                        if (secondAttacker->unk178_12) {
                             func_801F6268(0x1A, j ^ 1);
-                            i = b->unk11C[0] + b->unk164;
-                            func_80039354(j ^ 1, i, 0);
+                            i = secondAttacker->unk11C[0] + secondAttacker->unk164;
+                            showStatChangePopup(j ^ 1, i, 0);
                             if (i > 9990) {
                                 i = 9990;
                             }
-                            b->unk11C[0] = i;
+                            secondAttacker->unk11C[0] = i;
                             if (i != 0 && i % 1110 == 0) {
                                 func_801FB444(j ^ 1, 0x1A);
                             }
                         }
-                    } else if (!b->unk178_11) {
+                    } else if (!secondAttacker->unk178_11) {
                         func_801F6268(0x18, j ^ 1);
                     }
-                    i = a->unk11C[0] - a->unk162;
-                    if (a->unk162 != 0) {
-                        func_80039354(j, i, 0);
-                        if (a->unk162 != 0 && a->unk162 % 1110 == 0) {
+                    i = firstAttacker->unk11C[0] - firstAttacker->unk162;
+                    if (firstAttacker->unk162 != 0) {
+                        showStatChangePopup(j, i, 0);
+                        if (firstAttacker->unk162 != 0 && firstAttacker->unk162 % 1110 == 0) {
                             func_801FB444(j ^ 1, 0x19);
                         }
                     }
-                    if (i == 0 && b->unk17C == 2) {
+                    if (i == 0 && secondAttacker->unk17C == 2) {
                         func_801FB444(j ^ 1, 0x13);
                     }
                     if (i < 0) {
                         i = 0;
                     }
-                    a->unk11C[0] = i;
-                    if (i != 0 && i % 1110 == 0 && a->unk162 != 0) {
+                    firstAttacker->unk11C[0] = i;
+                    if (i != 0 && i % 1110 == 0 && firstAttacker->unk162 != 0) {
                         func_801FB444(j, 0x1A);
                     }
-                    func_8003917C();
+                    waitForStatCountersToSettle();
                     if (func_801ECF0C(j) != 0) {
-                        over = 1;
+                        knockedOut = 1;
                     }
                 }
                 removeFrameCallback((s32)renderAttackChoiceIcons);
-                if (over) {
+                if (knockedOut) {
                     DUEL->unk818++;
                 } else {
                     DUEL->unk818 = 0x25;
@@ -1160,10 +1160,10 @@ void func_80034260(void) {
                 PLAYER(DUEL->unk81E ^ 1)->unk110 |= 0x80;
                 PLAYER(DUEL->unk81E)->unk110 |= 0x100;
             }
-            if (findArmorPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
+            if (findArmorPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[getActiveDigimonCard(DUEL->unk81E) % 30].id) >= 0) {
                 func_801FB444(DUEL->unk81E, 0xA);
                 PLAYER(DUEL->unk81E)->unk110 |= 0x4000;
-            } else if (findPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[func_80040764(DUEL->unk81E) % 30].id) >= 0) {
+            } else if (findPartnerSlot(DUEL->unk81E, PLAYER(DUEL->unk81E)->cards[getActiveDigimonCard(DUEL->unk81E) % 30].id) >= 0) {
                 func_801FB444(DUEL->unk81E, 0xA);
                 PLAYER(DUEL->unk81E)->unk110 |= 0x4000;
             }
@@ -1172,13 +1172,13 @@ void func_80034260(void) {
                     PLAYER(DUEL->unk81E)->unk110 |= 0x20000;
                     PLAYER(DUEL->unk81E ^ 1)->unk110 |= 0x40000;
                 }
-                sprintf(buf, "%d Wins, %d Losses-%s WINS!", PLAYER(DUEL->unk81E)->unk17C, PLAYER(DUEL->unk81E ^ 1)->unk17C, PLAYER(DUEL->unk81E)->unk1CE);
-                initDialog((u8 *)&D_801D8278, buf, 0);
+                sprintf(message, "%d Wins, %d Losses-%s WINS!", PLAYER(DUEL->unk81E)->unk17C, PLAYER(DUEL->unk81E ^ 1)->unk17C, PLAYER(DUEL->unk81E)->unk1CE);
+                initDialog((u8 *)&D_801D8278, message, 0);
                 runDuelMessageWindow();
                 DUEL->unk818 = 0x26;
-            } else if (func_80040764(DUEL->unk81E ^ 1) == -1 && func_80040570(DUEL->unk81E ^ 1) != 0 && func_80040220(DUEL->unk81E ^ 1) == 0) {
-                sprintf(buf, "Since %s has no more Digimon,\nthe winner is %s!", PLAYER(DUEL->unk81E ^ 1)->unk1CE, PLAYER(DUEL->unk81E)->unk1CE);
-                initDialog((u8 *)&D_801D8278, buf, 0);
+            } else if (getActiveDigimonCard(DUEL->unk81E ^ 1) == -1 && checkHandHasDigimonCard(DUEL->unk81E ^ 1) != 0 && countOnlineDeckCards(DUEL->unk81E ^ 1) == 0) {
+                sprintf(message, "Since %s has no more Digimon,\nthe winner is %s!", PLAYER(DUEL->unk81E ^ 1)->unk1CE, PLAYER(DUEL->unk81E)->unk1CE);
+                initDialog((u8 *)&D_801D8278, message, 0);
                 runDuelMessageWindow();
                 DUEL->unk818 = 0x26;
             }
@@ -1191,10 +1191,10 @@ void func_80034260(void) {
                 PLAYER(i)->unk11C[1] = PLAYER(i)->unk15C[0];
                 PLAYER(i)->unk11C[2] = PLAYER(i)->unk15C[1];
                 PLAYER(i)->unk11C[3] = PLAYER(i)->unk15C[2];
-                j = func_80041408(i);
+                j = takePlayedCard(i);
                 if (j != -1) {
                     D_801D833C[j * 0x24 + 0x22] = 8;
-                    func_800400B4(j, i);
+                    discardCardToOfflineDeck(j, i);
                 }
                 D_801D83EC[0x55] = 1;
                 D_801D83EC[0x12D] = 1;
@@ -1212,4 +1212,4 @@ void func_80034260(void) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/duel/duel", func_80038F68);
+INCLUDE_ASM("asm/main/nonmatchings/duel/duel", runCpuDecisionTask);

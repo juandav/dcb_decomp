@@ -6,42 +6,42 @@
 #include "dcb/heap.h"
 #include "dcb/main.h"
 
-void func_8003F9EC(s32 player) {
-    SavedDeck *decks;
-    SavedDeck *d;
+void loadPresetDeckForPlayer(s32 player) {
+    SavedDeck *presetDecks;
+    SavedDeck *deck;
     s32 i;
-    s32 k;
-    u16 id;
+    s32 partner;
+    u16 cardId;
 
-    decks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
+    presetDecks = (SavedDeck *)(((Unk8006E054 *)D_8006E054)->unk0 + 8);
     if (((Unk8006E054 *)D_8006E054)->unk1008[player] != -1) {
-        d = &decks[((Unk8006E054 *)D_8006E054)->unk1008[player]];
+        deck = &presetDecks[((Unk8006E054 *)D_8006E054)->unk1008[player]];
         backupPartners(player);
-        strcpy(D_801D8348[player] + 1, d->name);
+        strcpy(DUEL_PLAYERS[player] + 1, deck->name);
         for (i = 0; i < 30; i++) {
-            id = d->cards[i];
-            setCardSlotFromId(D_801D8348[player] + 0x14 + i * 8, id);
-            k = getPartnerIndex(id);
-            if (k >= 0) {
-                addPartner(player, k, 0);
-                if (d->unk6D != 0) {
-                    unlockPartnerArmor(player, k, d->unk6D - 1);
+            cardId = deck->cards[i];
+            setCardSlotFromId(DUEL_PLAYERS[player] + 0x14 + i * 8, cardId);
+            partner = getPartnerIndex(cardId);
+            if (partner >= 0) {
+                addPartner(player, partner, 0);
+                if (deck->unk6D != 0) {
+                    unlockPartnerArmor(player, partner, deck->unk6D - 1);
                 }
             }
         }
-        linkDeckCardData(player, (Unk110 *)D_801D8348[player]);
+        linkDeckCardData(player, (Unk110 *)DUEL_PLAYERS[player]);
     }
 }
 
-void func_8003FB3C(s32 arg) {
+void initDuelPlayers(s32 isCpuDuel) {
     s32 i;
     s32 j;
-    s32 k;
-    u16 id;
+    s32 partner;
+    u16 cardId;
 
     for (i = 0; i < 2; i++) {
-        D_801D8348[i] = allocTaskHeapBlock(0x1E4);
-        PLAYER(i)->unk178_17 = (1 - arg) * 2 + i;
+        DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4);
+        PLAYER(i)->unk178_17 = (1 - isCpuDuel) * 2 + i;
         PLAYER(i)->unk0[0] = 1;
         for (j = 0; j < 30; j++) {
             PLAYER(i)->cards[j].id = 0;
@@ -61,7 +61,7 @@ void func_8003FB3C(s32 arg) {
         }
         PLAYER(i)->unk1CD = -1;
         PLAYER(i)->unk17C = 0;
-        *(s32 *)(D_801D8348[i] + 0x114) = 0;
+        *(s32 *)(DUEL_PLAYERS[i] + 0x114) = 0;
         for (j = 0; j < 5; j++) {
             PLAYER(i)->unk11C[j] = 0;
             PLAYER(i)->unk126[j] = 0;
@@ -72,16 +72,16 @@ void func_8003FB3C(s32 arg) {
             PLAYER(i)->unk130[j].y = 0;
         }
     }
-    if (arg != 0) {
-        strcpy((char *)D_801D8348[0] + 0x1CE, (char *)PLAYER_PROFILES);
-        strcpy((char *)D_801D8348[1] + 0x1CE, (char *)D_8006E054 + 0x57);
+    if (isCpuDuel != 0) {
+        strcpy((char *)DUEL_PLAYERS[0] + 0x1CE, (char *)PLAYER_PROFILES);
+        strcpy((char *)DUEL_PLAYERS[1] + 0x1CE, (char *)D_8006E054 + 0x57);
         if (((Unk8006E054 *)D_8006E054)->unk4 == 0) {
             func_801EA708();
             for (i = 0; i < 2; i++) {
-                linkDeckCardData(i, D_801D8348[i]);
+                linkDeckCardData(i, DUEL_PLAYERS[i]);
             }
         } else {
-            func_8003F9EC(0);
+            loadPresetDeckForPlayer(0);
             for (i = 0; i < 3; i++) {
                 PLAYER_DATA(1).unk80[i].unk288 = 0;
             }
@@ -89,75 +89,75 @@ void func_8003FB3C(s32 arg) {
             PLAYER(1)->unk178_24 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[1];
             PLAYER(1)->unk178_26 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[2];
             PLAYER(1)->unk178_28 = ((Unk8006E054 *)D_8006E054)->unk8.unk64[3];
-            strcpy((char *)D_801D8348[1] + 1, ((Unk8006E054 *)D_8006E054)->unk8.name);
+            strcpy((char *)DUEL_PLAYERS[1] + 1, ((Unk8006E054 *)D_8006E054)->unk8.name);
             for (i = 0; i < 30; i++) {
-                id = ((Unk8006E054 *)D_8006E054)->unk8.cards[i];
-                setCardSlotFromId(D_801D8348[1] + 0x14 + i * 8, id);
-                k = getPartnerIndex(id);
-                if (k >= 0) {
-                    addPartner(1, k, 0);
+                cardId = ((Unk8006E054 *)D_8006E054)->unk8.cards[i];
+                setCardSlotFromId(DUEL_PLAYERS[1] + 0x14 + i * 8, cardId);
+                partner = getPartnerIndex(cardId);
+                if (partner >= 0) {
+                    addPartner(1, partner, 0);
                     if (((Unk8006E054 *)D_8006E054)->unk8.unk6D != 0) {
-                        unlockPartnerArmor(1, k, ((Unk8006E054 *)D_8006E054)->unk8.unk6D - 1);
+                        unlockPartnerArmor(1, partner, ((Unk8006E054 *)D_8006E054)->unk8.unk6D - 1);
                     }
                 }
             }
-            linkDeckCardData(1, D_801D8348[1]);
+            linkDeckCardData(1, DUEL_PLAYERS[1]);
         }
     } else {
         for (i = 0; i < 2; i++) {
-            strcpy((char *)D_801D8348[i] + 0x1CE, PLAYER_DATA(i).name);
+            strcpy((char *)DUEL_PLAYERS[i] + 0x1CE, PLAYER_DATA(i).name);
         }
     }
 }
 
-s32 func_80040064(s32 arg0) {
+s32 peekOfflineDeckTop(s32 player) {
     s32 i;
-    s8 *p;
-    s32 v;
+    s8 *pile;
+    s32 cardIndex;
 
     i = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x19B;
+    pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
     do {
-        v = p[i];
-        if (v != -1) {
+        cardIndex = pile[i];
+        if (cardIndex != -1) {
             goto end;
         }
         i++;
     } while (i < 30);
-    v = -1;
+    cardIndex = -1;
 end:
-    return v;
+    return cardIndex;
 }
 
-s32 func_800400B4(s32 arg0, s32 arg1) {
+s32 discardCardToOfflineDeck(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *pile;
+    s8 *entry;
 
     for (i = 29; i >= 0; i--) {
-        if ((((s8 *)D_801D8348[arg1]) + i)[0x19B] == arg0) {
+        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x19B] == cardIndex) {
             return -1;
         }
-        base = (s8 *)D_801D8348[arg1] + 0x19B;
-        p = base + i;
-        if (*p == -1) {
-            *p = arg0;
+        pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+        entry = pile + i;
+        if (*entry == -1) {
+            *entry = cardIndex;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040124(s32 arg0) {
+s32 countOfflineDeckCards(s32 player) {
     s32 i;
     s32 count;
-    s8 *p;
+    s8 *pile;
 
     i = 0;
     count = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x19B;
+    pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
     do {
-        if (p[i] != -1) {
+        if (pile[i] != -1) {
             count++;
         }
         i++;
@@ -165,52 +165,52 @@ s32 func_80040124(s32 arg0) {
     return count;
 }
 
-s32 func_8004017C(s32 arg0) {
+s32 takeOfflineDeckTopCard(s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *pile;
+    s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        base = (s8 *)D_801D8348[arg0] + 0x19B;
-        p = base + i;
-        if (*p != -1) {
-            s32 v = *p;
-            *p = -1;
-            return v;
+        pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+        entry = pile + i;
+        if (*entry != -1) {
+            s32 cardIndex = *entry;
+            *entry = -1;
+            return cardIndex;
         }
     }
     return -1;
 }
 
-s32 func_800401D0(s32 arg0) {
+s32 peekOnlineDeckTop(s32 player) {
     s32 i;
-    s8 *p;
-    s32 v;
+    s8 *pile;
+    s32 cardIndex;
 
     i = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x17D;
+    pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
     do {
-        v = p[i];
-        if (v != -1) {
+        cardIndex = pile[i];
+        if (cardIndex != -1) {
             goto end;
         }
         i++;
     } while (i < 30);
-    v = -1;
+    cardIndex = -1;
 end:
-    return v;
+    return cardIndex;
 }
 
-s32 func_80040220(s32 arg0) {
+s32 countOnlineDeckCards(s32 player) {
     s32 i;
     s32 count;
-    s8 *p;
+    s8 *pile;
 
     i = 0;
     count = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x17D;
+    pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
     do {
-        if (p[i] != -1) {
+        if (pile[i] != -1) {
             count++;
         }
         i++;
@@ -218,72 +218,72 @@ s32 func_80040220(s32 arg0) {
     return count;
 }
 
-s32 func_80040278(s32 arg0) {
+s32 drawOnlineDeckCard(s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *pile;
+    s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        base = (s8 *)D_801D8348[arg0] + 0x17D;
-        p = base + i;
-        if (*p != -1) {
-            s32 v = *p;
-            *p = -1;
-            return v;
+        pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+        entry = pile + i;
+        if (*entry != -1) {
+            s32 cardIndex = *entry;
+            *entry = -1;
+            return cardIndex;
         }
     }
     return -1;
 }
 
-s32 func_800402CC(s32 p) {
+s32 takePartnerCardFromOnlineDeck(s32 player) {
     s32 i;
     s32 j;
-    s32 c;
+    s32 cardIndex;
 
     for (i = 0; i < 30; i++) {
-        if (PLAYER(p)->unk17D[i] != -1) {
-            c = PLAYER(p)->unk17D[i];
-            if (findPartnerSlot(p, PLAYER(p)->cards[c % 30].id) >= 0) {
+        if (PLAYER(player)->unk17D[i] != -1) {
+            cardIndex = PLAYER(player)->unk17D[i];
+            if (findPartnerSlot(player, PLAYER(player)->cards[cardIndex % 30].id) >= 0) {
                 for (j = i; j > 0; j--) {
-                    PLAYER(p)->unk17D[j] = PLAYER(p)->unk17D[j - 1];
+                    PLAYER(player)->unk17D[j] = PLAYER(player)->unk17D[j - 1];
                 }
-                PLAYER(p)->unk17D[0] = -1;
-                return c;
+                PLAYER(player)->unk17D[0] = -1;
+                return cardIndex;
             }
         }
     }
     return -1;
 }
 
-s32 func_800403F8(s32 arg0, s32 arg1) {
+s32 returnCardToOnlineDeck(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *pile;
+    s8 *entry;
 
     for (i = 29; i >= 0; i--) {
-        if ((((s8 *)D_801D8348[arg1]) + i)[0x17D] == arg0) {
+        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x17D] == cardIndex) {
             return -1;
         }
-        base = (s8 *)D_801D8348[arg1] + 0x17D;
-        p = base + i;
-        if (*p == -1) {
-            *p = arg0;
+        pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+        entry = pile + i;
+        if (*entry == -1) {
+            *entry = cardIndex;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040468(s32 arg0) {
+s32 countEmptyHandSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *p;
+    s8 *hand;
 
     i = 0;
     count = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x1B9;
+    hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
     do {
-        if (p[i] == -1) {
+        if (hand[i] == -1) {
             count++;
         }
         i++;
@@ -291,115 +291,115 @@ s32 func_80040468(s32 arg0) {
     return count;
 }
 
-s32 func_800404C0(s32 arg0, s32 arg1) {
+s32 addCardToHand(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *hand;
+    s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        base = (s8 *)D_801D8348[arg1] + 0x1B9;
-        p = base + i;
-        if (*p == -1) {
-            *p = arg0;
+        hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
+        entry = hand + i;
+        if (*entry == -1) {
+            *entry = cardIndex;
             return i;
         }
     }
     return -1;
 }
 
-s32 func_80040518(s32 arg0, s32 arg1) {
+s32 removeCardFromHand(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *hand;
+    s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        base = (s8 *)D_801D8348[arg1] + 0x1B9;
-        p = base + i;
-        if (*p == arg0) {
-            *p = -1;
+        hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
+        entry = hand + i;
+        if (*entry == cardIndex) {
+            *entry = -1;
             return i;
         }
     }
     return -1;
 }
 
-s32 func_80040570(s32 player) {
-    Player *p;
+s32 checkHandHasDigimonCard(s32 player) {
+    Player *duelPlayer;
     s32 i;
-    s32 c;
+    s32 cardIndex;
 
     i = 0;
-    p = (Player *)D_801D8348[player];
+    duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        c = p->unk1B9[i];
-        if (c != -1 && p->cards[c % 30].state == 0) {
+        cardIndex = duelPlayer->unk1B9[i];
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 0) {
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040614(s32 player) {
-    Player *p;
+s32 checkHandHasOptionCard(s32 player) {
+    Player *duelPlayer;
     s32 i;
-    s32 c;
+    s32 cardIndex;
 
     i = 0;
-    p = (Player *)D_801D8348[player];
+    duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        c = p->unk1B9[i];
-        if (c != -1 && p->cards[c % 30].state == 1) {
+        cardIndex = duelPlayer->unk1B9[i];
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 1) {
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_800406BC(s32 player) {
-    Player *p;
+s32 checkHandHasDigivolveCard(s32 player) {
+    Player *duelPlayer;
     s32 i;
-    s32 c;
+    s32 cardIndex;
 
     i = 0;
-    p = (Player *)D_801D8348[player];
+    duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        c = p->unk1B9[i];
-        if (c != -1 && p->cards[c % 30].state == 2) {
+        cardIndex = duelPlayer->unk1B9[i];
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 2) {
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040764(s32 arg0) {
+s32 getActiveDigimonCard(s32 player) {
     s32 i;
-    s8 *p;
-    s32 v;
+    s8 *stack;
+    s32 cardIndex;
 
     i = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x1CA;
+    stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
     do {
-        v = p[i];
-        if (v != -1) {
+        cardIndex = stack[i];
+        if (cardIndex != -1) {
             goto end;
         }
         i++;
     } while (i < 3);
-    v = -1;
+    cardIndex = -1;
 end:
-    return v;
+    return cardIndex;
 }
 
-s32 func_800407B4(s32 arg0) {
+s32 countEmptyDigimonStackSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *p;
+    s8 *stack;
 
     i = 0;
     count = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x1CA;
+    stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
     do {
-        if (p[i] == -1) {
+        if (stack[i] == -1) {
             count++;
         }
         i++;
@@ -407,178 +407,178 @@ s32 func_800407B4(s32 arg0) {
     return count;
 }
 
-s32 func_8004080C(s32 idx, s32 p) {
+s32 placeActiveDigimon(s32 cardIndex, s32 player) {
     s8 *card;
-    s32 shift;
-    s32 k;
+    s32 statShift;
+    s32 stackSlot;
 
-    if (idx == -1) {
+    if (cardIndex == -1) {
         return -1;
     }
-    card = PLAYER(p)->cards[idx % 30].card;
-    shift = PLAYER(p)->unk178_15 - 1;
-    if (shift < 0) {
-        shift = 0;
+    card = PLAYER(player)->cards[cardIndex % 30].card;
+    statShift = PLAYER(player)->unk178_15 - 1;
+    if (statShift < 0) {
+        statShift = 0;
     }
-    for (k = 2; k >= 0; k--) {
-        if (PLAYER(p)->unk1CA[k] == -1 || PLAYER(p)->unk1CA[k] == idx) {
-            PLAYER(p)->unk1CA[k] = idx;
-            PLAYER(p)->unk178_19 = ((u8)card[0x1A] >> 4);
-            PLAYER(p)->unk11C[0] = (*(s16 *)(card + 0x1E) >> shift) / 10 * 10;
-            PLAYER(p)->unk15C[0] = (*(s16 *)(card + 0x20) >> shift) / 10 * 10;
-            PLAYER(p)->unk15C[1] = (*(s16 *)(card + 0x3C) >> shift) / 10 * 10;
-            PLAYER(p)->unk15C[2] = (*(s16 *)(card + 0x58) >> shift) / 10 * 10;
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
-            PLAYER(p)->unk178_30 = 0;
+    for (stackSlot = 2; stackSlot >= 0; stackSlot--) {
+        if (PLAYER(player)->unk1CA[stackSlot] == -1 || PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
+            PLAYER(player)->unk1CA[stackSlot] = cardIndex;
+            PLAYER(player)->unk178_19 = ((u8)card[0x1A] >> 4);
+            PLAYER(player)->unk11C[0] = (*(s16 *)(card + 0x1E) >> statShift) / 10 * 10;
+            PLAYER(player)->unk15C[0] = (*(s16 *)(card + 0x20) >> statShift) / 10 * 10;
+            PLAYER(player)->unk15C[1] = (*(s16 *)(card + 0x3C) >> statShift) / 10 * 10;
+            PLAYER(player)->unk15C[2] = (*(s16 *)(card + 0x58) >> statShift) / 10 * 10;
+            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
+            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
+            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+            PLAYER(player)->unk178_30 = 0;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040A48(s32 p, s32 deck) {
-    Rect16 r;
+s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
+    Rect16 artRect;
     Rect16 unused;
-    s8 *card;
-    s32 c;
-    s32 k;
+    s8 *armorCard;
+    s32 cardIndex;
+    s32 stackSlot;
 
-    if (deck == -1) {
+    if (partnerSlot == -1) {
         return -1;
     }
-    c = func_80040764(p);
-    setCardSlotFromId(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk292[0]);
-    card = (s8 *)&PLAYER_DATA(p).unk80[deck] + 0x13C;
-    PLAYER(p)->cards[c % 30].card = card;
-    r.x = ((p << 8) + (deck + 3) * 40 >> 1) + 0x2C0;
-    r.y = 0xC8;
-    r.w = 0x14;
-    r.h = 0x28;
-    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
-    for (k = 0; k < 3; k++) {
-        if (PLAYER(p)->unk1CA[k] == c) {
-            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
-            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
-            PLAYER(p)->unk15C[0] = *(s16 *)(card + 0x20);
-            PLAYER(p)->unk15C[1] = *(s16 *)(card + 0x3C);
-            PLAYER(p)->unk15C[2] = *(s16 *)(card + 0x58);
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
-            PLAYER(p)->unk178_30 = 0;
-            PLAYER(p)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10);
-            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[deck + 1];
+    cardIndex = getActiveDigimonCard(player);
+    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).unk80[partnerSlot].unk292[0]);
+    armorCard = (s8 *)&PLAYER_DATA(player).unk80[partnerSlot] + 0x13C;
+    PLAYER(player)->cards[cardIndex % 30].card = armorCard;
+    artRect.x = ((player << 8) + (partnerSlot + 3) * 40 >> 1) + 0x2C0;
+    artRect.y = 0xC8;
+    artRect.w = 0x14;
+    artRect.h = 0x28;
+    MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
+    for (stackSlot = 0; stackSlot < 3; stackSlot++) {
+        if (PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
+            PLAYER(player)->unk178_19 = (u8)armorCard[0x1A] >> 4;
+            PLAYER(player)->unk11C[0] = *(s16 *)(armorCard + 0x1E);
+            PLAYER(player)->unk15C[0] = *(s16 *)(armorCard + 0x20);
+            PLAYER(player)->unk15C[1] = *(s16 *)(armorCard + 0x3C);
+            PLAYER(player)->unk15C[2] = *(s16 *)(armorCard + 0x58);
+            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
+            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
+            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+            PLAYER(player)->unk178_30 = 0;
+            PLAYER(player)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10);
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[partnerSlot + 1];
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80040D88(s32 p, s32 deck) {
-    Rect16 r;
+s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
+    Rect16 artRect;
     Rect16 unused;
-    s8 *card;
-    s32 c;
-    s32 k;
+    s8 *baseCard;
+    s32 cardIndex;
+    s32 stackSlot;
 
-    if (deck == -1) {
+    if (partnerSlot == -1) {
         return -1;
     }
-    c = func_80040764(p);
-    setCardSlotFromId(&PLAYER(p)->cards[c % 30], PLAYER_DATA(p).unk80[deck].unk288);
-    card = (s8 *)&PLAYER_DATA(p).unk80[deck];
-    PLAYER(p)->cards[c % 30].card = card;
-    r.x = ((p << 8) + deck * 40 >> 1) + 0x2C0;
-    r.y = 0xC8;
-    r.w = 0x14;
-    r.h = 0x28;
-    MoveImage2(&r, ((p << 8) + c % 30 % 6 * 40 >> 1) + 0x2C0, c % 30 / 6 * 40);
-    for (k = 0; k < 3; k++) {
-        if (PLAYER(p)->unk1CA[k] == c) {
-            PLAYER(p)->unk178_19 = (u8)card[0x1A] >> 4;
-            PLAYER(p)->unk11C[0] = *(s16 *)(card + 0x1E);
-            PLAYER(p)->unk15C[0] = *(s16 *)(card + 0x20);
-            PLAYER(p)->unk15C[1] = *(s16 *)(card + 0x3C);
-            PLAYER(p)->unk15C[2] = *(s16 *)(card + 0x58);
-            PLAYER(p)->unk11C[1] = PLAYER(p)->unk15C[0];
-            PLAYER(p)->unk11C[2] = PLAYER(p)->unk15C[1];
-            PLAYER(p)->unk11C[3] = PLAYER(p)->unk15C[2];
-            PLAYER(p)->unk178_30 = 0;
-            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + c * 60 + 0x10) = PLAYER(p)->unk170[0];
+    cardIndex = getActiveDigimonCard(player);
+    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).unk80[partnerSlot].unk288);
+    baseCard = (s8 *)&PLAYER_DATA(player).unk80[partnerSlot];
+    PLAYER(player)->cards[cardIndex % 30].card = baseCard;
+    artRect.x = ((player << 8) + partnerSlot * 40 >> 1) + 0x2C0;
+    artRect.y = 0xC8;
+    artRect.w = 0x14;
+    artRect.h = 0x28;
+    MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
+    for (stackSlot = 0; stackSlot < 3; stackSlot++) {
+        if (PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
+            PLAYER(player)->unk178_19 = (u8)baseCard[0x1A] >> 4;
+            PLAYER(player)->unk11C[0] = *(s16 *)(baseCard + 0x1E);
+            PLAYER(player)->unk15C[0] = *(s16 *)(baseCard + 0x20);
+            PLAYER(player)->unk15C[1] = *(s16 *)(baseCard + 0x3C);
+            PLAYER(player)->unk15C[2] = *(s16 *)(baseCard + 0x58);
+            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
+            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
+            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+            PLAYER(player)->unk178_30 = 0;
+            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[0];
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_800410B4(s32 arg0, s32 arg1) {
+s32 removeCardFromDigimonStack(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *stack;
+    s8 *entry;
 
     for (i = 0; i < 3; i++) {
-        base = (s8 *)D_801D8348[arg1] + 0x1CA;
-        p = base + i;
-        if (*p == arg0) {
-            *p = -1;
+        stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
+        entry = stack + i;
+        if (*entry == cardIndex) {
+            *entry = -1;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_8004110C(s32 player) {
-    Player *p;
+s32 sumDigivolvePoints(s32 player) {
+    Player *duelPlayer;
     s32 i;
-    s32 sum;
-    s32 c;
+    s32 points;
+    s32 cardIndex;
 
     i = 0;
-    sum = 0;
-    p = (Player *)D_801D8348[player];
+    points = 0;
+    duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 8; i++) {
-        c = p->unk1C2[i];
-        if (c != -1) {
-            sum += p->cards[c % 30].card[0x1C];
+        cardIndex = duelPlayer->unk1C2[i];
+        if (cardIndex != -1) {
+            points += duelPlayer->cards[cardIndex % 30].card[0x1C];
         }
     }
-    if (sum > 90) {
-        sum = 90;
+    if (points > 90) {
+        points = 90;
     }
-    return sum;
+    return points;
 }
 
-s32 func_800411C4(s32 arg0) {
+s32 peekDpSlotTop(s32 player) {
     s32 i;
-    s8 *p;
-    s32 v;
+    s8 *dpSlots;
+    s32 cardIndex;
 
     i = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x1C2;
+    dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
     do {
-        v = p[i];
-        if (v != -1) {
+        cardIndex = dpSlots[i];
+        if (cardIndex != -1) {
             goto end;
         }
         i++;
     } while (i < 8);
-    v = -1;
+    cardIndex = -1;
 end:
-    return v;
+    return cardIndex;
 }
 
-s32 func_80041214(s32 arg0) {
+s32 countEmptyDpSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *p;
+    s8 *dpSlots;
 
     i = 0;
     count = 0;
-    p = (s8 *)D_801D8348[arg0] + 0x1C2;
+    dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
     do {
-        if (p[i] == -1) {
+        if (dpSlots[i] == -1) {
             count++;
         }
         i++;
@@ -586,107 +586,107 @@ s32 func_80041214(s32 arg0) {
     return count;
 }
 
-s32 func_8004126C(s32 arg0, s32 arg1) {
+s32 addCardToDpSlots(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *dpSlots;
+    s8 *entry;
 
     for (i = 7; i >= 0; i--) {
-        if ((((s8 *)D_801D8348[arg1]) + i)[0x1C2] == arg0) {
+        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x1C2] == cardIndex) {
             return -1;
         }
-        base = (s8 *)D_801D8348[arg1] + 0x1C2;
-        p = base + i;
-        if (*p == -1) {
-            *p = arg0;
+        dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+        entry = dpSlots + i;
+        if (*entry == -1) {
+            *entry = cardIndex;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_800412DC(s32 arg0, s32 arg1) {
+s32 removeCardFromDpSlots(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *base;
-    s8 *p;
+    s8 *dpSlots;
+    s8 *entry;
 
     for (i = 0; i < 8; i++) {
-        base = (s8 *)D_801D8348[arg1] + 0x1C2;
-        p = base + i;
-        if (*p != -1 && *p == arg0) {
-            *p = -1;
+        dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+        entry = dpSlots + i;
+        if (*entry != -1 && *entry == cardIndex) {
+            *entry = -1;
             return 0;
         }
     }
     return -1;
 }
 
-s32 func_80041340(s32 arg0) {
-    return ((s8 *)D_801D8348[arg0])[0x1CD];
+s32 getPlayedCard(s32 player) {
+    return ((s8 *)DUEL_PLAYERS[player])[0x1CD];
 }
 
-s32 func_80041364(s32 arg0) {
-    return ((s8 *)D_801D8348[arg0])[0x1CD] == -1;
+s32 isPlayedCardSlotEmpty(s32 player) {
+    return ((s8 *)DUEL_PLAYERS[player])[0x1CD] == -1;
 }
 
-s32 func_80041390(s32 id, s32 player) {
-    if ((s8)D_801D8348[player][0x1CD] == id) {
+s32 setPlayedCard(s32 cardIndex, s32 player) {
+    if ((s8)DUEL_PLAYERS[player][0x1CD] == cardIndex) {
         return -1;
     }
-    if ((s8)D_801D8348[player][0x1CD] == -1) {
-        D_801D8348[player][0x1CD] = id;
+    if ((s8)DUEL_PLAYERS[player][0x1CD] == -1) {
+        DUEL_PLAYERS[player][0x1CD] = cardIndex;
         return 0;
     }
     return -1;
 }
 
-s32 func_80041408(s32 arg0) {
-    s8 *p = (s8 *)D_801D8348[arg0];
-    s32 v = p[0x1CD];
+s32 takePlayedCard(s32 player) {
+    s8 *duelPlayer = (s8 *)DUEL_PLAYERS[player];
+    s32 cardIndex = duelPlayer[0x1CD];
 
-    p[0x1CD] = -1;
-    return v;
+    duelPlayer[0x1CD] = -1;
+    return cardIndex;
 }
 
-void func_80041430(s32 player) {
-    s32 n;
-    s32 k;
+void shuffleOnlineDeck(s32 player) {
+    s32 cardCount;
+    s32 pass;
     s32 i;
-    s32 j;
-    s8 t;
+    s32 swapIndex;
+    s8 swap;
 
-    n = func_80040220(player);
-    if (n >= 2) {
-        for (k = 0; k < ((Player *)D_801D8348[player])->unk11A; k++) {
-            for (i = 30 - n; i < 30; i++) {
-                j = rand() % n + (30 - n);
-                t = ((Player *)D_801D8348[player])->unk17D[i];
-                ((Player *)D_801D8348[player])->unk17D[i] = ((Player *)D_801D8348[player])->unk17D[j];
-                ((Player *)D_801D8348[player])->unk17D[j] = t;
+    cardCount = countOnlineDeckCards(player);
+    if (cardCount >= 2) {
+        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->unk11A; pass++) {
+            for (i = 30 - cardCount; i < 30; i++) {
+                swapIndex = rand() % cardCount + (30 - cardCount);
+                swap = ((Player *)DUEL_PLAYERS[player])->unk17D[i];
+                ((Player *)DUEL_PLAYERS[player])->unk17D[i] = ((Player *)DUEL_PLAYERS[player])->unk17D[swapIndex];
+                ((Player *)DUEL_PLAYERS[player])->unk17D[swapIndex] = swap;
             }
         }
-        ((Player *)D_801D8348[player])->unk11A = 0;
+        ((Player *)DUEL_PLAYERS[player])->unk11A = 0;
     }
 }
 
-void func_80041584(s32 player) {
-    s32 n;
-    s32 k;
+void shuffleOfflineDeck(s32 player) {
+    s32 cardCount;
+    s32 pass;
     s32 i;
-    s32 j;
-    s8 t;
+    s32 swapIndex;
+    s8 swap;
 
-    n = func_80040124(player);
-    if (n >= 2) {
-        for (k = 0; k < ((Player *)D_801D8348[player])->unk11A; k++) {
-            for (i = 30 - n; i < 30; i++) {
-                j = rand() % n + (30 - n);
-                t = ((Player *)D_801D8348[player])->unk19B[i];
-                ((Player *)D_801D8348[player])->unk19B[i] = ((Player *)D_801D8348[player])->unk19B[j];
-                ((Player *)D_801D8348[player])->unk19B[j] = t;
+    cardCount = countOfflineDeckCards(player);
+    if (cardCount >= 2) {
+        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->unk11A; pass++) {
+            for (i = 30 - cardCount; i < 30; i++) {
+                swapIndex = rand() % cardCount + (30 - cardCount);
+                swap = ((Player *)DUEL_PLAYERS[player])->unk19B[i];
+                ((Player *)DUEL_PLAYERS[player])->unk19B[i] = ((Player *)DUEL_PLAYERS[player])->unk19B[swapIndex];
+                ((Player *)DUEL_PLAYERS[player])->unk19B[swapIndex] = swap;
             }
         }
-        ((Player *)D_801D8348[player])->unk11A = 0;
+        ((Player *)DUEL_PLAYERS[player])->unk11A = 0;
     }
 }
 

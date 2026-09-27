@@ -28,7 +28,7 @@ void startCpuDuel(s32 deckIndex) {
     decks = (SavedDeck *)(deckFile + 8);
     ((Unk8006E054 *)D_8006E054)->unk4 = deckIndex;
     ((Unk8006E054 *)D_8006E054)->unk8 = decks[deckIndex];
-    func_800149B8(0, -1, 0, 0x800, func_8003EC4C, 1, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x800, runDuel, 1, func_800148B0(), 0, 0);
     result = func_80014C08(0x7FFFFFFF);
     if (*((s8 *)D_801D8340 + 0x81F) == 0) {
         if (result != 0) {
@@ -58,7 +58,7 @@ void startVersusDuel(void) {
     func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, func_800148B0());
     ((Unk8006E054 *)D_8006E054)->unk0 = (u8 *)func_80014C08(0x7FFFFFFF);
     ((Unk8006E054 *)D_8006E054)->unk1010[0x12] = 0;
-    func_800149B8(0, -1, 0, 0x800, func_8003EC4C, 0, func_800148B0(), 0, 0);
+    func_800149B8(0, -1, 0, 0x800, runDuel, 0, func_800148B0(), 0, 0);
     if (func_80014C08(0x7FFFFFFF) != 0) {
         if (++PLAYER_DATA(0).unk1E >= 1000) {
             PLAYER_DATA(0).unk1E = 999;
@@ -640,8 +640,8 @@ void renderStatusMessage(s32 brightness) {
                     player = *src++ - '0';
                     player ^= DUEL_MSG_BAR.player;
                     *dst = 0;
-                    strcpy((char *)dst, (char *)D_801D8348[player] + 0x1CE);
-                    dst += strlen(D_801D8348[player] + 0x1CE);
+                    strcpy((char *)dst, (char *)DUEL_PLAYERS[player] + 0x1CE);
+                    dst += strlen(DUEL_PLAYERS[player] + 0x1CE);
                     continue;
                 }
             } else {
@@ -1038,7 +1038,7 @@ u8 REWARD_CARD_RANGES[16][18] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1D, 0xA, 6 },
 };
 /* the cross effects, as shown on a card */
-u8 * D_8006E47C[16] = {
+u8 * CROSS_EFFECT_SHORT_NAMES[16] = {
     "none",
     "1stAttack",
     "\001\010 to 0",
@@ -1059,7 +1059,7 @@ u8 * D_8006E47C[16] = {
     "\001\005 Foe X3",
 };
 /* the cross effects, as shown in the battle panel */
-u8 * D_8006E4BC[16] = {
+u8 * CROSS_EFFECT_NAMES[16] = {
     "none",
     "1stAttack",
     "*b0 to 0",
