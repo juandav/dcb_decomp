@@ -1278,7 +1278,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065C54);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065CEC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065D84);
+u_long func_80065D84(short x, short y) {
+    return 0xE5000000 | ((y & 0x7FF) << 11) | (x & 0x7FF);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065DA0);
 
