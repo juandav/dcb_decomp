@@ -1323,7 +1323,51 @@ void func_80014D64(void) {
     D_800793A8.mode = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014EF0);
+extern Screen D_800793A8;
+extern Unk800793A0 *D_800793A0;
+extern u8 D_800794E7;
+extern u8 D_800794F4;
+void func_801EAD04(void);
+u32 GetTPage(s32, s32, s32, s32);
+
+void func_80014EF0(void) {
+    s32 i;
+    POLY_FT4 *p;
+    s32 unused[4];
+
+    if (D_800794E7 == 0) {
+        return;
+    }
+    if (D_800794E7 != 1) {
+        func_801EAD04();
+    }
+    for (i = 1; i >= 0; i--) {
+        if (D_800793A8.mode == 1) {
+            D_800793A8.sprt[D_800794F4][i].tpage = GetTPage(2, 0, i * 0x100, 0x100 - D_800794F4 * 0x100) | 0xE1000000;
+            (D_800793A8.sprt[D_800794F4] + i)->x0 = D_800793A8.x + (i << 8);
+            (D_800793A8.sprt[D_800794F4] + i)->y0 = D_800793A8.y;
+            (D_800793A8.sprt[D_800794F4] + i)->r0 = D_800793A8.r;
+            (D_800793A8.sprt[D_800794F4] + i)->g0 = D_800793A8.g;
+            (D_800793A8.sprt[D_800794F4] + i)->b0 = D_800793A8.b;
+            addPrim(&D_800793A0->ot[0], &D_800793A8.sprt[D_800794F4][i]);
+        } else {
+            p = &D_800793A8.poly[D_800794F4][i];
+            p->tpage = getTPage(2, D_800793A8.abr & 3, i * 160, 0x100 - D_800794F4 * 0x100);
+            p->x0 = D_800793A8.px[i][0];
+            p->y0 = D_800793A8.py[i][0];
+            p->x1 = D_800793A8.px[i][1];
+            p->y1 = D_800793A8.py[i][1];
+            p->x2 = D_800793A8.px[i][2];
+            p->y2 = D_800793A8.py[i][2];
+            p->x3 = D_800793A8.px[i][3];
+            p->y3 = D_800793A8.py[i][3];
+            p->r0 = D_800793A8.r;
+            p->g0 = D_800793A8.g;
+            p->b0 = D_800793A8.b;
+            addPrim(&D_800793A0->ot[0], p);
+        }
+    }
+}
 
 void func_80014D64(void);
 
