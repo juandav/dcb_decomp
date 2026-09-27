@@ -1564,7 +1564,11 @@ u_short func_80067644(int x, int y) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", AddPrim);
+void AddPrim(void *ot, void *p) {
+    addPrim(ot, p);
+}
+
+OBJECT_END(1);
 
 void SetSemiTrans(void *p, int abe) {
     setSemiTrans(p, abe);
