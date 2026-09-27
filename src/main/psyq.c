@@ -1727,7 +1727,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B6F0);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B7AC);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BA28);
+PadPort *func_8006BA28(int port) {
+    PadPort *p = D_801DDCB0;
+
+    if (port & 0xF0) {
+        p = &D_801DDCB0[1];
+    }
+    return p;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006BA48);
 
