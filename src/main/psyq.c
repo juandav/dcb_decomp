@@ -1560,7 +1560,13 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetFlatLight);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006295C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800629C0);
+extern MATRIX D_801DBE60;
+
+void func_800629C0(MATRIX *m) {
+    *m = D_801DBE60;
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetColorMatrix);
 
