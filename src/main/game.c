@@ -2306,7 +2306,69 @@ void func_80018694(Unk80016F38 *w, s32 z) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80018B8C);
+extern Rect16 D_8006DEA8[];
+extern Rect16 D_8006DE88[];
+void func_8001EC3C(u8 *, u8, u8, u8, u8);
+void func_8001EA64(void *, s16, s16, s16, s16);
+
+void func_80018B8C(Unk80016F38 *w, s32 z) {
+    u16 clut;
+    s32 x;
+    s32 y;
+    s32 len;
+    s32 pos;
+    s32 knob;
+    s32 i;
+    s32 end;
+    s32 off;
+    s32 left;
+
+    clut = getClut(D_800897F2 + (w->unk38 % 2) * 16, D_800897F4 + w->unk38 / 2);
+    if (!(w->unk3F & 4) || w->rect.w >= w->view.w) {
+        return;
+    }
+    x = w->unk0 + w->view.x;
+    y = w->unk2 + w->view.y + w->rect.h - 8;
+    len = w->rect.w - 0x10;
+    if (w->unk3F & 2) {
+        len -= 8;
+    }
+    pos = w->view.x * len / w->view.w;
+    knob = w->rect.w * len - 1;
+    knob = (knob + w->view.w) / w->view.w;
+    if (pos + knob < 0) {
+        pos = 0;
+    }
+    if (pos + knob > len) {
+        pos = len - knob;
+    }
+    WP->linec[0].x0 = x;
+    WP->linec[0].y0 = y;
+    end = len + 8;
+    WP->linec[1].x0 = x + end;
+    WP->linec[1].y0 = y;
+    off = pos + 8;
+    left = x + off;
+    WP->linec[2].x0 = left;
+    WP->linec[2].y0 = y;
+    WP->linec[3].x0 = left + knob - 2;
+    WP->linec[3].y0 = y;
+    func_8001EA64(&WP->ft4c[0], left + 2, y, knob - 4, 8);
+    func_8001EA64(&WP->ft4c[1], x + 8, y, len, 8);
+    for (i = 0; i < 4; i++) {
+        setUV0(&WP->linec[i], D_8006DEA8[i + w->unk43 * 4].x, D_8006DEA8[i + w->unk43 * 4].y);
+        setWH(&WP->linec[i], D_8006DEA8[i + w->unk43 * 4].w, D_8006DEA8[i + w->unk43 * 4].h);
+        setRGB0(&WP->linec[i], w->unk40, w->unk40, w->unk40);
+        WP->linec[i].clut = clut;
+        addPrim(&D_800793A0->ot[z], &WP->linec[i]);
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001EC3C((u8 *)&WP->ft4c[i], D_8006DE88[i + w->unk43 * 2].x, D_8006DE88[i + w->unk43 * 2].y, D_8006DE88[i + w->unk43 * 2].w, D_8006DE88[i + w->unk43 * 2].h);
+        setRGB0(&WP->ft4c[i], w->unk40, w->unk40, w->unk40);
+        WP->ft4c[i].clut = clut;
+        addPrim(&D_800793A0->ot[z], &WP->ft4c[i]);
+    }
+}
 
 extern char D_80010008[];
 extern int printf(const char *, ...);
