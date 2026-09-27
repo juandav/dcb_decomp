@@ -1548,7 +1548,67 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010000);
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010008);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80019EA4);
+extern s32 D_801D6B18;
+extern s32 D_801D6B1C;
+s32 func_800293FC(u8 *);
+s32 strlen(u8 *);
+void func_80016C08(void *, void *, s32, s16 *, s32, s32, s32, s32);
+
+void func_80019EA4(u8 *w, u8 *text, u32 flags) {
+    Rect16 r;
+    s32 m;
+    s32 wd;
+    s32 x;
+    s32 c;
+
+    w[0xA4] = flags & 0xF;
+    w[0xB6] = flags & 0x80;
+    *(u8 **)(w + 0x94) = text;
+    func_800293FC(text);
+    w[0xA7] = (D_801D6B18 + 1) / 2;
+    *(s16 *)(w + 0xA8) = (D_801D6B18 + 1) / 2 * 2 + 4;
+    *(s16 *)(w + 0xAA) = (D_801D6B1C + 1) / 2 * 2 + 4;
+    if (w[0xA4] != 0) {
+        if (text == 0) {
+            *(s16 *)(w + 0xAA) = 0x10;
+        } else {
+            *(s16 *)(w + 0xAA) += 0x10;
+        }
+    }
+    if (w[0xA4] != 2) {
+        *(char **)(w + 0x98) = "Yes";
+        *(char **)(w + 0x9C) = "No";
+    }
+    *(s16 *)(w + 0xAE) = strlen(*(u8 **)(w + 0x98)) * 6;
+    *(s16 *)(w + 0xB2) = strlen(*(u8 **)(w + 0x9C)) * 6;
+    m = *(s16 *)(w + 0xAE);
+    if (m < *(s16 *)(w + 0xB2)) {
+        m = *(s16 *)(w + 0xB2);
+    }
+    m = m * 2 + 0x10;
+    if (*(s16 *)(w + 0xA8) < m) {
+        *(s16 *)(w + 0xA8) = m;
+    }
+    wd = *(s16 *)(w + 0xA8);
+    x = (320 - wd) / 2;
+    c = x + wd / 2;
+    *(s16 *)(w + 0xAC) = c - (*(s16 *)(w + 0xAE) + 4);
+    *(s16 *)(w + 0xB0) = c + 4;
+    r.x = x;
+    r.y = (240 - *(s16 *)(w + 0xAA)) / 2;
+    r.w = *(s16 *)(w + 0xA8);
+    r.h = *(s16 *)(w + 0xAA);
+    func_80016C08(w, &r, -1, (s16 *)-1, 8, 0x77, 0x80, 8);
+    w[0x38] = 4;
+    if (w[0xA4] != 0) {
+        func_800190F4((Unk800190F4 *)(w + 0x44), (Rect16 *)-1, (Bytes4 *)-1);
+    }
+    w[0xA5] = 2;
+    w[0xA6] = 0;
+    *(s32 *)(w + 0xA0) = 0;
+    w[0xB5] = 0;
+    w[0xB4] = 0;
+}
 
 s32 func_800149B8();
 void func_8001A1D8();
