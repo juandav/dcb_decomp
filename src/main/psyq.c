@@ -592,7 +592,9 @@ void *InterruptCallback(int irq, void (*func)()) {
     return D_80070AA8->interruptCallback(irq, func);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DMACallback);
+void *DMACallback(int dma, void (*func)()) {
+    return D_80070AA8->dmaCallback(dma, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", VSyncCallback);
 
