@@ -25,7 +25,16 @@ int MargePrim(void *p0, void *p1) {
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetTexWindow);
+void SetTexWindow(DR_TWIN *p, RECT *tw) {
+    setlen(p, 2);
+    if (tw != NULL) {
+        p->code[0] = 0xE2000000 | (((tw->y & 0xFF) >> 3) << 15) | (((tw->x & 0xFF) >> 3) << 10)
+                   | ((((-tw->h) & 0xFF) >> 3) << 5) | (((-tw->w) & 0xFF) >> 3);
+    } else {
+        p->code[0] = 0;
+    }
+    p->code[1] = 0;
+}
 
 void SetDrawStp(DR_STP *p, int pbw) {
     setlen(p, 2);
