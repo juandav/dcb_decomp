@@ -99,6 +99,18 @@ typedef struct {
 } PadState;
 
 typedef struct {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ u8 loc[4];
+    /* 0x08 */ u8 unk8[0x14];
+    /* 0x1C */ s32 sector;
+    /* 0x20 */ s32 remaining;
+    /* 0x24 */ s32 size;
+    /* 0x28 */ s32 avail;
+    /* 0x2C */ u8 *cur;
+    /* 0x30 */ u8 buf[0x1000];
+} CdFile;
+
+typedef struct {
     /* 0x0 */ u8 unk0[4];
     /* 0x4 */ s8 unk4[6];
     /* 0xA */ u8 unkA[2];
@@ -850,17 +862,21 @@ void func_800157B0(void) {
     D_800857D0 = 0;
 }
 
-s32 func_80015AD8(s32, s32);
-s32 func_80015EAC(s32 *arg0);
-s32 func_80015F34(s32, s32, s32 *);
+CdFile *func_80015AD8(s32, s32);
+s32 func_80015EAC(CdFile *f);
+s32 func_80015F34(CdFile *f, s32 size, u8 *dst);
+s32 CdIntToPos(s32, u8 *);
+s32 CdRead(s32, u8 *, s32);
+s32 CdReadSync(s32, u8 *);
+s32 func_80014C08(s32);
 extern s32 D_800857E0;
 
 s32 func_80015848(s32 arg0) {
-    s32 temp_v0;
+    CdFile *f;
 
-    temp_v0 = func_80015AD8(arg0, 0);
-    if ((temp_v0 != 0) && (func_80015F34(temp_v0, 0x4000, &D_800857E0) != 0)) {
-        func_80015EAC(temp_v0);
+    f = func_80015AD8(arg0, 0);
+    if (f != 0 && func_80015F34(f, 0x4000, (u8 *)&D_800857E0) != 0) {
+        func_80015EAC(f);
         D_800857D0 = 1;
         return 0;
     }
@@ -897,8 +913,8 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80015AD8);
 
 s32 func_8005A364(s32, s32);
 
-s32 func_80015EAC(s32 *arg0) {
-    *arg0 = 0;
+s32 func_80015EAC(CdFile *f) {
+    f->unk0 = 0;
     return func_8005A364(0, 0) == 5;
 }
 
@@ -916,24 +932,96 @@ int func_80015EDC(void) {
     return func_8005A364(0, 0) == 5;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80015F34);
+s32 func_80015F34(CdFile *f, s32 size, u8 *dst) {
+    u8 result[8];
+    u8 result2[8];
+    s32 total;
+    s32 sectors;
+    s32 n;
+    s32 r;
+    u8 *src;
 
-typedef struct {
-    /* 0x00 */ u8 unk0[4];
-    /* 0x04 */ u8 loc[4];
-    /* 0x08 */ u8 unk8[0x14];
-    /* 0x1C */ s32 sector;
-    /* 0x20 */ s32 remaining;
-    /* 0x24 */ s32 unk24;
-    /* 0x28 */ s32 avail;
-    /* 0x2C */ u8 *cur;
-    /* 0x30 */ u8 buf[0x1000];
-} CdFile;
+    total = 0;
+    n = f->avail;
+    if (n > 0) {
+        if (size < n) {
+            n = size;
+        }
+        total = n;
+        f->avail -= total;
+        src = f->cur;
+        size -= total;
+        for (n = total - 4; n >= 0; n -= 4) {
+            *(s32 *)dst = *(s32 *)src;
+            src += 4;
+            dst += 4;
+        }
+        f->cur = src;
+    }
+    if (f->remaining < size) {
+        size = f->remaining;
+    }
+    if (size <= 0 || f->remaining <= 0) {
+        return total;
+    }
+    sectors = size / 0x800;
+    if (sectors > 0) {
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            while (CdRead(sectors, dst, 0x80) == 0) {
+            }
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += sectors;
+        dst += sectors << 11;
+        n = sectors << 11;
+        total += n;
+        size -= n;
+        f->remaining -= n;
+    }
+    if (size <= 0 || f->remaining <= 0) {
+        return total;
+    }
+    CdIntToPos(f->sector, f->loc);
+    do {
+        while (CdControlB(2, f->loc, result2) == 0) {
+        }
+        do {
+            f->cur = f->buf;
+        } while (CdRead(2, f->buf, 0x80) == 0);
+        while ((r = CdReadSync(1, 0)) > 0) {
+            func_80014C08(1);
+        }
+    } while (r != 0);
+    f->sector += 2;
+    f->avail = 0x1000;
+    if ((f->remaining -= 0x1000) < 0) {
+        f->avail = f->remaining + 0x1000;
+    }
+    n = f->avail;
+    if (n > 0) {
+        if (size < n) {
+            n = size;
+        }
+        total += n;
+        f->avail -= n;
+        src = f->cur;
+        do {
+            *(s32 *)dst = *(s32 *)src;
+            src += 4;
+            dst += 4;
+            n -= 4;
+        } while (n > 0);
+        f->cur = src;
+    }
+    return total;
+}
 
-s32 CdIntToPos(s32, u8 *);
-s32 CdRead(s32, u8 *, s32);
-s32 CdReadSync(s32, u8 *);
-s32 func_80014C08(s32);
+
 
 s32 func_800161D8(CdFile *f) {
     u8 result[8];
@@ -1649,7 +1737,7 @@ extern s32 D_801D4848;
 
 s32 func_8001B144(s32 name, s32 arg1) {
     s32 size;
-    s32 f;
+    CdFile *f;
     s32 buf;
 
     size = 0;
@@ -1660,13 +1748,13 @@ s32 func_8001B144(s32 name, s32 arg1) {
     f = func_80015AD8(name, 1);
     buf = 0;
     if (f != 0) {
-        size = *(s32 *)((s8 *)f + 0x24);
+        size = f->size;
         buf = (s32)func_8001ABCC(size, arg1);
         if (buf == 0) {
-            func_80015EAC((s32 *)f);
+            func_80015EAC(f);
         } else {
-            func_80015F34(f, size, (s32 *)buf);
-            func_80015EAC((s32 *)f);
+            func_80015F34(f, size, (u8 *)buf);
+            func_80015EAC(f);
         }
     }
     D_801D4848 = size;
@@ -1677,7 +1765,7 @@ s32 func_8001B144(s32 name, s32 arg1) {
 
 s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
     s32 size;
-    s32 f;
+    CdFile *f;
     s32 buf;
 
     size = 0;
@@ -1688,13 +1776,13 @@ s32 func_8001B248(s32 *name, s32 arg1, s32 arg2) {
     f = func_80015AD8((s32)name, 1);
     buf = 0;
     if (f != 0) {
-        size = *(s32 *)((s8 *)f + 0x24);
+        size = f->size;
         buf = (s32)func_8001ABCC(size, arg2);
         if (buf == 0) {
-            func_80015EAC((s32 *)f);
+            func_80015EAC(f);
         } else {
-            func_80015F34(f, size, (s32 *)buf);
-            func_80015EAC((s32 *)f);
+            func_80015F34(f, size, (u8 *)buf);
+            func_80015EAC(f);
         }
     }
     D_801D4848 = size;
