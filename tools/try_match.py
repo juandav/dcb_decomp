@@ -6,7 +6,8 @@ usage: tools/try_match.py [--psyq|--gcc28|--nocse] draft.c [func ...]
 
 --psyq builds like src/main/psyq.c: GCC 2.7.2 -O2 and tools/aspsx_reorder.py.
 --gcc28 builds like the PsyQ objects that came from GCC 2.8.1
--mno-split-addresses (tools/unfill_epilogue.py before maspsx).
+-mno-split-addresses (tools/sn_cc1.py's cc1, tools/unfill_epilogue.py before
+maspsx).
 --nocse builds like the PsyQ objects marked nocse: --psyq plus
 -fno-rerun-cse-after-loop.
 
@@ -27,7 +28,11 @@ seg='psyq' if psyq else 'game'
 w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
 pre=""
 if gcc28:
-    cc1=f"{D}/bin/gcc-2.8.1-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
+    # the cc1 without `return` insns that the Makefile uses (tools/sn_cc1.py)
+    sn=f"{D}/build/cc1-2.8.1-sn"
+    if not os.path.exists(sn) or os.path.getmtime(sn)<os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"):
+        subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{D}/bin/gcc-2.8.1-psx/cc1",sn],check=True)
+    cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
     pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 elif psyq:

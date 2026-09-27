@@ -59,9 +59,14 @@ $(PSYQ_OBJ): MASPSXFLAGS += --expand-div
 # so ASPSX's rule applies as for the rest.
 PSYQ_GCC28 := $(shell awk '$$2 == "gcc2.8" {print $$1}' config/psyq_objects.txt)
 PSYQ_GCC28_OBJ := $(PSYQ_GCC28:%=$(BUILDDIR)/src/main/psyq/%.c.s)
-$(PSYQ_GCC28_OBJ): GCC_VERSION := 2.8.1
+# That compiler never used `return` insns either (tools/sn_cc1.py).
+SN_CC1 := $(BUILDDIR)/cc1-2.8.1-sn
+$(PSYQ_GCC28_OBJ): CC1 := $(SN_CC1)
 $(PSYQ_GCC28_OBJ): CC1FLAGS += -mno-split-addresses
 $(PSYQ_GCC28_OBJ): CC1_POST := $(PYTHON) tools/unfill_epilogue.py
+$(PSYQ_GCC28_OBJ): $(SN_CC1)
+$(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
+	$(PYTHON) tools/sn_cc1.py $< $@
 
 # Others come from GCC 2.7.2 run without the second CSE pass, as all of
 # DW3's PsyQ: the first pass kept the address of a global in a register and
