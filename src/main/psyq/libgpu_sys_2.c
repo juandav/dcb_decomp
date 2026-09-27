@@ -105,7 +105,18 @@ u_long *ClearOTag(u_long *ot, int n) {
     return ot;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTagR);
+u_long *ClearOTagR(u_long *ot, int n) {
+    u_long *term;
+
+    if (D_80076758.level >= 2) {
+        D_80076754("ClearOTagR(%08x,%d)...\n", ot, n);
+    }
+    D_80076750->unk2C(ot, n);
+    term = &D_80076818;
+    *term = ((u_long)D_80076804 & 0xFFFFFF) | 0x04000000;
+    *ot = (u_long)term & 0xFFFFFF;
+    return ot;
+}
 
 void DrawPrim(void *p) {
     int len = getlen(p);

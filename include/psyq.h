@@ -24,7 +24,10 @@ typedef struct GpuDriver {
     /* 0x18 */ void *unk18;
     /* 0x1C */ void *unk1C;
     /* 0x20 */ void *unk20;
-    /* 0x24 */ u8 unk24[0x10];
+    /* 0x24 */ void *unk24;
+    /* 0x28 */ void *unk28;
+    /* 0x2C */ void (*unk2C)(u_long *ot, int n);
+    /* 0x30 */ void *unk30;
     /* 0x34 */ int (*unk34)(int mode);
     /* 0x38 */ u_long (*status)(void);
     /* 0x3C */ int (*sync)(int mode);
