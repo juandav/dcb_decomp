@@ -4,6 +4,7 @@
 #include "dcb/main.h"
 #include "dcb/heap.h"
 #include "dcb/system.h"
+#include "dcb/render_loop.h"
 #include "dcb/boot.h"
 
 void setTaskVsyncMode(s32 vsyncMode) {

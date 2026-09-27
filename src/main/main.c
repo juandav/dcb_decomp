@@ -3,6 +3,7 @@
 #include "dcb/main.h"
 #include "dcb/heap.h"
 #include "dcb/system.h"
+#include "dcb/render_loop.h"
 #include "dcb/boot.h"
 
 s32 D_8006DD3C[2] = { 0, 0 };

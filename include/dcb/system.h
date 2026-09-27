@@ -11,7 +11,5 @@ extern s32 RENDER_CALLBACKS_ENABLED;
 void tickVblankCounters(void);
 void initScreenCopyEffect(void);
 void renderScreenCopyEffect(void);
-void runRenderLoop();
-void initGraphics(void);
 
 #endif /* DCB_SYSTEM_H */
