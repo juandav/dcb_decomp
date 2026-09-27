@@ -906,7 +906,13 @@ int func_8005B184(void) {
     return D_80070C5C;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B194);
+extern u_char D_80070C58[];
+
+u_char *func_8005B194(void) {
+    return D_80070C58;
+}
+
+OBJECT_END(1);
 
 void func_8005B1A4(void) {
     CD_flush();
