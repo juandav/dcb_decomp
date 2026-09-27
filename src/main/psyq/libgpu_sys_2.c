@@ -85,7 +85,25 @@ INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139D4);
 
 INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139E0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTag);
+extern u_long D_80076804[5];
+extern u_long D_80076818;
+
+u_long *ClearOTag(u_long *ot, int n) {
+    u_long *term;
+
+    if (D_80076758.level >= 2) {
+        D_80076754("ClearOTag(%08x,%d)...\n", ot, n);
+    }
+    while (--n) {
+        setlen(ot, 0);
+        setaddr(ot, ot + 1);
+        ot++;
+    }
+    term = &D_80076818;
+    *term = ((u_long)D_80076804 & 0xFFFFFF) | 0x04000000;
+    *ot = (u_long)term & 0xFFFFFF;
+    return ot;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", ClearOTagR);
 
