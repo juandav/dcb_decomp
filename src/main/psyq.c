@@ -690,7 +690,14 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80056FA0);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005704C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetVideoMode);
+extern long D_80070B28;
+
+long SetVideoMode(long value) {
+    long old = D_80070B28;
+
+    D_80070B28 = value;
+    return old;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GetVideoMode);
 
