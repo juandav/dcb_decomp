@@ -2389,7 +2389,16 @@ long ReadInitPadFlag(void) {
     return D_80077928;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", PAD_init);
+void PAD_init(char *bufA, long lenA, char *bufB, long lenB) {
+    _remove_ChgclrPAD();
+    func_8006A804();
+    _patch_pad();
+    func_8006A814();
+    func_8006A884(0);
+    func_8006AE30();
+    func_8006AF74(bufA, lenA, bufB, lenB);
+    D_80077928 = 1;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", InitPAD);
 
