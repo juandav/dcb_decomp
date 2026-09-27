@@ -6,7 +6,17 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSetDrawBuffClip);
+extern DRAWENV D_801DBDA0;
+extern RECT D_801DBE18;
+extern short D_801DBD88[];
+extern short D_801DBD8C[];
+
+void GsSetDrawBuffClip(void) {
+    int x = D_801DBE18.x + D_801DBD88[D_801DBE24]; int y = D_801DBE18.y + D_801DBD8C[D_801DBE24]; D_801DBDA0.clip.x = x; D_801DBDA0.clip.y = y; D_801DBDA0.clip.w = D_801DBE18.w; D_801DBDA0.clip.h = D_801DBE18.h;
+    PutDrawEnv(&D_801DBDA0);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GsSwapDispBuff);
 

@@ -151,7 +151,7 @@ libgte_fgo_00
 libgte_patchgte
 libgs_gs_001 nocse
 libgs_gs_0022
-libgs_gs_003
+libgs_gs_003 nocse
 libgs_matrix9
 libgte_mtx_004
 libgs_gs_104 nocse
