@@ -53,5 +53,3 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT4);
 INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT4A);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005F8D0);
-
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ratan2);
