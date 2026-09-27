@@ -85,7 +85,7 @@ libspu_s_gnv
 libspu_s_gav
 libspu_s_srv
 libspu_s_grv
-libspu_s_sk
+libspu_s_sk gcc2.8
 libspu_s_gvex
 libsnd_vm_init
 libspu_s_m_init
