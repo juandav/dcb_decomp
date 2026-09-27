@@ -639,7 +639,8 @@ typedef struct {
     /* 0x000 */ s32 unk0[0x9E];
     /* 0x278 */ u8 *unk278;
     /* 0x27C */ u8 *unk27C;
-    /* 0x280 */ s32 unk280[2];
+    /* 0x280 */ s16 unk280;
+    /* 0x282 */ s16 unk282[3];
     /* 0x288 */ u8 unk288;
     /* 0x289 */ u8 unk289;
     /* 0x28A */ s16 unk28A;
@@ -8888,7 +8889,7 @@ INCLUDE_RODATA("asm/main/nonmatchings/game", D_80011350);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8003EC4C);
 
-s32 func_80047620(s32, s32, s32);
+void func_80047620(s32, s32, s32);
 void func_80047C38(s32, s32, s32);
 void func_80047248(s32);
 
@@ -10391,9 +10392,55 @@ void func_80047438(s32 a) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047620);
+extern u8 D_8006E518[];
+extern u8 D_8006EEFC[];
+void func_8004950C(s32, s32);
 
-s32 func_80047620(s32, s32, s32);
+void func_80047620(s32 p, s32 k, s32 flag) {
+    s32 i;
+    s32 j;
+    s32 c;
+
+    for (i = 0; i < 3; i++) {
+        if (PLAYER_DATA(p).unk80[i].unk288 == D_8006E518[k]) {
+            return;
+        }
+        if (PLAYER_DATA(p).unk80[i].unk288 == 0) {
+            PLAYER_DATA(p).unk80[i].unk278 = D_801D8408 + D_8006E518[k] * 0x13C;
+            PLAYER_DATA(p).unk80[i].unk27C = D_801D8408 + D_8006E518[k] * 0x13C;
+            PLAYER_DATA(p).unk80[i].unk288 = D_8006E518[k];
+            PLAYER_DATA(p).unk80[i].unk289 = 1;
+            PLAYER_DATA(p).unk80[i].unk28A = 0;
+            for (j = 0; j < 3; j++) {
+                PLAYER_DATA(p).unk80[i].unk28C[j] = -1;
+            }
+            for (j = 0; j < 3; j++) {
+                PLAYER_DATA(p).unk80[i].unk28F[j] = 0;
+            }
+            PLAYER_DATA(p).unk80[i].unk292[0] = 0;
+            PLAYER_DATA(p).unk80[i].unk292[1] = 0;
+            PLAYER_DATA(p).unk80[i].unk292[2] = 0;
+            PLAYER_DATA(p).unk80[i].unk280 = 0;
+            for (j = 0; j < 3; j++) {
+                PLAYER_DATA(p).unk80[i].unk282[j] = 0;
+            }
+            func_80048230(p, i);
+            if (flag != 0) {
+                c = PLAYER_DATA(p).unk80[i].unk288;
+                PLAYER_DATA(p).unk14B2[c] = 1;
+                func_80045968(p, c, 0);
+                func_8002CC44(p);
+                func_8004950C(p, D_8006EEFC[k]);
+                PLAYER_DATA(p).unk14B2[D_8006E518[k]] |= 0xF0;
+            } else {
+                PLAYER_DATA(p).unk14B2[D_8006E518[k]] |= 0x50;
+            }
+            return;
+        }
+    }
+}
+
+void func_80047620(s32, s32, s32);
 
 void func_80047A38(s32 arg0, s32 arg1) {
     func_80047620(arg0, arg1, 1);
