@@ -24,7 +24,33 @@ int rcos(int a) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", csqrt_1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", csqrt);
+long csqrt_1(long a);
+long func_8005FC54(long a);
+
+int csqrt(int a) {
+    long n;
+    long s;
+    long m;
+
+    if (a == 0) {
+        return 0;
+    }
+    n = 8 - func_8005FC54(a);
+    if (n >= 0) {
+        s = n >> 1;
+        m = a >> (s * 2);
+    } else {
+        s = (n >> 1) + 1;
+        m = a << -(s * 2);
+    }
+    s -= 6;
+    if (s >= 0) {
+        return csqrt_1(m) << s;
+    }
+    return csqrt_1(m) >> -s;
+}
+
+OBJECT_END(1);
 
 extern long D_80071868[];
 
