@@ -35,7 +35,7 @@ CPPFLAGS := $(INC) -undef -nostdinc \
 CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	    -fgnu-linker -Wall -Wno-unused
 MASPSXFLAGS := --aspsx-version=2.86
-# game.c holds many original source files; see tools/fix_jtbl_align.py
+# jump tables sit where the original files put them; see tools/fix_jtbl_align.py
 ALIGN_FIX := $(PYTHON) tools/fix_jtbl_align.py
 CC1_POST := cat
 
@@ -139,7 +139,7 @@ $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
-	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) > $(@:.o=.s)
+	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(notdir $*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
 	@# the game's data lives in asm/; a C file's empty .data/.bss must not
 	@# realign the sections they are linked into (gas gives them 16)
