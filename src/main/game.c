@@ -384,7 +384,16 @@ typedef struct {
     /* 0x7 */ s8 next2;
     /* 0x8 */ s8 cur2;
     /* 0x9 */ s8 y2;
-    /* 0xA */ s8 unkA;
+    /* 0x0A */ s8 unkA;
+    /* 0x0B */ s8 unkB;
+    /* 0x0C */ s8 unkC;
+    /* 0x0D */ s8 unkD;
+    /* 0x0E */ s16 unkE;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 px;
+    /* 0x14 */ s16 py;
+    /* 0x16 */ s16 tx;
+    /* 0x18 */ s16 ty;
 } MsgBar;
 
 typedef struct {
@@ -14173,7 +14182,7 @@ void func_8003EB50(void) {
 void func_8003D4C4(void);
 void func_8003E4F0(void);
 void func_80042824(s32);
-s32 func_80042E78();
+void func_80042E78(void);
 void func_80043D00(s32);
 void func_80044074(s32);
 s32 func_801EB53C(u8);
@@ -15196,9 +15205,222 @@ void func_80042BBC(s32 x, s32 y, s32 z, s32 n, u8 *tex) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80042E78);
+extern s8 D_8006E2E4[];
 
-extern MsgBar D_801D83D0;
+void func_80042E78(void) {
+    POLY_FT4 *p;
+    s32 i;
+    s32 d;
+    s32 c;
+    s8 k;
+    s8 m;
+    u8 n;
+
+    m = D_801D83D0.unk3;
+    if (m == -1) {
+        return;
+    }
+    n = D_801D83D0.unk1;
+    k = D_8006E2E4[D_801D83D0.next];
+    if (D_801D83D0.unkC != n || D_801D83D0.unkB != k || D_801D83D0.unkD != m) {
+        D_801D83D0.unk0 = 0;
+        D_801D83D0.unkE = 0;
+        D_801D83D0.unk10 = 0;
+        D_801D83D0.px = 0x154;
+        D_801D83D0.py = 0x66;
+        D_801D83D0.unkC = n;
+        D_801D83D0.unkB = k;
+        D_801D83D0.unkD = m;
+    }
+    p = (POLY_FT4 *)(D_800793A0->unk4078[11] + 0x320);
+    switch ((u8)D_801D83D0.unk0) {
+    case 0:
+        D_801D83D0.px -= 14;
+        if (D_801D83D0.px < 0x5B) {
+            D_801D83D0.px = 0x5A;
+            D_801D83D0.unk0++;
+        }
+        break;
+    case 1:
+        D_801D83D0.unkE += 2;
+        for (i = 0; i < 6; i++) {
+            d = D_801D83D0.unkE - i * 3;
+            c = 0x100 - d * 20;
+            if (c >= 0) {
+                func_8001E6EC(0xC, p, 1, 0);
+                p->r0 = c;
+                p->g0 = c;
+                p->b0 = c;
+                p->u0 = 0xD0;
+                p->v0 = (D_801D83D0.unk1 * 12 + 0x100) % 0x100;
+                p->u1 = 0xFF;
+                p->v1 = (D_801D83D0.unk1 * 12 + 0x100) % 0x100;
+                p->u2 = 0xD0;
+                p->v2 = (D_801D83D0.unk1 * 12 + 0x100) % 0x100 + 12;
+                p->u3 = 0xFF;
+                p->v3 = (D_801D83D0.unk1 * 12 + 0x100) % 0x100 + 12;
+                p->x0 = D_801D83D0.px - d * 2;
+                p->y0 = D_801D83D0.py - d * 2;
+                p->x1 = D_801D83D0.px + 0x30;
+                p->y1 = D_801D83D0.py - d * 2;
+                p->x2 = D_801D83D0.px - d * 2;
+                p->y2 = D_801D83D0.py + 12;
+                p->x3 = D_801D83D0.px + 0x30;
+                p->y3 = D_801D83D0.py + 12;
+                p->tpage = 0x3E;
+                p->clut = 0x7CB3;
+                addPrim(&D_800793A0->ot[0x1E], p);
+                p++;
+                func_8001E6EC(0xC, p, 1, 0);
+                p->r0 = c;
+                p->g0 = c;
+                p->b0 = c;
+                p->u0 = 0xD0;
+                p->v0 = (D_801D83D0.unk3 * 24 + 0x130) % 0x100;
+                p->u1 = 0xFC;
+                p->v1 = (D_801D83D0.unk3 * 24 + 0x130) % 0x100;
+                p->u2 = 0xD0;
+                p->v2 = (D_801D83D0.unk3 * 24 + 0x130) % 0x100 + 0x18;
+                p->u3 = 0xFC;
+                p->v3 = (D_801D83D0.unk3 * 24 + 0x130) % 0x100 + 0x18;
+                p->x0 = D_801D83D0.px - (s16)(d * 2 - 10);
+                p->y0 = D_801D83D0.py - (s16)(d - 8);
+                p->x1 = (s16)(D_801D83D0.px - (s16)(d * 2 - 10) + 0x2C) + d * 2;
+                p->y1 = D_801D83D0.py - (s16)(d - 8);
+                p->x2 = D_801D83D0.px - (s16)(d * 2 - 10);
+                p->y2 = (s16)(D_801D83D0.py - (s16)(d - 8) + 0x18) + d * 2;
+                p->x3 = (s16)(D_801D83D0.px - (s16)(d * 2 - 10) + 0x2C) + d * 2;
+                p->y3 = (s16)(D_801D83D0.py - (s16)(d - 8) + 0x18) + d * 2;
+                p->tpage = 0x3E;
+                p->clut = 0x7CB3;
+                addPrim(&D_800793A0->ot[0x1E], p);
+                p++;
+                func_8001E6EC(0xC, p, 1, 0);
+                p->r0 = c;
+                p->g0 = c;
+                p->b0 = c;
+                p->u0 = 0xA0;
+                p->v0 = 0xA0;
+                p->u1 = 0xF0;
+                p->v1 = 0xA0;
+                p->u2 = 0xA0;
+                p->v2 = 0xB8;
+                p->u3 = 0xF0;
+                p->v3 = 0xB8;
+                p->x0 = D_801D83D0.px + 0x30;
+                p->y0 = D_801D83D0.py - (s16)(d - 8);
+                p->x1 = D_801D83D0.px + 0x80 + d * 2;
+                p->y1 = D_801D83D0.py - (s16)(d - 8);
+                p->x2 = D_801D83D0.px + 0x30;
+                p->y2 = (s16)(D_801D83D0.py - (s16)(d - 8) + 0x18) + d * 2;
+                p->x3 = D_801D83D0.px + 0x80 + d * 2;
+                p->y3 = (s16)(D_801D83D0.py - (s16)(d - 8) + 0x18) + d * 2;
+                p->tpage = 0x3C;
+                p->clut = 0x7CB3;
+                addPrim(&D_800793A0->ot[0x1E], p);
+                p++;
+            }
+        }
+        if (++D_801D83D0.unk10 > 0x10) {
+            D_801D83D0.unk0++;
+        }
+        break;
+    case 2:
+        D_801D83D0.unkE = 0;
+        D_801D83D0.unk10 = 0;
+        D_801D83D0.tx = (D_801D83D0.unk1 % 2) * -170 + 0xB8;
+        D_801D83D0.ty = (D_801D83D0.unk1 % 2) * -136 + 0xA8;
+        D_801D83D0.unk0++;
+        break;
+    case 3:
+        D_801D83D0.unk10++;
+        D_801D83D0.px = (D_801D83D0.tx - 0x5A) * D_801D83D0.unk10 / 8 + 0x5A;
+        D_801D83D0.py = (D_801D83D0.ty - 0x66) * D_801D83D0.unk10 / 8 + 0x66;
+        if (D_801D83D0.unk10 >= 8) {
+            D_801D83D0.unk0++;
+        }
+        break;
+    case 4:
+        D_801D83D0.px = D_801D83D0.tx;
+        D_801D83D0.py = D_801D83D0.ty;
+        break;
+    }
+    if (D_8006E2E4[D_801D83D0.next] != -1) {
+        if (func_80029990() != 0) {
+            return;
+        }
+        CUR_SPRT->sp.x0 = D_801D83D0.px + 0xE;
+        CUR_SPRT->sp.y0 = D_801D83D0.py + 0x18;
+        CUR_SPRT->sp.u0 = D_8006E2E4[D_801D83D0.next] / 4 * 100;
+        CUR_SPRT->sp.v0 = ((s8)(D_8006E2E4[D_801D83D0.next] % 4) * 14 + 0x1B8) % 0x100;
+        CUR_SPRT->sp.clut = 0x7DF3;
+        CUR_SPRT->sp.w = 100;
+        CUR_SPRT->sp.h = 14;
+        setSemiTrans(&CUR_SPRT->sp, 1);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
+        addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+    }
+    if (func_80029990() != 0) {
+        return;
+    }
+    CUR_SPRT->sp.x0 = D_801D83D0.px;
+    CUR_SPRT->sp.y0 = D_801D83D0.py;
+    CUR_SPRT->sp.u0 = 0xD0;
+    CUR_SPRT->sp.v0 = (D_801D83D0.unk1 * 12 + 0x100) % 0x100;
+    CUR_SPRT->sp.clut = 0x7C73;
+    CUR_SPRT->sp.w = 0x2F;
+    CUR_SPRT->sp.h = 12;
+    setSemiTrans(&CUR_SPRT->sp, 1);
+    CUR_SPRT->sp.r0 = 0x80;
+    CUR_SPRT->sp.g0 = 0x80;
+    CUR_SPRT->sp.b0 = 0x80;
+    setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    D_801D6B24 += sizeof(SprtPacket);
+    if (func_80029990() != 0) {
+        return;
+    }
+    CUR_SPRT->sp.x0 = D_801D83D0.px + 10;
+    CUR_SPRT->sp.y0 = D_801D83D0.py + 8;
+    CUR_SPRT->sp.u0 = 0xD0;
+    CUR_SPRT->sp.v0 = (D_801D83D0.unk3 * 24 + 0x130) % 0x100;
+    CUR_SPRT->sp.clut = 0x7C73;
+    CUR_SPRT->sp.w = 0x2C;
+    CUR_SPRT->sp.h = 0x18;
+    setSemiTrans(&CUR_SPRT->sp, 1);
+    CUR_SPRT->sp.r0 = 0x80;
+    CUR_SPRT->sp.g0 = 0x80;
+    CUR_SPRT->sp.b0 = 0x80;
+    setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    D_801D6B24 += sizeof(SprtPacket);
+    if (func_80029990() != 0) {
+        return;
+    }
+    CUR_SPRT->sp.x0 = D_801D83D0.px + 0x30;
+    CUR_SPRT->sp.y0 = D_801D83D0.py + 8;
+    CUR_SPRT->sp.u0 = 0xA0;
+    CUR_SPRT->sp.v0 = 0xA0;
+    CUR_SPRT->sp.clut = 0x7C73;
+    CUR_SPRT->sp.w = 0x50;
+    CUR_SPRT->sp.h = 0x18;
+    setSemiTrans(&CUR_SPRT->sp, 1);
+    CUR_SPRT->sp.r0 = 0x80;
+    CUR_SPRT->sp.g0 = 0x80;
+    CUR_SPRT->sp.b0 = 0x80;
+    setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->sp);
+    addPrim(&D_800793A0->ot[0x1E], &CUR_SPRT->dm);
+    D_801D6B24 += sizeof(SprtPacket);
+}
+
 extern DR_AREA D_801D8358[2];
 extern DR_AREA D_801D8378[2];
 extern u8 *D_8006E29C[];
