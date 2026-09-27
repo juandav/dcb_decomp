@@ -10,8 +10,31 @@ D_80010884 = 0x80010884; // force_not_migration:True
 D_800108A4 = 0x800108A4; // force_not_migration:True
 D_80012FAC = 0x80012FAC; // force_not_migration:True
 
-// Rank titles, only referenced from a data table
-D_800105FC = 0x800105FC; // force_not_migration:True
+// Rank titles, only referenced from the rank title tables in .data
+D_800105FC = 0x800105FC;
+D_80010610 = 0x80010610;
+D_80010620 = 0x80010620;
+D_80010630 = 0x80010630;
+D_80010640 = 0x80010640;
+D_80010654 = 0x80010654;
+D_80010664 = 0x80010664;
+D_80010674 = 0x80010674;
+D_80010684 = 0x80010684;
+D_80010698 = 0x80010698;
+D_800106AC = 0x800106AC;
+D_800106BC = 0x800106BC;
+D_800106D0 = 0x800106D0;
+D_800106E4 = 0x800106E4;
+D_800106F8 = 0x800106F8;
+D_80010708 = 0x80010708;
+D_80010718 = 0x80010718;
+D_80010728 = 0x80010728;
+D_80010734 = 0x80010734;
+D_80010740 = 0x80010740;
+D_80010750 = 0x80010750;
+D_80010760 = 0x80010760;
+D_80010774 = 0x80010774;
+D_80010784 = 0x80010784;
 
 // Panel pool VRAM position, a halfword the code addresses on its own
 D_800897EE = 0x800897EE; // size:0x2
