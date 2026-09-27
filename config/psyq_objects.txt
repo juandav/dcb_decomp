@@ -199,7 +199,7 @@ libapi_patch
 libapi_chclrpad
 libpad_pdent2
 libpad_pdent3
-libpad_pdmaiini
+libpad_pdmaiini nocse
 libpad_pddirini
 libpad_pddirres
 libpad_pdresres
