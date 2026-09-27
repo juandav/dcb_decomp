@@ -918,13 +918,92 @@ int func_80015EDC(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80015F34);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800161D8);
+typedef struct {
+    /* 0x00 */ u8 unk0[4];
+    /* 0x04 */ u8 loc[4];
+    /* 0x08 */ u8 unk8[0x14];
+    /* 0x1C */ s32 sector;
+    /* 0x20 */ s32 remaining;
+    /* 0x24 */ s32 unk24;
+    /* 0x28 */ s32 avail;
+    /* 0x2C */ u8 *cur;
+    /* 0x30 */ u8 buf[0x1000];
+} CdFile;
+
+s32 CdIntToPos(s32, u8 *);
+s32 CdRead(s32, u8 *, s32);
+s32 CdReadSync(s32, u8 *);
+s32 func_80014C08(s32);
+
+s32 func_800161D8(CdFile *f) {
+    u8 result[8];
+    s32 r;
+
+    if (f->avail <= 0) {
+        if (f->remaining <= 0) {
+            return -1;
+        }
+        CdIntToPos(f->sector, f->loc);
+        do {
+            while (CdControlB(2, f->loc, result) == 0) {
+            }
+            do {
+                f->cur = f->buf;
+            } while (CdRead(2, f->buf, 0x80) == 0);
+            while ((r = CdReadSync(1, 0)) > 0) {
+                func_80014C08(1);
+            }
+        } while (r != 0);
+        f->sector += 2;
+        f->avail = 0x1000;
+        if ((f->remaining -= 0x1000) < 0) {
+            f->avail = f->remaining + 0x1000;
+        }
+        if (f->avail <= 0) {
+            return -1;
+        }
+    }
+    f->avail--;
+    return *f->cur++;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800162F0);
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016500);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80016724);
+s8 *func_80016724(s8 *buf, s32 n, CdFile *f) {
+    s8 *p;
+    s32 c;
+
+    c = 0;
+    p = buf;
+    while (--n > 0) {
+        c = func_800161D8(f);
+        if (c == -1) {
+            break;
+        }
+        if (c == 0) {
+            break;
+        }
+        *p++ = c;
+        if (c == '\n') {
+            break;
+        }
+        if (c == 0x1A) {
+            break;
+        }
+    }
+    if (n <= 0 && !(c == -1 || c == 0 || c == '\n' || c == 0x1A)) {
+        do {
+            c = func_800161D8(f);
+        } while (!(c == -1 || c == 0 || c == '\n' || c == 0x1A));
+    }
+    *p = 0;
+    if (*buf == 0) {
+        return 0;
+    }
+    return buf;
+}
 
 extern s32 D_80079500;
 void func_8001683C(s32 arg0) {
