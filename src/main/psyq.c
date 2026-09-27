@@ -75,7 +75,32 @@ void _spu_FsetRXX(int reg, u_long value, int mode) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetRXXa);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FgetRXXa);
+extern u_long *D_8006EF34;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+u_long _spu_FgetRXXa(int reg, int mode) {
+    u_short v = D_8006EF24[reg];
+
+    if (mode == -1) {
+        return v;
+    }
+    return v << D_8006EF4C;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FsetPCR);
 
