@@ -36,7 +36,9 @@ if gcc28:
     pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 elif psyq:
-    cc1=f"{D}/bin/gcc-2.7.2-psx/cc1 -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
+    # the cc1 of the PsyQ libraries (tools/patch_cc1.py)
+    pc1=subprocess.run([sys.executable,f"{D}/tools/patch_cc1.py"],capture_output=True,text=True,check=True).stdout.strip()
+    cc1=f"{pc1} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused"
     if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:

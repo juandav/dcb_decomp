@@ -50,6 +50,12 @@ CC1_POST := cat
 PSYQ_OBJECTS := $(shell awk '{print $$1}' config/psyq_objects.txt)
 PSYQ_OBJ := $(PSYQ_OBJECTS:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_OBJ): GCC_VERSION := 2.7.2
+# ...binary-patched into the libraries' cc1 (see tools/patch_cc1.py, from dw3)
+PSYQ_CC1 := $(BUILDDIR)/tools/gcc-2.7.2-psx/cc1
+$(PSYQ_OBJ): CC1 := $(PSYQ_CC1)
+$(PSYQ_OBJ): $(PSYQ_CC1)
+$(PSYQ_CC1): bin/gcc-2.7.2-psx/cc1 tools/patch_cc1.py
+	$(PYTHON) tools/patch_cc1.py $< $@
 $(PSYQ_OBJ): CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float \
 	-fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused
 $(PSYQ_OBJ): ALIGN_FIX := $(PYTHON) tools/aspsx_reorder.py
