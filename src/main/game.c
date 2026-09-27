@@ -379,7 +379,9 @@ typedef struct {
 } Unk2220;
 
 typedef struct {
-    /* 0x0000 */ u8 unk0[0x2220];
+    /* 0x0000 */ u8 unk0[0x1F80];
+    /* 0x1F80 */ s16 *bonepos[32];
+    /* 0x2000 */ s32 scale[34][4];
     /* 0x2220 */ Unk2220 unk2220[16];
     /* 0x22A0 */ u8 unk22A0[0x430];
     /* 0x26D0 */ s32 unk26D0;
@@ -4405,7 +4407,53 @@ void func_80023128(s32 arg0, s32 arg1, s32 arg2) {
     func_800230B8(arg0, arg1, arg2, 0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023148);
+void func_80023148(s32 slot, s32 anim) {
+    u8 *m;
+    BoneAnim *b;
+    u8 *c;
+    SVECTOR *r;
+    s16 *key;
+    s32 *p0;
+    s32 *p3;
+    s32 *p6;
+    s32 i;
+    s32 j;
+
+    m = D_801D6A4C->unk13C[slot];
+    b = (BoneAnim *)(m + 0xD80);
+    c = m + 0x78;
+    r = (SVECTOR *)(m + 0xA80);
+    key = (s16 *)((u8 *)((Model2220 *)m)->unk2220[anim].unk4 + 4);
+    for (i = 0; i < *(s16 *)(m + 4) + 1; i++, key += 12, b++, c += 0x50, r++) {
+        for (j = 0, p0 = &b->ch[0].val, p3 = &b->ch[3].val, p6 = &b->ch[6].val; j < 3; j++) {
+            *(s32 *)((u8 *)p0 + (j << 4)) = *(s32 *)((u8 *)p3 + (j << 4)) = *(s32 *)((u8 *)p6 + (j << 4)) = 0;
+        }
+        b->ch[0].unk0 = key[0] << 20;
+        b->ch[1].unk0 = key[1] << 20;
+        b->ch[2].unk0 = key[2] << 20;
+        b->ch[3].unk0 = key[4] << 16;
+        b->ch[4].unk0 = key[5] << 16;
+        b->ch[5].unk0 = key[6] << 16;
+        b->ch[6].unk0 = key[8] << 16;
+        b->ch[7].unk0 = key[9] << 16;
+        b->ch[8].unk0 = key[10] << 16;
+        if (i < *(s16 *)(m + 4)) {
+            r->vx = b->ch[0].unk0 / 0x100000;
+            r->vy = b->ch[1].unk0 / 0x100000;
+            r->vz = b->ch[2].unk0 / 0x100000;
+            *(s32 *)(c + 0x18) = (s16)(b->ch[3].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][0];
+            *(s32 *)(c + 0x1C) = (s16)(b->ch[4].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][1];
+            *(s32 *)(c + 0x20) = (s16)(b->ch[5].unk0 >> 16) + ((Model2220 *)m)->bonepos[i][2];
+            ((Model2220 *)m)->scale[i][0] = (s16)(b->ch[6].unk0 >> 16);
+            ((Model2220 *)m)->scale[i][1] = (s16)(b->ch[7].unk0 >> 16);
+            ((Model2220 *)m)->scale[i][2] = (s16)(b->ch[8].unk0 >> 16);
+            RotMatrixYXZ(r, c + 4);
+            *(s32 *)c = 0;
+            ScaleMatrix(c + 4, ((Model2220 *)m)->scale[i]);
+        }
+    }
+    func_80022CA4(slot);
+}
 
 void func_80023408(Tmd18 *t) {
     Obj18 *o;
@@ -6650,7 +6698,7 @@ void func_8002DAAC(s32 arg0, s32 arg1) {
     func_80022D34(arg0, arg1, -2, 0);
 }
 
-s32 func_80023148(s32, s32);
+void func_80023148(s32, s32);
 
 void func_8002DB58(s32 arg0, s32 arg1) {
     s32 temp_s2;
