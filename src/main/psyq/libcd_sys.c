@@ -1,7 +1,11 @@
 #include "psyq.h"
 
-typedef struct {
-    u_char c[4];
+/* a 4-byte little-endian sector number, unaligned in the path table */
+typedef union {
+    long addr;
+    struct {
+        u_char c[4];
+    } b;
 } CdLBA;
 
 typedef struct {
@@ -112,7 +116,62 @@ int func_8005757C(char *a, char *b) {
     return strncmp(a, b, 12) == 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005759C);
+int func_8005759C(void) {
+    CdLBA lba;
+    u_char *p;
+    int i;
+
+    if (func_80057BA0(1, 16, D_801DB4F8) != 1) {
+        if (D_80070C48 > 0) {
+            printf("CD_newmedia: Read error in cd_read(PVD)\n");
+        }
+        return 0;
+    }
+    if (strncmp(&D_801DB4F8[1], "CD001", 5) != 0) {
+        if (D_80070C48 > 0) {
+            printf("CD_newmedia: Disc format error in cd_read(PVD)\n");
+        }
+        return 0;
+    }
+    (&lba)->b = ((CdLBA *)&D_801DB4F8[0x8C])->b;
+    if (func_80057BA0(1, lba.addr, D_801DB4F8) != 1) {
+        if (D_80070C48 > 0) {
+            printf("CD_newmedia: Read error (PT:%08x)\n", lba.addr);
+        }
+        return 0;
+    }
+    if (D_80070C48 > 1) {
+        printf("CD_newmedia: sarching dir..\n");
+    }
+    i = 0;
+    p = D_801DB4F8;
+    while (p < D_801DB4F8 + 0x800) {
+        if (p[0] == 0) {
+            break;
+        }
+        D_801D9EF8[i].lba.b = ((CdLBA *)&p[2])->b;
+        D_801D9EF8[i].parent = p[6];
+        D_801D9EF8[i].id = i + 1;
+        memcpy(D_801D9EF8[i].name, &p[8], p[0]);
+        D_801D9EF8[i].name[p[0]] = 0;
+        p += 8 + p[0] + p[0] % 2;
+        if (D_80070C48 > 1) {
+            printf("\t%08x,%04x,%04x,%s\n", D_801D9EF8[i].lba.addr, D_801D9EF8[i].id, D_801D9EF8[i].parent,
+                   D_801D9EF8[i].name);
+        }
+        if (++i >= CdlMAXDIR) {
+            break;
+        }
+    }
+    if (i < CdlMAXDIR) {
+        D_801D9EF8[i].parent = 0;
+    }
+    D_80070B58 = 0;
+    if (D_80070C48 > 1) {
+        printf("CD_newmedia: %d dir entries found\n", i);
+    }
+    return 1;
+}
 
 int func_80057860(long parent, char *name) {
     int i;
