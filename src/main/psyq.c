@@ -749,7 +749,20 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVabOpenHeadWithMode);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabTransBody);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuRead);
+extern long D_8006EF5C;
+
+u_long SpuRead(u_char *addr, u_long size) {
+    if (size > 0x7EFF0) {
+        size = 0x7EFF0;
+    }
+    _spu_Fw(addr, size);
+    if (D_8006EF5C == 0) {
+        D_8006EF58 = 0;
+    }
+    return size;
+}
+
+OBJECT_END(1);
 
 u_long SpuSetTransferStartAddr(u_long addr) {
     if (addr - 0x1010 > 0x7EFE8) {
