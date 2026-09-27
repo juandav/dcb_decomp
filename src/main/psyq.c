@@ -1581,7 +1581,11 @@ void func_80067924(LINE_F3 *p) {
     setLineF3(p);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetLineG3);
+void SetLineG3(LINE_G3 *p) {
+    setLineG3(p);
+}
+
+OBJECT_END(3);
 
 void func_80067974(LINE_F4 *p) {
     setLineF4(p);
