@@ -584,7 +584,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", VSync);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005655C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetCallback);
+int ResetCallback(void) {
+    return D_80070AA8->resetCallback();
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", InterruptCallback);
 
