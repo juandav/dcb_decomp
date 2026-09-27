@@ -14811,7 +14811,53 @@ void func_80046BAC(u8 *out, s32 id) {
     *(s16 *)(out + 2) = func_80045F94(type, id);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80046C0C);
+s32 func_80046C0C(s32 unused, Unk110 *deck, s32 mask) {
+    s32 count;
+    s32 i;
+    CardInfo *info;
+    s32 level;
+    s32 attr;
+
+    count = 0;
+    for (i = 0; i < 30; i++) {
+        switch (deck->cards[i].state) {
+        case 0:
+            info = (CardInfo *)(D_801D8408 + deck->cards[i].unk1 * 0x13C);
+            level = info->attr & 0xF;
+            attr = info->attr >> 4;
+            if (mask & 0x1E00) {
+                if (mask & 0x1F) {
+                    if ((mask >> (level + 9)) & 1) {
+                        if (!(mask & 0x20) || (deck->cards[i].unk1 >= 0xAC && deck->cards[i].unk1 < 0xBF)) {
+                            count++;
+                        }
+                    }
+                } else if ((mask >> (level + 9)) & 1) {
+                    count++;
+                }
+            } else if ((mask >> attr) & 1) {
+                if (!(mask & 0x20) || (deck->cards[i].unk1 >= 0xAC && deck->cards[i].unk1 < 0xBF)) {
+                    count++;
+                }
+            } else if ((mask & 0x20) && (deck->cards[i].unk1 >= 0xAC && deck->cards[i].unk1 < 0xBF)) {
+                count++;
+            }
+            break;
+        case 1:
+            if (mask & 0x40) {
+                count++;
+            }
+            break;
+        case 2:
+            if (mask & 0x80) {
+                count++;
+            }
+            break;
+        }
+    }
+    return count;
+}
+
 
 s32 func_80046D68(s32 a, Unk110 *src, s32 slot) {
     Unk110 *d;
