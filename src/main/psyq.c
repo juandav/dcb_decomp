@@ -1666,7 +1666,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", StartPAD);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AE30);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AEA8);
+int func_8006AEA8(void) {
+    volatile int i, j, k;
+
+    D_8007792C[5] = 0;
+    i = 10;
+    while (--i != -1) {
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF10);
 
