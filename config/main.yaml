@@ -86,7 +86,7 @@ segments:
       - [0x4704, c, system/task]
       # the game's own startup and interrupt glue, written in assembly
       - [0x5170, asm, startup]
-      - [0x54F0, c, system/system]
+      - [0x54F0, c, system/vblank]
       - [0x5564, c, gfx/screen_copy]
       - [0x5AAC, c, system/render_loop]
       - [0x5DF4, c, system/boot]
@@ -140,7 +140,7 @@ segments:
       # the game's .data, split by the module that defines it
       - [0x5E53C, .data, main]
       - [0x5E544, data, startup]
-      - [0x5E54C, .data, system/system]
+      - [0x5E54C, .data, system/vblank]
       - [0x5E550, .data, system/cd_file]
       - [0x5E570, .data, ui/window]
       - [0x5E6F0, .data, system/loader]

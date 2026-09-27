@@ -2,7 +2,7 @@
 #define DCB_BOOT_H
 
 #include "game.h"
-#include "dcb/system.h"
+#include "dcb/vblank.h"
 
 void runMainTask();
 

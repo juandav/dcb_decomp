@@ -2,7 +2,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
-#include "dcb/system.h"
+#include "dcb/vblank.h"
 #include "dcb/cd_file.h"
 #include "dcb/effect.h"
 #include "dcb/duel_util.h"

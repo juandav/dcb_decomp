@@ -16,7 +16,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
-#include "dcb/system.h"
+#include "dcb/vblank.h"
 #include "dcb/screen_copy.h"
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"

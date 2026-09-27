@@ -2,7 +2,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
-#include "dcb/system.h"
+#include "dcb/vblank.h"
 #include "dcb/screen_copy.h"
 #include "dcb/render_loop.h"
 #include "dcb/cd_file.h"

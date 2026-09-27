@@ -2,7 +2,7 @@
 #define DCB_RENDER_LOOP_H
 
 #include "game.h"
-#include "dcb/system.h"
+#include "dcb/vblank.h"
 
 void runRenderLoop();
 void initGraphics(void);

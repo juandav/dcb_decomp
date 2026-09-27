@@ -1,5 +1,5 @@
-#ifndef DCB_SYSTEM_H
-#define DCB_SYSTEM_H
+#ifndef DCB_VBLANK_H
+#define DCB_VBLANK_H
 
 #include "game.h"
 
@@ -10,4 +10,4 @@ extern s32 RENDER_CALLBACKS_ENABLED;
 
 void tickVblankCounters(void);
 
-#endif /* DCB_SYSTEM_H */
+#endif /* DCB_VBLANK_H */
