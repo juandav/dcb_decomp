@@ -159,23 +159,23 @@ void renderFullscreenBackground(void) {
 void playModelAnimation(s32 modelSlot, s32 animId) {
     void *model;
 
-    model = D_801D6A4C->unk13C[modelSlot];
+    model = SCENE_3D->unk13C[modelSlot];
     if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
         freeHeapBlocksByTag(modelSlot + 0x84);
-        func_80023094(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
+        setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
     }
-    func_80022D34(modelSlot, animId, -2, 0);
+    startModelAnimation(modelSlot, animId, -2, 0);
 }
 
 void setModelAnimationPose(s32 modelSlot, s32 animId) {
     s32 heapTag;
     void *model;
 
-    model = D_801D6A4C->unk13C[modelSlot];
+    model = SCENE_3D->unk13C[modelSlot];
     heapTag = modelSlot + 0x84;
     freeHeapBlocksByTag(heapTag);
-    func_80023094(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
-    func_80023148(modelSlot, animId);
+    setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
+    applyAnimationFirstFrame(modelSlot, animId);
 }
 
 void *findDigimonCardByModelId(s32 modelId) {

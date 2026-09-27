@@ -1362,8 +1362,8 @@ void func_8003E844(s32 arg0) {
 void func_8003E94C(void) {
     Unk800794F8 *p;
 
-    func_80024460(0);
-    func_800149B8(0x19, -1, 0, 0x800, &func_800250F4, 0);
+    initScene3D(0);
+    func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
     func_80014C08(2);
     p = (Unk800794F8 *)&GRAPHICS;
     p->unk54 = 0;
@@ -1399,7 +1399,7 @@ void func_8003E9F4(s32 arg0) {
         var_a0 = -1;
         var_v1 = -1;
     }
-    func_800149B8(0, -1, 0, 0x1000, &func_8002E034, var_a0, var_v1, 0, 0);
+    func_800149B8(0, -1, 0, 0x1000, &runDuelStageTask, var_a0, var_v1, 0, 0);
 }
 
 void func_8003EB50(void) {
