@@ -171,7 +171,15 @@ int func_8006D3C0(void) {
     return ((t - D_801DDF24) >> 3) >= D_801DDF28;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D460);
+extern int D_800779E0;
+extern int (*D_80077978)();
+int func_8006C4F0(PadPort *p, int arg);
+
+void func_8006D460(PadPort *p) {
+    D_800779E0 = D_80077978(p);
+    *p->unk3C = 0;
+    func_8006C4F0(p, -2);
+}
 
 extern long D_800779A0;
 extern long D_800779B0;
@@ -179,7 +187,7 @@ extern long D_8007799C;
 extern void (*D_80077990)(void);
 extern void (*D_8007798C)(void);
 extern int D_800779E0;
-extern void (*D_80077978)();
+extern int (*D_80077978)();
 int func_8006C714(PadPort *p, long arg);
 
 int func_8006D4A8(PadPort *p) {
@@ -198,7 +206,7 @@ int func_8006D4A8(PadPort *p) {
 }
 
 extern int D_800779E0;
-extern void (*D_80077978)();
+extern int (*D_80077978)();
 extern long D_800779AC;
 extern int D_800779DC;
 int func_8006C714(PadPort *p, long arg);
