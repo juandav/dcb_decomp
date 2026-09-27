@@ -1876,7 +1876,22 @@ void *bzero(unsigned char *p, int n) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", memcpy);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", memset);
+void *memset(u_char *p, u_char c, int n) {
+    u_char *s;
+
+    if (p == NULL) {
+        return NULL;
+    }
+    if (n <= 0) {
+        return NULL;
+    }
+    s = p;
+    while (n > 0) {
+        *p++ = c;
+        n--;
+    }
+    return s;
+}
 
 extern u_long D_801DDC10;
 
