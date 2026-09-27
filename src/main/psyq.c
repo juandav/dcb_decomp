@@ -600,7 +600,9 @@ int VSyncCallback(void (*func)()) {
     return (int)D_80070AA8->vsyncCallbacks(4, func);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", VSyncCallbacks);
+void *VSyncCallbacks(int ch, void (*func)()) {
+    return D_80070AA8->vsyncCallbacks(ch, func);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", StopCallback);
 
