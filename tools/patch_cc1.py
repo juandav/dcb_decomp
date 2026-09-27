@@ -71,6 +71,11 @@ and raw (`lh` + `lhu` of the same field in the ROM), and a bogus
 16. mark_target_live_regs follows both paths of a conditional jump, as
    GCC 2.8's find_dead_or_set_registers: a register set before any use on
    both paths is dead (prnt's `beqz v0,L; sll v0,s0,2`).
+17. ...except when the conditional jump is the scan's own starting insn
+   (the opposite thread of a branch that begins with another branch): then
+   the jump and its slot are marked and the scan stops if it goes forward,
+   and it stops at once if it goes back (the old patch 3), as the ROM keeps
+   __fixsfsi's first `beqz` slot empty.
 
 The whole build matches with the patched cc1 (none of the functions that
 already matched changes).
@@ -917,6 +922,14 @@ def patch(src, dst):
         jump(b"\xe8", 0x080F64E4)                                     # condjump_p
         code.extend(b"\x83\xc4\x10\x85\xc0")
         jump(b"\x0f\x84", 0x081725A6)
+        code.extend(b"\x8b\x85\x58\xff\xff\xff\x3b\x45\x08")  # insn == target?
+        code.extend(b"\x75\x29")                                    # jne follow
+        code.extend(b"\x8b\x45\x88\x8b\x50\x20\x85\xd2")        # JUMP_LABEL
+        jump(b"\x0f\x84", 0x081725A6)
+        code.extend(b"\x8b\x52\x04\x3b\x50\x04")                # uid(label) vs uid(jump)
+        jump(b"\x0f\x8c", 0x081725A6)                              # backward: stop
+        code.extend(b"\xc7\x85\x5c\xff\xff\xff" + bytes(4))     # forward: next = 0
+        jump(b"\xe9", 0x081724AE)                                   # mark it and stop
         code.extend(b"\x83\xec\x0c\x8d\x45\xc4\x50\x8d\x45\xb4\x50")  # &needed; &set
         code.extend(b"\x8b\x85\x68\xff\xff\xff\x48\x50")             # jump_count - 1
         code.extend(b"\xff\xb5\x40\xff\xff\xff\xff\xb5\x58\xff\xff\xff")  # res; insn
