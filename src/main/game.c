@@ -11,11 +11,31 @@ typedef struct {
 } Unk80081710;
 
 typedef struct {
-    /* 0x0000 */ u8 unk0[0x19];
-    /* 0x0019 */ u8 r0;
-    /* 0x001A */ u8 g0;
-    /* 0x001B */ u8 b0;
-    /* 0x001C */ u8 unk1C[0x54];
+    /* 0x00 */ s16 clip[4];
+    /* 0x08 */ s16 ofs[2];
+    /* 0x0C */ s16 tw[4];
+    /* 0x14 */ u16 tpage;
+    /* 0x16 */ u8 dtd;
+    /* 0x17 */ u8 dfe;
+    /* 0x18 */ u8 isbg;
+    /* 0x19 */ u8 r0;
+    /* 0x1A */ u8 g0;
+    /* 0x1B */ u8 b0;
+    /* 0x1C */ u32 dr_env[16];
+} DRAWENV;
+
+typedef struct {
+    /* 0x00 */ s16 disp[4];
+    /* 0x08 */ s16 screen[4];
+    /* 0x10 */ u8 isinter;
+    /* 0x11 */ u8 isrgb24;
+    /* 0x12 */ u8 pad0;
+    /* 0x13 */ u8 pad1;
+} DISPENV;
+
+typedef struct {
+    /* 0x0000 */ DRAWENV draw;
+    /* 0x005C */ DISPENV disp;
     /* 0x0070 */ u32 ot[0x1000];
     /* 0x4070 */ u8 unk4070[8];
     /* 0x4078 */ s32 unk4078[16];
@@ -2171,7 +2191,7 @@ void func_8001B7F4(u32 *p, s32 dx, s32 dy) {
     }
 }
 
-s32 func_8001B930();
+void func_8001B930();
 extern s32 D_80079500;
 
 void func_8001B90C(void) {
@@ -2179,7 +2199,41 @@ void func_8001B90C(void) {
     func_8001B930();
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B930);
+void SetDefDrawEnv(DRAWENV *, s32, s32, s32, s32);
+void SetDefDispEnv(DISPENV *, s32, s32, s32, s32);
+
+extern s32 D_80079544;
+
+#define DB(i) (((Unk800794F8 *)&D_800794F8)->unk98[i])
+
+void func_8001B930(s32 w, s32 h, s32 interlace) {
+    s32 i;
+
+    func_80013F04(interlace);
+    for (i = 0; i < 2; i++) {
+        if (h > 240) {
+            SetDefDrawEnv(&DB(i).draw, 0, 0, w, h);
+            SetDefDispEnv(&DB(i).disp, 0, 0, w, h);
+            DB(i).disp.isinter = 1;
+        } else {
+            if (interlace == 0) {
+                SetDefDrawEnv(&DB(i).draw, 0, i * 256, w, h);
+                SetDefDispEnv(&DB(i).disp, 0, 256 - i * 256, w, h);
+            } else {
+                SetDefDrawEnv(&DB(i).draw, 0, i * 240, w, h);
+                SetDefDispEnv(&DB(i).disp, 0, 240 - i * 240, w, h);
+            }
+            DB(i).disp.isinter = 0;
+        }
+        DB(i).draw.dtd = 0;
+        DB(i).draw.dfe = 0;
+        DB(i).draw.isbg = interlace ^ 1;
+        DB(i).draw.tpage = GetTPage(0, 0, 0, 0);
+        setRGB0(&DB(i).draw, 0, 0, 0);
+        DB(i).disp.isrgb24 = interlace;
+    }
+    D_80079544 = 0;
+}
 
 void *func_8001BB44(Chunk *p, s32 id, s32 sub) {
     Chunk *c;
@@ -6320,9 +6374,9 @@ void func_8002E658(s16 id) {
         func_80023148(0x17, 0);
         func_80022D34(0x17, 0, -2, 0);
     }
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].r0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].r0 = D_801D6A60[0];
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].g0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].g0 = D_801D6A60[1];
-    ((Unk800794F8 *)&D_800794F8)->unk98[0].b0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].b0 = D_801D6A60[2];
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.r0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.r0 = D_801D6A60[0];
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.g0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.g0 = D_801D6A60[1];
+    ((Unk800794F8 *)&D_800794F8)->unk98[0].draw.b0 = ((Unk800794F8 *)&D_800794F8)->unk98[1].draw.b0 = D_801D6A60[2];
 }
 
 extern s32 D_801D81A8;
