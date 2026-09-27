@@ -45,7 +45,27 @@ long StartPAD(void) {
     return 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AE30);
+/* the interrupt RP entry handed to the kernel: next link, two handlers, mode;
+   it is addressed from its handler array, as in dw3 */
+extern long D_801DDC70;
+extern int (*D_801DDC74[2])(void);
+extern long D_801DDC7C;
+int func_8006AEA8(void);
+int func_8006AF10(void);
+void func_8006AF94(int prio, void *rp);
+void func_8006AF84(int prio, void *rp);
+
+int func_8006AE30(void) {
+    func_8006A804();
+    D_801DDC74[0] = func_8006AEA8;
+    D_801DDC74[1] = func_8006AF10;
+    D_801DDC70 = 0;
+    D_801DDC7C = 0;
+    func_8006AF94(1, &D_801DDC74[-1]);
+    func_8006AF84(1, &D_801DDC74[-1]);
+    func_8006A814();
+    return 1;
+}
 
 int func_8006AEA8(void) {
     volatile int i, j, k;
