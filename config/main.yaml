@@ -64,6 +64,7 @@ segments:
       - [0x9C0, .rodata, game_b]
       - [0xD78, .rodata, sound]
       - [0x1010, .rodata, stage]
+      - [0x14A0, .rodata, duel]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
       # the game's own startup and interrupt glue, written in assembly
@@ -90,6 +91,7 @@ segments:
       - [0x17690, c, game_b]
       - [0x1B5EC, c, sound]
       - [0x1E4B0, c, stage]
+      - [0x24A60, c, duel]
       - [0x3AE10, c, psyq]
       - [0x5E53C, data, game]
       - [0x5F714, data, psyq]
