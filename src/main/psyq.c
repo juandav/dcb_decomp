@@ -872,7 +872,16 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", StRingStatus);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdIntToPos);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005A344);
+extern long D_80070C48, D_80070C44, D_80070C40;
+
+long func_8005A344(long v) {
+    long old = D_80070C48;
+
+    D_80070C48 = v;
+    return old;
+}
+
+OBJECT_END(3);
 
 void func_8005A364(void) {
     CD_sync();
