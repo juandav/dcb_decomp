@@ -9214,7 +9214,21 @@ s8 func_80045B18(s32 p, s32 id, s32 n) {
     return PLAYER_DATA(p).unk14B2[id] & 7;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80045E1C);
+s8 func_80045E1C(s32 p, s32 id, s32 n) {
+    if (id >= 0xAC && id <= 0xBE) {
+        return -3;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) == 0) {
+        return -2;
+    }
+    if ((PLAYER_DATA(p).unk14B2[id] & 7) - n < 0) {
+        PLAYER_DATA(p).unk14B2[id] &= 0xF8;
+        return -1;
+    }
+    PLAYER_DATA(p).unk14B2[id] -= n;
+    func_8002CC44(p);
+    return PLAYER_DATA(p).unk14B2[id] & 7;
+}
 
 
 s32 func_80045F5C(s32 arg0, s32 arg1) {
