@@ -29,7 +29,9 @@ int CdControl(u_char com, u_char *param, u_char *result) {
     return cd_cw(com, param, result, 0) == 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlF);
+int CdControlF(u_char com, u_char *param) {
+    return cd_cw(com, param, NULL, 1) == 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdControlB);
 
