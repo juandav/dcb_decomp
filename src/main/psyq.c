@@ -465,7 +465,13 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmInit);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuInitMalloc);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_setInTransfer);
+void _spu_setInTransfer(int mode) {
+    if (mode == 1) {
+        D_8006EF58 = 0;
+    } else {
+        D_8006EF58 = 1;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_getInTransfer);
 
