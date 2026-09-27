@@ -841,9 +841,9 @@ typedef struct {
     /* 0x76 */ s16 unk76;
     /* 0x78 */ s16 unk78;
     /* 0x7A */ s16 unk7A;
-    /* 0x7C */ s16 unk7C;
+    /* 0x7C */ u16 unk7C;
     /* 0x7E */ u16 unk7E;
-    /* 0x80 */ s16 unk80;
+    /* 0x80 */ u16 unk80;
     /* 0x82 */ s16 unk82;
     /* 0x84 */ s16 unk84;
     /* 0x86 */ s16 unk86;
@@ -855,16 +855,16 @@ typedef struct {
     /* 0x140 */ Particle *p;
     /* 0x144 */ u8 rgb[3];
     /* 0x147 */ u8 unk147;
-    /* 0x148 */ s8 drgb[3];
+    /* 0x148 */ u8 drgb[3];
     /* 0x14B */ u8 unk14B;
     /* 0x14C */ u16 frames;
     /* 0x14E */ s16 unk14E;
-    /* 0x150 */ s16 unk150;
+    /* 0x150 */ u16 unk150;
     /* 0x152 */ u16 count;
     /* 0x154 */ s16 unk154;
     /* 0x156 */ s16 unk156;
     /* 0x158 */ s8 unk158;
-    /* 0x159 */ u8 own;
+    /* 0x159 */ s8 own;
     /* 0x15A */ u8 unk15A;
     /* 0x15B */ s8 kind;
 } Particles;
@@ -9486,7 +9486,177 @@ Particles *func_80032B44(u8 *c0, u8 *c1, Unk13C *src, s16 sx, s16 sy, s16 a5, s1
     return o;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80033258);
+
+void func_80033258(Particles *o) {
+    Particle *p;
+    LINE_G2 *l;
+    SVECTOR *v;
+    s32 limit;
+    s32 i;
+    s32 t;
+    s32 d;
+    u32 z;
+    s16 dx;
+    s16 dz;
+    s32 a;
+    u8 r;
+    u8 g;
+    u8 bl;
+    s32 b;
+
+    p = o->p;
+    limit = 10000;
+    if (o->own != 0) {
+        if (((u8 *)o)[0x139] != 0) {
+            func_80031754(o);
+            return;
+        }
+        PushMatrix();
+        func_80030F90((s32)o, o->unk15A);
+        PopMatrix();
+        limit = (*(s16 *)((u8 *)o + 0x124) + o->frames - 1) / o->frames * o->frames;
+    }
+    PushMatrix();
+    if (o->kind == 0) {
+        if (o->unk147 == 0) {
+        for (i = 0; i < o->count; i++) {
+            t = o->unk150 + i;
+            if (t < limit) {
+                l = &p->line[D_800794F4];
+                v = (SVECTOR *)&p->unk74;
+                t %= o->frames;
+                func_8001EEA0(p, 0);
+                if (o->unk158 < 0) {
+                    v->vz = p->unk80 - p->unk7E * t;
+                } else {
+                    v->vz = p->unk7E * t;
+                }
+                v->vz += o->unk14E;
+                d = (p->unk7C + o->unk156 * t) * o->unk158 / 8;
+                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
+                    v->vz += d;
+                    z = RotTransPers((s32)v, (s32)&l->r1, &a, &b);
+                    if (z < 0x1000U) {
+                        if (o->unk154 != 0) {
+                            z = o->unk154;
+                        }
+                        r = o->rgb[0] + o->drgb[0] * t;
+                        g = o->rgb[1] + o->drgb[1] * t;
+                        bl = o->rgb[2] + o->drgb[2] * t;
+                        l->r0 = r;
+                        l->g0 = g;
+                        l->b0 = bl;
+                        addPrim(&D_800793A0->ot[z], l);
+                    }
+                }
+            }
+            p++;
+        }
+        } else {
+        for (i = 0; i < o->count; i++) {
+            t = o->unk150 + i;
+            if (t < limit) {
+                l = &p->line[D_800794F4];
+                v = (SVECTOR *)&p->unk74;
+                t %= o->frames;
+                func_8001EEA0(p, 0);
+                if (o->unk158 < 0) {
+                    v->vz = p->unk80 - p->unk7E * t;
+                } else {
+                    v->vz = p->unk7E * t;
+                }
+                v->vz += o->unk14E;
+                d = (p->unk7C + o->unk156 * t) * o->unk158 / 16;
+                v->vx += dx = d * rsin(p->unk82) / 4096;
+                v->vz += dz = d * rcos(p->unk82) / 4096;
+                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
+                    v->vx -= dx;
+                    v->vz -= dz;
+                    z = RotTransPers((s32)v, (s32)&l->r1, &a, &b);
+                    if (z < 0x1000U) {
+                        if (o->unk154 != 0) {
+                            z = o->unk154;
+                        }
+                        r = o->rgb[0] + o->drgb[0] * t;
+                        g = o->rgb[1] + o->drgb[1] * t;
+                        bl = o->rgb[2] + o->drgb[2] * t;
+                        l->r0 = r;
+                        l->g0 = g;
+                        l->b0 = bl;
+                        addPrim(&D_800793A0->ot[z], l);
+                    }
+                }
+            }
+            p->unk82 += p->unk84;
+            p++;
+        }
+        }
+    } else {
+        if (o->unk147 == 0) {
+        for (i = 0; i < o->count; i++) {
+            t = o->unk150 + i;
+            if (t < limit) {
+                l = &p->line[D_800794F4];
+                v = (SVECTOR *)&p->unk74;
+                t %= o->frames;
+                func_8001EEA0(p, 0);
+                if (o->unk158 < 0) {
+                    v->vz = p->unk80 - p->unk7E * t;
+                } else {
+                    v->vz = p->unk7E * t;
+                }
+                v->vz += o->unk14E;
+                d = (p->unk7C + o->unk156 * t) * o->unk158 / 8;
+                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
+                    v->vz += d;
+                    z = RotTransPers((s32)v, (s32)&l->x1, &a, &b);
+                    if (z < 0x1000U) {
+                        if (o->unk154 != 0) {
+                            z = o->unk154;
+                        }
+                        addPrim(&D_800793A0->ot[z], l);
+                    }
+                }
+            }
+            p++;
+        }
+        } else {
+        for (i = 0; i < o->count; i++) {
+            t = o->unk150 + i;
+            if (t < limit) {
+                l = &p->line[D_800794F4];
+                v = (SVECTOR *)&p->unk74;
+                t %= o->frames;
+                func_8001EEA0(p, 0);
+                if (o->unk158 < 0) {
+                    v->vz = p->unk80 - p->unk7E * t;
+                } else {
+                    v->vz = p->unk7E * t;
+                }
+                v->vz += o->unk14E;
+                d = (p->unk7C + o->unk156 * t) * o->unk158 / 16;
+                v->vx += dx = d * rsin(p->unk82) / 4096;
+                v->vz += dz = d * rcos(p->unk82) / 4096;
+                if (RotTransPers((s32)v, (s32)&l->x0, &a, &b) < 0x1000U) {
+                    v->vx -= dx;
+                    v->vz -= dz;
+                    z = RotTransPers((s32)v, (s32)&l->x1, &a, &b);
+                    if (z < 0x1000U) {
+                        if (o->unk154 != 0) {
+                            z = o->unk154;
+                        }
+                        addPrim(&D_800793A0->ot[z], l);
+                    }
+                }
+            }
+            p->unk82 += p->unk84;
+            p++;
+        }
+        }
+    }
+    o->unk150++;
+    PopMatrix();
+}
 
 void func_80033CD4(void *arg0) {
     func_8001AE90((*(void **)((s8 *)arg0 + 0x140)));
