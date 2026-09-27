@@ -8,7 +8,6 @@ extern Screen SCREEN_COPY_EFFECT;
 extern u8 D_800794E7;
 extern s32 RENDER_CALLBACKS_ENABLED;
 
-void runMainTask();
 void tickVblankCounters(void);
 void initScreenCopyEffect(void);
 void renderScreenCopyEffect(void);

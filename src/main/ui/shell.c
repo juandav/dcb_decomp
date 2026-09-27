@@ -11,6 +11,7 @@
 #include "dcb/sound.h"
 #include "dcb/stage.h"
 #include "dcb/system.h"
+#include "dcb/boot.h"
 #include "dcb/text.h"
 #include "dcb/window.h"
 

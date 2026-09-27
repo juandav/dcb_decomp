@@ -85,6 +85,7 @@ segments:
       # the game's own startup and interrupt glue, written in assembly
       - [0x5170, asm, startup]
       - [0x54F0, c, system/system]
+      - [0x5DF4, c, system/boot]
       - [0x5FB0, c, system/cd_file]
       - [0x703C, c, ui/window]
       - [0x98F4, c, ui/menu]

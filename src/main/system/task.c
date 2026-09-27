@@ -4,6 +4,7 @@
 #include "dcb/main.h"
 #include "dcb/heap.h"
 #include "dcb/system.h"
+#include "dcb/boot.h"
 
 void setTaskVsyncMode(s32 vsyncMode) {
     s16 *task;
