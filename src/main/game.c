@@ -76,8 +76,37 @@ typedef struct {
 } GsOT;
 
 typedef struct {
+    s16 vx;
+    s16 vy;
+    s16 vz;
+    s16 pad;
+} SVECTOR;
+
+typedef struct {
+    s32 vx;
+    s32 vy;
+    s32 vz;
+    s32 pad;
+} VECTOR;
+
+typedef struct {
+    s16 m[3][3];
+    s32 t[3];
+} MATRIX;
+
+typedef struct GsCOORDINATE2 {
+    /* 0x00 */ u32 flg;
+    /* 0x04 */ MATRIX coord;
+    /* 0x24 */ MATRIX workm;
+    /* 0x44 */ void *param;
+    /* 0x48 */ struct GsCOORDINATE2 *super;
+    /* 0x4C */ struct GsCOORDINATE2 *sub;
+} GsCOORDINATE2;
+
+typedef struct {
     /* 0x000 */ GsOT ot[2];
-    /* 0x028 */ u8 unk28[0x9C];
+    /* 0x028 */ GsCOORDINATE2 root;
+    /* 0x078 */ u8 unk78[0x4C];
     /* 0x0C4 */ GsRVIEW2 unkC4;
     /* 0x0E4 */ u8 unkE4[0x30];
     /* 0x114 */ s8 unk114[0x28];
@@ -854,34 +883,6 @@ typedef struct {
 } Unk8006E054;
 
 typedef struct {
-    s16 vx;
-    s16 vy;
-    s16 vz;
-    s16 pad;
-} SVECTOR;
-
-typedef struct {
-    s32 vx;
-    s32 vy;
-    s32 vz;
-    s32 pad;
-} VECTOR;
-
-typedef struct {
-    s16 m[3][3];
-    s32 t[3];
-} MATRIX;
-
-typedef struct GsCOORDINATE2 {
-    /* 0x00 */ u32 flg;
-    /* 0x04 */ MATRIX coord;
-    /* 0x24 */ MATRIX workm;
-    /* 0x44 */ void *param;
-    /* 0x48 */ struct GsCOORDINATE2 *super;
-    /* 0x4C */ struct GsCOORDINATE2 *sub;
-} GsCOORDINATE2;
-
-typedef struct {
     /* 0x0 */ u32 attribute;
     /* 0x4 */ GsCOORDINATE2 *coord2;
     /* 0x8 */ u32 *tmd;
@@ -898,7 +899,8 @@ typedef struct {
     /* 0x0000 */ s32 unk0;
     /* 0x0004 */ s16 nobj;
     /* 0x0006 */ s16 id;
-    /* 0x0008 */ u8 unk8[0x20];
+    /* 0x0008 */ VECTOR pos;
+    /* 0x0018 */ VECTOR scale;
     /* 0x0028 */ GsCOORDINATE2 root;
     /* 0x0078 */ GsCOORDINATE2 coord[32];
     /* 0x0A78 */ SVECTOR rot;
@@ -906,7 +908,8 @@ typedef struct {
     /* 0x0B80 */ GsDOBJ4 obj[32];
     /* 0x0D80 */ BoneKeys keys[32];
     /* 0x1F80 */ s16 *bonepos[32];
-    /* 0x2000 */ u8 unk2000[0x6B0];
+    /* 0x2000 */ u8 unk2000[0x2B0];
+    /* 0x22B0 */ MATRIX lw[32];
     /* 0x26B0 */ s8 parent[32];
     /* 0x26D0 */ s32 unk26D0;
     /* 0x26D4 */ s32 unk26D4;
@@ -6300,7 +6303,7 @@ void func_80022C4C(void) {
 
     p = D_801D6A4C = func_8001ABCC(0x29C, 0x7F);
     bzero(p, 0x29C);
-    GsInitCoordinate2(NULL, (GsCOORDINATE2 *)D_801D6A4C->unk28);
+    GsInitCoordinate2(NULL, &D_801D6A4C->root);
     D_80079544 = 1;
 }
 
@@ -6547,7 +6550,7 @@ void func_800234AC(Model *m) {
     s32 i;
 
     c = m->coord;
-    GsInitCoordinate2((GsCOORDINATE2 *)D_801D6A4C->unk28, &m->root);
+    GsInitCoordinate2(&D_801D6A4C->root, &m->root);
     for (i = 0, parent = m->parent, o = m->obj; i < m->nobj; i++, parent++, o++, c++) {
         o->coord2 = c;
         if (*parent < 0) {
@@ -6732,7 +6735,125 @@ void func_80023DC8(s32 arg0, s32 arg1, s32 arg2) {
     func_8002386C(arg0, arg1, arg2, 0, 1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80023DF0);
+typedef struct {
+    /* 0x000 */ MATRIX m;
+    /* 0x020 */ VECTOR pos;
+    /* 0x030 */ SVECTOR rot;
+    /* 0x038 */ u8 unk38[0x104];
+    /* 0x13C */ Model *model;
+    /* 0x140 */ u8 unk140[0x42F];
+    /* 0x56F */ u8 unk56F;
+    /* 0x570 */ u8 unk570;
+    /* 0x571 */ s8 unk571;
+} ModelLink;
+
+extern MATRIX D_801D6A08;
+extern MATRIX D_801D6A28;
+extern SVECTOR D_801D6A78;
+s32 PushMatrix();
+s32 PopMatrix();
+void GsGetLws(GsCOORDINATE2 *, MATRIX *, MATRIX *);
+void func_8002E7E8(u8 *);
+s32 func_80030F90(s32, s32);
+void *memset(void *, s32, s32);
+
+void func_80023DF0(Unk800793A0 *db, s32 idx) {
+    MATRIX ls;
+    SVECTOR sv;
+    MATRIX lm;
+    MATRIX lc;
+    MATRIX unused;
+    SVECTOR rot;
+    s32 flag;
+    u32 *ot;
+    u32 shift;
+    u32 packet;
+    Model *m;
+    GsDOBJ4 *obj;
+    ModelLink *l;
+    s32 i;
+    s32 j;
+    s32 *scratch;
+
+    ot = D_801D6A4C->ot[idx].org;
+    shift = 0xFFF;
+    if (D_80079544 != 0) {
+        packet = (u32)db->unk4070;
+        lc = D_801D6A28;
+        for (i = 0; i < 24; i++) {
+            m = D_801D6A4C->unk13C[i];
+            if (D_801D6A4C->unk114[i] <= 0 || m->unk26D4 < 0) {
+                continue;
+            }
+            lm = D_801D6A08;
+            gte_SetColorMatrix(&lc);
+            PushMatrix();
+            if (i != 0x17) {
+                sv.vx = m->pos.vx;
+                sv.vy = m->pos.vy;
+                sv.vz = m->pos.vz;
+                gte_ldv0(&sv);
+                gte_rtv0tr();
+                gte_stlvnl(ls.t);
+                gte_stflg(&flag);
+            } else {
+                ls.t[0] = ls.t[1] = ls.t[2] = 0;
+                shift >>= 2;
+                ot += shift * 3;
+                func_8002E7E8((u8 *)m);
+            }
+            if (D_801D6A4C->unk114[i] == 1) {
+                RotMatrix(&D_801D6A78, &D_801D6A4C->root.coord);
+                D_801D6A4C->root.flg = 0;
+                D_801D6A4C->root.coord.t[0] = ls.t[0];
+                D_801D6A4C->root.coord.t[1] = ls.t[1];
+                D_801D6A4C->root.coord.t[2] = ls.t[2];
+                RotMatrixYXZ(&m->rot, &m->root.coord);
+                m->root.flg = 0;
+                ScaleMatrix(&m->root.coord, &m->scale);
+            } else if (D_801D6A4C->unk114[i] == 2) {
+                PopMatrix();
+                continue;
+            } else {
+                l = (ModelLink *)m->unk26E0;
+                memset(&rot, 0, 8);
+                if (l->unk571 != 0) {
+                    func_80030F90((s32)l, l->unk56F);
+                    m->root.coord = l->m;
+                    l->model->rot = l->rot;
+                    l->model->pos = l->pos;
+                }
+                RotMatrix(&rot, &D_801D6A4C->root.coord);
+                D_801D6A4C->root.flg = 0;
+                D_801D6A4C->root.coord.t[2] = 0;
+                D_801D6A4C->root.coord.t[1] = 0;
+                D_801D6A4C->root.coord.t[0] = 0;
+                D_801D6A4C->unk114[i] = 2;
+            }
+            scratch = (s32 *)0x1F800000;
+            scratch[12] = m->unk26D4;
+            scratch[13] = m->unk26D0;
+            obj = m->obj;
+            for (j = 0; j < m->nobj; j++, obj++) {
+                obj->coord2->flg = 0;
+                if (obj->id != -1 && obj->tmd != NULL) {
+                    GsGetLws(obj->coord2, &m->lw[j], &ls);
+                    if (obj->attribute == 0) {
+                        gte_SetLightMatrix(&lm);
+                        gte_SetRotMatrix(&ls);
+                        gte_SetTransMatrix(&ls);
+                        if (obj->tmd[0] != 0) {
+                            packet = func_80020370((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
+                        } else {
+                            packet = func_800202D8((u32 *)obj->tmd[5], ot + 1, packet, (void *)shift);
+                        }
+                    }
+                }
+            }
+            PopMatrix();
+        }
+    }
+}
 
 void func_8005C484(s32, s32);
 void func_8005C4A4(s32);
