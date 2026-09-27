@@ -8,7 +8,8 @@ is the index register).
 GCC 2.7.2 leaves jumps (`j $31`, `j label`) and some calls in reorder mode
 and maspsx follows them with a nop. The ASPSX used for those objects moved
 the previous instruction into the delay slot instead, unless that would put a load of
-$31 right before the jump.
+$31 right before the jump. A `la` before the jump is split, and its low half
+goes into the slot.
 
 A load delay nop that maspsx emits after a label belongs before it.
 
@@ -111,6 +112,7 @@ def main():
             while k >= 0 and not out[k].split("#", 1)[0].strip():
                 k -= 1
             prev = split(out[k]) if k >= 0 else None
+            prev_la = prev
             prev2 = None
             if prev:
                 m = k - 1
@@ -148,6 +150,22 @@ def main():
                 moved = out.pop(k)
                 out.append(line)
                 out.append(moved)
+                i += 2
+                continue
+            la_addr = (
+                prev_la is not None
+                and prev_la[0] == "la"
+                and len(prev_la[1]) == 2
+                and "(" not in prev_la[1][1]
+                and not (prev2 and BRANCHES.match(prev2[0]))
+            )
+            if la_addr:
+                # ASPSX expanded `la` itself and put the low half in the slot,
+                # even right after a label
+                reg, sym = prev_la[1]
+                out[k] = f"lui\t{reg},%hi({sym})"
+                out.append(line)
+                out.append(f"addiu\t{reg},{reg},%lo({sym})")
                 i += 2
                 continue
             if idx_store and not (prev2 and BRANCHES.match(prev2[0])):
