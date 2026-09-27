@@ -450,6 +450,29 @@ typedef struct {
 } Unk800190F4;
 
 typedef struct {
+    /* 0x00 */ Unk80016F38 *win;
+    /* 0x04 */ Unk800190F4 *cursor;
+    /* 0x08 */ Rect16 rect;
+    /* 0x10 */ s16 col;
+    /* 0x12 */ s16 prevCol;
+    /* 0x14 */ s16 row;
+    /* 0x16 */ s16 prevRow;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 unk19;
+    /* 0x1A */ s16 cw;
+    /* 0x1C */ s16 ch;
+    /* 0x1E */ s16 ncols;
+    /* 0x20 */ s16 nrows;
+    /* 0x22 */ u8 ox;
+    /* 0x23 */ u8 oy;
+    /* 0x24 */ u8 colW;
+    /* 0x25 */ u8 rowH;
+    /* 0x26 */ u8 active;
+    /* 0x27 */ u8 moved;
+    /* 0x28 */ u8 pad;
+} Menu;
+
+typedef struct {
     /* 0x00 */ s32 key;
     /* 0x04 */ u8 unk4[0xC];
     /* 0x10 */ s32 name[4];
@@ -2599,7 +2622,97 @@ void func_800197AC(void *arg0) {
     func_80019280(*(Unk800190F4 **)((s8 *)arg0 + 4), (Rect16 *)r);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800198A8);
+extern PadState *D_80089840[];
+void func_800192FC(Unk800190F4 *, s32);
+
+s32 func_800198A8(Menu *m) {
+    Unk80016F38 *w;
+    Unk800190F4 *c;
+    s16 r[4];
+
+    w = m->win;
+    c = m->cursor;
+    m->moved = 0;
+    if (m->active != 0) {
+        c->unk4C = 0x80;
+        if (m->nrows >= 2 && m->rowH != 0) {
+            if (D_80089840[m->pad]->unkE & 0x1000) {
+                func_8002BB58(2);
+                m->moved = 1;
+                if (--m->row < 0) {
+                    func_8001705C((s16 *)w, 0, w->view.h - w->rect.h);
+                    m->row = m->nrows - 1;
+                } else {
+                if (m->row == 0) {
+                    D_80089840[m->pad]->unk10 = 0;
+                }
+                if (m->row * m->rowH < w->unk30[3]) {
+                    func_8001705C((s16 *)w, 0, m->row * m->rowH);
+                }
+                }
+            } else if (D_80089840[m->pad]->unkE & 0x4000) {
+                func_8002BB58(2);
+                m->moved = 1;
+                if (++m->row >= m->nrows) {
+                    func_8001705C((s16 *)w, 0, 0);
+                    m->row = 0;
+                } else {
+                if (m->row == m->nrows - 1) {
+                    D_80089840[m->pad]->unk10 = 0;
+                }
+                if (m->row * m->rowH >= w->unk30[3] + w->rect.h) {
+                    func_8001705C((s16 *)w, 0, (m->row + 1) * m->rowH - w->rect.h);
+                }
+                }
+            } else if (D_80089840[m->pad]->unkE & 0x1) {
+                if (m->row != 0) {
+                    func_8002BB58(2);
+                }
+                m->moved = 1;
+                m->row -= (w->rect.h + m->rowH - 1) / m->rowH;
+                if (m->row < 0) {
+                    D_80089840[m->pad]->unk10 = 0;
+                    func_8001705C((s16 *)w, 0, 0);
+                    m->row = 0;
+                } else {
+                    if (m->row == 0) {
+                        D_80089840[m->pad]->unk10 = 0;
+                    }
+                    func_8001705C((s16 *)w, 0, w->unk30[3] - (w->rect.h + m->rowH - 1) / m->rowH * m->rowH);
+                }
+            } else if (D_80089840[m->pad]->unkE & 0x2) {
+                if (m->row != m->nrows - 1) {
+                    func_8002BB58(2);
+                }
+                m->moved = 1;
+                m->row += (w->rect.h + m->rowH - 1) / m->rowH;
+                if (m->row >= m->nrows) {
+                    D_80089840[m->pad]->unk10 = 0;
+                    func_8001705C((s16 *)w, 0, w->view.h - w->rect.h);
+                    m->row = m->nrows - 1;
+                } else {
+                    if (m->row == m->nrows - 1) {
+                        D_80089840[m->pad]->unk10 = 0;
+                    }
+                    func_8001705C((s16 *)w, 0, w->unk30[3] + (w->rect.h + m->rowH - 1) / m->rowH * m->rowH);
+                }
+            }
+        }
+    } else {
+        c->unk4C = 0x40;
+    }
+    if (m->row != m->prevRow || m->col != m->prevCol) {
+        m->prevCol = m->col;
+        m->prevRow = m->row;
+        r[0] = (w->rect.x - w->unk30[2]) + m->ox + m->col * m->colW;
+        r[1] = (w->rect.y - w->unk30[3]) + m->oy + m->row * m->rowH;
+        r[2] = m->cw;
+        r[3] = m->ch;
+        func_80019280(m->cursor, (Rect16 *)r);
+    }
+    func_800192FC(c, w->z);
+    return m->col + m->row * m->ncols;
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_80010000);
 
