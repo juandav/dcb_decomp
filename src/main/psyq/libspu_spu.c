@@ -12,8 +12,14 @@ extern void (*volatile D_8006EF5C)(void);
 extern void (*volatile D_8006EF60)(void);
 extern u_short D_8006EF64[];
 extern volatile u_short D_801D8560[];
+extern volatile u_long *D_8006EF28;
+extern volatile u_long *D_8006EF2C;
+extern volatile u_long *D_8006EF30;
+extern long D_8006EF74;
 void _spu_Fw1ts(void);
 void func_8004AC20(u_char *addr, u_long size);
+void func_8004B428(void);
+void func_8004B450(void);
 
 long _spu_init(long mode) {
     int i;
@@ -134,18 +140,26 @@ void func_8004AC20(u_char *addr, u_long size) {
     }
 }
 
-/* the object's string table was padded to 8 bytes */
-__asm__(".section .rodata\n\t.space 8\n");
+void _spu_FiDMA(void) {
+    u_int i;
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_FiDMA);
+    if (D_8006EF74 == 0) {
+        _spu_Fw1ts();
+    }
+    D_8006EF24[0xD5] &= ~0x30;
+    i = 0;
+    while (D_8006EF24[0xD5] & 0x30) {
+        if (++i > 0xF00) {
+            break;
+        }
+    }
+    if (D_8006EF5C) {
+        D_8006EF5C();
+    } else {
+        func_8006A784(0xF0000009, 0x20);
+    }
+}
 
-extern volatile u_long *D_8006EF28;
-extern volatile u_long *D_8006EF2C;
-extern volatile u_long *D_8006EF30;
-extern long D_8006EF74;
-void _spu_Fw1ts(void);
-void func_8004B428(void);
-void func_8004B450(void);
 
 void _spu_Fr_(u_char *addr, u_short spuAddr, u_long size) {
     D_8006EF24[0xD3] = spuAddr;
@@ -307,5 +321,8 @@ void _spu_Fw1ts(void) {
         n *= 13;
     }
 }
+
+/* the object's string table was padded to 8 bytes */
+__asm__(".section .rodata\n\t.space 8\n");
 
 OBJECT_END(3);
