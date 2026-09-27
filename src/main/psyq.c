@@ -584,7 +584,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", vmNoiseOn);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuSetNoiseClock);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", vmNoiseOff);
+extern VmVoice D_801D8EB0[];
+
+void vmNoiseOff(u8 voice) {
+    D_801D8EB0[voice].unk1D = 0;
+    D_801D8EB0[voice].unk0 = 0;
+    D_801D8EB0[voice].unk4 = 0;
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmKeyOffNow);
 
