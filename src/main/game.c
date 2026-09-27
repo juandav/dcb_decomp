@@ -1291,12 +1291,38 @@ void func_8001B10C(s32 arg0, s32 arg1) {
     func_80014A48(arg1, func_80015848(arg0) == 0 ? 1 : -1);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B144);
-
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B248);
-
 extern s32 D_8006DEF0;
 extern s32 D_801D4848;
+
+s32 func_8001B144(s32 name, s32 arg1) {
+    s32 size;
+    s32 f;
+    s32 buf;
+
+    size = 0;
+    while (D_8006DEF0 != 0) {
+        func_80014C08(D_800794F0);
+    }
+    D_8006DEF0 = 1;
+    f = func_80015AD8(name, 1);
+    buf = 0;
+    if (f != 0) {
+        size = *(s32 *)((s8 *)f + 0x24);
+        buf = (s32)func_8001ABCC(size, arg1);
+        if (buf == 0) {
+            func_80015EAC((s32 *)f);
+        } else {
+            func_80015F34(f, size, (s32 *)buf);
+            func_80015EAC((s32 *)f);
+        }
+    }
+    D_801D4848 = size;
+    func_80014A48(arg1, buf);
+    D_8006DEF0 = 0;
+    return buf;
+}
+
+INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B248);
 
 s32 func_80014A48();
 extern s32 D_800794F0;
@@ -1374,7 +1400,29 @@ void func_8001B5BC(u32 *addr) {
     DrawSync(0);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8001B634);
+void func_8001B634(u32 *addr, s32 dx, s32 dy) {
+    TIM_IMAGE img;
+    Rect16 r;
+
+    OpenTIM(addr);
+    while (ReadTIM(&img) != 0) {
+        if (img.caddr != 0) {
+            r.w = img.crect->w;
+            r.h = img.crect->h;
+            r.x = img.crect->x + dx;
+            r.y = img.crect->y + dy;
+            LoadImage((s16 *)&r, (s32)img.caddr);
+        }
+        if (img.paddr != 0) {
+            r.w = img.prect->w;
+            r.h = img.prect->h;
+            r.x = img.prect->x + dx;
+            r.y = img.prect->y + dy;
+            LoadImage((s16 *)&r, (s32)img.paddr);
+        }
+    }
+    DrawSync(0);
+}
 
 void func_8001B734(u32 *p) {
     u32 *top;
@@ -5197,7 +5245,25 @@ void func_8003D9C0(Panel *p, s16 x, s16 y, s32 speed) {
     p->unkD++;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8003DA64);
+s32 func_8003DA64(Panel *p) {
+    s16 px;
+    s16 py;
+
+    px = 0;
+    py = 0;
+    p->unkF--;
+    if (p->parent != 0) {
+        p->unkC = p->parent->unkC;
+        px = p->parent->unk10;
+        py = p->parent->unk12;
+    }
+    p->unk10 = px + (p->unk14 - (p->unk14 - p->unk18) * p->unkF / p->unkE);
+    p->unk12 = py + (p->unk16 - (p->unk16 - p->unk1A) * p->unkF / p->unkE);
+    if (p->unkF == 0) {
+        p->unkD++;
+    }
+    return p->unkF;
+}
 
 void func_8003DB64(Panel *p) {
     s16 x;
@@ -6059,7 +6125,7 @@ INCLUDE_ASM("asm/main/nonmatchings/game", func_80041A1C);
 extern s32 D_8006E294;
 extern s32 D_801D8344;
 void func_8001B438(u32 *, s16, s16, s16, s16);
-void func_8001B144();
+s32 func_8001B144();
 
 void func_80041CA8(u8 *s, s32 row, s32 arg2) {
     char path[64]; /* unused, but it is in the original stack frame */
@@ -6532,7 +6598,25 @@ s32 func_80047B84(s32 a, s32 id) {
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80047C38);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80047D5C);
+s32 func_80047D5C(s32 a, s32 b) {
+    s32 j;
+    s32 k;
+    s32 n;
+
+    for (j = 0; j < 3; j++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 == D_8006E518[b]) {
+            k = 0;
+            n = 0;
+            for (; k < 3; k++) {
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28F[k] != 0) {
+                    n++;
+                }
+            }
+            return n;
+        }
+    }
+    return 0;
+}
 
 void func_80047E64(s32 a, s32 b, s32 c) {
     s32 j;
