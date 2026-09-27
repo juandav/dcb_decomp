@@ -1716,6 +1716,10 @@ s32 func_8001BD60(void) {
     return i;
 }
 
+extern s32 D_801D487C;
+extern u8 *D_801D4874;
+extern u8 D_801D5988[0x1000];
+
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8001BDEC);
 
 void func_8001C078(s32);
@@ -1725,11 +1729,10 @@ void func_8001BFCC(s32 arg0, s32 arg1) {
 }
 
 u32 func_8001BCA4(s32);
-s32 func_8001BDEC(s32);
+void func_8001BDEC(u32);
 extern s32 D_801D4868;
 extern u32 D_801D486C;
 extern u8 *D_801D4870;
-extern s32 D_801D4874;
 
 s32 func_8001BFF8(s32 arg0, s32 arg1) {
     s32 temp_s0;
@@ -1742,7 +1745,7 @@ s32 func_8001BFF8(s32 arg0, s32 arg1) {
     temp_s0 = func_8001BCA4(0x10);
     temp_s0_2 = (temp_s0 << 0x10) | func_8001BCA4(0x10);
     temp_v0 = func_8001ABCC(temp_s0_2, arg1);
-    D_801D4874 = temp_v0;
+    D_801D4874 = (u8 *)temp_v0;
     func_8001BDEC(temp_s0_2);
     return temp_v0;
 }
