@@ -141,9 +141,10 @@ $(BUILDDIR)/%.c.o: %.c
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
 	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/main/%,%,$*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
-	@# gas aligns .data and .bss to 16; psylink packed the game's objects
-	@# to 4, so the sections they are linked into keep their layout
-	@$(OBJCOPY) --set-section-alignment .data=4 --set-section-alignment .bss=4 $@
+	@# gas aligns .data and .bss to 16 and GCC's jump tables align .rodata
+	@# to 8; psylink packed the game's objects to 4, so a file's rodata can
+	@# start 4 bytes past an 8-byte boundary, as the original's do
+	@$(OBJCOPY) --set-section-alignment .rodata=4 --set-section-alignment .data=4 --set-section-alignment .bss=4 $@
 
 # Local labels get the object's name so the outputs can be joined
 $(BUILDDIR)/src/main/psyq/%.c.s: src/main/psyq/%.c
