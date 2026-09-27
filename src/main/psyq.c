@@ -295,7 +295,15 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContNrpn1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContNrpn2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContRpn1);
+void _SsContRpn1(short seq, short sep, u_char value) {
+    SeqStruct *score = &D_801D8618[seq][sep];
+
+    score->rpn1 = value;
+    score->unk1E++;
+    score->delta = _SsReadDeltaValue(seq, sep);
+}
+
+OBJECT_END(1);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsContRpn2);
 
