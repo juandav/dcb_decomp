@@ -10,7 +10,7 @@
 #include "dcb/memcard.h"
 #include "dcb/save_checksum.h"
 #include "dcb/player_rank.h"
-#include "dcb/shell.h"
+#include "dcb/partner_level.h"
 #include "dcb/hacking_shell.h"
 #include "dcb/game_exit.h"
 

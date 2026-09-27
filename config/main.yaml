@@ -139,7 +139,7 @@ segments:
       - [0x30864, c, duel/card_zones]
       - [0x31ED8, c, card/card_render]
       - [0x35FFC, c, card/card_db]
-      - [0x3A040, c, ui/shell]
+      - [0x3A040, c, card/partner_level]
       - [0x3A214, c, ui/hacking_shell]
       - [0x3AADC, c, system/game_exit]
       - [0x3AE10, c, psyq]

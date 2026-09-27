@@ -2,7 +2,7 @@
 #include "common.h"
 #include "gte.h"
 #include "game.h"
-#include "dcb/shell.h"
+#include "dcb/partner_level.h"
 #include "dcb/hacking_shell.h"
 #include "dcb/card_db.h"
 #include "dcb/loader.h"

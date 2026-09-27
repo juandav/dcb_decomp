@@ -2,7 +2,7 @@
 #define DCB_GAME_EXIT_H
 
 #include "game.h"
-#include "dcb/shell.h"
+#include "dcb/partner_level.h"
 
 void quitToTitleOrPlayEnding(s32 mode);
 

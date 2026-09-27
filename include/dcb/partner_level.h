@@ -1,5 +1,5 @@
-#ifndef DCB_SHELL_H
-#define DCB_SHELL_H
+#ifndef DCB_PARTNER_LEVEL_H
+#define DCB_PARTNER_LEVEL_H
 
 #include "game.h"
 
@@ -33,4 +33,4 @@ s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot);
 s32 getExpForNextLevel(s32 level);
 s32 func_8004994C(s32 player, s32 slot);
 
-#endif /* DCB_SHELL_H */
+#endif /* DCB_PARTNER_LEVEL_H */
