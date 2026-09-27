@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/window.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
 

@@ -4,6 +4,7 @@
 #include "game.h"
 #include "dcb/card_db.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
 

@@ -93,6 +93,7 @@ segments:
       - [0x98F4, c, ui/menu]
       - [0xAE00, c, system/pad]
       - [0xB280, c, system/heap]
+      - [0xB888, c, system/angle]
       - [0xB90C, c, system/loader]
       - [0xC344, c, system/archive]
       - [0xCA20, c, gfx/prim]

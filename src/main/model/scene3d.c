@@ -5,6 +5,7 @@
 #include "dcb/effect.h"
 #include "dcb/duel_util.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
 #include "dcb/task.h"

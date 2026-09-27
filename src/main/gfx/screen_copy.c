@@ -8,6 +8,7 @@
 #include "dcb/duel_util.h"
 #include "dcb/fade.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
 #include "dcb/task.h"

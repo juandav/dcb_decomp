@@ -2,6 +2,7 @@
 #include "game.h"
 #include "dcb/main.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/system.h"
 #include "dcb/screen_copy.h"
 #include "dcb/render_loop.h"

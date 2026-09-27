@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/archive.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
 

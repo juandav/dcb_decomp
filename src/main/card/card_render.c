@@ -7,6 +7,7 @@
 #include "dcb/hud_panels.h"
 #include "dcb/duel_session.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
