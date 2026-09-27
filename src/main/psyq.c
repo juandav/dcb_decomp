@@ -531,7 +531,9 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuFree);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _spu_gcSPU);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabOpenHeadSticky);
+short SsVabOpenHeadSticky(unsigned char *addr, short vabId, unsigned long sbaddr) {
+    return _SsVabOpenHeadWithMode(addr, vabId, func_80055BE8, sbaddr);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsVabFakeHead);
 
