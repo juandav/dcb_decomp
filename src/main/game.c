@@ -70,6 +70,12 @@ typedef struct {
     s16 unk90;
     s16 unk92;
     s16 unk94;
+    u8 pad96[0x2];
+    struct {
+        u8 pad0[0x4078];
+        s32 unk4078[16];
+        u8 pad40B8[0x8];
+    } unk98[2];
 } Unk800794F8;
 
 typedef struct {
@@ -966,7 +972,28 @@ found:
     goto found;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800168C4);
+void func_800168C4(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[0] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[1] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[2] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[3] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[4] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[5] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[6] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[7] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[8] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[9] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[10] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[11] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[12] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[13] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[14] = 0;
+        ((Unk800794F8 *)&D_800794F8)->unk98[i].unk4078[15] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80016948);
 
