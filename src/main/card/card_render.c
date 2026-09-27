@@ -10,6 +10,9 @@
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
 
+s32 D_8006E294 = 0;
+s32 D_8006E298 = 0x808080;
+
 void startCpuDuel(s32 deckIndex) {
     u8 *deckFile;
     SavedDeck *decks;
@@ -172,7 +175,40 @@ void runCardArtLoader(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/card/card_render", loadDuelCardGraphics);
 
-INCLUDE_RODATA("asm/main/nonmatchings/card/card_render", D_80011440);
+/* the message on the top bar */
+u8 * STATUS_MESSAGE_TEXTS[18] = {
+    "Preparation: Preparing a Hand.",
+    "Preparation: There is no Digimon!",
+    "Preparation: No Cards in Online Deck!",
+    "Preparation: Change all Cards.",
+    "Preparation: Digimon Entrance.",
+    "Preparation: Digi-Egg Power-Up.",
+    "Preparation: Preparation Complete.",
+    "Digivolve: Digivolve Points (DP).",
+    "Digivolve: Digivolve Option.",
+    "Digivolve: Digivolve Digimon.",
+    "Digivolve: Digivolve Complete.",
+    "Battle: *P1 has no Digimon.",
+    "Battle: Deciding an Attack.",
+    "Battle: *P1's Support Card.",
+    "Battle: *P0's Support Card.",
+    "Battle: Support taking Effect.",
+    "Preparation: Changing all Cards.",
+    "Battle:",
+};
+s8 STATUS_STEP_SPRITES[20] = { 0, 0, 0, 0, 1, 1, -1, 2, 3, 4, -1, -1, 5, 6, 6, 7, 0, -1, 0, 0 };
+/* the button prompts on the bottom bar */
+u8 * HELP_BAR_TEXTS[9] = {
+    "",
+    "*b2OK *b1Change All Cards *b3View Cards",
+    "*b0*b1*b2OK *b3View Cards",
+    "*b4Select *b2OK",
+    "",
+    "*b4Select *b2OK *b1Return",
+    "*b4Select *b2OK *b0Cancel *b1Return",
+    "*b4Select *b2OK *b0Cancel",
+    "*b4Select *b1Return",
+};
 
 void drawHudSprite(SprtInfo *info, s32 unused, s32 z) {
     if (func_80029990() == 0) {
@@ -665,7 +701,7 @@ void renderHelpBar(s32 brightness) {
         addPrim(&D_800793A0->ot[0xFFE], &CUR_SPRT->dm);
         D_801D6B24 += sizeof(SprtPacket);
         if (DUEL_MSG_BAR.unkA == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
-            func_80028D48(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)STR_THINKING, (s32 *)rgb, 7, 0xFFE);
+            func_80028D48(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
         } else {
             func_80028D48(0x40, 0xDB - DUEL_MSG_BAR.y2, (s32)HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], (s32 *)rgb, 7, 0xFFE);
         }
@@ -964,4 +1000,81 @@ MATRIX *buildRotTransMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
     return m;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/card/card_render", STR_THINKING);
+/* the names of the card packs */
+u8 * D_8006E31C[16] = {
+    "Basic Pack",
+    "Hyper Pack",
+    "Super Pack",
+    "Great Pack",
+    "Red Pack",
+    "Blue Pack",
+    "Green Pack",
+    "Black Pack",
+    "Yellow Pack",
+    "Option Pack",
+    "S-Red Pack",
+    "S-Blue Pack",
+    "S-Green Pack",
+    "S-Black Pack",
+    "S-Yellow Pack",
+    "S-Option Pack",
+};
+u8 REWARD_CARD_RANGES[16][18] = {
+    { 0, 0xD, 0x63, 0, 0xE, 0x63, 0, 0xC, 0x63, 0, 0xD, 0x63, 0, 0xD, 0x63, 0, 0, 1 },
+    { 0x1A, 0x16, 0x63, 0x1B, 0x17, 0x63, 0x1A, 0x15, 0x63, 0x1A, 0x16, 0x63, 0x19, 0x16, 0x63, 0, 0, 1 },
+    { 0x1E, 0x63, 0, 0x1F, 0x63, 0, 0x1E, 0x63, 0, 0x1E, 0x63, 0, 0x1D, 0x63, 0, 0xA, 0, 1 },
+    { 0x22, 0xEE, 0, 0x22, 0xEC, 0, 0x1F, 0xED, 0, 0x22, 0xED, 0, 0x20, 0xEE, 0, 0x63, 0xA, 5 },
+    { 0x19, 0x63, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0x1A, 0x63, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0x19, 0x63, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x19, 0x63, 0x63, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x18, 0x63, 0x63, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xF, 0, 1 },
+    { 0x20, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0x20, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0x1D, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x20, 0x63, 0, 0, 0, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1E, 0x63, 0, 0, 0, 3 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1D, 0xA, 6 },
+};
+/* the cross effects, as shown on a card */
+u8 * D_8006E47C[16] = {
+    "none",
+    "1stAttack",
+    "\001\010 to 0",
+    "\001\011 to 0",
+    "\001\n"
+        " to 0",
+    "\001\010 Counter",
+    "\001\011 Counter",
+    "\001\n"
+        " Counter",
+    "Crash",
+    "Eat-up HP",
+    "Jamming",
+    "\001\001 Foe X3",
+    "\001\002 Foe X3",
+    "\001\003 Foe X3",
+    "\001\004 Foe X3",
+    "\001\005 Foe X3",
+};
+/* the cross effects, as shown in the battle panel */
+u8 * D_8006E4BC[16] = {
+    "none",
+    "1stAttack",
+    "*b0 to 0",
+    "*b1 to 0",
+    "*b2 to 0",
+    "*b0 Counter",
+    "*b1 Counter",
+    "*b2 Counter",
+    "Crash",
+    "Eat-up HP",
+    "Jamming",
+    "*a0 Foe X3",
+    "*a1 Foe X3",
+    "*a2 Foe X3",
+    "*a3 Foe X3",
+    "*a4 Foe X3",
+};
+u8 D_8006E4FC[16] = { 0, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1 };

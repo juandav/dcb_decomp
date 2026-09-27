@@ -27,7 +27,7 @@ extern u8 *STATUS_MESSAGE_TEXTS[];
 extern DR_AREA HELP_BAR_RESTORE_AREA[2];
 extern DR_AREA HELP_BAR_CLIP_AREA[2];
 extern u8 *HELP_BAR_TEXTS[];
-extern char STR_THINKING[];
+extern u8 *D_8006E31C[];
 extern s32 CARD_POLY_COUNT;
 
 void startCpuDuel(s32 deckIndex);
