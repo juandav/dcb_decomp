@@ -9,6 +9,7 @@
 #include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 void initCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color) {

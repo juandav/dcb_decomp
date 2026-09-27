@@ -24,6 +24,7 @@
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 void initScreenCopyEffect(void) {

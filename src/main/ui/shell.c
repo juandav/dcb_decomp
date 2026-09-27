@@ -22,6 +22,7 @@
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 #include "dcb/text.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {

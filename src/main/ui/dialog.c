@@ -10,6 +10,7 @@
 #include "dcb/player_rank.h"
 #include "dcb/prim_util.h"
 #include "dcb/text.h"
+#include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
 void initDialog(u8 *dialog, u8 *text, u32 flags) {
