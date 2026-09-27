@@ -1317,7 +1317,10 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066C0C);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066D48);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066E84);
+void func_80066E84(void) {
+    D_80076894 = VSync(-1) + 240;
+    D_80076898 = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80066EB8);
 
