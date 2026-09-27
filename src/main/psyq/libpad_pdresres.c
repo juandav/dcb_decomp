@@ -129,7 +129,22 @@ void func_8006D3A0(int wait) {
     D_801DDF24 = *(volatile u_short *)0x1F801120;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D3C0);
+int func_8006D3C0(void) {
+    int t;
+
+    t = *(volatile u_short *)0x1F801120;
+    if (t < D_801DDF24) {
+        if (*(volatile u_short *)0x1F801128 != 0) {
+            t += *(volatile u_short *)0x1F801128;
+        } else {
+            t += 0x10000;
+        }
+    }
+    if (*(volatile u_short *)0x1F801124 & 0x200) {
+        return (t - D_801DDF24) >= D_801DDF28;
+    }
+    return ((t - D_801DDF24) >> 3) >= D_801DDF28;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D460);
 
