@@ -19,9 +19,9 @@
 void func_80014CF0(void) {
     s32 i;
 
-    if (D_8006E050 != 0) {
+    if (PLAYER_PROFILES != 0) {
         for (i = 0; i < 2; i++) {
-            ((Unk8006E050 *)D_8006E050)[i].unk24++;
+            ((Unk8006E050 *)PLAYER_PROFILES)[i].unk24++;
         }
     }
     D_800794EC++;
@@ -199,7 +199,7 @@ void func_800155F4(void) {
     func_80026E90(0x3C0, 0x100, 0x3E8);
     func_80016948(0xD);
     func_8001B90C(0x140, 0xF0, 0);
-    func_8002D404();
+    initPlayerData();
     func_8002F79C();
     for (;;) {
         func_80014840();

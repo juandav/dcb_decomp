@@ -9,14 +9,14 @@
 #include "dcb/main.h"
 #include "dcb/model.h"
 
-void func_8002D404(void) {
-    void *p;
+void initPlayerData(void) {
+    void *session;
 
-    func_800457FC();
-    D_8006E050 = func_8001ACEC(0x4EE8);
-    D_8006E054 = p = func_8001ACEC(0x102C);
+    loadCardDatabase();
+    PLAYER_PROFILES = func_8001ACEC(0x4EE8);
+    D_8006E054 = session = func_8001ACEC(0x102C);
     (*(void **)((s8 *)D_8006E054 + 0x100C)) = func_8001ACEC(0x1AC);
-    func_8002D51C();
+    resetPlayerData();
 }
 
 void func_8002D458(void) {
@@ -28,102 +28,102 @@ void func_8002D458(void) {
     ((Unk8006E054 *)D_8006E054)->unk100C->unk1A9 = 0;
     ((Unk8006E054 *)D_8006E054)->unk100C->unk1A8 = 0;
     for (i = 0; i < 12; i++) {
-        ((Unk8006E050 *)D_8006E050)->unk23FC[i] = 0;
+        ((Unk8006E050 *)PLAYER_PROFILES)->unk23FC[i] = 0;
     }
     for (i = 0; i < 9; i++) {
-        ((Unk8006E050 *)D_8006E050)->unk242C[i] = 0;
+        ((Unk8006E050 *)PLAYER_PROFILES)->unk242C[i] = 0;
     }
-    ((Unk8006E050 *)D_8006E050)->unk2C = 0;
-    ((Unk8006E050 *)D_8006E050)->unk14 = 0;
+    ((Unk8006E050 *)PLAYER_PROFILES)->unk2C = 0;
+    ((Unk8006E050 *)PLAYER_PROFILES)->unk14 = 0;
 }
 
-void func_8002D51C(void) {
-    Unk8006E050 *e;
-    s32 p;
+void resetPlayerData(void) {
+    Unk8006E050 *profile;
+    s32 player;
     s32 j;
     s32 i;
 
-    e = (Unk8006E050 *)D_8006E050;
+    profile = (Unk8006E050 *)PLAYER_PROFILES;
     for (i = 0; i < 12; i++) {
-        ((Unk8006E050 *)D_8006E050)->unk23FC[i] = 0;
+        ((Unk8006E050 *)PLAYER_PROFILES)->unk23FC[i] = 0;
     }
-    ((Unk8006E050 *)D_8006E050)->unk28_9 = 0;
-    for (p = 0; p < 2; p++, e++) {
-        e->name[0] = 0;
-        e->unk18 = 0;
-        e->unk1A = 0;
-        e->unk1C = 0;
-        e->unk1E = 0;
-        e->unkE = 0;
-        e->unk10 = rand();
-        e->unk28_10 = 0;
-        e->unk28_13 = 0;
-        e->unkD = 0;
-        e->unk28_11 = 0;
-        e->unk28_12 = 0;
-        e->rankA = 0;
-        e->rankB = 0;
-        e->rankC = 0;
-        e->unk16 = 0x2774;
-        e->unk4C = 0;
-        e->unk4E = 0;
-        e->unk50 = 0;
-        e->unk52 = 0;
-        e->unk54 = 0;
-        e->unk56 = 0;
+    ((Unk8006E050 *)PLAYER_PROFILES)->unk28_9 = 0;
+    for (player = 0; player < 2; player++, profile++) {
+        profile->name[0] = 0;
+        profile->unk18 = 0;
+        profile->unk1A = 0;
+        profile->unk1C = 0;
+        profile->unk1E = 0;
+        profile->unkE = 0;
+        profile->unk10 = rand();
+        profile->unk28_10 = 0;
+        profile->unk28_13 = 0;
+        profile->unkD = 0;
+        profile->unk28_11 = 0;
+        profile->unk28_12 = 0;
+        profile->rankA = 0;
+        profile->rankB = 0;
+        profile->rankC = 0;
+        profile->unk16 = 0x2774;
+        profile->unk4C = 0;
+        profile->unk4E = 0;
+        profile->unk50 = 0;
+        profile->unk52 = 0;
+        profile->unk54 = 0;
+        profile->unk56 = 0;
         for (i = 0; i < 3; i++) {
-            e->unk36[i] = 0;
+            profile->unk36[i] = 0;
         }
         for (i = 0; i < 0x28; i++) {
-            e->unk58[i] = 0;
+            profile->unk58[i] = 0;
         }
         for (i = 0; i < 0x12D; i++) {
-            e->unk14B2[i] = 0;
+            profile->unk14B2[i] = 0;
             for (j = 0; j < 8; j++) {
-                func_80045968(p, i, j);
+                func_80045968(player, i, j);
             }
         }
         for (i = 0; i < 0xBF; i++) {
             for (j = 0; j < 3; j++) {
-                e->unkD3C[i][j] = 0;
+                profile->unkD3C[i][j] = 0;
             }
-            e->unk11B6[i] = 0;
-            e->unk1334[i] = 0;
+            profile->unk11B6[i] = 0;
+            profile->unk1334[i] = 0;
         }
         for (i = 0; i < 3; i++) {
-            e->unk80[i].unk288 = 0;
+            profile->unk80[i].unk288 = 0;
         }
         for (i = 0; i < 0x10; i++) {
-            e->unk3C[i] = 0;
+            profile->unk3C[i] = 0;
         }
         for (i = 0; i < 3; i++) {
-            e->unk2438[i].unk0 = 0;
-            e->unk2438[i].unk108[0] = 0;
-            e->unk2438[i].unk108[1] = 0;
-            e->unk2438[i].unk108[2] = 0;
+            profile->unk2438[i].unk0 = 0;
+            profile->unk2438[i].unk108[0] = 0;
+            profile->unk2438[i].unk108[1] = 0;
+            profile->unk2438[i].unk108[2] = 0;
         }
         for (i = 0; i < 0x9F; i++) {
-            e->unkAC0[i] = 0;
-            e->unkBFE[i] = 0;
+            profile->unkAC0[i] = 0;
+            profile->unkBFE[i] = 0;
         }
         for (i = 0; i < 0x8E; i++) {
-            e->unk888[i] = 0;
-            e->unk9A4[i] = 0;
+            profile->unk888[i] = 0;
+            profile->unk9A4[i] = 0;
         }
         for (j = 0; j < 0x20; j++) {
-            e->unk848[j] = 0;
+            profile->unk848[j] = 0;
         }
-        e->unk20_0 = 0;
-        e->unk20_1 = 0;
-        e->unk20_2 = 0;
-        e->unk20_3 = 0;
-        e->unk24 = 0;
+        profile->unk20_0 = 0;
+        profile->unk20_1 = 0;
+        profile->unk20_2 = 0;
+        profile->unk20_3 = 0;
+        profile->unk24 = 0;
     }
-    strcpy(((Unk8006E050 *)D_8006E050)->name, "Player");
+    strcpy(((Unk8006E050 *)PLAYER_PROFILES)->name, "Player");
     func_8002D458();
 }
 
-void func_8002D898(void) {
+void renderFullscreenBackground(void) {
     CUR_SPRT->sp.x0 = 0;
     CUR_SPRT->sp.y0 = 0;
     CUR_SPRT->sp.u0 = 0;
@@ -156,60 +156,60 @@ void func_8002D898(void) {
     D_801D6B24 += sizeof(SprtPacket);
 }
 
-void func_8002DAAC(s32 arg0, s32 arg1) {
-    void *temp_s1;
+void playModelAnimation(s32 modelSlot, s32 animId) {
+    void *model;
 
-    temp_s1 = D_801D6A4C->unk13C[arg0];
-    if ((*(s32 *)((s8 *)temp_s1 + 0x2200)) != arg1) {
-        func_8001AFF0(arg0 + 0x84);
-        func_80023094(temp_s1, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)temp_s1 + 0x26F4), 1, arg1), arg0 + 0x84), arg1);
+    model = D_801D6A4C->unk13C[modelSlot];
+    if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
+        func_8001AFF0(modelSlot + 0x84);
+        func_80023094(model, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
     }
-    func_80022D34(arg0, arg1, -2, 0);
+    func_80022D34(modelSlot, animId, -2, 0);
 }
 
-void func_8002DB58(s32 arg0, s32 arg1) {
-    s32 temp_s2;
-    void *temp_s3;
+void setModelAnimationPose(s32 modelSlot, s32 animId) {
+    s32 heapTag;
+    void *model;
 
-    temp_s3 = D_801D6A4C->unk13C[arg0];
-    temp_s2 = arg0 + 0x84;
-    func_8001AFF0(temp_s2);
-    func_80023094(temp_s3, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)temp_s3 + 0x26F4), 1, arg1), temp_s2), arg1);
-    func_80023148(arg0, arg1);
+    model = D_801D6A4C->unk13C[modelSlot];
+    heapTag = modelSlot + 0x84;
+    func_8001AFF0(heapTag);
+    func_80023094(model, (s32 *)func_8001BFF8((s32)func_8001BB44(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
+    func_80023148(modelSlot, animId);
 }
 
-void *func_8002DBEC(s32 arg0) {
-    u8 *p;
+void *findDigimonCardByModelId(s32 modelId) {
+    u8 *card;
     s32 i;
 
-    p = D_801D8408;
-    if (p[0xE5] != arg0) {
+    card = DIGIMON_CARDS;
+    if (card[0xE5] != modelId) {
         i = 0;
         do {
             i++;
-            p += 0x13C;
+            card += 0x13C;
             if (i >= 0xBF) {
                 break;
             }
-        } while (p[0xE5] != arg0);
+        } while (card[0xE5] != modelId);
     }
-    return p;
+    return card;
 }
 
-s32 func_8002DC30(s32 arg0, s32 arg1) {
-    char sp10[32];
-    s32 var_v0;
+s32 loadSkill(s32 skillId, s32 pak) {
+    char path[32];
+    s32 skill;
 
-    var_v0 = (s32)func_8001BB44((Chunk *)arg1, 2, arg0);
-    if (var_v0 == 0) {
-        sprintf(sp10, &D_800107F8, arg0);
-        var_v0 = func_8001B248(sp10, func_800148B0(), 0x81);
+    skill = (s32)func_8001BB44((Chunk *)pak, 2, skillId);
+    if (skill == 0) {
+        sprintf(path, &FMT_SKILL_PATH, skillId);
+        skill = func_8001B248(path, func_800148B0(), 0x81);
     }
-    return var_v0;
+    return skill;
 }
 
-void func_8002DC90(s32 arg0) {
-    func_8002DC30(arg0, 0);
+void loadSkillFromDisc(s32 skillId) {
+    loadSkill(skillId, 0);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/card/player_data", D_800107F8);
+INCLUDE_RODATA("asm/main/nonmatchings/card/player_data", FMT_SKILL_PATH);

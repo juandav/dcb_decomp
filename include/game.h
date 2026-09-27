@@ -24,7 +24,7 @@
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 #define CUR_SPRT ((SprtPacket *)D_801D6B24)
 #define DB(i) (((Unk800794F8 *)&D_800794F8)->unk98[i])
-#define PLAYER_DATA(p) (((Unk8006E050 *)D_8006E050)[p])
+#define PLAYER_DATA(p) (((Unk8006E050 *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
 #define PLAYER(p) ((Player *)D_801D8348[p])
 #define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
@@ -902,7 +902,7 @@ typedef struct {
 extern s32 D_801D6B24;
 extern u16 D_801D6B12;
 extern u16 D_801D6B14;
-extern s32 D_8006E050;
+extern s32 PLAYER_PROFILES;
 extern Unk800793A0 *D_800793A0;
 extern u8 D_800794F4;
 extern s32 D_800794F0;
@@ -921,7 +921,7 @@ extern Unk801D6A4C *D_801D6A4C;
 extern s32 D_80010C9C;
 extern s32 D_8006E03C;
 extern s32 D_8006E040;
-extern u8 *D_801D8408;
+extern u8 *DIGIMON_CARDS;
 extern void *D_8006E054;
 extern void *D_801D8340;
 extern u8 *D_801D8348[];
@@ -935,11 +935,11 @@ extern s32 D_801D8330;
 extern s32 D_801D8278;
 extern u8 *D_801D83EC;
 extern u8 *D_801D833C;
-extern MsgBar D_801D83D0;
+extern MsgBar DUEL_MSG_BAR;
 extern u8 D_801D83D1;
 extern s32 func_800250F4;
-extern s32 D_800113C0;
-extern s32 D_800113D0;
+extern s32 PATH_KAWSEG_BIN;
+extern s32 PATH_DECK2_DEK;
 
 s32 VSync(s32);
 void SetSemiTrans(void *, s32);

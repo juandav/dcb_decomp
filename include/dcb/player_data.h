@@ -3,16 +3,16 @@
 
 #include "game.h"
 
-extern s32 D_800107F8;
+extern s32 FMT_SKILL_PATH;
 
-void func_8002D404(void);
-void func_8002D51C(void);
+void initPlayerData(void);
 void func_8002D458(void);
-void func_8002D898(void);
-void func_8002DAAC(s32 arg0, s32 arg1);
-void func_8002DB58(s32 arg0, s32 arg1);
-s32 func_8002DC30(s32, s32);
-void func_8002DC90(s32 arg0);
-void *func_8002DBEC(s32);
+void resetPlayerData(void);
+void renderFullscreenBackground(void);
+void playModelAnimation(s32 modelSlot, s32 animId);
+void setModelAnimationPose(s32 modelSlot, s32 animId);
+void *findDigimonCardByModelId(s32 modelId);
+s32 loadSkill(s32 skillId, s32 pak);
+void loadSkillFromDisc(s32 skillId);
 
 #endif /* DCB_PLAYER_DATA_H */

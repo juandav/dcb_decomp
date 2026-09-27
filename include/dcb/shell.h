@@ -26,7 +26,7 @@ extern s32 D_801D84B0;
 extern s32 D_801D8410;
 extern s32 D_801D8548;
 extern u8 *D_8006EF04[];
-/* the same text as in func_800416D8, kept as its own copy */
+/* the same text as in startCpuDuel, kept as its own copy */
 extern char D_80012FAC[];
 
 void func_80049EF8(s32 n, s32 arg1);

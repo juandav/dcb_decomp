@@ -64,7 +64,7 @@ void func_80039354(s32 p, s32 v, s32 k) {
     PLAYER(p)->unk130[k].timer = 0x30;
     if (k == 0) {
         c = func_80040764(p);
-        func_8004480C(*(void **)(D_801D833C + c * 36), c);
+        projectCardSprite(*(void **)(D_801D833C + c * 36), c);
         PLAYER(p)->unk130[0].x = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x34) + 0x19;
         PLAYER(p)->unk130[0].y = *(u16 *)(*(u8 **)(D_801D833C + c * 36) + 0x36) + 0x15;
     } else {
@@ -192,7 +192,7 @@ void func_80039730(s32 n, s32 z) {
         sprintf(buf, "*s0%2d", func_80040124(p));
         func_80028D18(panel->x + 4 + p * 0xEC, panel->y + 6 + p * 14, (s32)buf, 7, z);
         for (k = 0; k < PLAYER(p)->unk17C; k++) {
-            func_800446A4(panel->x + 0xDF + p * -0xDD, panel->y + 4 + p * 13 + k * 15, 0x4A);
+            drawWinMarker(panel->x + 0xDF + p * -0xDD, panel->y + 4 + p * 13 + k * 15, 0x4A);
         }
         break;
     case 0:
@@ -224,9 +224,9 @@ void func_80039730(s32 n, s32 z) {
             addPrim(&D_800793A0->ot[z], &CUR_SPRT->dm);
             D_801D6B24 += sizeof(SprtPacket);
         } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
-            func_80042BBC(panel->x, panel->y + 7, z, p, 0);
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, 0);
         } else {
-            func_80042BBC(panel->x, panel->y + 7, z, p, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
         }
         if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19) {
             func_80028D18(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
@@ -921,12 +921,12 @@ void func_8003D4C4(void) {
             func_8003B210(i * 30 + j, i);
         }
     }
-    func_80044800();
+    resetCardPolyCount();
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 8; j++) {
             c = PLAYER(i)->unk1C2[j];
             if (c >= 0) {
-                func_80044AB0(SPRITE(c), c);
+                renderCardSprite(SPRITE(c), c);
                 if (SPRITE_KIND(c) == 0x1C) {
                     break;
                 }
@@ -934,7 +934,7 @@ void func_8003D4C4(void) {
         }
         c = PLAYER(i)->unk1CD;
         if (c >= 0) {
-            func_80044AB0(SPRITE(c), c);
+            renderCardSprite(SPRITE(c), c);
         }
         done = 0;
         for (j = 0; j < 3; j++) {
@@ -945,7 +945,7 @@ void func_8003D4C4(void) {
                     done = 1;
                     if (SPRITE_KIND(c) < 0x1D) {
                         color = PLAYER(i)->unk178_15 ? 3 : 7;
-                        func_8004480C(SPRITE(c), c);
+                        projectCardSprite(SPRITE(c), c);
                         z = *(s32 *)((u8 *)SPRITE(c) + 0x38);
                         func_800299DC(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30, 0,
                                       0x1A, z);
@@ -961,13 +961,13 @@ void func_8003D4C4(void) {
                         done = 1;
                     }
                 }
-                func_80044AB0(SPRITE(c), c);
+                renderCardSprite(SPRITE(c), c);
             }
         }
         for (j = 0; j < 30; j++) {
             c = PLAYER(i)->unk19B[j];
             if (c >= 0) {
-                func_80044AB0(SPRITE(c), c);
+                renderCardSprite(SPRITE(c), c);
                 if (SPRITE_KIND(c) == 10) {
                     break;
                 }
@@ -976,13 +976,13 @@ void func_8003D4C4(void) {
         for (j = 3; j >= 0; j--) {
             c = PLAYER(i)->unk1B9[j];
             if (c >= 0) {
-                func_80044AB0(SPRITE(c), c);
+                renderCardSprite(SPRITE(c), c);
             }
         }
         for (j = 0; j < 30; j++) {
             c = PLAYER(i)->unk17D[j];
             if (c >= 0) {
-                func_80044AB0(SPRITE(c), c);
+                renderCardSprite(SPRITE(c), c);
                 if (SPRITE_KIND(c) == 0) {
                     break;
                 }
@@ -1325,13 +1325,13 @@ void func_8003E4F0(void) {
             }
         }
     }
-    if (count != 0 && !(((Unk8006E050 *)D_8006E050)->unk24 & 3)) {
+    if (count != 0 && !(((Unk8006E050 *)PLAYER_PROFILES)->unk24 & 3)) {
         func_8002B498(0xAA);
     }
     func_800395A0();
     for (i = 0; i < 12; i++) {
         if (PANEL(i).flags & 0x80) {
-            func_8004269C((SprtInfo *)&PANEL(i), i, i * 2 + PANEL(i).z + 1);
+            drawHudSprite((SprtInfo *)&PANEL(i), i, i * 2 + PANEL(i).z + 1);
             func_80039730(i, i * 2 + PANEL(i).z);
         }
     }
@@ -1391,7 +1391,7 @@ void func_8003E9F4(s32 arg0) {
     if ((arg0 != 0) && ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) == 0)) {
         func_800149B8(0, -1, 0, 0x800, func_80038F68, 0, 0, 0, 0);
     }
-    func_800149B8(0, -1, 0, 0x800, &func_80041E00, 0, 0, 0, 0);
+    func_800149B8(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
     if (arg0 != 0) {
         var_a0 = (*(u8 *)((s8 *)D_8006E054 + 0x72));
         var_v1 = (*(u8 *)((s8 *)D_8006E054 + 0x71));
@@ -1414,11 +1414,11 @@ void func_8003EB88(void) {
 
     temp_a0 = (*(s16 *)((s8 *)D_801D8340 + 0x808));
     if (temp_a0 != 0) {
-        func_80042824(temp_a0);
-        func_80043D00((*(s16 *)((s8 *)D_801D8340 + 0x808)));
-        func_80044074((*(s16 *)((s8 *)D_801D8340 + 0x808)));
+        renderDuelBackground(temp_a0);
+        renderStatusMessage((*(s16 *)((s8 *)D_801D8340 + 0x808)));
+        renderHelpBar((*(s16 *)((s8 *)D_801D8340 + 0x808)));
     }
-    func_80042E78();
+    renderPhaseBanner();
     func_8003E4F0();
     func_8003D4C4();
     if ((*(s32 *)((s8 *)D_801D8340 + 0x83C)) == 0) {
