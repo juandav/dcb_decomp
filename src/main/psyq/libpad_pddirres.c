@@ -21,7 +21,7 @@ extern void (*D_80077980)();
 extern PadPort *D_80077994;
 void func_8006B5EC();
 void func_8006B584(PadPort *p);
-void func_8006B6F0();
+int func_8006B6F0();
 void func_8006B7AC();
 PadPort *func_8006BA28(int port);
 void func_8006B6E0(PadPort *port);
@@ -109,7 +109,23 @@ void func_8006B6E0(PadPort *port) {
     port->prevCmd = cmd;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006B6F0);
+int func_8006B6F0(PadPort *p) {
+    int i = p->unk45 - 3;
+
+    switch (p->cmd) {
+    case 0:
+        if (i < 6 && p->unk57[i] == 0) {
+            return 0;
+        }
+        if (i < p->actLen) {
+            return p->actTable[i];
+        }
+        return 0;
+    case 0x4D:
+        return i < p->len ? p->data[i] : 0xFF;
+    }
+    return i < p->len ? p->data[i] : 0;
+}
 
 extern long D_800779A8;
 
