@@ -3,6 +3,40 @@
 #include "game.h"
 #include "dcb/prim_util.h"
 
+/* the size in bytes of each primitive type */
+u8 D_8006DEF4[24] = {
+    0x10, 0x14, 0x18, 0x20, 0x1C, 0x28, 0x14, 0x1C,
+    0x18, 0x24, 0x20, 0x28, 0x28, 0x34, 0x14, 0x10,
+    0x10, 0x10, 0xC, 0xC, 0xC, 0,
+};
+
+typedef void (*PrimInit)(void *);
+
+/* the function that sets up each primitive type */
+PrimInit D_8006DF0C[21] = {
+    func_800678E4,
+    func_80067904,
+    func_80067924,
+    SetLineG3,
+    func_80067974,
+    SetLineG4,
+    func_80067704,
+    func_80067744,
+    func_80067784,
+    (PrimInit)func_800677C4,
+    (PrimInit)func_80067724,
+    (PrimInit)func_80067764,
+    (PrimInit)func_800677A4,
+    (PrimInit)func_800677E4,
+    (PrimInit)func_80067844,
+    func_80067804,
+    func_80067824,
+    (PrimInit)func_800678C4,
+    func_80067864,
+    func_80067884,
+    func_800678A4,
+};
+
 s32 func_8001E3C8(s32 step, u8 *r, s32 tr, u8 *g, s32 tg, u8 *b, s32 tb) {
     s16 vr;
     s16 vg;
