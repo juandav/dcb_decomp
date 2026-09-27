@@ -320,7 +320,18 @@ void SsSetMVol(short left, short right) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8004ECA0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SsStart);
+extern long D_8005B85C;
+extern void (*D_8005B850[2])(void);
+
+
+
+
+
+
+
+void SsStart(void) {
+    func_8004ECA0(1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SsStart2);
 
