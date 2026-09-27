@@ -372,6 +372,10 @@ typedef struct {
     /* 0x4 */ s8 next;
     /* 0x5 */ s8 cur;
     /* 0x6 */ s8 y;
+    /* 0x7 */ s8 next2;
+    /* 0x8 */ s8 cur2;
+    /* 0x9 */ s8 y2;
+    /* 0xA */ s8 unkA;
 } MsgBar;
 
 typedef struct {
@@ -9180,7 +9184,7 @@ s32 func_8003E4F0();
 void func_80042824(s32);
 s32 func_80042E78();
 void func_80043D00(s32);
-s32 func_80044074(s16);
+void func_80044074(s32);
 s32 func_801EB53C(u8);
 s32 func_801F97F4();
 extern void *D_801D8340;
@@ -10165,7 +10169,65 @@ void func_80043D00(s32 c) {
     addPrim(&D_800793A0->ot[0xFFE], &D_801D8378[D_800794F4]);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80044074);
+extern DR_AREA D_801D8398[2];
+extern DR_AREA D_801D83B8[2];
+extern u8 *D_8006E2F8[];
+extern char D_8001174C[];
+
+void func_80044074(s32 c) {
+    DISPENV env;
+    Rect16 r;
+    u8 rgb[4];
+
+    if (D_801D83D0.next2 == -1) {
+        return;
+    }
+    rgb[0] = c;
+    rgb[1] = c;
+    rgb[2] = c;
+    GetDispEnv(&env);
+    SetDrawArea(&D_801D8398[D_800794F4], (Rect16 *)env.disp);
+    addPrim(&D_800793A0->ot[0xFFE], &D_801D8398[D_800794F4]);
+    if (D_801D83D0.cur2 != D_801D83D0.next2 || D_801D83D0.unkA != D_801D83D0.unk1) {
+        if (++D_801D83D0.y2 > 0x10) {
+            D_801D83D0.cur2 = D_801D83D0.next2;
+            D_801D83D0.unkA = D_801D83D0.unk1;
+        }
+    } else if (D_801D83D0.y2 != 0) {
+        D_801D83D0.y2--;
+    }
+    if (D_801D83D0.cur2 != -1) {
+        if (func_80029990() != 0) {
+            return;
+        }
+        CUR_SPRT->sp.x0 = 0x10;
+        CUR_SPRT->sp.y0 = 0xDB - D_801D83D0.y2;
+        CUR_SPRT->sp.u0 = 0xD0;
+        CUR_SPRT->sp.v0 = (D_801D83D0.unkA * 12 + 0x100) % 256;
+        CUR_SPRT->sp.clut = 0x7C73;
+        CUR_SPRT->sp.w = 0x2F;
+        CUR_SPRT->sp.h = 0xC;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = c;
+        CUR_SPRT->sp.g0 = c;
+        CUR_SPRT->sp.b0 = c;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
+        addPrim(&D_800793A0->ot[0xFFE], &CUR_SPRT->sp);
+        addPrim(&D_800793A0->ot[0xFFE], &CUR_SPRT->dm);
+        D_801D6B24 += sizeof(SprtPacket);
+        if (D_801D83D0.unkA == 1 && D_801D83D0.cur2 != 2 && D_801D83D0.cur2 != 0) {
+            func_80028D48(0x50, 0xDB - D_801D83D0.y2, (s32)D_8001174C, (s32 *)rgb, 7, 0xFFE);
+        } else {
+            func_80028D48(0x40, 0xDB - D_801D83D0.y2, (s32)D_8006E2F8[D_801D83D0.cur2], (s32 *)rgb, 7, 0xFFE);
+        }
+    }
+    r.x = env.disp[0] + 0x10;
+    r.y = env.disp[1] + 0xDB;
+    r.w = 0x120;
+    r.h = 0xC;
+    SetDrawArea(&D_801D83B8[D_800794F4], &r);
+    addPrim(&D_800793A0->ot[0xFFE], &D_801D83B8[D_800794F4]);
+}
 
 void func_80044504(s32 x, s32 y, s32 n, s32 c, s32 z) {
     if (func_80029990() == 0) {
