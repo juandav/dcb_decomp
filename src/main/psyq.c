@@ -1463,7 +1463,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDefDispEnv);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", GetTPage);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067644);
+u_short func_80067644(int x, int y) {
+    return (y << 6) | ((x >> 4) & 0x3F);
+}
+
+OBJECT_END(2);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", AddPrim);
 
