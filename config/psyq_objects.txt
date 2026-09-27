@@ -110,7 +110,7 @@ libsnd_vs_vab
 libspu_s_m_f gcc2.8
 libspu_s_m_int
 libsnd_vs_vh
-libsnd_vs_vh_2
+libsnd_vs_vh_2 gcc2.8
 libsnd_vs_vtb
 libspu_s_stsa
 libspu_s_stm
