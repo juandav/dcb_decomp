@@ -82,6 +82,7 @@ segments:
       - [0x1BE0, .rodata, card/card_render]
       - [0x2158, .rodata, card/card_db]
       - [0x2F70, .rodata, ui/shell]
+      - [0x3728, .rodata, system/game_exit]
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
       - [0x4704, c, system/task]
@@ -139,6 +140,7 @@ segments:
       - [0x31ED8, c, card/card_render]
       - [0x35FFC, c, card/card_db]
       - [0x3A040, c, ui/shell]
+      - [0x3AADC, c, system/game_exit]
       - [0x3AE10, c, psyq]
       # the game's .data, split by the module that defines it
       - [0x5E53C, .data, main]

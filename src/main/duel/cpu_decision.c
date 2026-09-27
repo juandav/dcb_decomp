@@ -17,6 +17,7 @@
 #include "dcb/menu.h"
 #include "dcb/dialog.h"
 #include "dcb/shell.h"
+#include "dcb/game_exit.h"
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"

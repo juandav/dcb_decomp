@@ -38,6 +38,5 @@ void drawHackPartnerMovedText(void *win);
 void drawHackTauntText(void *win);
 void drawHackingTerminal();
 void drawHackingWindows(void);
-void quitToTitleOrPlayEnding(s32 mode);
 
 #endif /* DCB_SHELL_H */
