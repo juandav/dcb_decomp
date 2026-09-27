@@ -714,7 +714,8 @@ typedef struct {
 } CardAttack;
 
 typedef struct {
-    /* 0x000 */ u8 unk0[3];
+    /* 0x000 */ s16 id;
+    /* 0x002 */ u8 unk2;
     /* 0x003 */ char name[0x17];
     /* 0x01A */ u8 attr;
     /* 0x01B */ s8 unk1B;
@@ -730,6 +731,16 @@ typedef struct {
     /* 0x0E7 */ u8 text[4][0x15];
     /* 0x13B */ u8 unk13B;
 } CardInfo;
+
+typedef struct {
+    /* 0x00 */ s16 id;
+    /* 0x02 */ u8 unk2[0xE0];
+} Unk801D8400;
+
+typedef struct {
+    /* 0x00 */ s16 id;
+    /* 0x02 */ u8 unk2[0x6E];
+} Unk801D8404;
 
 typedef struct {
     /* 0x000 */ CardInfo card[2];
@@ -14538,7 +14549,32 @@ MATRIX *func_80045700(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
 
 INCLUDE_RODATA("asm/main/nonmatchings/game", D_8001174C);
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800457FC);
+extern u8 *D_801D840C;
+extern u8 *D_801D8400;
+extern u8 *D_801D8404;
+
+void func_800457FC(void) {
+    u8 *hdr;
+    s32 i;
+    s32 n;
+
+    func_800149B8(0, -1, 0, 0x800, func_8001B248, "B:\\CARD2.CDD", func_800148B0(), -2);
+    D_801D840C = hdr = (u8 *)func_80014C08(0x7FFFFFFF);
+    D_801D8408 = hdr + 8;
+    D_801D8400 = D_801D8408 + *(u16 *)(hdr + 4) * 0x13C;
+    D_801D8404 = D_801D8400 + hdr[6] * 0xE2;
+    n = 0;
+    for (i = 0; i < 0xBF; i++) {
+        ((CardInfo *)D_801D8408)[i].id = n++;
+    }
+    for (i = 0; i < 0x66; i++) {
+        ((Unk801D8400 *)D_801D8400)[i].id = n++;
+    }
+    for (i = 0; i < 8; i++) {
+        ((Unk801D8404 *)D_801D8404)[i].id = n++;
+    }
+}
+
 
 void func_80045968(s32 a, s32 row, s32 n) {
     s32 r;
