@@ -126,7 +126,7 @@ typedef struct PadPort {
     /* 0xEA */ u_char unkEA;
     /* 0xEB */ u8 unkEB;
     /* 0xEC */ u_short unkEC;
-    /* 0xEE */ u8 unkEE[2];
+    /* 0xEE */ u_short unkEE;
 } PadPort;
 
 /* libmcrd global state, returned by McrdGetGlobalStructure */

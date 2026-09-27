@@ -192,7 +192,83 @@ void func_8006CA58(PadPort *port) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006CADC);
+extern void (*D_80077964)(PadPort *p);
+int func_8006CD4C(u_char *p);
+int func_8006CD84(PadPort *p, u_char *buf);
+
+int func_8006CADC(PadPort *p) {
+    u_char *buf;
+    u_char *res;
+    u_short n;
+
+    switch (p->unk46) {
+    case 2:
+        buf = p->unk3C;
+        if (buf[7] != 0) {
+            return 0;
+        }
+        if (p->unkE3 == buf[3] && p->unkE4 == buf[4] && p->unkE9 == buf[5] && p->unkEA == buf[6]) {
+            p->unkEE = 0;
+        } else {
+            p->unkEE = 0xFFFF;
+        }
+        p->unkE3 = p->unk3C[3];
+        p->unkE4 = p->unk3C[4];
+        p->unkE6 = 0;
+        p->unkE9 = p->unk3C[5];
+        p->unkEA = p->unk3C[6];
+        p->unkEC = 0;
+        if (p->unkEE != 0) {
+            return 0;
+        }
+        p->unkEB = 0;
+        break;
+    case 3:
+        res = p->unk3C;
+        if (res[2] != 0 || res[3] != 0) {
+            return 0;
+        }
+        n = (res[4] << 8) + res[5];
+        p->unkE6 = n;
+        if (p->unkEE != n) {
+            p->unkEE = n;
+            return 0;
+        }
+        p->unkEE = 0xFFFF;
+        p->unkEB = 0;
+        p->unk47[0] = 0;
+        break;
+    case 4:
+        res = p->unk3C;
+        if (res[2] != 0 || res[3] != 0) {
+            return 0;
+        }
+        p->unkEC = (u_short)(p->unkEC + 8) + ((res[4] + 3) & ~3);
+        if (++p->unk47[0] < p->unkEA) {
+            return 0;
+        }
+        if (func_8006CD4C((u_char *)p) > 0x80) {
+            D_80077964(p);
+            p->unk46 = 0xFE;
+            p->unk49 = 2;
+        } else {
+            if (p->unkEE != p->unkEC) {
+                p->unkEE = p->unkEC;
+                p->unk47[0] = 0;
+                p->unkEC = 0;
+                return 0;
+            }
+            p->unkEE = 0;
+            p->unkEB = 0;
+            p->unk46 = 0xFF;
+            func_8006CD84(p, p->unk63);
+            p->unk46 = 2;
+        }
+        return 0;
+    }
+    return 1;
+}
+
 
 int func_8006CD4C(u_char *p) {
     return (((p[0xE3] + 1) >> 1) << 2) + (u_short)(((p[0xE9] * 5 + 3) & ~3) + 4) + *(u_short *)(p + 0xEC);
