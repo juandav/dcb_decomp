@@ -4397,7 +4397,37 @@ s32 func_8002C2E4(s32 arg0) {
     return _card_format(arg0 * 0x10) == 1;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C30C);
+s32 func_8006A824(char *, s32);
+s32 func_8006A864(s32);
+extern char D_800105E4;
+extern s32 D_801D8180;
+extern s32 D_801D8184;
+extern s32 D_801D8188;
+extern u8 *D_801D81A0;
+
+typedef struct {
+    u8 data[0x200];
+} McHeader;
+
+s32 func_8002C30C(s32 slot, u8 blocks, s32 arg2, s32 arg3, McHeader *hdr) {
+    char name[32];
+    s32 fd;
+
+    ((u8 *)hdr)[3] = blocks;
+    sprintf(name, &D_800105E4, slot, arg3);
+    func_8006A864(func_8006A824(name, (((u8 *)hdr)[3] << 16) | 0x200));
+    *(McHeader *)D_801D81A0 = *hdr;
+    D_801D8184 = fd = func_8006A824(name, 0x8002);
+    if (fd == -1) {
+        return -1;
+    }
+    D_801D8180 = 0;
+    D_801D8188 = arg2;
+    if (func_8002C0EC(slot) != 0) {
+        return -1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_8002C468);
 
@@ -6887,7 +6917,27 @@ s32 func_800495B4(s32 a, s32 b, s32 skip, s32 card) {
     return ok;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800496E4);
+s32 func_800496E4(s32 a, s32 id) {
+    s32 j;
+    s32 k;
+
+    if (id < 0) {
+        return 0;
+    }
+    if (!((((Unk8006E050 *)D_8006E050)[a].unk3C[id / 8] >> (id % 8)) & 1)) {
+        return 0;
+    }
+    for (j = 0; j < 3; j++) {
+        if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk288 != 0) {
+            for (k = 0; k < 3; k++) {
+                if (((Unk8006E050 *)D_8006E050)[a].unk80[j].unk28C[k] == id) {
+                    return 2;
+                }
+            }
+        }
+    }
+    return 1;
+}
 
 s32 func_800496E4(s32, s32);
 
