@@ -666,7 +666,7 @@ void refreshPartners(s32 player) {
         if (cardId != 0) {
             if ((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 >= 0x63) {
                 ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 = 0x63;
-                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28A = func_80049934(0x62);
+                ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk28A = getExpForNextLevel(0x62);
             }
             ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk278 = DIGIMON_CARDS + cardId * 0x13C;
             armorCardId = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk292[0];

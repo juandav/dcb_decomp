@@ -97,7 +97,7 @@ void func_800395A0(void) {
                     size = 0x2C;
                 }
                 sprintf(buf, "%s%d", sign, ((Player *)D_801D8348[p])->unk130[k].value);
-                func_8002961C(((Player *)D_801D8348[p])->unk130[k].x + (0x30 - size),
+                drawBigDigits(((Player *)D_801D8348[p])->unk130[k].x + (0x30 - size),
                               ((Player *)D_801D8348[p])->unk130[k].y - (0x30 - size) * 2, (u8 *)buf, (u8 *)&D_8006E298,
                               ((Player *)D_801D8348[p])->unk130[k].type, 0);
             }
@@ -129,17 +129,17 @@ void func_80039730(s32 n, s32 z) {
         if (idx >= 0) {
             color = PLAYER(p)->unk178_15 ? 3 : 7;
             card = (CardInfo *)PLAYER(p)->cards[idx % 30].card;
-            func_80027DB8(panel->x - p * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
+            drawSmallText(panel->x - p * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
             sprintf(buf, "*s0%4d", PLAYER(p)->unk126[1]);
-            func_80028D18(panel->x + 42 + p * 25, panel->y + 11, (s32)buf, color, z);
+            drawText(panel->x + 42 + p * 25, panel->y + 11, (s32)buf, color, z);
             sprintf(buf, "*s0%4d", PLAYER(p)->unk126[2]);
-            func_80028D18(panel->x + 42 + p * 25, panel->y + 24, (s32)buf, color, z);
+            drawText(panel->x + 42 + p * 25, panel->y + 24, (s32)buf, color, z);
             sprintf(buf, "*s0%4d", PLAYER(p)->unk126[3]);
-            func_80028D18(panel->x + 42 + p * 25, panel->y + 37, (s32)buf, color, z);
-            func_80027DB8(panel->x + 24 + p * 24, panel->y + 51, (s32)D_8006E47C[card->unkE4], 7, z);
+            drawText(panel->x + 42 + p * 25, panel->y + 37, (s32)buf, color, z);
+            drawSmallText(panel->x + 24 + p * 24, panel->y + 51, (s32)D_8006E47C[card->unkE4], 7, z);
         }
         sprintf(buf, "*s0%2d", PLAYER(p)->unk126[4]);
-        func_80028D18(panel->x + 6 + p * 93, panel->y + 9, (s32)buf, 7, z);
+        drawText(panel->x + 6 + p * 93, panel->y + 9, (s32)buf, 7, z);
         k = 8 - func_80041214(p);
         if (k != 0) {
             CUR_SPRT->sp.x0 = panel->x + 3 + p * 94;
@@ -156,7 +156,7 @@ void func_80039730(s32 n, s32 z) {
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1C);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         }
         break;
     }
@@ -177,20 +177,20 @@ void func_80039730(s32 n, s32 z) {
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x3D);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         }
         break;
     case 4:
     case 10:
         sprintf(buf, "%s Deck", PLAYER(p)->unk0 + 1);
-        func_80028D18(panel->x + 1 + (0x82 - func_800293FC((u8 *)buf)) / 2, panel->y + 0x33 + p * -50, (s32)buf, 7, z);
-        func_80028D18(panel->x + 0x85 + (0x78 - func_800293FC((u8 *)PLAYER(p)->unk1CE)) / 2, panel->y + 0x33 + p * -50,
+        drawText(panel->x + 1 + (0x82 - measureText((u8 *)buf)) / 2, panel->y + 0x33 + p * -50, (s32)buf, 7, z);
+        drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(p)->unk1CE)) / 2, panel->y + 0x33 + p * -50,
                       (s32)PLAYER(p)->unk1CE, 7, z);
         k = func_80040220(p) >= 8 ? 7 : 2;
         sprintf(buf, "*s0%2d", func_80040220(p));
-        func_80028D18(panel->x + 4 + p * 0xEC, panel->y + 0x1E + p * 14, (s32)buf, k, z);
+        drawText(panel->x + 4 + p * 0xEC, panel->y + 0x1E + p * 14, (s32)buf, k, z);
         sprintf(buf, "*s0%2d", func_80040124(p));
-        func_80028D18(panel->x + 4 + p * 0xEC, panel->y + 6 + p * 14, (s32)buf, 7, z);
+        drawText(panel->x + 4 + p * 0xEC, panel->y + 6 + p * 14, (s32)buf, 7, z);
         for (k = 0; k < PLAYER(p)->unk17C; k++) {
             drawWinMarker(panel->x + 0xDF + p * -0xDD, panel->y + 4 + p * 13 + k * 15, 0x4A);
         }
@@ -205,7 +205,7 @@ void func_80039730(s32 n, s32 z) {
         }
         back = DUEL->cache[DUEL->unk826].used;
         if (back == 1) {
-            if (func_80029990() != 0) {
+            if (isSpritePoolFull() != 0) {
                 break;
             }
             CUR_SPRT->sp.x0 = panel->x;
@@ -222,14 +222,14 @@ void func_80039730(s32 n, s32 z) {
             setDrawMode(&CUR_SPRT->dm, 0, 0, 0x9A);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
-            D_801D6B24 += sizeof(SprtPacket);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
             drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, 0);
         } else {
             drawCardArtPlaceholder(panel->x, panel->y + 7, z, p, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
         }
         if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19) {
-            func_80028D18(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
+            drawText(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
             break;
         }
         if (DUEL->unk81C == 4) {
@@ -239,7 +239,7 @@ void func_80039730(s32 n, s32 z) {
             } else {
                 sprintf(buf2, "*h-1Cards left in the\nOnline Deck is %d.", func_80040220(DUEL->unk81B));
             }
-            func_80028D18(panel->x + 0x8E, panel->y + 0x10, (s32)buf2, 7, z);
+            drawText(panel->x + 0x8E, panel->y + 0x10, (s32)buf2, 7, z);
             break;
         }
         for (i = 0; i < 10; i++) {
@@ -284,9 +284,9 @@ void func_80039730(s32 n, s32 z) {
         case 0:
             card = (CardInfo *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
             sprintf(buf, "*s0%2d", card->unk1B);
-            func_80028D48(panel->x + 0x7A, panel->y + 0x17, (s32)buf, (s32 *)cols[0], 7, z);
+            drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)buf, (s32 *)cols[0], 7, z);
             sprintf(buf, "*s0%2d", card->level);
-            func_80028D48(panel->x + 0x7C, panel->y + 0x2D, (s32)buf, (s32 *)cols[1], 7, z);
+            drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)buf, (s32 *)cols[1], 7, z);
             if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
                 if (DUEL->unk81C < 4 && DUEL->unk81B == DUEL->unk817) {
                     if (DUEL->unk81D == 1) {
@@ -301,33 +301,33 @@ void func_80039730(s32 n, s32 z) {
                         shift = 0;
                     }
                     sprintf(buf, "*s0%4d", (card->hp >> shift) / 10 * 10);
-                    func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], color, z);
+                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], color, z);
                     for (i = 0; i < 3; i++) {
                         sprintf(buf, "*s0%4d", (card->attack[i].power >> shift) / 10 * 10);
                         x = panel->x;
                         y = panel->y;
-                        func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], color, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], color, z);
                     }
-                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+                    drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
                 } else if (DUEL->unk81C == 6) {
                     color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
                     for (i = 0; i < 4; i++) {
                         sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
                         x = panel->x;
                         y = panel->y;
-                        func_80028D48(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
                     }
-                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+                    drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
                 } else {
                     sprintf(buf, "*s0%4d", card->hp);
-                    func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                    drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
                     for (i = 0; i < 3; i++) {
                         sprintf(buf, "*s0%4d", card->attack[i].power);
                         x = panel->x;
                         y = panel->y;
-                        func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                        drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
                     }
-                    func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+                    drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
                 }
             } else if (DUEL->unk81C == 6) {
                 color = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
@@ -335,44 +335,44 @@ void func_80039730(s32 n, s32 z) {
                     sprintf(buf, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
                     x = panel->x;
                     y = panel->y;
-                    func_80028D48(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
+                    drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)buf, (s32 *)cols[i + 2], color, z);
                 }
-                func_800299DC(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+                drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
             } else {
                 sprintf(buf, "*s0%4d", card->hp);
-                func_80028D48(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
+                drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)buf, (s32 *)cols[2], 7, z);
                 for (i = 0; i < 3; i++) {
                     sprintf(buf, "*s0%4d", card->attack[i].power);
                     x = panel->x;
                     y = panel->y;
-                    func_80028D48(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
+                    drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)buf, (s32 *)cols[i + 3], 7, z);
                 }
-                func_800299DC(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
+                drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
             }
-            func_80027DE8(panel->x + 0x44, panel->y + 0x40, D_8006E47C[card->unkE4], 7, cols[6], z);
+            drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, D_8006E47C[card->unkE4], 7, cols[6], z);
             if (D_8006E4FC[card->unkE4] != 0) {
-                func_800299DC(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+                drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->unkE4] + 0x14, z);
             }
-            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
-            func_800299DC(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
+            drawText(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
+            drawIcon(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
             if (card->unkE6 != 0) {
-                func_800299DC(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
+                drawIcon(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)cols[7], 7, z);
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)cols[7], 7, z);
             }
             break;
         case 1: {
             s8 *opt;
 
             opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
-            func_800299DC(panel->x + 0xC3, panel->y + 1, 0, 5, z);
+            drawText(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            drawIcon(panel->x + 0xC3, panel->y + 1, 0, 5, z);
             if (opt[0x8C] != 0) {
-                func_800299DC(panel->x + 0xE3, panel->y + 2, 0, opt[0x8C] + 0x14, z);
+                drawIcon(panel->x + 0xE3, panel->y + 2, 0, opt[0x8C] + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x8D + i * 21), (s32 *)cols[8], 7,
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x8D + i * 21), (s32 *)cols[8], 7,
                               z);
             }
             break;
@@ -381,10 +381,10 @@ void func_80039730(s32 n, s32 z) {
             s8 *opt;
 
             opt = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            func_80028D18(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
-            func_800299DC(panel->x + 0xC3, panel->y + 1, 0, 6, z);
+            drawText(panel->x + 0x44, panel->y + 1, (s32)(opt + 3), 7, z);
+            drawIcon(panel->x + 0xC3, panel->y + 1, 0, 6, z);
             for (i = 0; i < 4; i++) {
-                func_80028D48(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x1B + i * 21), (s32 *)cols[9], 7,
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(opt + 0x1B + i * 21), (s32 *)cols[9], 7,
                               z);
             }
             break;
@@ -396,19 +396,19 @@ void func_80039730(s32 n, s32 z) {
     case 7:
         card = (CardInfo *)PLAYER(p)->cards[func_80040764(p) % 30].card;
         color = PLAYER(p)->unk178_15 ? 3 : 7;
-        func_80028D18(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
+        drawText(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
         sprintf(buf, "*s0%4d", PLAYER(p)->unk11C[0]);
-        func_80028D18(panel->x + 0x82, panel->y + 1, (s32)buf, color, z);
-        func_80029A0C(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, rgb[0], z);
-        func_80029A0C(panel->x + 0xB6, panel->y + 2, 0, PLAYER(p)->unk178_19, rgb[0], z);
+        drawText(panel->x + 0x82, panel->y + 1, (s32)buf, color, z);
+        drawIconColored(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, rgb[0], z);
+        drawIconColored(panel->x + 0xB6, panel->y + 2, 0, PLAYER(p)->unk178_19, rgb[0], z);
         for (k = 0; k < 3; k++) {
-            func_80028D18(panel->x + 0x25, panel->y + 13 + k * 12, (s32)card->attack[k].name, 7, z);
+            drawText(panel->x + 0x25, panel->y + 13 + k * 12, (s32)card->attack[k].name, 7, z);
             sprintf(buf, "*s0%4d", PLAYER(p)->unk15C[k]);
-            func_80028D18(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)buf, color, z);
+            drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)buf, color, z);
         }
-        func_80028D18(panel->x + 0x47, panel->y + 0x32, (s32)D_8006E4BC[card->unkE4], 7, z);
+        drawText(panel->x + 0x47, panel->y + 0x32, (s32)D_8006E4BC[card->unkE4], 7, z);
         if (D_8006E4FC[card->unkE4] != 0) {
-            func_800299DC(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+            drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->unkE4] + 0x14, z);
         }
         if (PLAYER(p)->unk178_2 != 3) {
             if (PLAYER(p)->unk178_4 != PLAYER(p)->unk178_2) {
@@ -947,17 +947,17 @@ void func_8003D4C4(void) {
                         color = PLAYER(i)->unk178_15 ? 3 : 7;
                         projectCardSprite(SPRITE(c), c);
                         z = *(s32 *)((u8 *)SPRITE(c) + 0x38);
-                        func_800299DC(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30, 0,
+                        drawIcon(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30, 0,
                                       0x1A, z);
                         sprintf(buf, "%4d", PLAYER(i)->unk126[0]);
-                        func_80028D18(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
+                        drawText(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
                                       (s32)buf, color, z);
                         rect.x = 0x60;
                         rect.y = 0xDB;
                         rect.w = 0x26;
                         rect.h = 0xC;
-                        func_80027228(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
-                                      &rect, rgb, getTPage(0, 2, D_801D6B12, D_801D6B14), 0xC, z);
+                        drawPageSpriteColored(*(s16 *)((u8 *)SPRITE(c) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(c) + 0x36) + 30,
+                                      &rect, rgb, getTPage(0, 2, SYSTEM_TEX_X, SYSTEM_TEX_Y), 0xC, z);
                         done = 1;
                     }
                 }

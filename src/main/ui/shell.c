@@ -13,17 +13,17 @@
 #include "dcb/text.h"
 #include "dcb/window.h"
 
-s32 func_80049840(Entry12 *tbl, s32 a, s32 b) {
-    s8 v;
-    s32 idx;
+s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
+    s8 level;
+    s32 partnerIndex;
     s32 i;
 
-    v = ((Unk8006E050 *)PLAYER_PROFILES)[a].unk80[b].unk289;
-    idx = getSlotPartnerIndex(a, b);
-    if (idx >= 0) {
+    level = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289;
+    partnerIndex = getSlotPartnerIndex(player, slot);
+    if (partnerIndex >= 0) {
         for (i = 0; i < 0x80; i++) {
-            if (tbl[i].unk4[idx] == v) {
-                if (getPartnerAbilityState(a, i) == 0) {
+            if (abilityTable[i].unk4[partnerIndex] == level) {
+                if (getPartnerAbilityState(player, i) == 0) {
                     return i;
                 }
                 return -1;
@@ -33,20 +33,20 @@ s32 func_80049840(Entry12 *tbl, s32 a, s32 b) {
     return -1;
 }
 
-s32 func_80049934(s32 arg0) {
-    arg0++;
-    return (arg0 + 2) * arg0;
+s32 getExpForNextLevel(s32 level) {
+    level++;
+    return (level + 2) * level;
 }
 
-s32 func_8004994C(s32 a, s32 b) {
-    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[a].unk80[b].unk289 % 5) != 0) {
+s32 func_8004994C(s32 player, s32 slot) {
+    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 % 5) != 0) {
         return -1;
     }
     return rand() % 4;
 }
 
 /* the hacking screens */
-u8 *D_8006EF04[4] = {
+u8 *HACKING_SCRIPTS[4] = {
     "Hacking System 2000\n"
     " (C)Analogman Software\n"
     "\n"
@@ -165,209 +165,209 @@ u8 *D_8006EF04[4] = {
     "\002\377\002\300",
 };
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012D68);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_SYSTEM_ERROR);
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012DB8);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_PARTNER_MOVED);
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012DF8);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", STR_HACK_TAUNT);
 
-void func_80049A14(s16 *arg0) {
-    s16 r[4];
+void drawHackingTerminal(s16 *win) {
+    s16 rect[4];
     s32 x;
     s32 y;
     s16 z;
-    u8 *p;
+    u8 *script;
 
-    x = arg0[0] + 1;
-    y = arg0[1];
-    if (D_801D8544 >= 12) {
-        y -= (D_801D8544 - 11) * 7;
+    x = win[0] + 1;
+    y = win[1];
+    if (HACK_LINE_COUNT >= 12) {
+        y -= (HACK_LINE_COUNT - 11) * 7;
     }
-    z = arg0[0x1D];
-    if (D_801D8538 > 0 || D_801D854C != 0) {
-        D_801D8538--;
+    z = win[0x1D];
+    if (HACK_WAIT_FRAMES > 0 || HACK_SCRIPT_DONE != 0) {
+        HACK_WAIT_FRAMES--;
     } else {
         do {
-            switch (*D_801D8558) {
+            switch (*HACK_SCRIPT_CURSOR) {
             case 1:
-                D_801D8540 = 1;
+                HACK_TYPING_MODE = 1;
                 break;
             case 2:
-                p = D_801D8558;
-                D_801D8558 = p + 1;
-                D_801D8538 = p[1];
+                script = HACK_SCRIPT_CURSOR;
+                HACK_SCRIPT_CURSOR = script + 1;
+                HACK_WAIT_FRAMES = script[1];
                 break;
             case 4:
-                func_800293FC(D_80012D68);
-                r[2] = (D_801D6B18 + 1) / 2 * 2;
-                r[3] = (D_801D6B1C + 1) / 2 * 2;
-                r[0] = 0x28;
-                r[1] = 0x28;
-                func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)r);
+                measureText(STR_HACK_SYSTEM_ERROR);
+                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
+                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect[0] = 0x28;
+                rect[1] = 0x28;
+                animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case 5:
-                func_800293FC(D_80012DB8);
-                r[2] = (D_801D6B18 + 1) / 2 * 2;
-                r[3] = (D_801D6B1C + 1) / 2 * 2;
-                r[0] = 0x50;
-                r[1] = 0x78;
-                func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)r);
+                measureText(STR_HACK_PARTNER_MOVED);
+                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
+                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect[0] = 0x50;
+                rect[1] = 0x78;
+                animateWindowTo((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case 6:
-                func_800293FC(D_80012DF8);
-                r[2] = (D_801D6B18 + 1) / 2 * 2;
-                r[3] = (D_801D6B1C + 1) / 2 * 2;
-                r[0] = (0x140 - r[2]) >> 1;
-                r[1] = 0xB4 - r[3] / 2;
-                func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)r);
+                measureText(STR_HACK_TAUNT);
+                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
+                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect[0] = (0x140 - rect[2]) >> 1;
+                rect[1] = 0xB4 - rect[3] / 2;
+                animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case '>':
-                D_801D8540 = 1;
+                HACK_TYPING_MODE = 1;
                 goto copy;
             case '\n':
-                D_801D8540 = 0;
-                D_801D8538 = 20;
-                D_801D8544++;
+                HACK_TYPING_MODE = 0;
+                HACK_WAIT_FRAMES = 20;
+                HACK_LINE_COUNT++;
             default:
             copy:
-                *D_801D8554++ = *D_801D8558;
+                *HACK_TEXT_CURSOR++ = *HACK_SCRIPT_CURSOR;
                 break;
             }
-            if (*++D_801D8558 == 0) {
-                D_801D854C = 1;
+            if (*++HACK_SCRIPT_CURSOR == 0) {
+                HACK_SCRIPT_DONE = 1;
                 break;
             }
-        } while (D_801D8540 == 0 && D_801D8538 == 0);
+        } while (HACK_TYPING_MODE == 0 && HACK_WAIT_FRAMES == 0);
     }
-    if ((D_801D853C & 0x10) || D_801D8538 == 0) {
-        *D_801D8554 = '|';
+    if ((HACK_BLINK_TIMER & 0x10) || HACK_WAIT_FRAMES == 0) {
+        *HACK_TEXT_CURSOR = '|';
     } else {
-        *D_801D8554 = ' ';
+        *HACK_TEXT_CURSOR = ' ';
     }
-    D_801D853C++;
-    D_801D8554[1] = 0;
-    func_80028558(x, y, D_801D8550, 4, z);
+    HACK_BLINK_TIMER++;
+    HACK_TEXT_CURSOR[1] = 0;
+    drawMediumText(x, y, HACK_TEXT_BUFFER, 4, z);
 }
 
-void func_80049DC0(void *arg0) {
-    func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012D68, 0, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
+void drawHackErrorText(void *win) {
+    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_SYSTEM_ERROR, 0, (s32) (*(s16 *)((s8 *)win + 0x3A)));
 }
 
-void func_80049E00(void *arg0) {
-    func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012DB8, 7, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
+void drawHackPartnerMovedText(void *win) {
+    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_PARTNER_MOVED, 7, (s32) (*(s16 *)((s8 *)win + 0x3A)));
 }
 
-void func_80049E40(void *arg0) {
-    func_80028D18((*(s16 *)((s8 *)arg0 + 0)), (*(s16 *)((s8 *)arg0 + 2)), &D_80012DF8, 7, (s32) (*(s16 *)((s8 *)arg0 + 0x3A)));
+void drawHackTauntText(void *win) {
+    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_TAUNT, 7, (s32) (*(s16 *)((s8 *)win + 0x3A)));
 }
 
-void func_80049E80(void) {
-    func_800170F0((Unk80016F38 *)&D_801D8460, &func_80049E40, 0xA);
-    func_800170F0((Unk80016F38 *)&D_801D84F4, &func_80049E00, 0xA);
-    func_800170F0((Unk80016F38 *)&D_801D84B0, &func_80049DC0, 0xA);
-    func_800170F0((Unk80016F38 *)&D_801D8410, &func_80049A14, 0xA);
+void drawHackingWindows(void) {
+    drawWindow((Unk80016F38 *)&HACK_TAUNT_WINDOW, &drawHackTauntText, 0xA);
+    drawWindow((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, &drawHackPartnerMovedText, 0xA);
+    drawWindow((Unk80016F38 *)&HACK_ERROR_WINDOW, &drawHackErrorText, 0xA);
+    drawWindow((Unk80016F38 *)&HACK_TERMINAL_WINDOW, &drawHackingTerminal, 0xA);
 }
 
-void func_80049EF8(s32 n, s32 arg1) {
+void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     Rect16 r;
-    u8 buf[0x401];
+    u8 textBuf[0x401];
     s32 i;
     s32 done;
 
     done = 0;
-    D_801D8548 = n;
-    D_801D8538 = 20;
-    D_801D853C = 0;
-    D_801D8540 = 0;
-    D_801D854C = 0;
-    D_801D8544 = 0;
+    HACK_SCRIPT_INDEX = scriptIndex;
+    HACK_WAIT_FRAMES = 20;
+    HACK_BLINK_TIMER = 0;
+    HACK_TYPING_MODE = 0;
+    HACK_SCRIPT_DONE = 0;
+    HACK_LINE_COUNT = 0;
     for (i = 0; i < 0x401; i++) {
-        buf[i] = 0;
+        textBuf[i] = 0;
     }
-    D_801D8550 = (s32)buf;
-    D_801D8554 = buf;
-    D_801D8558 = D_8006EF04[D_801D8548];
+    HACK_TEXT_BUFFER = (s32)textBuf;
+    HACK_TEXT_CURSOR = textBuf;
+    HACK_SCRIPT_CURSOR = HACKING_SCRIPTS[HACK_SCRIPT_INDEX];
     r.x = 0x94;
     r.y = 0x20;
     r.w = 0xA0;
     r.h = 0x54;
-    func_80016C08(&D_801D8410, &r, -1, (s16 *)-1, 8, 0x58, 0x80, 0xC);
-    ((Unk80016F38 *)&D_801D8410)->unk2C = (s32)"SHELL COMMAND";
-    ((Unk80016F38 *)&D_801D8410)->unk38 = 2;
-    ((Unk80016F38 *)&D_801D8410)->unk39 = 8;
+    openWindow(&HACK_TERMINAL_WINDOW, &r, -1, (s16 *)-1, 8, 0x58, 0x80, 0xC);
+    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk2C = (s32)"SHELL COMMAND";
+    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk38 = 2;
+    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk39 = 8;
     playMenuSound(3);
-    func_800293FC(D_80012D68);
-    r.w = (D_801D6B18 + 1) / 2 * 2;
-    r.h = (D_801D6B1C + 1) / 2 * 2;
-    func_80016C08(&D_801D84B0, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)-1);
-    ((Unk80016F38 *)&D_801D84B0)->unk38 = 2;
-    func_800293FC(D_80012DB8);
-    r.w = (D_801D6B18 + 1) / 2 * 2;
-    r.h = (D_801D6B1C + 1) / 2 * 2;
-    func_80016C08((Unk80016F38 *)&D_801D84B0 + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    func_80016F38((Unk80016F38 *)&D_801D84B0 + 1, (Rect16 *)-1);
-    ((Unk80016F38 *)&D_801D84B0)[1].unk38 = 2;
-    func_800293FC(D_80012DF8);
-    r.w = (D_801D6B18 + 1) / 2 * 2;
-    r.h = (D_801D6B1C + 1) / 2 * 2;
+    measureText(STR_HACK_SYSTEM_ERROR);
+    r.w = (TEXT_WIDTH + 1) / 2 * 2;
+    r.h = (TEXT_HEIGHT + 1) / 2 * 2;
+    openWindow(&HACK_ERROR_WINDOW, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    ((Unk80016F38 *)&HACK_ERROR_WINDOW)->unk38 = 2;
+    measureText(STR_HACK_PARTNER_MOVED);
+    r.w = (TEXT_WIDTH + 1) / 2 * 2;
+    r.h = (TEXT_HEIGHT + 1) / 2 * 2;
+    openWindow((Unk80016F38 *)&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
+    ((Unk80016F38 *)&HACK_ERROR_WINDOW)[1].unk38 = 2;
+    measureText(STR_HACK_TAUNT);
+    r.w = (TEXT_WIDTH + 1) / 2 * 2;
+    r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     r.x = (0x140 - r.w) >> 1;
     r.y = 0xB4 - r.h / 2;
-    func_80016C08(&D_801D8460, &r, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
-    ((Unk80016F38 *)&D_801D8460)->unk2C = (s32)"MESSAGE";
-    ((Unk80016F38 *)&D_801D8460)->unk38 = 4;
-    func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)-1);
-    func_8001683C((s32)func_80049E80);
+    openWindow(&HACK_TAUNT_WINDOW, &r, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
+    ((Unk80016F38 *)&HACK_TAUNT_WINDOW)->unk2C = (s32)"MESSAGE";
+    ((Unk80016F38 *)&HACK_TAUNT_WINDOW)->unk38 = 4;
+    animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
+    addFrameCallback((s32)drawHackingWindows);
     do {
         func_80014C08(FRAME_INTERVAL);
-        if (D_801D854C != 0) {
+        if (HACK_SCRIPT_DONE != 0) {
             done = 1;
         }
     } while (done == 0);
     playMenuSound(4);
-    func_80016F38((Unk80016F38 *)&D_801D8410, (Rect16 *)-1);
-    func_80016F38((Unk80016F38 *)&D_801D84B0, (Rect16 *)-1);
-    func_80016F38((Unk80016F38 *)&D_801D84F4, (Rect16 *)-1);
-    func_80016F38((Unk80016F38 *)&D_801D8460, (Rect16 *)-1);
+    animateWindowTo((Unk80016F38 *)&HACK_TERMINAL_WINDOW, (Rect16 *)-1);
+    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    animateWindowTo((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
+    animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     func_80014C08(20);
-    func_80016878((s32)func_80049E80);
-    func_80014A48(arg1);
+    removeFrameCallback((s32)drawHackingWindows);
+    func_80014A48(parentTask);
 }
 
-void func_8004A2DC(s32 mode) {
-    u8 dlg[0xB8];
-    Rect16 r = { 0, 0, 480, 512 };
-    s32 stack;
+void quitToTitleOrPlayEnding(s32 mode) {
+    u8 dialog[0xB8];
+    Rect16 vramRect = { 0, 0, 480, 512 };
+    s32 parentTask;
     s32 done;
 
-    stack = func_800148B0();
+    parentTask = func_800148B0();
     if (mode == 0) {
         func_8002F8E8();
         func_80014C08(10);
-        ClearImage(&r, 0, 0, 0);
+        ClearImage(&vramRect, 0, 0, 0);
         DrawSync(0);
         func_80014C08(10);
         done = 0;
         stopMusic();
         func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 1, stack);
+        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 1, parentTask);
         func_80014C08(0x7FFFFFFF);
         resetDisplay(0x140, 0xF0, 0);
         func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
         func_80014C08(2);
         do {
-            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, stack, 0, 0);
+            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, parentTask, 0, 0);
             func_80014C08(0x7FFFFFFF);
             playMenuSound(3);
-            func_80019EA4(dlg,
+            initDialog(dialog,
                           "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
                           "to continue.)",
                           1);
-            func_8001A100(dlg);
-            switch ((s8)dlg[0xA5]) {
+            runDialog(dialog);
+            switch ((s8)dialog[0xA5]) {
             case 1:
                 done = 1;
                 break;
@@ -385,15 +385,15 @@ void func_8004A2DC(s32 mode) {
         func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x800, D_801DF47C, stack, mode, 0, 0);
+        func_800149B8(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
         func_80014C08(0x7FFFFFFF);
         func_80014C08(10);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, D_80012FAC, D_80010C9C, func_800148B0());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, PATH_SAISEG_BIN, D_80010C9C, func_800148B0());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, stack, 0, 0);
+        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
     }
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", D_80012FAC);
+INCLUDE_RODATA("asm/main/nonmatchings/ui/shell", PATH_SAISEG_BIN);

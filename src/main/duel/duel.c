@@ -59,7 +59,7 @@ void func_80034260(void) {
                         }
                         PLAYER(0)->unk17D[29] = id;
                     }
-                    func_800149B8(0, -1, 0, 0x800, func_80049EF8, 2, func_800148B0(), 0, 0);
+                    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 2, func_800148B0(), 0, 0);
                     func_80014C08(0x7FFFFFFF);
                 }
             }
@@ -112,14 +112,14 @@ void func_80034260(void) {
                 if (func_80040220(ME) == 0) {
                     D_801D83D4 = 2;
                     sprintf(buf, "There are no more Cards, so %s loses!", PLAYER(ME)->unk1CE);
-                    func_80019EA4((u8 *)&D_801D8278, buf, 0);
+                    initDialog((u8 *)&D_801D8278, buf, 0);
                     func_800341EC();
                     DUEL->unk81E = ME ^ 1;
                     DUEL->unk818 = 0x26;
                 } else {
                     D_801D83D4 = 1;
                     if (PLAYER(ME)->unk178_17 != 1) {
-                        func_80019EA4((u8 *)&D_801D8278, "Redrawing Cards because there are\nno Digimon Cards.", 0);
+                        initDialog((u8 *)&D_801D8278, "Redrawing Cards because there are\nno Digimon Cards.", 0);
                         func_800341EC();
                     }
                     DUEL->unk818 = 6;
@@ -156,7 +156,7 @@ void func_80034260(void) {
                 DUEL_MSG_BAR.next = 3;
                 DUEL_MSG_BAR.next2 = 0;
                 do {
-                    func_80019EA4((u8 *)&D_801D8278, "This will discard all Cards.\nIs this OK?", 1);
+                    initDialog((u8 *)&D_801D8278, "This will discard all Cards.\nIs this OK?", 1);
                     func_800341EC();
                     switch (CHOICE) {
                     case 0:
@@ -273,7 +273,7 @@ void func_80034260(void) {
                     if (i != -1) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
                             D_801D83D4 = 5;
-                            func_80019EA4((u8 *)&D_801D8278, "Do you want to Armor Digivolve?", 1);
+                            initDialog((u8 *)&D_801D8278, "Do you want to Armor Digivolve?", 1);
                             func_800341EC();
                             switch (CHOICE) {
                             case 0:
@@ -313,7 +313,7 @@ void func_80034260(void) {
             DUEL->unk822 = 0;
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 6;
-            func_80019EA4((u8 *)&D_801D8278, "Is it OK to end the Preparation Phase?", 1);
+            initDialog((u8 *)&D_801D8278, "Is it OK to end the Preparation Phase?", 1);
             func_800341EC();
             switch (CHOICE) {
             case 0:
@@ -432,7 +432,7 @@ void func_80034260(void) {
                     playSoundEffect(0xA0);
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
                     if (func_801EA374(ME) != 0) {
-                        func_80019EA4((u8 *)&D_801D8278, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
+                        initDialog((u8 *)&D_801D8278, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
                         func_800341EC();
                         switch (CHOICE) {
                         case 0:
@@ -475,7 +475,7 @@ void func_80034260(void) {
                 card = PLAYER(ME)->cards[func_80041340(ME) % 30].card;
                 switch (card[0x1A]) {
                 case 4:
-                    func_80019EA4((u8 *)&D_801D8278, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
+                    initDialog((u8 *)&D_801D8278, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
                     if (PLAYER(ME)->unk178_17 != 1) {
                         func_800341EC();
                     } else {
@@ -501,7 +501,7 @@ void func_80034260(void) {
                     }
                     break;
                 case 7:
-                    func_80019EA4((u8 *)&D_801D8278, "Your Digimon's Level will become *e3,\ndo you still want to \"Armor Digi-devolve\"?", 1);
+                    initDialog((u8 *)&D_801D8278, "Your Digimon's Level will become *e3,\ndo you still want to \"Armor Digi-devolve\"?", 1);
                     if (PLAYER(ME)->unk178_17 != 1) {
                         func_800341EC();
                     } else {
@@ -716,7 +716,7 @@ void func_80034260(void) {
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 0xA;
             D_801D83EC[ME * 0xD8 + 0x55] = 1;
-            func_80019EA4((u8 *)&D_801D8278, "Is it OK to end the Digivolve Phase?", 1);
+            initDialog((u8 *)&D_801D8278, "Is it OK to end the Digivolve Phase?", 1);
             func_800341EC();
             switch (CHOICE) {
             case 0:
@@ -743,7 +743,7 @@ void func_80034260(void) {
                     DUEL_MSG_BAR.unk3 = 2;
                     DUEL_MSG_BAR.next = 0xB;
                     sprintf(buf, "Since %s has no Digimon,\nthere is no Battle Phase.", PLAYER(OPP)->unk1CE);
-                    func_80019EA4((u8 *)&D_801D8278, buf, 0);
+                    initDialog((u8 *)&D_801D8278, buf, 0);
                     func_800341EC();
                 }
                 DUEL->unk818 = 0x25;
@@ -843,8 +843,8 @@ void func_80034260(void) {
             } else {
                 DUEL->unk80A = -1;
                 if (func_80040468(OPP) == 4 && func_80040220(OPP) == 0) {
-                    func_80019EA4((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
-                    func_8001A164(&D_801D8278, PLAYER(OPP)->unk178_17 & 1);
+                    initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
+                    runDialogForPad(&D_801D8278, PLAYER(OPP)->unk178_17 & 1);
                     DUEL->unk818 = 0x1D;
                 } else {
                     func_801EC4CC(OPP);
@@ -868,11 +868,11 @@ void func_80034260(void) {
                     DUEL->unk80A = func_801ECB40(CUR_CARD, OPP);
                 }
                 playSoundEffect(0xA0);
-                func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->unk818++;
             } else if (PAD_STATES[OPP]->unkA & 0x20) {
                 playSoundEffect(0xA0);
-                func_80019EA4((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
+                initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->unk818++;
             }
             if (DUEL->unk818 != 0x1B) {
@@ -882,13 +882,13 @@ void func_80034260(void) {
         case 28:
             DUEL->unk822 = 0;
             D_801D83D7 = 0;
-            func_8001A164(&D_801D8278, PLAYER(OPP)->unk178_17 & 1);
+            runDialogForPad(&D_801D8278, PLAYER(OPP)->unk178_17 & 1);
             switch (CHOICE) {
             case 0:
             case 2:
                 if (DUEL->unk81F != 0) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
-                    func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                    initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 } else {
                     if (DUEL->unk80A >= 0) {
                         func_801EC8E0(OPP, DUEL->unk80A);
@@ -927,8 +927,8 @@ void func_80034260(void) {
             } else {
                 DUEL->unk80A = -1;
                 if (func_80040468(ME) == 4 && func_80040220(ME) == 0) {
-                    func_80019EA4((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
-                    func_8001A164(&D_801D8278, PLAYER(ME)->unk178_17 & 1);
+                    initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
+                    runDialogForPad(&D_801D8278, PLAYER(ME)->unk178_17 & 1);
                     DUEL->unk818 = 0x20;
                 } else {
                     func_801EC4CC(ME);
@@ -952,11 +952,11 @@ void func_80034260(void) {
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
                 }
                 playSoundEffect(0xA0);
-                func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->unk818++;
             } else if (PAD_STATES[ME]->unkA & 0x20) {
                 playSoundEffect(0xA0);
-                func_80019EA4((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
+                initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->unk818++;
             }
             if (DUEL->unk818 != 0x1E) {
@@ -972,7 +972,7 @@ void func_80034260(void) {
             case 2:
                 if (DUEL->unk81F != 0) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
-                    func_80019EA4((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                    initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 } else {
                     if (DUEL->unk80A >= 0) {
                         func_801EC8E0(ME, DUEL->unk80A);
@@ -992,7 +992,7 @@ void func_80034260(void) {
             func_80033D08(0x3C);
             if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
                 D_801D8330 = 0x20;
-                func_8001683C((s32)func_80033F34);
+                addFrameCallback((s32)func_80033F34);
                 while (D_801D8330 != 0) {
                     func_80014C08(FRAME_INTERVAL);
                 }
@@ -1132,7 +1132,7 @@ void func_80034260(void) {
                         over = 1;
                     }
                 }
-                func_80016878((s32)func_80033F34);
+                removeFrameCallback((s32)func_80033F34);
                 if (over) {
                     DUEL->unk818++;
                 } else {
@@ -1173,12 +1173,12 @@ void func_80034260(void) {
                     PLAYER(DUEL->unk81E ^ 1)->unk110 |= 0x40000;
                 }
                 sprintf(buf, "%d Wins, %d Losses-%s WINS!", PLAYER(DUEL->unk81E)->unk17C, PLAYER(DUEL->unk81E ^ 1)->unk17C, PLAYER(DUEL->unk81E)->unk1CE);
-                func_80019EA4((u8 *)&D_801D8278, buf, 0);
+                initDialog((u8 *)&D_801D8278, buf, 0);
                 func_800341EC();
                 DUEL->unk818 = 0x26;
             } else if (func_80040764(DUEL->unk81E ^ 1) == -1 && func_80040570(DUEL->unk81E ^ 1) != 0 && func_80040220(DUEL->unk81E ^ 1) == 0) {
                 sprintf(buf, "Since %s has no more Digimon,\nthe winner is %s!", PLAYER(DUEL->unk81E ^ 1)->unk1CE, PLAYER(DUEL->unk81E)->unk1CE);
-                func_80019EA4((u8 *)&D_801D8278, buf, 0);
+                initDialog((u8 *)&D_801D8278, buf, 0);
                 func_800341EC();
                 DUEL->unk818 = 0x26;
             }

@@ -209,7 +209,7 @@ void uploadTexturePackOffset(u32 *pack, s32 dx, s32 dy) {
 }
 
 void resetDisplay(s32 w, s32 h, s32 interlace) {
-    D_80079500 = 0;
+    FRAME_CALLBACKS = 0;
     initDisplayBuffers(w, h, interlace);
 }
 

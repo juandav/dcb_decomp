@@ -150,7 +150,7 @@ retry:
         *drivePathCursor++ = '\\';
         *drivePathCursor++ = toupper((s8)*cursor);
         cursor += 2;
-        func_8002A5B4((s8 *)drivePathCursor, (s8 *)PATH_DRV_SUFFIX);
+        copyString((s8 *)drivePathCursor, (s8 *)PATH_DRV_SUFFIX);
         if (CdSearchFile(file->loc, drivePath) == 0) {
             return 0;
         }

@@ -4,127 +4,127 @@
 #include "dcb/str_util.h"
 #include "dcb/text.h"
 
-s8 *func_8002A5DC(s8 *buf, s8 pad, s32 n, s32 width) {
-    s8 *q;
-    s8 *r;
-    s32 cnt;
+s8 *formatNumberWithCommas(s8 *buf, s8 pad, s32 value, s32 width) {
+    s8 *digit;
+    s8 *shift;
+    s32 digitCount;
     s8 c;
 
     buf += width;
-    q = buf;
+    digit = buf;
     *buf = 0;
-    cnt = 0;
+    digitCount = 0;
     do {
-        q--;
-        c = n % 10 + '0';
-        *q = c;
-        n /= 10;
-        if (--width <= 0 && n != 0) {
+        digit--;
+        c = value % 10 + '0';
+        *digit = c;
+        value /= 10;
+        if (--width <= 0 && value != 0) {
             buf++;
-            for (r = buf; q < r; r--) {
-                *r = r[-1];
+            for (shift = buf; digit < shift; shift--) {
+                *shift = shift[-1];
             }
-            q++;
+            digit++;
         }
-        if (++cnt % 3 == 0) {
-            if (n == 0) {
+        if (++digitCount % 3 == 0) {
+            if (value == 0) {
                 break;
             }
-            *--q = ',';
+            *--digit = ',';
             if (--width <= 0) {
                 buf++;
-                for (r = buf; q < r; r--) {
-                    *r = r[-1];
+                for (shift = buf; digit < shift; shift--) {
+                    *shift = shift[-1];
                 }
-                q++;
+                digit++;
             }
         }
-    } while (n != 0);
+    } while (value != 0);
     while (--width >= 0) {
-        *--q = pad;
+        *--digit = pad;
     }
     return buf;
 }
 
-s8 *func_8002A710(s8 *buf, s8 pad, s32 n, s32 width) {
-    s8 *q;
-    s8 *r;
+s8 *formatNumber(s8 *buf, s8 pad, s32 value, s32 width) {
+    s8 *digit;
+    s8 *shift;
 
     buf += width;
-    q = buf;
+    digit = buf;
     *buf = 0;
     do {
-        *--q = n % 10 + '0';
-        n /= 10;
-        if (--width <= 0 && n != 0) {
+        *--digit = value % 10 + '0';
+        value /= 10;
+        if (--width <= 0 && value != 0) {
             buf++;
-            for (r = buf; q < r; r--) {
-                *r = r[-1];
+            for (shift = buf; digit < shift; shift--) {
+                *shift = shift[-1];
             }
-            q++;
+            digit++;
         }
-    } while (n != 0);
+    } while (value != 0);
     while (--width >= 0) {
-        *--q = pad;
+        *--digit = pad;
     }
     return buf;
 }
 
-void func_8002A7CC(s8 *arg0, s32 arg1, s32 arg2) {
-    if (arg1 >= 0) {
-        *arg0++ = '+';
+void formatSignedNumber(s8 *buf, s32 value, s32 width) {
+    if (value >= 0) {
+        *buf++ = '+';
     } else {
-        *arg0++ = '-';
-        arg1 = -arg1;
+        *buf++ = '-';
+        value = -value;
     }
-    func_8002A710(arg0, '0', arg1, arg2 - 1);
+    formatNumber(buf, '0', value, width - 1);
 }
 
-s8 *func_8002A820(s8 *buf, s32 n) {
-    s8 *s;
+s8 *formatOrdinalGlyphs(s8 *buf, s32 rank) {
+    s8 *suffix;
 
-    switch (n) {
+    switch (rank) {
     case 1:
-        s = "1ab";
+        suffix = "1ab";
         break;
     case 2:
-        s = "2cd";
+        suffix = "2cd";
         break;
     case 3:
-        s = "3ef";
+        suffix = "3ef";
         break;
     default:
-        if (n < 10) {
-            return func_8002A5B4(func_8002A710(buf, ' ', n, 1), "gh");
+        if (rank < 10) {
+            return copyString(formatNumber(buf, ' ', rank, 1), "gh");
         }
-        return func_8002A5B4(func_8002A710(buf, ' ', n, 2), "i");
+        return copyString(formatNumber(buf, ' ', rank, 2), "i");
     }
-    return func_8002A5B4(buf, s);
+    return copyString(buf, suffix);
 }
 
-s8 *func_8002A8D4(s8 *arg0, s8 *arg1, s32 arg2) {
-    s32 pad;
+s8 *centerString(s8 *dst, s8 *src, s32 width) {
+    s32 padding;
     s32 i;
     s8 *p;
 
-    pad = arg2 - strlen(arg1);
-    if (pad < 0) {
-        p = arg0;
-        for (i = 0; i < arg2; i++) {
+    padding = width - strlen(src);
+    if (padding < 0) {
+        p = dst;
+        for (i = 0; i < width; i++) {
             *p++ = '*';
         }
     } else {
-        pad /= 2;
-        p = arg0;
-        while (pad-- > 0) {
+        padding /= 2;
+        p = dst;
+        while (padding-- > 0) {
             *p++ = ' ';
-            arg2--;
+            width--;
         }
-        while ((*p = *arg1++) != 0) {
+        while ((*p = *src++) != 0) {
             p++;
-            arg2--;
+            width--;
         }
-        while (arg2-- > 0) {
+        while (width-- > 0) {
             *p++ = ' ';
         }
     }
@@ -132,19 +132,19 @@ s8 *func_8002A8D4(s8 *arg0, s8 *arg1, s32 arg2) {
     return p;
 }
 
-u16 func_8002A9D4(u8 **ps) {
-    u8 *s = *ps;
+u16 readSjisChar(u8 **cursor) {
+    u8 *s = *cursor;
 
     if (s[0] > 0x80 && (s[0] < 0xA0 || (s[0] >= 0xE0 && s[0] < 0xF0))) {
         if (s[1] >= 0x40 && (s[1] < 0x7F || (s[1] >= 0x80 && s[1] < 0xFD))) {
-            *ps += 2;
-            return ((*ps)[-2] << 8) | (*ps)[-1];
+            *cursor += 2;
+            return ((*cursor)[-2] << 8) | (*cursor)[-1];
         }
     }
-    return *(*ps)++;
+    return *(*cursor)++;
 }
 
-u16 func_8002AA8C(u8 *s) {
+u16 peekSjisChar(u8 *s) {
     if (s[0] > 0x80 && (s[0] < 0xA0 || (s[0] >= 0xE0 && s[0] < 0xF0))) {
         if (s[1] >= 0x40 && (s[1] < 0x7F || (s[1] >= 0x80 && s[1] < 0xFD))) {
             return (s[0] << 8) | s[1];
@@ -153,112 +153,112 @@ u16 func_8002AA8C(u8 *s) {
     return s[0];
 }
 
-s32 func_8002AB20(s16 *s) {
-    s16 *p;
-    s32 w;
+s32 measureWideString(s16 *str) {
+    s16 *ch;
+    s32 width;
 
-    p = s;
-    w = 0;
+    ch = str;
+    width = 0;
 loop:
-    p++;
-    if (*p != 0) {
-        if (*p < 0) {
-            w += 1;
+    ch++;
+    if (*ch != 0) {
+        if (*ch < 0) {
+            width += 1;
         } else {
-            w += 2;
+            width += 2;
         }
         goto loop;
     }
-    *s = w;
-    return w;
+    *str = width;
+    return width;
 }
 
-s16 *func_8002AB5C(s16 *d, u8 *s) {
-    if ((*d = -*s) == 0) {
-        return d;
+s16 *copyAsciiToWideString(s16 *dst, u8 *src) {
+    if ((*dst = -*src) == 0) {
+        return dst;
     }
-    s++;
-    d++;
-    return func_8002AB5C(d, s);
+    src++;
+    dst++;
+    return copyAsciiToWideString(dst, src);
 }
 
-s16 *func_8002AB84(s16 *d, s16 *s) {
-    if ((*d = *s) == 0) {
-        return d;
+s16 *copyWideString(s16 *dst, s16 *src) {
+    if ((*dst = *src) == 0) {
+        return dst;
     }
-    return func_8002AB84(d + 1, s + 1);
+    return copyWideString(dst + 1, src + 1);
 }
 
-s16 *func_8002ABAC(s16 *buf, u8 pad, s32 n, s32 width) {
-    s16 *q;
-    s16 *r;
+s16 *formatWideNumber(s16 *buf, u8 pad, s32 value, s32 width) {
+    s16 *digit;
+    s16 *shift;
     s32 fill;
 
     fill = -pad;
     buf += width;
-    q = buf;
+    digit = buf;
     *buf = 0;
     do {
-        *--q = -'0' - n % 10;
-        n /= 10;
-        if (--width <= 0 && n != 0) {
+        *--digit = -'0' - value % 10;
+        value /= 10;
+        if (--width <= 0 && value != 0) {
             buf++;
-            for (r = buf; q < r; r--) {
-                *r = r[-1];
+            for (shift = buf; digit < shift; shift--) {
+                *shift = shift[-1];
             }
-            q++;
+            digit++;
         }
-    } while (n != 0);
+    } while (value != 0);
     while (--width >= 0) {
-        *--q = fill;
+        *--digit = fill;
     }
     return buf;
 }
 
-void func_8002AC70(s16 *arg0, s32 arg1, s32 arg2) {
-    if (arg1 >= 0) {
-        *arg0++ = -0x2B;
+void formatWideSignedNumber(s16 *buf, s32 value, s32 width) {
+    if (value >= 0) {
+        *buf++ = -0x2B;
     } else {
-        *arg0++ = -0x2D;
-        arg1 = -arg1;
+        *buf++ = -0x2D;
+        value = -value;
     }
-    func_8002ABAC(arg0, 0x30, arg1, arg2 - 1);
+    formatWideNumber(buf, 0x30, value, width - 1);
 }
 
-s16 *func_8002ACC4(s16 *buf, s32 n) {
-    u8 *s;
+s16 *formatWideOrdinal(s16 *buf, s32 rank) {
+    u8 *suffix;
 
-    switch (n) {
+    switch (rank) {
     case 1:
-        s = "1st";
+        suffix = "1st";
         break;
     case 2:
-        s = "2nd";
+        suffix = "2nd";
         break;
     case 3:
-        s = "3rd";
+        suffix = "3rd";
         break;
     default:
-        return func_8002AB5C(func_8002ABAC(buf, ' ', n, 1), "th");
+        return copyAsciiToWideString(formatWideNumber(buf, ' ', rank, 1), "th");
     }
-    return func_8002AB5C(buf, s);
+    return copyAsciiToWideString(buf, suffix);
 }
 
-s8 *func_8002AD58(s8 *buf, s32 n) {
-    s8 *s;
+s8 *formatOrdinalUpper(s8 *buf, s32 rank) {
+    s8 *suffix;
 
-    switch (n) {
+    switch (rank) {
     case 1:
-        s = "1ST";
+        suffix = "1ST";
         break;
     case 2:
-        s = "2ND";
+        suffix = "2ND";
         break;
     case 3:
-        s = "3RD";
+        suffix = "3RD";
         break;
     default:
-        return func_8002A5B4(func_8002A710(buf, ' ', n, 1), "TH");
+        return copyString(formatNumber(buf, ' ', rank, 1), "TH");
     }
-    return func_8002A5B4(buf, s);
+    return copyString(buf, suffix);
 }

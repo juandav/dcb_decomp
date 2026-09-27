@@ -9,35 +9,35 @@ typedef struct {
     /* 0xA */ u8 unkA[2];
 } Entry12;
 
-extern u8 D_80012D68[];
-extern u8 D_80012DB8[];
-extern u8 D_80012DF8[];
-extern s32 D_801D8538;
-extern s32 D_801D853C;
-extern s32 D_801D8540;
-extern s32 D_801D8544;
-extern s32 D_801D854C;
-extern s32 D_801D8550;
-extern u8 *D_801D8554;
-extern u8 *D_801D8558;
-extern s32 D_801D8460;
-extern s32 D_801D84F4;
-extern s32 D_801D84B0;
-extern s32 D_801D8410;
-extern s32 D_801D8548;
-extern u8 *D_8006EF04[];
+extern u8 STR_HACK_SYSTEM_ERROR[];
+extern u8 STR_HACK_PARTNER_MOVED[];
+extern u8 STR_HACK_TAUNT[];
+extern s32 HACK_WAIT_FRAMES;
+extern s32 HACK_BLINK_TIMER;
+extern s32 HACK_TYPING_MODE;
+extern s32 HACK_LINE_COUNT;
+extern s32 HACK_SCRIPT_DONE;
+extern s32 HACK_TEXT_BUFFER;
+extern u8 *HACK_TEXT_CURSOR;
+extern u8 *HACK_SCRIPT_CURSOR;
+extern s32 HACK_TAUNT_WINDOW;
+extern s32 HACK_PARTNER_MOVED_WINDOW;
+extern s32 HACK_ERROR_WINDOW;
+extern s32 HACK_TERMINAL_WINDOW;
+extern s32 HACK_SCRIPT_INDEX;
+extern u8 *HACKING_SCRIPTS[];
 /* the same text as in startCpuDuel, kept as its own copy */
-extern char D_80012FAC[];
+extern char PATH_SAISEG_BIN[];
 
-void func_80049EF8(s32 n, s32 arg1);
-s32 func_80049840(Entry12 *tbl, s32 a, s32 b);
-s32 func_80049934(s32 arg0);
-s32 func_8004994C(s32 a, s32 b);
-void func_80049DC0(void *arg0);
-void func_80049E00(void *arg0);
-void func_80049E40(void *arg0);
-void func_80049A14();
-void func_80049E80(void);
-void func_8004A2DC(s32 mode);
+void runHackingSequence(s32 scriptIndex, s32 parentTask);
+s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot);
+s32 getExpForNextLevel(s32 level);
+s32 func_8004994C(s32 player, s32 slot);
+void drawHackErrorText(void *win);
+void drawHackPartnerMovedText(void *win);
+void drawHackTauntText(void *win);
+void drawHackingTerminal();
+void drawHackingWindows(void);
+void quitToTitleOrPlayEnding(s32 mode);
 
 #endif /* DCB_SHELL_H */
