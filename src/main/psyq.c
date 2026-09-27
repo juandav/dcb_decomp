@@ -1475,7 +1475,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", SetSemiTrans);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetShadeTex);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067704);
+void func_80067704(POLY_F3 *p) {
+    setPolyF3(p);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80067724);
 
