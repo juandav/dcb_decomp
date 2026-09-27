@@ -6794,7 +6794,36 @@ void func_8004950C(s32 a, s32 b) {
     ((Unk8006E050 *)D_8006E050)[a].unk3C[b / 8] |= 1 << (b % 8);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_800495B4);
+extern u8 D_8006E9B4[][8];
+
+s32 func_800495B4(s32 a, s32 b, s32 skip, s32 card) {
+    s32 ok;
+    s32 i;
+    s32 c;
+
+    ok = 1;
+    for (i = 0; i < 3; i++) {
+        if (skip == i) {
+            continue;
+        }
+        c = ((Unk8006E050 *)D_8006E050)[a].unk80[b].unk28C[i];
+        if (c == -1) {
+            continue;
+        }
+        if (D_8006E9B4[card][0] == 1) {
+            if (D_8006E9B4[c][0] >= 1 && D_8006E9B4[c][0] <= 4) {
+                ok = 0;
+            }
+        } else if (D_8006E9B4[c][0] == 1) {
+            if (D_8006E9B4[card][0] >= 1 && D_8006E9B4[card][0] <= 4) {
+                ok = 0;
+            }
+        } else if (D_8006E9B4[card][0] == D_8006E9B4[c][0]) {
+            ok = 0;
+        }
+    }
+    return ok;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800496E4);
 
