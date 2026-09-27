@@ -161,6 +161,7 @@ libgs_gs_104 nocse
 libgs_gs_107
 libgte_mtx_11
 libgs_gs_108
+libgs_gs_108_2
 libgs_gs_121
 libgs_gs_123
 libgs_gs_131
