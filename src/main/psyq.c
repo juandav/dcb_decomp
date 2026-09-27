@@ -1299,7 +1299,11 @@ u_long func_80065D84(short x, short y) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065DA0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065E20);
+extern u_long *D_80076860;
+
+u_long func_80065E20(void) {
+    return *D_80076860;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80065E38);
 
