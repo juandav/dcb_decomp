@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/script.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 
 void *createScriptContext(void *scriptData) {
     s32 codeStart;

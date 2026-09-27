@@ -3,9 +3,15 @@
 #include "game.h"
 #include "dcb/model.h"
 #include "dcb/archive.h"
+#include "dcb/decompress.h"
+#include "dcb/sort.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/model_anim.h"
 
 void initModelScene(void) {

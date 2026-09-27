@@ -11,9 +11,13 @@
 #include "dcb/duel_setup.h"
 #include "dcb/card_zones.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/scene3d.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
+#include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/text.h"
 

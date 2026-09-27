@@ -5,7 +5,9 @@
 #include "dcb/duel_setup.h"
 #include "dcb/card_db.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 s32 peekOfflineDeckTop(s32 player) {
     s32 i;

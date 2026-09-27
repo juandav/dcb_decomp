@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/tmd_sort.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 Unk8006DF60 MODEL_TEXTURE_SLOTS[4] = {
     { 0x002F0000, 0x103C0000 },

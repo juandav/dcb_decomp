@@ -3,6 +3,7 @@
 #include "game.h"
 #include "dcb/pad.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 
 void initPads(void) {
     s32 i;

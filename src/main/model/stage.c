@@ -3,14 +3,22 @@
 #include "game.h"
 #include "dcb/stage.h"
 #include "dcb/archive.h"
+#include "dcb/decompress.h"
+#include "dcb/sort.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/model.h"
 #include "dcb/model_anim.h"
 #include "dcb/player_data.h"
 #include "dcb/prim_util.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
+#include "dcb/sound_play.h"
 
 BgEntry ARENA_STAGES[56] = {
     { 0x50, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },

@@ -3,8 +3,12 @@
 #include "game.h"
 #include "dcb/text.h"
 #include "dcb/heap.h"
+#include "dcb/angle.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 
 s32 DEFAULT_TEXT_RGB = 0x808080;
 u8 FONT_GLYPH_METRICS[96] = {

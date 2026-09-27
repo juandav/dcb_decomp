@@ -3,8 +3,13 @@
 #include "game.h"
 #include "dcb/card_db.h"
 #include "dcb/loader.h"
+#include "dcb/vram_upload.h"
+#include "dcb/display.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/memcard.h"
+#include "dcb/save_checksum.h"
+#include "dcb/player_rank.h"
 #include "dcb/shell.h"
 
 u8 D_8006E50C[10] = { 0x55, 0x5C, 0x5A, 0x52, 0x58, 0x4F, 0xD, 0, 0x30, 0 };

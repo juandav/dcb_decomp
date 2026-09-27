@@ -13,9 +13,12 @@
 #include "dcb/effect.h"
 #include "dcb/duel_util.h"
 #include "dcb/main.h"
+#include "dcb/task.h"
 #include "dcb/menu.h"
 #include "dcb/shell.h"
 #include "dcb/sound.h"
+#include "dcb/opening_movie.h"
+#include "dcb/sound_play.h"
 #include "dcb/stage.h"
 #include "dcb/window.h"
 

@@ -33,27 +33,13 @@ extern s16 D_801D813E;
 extern s16 D_801D812A;
 
 void initSound();
-void playOpeningMovie(s32 movieMode, s32 parentTask);
 void loadSoundEffectBank(s32 bankId);
-void stopMusic(void);
 void setReverbType(s32 reverbType);
-void stopAllSoundEffects(void);
 s32 openSlotVabHeader(void *slot, s16 vabId, s32 spuAddr);
 void transferSlotVabBody(void *slot, s32 vabBody, s32 vab);
 void setInstantVoiceRelease(void);
 void func_8002B3DC(void);
 void func_8002B3E4(void);
-void playSoundEffect(s32 sound);
-void playSoundEffectAtVolume(s32 sound, s32 volume);
-void playSoundEffectOnVoice(s32 voice, s32 sound);
-void stopSoundVoice(s16 voice);
-void fadeOutMusicTask(s32 slotIndex, s32 step);
-void fadeOutMusic(s32 step);
-void func_8002B850(void);
-void playLoadedMusic(s32 slotIndex);
 void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume);
-void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad);
-void waitForMusicChange(void);
-void playMusic(s32 slotIndex, s32 trackId, s32 volume);
 
 #endif /* DCB_SOUND_H */

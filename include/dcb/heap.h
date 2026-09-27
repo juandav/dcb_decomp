@@ -13,7 +13,6 @@ void *allocPermanentHeapBlock(s32 size);
 s32 getLargestFreeHeapBlock(void);
 void *allocHeapBlock(s32 size, s32 ownerTag);
 void releaseHeapBlock(void *ptr);
-s32 computeVectorAngle(s32 y, s32 x);
 void *shrinkHeapBlock(void *ptr, s32 size);
 void *allocTaskHeapBlock(s32 size);
 s32 freeHeapBlocksByTag(s32);
