@@ -4490,7 +4490,80 @@ void func_80024DD4(void) {
     func_8001AE90(D_801D6A48);
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80024E44);
+extern s32 D_8007956C;
+
+s32 func_80024E44(u8 *cam, s32 *pos, s32 cur, s16 *target) {
+    s32 k;
+    s32 n;
+    s32 d;
+    s32 step;
+
+    if (D_8007956C != 0) {
+        *(s32 *)(cam + 0x5C) = -pos[0];
+        *(s32 *)(cam + 0x60) = -pos[1];
+        *(s32 *)(cam + 0x64) = -pos[2];
+        *(s32 *)(cam + 0x68) = target[2] << 12;
+        *(s32 *)(cam + 0x6C) = target[3] << 12;
+        *(s32 *)(cam + 0x70) = target[1] << 12;
+        return target[4];
+    }
+    k = *(s32 *)(cam + 0x50);
+    if (k == 0) {
+        k = 1;
+    }
+    n = 30 / k;
+    if (n == 0) {
+        n = 1;
+    }
+    d = (target[3] << 12) - *(s32 *)(cam + 0x6C);
+    if (d != 0) {
+        step = d / n;
+        if (step == 0) {
+            step = d;
+        } else if (step > 0x10000) {
+            step = 0x8000;
+        } else if (step < -0x10000) {
+            step = -0x8000;
+        }
+        *(s32 *)(cam + 0x6C) += step;
+    }
+    d = (target[2] << 12) - *(s32 *)(cam + 0x68);
+    if (d != 0) {
+        step = d / n;
+        if (step == 0) {
+            step = d;
+        } else if (step > 0x10000) {
+            step = 0x8000;
+        } else if (step < -0x10000) {
+            step = -0x8000;
+        }
+        *(s32 *)(cam + 0x68) += step;
+    }
+    d = (target[1] << 12) - *(s32 *)(cam + 0x70);
+    if (d != 0) {
+        step = d / n;
+        if (step == 0) {
+            step = d > 0 ? 1 : -1;
+        } else if (step > 0x10000) {
+            step = 0x8000;
+        } else if (step < -0x10000) {
+            step = -0x8000;
+        }
+        *(s32 *)(cam + 0x70) += step;
+    }
+    d = target[4] - cur;
+    if (d != 0) {
+        step = d / n;
+        if (step == 0) {
+            step = d > 0 ? 1 : -1;
+        }
+        cur += step;
+    }
+    *(s32 *)(cam + 0x5C) = -pos[0];
+    *(s32 *)(cam + 0x60) = -pos[1];
+    *(s32 *)(cam + 0x64) = -pos[2];
+    return cur;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_800250F4);
 
