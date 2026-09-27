@@ -87,7 +87,7 @@ libspu_s_srv
 libspu_s_grv
 libspu_s_sk gcc2.8
 libspu_s_gvex
-libsnd_vm_init
+libsnd_vm_init gcc2.8
 libspu_s_m_init
 libspu_s_it
 libsnd_vm_key
