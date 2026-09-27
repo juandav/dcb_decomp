@@ -1860,7 +1860,10 @@ void func_8006D38C(PadPort *port) {
     port->len = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D3A0);
+void func_8006D3A0(int wait) {
+    D_801DDF28 = wait;
+    D_801DDF24 = *(volatile u_short *)0x1F801120;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D3C0);
 
