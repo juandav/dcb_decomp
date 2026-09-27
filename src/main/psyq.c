@@ -179,7 +179,11 @@ INCLUDE_ASM("asm/main/nonmatchings/psyq", _SpuInit);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SpuStart);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SpuDataCallback);
+void _SpuDataCallback(void (*func)()) {
+    DMACallback(4, func);
+}
+
+OBJECT_END(3);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", _SpuIsInAllocateArea);
 
