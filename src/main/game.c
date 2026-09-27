@@ -370,6 +370,36 @@ typedef struct {
     /* 0x6 */ s8 y;
 } MsgBar;
 
+typedef struct {
+    u32 tag;
+    u32 tpage;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0;
+    u16 clut;
+    s16 w, h;
+} ScreenSprt;
+
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_STP;
+
+typedef struct {
+    /* 0x000 */ ScreenSprt sprt[2][2];
+    /* 0x060 */ POLY_FT4 poly[2][2];
+    /* 0x100 */ DR_STP stp[2];
+    /* 0x118 */ s16 x;
+    /* 0x11A */ s16 y;
+    /* 0x11C */ s16 px[2][4];
+    /* 0x12C */ s16 py[2][4];
+    /* 0x13C */ u8 r;
+    /* 0x13D */ u8 g;
+    /* 0x13E */ u8 b;
+    /* 0x13F */ u8 mode;
+    /* 0x140 */ u16 abr;
+} Screen;
+
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u8)(_len))
 #define setaddr(p, _addr) (((P_TAG *)(p))->addr = (u32)(_addr))
 #define getaddr(p) (u32)(((P_TAG *)(p))->addr)
@@ -1252,11 +1282,50 @@ void func_80014CF0(void) {
     D_800794EC++;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/game", func_80014D64);
+extern Screen D_800793A8;
+void func_800677A4(POLY_FT4 *);
+void SetDrawStp(DR_STP *, s32);
+
+void func_80014D64(void) {
+    s32 i;
+    s32 j;
+    POLY_FT4 *p;
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            D_800793A8.sprt[i][j].tag = 0x05000000;
+            D_800793A8.sprt[i][j].code = 0x66;
+            D_800793A8.sprt[i][j].u0 = 0;
+            D_800793A8.sprt[i][j].v0 = 0;
+            D_800793A8.sprt[i][j].w = 256 - j * 192;
+            D_800793A8.sprt[i][j].h = 240;
+            p = &D_800793A8.poly[i][j];
+            func_800677A4(p);
+            p->u0 = j * 32;
+            p->v0 = 0;
+            p->u1 = j * 32 - 96;
+            p->v1 = 0;
+            p->u2 = j * 32;
+            p->v2 = 240;
+            p->u3 = j * 32 - 96;
+            p->v3 = 240;
+            setShadeTex(p, 0);
+            SetSemiTrans(p, 1);
+        }
+    }
+    SetDrawStp(&D_800793A8.stp[0], 1);
+    SetDrawStp(&D_800793A8.stp[1], 0);
+    D_800793A8.r = 0xA8;
+    D_800793A8.g = 0xA8;
+    D_800793A8.b = 0xA8;
+    D_800793A8.x = 0;
+    D_800793A8.y = 0;
+    D_800793A8.mode = 0;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/game", func_80014EF0);
 
-s32 func_80014D64();
+void func_80014D64(void);
 
 void SetGraphDebug(s32);
 void InitGeom(void);
