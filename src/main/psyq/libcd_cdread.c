@@ -101,7 +101,17 @@ void func_8005A808(u_char intr, u_char *result) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005AA7C);
+void func_8005AA7C(void) {
+    D_80070FD8->cur += D_80070FD8->size;
+    D_80070FD8->rest--;
+    D_80070FD8->pos++;
+    if (D_80070FD8->rest == 0) {
+        cd_read_end();
+        if (D_80070B48 != NULL) {
+            D_80070B48(CdlComplete, D_80070FD8->result);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005AB4C);
 
