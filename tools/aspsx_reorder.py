@@ -72,8 +72,11 @@ def delay_slot_hazards(lines):
         reg = la[1][0]
         if re.search(r"\(\$\w+\)$", la[1][1]):
             # a load through a register: only a store of the loaded value
-            # in the slot of a call (func_80056C18)
-            if lb[0] == "jal" and STORES.match(lc[0]) and lc[1][0] == reg:
+            # in the slot of a call (func_80056C18), and not for a
+            # symbol($reg) load, which ASPSX expanded through $at
+            # (GsSwapDispBuff)
+            if (lb[0] == "jal" and STORES.match(lc[0]) and lc[1][0] == reg
+                    and re.match(r"-?(0x)?[0-9a-fA-F]*\(", la[1][1])):
                 insert.append(a)
             continue
         # only when the slot uses it as the base of a memory access
