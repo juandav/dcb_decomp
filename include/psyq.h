@@ -111,6 +111,11 @@ typedef struct McrdGlobal {
 typedef struct SioRegs {
     /* 0x0 */ u_long data;
     /* 0x4 */ u_short stat;
+    /* 0x6 */ u_short unk6;
+    /* 0x8 */ u_short mode;
+    /* 0xA */ u_short ctrl;
+    /* 0xC */ u_short unkC;
+    /* 0xE */ u_short baud;
 } SioRegs;
 
 /* libetc interrupt handlers, reached through D_80070AA8 */
@@ -157,7 +162,7 @@ typedef struct SeqStruct {
     /* 0x4A */ short unk4A;
     /* 0x4C */ short unk4C;
     /* 0x4E */ short unk4E;
-    /* 0x50 */ u8 unk50[2];
+    /* 0x50 */ short unk50;
     /* 0x52 */ short unk52;
     /* 0x54 */ short unk54;
     /* 0x56 */ u_short unk56;
@@ -294,8 +299,8 @@ extern long D_80070AE8;
 extern void (*D_80070AC8[8])();
 extern int D_801DDF28;
 extern int D_801DDF24;
-extern u_long *D_80070AF8;
-extern u_char D_80070AFC[];
+extern volatile u_long *D_80070AF8;
+extern void (*D_80070AFC[])(void);
 extern u_long *D_8006EF38;
 extern short D_80080A64;
 extern short D_80080A66;
