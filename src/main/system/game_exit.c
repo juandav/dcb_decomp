@@ -3,6 +3,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/shell.h"
+#include "dcb/hacking_shell.h"
 #include "dcb/card_db.h"
 #include "dcb/loader.h"
 #include "dcb/vram_upload.h"
