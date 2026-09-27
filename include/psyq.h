@@ -150,7 +150,10 @@ typedef struct SeqStruct {
     /* 0x26 */ char vabId;
     /* 0x27 */ u_char panpot[16];
     /* 0x37 */ u_char programs[16];
-    /* 0x47 */ u8 unk47[0x11];
+    /* 0x47 */ u8 unk47[0xB];
+    /* 0x52 */ short unk52;
+    /* 0x54 */ short unk54;
+    /* 0x56 */ u8 unk56[2];
     /* 0x58 */ u_short voll;
     /* 0x5A */ u_short volr;
     /* 0x5C */ u8 unk5C[4];
