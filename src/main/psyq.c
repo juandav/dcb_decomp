@@ -1254,7 +1254,11 @@ int GetODE(void) {
     return D_80076750->status() >> 31;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawArea);
+void SetDrawArea(DR_AREA *p, RECT *r) {
+    setlen(p, 2);
+    p->code[0] = func_80065C54(r->x, r->y);
+    p->code[1] = func_80065CEC(r->x + r->w - 1, r->y + r->h - 1);
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", SetDrawOffset);
 
