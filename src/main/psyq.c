@@ -715,7 +715,9 @@ void func_800571C8(void) {
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800571F0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CdPosToInt);
+int CdPosToInt(CdlLOC *p) {
+    return (btoi(p->minute) * 60 + btoi(p->second)) * 75 + btoi(p->sector) - 150;
+}
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", CdSearchFile);
 
