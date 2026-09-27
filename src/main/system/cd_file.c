@@ -4,6 +4,8 @@
 #include "dcb/cd_file.h"
 #include "dcb/text.h"
 
+FileEntry D_8006DD50 = { 0 };
+
 void func_800157B0(void) {
     u8 param[8];
     Unk80081710 *p;
