@@ -145,15 +145,18 @@ extern s8 D_801FC87D;
 extern s8 D_801FC87E;
 void func_801F7760(void *data, s32 task);
 typedef struct {
-    /* 0x00 */ s16 unk0;
+    /* 0x00 */ s16 mode;
     /* 0x02 */ s16 unk2;
-    /* 0x04 */ u8 unk4[8];
+    /* 0x04 */ CardSprite *sprite;
+    /* 0x08 */ s16 offsetX;
+    /* 0x0A */ s16 offsetY;
     /* 0x0C */ s16 x;
     /* 0x0E */ s16 y;
     /* 0x10 */ s32 index;
     /* 0x14 */ u8 rgb[3];
-    /* 0x17 */ u8 unk17[0x81];
-    /* 0x98 */ s16 points[32][2];
+    /* 0x17 */ u8 unk17;
+    /* 0x18 */ s16 cur[64];
+    /* 0x98 */ s16 points[64];
 } Shape;
 
 s32 func_801E0558(s32 id, s32 player, s32 card);
@@ -2501,7 +2504,416 @@ s32 func_801E6AA4(s32 quiet) {
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E7DD4);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E81DC);
+extern s32 D_801FC404;
+void func_801FA30C(s32 player);
+
+#define SHOW_EFFECT_FAILED(player) \
+    do {                          \
+        func_801F623C(0x13, player, 1); \
+    } while (0)
+
+s32 func_801E81DC(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
+    s32 cards[4];
+    u8 unused[0x90];
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 card;
+
+    switch (kind) {
+    case 0:
+        if (!quiet) {
+            func_801F6294(0xF, self, self, 1, 0);
+        }
+        PLAYER(self)->specialty = value % 5;
+        if (!quiet) {
+            func_801FA30C(self);
+        }
+        break;
+    case 1:
+        if (!quiet) {
+            func_801F6294(0xF, self, other, 1, 0);
+        }
+        PLAYER(other)->specialty = value % 5;
+        if (!quiet) {
+            func_801FA30C(other);
+        }
+        break;
+    case 2:
+        if (!quiet) {
+            func_801F6294(0x14, self, self, 1, 0);
+            showStatChangePopup(self, value, 0);
+        }
+        STATS(self)->hpBeforeBattle = value;
+        STATS(self)->stats[0] = value;
+        if (!quiet && value != 0 && value % 1110 == 0) {
+            func_801FB444(self, 0x1A);
+            STATS(self)->unk110 |= 0x400;
+        }
+        break;
+    case 3:
+        if (!quiet) {
+            func_801F6294(0x14, self, other, 1, 0);
+            showStatChangePopup(other, value, 0);
+        }
+        STATS(other)->hpBeforeBattle = value;
+        STATS(other)->stats[0] = value;
+        if (!quiet && value != 0 && value % 1110 == 0) {
+            func_801FB444(other, 0x1A);
+            STATS(other)->unk110 |= 0x400;
+        }
+        break;
+    case 4:
+    case 6:
+    case 8:
+        if (!quiet) {
+            func_801F6294(0x14, self, self, 1, 0);
+            showStatChangePopup(self, value, (kind - 4) / 2 + 1);
+        }
+        STATS(self)->attackDamage[(kind - 4) / 2] = value;
+        STATS(self)->stats[(kind - 4) / 2 + 1] = value;
+        break;
+    case 5:
+    case 7:
+    case 9:
+        if (!quiet) {
+            func_801F6294(0x14, self, other, 1, 0);
+            showStatChangePopup(other, value, (kind - 5) / 2 + 1);
+        }
+        STATS(other)->attackDamage[(kind - 5) / 2] = value;
+        STATS(other)->stats[(kind - 5) / 2 + 1] = value;
+        break;
+    case 10:
+        if (!quiet) {
+            if (slot == 0) {
+                func_801F6294(0x14, self, self, 1, 0);
+            }
+            if (!quiet) {
+                showStatChangePopup(self, value, slot + 1);
+                func_80014C08(6);
+            }
+        }
+        STATS(self)->attackDamage[slot] = value;
+        STATS(self)->stats[slot + 1] = value;
+        break;
+    case 11:
+        if (!quiet) {
+            if (slot == 0) {
+                func_801F6294(0x14, self, other, 1, 0);
+            }
+            if (!quiet) {
+                showStatChangePopup(other, value, slot + 1);
+                func_80014C08(6);
+            }
+        }
+        STATS(other)->attackDamage[slot] = value;
+        STATS(other)->stats[slot + 1] = value;
+        break;
+    case 16:
+        PLAYER(self)->usedAttack = value;
+        if (!quiet) {
+            func_801F6294(0x10, self, self, 1, 0);
+            PLAYER(self)->attackChoice = value;
+        }
+        break;
+    case 17:
+        PLAYER(other)->usedAttack = value;
+        if (!quiet) {
+            func_801F6294(0x10, self, other, 1, 0);
+            PLAYER(other)->attackChoice = value;
+        }
+        break;
+    case 25:
+        D_801FC404 = value;
+        break;
+    case 26:
+        if (!quiet) {
+            if (4 - countEmptyHandSlots(self) < value) {
+                value = 4 - countEmptyHandSlots(self);
+            }
+            if (value == 0) {
+                break;
+            }
+            for (i = 0; i < value && countEmptyHandSlots(self) != 4; i++) {
+            for (j = 0, n = 0; j < 4; j++) {
+                cards[n] = PLAYER(self)->hand[j];
+                if (cards[n] != -1) {
+                    n++;
+                }
+            }
+            card = cards[rand() % n];
+                if (removeCardFromHand(card, self) != -1) {
+                    SPRITE_KIND(card) = 8;
+                    discardCardToOfflineDeck(card, self);
+                    func_80014C08(20);
+                }
+            }
+        }
+        break;
+    case 27:
+        if (!quiet) {
+            for (i = 0; i < value && countEmptyHandSlots(other) != 4; i++) {
+            for (j = 0, n = 0; j < 4; j++) {
+                cards[n] = PLAYER(other)->hand[j];
+                if (cards[n] != -1) {
+                    n++;
+                }
+            }
+            card = cards[rand() % n];
+                if (removeCardFromHand(card, other) != -1) {
+                    SPRITE_KIND(card) = 8;
+                    discardCardToOfflineDeck(card, other);
+                    func_80014C08(20);
+                }
+            }
+        }
+        break;
+    case 28:
+        if (!quiet) {
+            value = 0;
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(self)->hand[i] != -1 && PLAYER(self)->cards[PLAYER(self)->hand[i] % 30].card[2] != 0) {
+                    value++;
+                }
+            }
+            if (value == 0) {
+                SHOW_EFFECT_FAILED(self);
+            } else {
+                for (i = 0; i < 4; i++) {
+                    if (PLAYER(self)->hand[i] != -1 && PLAYER(self)->cards[PLAYER(self)->hand[i] % 30].card[2] != 0 &&
+                        removeCardFromHand(PLAYER(self)->hand[i], self) != -1) {
+                        SPRITE_KIND(PLAYER(self)->hand[i]) = 8;
+                        discardCardToOfflineDeck(PLAYER(self)->hand[i], self);
+                        func_80014C08(20);
+                    }
+                }
+            }
+        }
+        break;
+    case 29:
+        if (!quiet) {
+            value = 0;
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(other)->hand[i] != -1 && PLAYER(other)->cards[PLAYER(other)->hand[i] % 30].card[2] != 0) {
+                    value++;
+                }
+            }
+            if (value == 0) {
+                SHOW_EFFECT_FAILED(self);
+            } else {
+                for (i = 0; i < 4; i++) {
+                    if (PLAYER(other)->hand[i] != -1 && PLAYER(other)->cards[PLAYER(other)->hand[i] % 30].card[2] != 0 &&
+                        removeCardFromHand(PLAYER(other)->hand[i], other) != -1) {
+                        SPRITE_KIND(PLAYER(other)->hand[i]) = 8;
+                        discardCardToOfflineDeck(PLAYER(other)->hand[i], other);
+                        func_80014C08(20);
+                    }
+                }
+            }
+        }
+        break;
+    case 30:
+        if (!quiet) {
+            for (i = 0; i < value && countEmptyHandSlots(self) != 4; i++) {
+            for (j = 0, n = 0; j < 4; j++) {
+                cards[n] = PLAYER(self)->hand[j];
+                if (cards[n] != -1) {
+                    n++;
+                }
+            }
+            card = cards[rand() % n];
+                returnCardToOnlineDeck(card, self);
+                removeCardFromHand(card, self);
+                SPRITE_KIND(card) = 1;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 31:
+        if (!quiet) {
+            for (i = 0; i < value && countEmptyHandSlots(other) != 4; i++) {
+            for (j = 0, n = 0; j < 4; j++) {
+                cards[n] = PLAYER(other)->hand[j];
+                if (cards[n] != -1) {
+                    n++;
+                }
+            }
+            card = cards[rand() % n];
+                returnCardToOnlineDeck(card, self);
+                removeCardFromHand(card, other);
+                SPRITE_KIND(card) = 1;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 32:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekOnlineDeckTop(self)) != -1; i++) {
+                discardCardToOfflineDeck(card, self);
+                drawOnlineDeckCard(self);
+                SPRITE_KIND(card) = 8;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 33:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekOnlineDeckTop(other)) != -1; i++) {
+                discardCardToOfflineDeck(card, other);
+                drawOnlineDeckCard(other);
+                SPRITE_KIND(card) = 8;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 34:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekOfflineDeckTop(self)) != -1; i++) {
+                returnCardToOnlineDeck(card, self);
+                takeOfflineDeckTopCard(self);
+                SPRITE_KIND(card) = 1;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 35:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekOfflineDeckTop(other)) != -1; i++) {
+                returnCardToOnlineDeck(card, other);
+                takeOfflineDeckTopCard(other);
+                SPRITE_KIND(card) = 1;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 36:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekDpSlotTop(self)) != -1; i++) {
+                discardCardToOfflineDeck(card, self);
+                removeCardFromDpSlots(card, self);
+                SPRITE_KIND(card) = 8;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 37:
+        if (!quiet) {
+            for (i = 0; i < value && (card = peekDpSlotTop(other)) != -1; i++) {
+                discardCardToOfflineDeck(card, other);
+                removeCardFromDpSlots(card, other);
+                SPRITE_KIND(card) = 8;
+                func_80014C08(20);
+            }
+        }
+        break;
+    case 42:
+        if (!quiet) {
+            PLAYER(self)->shufflePasses = 300;
+            shuffleOnlineDeck(self);
+        }
+        break;
+    case 43:
+        if (!quiet) {
+            PLAYER(other)->shufflePasses = 300;
+            shuffleOnlineDeck(other);
+        }
+        break;
+    case 44:
+        FLAGS178(other)->f9 |= 1;
+        if (!quiet) {
+            card = getPlayedCard(other);
+            if (card != -1 && PLAYER(other)->cards[card % 30].card[2] == 0) {
+                func_801F6294(0x11, self, other, 1, 1);
+            } else {
+                SHOW_EFFECT_FAILED(self);
+            }
+        }
+        break;
+    case 45:
+        FLAGS178(other)->f9 = 3;
+        if (!quiet) {
+            if (getPlayedCard(other) != -1) {
+                func_801F6294(0x12, self, other, 1, 1);
+            } else {
+                SHOW_EFFECT_FAILED(self);
+            }
+        }
+        break;
+    case 46:
+        if (!quiet && countOnlineDeckCards(self) != 0 && countEmptyHandSlots(self) != 0) {
+            card = takePartnerCardFromOnlineDeck(self);
+            if (card != -1) {
+                n = addCardToHand(card, self);
+                SPRITE_KIND(card) = 3;
+                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                func_80014C08(20);
+                func_801FA780(self);
+            } else {
+                SHOW_EFFECT_FAILED(self);
+            }
+        }
+        break;
+    case 47:
+        if (!quiet) {
+            func_801F6294(0x10, self, other, 1, 0);
+        }
+        PLAYER(other)->usedAttack = (PLAYER(other)->usedAttack + 1) % 3;
+        if (!quiet) {
+            PLAYER(other)->attackChoice = PLAYER(other)->usedAttack;
+        }
+        break;
+    case 48:
+        FLAGS178(self)->f14 = 1;
+        *(s16 *)PLAYER(self)->unk166 = value;
+        if (!quiet) {
+            func_801F6214(0xC, self);
+        }
+        break;
+    case 49:
+        if (!quiet) {
+            for (i = 0; i < value && countOnlineDeckCards(self) != 0 && countEmptyHandSlots(self) != 0; i++) {
+                card = drawOnlineDeckCard(self);
+                n = addCardToHand(card, self);
+                SPRITE_KIND(card) = 3;
+                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                func_80014C08(20);
+                func_801FA780(self);
+            }
+        }
+        break;
+    case 50:
+        if (!quiet) {
+            for (i = 0; i < value && countOnlineDeckCards(other) != 0 && countEmptyHandSlots(other) != 0; i++) {
+                card = drawOnlineDeckCard(other);
+                n = addCardToHand(card, other);
+                SPRITE_KIND(card) = 3;
+                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                func_80014C08(20);
+                func_801FA780(self);
+            }
+        }
+        break;
+    case 51:
+        FLAGS178(self)->f12 = 1;
+        if (!quiet) {
+            func_801F6214(0xB, self);
+        }
+        break;
+    case 52:
+        FLAGS178(self)->f6 = 1;
+        FLAGS178(other)->f6 = 0;
+        if (!quiet) {
+            func_801F6214(0xE, self);
+        }
+        break;
+    case 53:
+        FLAGS178(self)->f8 = 1;
+        if (!quiet) {
+            func_801F6214(0xA, self);
+        }
+        break;
+    }
+}
 
 void func_801E9700(s32 self, s32 other, DigimonCardData *cardData, s32 quiet) {
     u8 unused[0xB0];
@@ -3679,9 +4091,138 @@ void func_801EDD88(ListWindow *w) {
     }
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EE170);
+extern POLY_G4 D_801FC464[2][2][3];
+extern TILE D_801FC614[2][2][4];
+extern DR_MODE D_801FC714[2][2];
+#define setXY0(p, _x0, _y0) (p)->x0 = _x0, (p)->y0 = _y0
+#define setDrawTPage(p, dfe, dtd, tpage) (setlen(p, 1), ((u32 *)(p))[1] = _get_mode(dfe, dtd, tpage))
 
-void func_801EE170(s32 x, s32 y, s32 player, s32 z);
+void func_801EE170(s32 x, s32 y, s32 player, s32 z) {
+    u8 counts[6];
+    u8 bars[4];
+    PresetDeck *decks;
+    s32 i;
+    s32 specialty;
+    s32 level;
+    s32 deck;
+    s32 cx;
+    s32 cy;
+
+    decks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+    cx = 0x22;
+    cy = 0x1F;
+    for (i = 0; i < 6; i++) {
+        counts[i] = 2;
+    }
+    for (i = 0; i < 3; i++) {
+        bars[i] = 0;
+    }
+    deck = D_801FC454->deckIds[player][D_801FBAB0[player].row];
+    for (i = 0; i < 30; i++) {
+        if (deck < 3) {
+            specialty = getCardSpecialty(PLAYER_DATA(player).savedDecks[deck].cards[i].id);
+            level = getCardLevel(PLAYER_DATA(player).savedDecks[deck].cards[i].id);
+        } else {
+            specialty = getCardSpecialty(decks[deck - 3].cards[i]);
+            level = getCardLevel(decks[deck - 3].cards[i]);
+        }
+        switch (specialty) {
+        case 0:
+            counts[0]++;
+            break;
+        case 1:
+            counts[3]++;
+            break;
+        case 2:
+            counts[4]++;
+            break;
+        case 3:
+            counts[2]++;
+            break;
+        case 4:
+            counts[1]++;
+            break;
+        case 5:
+        case 6:
+            counts[5]++;
+            break;
+        }
+        switch (level) {
+        case 0:
+            bars[0] += 2;
+            break;
+        case 2:
+            bars[1] += 2;
+            break;
+        case 3:
+            bars[2] += 2;
+            break;
+        case 4:
+        case 5:
+            bars[3] += 2;
+            break;
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        initPrimByType(9, &D_801FC464[player][FRAME_BUFFER_INDEX][i], 0, 0);
+        setRGB1(&D_801FC464[player][FRAME_BUFFER_INDEX][i], 0xFF, 0xFF, 0xFF);
+        D_801FC464[player][FRAME_BUFFER_INDEX][i].x1 = x + cx;
+        D_801FC464[player][FRAME_BUFFER_INDEX][i].y1 = y + cy;
+    }
+    setRGB0(&D_801FC464[player][FRAME_BUFFER_INDEX][0], 0xFF, 0, 0);
+    setRGB2(&D_801FC464[player][FRAME_BUFFER_INDEX][0], 0xFF, 0xFF, 0);
+    setRGB3(&D_801FC464[player][FRAME_BUFFER_INDEX][0], 0, 0, 0);
+    setRGB0(&D_801FC464[player][FRAME_BUFFER_INDEX][1], 0, 0, 0);
+    setRGB2(&D_801FC464[player][FRAME_BUFFER_INDEX][1], 0, 0xFF, 0xFF);
+    setRGB3(&D_801FC464[player][FRAME_BUFFER_INDEX][1], 0, 0xFF, 0);
+    setRGB0(&D_801FC464[player][FRAME_BUFFER_INDEX][2], 0, 0xFF, 0);
+    setRGB2(&D_801FC464[player][FRAME_BUFFER_INDEX][2], 0xFF, 0xFF, 0xFF);
+    setRGB3(&D_801FC464[player][FRAME_BUFFER_INDEX][2], 0xFF, 0, 0);
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].x0 = x + cx + rsin(0) * counts[0] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].y0 = y + cy + rcos(0) * counts[0] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].x2 = x + cx + rsin(0x2AA) * counts[1] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].y2 = y + cy + rcos(0x2AA) * counts[1] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].x3 = x + cx + rsin(0x554) * counts[2] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][0].y3 = y + cy + rcos(0x554) * counts[2] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].x0 = x + cx + rsin(0x554) * counts[2] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].y0 = y + cy + rcos(0x554) * counts[2] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].x2 = x + cx + rsin(0x7FE) * counts[3] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].y2 = y + cy + rcos(0x7FE) * counts[3] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].x3 = x + cx + rsin(0xAA8) * counts[4] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][1].y3 = y + cy + rcos(0xAA8) * counts[4] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].x0 = x + cx + rsin(0xAA8) * counts[4] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].y0 = y + cy + rcos(0xAA8) * counts[4] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].x2 = x + cx + rsin(0xD52) * counts[5] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].y2 = y + cy + rcos(0xD52) * counts[5] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].x3 = x + cx + rsin(0) * counts[0] / 4096;
+    D_801FC464[player][FRAME_BUFFER_INDEX][2].y3 = y + cy + rcos(0) * counts[0] / 4096;
+    drawIcon(x - 6 + cx + rsin(0) * 26 / 4096, y - 6 + cy + rcos(0) * 26 / 4096, 0, 0, z);
+    drawIcon(x - 6 + cx + rsin(0x2AA) * 26 / 4096, y - 6 + cy + rcos(0x2AA) * 26 / 4096, 0, 4, z);
+    drawIcon(x - 6 + cx + rsin(0x554) * 26 / 4096, y - 6 + cy + rcos(0x554) * 26 / 4096, 0, 3, z);
+    drawIcon(x - 6 + cx + rsin(0x7FE) * 26 / 4096, y - 6 + cy + rcos(0x7FE) * 26 / 4096, 0, 1, z);
+    drawIcon(x - 6 + cx + rsin(0xAA8) * 26 / 4096, y - 6 + cy + rcos(0xAA8) * 26 / 4096, 0, 2, z);
+    drawIcon(x - 6 + cx + rsin(0xD52) * 26 / 4096, y - 6 + cy + rcos(0xD52) * 26 / 4096, 0, 5, z);
+    for (i = 0; i < 3; i++) {
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &D_801FC464[player][FRAME_BUFFER_INDEX][i]);
+    }
+    func_801ED65C(x + cx - 0x16, y + cy - 0x1A, 0x3E1, 0x19A, 0x2C, 0x32, 0x3F0, 0x1FD, 0, 0, 0, 0x80, z);
+    drawIcon(x + 0x44, y + 0x34, 1, 0x10, z);
+    drawIcon(x + 0x50, y + 0x34, 1, 0x12, z);
+    drawIcon(x + 0x5C, y + 0x34, 1, 0x13, z);
+    drawIcon(x + 0x68, y + 0x34, 1, 5, z);
+    setRGB0(&D_801FC614[player][FRAME_BUFFER_INDEX][0], 0xFF, 0xFF, 0);
+    setRGB0(&D_801FC614[player][FRAME_BUFFER_INDEX][1], 0xFF, 0, 0);
+    setRGB0(&D_801FC614[player][FRAME_BUFFER_INDEX][2], 0, 0, 0xFF);
+    setRGB0(&D_801FC614[player][FRAME_BUFFER_INDEX][3], 0xFF, 0xFF, 0xFF);
+    for (i = 0; i < 4; i++) {
+        func_800678C4(&D_801FC614[player][FRAME_BUFFER_INDEX][i]);
+        setXY0(&D_801FC614[player][FRAME_BUFFER_INDEX][i], x + 0x44 + i * 12, y - (bars[i] - 0x32));
+        setWH(&D_801FC614[player][FRAME_BUFFER_INDEX][i], 8, bars[i]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &D_801FC614[player][FRAME_BUFFER_INDEX][i]);
+    }
+    setDrawTPage(&D_801FC714[player][FRAME_BUFFER_INDEX], 0, 0, 0);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[z], &D_801FC714[player][FRAME_BUFFER_INDEX]);
+}
 
 void func_801EFB78(ListWindow *w) {
     s32 x;
@@ -5833,7 +6374,7 @@ s32 func_801F8998(s32 arg0, s32 x, s32 y, s32 d, s32 count) {
     shapes = allocTaskHeapBlock(count * sizeof(Shape));
     for (i = 0; i < count; i++) {
         shapes[i].unk2 = 0;
-        shapes[i].unk0 = arg0;
+        shapes[i].mode = arg0;
         shapes[i].index = i;
         rgb = shapes[i].rgb;
         rgb[0] = 0xFF;
@@ -5850,70 +6391,70 @@ void func_801F8C58(Shape *shape, s32 x, s32 y, s32 d) {
     k = d * 14 / 10;
     shape->x = x;
     shape->y = y;
-    shape->points[0][0] = -x;
-    shape->points[0][1] = -y - k;
-    shape->points[1][0] = x;
-    shape->points[1][1] = -y - k;
-    shape->points[2][0] = -x;
-    shape->points[2][1] = -y;
-    shape->points[3][0] = x;
-    shape->points[3][1] = -y;
-    shape->points[4][0] = x + k;
-    shape->points[4][1] = -y;
-    shape->points[5][0] = x + k;
-    shape->points[5][1] = y;
-    shape->points[6][0] = x;
-    shape->points[6][1] = -y;
-    shape->points[7][0] = x;
-    shape->points[7][1] = y;
-    shape->points[8][0] = -x - k;
-    shape->points[8][1] = -y;
-    shape->points[9][0] = -x - k;
-    shape->points[9][1] = y;
-    shape->points[10][0] = -x;
-    shape->points[10][1] = -y;
-    shape->points[11][0] = -x;
-    shape->points[11][1] = y;
-    shape->points[12][0] = -x;
-    shape->points[12][1] = y + k;
-    shape->points[13][0] = x;
-    shape->points[13][1] = y + k;
-    shape->points[14][0] = -x;
-    shape->points[14][1] = y;
-    shape->points[15][0] = x;
-    shape->points[15][1] = y;
-    shape->points[16][0] = -x - k;
-    shape->points[16][1] = -y;
-    shape->points[17][0] = -x - d;
-    shape->points[17][1] = -y - d;
-    shape->points[18][0] = -x;
-    shape->points[18][1] = -y;
-    shape->points[19][0] = -x;
-    shape->points[19][1] = -y - k;
-    shape->points[20][0] = x + k;
-    shape->points[20][1] = -y;
-    shape->points[21][0] = x + d;
-    shape->points[21][1] = -y - d;
-    shape->points[22][0] = x;
-    shape->points[22][1] = -y;
-    shape->points[23][0] = x;
-    shape->points[23][1] = -y - k;
-    shape->points[24][0] = x + k;
-    shape->points[24][1] = y;
-    shape->points[25][0] = x + d;
-    shape->points[25][1] = y + d;
-    shape->points[26][0] = x;
-    shape->points[26][1] = y;
-    shape->points[27][0] = x;
-    shape->points[27][1] = y + k;
-    shape->points[28][0] = -x - k;
-    shape->points[28][1] = y;
-    shape->points[29][0] = -x - d;
-    shape->points[29][1] = y + d;
-    shape->points[30][0] = -x;
-    shape->points[30][1] = y;
-    shape->points[31][0] = -x;
-    shape->points[31][1] = y + k;
+    shape->points[0] = -x;
+    shape->points[1] = -y - k;
+    shape->points[2] = x;
+    shape->points[3] = -y - k;
+    shape->points[4] = -x;
+    shape->points[5] = -y;
+    shape->points[6] = x;
+    shape->points[7] = -y;
+    shape->points[8] = x + k;
+    shape->points[9] = -y;
+    shape->points[10] = x + k;
+    shape->points[11] = y;
+    shape->points[12] = x;
+    shape->points[13] = -y;
+    shape->points[14] = x;
+    shape->points[15] = y;
+    shape->points[16] = -x - k;
+    shape->points[17] = -y;
+    shape->points[18] = -x - k;
+    shape->points[19] = y;
+    shape->points[20] = -x;
+    shape->points[21] = -y;
+    shape->points[22] = -x;
+    shape->points[23] = y;
+    shape->points[24] = -x;
+    shape->points[25] = y + k;
+    shape->points[26] = x;
+    shape->points[27] = y + k;
+    shape->points[28] = -x;
+    shape->points[29] = y;
+    shape->points[30] = x;
+    shape->points[31] = y;
+    shape->points[32] = -x - k;
+    shape->points[33] = -y;
+    shape->points[34] = -x - d;
+    shape->points[35] = -y - d;
+    shape->points[36] = -x;
+    shape->points[37] = -y;
+    shape->points[38] = -x;
+    shape->points[39] = -y - k;
+    shape->points[40] = x + k;
+    shape->points[41] = -y;
+    shape->points[42] = x + d;
+    shape->points[43] = -y - d;
+    shape->points[44] = x;
+    shape->points[45] = -y;
+    shape->points[46] = x;
+    shape->points[47] = -y - k;
+    shape->points[48] = x + k;
+    shape->points[49] = y;
+    shape->points[50] = x + d;
+    shape->points[51] = y + d;
+    shape->points[52] = x;
+    shape->points[53] = y;
+    shape->points[54] = x;
+    shape->points[55] = y + k;
+    shape->points[56] = -x - k;
+    shape->points[57] = y;
+    shape->points[58] = -x - d;
+    shape->points[59] = y + d;
+    shape->points[60] = -x;
+    shape->points[61] = y;
+    shape->points[62] = -x;
+    shape->points[63] = y + k;
 }
 
 void func_801F8DB4(void *ptr) {
@@ -5933,7 +6474,105 @@ void func_801F8E14(void *arg0) {
     func_801F8E34(arg0, 1);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F8E34);
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+#define setXY4(p, _x0, _y0, _x1, _y1, _x2, _y2, _x3, _y3)                                  \
+    (p)->x0 = _x0, (p)->y0 = _y0, (p)->x1 = _x1, (p)->y1 = _y1, (p)->x2 = _x2, (p)->y2 = _y2, \
+    (p)->x3 = _x3, (p)->y3 = _y3
+#define SCALE_COORD(dst, src, scale) \
+    do {                                \
+        (dst) = (src) * (scale) / 8192; \
+    } while (0)
+#define SET_SCALED_VERTEX(v, px, py, scale) \
+    do {                                    \
+        SCALE_COORD((v).vx, px, scale);     \
+        SCALE_COORD((v).vy, py, scale);     \
+        (v).vz = 0;                         \
+    } while (0)
+#define SET_SPRITE_MATRIX(sprite, m)                                  \
+    do {                                                              \
+        buildRotTransMatrix(&(sprite)->pos, &(sprite)->rot, m);       \
+        CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), m, m);          \
+        SetRotMatrix((s32)(m));                                       \
+        func_8005C444(m);                                             \
+    } while (0)
+
+void func_801F8E34(void *arg0, s32 otz) {
+    Shape *shape;
+    GradPacket *pk;
+    MATRIX matrix;
+    SVECTOR v[4];
+    s32 sxy[4];
+    s32 depthCue;
+    s32 flag;
+    s32 level;
+    s32 i;
+    CardSprite *sprite;
+
+    shape = arg0;
+    pk = (GradPacket *)CURRENT_FRAME_BUFFER->primSlots[12] + shape->index;
+    i = (((PlayerProfile *)PLAYER_PROFILES)->playTime * 8) % 200;
+    level = (u8)(i >= 100 ? 300 - i : i + 100);
+    for (i = 0; i < 64; i += 2) {
+        if (ABS(shape->points[i]) == shape->x) {
+            shape->cur[i] = shape->points[i];
+        } else {
+            shape->cur[i] = shape->x + (ABS(shape->points[i]) - shape->x) * level / 100;
+            if (shape->points[i] < 0) {
+                shape->cur[i] *= -1;
+            }
+        }
+        if (ABS(shape->points[i + 1]) == shape->y) {
+            shape->cur[i + 1] = shape->points[i + 1];
+        } else {
+            shape->cur[i + 1] = shape->y + (ABS(shape->points[i + 1]) - shape->y) * level / 100;
+            if (shape->points[i + 1] < 0) {
+                shape->cur[i + 1] *= -1;
+            }
+        }
+    }
+    switch (shape->mode) {
+    case 0:
+        sprite = shape->sprite;
+        SET_SPRITE_MATRIX(sprite, &matrix);
+        for (i = 0; i < 8; i++) {
+            SET_SCALED_VERTEX(v[0], shape->cur[i * 8 + 0], shape->cur[i * 8 + 1], sprite->scale);
+            SET_SCALED_VERTEX(v[1], shape->cur[i * 8 + 2], shape->cur[i * 8 + 3], sprite->scale);
+            SET_SCALED_VERTEX(v[2], shape->cur[i * 8 + 4], shape->cur[i * 8 + 5], sprite->scale);
+            SET_SCALED_VERTEX(v[3], shape->cur[i * 8 + 6], shape->cur[i * 8 + 7], sprite->scale);
+            RotAverage4(&v[0], &v[1], &v[2], &v[3], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &depthCue, &flag);
+            setXY4(&pk->prims[i], sxy[0], sxy[0] >> 16, sxy[1], sxy[1] >> 16, sxy[2], sxy[2] >> 16, sxy[3],
+                   sxy[3] >> 16);
+            setRGB2(&pk->prims[i], shape->rgb[0], shape->rgb[1], shape->rgb[2]);
+            if (i / 4 != 0) {
+                setRGB3(&pk->prims[i], 0, 0, 0);
+            } else {
+                setRGB3(&pk->prims[i], shape->rgb[0], shape->rgb[1], shape->rgb[2]);
+            }
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->prims[i]);
+        }
+        break;
+    case 1:
+        for (i = 0; i < 8; i++) {
+            pk->prims[i].x0 = shape->cur[i * 8 + 0] + shape->offsetX;
+            pk->prims[i].y0 = shape->cur[i * 8 + 1] + shape->offsetY;
+            pk->prims[i].x1 = shape->cur[i * 8 + 2] + shape->offsetX;
+            pk->prims[i].y1 = shape->cur[i * 8 + 3] + shape->offsetY;
+            pk->prims[i].x2 = shape->cur[i * 8 + 4] + shape->offsetX;
+            pk->prims[i].y2 = shape->cur[i * 8 + 5] + shape->offsetY;
+            pk->prims[i].x3 = shape->cur[i * 8 + 6] + shape->offsetX;
+            pk->prims[i].y3 = shape->cur[i * 8 + 7] + shape->offsetY;
+            setRGB2(&pk->prims[i], shape->rgb[0], shape->rgb[1], shape->rgb[2]);
+            if (i / 4 != 0) {
+                setRGB3(&pk->prims[i], 0, 0, 0);
+            } else {
+                setRGB3(&pk->prims[i], shape->rgb[0], shape->rgb[1], shape->rgb[2]);
+            }
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->prims[i]);
+        }
+        break;
+    }
+    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->dm);
+}
 
 void func_801F96F0(void) {
     s32 i;
