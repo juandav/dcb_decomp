@@ -15,7 +15,7 @@
 #include "dcb/model_anim.h"
 
 void initModelScene(void) {
-    Unk801D6A4C *scene;
+    Scene3D *scene;
 
     scene = SCENE_3D = allocHeapBlock(0x29C, 0x7F);
     bzero(scene, 0x29C);
@@ -27,12 +27,12 @@ void pauseModelAnimation(s32 slot) {
     void *model;
     void *model2;
 
-    model = SCENE_3D->unk13C[slot];
+    model = SCENE_3D->models[slot];
     if ((*(s32 *)((s8 *)model + 0x2208)) <= 0) {
         (*(s32 *)((s8 *)model + 0x2208)) = -1;
         return;
     }
-    model2 = SCENE_3D->unk13C[slot];
+    model2 = SCENE_3D->models[slot];
     (*(s32 *)((s8 *)model2 + 0x2208)) = (s32) -(*(s32 *)((s8 *)model2 + 0x2208));
 }
 
@@ -40,7 +40,7 @@ void resumeModelAnimation(s32 slot) {
     s32 timer;
     void *model;
 
-    model = SCENE_3D->unk13C[slot];
+    model = SCENE_3D->models[slot];
     timer = (*(s32 *)((s8 *)model + 0x2208));
     if (timer < 0) {
         (*(s32 *)((s8 *)model + 0x2208)) = -timer;
@@ -52,15 +52,15 @@ s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly) {
     void *animState;
     s32 frameCount;
 
-    model = SCENE_3D->unk13C[slot];
+    model = SCENE_3D->models[slot];
     animState = (s8 *)model + 0x2200;
-    frameCount = ((Model2220 *)model)->unk2220[anim].unk0;
+    frameCount = ((Model2220 *)model)->anims[anim].frameCount;
     (*(s32 *)((s8 *)model + 0x26D8)) = rootOnly;
     (*(s32 *)((s8 *)animState + 4)) = frameCount;
     (*(s32 *)((s8 *)animState + 0x14)) = frameCount;
     (*(s32 *)((s8 *)model + 0x2200)) = anim;
     if (nextAnim == -2) {
-        nextAnim = (*(s16 *)((s8 *)((Model2220 *)model)->unk2220[anim].unk4 + 0x1A));
+        nextAnim = (*(s16 *)((s8 *)((Model2220 *)model)->anims[anim].data + 0x1A));
     }
     (*(s32 *)((s8 *)animState + 0x18)) = nextAnim;
     (*(s32 *)((s8 *)animState + 0xC)) = 0;
@@ -72,13 +72,13 @@ void unloadModelAnimations(s32 slot) {
     s32 key;
     s32 i;
 
-    key = *(s16 *)((s8 *)SCENE_3D->unk13C[slot] + 6);
+    key = *(s16 *)((s8 *)SCENE_3D->models[slot] + 6);
     freeHeapBlocksByTag(slot + 0x5A);
     key = (key << 8) | 0x10000000;
     for (i = 0; i < 0x20; i++) {
-        if ((SCENE_3D->unk19C[i].key & ~0xFF) == key) {
-            SCENE_3D->unk19C[i].key = 0;
-            SCENE_3D->unk19C[i].value = 0;
+        if ((SCENE_3D->animCache[i].key & ~0xFF) == key) {
+            SCENE_3D->animCache[i].key = 0;
+            SCENE_3D->animCache[i].value = 0;
         }
     }
 }
@@ -87,9 +87,9 @@ void func_80022E58(void) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if ((SCENE_3D->unk19C[i].key & 0x0FFFFF00) >= 0x3E80) {
-            SCENE_3D->unk19C[i].key = 0;
-            SCENE_3D->unk19C[i].value = 0;
+        if ((SCENE_3D->animCache[i].key & 0x0FFFFF00) >= 0x3E80) {
+            SCENE_3D->animCache[i].key = 0;
+            SCENE_3D->animCache[i].value = 0;
         }
     }
     freeHeapBlocksByTag(0x82);
@@ -120,7 +120,7 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
     s32 animData;
     s32 chunkSub;
 
-    cacheEntry = (KeyValue *)SCENE_3D->unk19C;
+    cacheEntry = (KeyValue *)SCENE_3D->animCache;
     animData = findAnimationCacheEntry((id << 8) | 0x10000000 | anim, 32, &cacheEntry);
     if (animData == 0) {
         if (cacheEntry == 0) {
@@ -147,15 +147,15 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
 }
 
 void setModelAnimationData(Model2220 *model, s32 *data, s32 anim) {
-    model->unk2220[anim].unk0 = *data++;
-    model->unk2220[anim].unk4 = data;
+    model->anims[anim].frameCount = *data++;
+    model->anims[anim].data = data;
 }
 
 s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak) {
     s32 animData;
     void *model;
 
-    model = SCENE_3D->unk13C[slot];
+    model = SCENE_3D->models[slot];
     animData = loadAnimationData((*(s16 *)((s8 *)model + 6)), anim, slot, (Chunk *)pak);
     if (animData != 0) {
         setModelAnimationData(model, (s32 *)animData, index);
@@ -180,11 +180,11 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     s32 i;
     s32 j;
 
-    model = SCENE_3D->unk13C[slot];
+    model = SCENE_3D->models[slot];
     bone = (BoneAnim *)(model + 0xD80);
     coord = model + 0x78;
     rot = (SVECTOR *)(model + 0xA80);
-    keyframe = (s16 *)((u8 *)((Model2220 *)model)->unk2220[anim].unk4 + 4);
+    keyframe = (s16 *)((u8 *)((Model2220 *)model)->anims[anim].data + 4);
     for (i = 0; i < *(s16 *)(model + 4) + 1; i++, keyframe += 12, bone++, coord += 0x50, rot++) {
         for (j = 0, rotChan = &bone->ch[0].val, posChan = &bone->ch[3].val, scaleChan = &bone->ch[6].val; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;

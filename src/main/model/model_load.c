@@ -69,8 +69,8 @@ void initModelBoneHierarchy(Model *model) {
 }
 
 void unloadModel(s32 slot) {
-    SCENE_3D->unk114[slot] = 0;
-    SCENE_3D->unk13C[slot] = 0;
+    SCENE_3D->modelState[slot] = 0;
+    SCENE_3D->models[slot] = 0;
     freeHeapBlocksByTag(slot + 0x40);
 }
 
@@ -78,11 +78,11 @@ void unloadAllModels(void) {
     s32 i;
 
     for (i = 0; i < 24; i++) {
-        if (SCENE_3D->unk114[i] != 0) {
+        if (SCENE_3D->modelState[i] != 0) {
             unloadModelAnimations(i);
-            SCENE_3D->unk114[i] = 0;
+            SCENE_3D->modelState[i] = 0;
             /* sic: the original clears the wrong slot */
-            SCENE_3D->unk13C[i - 0x40] = 0;
+            SCENE_3D->models[i - 0x40] = 0;
         }
     }
     func_80014C08(FRAME_INTERVAL);
@@ -95,9 +95,9 @@ void *findLoadedModelById(s32 id) {
     s32 i;
 
     for (i = 0; i < 0x18; i++) {
-        if (SCENE_3D->unk114[i] != 0 &&
-            *(s16 *)((u8 *)SCENE_3D->unk13C[i] + 6) == id) {
-            return SCENE_3D->unk13C[i];
+        if (SCENE_3D->modelState[i] != 0 &&
+            *(s16 *)((u8 *)SCENE_3D->models[i] + 6) == id) {
+            return SCENE_3D->models[i];
         }
     }
     return 0;
@@ -119,12 +119,12 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     if (slot >= 0x18) {
         return 0;
     }
-    if (SCENE_3D->unk13C[slot] != 0) {
+    if (SCENE_3D->models[slot] != 0) {
         unloadModelAnimations(slot);
         unloadModel(slot);
     }
     func_80014C08(FRAME_INTERVAL);
-    model = SCENE_3D->unk13C[slot] = allocHeapBlock(0x28F8, slot + 0x40);
+    model = SCENE_3D->models[slot] = allocHeapBlock(0x28F8, slot + 0x40);
     bzero(model, 0x28F8);
     *(s32 *)(model + 0x26F4) = pak;
     pauseModelAnimation(slot);

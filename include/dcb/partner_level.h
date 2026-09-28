@@ -5,9 +5,9 @@
 
 typedef struct {
     /* 0x0 */ u8 unk0[4];
-    /* 0x4 */ s8 unk4[6];
+    /* 0x4 */ s8 learnLevels[6];
     /* 0xA */ u8 unkA[2];
-} Entry12;
+} AbilityLearnEntry;
 
 extern u8 STR_HACK_SYSTEM_ERROR[];
 extern u8 STR_HACK_PARTNER_MOVED[];
@@ -29,7 +29,7 @@ extern u8 *HACKING_SCRIPTS[];
 /* the same text as in startCpuDuel, kept as its own copy */
 extern char PATH_SAISEG_BIN[];
 
-s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot);
+s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot);
 s32 getExpForNextLevel(s32 level);
 s32 func_8004994C(s32 player, s32 slot);
 

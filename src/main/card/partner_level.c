@@ -28,7 +28,7 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
+s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot) {
     s8 level;
     s32 partnerIndex;
     s32 i;
@@ -37,7 +37,7 @@ s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
     partnerIndex = getSlotPartnerIndex(player, slot);
     if (partnerIndex >= 0) {
         for (i = 0; i < 0x80; i++) {
-            if (abilityTable[i].unk4[partnerIndex] == level) {
+            if (abilityTable[i].learnLevels[partnerIndex] == level) {
                 if (getPartnerAbilityState(player, i) == 0) {
                     return i;
                 }

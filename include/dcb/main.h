@@ -5,8 +5,8 @@
 
 typedef struct {
     /* 0x00 */ char unk0[0x14];
-    /* 0x14 */ int unk14;
-} Unk80077A0C;
+    /* 0x14 */ int id;
+} TaskHeader;
 typedef struct Task {
     /* 0x00 */ u32 flags;
     /* 0x04 */ s32 waitFrames;
@@ -29,7 +29,7 @@ extern s32 TASK_LIST_END;
 extern s32 KERNEL_TCB;
 extern s32 VSYNC_EVENT;
 extern s32 D_80077BC0;
-extern Unk80077A0C *CURRENT_TASK;
+extern TaskHeader *CURRENT_TASK;
 extern void *PREEMPTED_TASK;
 extern void *D_80077A14;
 extern s32 TASK_GP;

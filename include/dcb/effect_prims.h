@@ -4,10 +4,10 @@
 #include "game.h"
 #include "dcb/effect_object.h"
 
-void buildRingEffectMesh(Obj32 *ring);
-void renderRingEffect(Obj32 *ring);
-void freeRingEffect(Obj32 *ring);
-void renderStreakParticles(Particles *fx);
+void buildRingEffectMesh(RingEffect *ring);
+void renderRingEffect(RingEffect *ring);
+void freeRingEffect(RingEffect *ring);
+void renderStreakParticles(StreakParticles *fx);
 void freeStreakParticles(void *fx);
 
 #endif /* DCB_EFFECT_PRIMS_H */

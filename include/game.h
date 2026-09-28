@@ -114,15 +114,15 @@ typedef struct {
     /* 0x000 */ GsOT ot[2];
     /* 0x028 */ GsCOORDINATE2 root;
     /* 0x078 */ u8 unk78[0x4C];
-    /* 0x0C4 */ GsRVIEW2 unkC4;
+    /* 0x0C4 */ GsRVIEW2 view;
     /* 0x0E4 */ u8 unkE4[0x30];
-    /* 0x114 */ s8 unk114[0x28];
-    /* 0x13C */ void *unk13C[24];
+    /* 0x114 */ s8 modelState[0x28];
+    /* 0x13C */ void *models[24];
     /* 0x19C */ struct {
         s32 key;
         s32 value;
-    } unk19C[32];
-} Unk801D6A4C;
+    } animCache[32];
+} Scene3D;
 typedef struct {
     /* 0x00 */ u8 pad0[8];
     /* 0x08 */ void (*unk8[16])(FrameBuffer *, s32);
@@ -417,20 +417,20 @@ typedef struct {
     s16 w, h;
 } TILE;
 typedef struct {
-    /* 0x0 */ s32 unk0;
-    /* 0x4 */ void *unk4;
-} Unk2220;
+    /* 0x0 */ s32 frameCount;
+    /* 0x4 */ void *data;
+} AnimClip;
 typedef struct {
     /* 0x0000 */ u8 unk0[0x1F80];
     /* 0x1F80 */ s16 *bonepos[32];
     /* 0x2000 */ s32 scale[34][4];
-    /* 0x2220 */ Unk2220 unk2220[16];
+    /* 0x2220 */ AnimClip anims[16];
     /* 0x22A0 */ u8 unk22A0[0x430];
-    /* 0x26D0 */ s32 unk26D0;
-    /* 0x26D4 */ s32 unk26D4;
-    /* 0x26D8 */ s32 unk26D8;
+    /* 0x26D0 */ s32 clutOffset;
+    /* 0x26D4 */ s32 tpageOffset;
+    /* 0x26D8 */ s32 rootOnly;
     /* 0x26DC */ u8 unk26DC[0x18];
-    /* 0x26F4 */ void *unk26F4;
+    /* 0x26F4 */ void *pak;
 } Model2220;
 typedef struct {
     /* 0x0 */ s32 unk0;
@@ -461,35 +461,35 @@ typedef struct {
 } Bytes8;
 typedef struct {
     /* 0x000 */ u8 unk0[0x13C];
-    /* 0x13C */ u8 unk13C[0x20];
-    /* 0x15C */ u8 *unk15C[2];
-    /* 0x164 */ u8 *unk164[2];
-    /* 0x16C */ void *unk16C;
-    /* 0x170 */ Bytes8 unk170;
-    /* 0x178 */ s32 unk178;
-    /* 0x17C */ s32 unk17C;
+    /* 0x13C */ u8 texAnim[0x20];
+    /* 0x15C */ u8 *tpagePrims[2];
+    /* 0x164 */ u8 *prims[2];
+    /* 0x16C */ void *vertices;
+    /* 0x170 */ Bytes8 texCoords;
+    /* 0x178 */ s32 tpage;
+    /* 0x17C */ s32 clut;
     /* 0x180 */ s32 n;
     /* 0x184 */ u8 type;
-    /* 0x185 */ Bytes4 unk185;
-    /* 0x189 */ Bytes4 unk189;
-    /* 0x18D */ Bytes4 unk18D;
-    /* 0x194 */ s32 unk194;
-    /* 0x198 */ s32 unk198;
-    /* 0x19C */ s16 unk19C[5];
-    /* 0x1A6 */ s16 unk1A6;
-    /* 0x1A8 */ s16 unk1A8;
-    /* 0x1AA */ u8 unk1AA;
-    /* 0x1AB */ u8 unk1AB;
-    /* 0x1AC */ u8 unk1AC;
-    /* 0x1AD */ s8 unk1AD;
-} Obj32;
+    /* 0x185 */ Bytes4 innerColor;
+    /* 0x189 */ Bytes4 midColor;
+    /* 0x18D */ Bytes4 outerColor;
+    /* 0x194 */ s32 fixedOtz;
+    /* 0x198 */ s32 texDepth;
+    /* 0x19C */ s16 shape[5];
+    /* 0x1A6 */ s16 brightness;
+    /* 0x1A8 */ s16 prevBrightness;
+    /* 0x1AA */ u8 axisMode;
+    /* 0x1AB */ u8 cullBackface;
+    /* 0x1AC */ u8 abr;
+    /* 0x1AD */ s8 texAnimActive;
+} RingEffect;
 typedef struct {
     /* 0x00 */ u16 cards[30];
     /* 0x3C */ char name[0x28];
     /* 0x64 */ u8 unk64[4];
     /* 0x68 */ u8 unk68[5];
-    /* 0x6D */ u8 unk6D;
-} SavedDeck;
+    /* 0x6D */ u8 partnerArmor;
+} PresetDeck;
 typedef struct {
     /* 0x00 */ u32 mode;
     /* 0x04 */ Rect16 *crect;
@@ -567,12 +567,12 @@ typedef struct {
 } Player;
 typedef struct {
     /* 0x00 */ u8 unk0[0xE];
-    /* 0x0E */ s16 unkE;
+    /* 0x0E */ s16 value;
     /* 0x10 */ u8 unk10[0x10];
 } SupportCondition;
 typedef struct {
     /* 0x0 */ u8 unk0[0xC];
-    /* 0xC */ s16 unkC;
+    /* 0xC */ s16 value;
     /* 0xE */ u8 unkE[2];
 } SupportAction;
 typedef struct {
@@ -594,7 +594,7 @@ typedef struct {
     /* 0x0B4 */ SupportAction supportActions[3];
     /* 0x0E4 */ s8 crossEffect;
     /* 0x0E5 */ u8 modelId;
-    /* 0x0E6 */ s8 unkE6;
+    /* 0x0E6 */ s8 supportIcon;
     /* 0x0E7 */ u8 supportText[4][0x15];
     /* 0x13B */ u8 unk13B;
 } DigimonCardData;
@@ -619,7 +619,7 @@ typedef struct {
     /* 0x0010 */ s16 unk10;
     /* 0x0012 */ u16 seenCardCount;
     /* 0x0014 */ s16 unk14;
-    /* 0x0016 */ s16 unk16;
+    /* 0x0016 */ s16 profileSize;
     /* 0x0018 */ u16 battleWins;
     /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
@@ -627,7 +627,7 @@ typedef struct {
     /* 0x0020 */ u32 unk20_0 : 1;
     /* 0x0020 */ u32 unk20_1 : 1;
     /* 0x0020 */ u32 unk20_2 : 1;
-    /* 0x0020 */ u32 unk20_3 : 1;
+    /* 0x0020 */ u32 skipBattleAnimation : 1;
     /* 0x0020 */ u32 unk20_4 : 28;
     /* 0x0024 */ s32 playTime;
     /* 0x0028 */ u32 tamerRank : 3;
@@ -641,7 +641,7 @@ typedef struct {
     /* 0x0029 */ u32 unk28_14 : 18;
     /* 0x002C */ s32 unk2C;
     /* 0x0030 */ u8 unk30[6];
-    /* 0x0036 */ u16 unk36[3];
+    /* 0x0036 */ u16 attackCounts[3];
     /* 0x003C */ u8 ownedAbilities[0x10];
     /* 0x004C */ s16 unk4C;
     /* 0x004E */ s16 unk4E;
@@ -682,7 +682,7 @@ typedef struct {
     /* 0x0000 */ u8 *npcDeckFile;
     /* 0x0004 */ u8 opponentDeckIndex;
     /* 0x0005 */ u8 unk5[3];
-    /* 0x0008 */ SavedDeck opponentDeck;
+    /* 0x0008 */ PresetDeck opponentDeck;
     /* 0x0076 */ u8 unk76[2];
     /* 0x0078 */ Partner partnerBackup[2][3];
     /* 0x1008 */ s16 npcDeckIndex[2];
@@ -702,7 +702,7 @@ typedef struct {
     /* 0x60 */ AnimChan scale[3];
 } BoneKeys;
 typedef struct {
-    /* 0x0000 */ s32 unk0;
+    /* 0x0000 */ s32 dataSize;
     /* 0x0004 */ s16 nobj;
     /* 0x0006 */ s16 id;
     /* 0x0008 */ VECTOR pos;
@@ -717,11 +717,11 @@ typedef struct {
     /* 0x2000 */ u8 unk2000[0x2B0];
     /* 0x22B0 */ MATRIX lw[32];
     /* 0x26B0 */ s8 parent[32];
-    /* 0x26D0 */ s32 unk26D0;
-    /* 0x26D4 */ s32 unk26D4;
-    /* 0x26D8 */ s32 unk26D8;
+    /* 0x26D0 */ s32 clutOffset;
+    /* 0x26D4 */ s32 tpageOffset;
+    /* 0x26D8 */ s32 rootOnly;
     /* 0x26DC */ void *data;
-    /* 0x26E0 */ s32 unk26E0;
+    /* 0x26E0 */ s32 link;
     /* 0x26E4 */ Rect16 prect;
     /* 0x26EC */ Rect16 crect;
     /* 0x26F4 */ void *pak;
@@ -836,12 +836,12 @@ typedef struct {
 } Duel;
 typedef struct {
     s8 bg;
-    u8 unk1;
-    u8 unk2;
+    u8 texAnimFrames;
+    u8 texAnimDelay;
     s8 flags;
     u8 rgb[3];
     u8 unk7;
-} BgEntry;
+} ArenaStage;
 typedef struct {
     /* 0x0 */ s16 unk0;
     /* 0x2 */ s16 id;
@@ -917,7 +917,7 @@ extern s32 TEXT_HEIGHT;
 extern s32 LOADED_FILE_SIZE;
 extern TIM_IMAGE LOADED_TIM;
 extern s32 SCENE_3D_ENABLED;
-extern Unk801D6A4C *SCENE_3D;
+extern Scene3D *SCENE_3D;
 extern s32 OVERLAY_LOAD_ADDR;
 extern s32 MUSIC_CHANGE_BUSY;
 extern s32 PENDING_MUSIC_CHANGES;
@@ -1045,7 +1045,7 @@ s32 SetRotMatrix(s32);
 s32 func_8005C444();
 s32 RotMatrixYXZ(void *, void *);
 void GsInitCoordinate2(GsCOORDINATE2 *, GsCOORDINATE2 *);
-s32 bzero(Unk801D6A4C *, s32);
+s32 bzero(Scene3D *, s32);
 void StoreImage2(Rect16 *, u32 *);
 void GsMapModelingData(u32 *);
 void GsLinkObject4(u32, void *, s32);
@@ -1118,7 +1118,7 @@ s32 rsin(s32);
 s32 rcos(s32);
 long SquareRoot0(long);
 void VectorNormal(VECTOR *, VECTOR *);
-s32 func_801E6C78(s32, s32, Obj32 *, u8 *, s32);
+s32 func_801E6C78(s32, s32, RingEffect *, u8 *, s32);
 void func_801E7020(u8 *);
 void func_801E72D4(u8 *);
 s32 func_801E6AA4();

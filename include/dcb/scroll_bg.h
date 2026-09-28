@@ -14,11 +14,11 @@ void freeScrollingBackground(void);
 
 typedef struct {
     /* 0x000 */ u8 unk0[0x10C];
-    /* 0x10C */ s32 unk10C[3];
+    /* 0x10C */ s32 done[3];
 } Unk80030CA8;
 typedef struct {
     s32 data[0x4F];
-} Unk13C;
+} EffectTemplate;
 typedef struct {
     /* 0x000 */ u8 unk0[0x20];
     /* 0x020 */ s32 posX;
@@ -77,14 +77,14 @@ typedef struct {
     /* 0x120 */ u8 unk120[4];
     /* 0x124 */ s16 period;
     /* 0x126 */ u8 unk126[6];
-    /* 0x12C */ s16 unk12C;
+    /* 0x12C */ s16 hitRadius;
     /* 0x12E */ s16 mode;
     /* 0x130 */ s16 speed;
     /* 0x132 */ u8 unk132[5];
-    /* 0x137 */ u8 unk137;
-    /* 0x138 */ u8 unk138;
-    /* 0x139 */ u8 unk139;
-} Anim;
+    /* 0x137 */ u8 fadeMode;
+    /* 0x138 */ u8 fadeState;
+    /* 0x139 */ u8 suspended;
+} EffectObject;
 typedef struct {
     u32 tag;
     u8 r0, g0, b0, code;
@@ -94,51 +94,51 @@ typedef struct {
 } LINE_G2;
 typedef struct {
     /* 0x00 */ u8 unk0[0x30];
-    /* 0x30 */ s16 unk30;
-    /* 0x32 */ s16 unk32;
-    /* 0x34 */ s16 unk34;
+    /* 0x30 */ s16 rotX;
+    /* 0x32 */ s16 rotY;
+    /* 0x34 */ s16 rotZ;
     /* 0x36 */ u8 unk36[0x16];
     /* 0x4C */ LINE_G2 line[2];
-    /* 0x74 */ s16 unk74;
-    /* 0x76 */ s16 unk76;
-    /* 0x78 */ s16 unk78;
+    /* 0x74 */ s16 posX;
+    /* 0x76 */ s16 posY;
+    /* 0x78 */ s16 posZ;
     /* 0x7A */ s16 unk7A;
-    /* 0x7C */ u16 unk7C;
-    /* 0x7E */ u16 unk7E;
-    /* 0x80 */ u16 unk80;
-    /* 0x82 */ s16 unk82;
-    /* 0x84 */ s16 unk84;
+    /* 0x7C */ u16 length;
+    /* 0x7E */ u16 speed;
+    /* 0x80 */ u16 distance;
+    /* 0x82 */ s16 angle;
+    /* 0x84 */ s16 angleSpeed;
     /* 0x86 */ s16 unk86;
 } Particle;
 typedef struct {
-    /* 0x000 */ Unk13C base;
+    /* 0x000 */ EffectTemplate base;
     /* 0x13C */ void *parent;
     /* 0x140 */ Particle *p;
     /* 0x144 */ u8 rgb[3];
-    /* 0x147 */ u8 unk147;
+    /* 0x147 */ u8 swirl;
     /* 0x148 */ u8 drgb[3];
     /* 0x14B */ u8 unk14B;
     /* 0x14C */ u16 frames;
-    /* 0x14E */ s16 unk14E;
-    /* 0x150 */ u16 unk150;
+    /* 0x14E */ s16 zOffset;
+    /* 0x150 */ u16 frame;
     /* 0x152 */ u16 count;
-    /* 0x154 */ s16 unk154;
-    /* 0x156 */ s16 unk156;
-    /* 0x158 */ s8 unk158;
+    /* 0x154 */ s16 fixedOtz;
+    /* 0x156 */ s16 lengthStep;
+    /* 0x158 */ s8 direction;
     /* 0x159 */ s8 own;
-    /* 0x15A */ u8 unk15A;
+    /* 0x15A */ u8 axisMode;
     /* 0x15B */ s8 kind;
-} Particles;
+} StreakParticles;
 
 extern u8 PRIM_SIZES[];
 extern s16 ATTACK_ICON_ORIGIN_X[3];
 extern s16 ATTACK_ICON_ORIGIN_Y[2][3];
 
 void renderScrollingBackground(void);
-Obj32 *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, Unk13C *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
+RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, EffectTemplate *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
                      s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
                      s32 w, s32 x);
-Particles *createStreakParticles(u8 *startColor, u8 *endColor, Unk13C *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
+StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz);
 
 #endif /* DCB_SCROLL_BG_H */

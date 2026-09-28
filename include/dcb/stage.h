@@ -7,7 +7,7 @@ extern s32 DUEL_DIGIMON_MODELS;
 extern void *D_801D81AC;
 extern void *D_801D81B0;
 extern u8 D_801EEE90[];
-extern BgEntry ARENA_STAGES[];
+extern ArenaStage ARENA_STAGES[];
 extern s32 D_8006DF80;
 extern u8 STAGE_CLEAR_COLOR[3];
 extern s32 STAGE_PAK;

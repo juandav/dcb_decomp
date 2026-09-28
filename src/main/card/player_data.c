@@ -71,7 +71,7 @@ void resetPlayerData(void) {
         profile->tamerRank = 0;
         profile->collectorRank = 0;
         profile->battleRank = 0;
-        profile->unk16 = 0x2774;
+        profile->profileSize = 0x2774;
         profile->unk4C = 0;
         profile->unk4E = 0;
         profile->unk50 = 0;
@@ -79,7 +79,7 @@ void resetPlayerData(void) {
         profile->unk54 = 0;
         profile->unk56 = 0;
         for (i = 0; i < 3; i++) {
-            profile->unk36[i] = 0;
+            profile->attackCounts[i] = 0;
         }
         for (i = 0; i < 0x28; i++) {
             profile->unk58[i] = 0;
@@ -123,7 +123,7 @@ void resetPlayerData(void) {
         profile->unk20_0 = 0;
         profile->unk20_1 = 0;
         profile->unk20_2 = 0;
-        profile->unk20_3 = 0;
+        profile->skipBattleAnimation = 0;
         profile->playTime = 0;
     }
     strcpy(((PlayerProfile *)PLAYER_PROFILES)->name, "Player");
@@ -166,7 +166,7 @@ void renderFullscreenBackground(void) {
 void playModelAnimation(s32 modelSlot, s32 animId) {
     void *model;
 
-    model = SCENE_3D->unk13C[modelSlot];
+    model = SCENE_3D->models[modelSlot];
     if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
         freeHeapBlocksByTag(modelSlot + 0x84);
         setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
@@ -178,7 +178,7 @@ void setModelAnimationPose(s32 modelSlot, s32 animId) {
     s32 heapTag;
     void *model;
 
-    model = SCENE_3D->unk13C[modelSlot];
+    model = SCENE_3D->models[modelSlot];
     heapTag = modelSlot + 0x84;
     freeHeapBlocksByTag(heapTag);
     setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);

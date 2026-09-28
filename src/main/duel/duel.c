@@ -824,8 +824,8 @@ void runDuelTurnLoop(void) {
                 D_801D83EC[0x109] = 4;
                 for (i = 0; i < 2; i++) {
                     PLAYER(i)->usedAttack = PLAYER(i)->attackChoice;
-                    if (((PlayerProfile *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->usedAttack] != 0xFFFF) {
-                        ((PlayerProfile *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->usedAttack]++;
+                    if (((PlayerProfile *)PLAYER_PROFILES)[i].attackCounts[PLAYER(i)->usedAttack] != 0xFFFF) {
+                        ((PlayerProfile *)PLAYER_PROFILES)[i].attackCounts[PLAYER(i)->usedAttack]++;
                     }
                 }
                 waitDuelFrames(0x78);
@@ -1005,7 +1005,7 @@ void runDuelTurnLoop(void) {
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 0xF;
             waitDuelFrames(0x3C);
-            if (((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
+            if (((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation) {
                 ATTACK_ICON_TIMER = 0x20;
                 addFrameCallback((s32)renderAttackChoiceIcons);
                 while (ATTACK_ICON_TIMER != 0) {
@@ -1024,7 +1024,7 @@ void runDuelTurnLoop(void) {
         case 34:
             DUEL->awaitingInput = 0;
             DUEL->cursorSlot = -1;
-            if (!((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
+            if (!((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation) {
                 func_80014C08(0x3C);
                 DUEL->state = 1;
                 func_80014C08(2);
@@ -1052,7 +1052,7 @@ void runDuelTurnLoop(void) {
         case 35:
             DUEL->awaitingInput = 0;
             knockedOut = 0;
-            if (((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
+            if (((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation) {
                 firstAttacker = DUEL->firstAttacker;
                 secondAttacker = DUEL->secondAttacker;
                 j = firstAttacker->controller & 1;

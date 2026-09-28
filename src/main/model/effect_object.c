@@ -194,8 +194,8 @@ s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16
     return 0;
 }
 
-Unk13C *cloneEffectObject(Unk13C *template) {
-    Unk13C *fx;
+EffectTemplate *cloneEffectObject(EffectTemplate *template) {
+    EffectTemplate *fx;
 
     fx = allocTaskHeapBlock(0x13C);
     *fx = *template;
@@ -236,7 +236,7 @@ void restartEffectMotion(u8 *fx) {
     fx[0x139] = *(s16 *)(fx + 0x12E) >= 0x5B;
     *(s32 *)(fx + 0x118) = -1;
     for (i = 0; i < 3; i++) {
-        ((Unk80030CA8 *)fx)->unk10C[i] = 0;
+        ((Unk80030CA8 *)fx)->done[i] = 0;
     }
     *(s32 *)(fx + 0x108) = 0;
     *(s32 *)(fx + 0x11C) = 0;
@@ -306,7 +306,7 @@ INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_SUBSEG);
 INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_BG_ARC);
 
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
-    Anim *fx = (Anim *)fxAddr;
+    EffectObject *fx = (EffectObject *)fxAddr;
     u8 applyMode = applyFlag;
     SVECTOR prevPos;
     SVECTOR curPos;
@@ -476,7 +476,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
         updateTransformMatrix((u8 *)fx + 0x4C, 0);
         getTransformWorldPos(fx, &curPos);
         getTransformWorldPos((u8 *)fx + 0x4C, &targetPos);
-        hit = checkEffectHitTarget(&prevPos, &curPos, &targetPos, fx->unk12C);
+        hit = checkEffectHitTarget(&prevPos, &curPos, &targetPos, fx->hitRadius);
         if (hit == 1) {
             switch (fx->mode) {
             case 11:
@@ -527,7 +527,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 53:
             case 54:
             case 55:
-                fx->unk139 = 1;
+                fx->suspended = 1;
                 break;
             case 76:
             case 77:
@@ -548,7 +548,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 66:
             case 67:
             case 68:
-                fx->unk137 = 2;
+                fx->fadeMode = 2;
                 fx->speed = -abs(fx->speed);
                 break;
             }
@@ -625,7 +625,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 60:
             case 61:
             case 62:
-                fx->unk139 = 1;
+                fx->suspended = 1;
                 break;
             case 82:
             case 83:
@@ -654,7 +654,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 73:
             case 74:
             case 75:
-                fx->unk137 = 2;
+                fx->fadeMode = 2;
                 fx->speed = -abs(fx->speed);
                 break;
             }
