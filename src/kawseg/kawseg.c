@@ -19,6 +19,18 @@
 #include "dcb/card_render.h"
 
 typedef struct {
+     u8 unk0[0x2A6];
+     u8 partFlags[16];
+} ExpScreen;
+typedef struct {
+     char *name;
+     s32 unk4;
+     s32 unk8;
+} PartInfo;
+extern ExpScreen *D_801FC738;
+extern PartInfo D_801FBB38[];
+
+typedef struct {
      s8 active;
      s16 lhs[6];
      s16 rhs[6];
@@ -1132,7 +1144,55 @@ s32 func_801ECE24(void) {
     DUEL->step = 23;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ECF0C);
+s32 func_801ECF0C(s32 player) {
+    s32 opponent;
+    s32 card;
+    s32 slot;
+    u8 *data;
+
+    opponent = player ^ 1;
+    if (PLAYER(player)->stats[0] == 0) {
+        if (((u8)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF) == 3) {
+            func_801FB444(opponent, 0xF);
+        }
+        DUEL->winner = opponent;
+        if (((*(u32 *)((u8 *)PLAYER(player) + 0x178) >> 14) & 1) && PLAYER(opponent)->wins != 2) {
+            func_801F6214(0x1D, player);
+            showStatChangePopup(player, *(s16 *)PLAYER(player)->unk166, 0);
+            PLAYER(player)->stats[0] = *(s16 *)PLAYER(player)->unk166;
+            waitForStatCountersToSettle();
+        } else {
+            data = DUEL_PLAYERS[opponent];
+            data += (getActiveDigimonCard(opponent) % 30) * sizeof(CardSlot);
+            card = ((Player *)data)->cards[0].index;
+            if (++PLAYER_DATA(opponent).unk11B6[card] >= 1000) {
+                PLAYER_DATA(opponent).unk11B6[card] = 999;
+            }
+            data = DUEL_PLAYERS[player];
+            data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);
+            card = ((Player *)data)->cards[0].index;
+            if (++PLAYER_DATA(player).unk1334[card] >= 1000) {
+                PLAYER_DATA(player).unk1334[card] = 999;
+            }
+            data = DUEL_PLAYERS[player];
+            data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);
+            slot = findArmorPartnerSlot(player, ((Player *)data)->cards[0].id);
+            if (slot != -1) {
+                func_801F6214(0x1E, player);
+                armorDevolvePartner(player, slot);
+            }
+            while (getActiveDigimonCard(player) != -1) {
+                card = getActiveDigimonCard(player);
+                ((CardAnim *)(D_801D833C + card * 36))->spr->pal = (u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4;
+                func_801EC608(card, player);
+                waitDuelFrames(20);
+            }
+        }
+        PLAYER(opponent)->wins++;
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ED334);
 
@@ -1291,7 +1351,81 @@ INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F3BE8);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F4174);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F4408);
+void func_801F4408(UiWindow *w) {
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 i;
+    s32 n;
+    s32 icon;
+    s32 palette;
+    char buf[24];
+
+    x = w->originX;
+    y = w->originY;
+    z = w->z;
+    drawText(x + 0x5A, y + 1, (s32)"Earned Digi-Parts", 6, 0);
+    n = 0;
+    for (i = 0; i < 128; i++) {
+        if ((D_801FC738->partFlags[i / 8] >> (i % 8)) & 1) {
+            n++;
+            if (n < (w->view.y - 15) / 13) {
+                continue;
+            }
+            if ((w->view.y + w->rect.h) / 13 < n) {
+                continue;
+            }
+            sprintf(buf, "*s0%3.3d", i);
+            drawText(x + 2, y + 15 + (n - 1) * 13, (s32)buf, 5, z);
+            if (i < 7) {
+                icon = 0;
+            } else if (i < 10) {
+                icon = 1;
+            } else if (i < 15) {
+                icon = 2;
+            } else if (i < 20) {
+                icon = 3;
+            } else if (i < 24) {
+                icon = 4;
+            } else if (i < 38) {
+                icon = 5;
+            } else if (i < 41) {
+                icon = 6;
+            } else if (i < 123) {
+                icon = 7;
+            } else {
+                icon = 8;
+            }
+            drawIcon(x + 0x16, y + 15 + (n - 1) * 13, 2, icon, z);
+            palette = 7;
+            if (i >= 24 && i < 38) {
+                palette = 4;
+            }
+            if (i >= 41 && i < 123) {
+                palette = 5;
+            }
+            drawText(x + 0x30, y + 15 + (n - 1) * 13, (s32)D_801FBB38[i].name, palette, z);
+        }
+    }
+    w->view.h = n * 13 + 15;
+    if (w->view.h - w->rect.h >= 0) {
+        if (PAD_STATES[0]->repeat & 1) {
+            scrollWindowTo((s16 *)w, 0, w->view.y - w->rect.h);
+        }
+        if (PAD_STATES[0]->repeat & 2) {
+            scrollWindowTo((s16 *)w, 0, w->view.y + w->rect.h);
+        }
+        if (PAD_STATES[0]->repeat & 0x1000) {
+            scrollWindowTo((s16 *)w, 0, w->view.y - 13);
+        }
+        if (PAD_STATES[0]->repeat & 0x4000) {
+            scrollWindowTo((s16 *)w, 0, w->view.y + 13);
+        }
+    }
+    if (n == 0) {
+        drawText(x + 0x1A, y + 0xE, (s32)"None", 7, 0);
+    }
+}
 
 void func_801F4794(RankUpWindow *w) {
     s32 x;

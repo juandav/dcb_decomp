@@ -17,6 +17,28 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/memcard.h"
 
+typedef struct {
+    POLY_FT4 quads[2];
+    VECTOR pos;
+    SVECTOR rot;
+    SVECTOR corners[4];
+    s32 otz;
+    s16 w;
+    s16 h;
+} Sprite3D;
+typedef struct {
+    s32 x;
+    s32 y;
+    s32 clutX;
+    u16 clutY;
+    u16 padE;
+    u8 w;
+    u8 h;
+    u8 mode;
+    u8 pad13;
+} SpriteTemplate;
+extern SpriteTemplate D_801F3708[];
+
 void func_801E4AF4(s32 arg0);
 
 typedef struct {
@@ -1062,7 +1084,46 @@ INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE804);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EB628);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EB754);
+Sprite3D *func_801EB754(s32 id) {
+    SpriteTemplate *tmpl = &D_801F3708[id];
+    s32 abr = 0;
+    Sprite3D *sprite = allocHeapBlock(sizeof(Sprite3D), 0x2E);
+    POLY_FT4 *quad;
+    s32 i;
+
+    sprite->corners[0].vx = sprite->corners[2].vx = -(tmpl->w >> 1);
+    sprite->corners[1].vx = sprite->corners[3].vx = tmpl->w >> 1;
+    sprite->corners[0].vy = sprite->corners[1].vy = -(tmpl->h >> 1);
+    sprite->corners[2].vy = sprite->corners[3].vy = (tmpl->h >> 1) - 1;
+    for (i = 0; i < 4; i++) {
+        sprite->corners[i].vz = 0;
+    }
+    sprite->rot.vx = sprite->rot.vy = sprite->rot.vz = 0;
+    sprite->pos.vx = sprite->pos.vy = sprite->pos.vz = 0;
+    sprite->w = tmpl->w;
+    sprite->h = tmpl->h - 1;
+    sprite->otz = 0x23;
+    for (i = 0; i < 2; i++) {
+        quad = &sprite->quads[i];
+        func_800677A4(quad);
+        quad->r0 = 0x80;
+        quad->g0 = 0x80;
+        quad->b0 = 0x80;
+        SetSemiTrans(quad, 0);
+        quad->clut = getClut(tmpl->clutX, tmpl->clutY);
+        quad->tpage = ((tmpl->mode & 3) << 7) | ((abr & 3) << 5) | ((tmpl->y & 0x100) >> 4) | ((tmpl->x & 0x3C0) >> 6) | ((tmpl->y & 0x200) << 2);
+        if (tmpl->mode != 0) {
+            quad->u2 = quad->u0 = (tmpl->x % 64) << 1;
+            quad->u1 = quad->u3 = ((tmpl->x % 64) << 1) + tmpl->w;
+        } else {
+            quad->u2 = quad->u0 = (tmpl->x % 64) << 2;
+            quad->u1 = quad->u3 = ((tmpl->x % 64) << 2) + tmpl->w;
+        }
+        quad->v0 = quad->v1 = tmpl->y;
+        quad->v2 = quad->v3 = tmpl->y + tmpl->h - 1;
+    }
+    return sprite;
+}
 
 void func_801EBA34(void *ptr) {
     freeHeapBlock(ptr);
@@ -1352,7 +1413,45 @@ void func_801F0F08(void) {
     } while (!(PAD_STATES[0]->pressed & 0x40));
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F0F5C);
+void func_801F0F5C(s32 x, s32 y, s32 vramX, s32 vramY, s32 frame, u16 clut, u8 *rgb) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x + 2;
+        CUR_SPRT->sp.y0 = y + 5;
+        CUR_SPRT->sp.u0 = vramX % 64 * 2 + 2;
+        CUR_SPRT->sp.v0 = vramY % 256 + 2;
+        CUR_SPRT->sp.clut = clut;
+        CUR_SPRT->sp.w = 36;
+        CUR_SPRT->sp.h = 36;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = rgb[0];
+        CUR_SPRT->sp.g0 = rgb[1];
+        CUR_SPRT->sp.b0 = rgb[2];
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(1, 0, vramX, vramY));
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        if (frame > 5) {
+            frame = 5;
+        }
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0x80;
+            CUR_SPRT->sp.v0 = 0x30;
+            CUR_SPRT->sp.clut = getClut(0x210, frame + 0xE2);
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 8);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE864);
 
@@ -1431,7 +1530,42 @@ void func_801F1B5C(void) {
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F1C84);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F208C);
+void func_801F208C(s32 x, s32 y, s32 vramX, s32 vramY, s32 frame, u8 *rgb, s32 z, s32 palette) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x + 2;
+        CUR_SPRT->sp.y0 = y + 5;
+        CUR_SPRT->sp.u0 = vramX % 64 * 2 + 2;
+        CUR_SPRT->sp.v0 = vramY % 256 + 2;
+        CUR_SPRT->sp.clut = getClut(0x280, palette + 0x1EE);
+        CUR_SPRT->sp.w = 36;
+        CUR_SPRT->sp.h = 36;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = rgb[0];
+        CUR_SPRT->sp.g0 = rgb[1];
+        CUR_SPRT->sp.b0 = rgb[2];
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(1, 0, vramX, vramY));
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0;
+            CUR_SPRT->sp.v0 = 0xA8;
+            CUR_SPRT->sp.clut = getClut(0x290, frame + 0x1F2);
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x18);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DEA04);
 
