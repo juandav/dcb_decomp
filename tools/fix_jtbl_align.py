@@ -12,19 +12,16 @@ original table (the padding the original file needed before its next
 table).
 
 The original tables are read from splat's full disassembly of each C
-segment (asm/main/<segment>.s). The file's own rodata start (its .rodata
-subsegment in config/main.yaml, given the unit path such as gfx/prim as
-argument) decides which tables sit 4 bytes past an 8-byte boundary
-relative to that start.
+segment (asm/<binary>/<segment>.s). The file's own rodata start (its
+.rodata subsegment in config/<binary>.yaml, given the unit's path under
+src/ such as main/gfx/prim as argument) decides which tables sit 4 bytes
+past an 8-byte boundary relative to that start.
 """
 
+import glob
 import os
 import re
 import sys
-
-ASM_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "asm", "main"
-)
 
 _tables = None
 
@@ -32,19 +29,24 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def rodata_start(unit):
-    """VRAM where the .rodata subsegment named `unit` starts (0 if none)."""
-    text = open(os.path.join(ROOT, "config", "main.yaml")).read()
-    m = re.search(r"\[(0x[0-9A-Fa-f]+), \.rodata, %s\]" % re.escape(unit), text)
-    return 0x80010000 + int(m.group(1), 16) - 0x800 if m else 0
+    """VRAM where the .rodata subsegment of `unit` (binary/path) starts."""
+    binary, _, path = unit.partition("/")
+    text = open(os.path.join(ROOT, "config", binary + ".yaml")).read()
+    m = re.search(r"\[(0x[0-9A-Fa-f]+), \.rodata, %s\]" % re.escape(path), text)
+    if not m:
+        return 0
+    code = re.search(r"type: code\s+start: (0x[0-9A-Fa-f]+)\s+vram: (0x[0-9A-Fa-f]+)", text)
+    return int(code.group(2), 16) + int(m.group(1), 16) - int(code.group(1), 16)
 
 
 def unit_asm():
-    """splat's full disassembly of each C segment (asm/main/<unit>.s)."""
-    text = open(os.path.join(ROOT, "config", "main.yaml")).read()
-    for unit in re.findall(r"\[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", text):
-        path = os.path.join(ASM_DIR, unit + ".s")
-        if os.path.exists(path):
-            yield path
+    """splat's full disassembly of each C segment (asm/<binary>/<unit>.s)."""
+    for config in glob.glob(os.path.join(ROOT, "config", "*.yaml")):
+        binary = os.path.basename(config)[:-5]
+        for unit in re.findall(r"\[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", open(config).read()):
+            path = os.path.join(ROOT, "asm", binary, unit + ".s")
+            if os.path.exists(path):
+                yield path
 
 
 def load_tables():
