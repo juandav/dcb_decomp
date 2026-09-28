@@ -36,6 +36,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 CATEGORIES = [
     {"id": "game", "name": "Game"},
+    {"id": "executable", "name": "Executable"},
+    {"id": "overlays", "name": "Overlays"},
 ]
 
 # library code linked with the game, left out of the progress
@@ -179,7 +181,8 @@ def unit(module: str, data: list) -> dict:
         "name": module,
         "target_path": target,
         "base_path": base,
-        "metadata": {"progress_categories": ["game"], "source_path": f"src/{module}.c"},
+        "metadata": {"progress_categories": ["game", "executable" if module.startswith("main/") else "overlays"],
+                     "source_path": f"src/{module}.c"},
     }
 
 
