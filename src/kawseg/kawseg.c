@@ -15,6 +15,31 @@
 #include "dcb/decompress.h"
 #include "dcb/scroll_bg.h"
 #include "dcb/card_db.h"
+#include "dcb/vram_upload.h"
+#include "dcb/card_render.h"
+
+typedef struct {
+     s8 active;
+     s16 lhs[6];
+     s16 rhs[6];
+     s8 cmp;
+     s8 ops[4];
+} SupportCond;
+typedef struct {
+     s8 active;
+     s8 kind;
+     s16 lhs[3];
+     s16 rhs[3];
+     s8 ops[2];
+} SupportEffect;
+s32 func_801E7DD4(s32 arg0, s32 arg1, s32 lhs, s32 rhs, s32 slot);
+s32 func_801E81DC(s32 arg0, s32 arg1, s32 kind, s32 value, s32 slot, s32 arg5);
+extern s32 D_801FC458;
+extern u8 *D_801D485C;
+extern s32 D_801FBA30[8];
+extern s32 D_801FBA50[8];
+extern s32 D_801FBA70[8];
+extern s32 D_801FBA90[8];
 
 typedef struct {
     u32 unk0 : 12;
@@ -812,7 +837,49 @@ s32 func_801E9BAC(s32 a, s32 op, s32 b) {
     return 0;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9C1C);
+s32 func_801E9C1C(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *effects, s32 arg4) {
+    s32 vals[6];
+    s16 slotVals[3][3];
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 a;
+
+    for (i = 0; i < 2; i++) {
+        if (conds[i].active != 0) {
+            for (j = 0; j < 6; j++) {
+                vals[j] = func_801E7DD4(arg0, arg1, conds[i].lhs[j], conds[i].rhs[j], 0);
+            }
+            a = func_801E9ABC(func_801E9ABC(vals[0], conds[i].ops[0], vals[1]), conds[i].ops[1], vals[2]);
+            if (func_801E9BAC(a, conds[i].cmp, func_801E9ABC(func_801E9ABC(vals[3], conds[i].ops[2], vals[4]), conds[i].ops[3], vals[5])) == 0) {
+                return -1;
+            }
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        if (effects[i].active != 0) {
+            if (effects[i].kind == 10 || effects[i].kind == 11) {
+                for (j = 0; j < 3; j++) {
+                    for (k = 0; k < 3; k++) {
+                        slotVals[j][k] = func_801E7DD4(arg0, arg1, effects[i].lhs[j], effects[i].rhs[j], k);
+                    }
+                }
+                for (k = 0; k < 3; k++) {
+                    func_801E81DC(arg0, arg1, effects[i].kind,
+                                  func_801E9ABC(func_801E9ABC(slotVals[2][k], effects[i].ops[1], slotVals[1][k]), effects[i].ops[0], slotVals[0][k]),
+                                  k, arg4);
+                }
+            } else {
+                for (j = 0; j < 3; j++) {
+                    vals[j] = func_801E7DD4(arg0, arg1, effects[i].lhs[j], effects[i].rhs[j], 0);
+                }
+                func_801E81DC(arg0, arg1, effects[i].kind,
+                              func_801E9ABC(func_801E9ABC(vals[2], effects[i].ops[1], vals[1]), effects[i].ops[0], vals[0]), 0, arg4);
+            }
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9F5C);
 
@@ -1115,7 +1182,67 @@ void func_801ED968(s32 x, s32 y, s32 wins, s32 losses) {
     func_801ED65C(x, y, 0x1D0, 0xB8, 0xC0, 0x12, 0x190, 0xF9, 0, 0, 0, 0x80, 1);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EDA84);
+void func_801EDA84(s32 isVersus, s32 match, s32 task) {
+    char path[64];
+    s32 count;
+    s32 i;
+    u32 *arc;
+    s32 width0;
+    s32 width1;
+
+    D_801FC458 = 1;
+    if (isVersus == 0) {
+        match = 999;
+        count = 2;
+    } else {
+        count = 1;
+    }
+    for (i = 0; i < count; i++) {
+        func_800149B8(0, -1, 0, 0x800, uploadStringGlyphs, PLAYER_DATA(i).name, i, getCurrentTaskId(), 0);
+        func_80014C08(0x7FFFFFFF);
+    }
+    sprintf(path, "B:\\MATCH\\%3.3d.ARC", match);
+    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    for (i = 0; i < (s32)(arc[0] / 4); i++) {
+        uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
+        func_80014C08(FRAME_INTERVAL);
+        DrawSync(0);
+    }
+    freeHeapBlock(arc);
+    width0 = strlen(PLAYER(0)->name) * 16;
+    if (isVersus != 0) {
+        width1 = *(s16 *)(D_801D485C + 4) * 4;
+    } else {
+        width1 = strlen(PLAYER(1)->name) * 16;
+    }
+    *(s16 *)PLAYER(0)->unk118 = width0;
+    *(s16 *)PLAYER(1)->unk118 = width1;
+    D_801FBA30[0] = 100;
+    D_801FBA30[1] = 0xF1;
+    D_801FBA30[2] = 0xB8;
+    D_801FBA30[3] = 0x79;
+    D_801FBA30[4] = 0x4C;
+    D_801FBA30[5] = -0x71;
+    D_801FBA30[6] = 8;
+    D_801FBA30[7] = 7;
+    D_801FBA50[0] = 0x140;
+    D_801FBA50[1] = 0xC3;
+    D_801FBA50[4] = -width1;
+    D_801FBA50[5] = 0x10;
+    D_801FBA50[6] = 0x138 - width1;
+    D_801FBA70[0] = 0x140;
+    D_801FBA70[1] = 0x9F;
+    D_801FBA70[4] = -0xC0;
+    D_801FBA70[5] = 0x42;
+    D_801FBA90[0] = 0x140;
+    D_801FBA90[1] = 0xB1;
+    D_801FBA90[4] = -0xC0;
+    D_801FBA90[5] = 0x30;
+    func_80014C08(10);
+    D_801FC458 = 0;
+    func_80014A48(task);
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EDD88);
 
