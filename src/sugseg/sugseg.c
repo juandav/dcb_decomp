@@ -230,7 +230,7 @@ typedef struct {
     s32 unk16C;
 } SpriteCommand;
 u16 func_80067644(s32 x, s32 y);
-void func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
+Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
 
 typedef struct {
     u8 unk0[8];
@@ -580,7 +580,7 @@ void func_801E521C(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2
 void func_801E5278(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
 void func_801DE40C(void **obj);
 void func_801E72D4(u8 *obj);
-void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, s32 a8);
+void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8);
 typedef struct {
     s32 key;
     void *data;
@@ -876,7 +876,265 @@ void func_801DE69C(void **obj) {
     freeHeapBlock(obj);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DE6E4);
+void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y);
+/* called with one argument more than their definitions take (a trailing 1) */
+void initLineF2Pair();
+void initPolyF3Pair();
+void initPolyF4Pair();
+void initPolyG3Pair();
+void initPolyGT3Pair();
+
+Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
+                           u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18) {
+    Unk801DF598 *fx;
+    s32 rings;
+    s32 total;
+    s32 i;
+    s32 n;
+    s32 j;
+    s32 k;
+    s32 r;
+    s32 angStep;
+    s32 latStep;
+    s32 ringStep;
+    LineF2 *line0;
+    LineF2 *line1;
+    POLY_F3 *tri0;
+    POLY_F3 *tri1;
+    POLY_F4 *quad0;
+    POLY_F4 *quad1;
+    POLY_G3 *gtri0;
+    POLY_G3 *gtri1;
+    POLY_G4 *gquad0;
+    POLY_G4 *gquad1;
+    POLY_GT3 *ttri0;
+    POLY_GT3 *ttri1;
+    POLY_GT4 *tquad0;
+    POLY_GT4 *tquad1;
+    DrTPage *tp0;
+    DrTPage *tp1;
+
+    fx = allocTaskHeapBlock(0x1E0);
+    fx->unk1CC = a5;
+    *(s16 *)fx->unk1CE = a6;
+    rings = (a6 - 3) / 2;
+    fx->unk1C4 = rings + 1;
+    total = (rings + 1) * a5;
+    fx->vertCount = total + 2;
+    fx->ringVertCount = (rings + 2) * a5;
+    fx->unk1C0 = total + rings * a5 + a5 * 2;
+    if (a12 >= 0 && func_801E6C78(a12, 3, (RingEffect *)fx, fx->unk13C, a18) != 0) {
+        fx->unk1D8 = 1;
+    } else {
+        fx->unk1D8 = -1;
+    }
+    fx->verts = allocTaskHeapBlock(fx->vertCount * sizeof(SVECTOR));
+    fx->kind = a10;
+    fx->semiTrans = a8;
+    fx->unk1DC = a11;
+    *(s32 *)fx->unk1C8 = a9;
+    fx->brightness = a0;
+    func_801DF570((u8 *)fx, (Bytes4 *)color, a2, a3);
+    fx->unk1DD = a16;
+    fx->unk1B4 = a17;
+    *(EffectTemplate *)fx = *template;
+    initEffectObject(fx);
+    for (i = 0; i < 2; i++) {
+        fx->tris[i] = NULL;
+        fx->quads[i] = NULL;
+        fx->gtris[i] = NULL;
+        fx->gquads[i] = NULL;
+        fx->ttris[i] = NULL;
+        fx->tquads[i] = NULL;
+        fx->lines[i] = NULL;
+        fx->tpages[i] = NULL;
+    }
+    if (a11 != 0) {
+        fx->ringVertCount /= 2;
+    }
+    switch (a10) {
+    case 0:
+        for (i = 0; i < 2; i++) {
+            fx->lines[i] = allocTaskHeapBlock(fx->unk1C0 * sizeof(LineF2));
+        }
+        if (a8 != 0) {
+            for (i = 0; i < 2; i++) {
+                fx->tpages[i] = allocTaskHeapBlock(fx->unk1C0 * sizeof(DrTPage));
+            }
+        }
+        line0 = fx->lines[0];
+        line1 = fx->lines[1];
+        tp0 = fx->tpages[0];
+        tp1 = fx->tpages[1];
+        for (i = 0; i < fx->unk1C0; i++, line0++, line1++, tp0++, tp1++) {
+            if (a8 == 0) {
+                initLineF2Pair(line0, line1, 0, a9, 0, 0, 0, 1);
+            } else {
+                initLineF2Pair(line0, line1, 0, a9, tp0, tp1, 1, 1);
+            }
+        }
+        break;
+    case 8:
+        if (a8 != 0) {
+            for (i = 0; i < 2; i++) {
+                fx->tpages[i] = allocTaskHeapBlock(fx->ringVertCount * sizeof(DrTPage));
+            }
+        }
+        tp0 = fx->tpages[0];
+        tp1 = fx->tpages[1];
+        n = a5;
+        if (a11 == 0) {
+            n *= 2;
+        }
+        for (i = 0; i < 2; i++) {
+            fx->tris[i] = allocTaskHeapBlock(n * sizeof(POLY_F3));
+        }
+        tri0 = fx->tris[0];
+        tri1 = fx->tris[1];
+        for (i = 0; i < n; i++, tri0++, tri1++, tp0++, tp1++) {
+            if (a8 == 0) {
+                initPolyF3Pair(tri0, tri1, 0, a9, 0, 0, 0, 1);
+            } else {
+                initPolyF3Pair(tri0, tri1, 0, a9, tp0, tp1, 1, 1);
+            }
+        }
+        if (fx->ringVertCount - n > 0) {
+            for (i = 0; i < 2; i++) {
+                fx->quads[i] = allocTaskHeapBlock((fx->ringVertCount - n) * sizeof(POLY_F4));
+            }
+            quad0 = fx->quads[0];
+            quad1 = fx->quads[1];
+            for (i = 0; i < fx->ringVertCount - n; i++, quad0++, quad1++, tp0++, tp1++) {
+                if (a8 == 0) {
+                    initPolyF4Pair(quad0, quad1, 0, a9, 0, 0, 0, 0, 1);
+                } else {
+                    initPolyF4Pair(quad0, quad1, 0, a9, tp0, tp1, 0, 1, 1);
+                }
+            }
+        }
+        break;
+    case 9:
+        if (a8 != 0) {
+            for (i = 0; i < 2; i++) {
+                fx->tpages[i] = allocTaskHeapBlock(fx->ringVertCount * sizeof(DrTPage));
+            }
+        }
+        tp0 = fx->tpages[0];
+        tp1 = fx->tpages[1];
+        n = a5;
+        if (a11 == 0) {
+            n *= 2;
+        }
+        for (i = 0; i < 2; i++) {
+            fx->gtris[i] = allocTaskHeapBlock(n * sizeof(POLY_G3));
+        }
+        gtri0 = fx->gtris[0];
+        gtri1 = fx->gtris[1];
+        for (i = 0; i < n; i++, gtri0++, gtri1++, tp0++, tp1++) {
+            if (a8 == 0) {
+                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, a9, 0, 0, 0, 1);
+            } else {
+                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, a9, tp0, tp1, 1, 1);
+            }
+        }
+        if (fx->ringVertCount - n > 0) {
+            for (i = 0; i < 2; i++) {
+                fx->gquads[i] = allocTaskHeapBlock((fx->ringVertCount - n) * sizeof(POLY_G4));
+            }
+            gquad0 = fx->gquads[0];
+            gquad1 = fx->gquads[1];
+            for (i = 0; i < fx->ringVertCount - n; i++, gquad0++, gquad1++, tp0++, tp1++) {
+                if (a8 == 0) {
+                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, a9, 0, 0, 0, 0, 1);
+                } else {
+                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, a9, tp0, tp1, 0, 1, 1);
+                }
+            }
+        }
+        break;
+    case 13:
+        n = a5;
+        if (a11 == 0) {
+            n *= 2;
+        }
+        for (i = 0; i < 2; i++) {
+            fx->ttris[i] = allocTaskHeapBlock(n * sizeof(POLY_GT3));
+        }
+        ttri0 = fx->ttris[0];
+        ttri1 = fx->ttris[1];
+        for (i = 0; i < n; i++, ttri0++, ttri1++) {
+            if (a8 == 0) {
+                initPolyGT3Pair(ttri0, ttri1, 0, 0, 0, tpage, clut, 0, 0, 0, 1);
+            } else {
+                initPolyGT3Pair(ttri0, ttri1, 0, 0, 0, tpage, clut, 0, 0, 1, 1);
+            }
+            if (i / a5 == 0) {
+                ttri0->u0 = uv->x + uv->w;
+                ttri0->v0 = uv->y + uv->h;
+                ttri0->u1 = uv->x;
+                ttri0->v1 = uv->y + uv->h;
+                ttri0->u2 = uv->w / 2 + uv->x;
+                ttri0->v2 = uv->y;
+                ttri1->u0 = uv->x + uv->w;
+                ttri1->v0 = uv->y + uv->h;
+                ttri1->u1 = uv->x;
+                ttri1->v1 = uv->y + uv->h;
+                ttri1->u2 = uv->w / 2 + uv->x;
+                ttri1->v2 = uv->y;
+            } else {
+                ttri0->u0 = uv->w / 2 + uv->x;
+                ttri0->v0 = uv->y + uv->h;
+                ttri0->u1 = uv->x;
+                ttri0->v1 = uv->y;
+                ttri0->u2 = uv->x + uv->w;
+                ttri0->v2 = uv->y;
+                ttri1->u0 = uv->w / 2 + uv->x;
+                ttri1->v0 = uv->y + uv->h;
+                ttri1->u1 = uv->x;
+                ttri1->v1 = uv->y;
+                ttri1->u2 = uv->x + uv->w;
+                ttri1->v2 = uv->y;
+            }
+        }
+        if (fx->ringVertCount - n > 0) {
+            for (i = 0; i < 2; i++) {
+                fx->tquads[i] = allocTaskHeapBlock((fx->ringVertCount - n) * sizeof(POLY_GT4));
+            }
+            tquad0 = fx->tquads[0];
+            tquad1 = fx->tquads[1];
+            for (i = 0; i < fx->ringVertCount - n; i++, tquad0++, tquad1++) {
+                if (a8 == 0) {
+                    initPolyGT4Pair(tquad0, tquad1, 0, 0, 0, 0, tpage, clut, uv, 0, 0, 1);
+                } else {
+                    initPolyGT4Pair(tquad0, tquad1, 0, 0, 0, 0, tpage, clut, uv, 0, 1, 1);
+                }
+            }
+        }
+        fx->uv = *uv;
+        fx->tpage = tpage;
+        fx->clut = clut;
+        break;
+    }
+    angStep = 0x1000 / a5;
+    latStep = 0x1000 / a6;
+    ringStep = 0x800 / (fx->unk1C4 + 1);
+    fx->verts[0].vx = 0;
+    fx->verts[0].vy = -a7;
+    fx->verts[0].vz = 0;
+    fx->verts[fx->vertCount - 1].vx = 0;
+    fx->verts[fx->vertCount - 1].vy = a7;
+    fx->verts[fx->vertCount - 1].vz = 0;
+    k = 1;
+    for (n = 0; n < fx->unk1C4; n++) {
+        r = a7 * rsin(ringStep * (n + 1)) >> 12;
+        for (j = 0; j < a5; j++, k++) {
+            fx->verts[k].vx = r * rcos(angStep * j) >> 12;
+            fx->verts[k].vz = r * rsin(angStep * j) >> 12;
+            fx->verts[k].vy = -(a7 * rcos(latStep * (n + 1))) >> 12;
+        }
+    }
+    return fx;
+}
 
 void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y) {
     *(Bytes4 *)(object + 0x1A0) = *src;
@@ -1372,7 +1630,333 @@ void func_801E1D80(Unk801E1D80 *obj) {
 
 INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF38);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E1EE8);
+/* fills a grid of a2 x a3 cells, 4 colors each, by blending the corner colors; the kinds split it
+   into 1, 2 or 4 blends around the middle color a8 */
+void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8) {
+    Bytes4 top;
+    Bytes4 left;
+    Bytes4 right;
+    Bytes4 bottom;
+    Blend blend;
+    Bytes4 *out;
+    s32 x;
+    s32 y;
+
+    out = (Bytes4 *)a0;
+    switch ((u8)a1) {
+    case 0:
+        out[0] = *c0;
+        out[1] = *c1;
+        out[2] = *c2;
+        out[3] = *c3;
+        break;
+    case 1:
+        blend.c00 = c0->b;
+        blend.c10 = c1->b;
+        blend.c01 = c2->b;
+        blend.c11 = c3->b;
+        for (y = 0; y < a3; y++) {
+            for (x = 0; x < a2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+        }
+        break;
+    case 2:
+        blend.c00 = c0->b;
+        blend.c10 = c1->b;
+        blend.c01 = a8->b;
+        blend.c11 = a8->b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+        }
+        blend.c00 = a8->b;
+        blend.c10 = a8->b;
+        blend.c01 = c2->b;
+        blend.c11 = c3->b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+        }
+        break;
+    case 3:
+        out = (Bytes4 *)a0;
+        blend.c00 = c0->b;
+        blend.c10 = a8->b;
+        blend.c01 = c2->b;
+        blend.c11 = a8->b;
+        for (y = 0; y < a3; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        out = (Bytes4 *)a0 + a2 / 2 * 4;
+        blend.c00 = a8->b;
+        blend.c10 = c1->b;
+        blend.c01 = a8->b;
+        blend.c11 = c3->b;
+        for (y = 0; y < a3; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        break;
+    case 4:
+        blend.c00 = c0->b;
+        blend.c10 = c1->b;
+        blend.c01 = c2->b;
+        blend.c11 = c3->b;
+        blend.wx0 = a2 / 2;
+        blend.wx1 = a2 / 2;
+        blend.wy0 = 0;
+        blend.wy1 = a3;
+        func_801E2F70(&blend, top.b);
+        blend.wx0 = 0;
+        blend.wx1 = a2;
+        blend.wy0 = a3 / 2;
+        blend.wy1 = a3 / 2;
+        func_801E2F70(&blend, left.b);
+        blend.wx0 = a2;
+        blend.wx1 = 0;
+        blend.wy0 = a3 / 2;
+        blend.wy1 = a3 / 2;
+        func_801E2F70(&blend, right.b);
+        blend.wx0 = a2 / 2;
+        blend.wx1 = a2 / 2;
+        blend.wy0 = a3;
+        blend.wy1 = 0;
+        func_801E2F70(&blend, bottom.b);
+        out = (Bytes4 *)a0;
+        blend.c00 = c0->b;
+        blend.c10 = top.b;
+        blend.c01 = left.b;
+        blend.c11 = a8->b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        out = (Bytes4 *)a0 + a2 / 2 * 4;
+        blend.c00 = top.b;
+        blend.c10 = c1->b;
+        blend.c01 = a8->b;
+        blend.c11 = right.b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        out = (Bytes4 *)a0 + a2 * a3 / 2 * 4;
+        blend.c00 = left.b;
+        blend.c10 = a8->b;
+        blend.c01 = c2->b;
+        blend.c11 = bottom.b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        out = (Bytes4 *)a0 + a2 * a3 / 2 * 4 + a2 / 2 * 4;
+        blend.c00 = a8->b;
+        blend.c10 = right.b;
+        blend.c01 = bottom.b;
+        blend.c11 = c3->b;
+        for (y = 0; y < a3 / 2; y++) {
+            for (x = 0; x < a2 / 2; x++) {
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[0].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y;
+                blend.wy1 = a3 / 2 - y;
+                func_801E2F70(&blend, out[1].b);
+                blend.wx0 = x;
+                blend.wx1 = a2 / 2 - x;
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[2].b);
+                blend.wx0 = x + 1;
+                blend.wx1 = a2 / 2 - (x + 1);
+                blend.wy0 = y + 1;
+                blend.wy1 = a3 / 2 - (y + 1);
+                func_801E2F70(&blend, out[3].b);
+                out += 4;
+            }
+            out += a2 / 2 * 4;
+        }
+        break;
+    }
+}
 
 void func_801E2F70(Blend *blend, u8 *out) {
     s32 bottom[3];
