@@ -687,7 +687,11 @@ void func_801E639C(void) {
     startModelAnimation(0, 0, -2, 0);
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E6424);
+void func_801E6424(void) {
+    freeHeapBlocksByTag(500);
+    unloadModel(0);
+    unloadModelAnimations(0);
+}
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE164);
 

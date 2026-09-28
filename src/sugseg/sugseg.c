@@ -412,7 +412,12 @@ void func_801DE69C(void **obj) {
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DE6E4);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DF570);
+void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y) {
+    *(Bytes4 *)(object + 0x1A0) = *src;
+    *(s16 *)(object + 0x1D0) = x;
+    *(s16 *)(object + 0x1D2) = y;
+    *(s16 *)(object + 0x1D6) = -1;
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DF598);
 

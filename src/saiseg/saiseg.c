@@ -137,6 +137,8 @@ typedef struct {
     s32 unk78;
     u8 pad7C[5];
     u8 unk81;
+    u8 pad82[2];
+    u8 unk84;
 } Unk801F4588;
 extern Unk801F4588 D_801F4588;
 extern void (*D_801F3594[])(void);
@@ -388,7 +390,13 @@ void func_801E0480(void) {
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E04B8);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0650);
+void func_801E0650(void) {
+    if (--D_801F4588.unk78 < 0) {
+        D_801F4588.unk78 = 0;
+        D_801F4588.unk81 = 3;
+        D_801F4588.unk84 = 0;
+    }
+}
 
 void func_801E0684(void) {
     s32 i;

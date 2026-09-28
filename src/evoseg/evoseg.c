@@ -141,10 +141,21 @@ s32 GsSetFlatLight(s32 id, FlatLight *light);
 extern u8 *D_801F4E34;
 extern u8 *D_801F4E40[3];
 typedef struct {
-    u8 pad0[0xBB];
+    u8 pad0[0xAC];
+    s16 unkAC;
+    s16 unkAE;
+    u8 padB0[0xBB - 0xB0];
     u8 unkBB;
     u8 padBC[0xC1 - 0xBC];
     u8 unkC1;
+    u8 unkC2;
+    u8 unkC3;
+    u8 unkC4;
+    u8 padC5;
+    u8 unkC6;
+    u8 padC7[0xCD - 0xC7];
+    u8 unkCD;
+    u8 unkCE;
 } EvoMenu;
 typedef struct {
     u8 pad0[0x124];
@@ -1357,11 +1368,25 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EBD64);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EBE08);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECBE8);
+void func_801ECBE8(void) {
+    D_801F5478.unkAE = -1;
+    D_801F5478.unkAC = -1;
+    D_801F5478.unkC6 = 1;
+    D_801F5478.unkBB = 4;
+    D_801F5478.unkC2 = 0;
+    D_801F5478.unkC3 = 0;
+    D_801F5478.unkC4 = 1;
+    D_801F5478.unkCD = 0;
+    D_801F5478.unkCE = 0;
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECC24);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECC6C);
+void func_801ECC6C(void) {
+    D_801F5478.unkC4 = 2;
+    D_801F5250->vars[8] = -1;
+    D_801F5478.unkC1 = 7;
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECCA0);
 
