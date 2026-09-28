@@ -179,8 +179,6 @@ extern s16 D_80079584;
 void func_801EBE8C(void);
 void func_801ECF20(s32 a0);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DE0BC);
-
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DE0C0);
 
 void func_801DE1AC(Table *table, Quad *quad, Short4 *s4) {

@@ -65,8 +65,6 @@ typedef struct {
 } CardIdList;
 extern CardIdList *D_801F42D8;
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801DF9B4);
-
 INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DDF38);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801DF9BC);
@@ -1532,3 +1530,5 @@ s32 func_801F0FD8(CardSlot *slots, s32 row, s32 count) {
 }
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801F10D8);
+
+INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DF9B4);

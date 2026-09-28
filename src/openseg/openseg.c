@@ -130,8 +130,6 @@ extern u8 D_801F80C2;
 extern PlayerProfile *D_801F80B0;
 extern u8 D_801F80C5;
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801DFA04);
-
 void func_801DFA20(void *file, char *name) {
     s32 found;
 
@@ -799,3 +797,7 @@ s16 func_801EFA90(s32 port) {
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EFAC0);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EFE04);
+
+INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DFA04);
+
+INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DFA0C);
