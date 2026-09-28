@@ -1,0 +1,59 @@
+name: saiseg
+sha1: cf2bcd033fe3ed1ae6272eb81a9016f7860eac99
+options:
+  basename: saiseg
+  # extracted from disks/us/P.DRV by tools/extract_drv.py
+  target_path: build/disks/SAISEG.BIN
+  base_path: ..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/saiseg
+  src_path: src/saiseg
+  build_path: build
+
+  ld_script_path: build/generated/saiseg.ld
+
+  global_vram_start: 0x80000000
+  global_vram_end: 0x80200000
+
+  find_file_boundaries: True
+  gp_value: 0x80077A08
+
+  generate_asm_macros_files: False
+
+  section_order: [".rodata", ".text", ".data", ".bss"]
+
+  # the executable's symbols, which the overlay calls and reads
+  symbol_addrs_path:
+    - config/symbols.txt
+
+  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_saiseg.txt
+  undefined_syms_auto_path: build/generated/undefined_syms_auto_saiseg.txt
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+
+  migrate_rodata_to_functions: True
+  create_data_pads: False
+  # src/saiseg/saiseg.c exists
+  create_c_files: False
+
+segments:
+  # loaded at OVERLAY_LOAD_ADDR, the end of the executable's .bss
+  - name: saiseg
+    type: code
+    start: 0x0
+    vram: 0x801DDF38
+    align: 4
+    subalign: 4
+    subsegments:
+      - [0x0, .rodata, saiseg]
+      - [0x1B34, c, saiseg]
+      - [0x15528, data, saiseg]
+
+  - [0x17530]
