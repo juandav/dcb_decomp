@@ -17,6 +17,28 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/memcard.h"
 
+typedef struct {
+    POLY_FT4 quads[2];
+    VECTOR pos;
+    SVECTOR rot;
+    SVECTOR corners[4];
+    s32 otz;
+    s16 w;
+    s16 h;
+} Sprite3D;
+typedef struct {
+    s32 x;
+    s32 y;
+    s32 clutX;
+    u16 clutY;
+    u16 padE;
+    u8 w;
+    u8 h;
+    u8 mode;
+    u8 pad13;
+} SpriteTemplate;
+extern SpriteTemplate D_801F3708[];
+
 void func_801E4AF4(s32 arg0);
 
 typedef struct {
@@ -1062,7 +1084,46 @@ INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE804);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EB628);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EB754);
+Sprite3D *func_801EB754(s32 id) {
+    SpriteTemplate *tmpl = &D_801F3708[id];
+    s32 abr = 0;
+    Sprite3D *sprite = allocHeapBlock(sizeof(Sprite3D), 0x2E);
+    POLY_FT4 *quad;
+    s32 i;
+
+    sprite->corners[0].vx = sprite->corners[2].vx = -(tmpl->w >> 1);
+    sprite->corners[1].vx = sprite->corners[3].vx = tmpl->w >> 1;
+    sprite->corners[0].vy = sprite->corners[1].vy = -(tmpl->h >> 1);
+    sprite->corners[2].vy = sprite->corners[3].vy = (tmpl->h >> 1) - 1;
+    for (i = 0; i < 4; i++) {
+        sprite->corners[i].vz = 0;
+    }
+    sprite->rot.vx = sprite->rot.vy = sprite->rot.vz = 0;
+    sprite->pos.vx = sprite->pos.vy = sprite->pos.vz = 0;
+    sprite->w = tmpl->w;
+    sprite->h = tmpl->h - 1;
+    sprite->otz = 0x23;
+    for (i = 0; i < 2; i++) {
+        quad = &sprite->quads[i];
+        func_800677A4(quad);
+        quad->r0 = 0x80;
+        quad->g0 = 0x80;
+        quad->b0 = 0x80;
+        SetSemiTrans(quad, 0);
+        quad->clut = getClut(tmpl->clutX, tmpl->clutY);
+        quad->tpage = ((tmpl->mode & 3) << 7) | ((abr & 3) << 5) | ((tmpl->y & 0x100) >> 4) | ((tmpl->x & 0x3C0) >> 6) | ((tmpl->y & 0x200) << 2);
+        if (tmpl->mode != 0) {
+            quad->u2 = quad->u0 = (tmpl->x % 64) << 1;
+            quad->u1 = quad->u3 = ((tmpl->x % 64) << 1) + tmpl->w;
+        } else {
+            quad->u2 = quad->u0 = (tmpl->x % 64) << 2;
+            quad->u1 = quad->u3 = ((tmpl->x % 64) << 2) + tmpl->w;
+        }
+        quad->v0 = quad->v1 = tmpl->y;
+        quad->v2 = quad->v3 = tmpl->y + tmpl->h - 1;
+    }
+    return sprite;
+}
 
 void func_801EBA34(void *ptr) {
     freeHeapBlock(ptr);

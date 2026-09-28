@@ -18,6 +18,70 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/prim.h"
 #include "dcb/stage.h"
+#include "dcb/prim_util.h"
+
+typedef struct {
+    VECTOR pos;
+    VECTOR posStep;
+    VECTOR color;
+    VECTOR colorStep;
+    s32 light;
+    s32 frame;
+    s32 duration;
+    s32 period;
+} LightMotion;
+
+typedef struct {
+    u8 unk0[0x13C];
+    u8 unk13C[0x3C];
+    POLY_FT4 *ft4[2];
+    POLY_GT4 *gt4[2];
+    u8 unk188[0x12C];
+    Rect16 uv;
+    s32 tpage;
+    s32 clut;
+    u8 unk2C4[4];
+    s32 count;
+    u8 unk2CC[4];
+    s32 state;
+    u8 unk2D4[5];
+    u8 primKind;
+} Unk801E57E0;
+void func_801E31E4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
+void func_801E3428(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
+
+typedef struct {
+    u8 *c00;
+    u8 *c10;
+    u8 *c01;
+    u8 *c11;
+    s32 wx0;
+    s32 wx1;
+    s32 wy0;
+    s32 wy1;
+} Blend;
+
+typedef struct {
+    u8 unk0[0x139];
+    u8 unk139;
+    u8 unk13A[0x7A];
+    s32 unk1B4;
+    u8 unk1B8[0xC];
+    s32 unk1C4;
+    u8 unk1C8[4];
+    s16 unk1CC;
+    u8 unk1CE[4];
+    s16 unk1D2;
+    s16 brightness;
+    u8 unk1D6[5];
+    u8 kind;
+    u8 unk1DC;
+    u8 unk1DD;
+} Unk801DF598;
+void func_801DF7E8(Unk801DF598 *fx, u8 a1, s16 a2, s32 a3, s32 a4);
+void func_801DFDA4(Unk801DF598 *fx, u8 a1, s16 a2, s32 a3, s32 a4);
+void func_801E05F4(Unk801DF598 *fx, u8 a1, s16 a2, s32 a3, s32 a4);
+void func_801E0F98(Unk801DF598 *fx, u8 a1, s16 a2, s32 a3, s32 a4);
 
 typedef struct {
     u8 unk0[0x5C];
@@ -502,7 +566,55 @@ void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y) {
     *(s16 *)(object + 0x1D6) = -1;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DF598);
+void func_801DF598(Unk801DF598 *fx) {
+    s32 speed;
+
+    if (fx->unk139 != 0) {
+        tickEffectStartDelay(fx);
+        return;
+    }
+    PushMatrix();
+    tickEffectMotion((s32)fx, 0);
+    if ((fx->brightness = updateEffectBrightness(fx, fx->brightness)) == 0) {
+        PopMatrix();
+        return;
+    }
+    switch (fx->kind) {
+    case 0:
+        if (fx->unk1D2 == 0) {
+            speed = 0x800 / fx->unk1C4;
+        } else {
+            speed = 0x400 / fx->unk1C4;
+        }
+        func_801DF7E8(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        break;
+    case 8:
+        if (fx->unk1D2 == 0) {
+            speed = 0x800 / fx->unk1C4;
+        } else {
+            speed = 0x400 / fx->unk1C4;
+        }
+        func_801DFDA4(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        break;
+    case 9:
+        if (fx->unk1D2 == 0) {
+            speed = 0x800 / (fx->unk1C4 + 1);
+        } else {
+            speed = 0x400 / (fx->unk1C4 + 1);
+        }
+        func_801E05F4(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        break;
+    case 13:
+        if (fx->unk1D2 == 0) {
+            speed = 0x800 / (fx->unk1C4 + 1);
+        } else {
+            speed = 0x400 / (fx->unk1C4 + 1);
+        }
+        func_801E0F98(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        break;
+    }
+    PopMatrix();
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801DF7E8);
 
@@ -554,7 +666,20 @@ INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF38);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E1EE8);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E2F70);
+void func_801E2F70(Blend *blend, u8 *out) {
+    s32 bottom[3];
+    s32 top[3];
+
+    top[0] = (blend->c10[0] * blend->wx0 + blend->c00[0] * blend->wx1) / (blend->wx0 + blend->wx1);
+    top[1] = (blend->c10[1] * blend->wx0 + blend->c00[1] * blend->wx1) / (blend->wx0 + blend->wx1);
+    top[2] = (blend->c10[2] * blend->wx0 + blend->c00[2] * blend->wx1) / (blend->wx0 + blend->wx1);
+    bottom[0] = (blend->c11[0] * blend->wx0 + blend->c01[0] * blend->wx1) / (blend->wx0 + blend->wx1);
+    bottom[1] = (blend->c11[1] * blend->wx0 + blend->c01[1] * blend->wx1) / (blend->wx0 + blend->wx1);
+    bottom[2] = (blend->c11[2] * blend->wx0 + blend->c01[2] * blend->wx1) / (blend->wx0 + blend->wx1);
+    out[0] = (blend->wy0 * bottom[0] + blend->wy1 * top[0]) / (blend->wy0 + blend->wy1);
+    out[1] = (blend->wy0 * bottom[1] + blend->wy1 * top[1]) / (blend->wy0 + blend->wy1);
+    out[2] = (blend->wy0 * bottom[2] + blend->wy1 * top[2]) / (blend->wy0 + blend->wy1);
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E31E4);
 
@@ -687,7 +812,54 @@ void func_801E521C(u8 *obj, u8 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E5278);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E57E0);
+void func_801E57E0(Unk801E57E0 *obj) {
+    Rect16 uv;
+    POLY_FT4 *ft4;
+    POLY_GT4 *gt4;
+    s32 i;
+
+    func_801E7020(obj->unk13C);
+    uv = obj->uv;
+    if (obj->state != 3) {
+        switch (obj->primKind) {
+        case 12:
+            ft4 = obj->ft4[FRAME_BUFFER_INDEX];
+            func_801E31E4(ft4, &uv, obj->count, 1, obj->count, 0, 0, 0);
+            for (i = 0; i < obj->count; i++, ft4++) {
+                ft4->tpage = obj->tpage;
+                ft4->clut = obj->clut;
+            }
+            break;
+        case 13:
+            gt4 = obj->gt4[FRAME_BUFFER_INDEX];
+            func_801E3428(gt4, &uv, obj->count, 1, obj->count, 0, 0, 0);
+            for (i = 0; i < obj->count; i++, gt4++) {
+                gt4->tpage = obj->tpage;
+                gt4->clut = obj->clut;
+            }
+            break;
+        }
+    } else {
+        switch (obj->primKind) {
+        case 12:
+            ft4 = obj->ft4[FRAME_BUFFER_INDEX];
+            for (i = 0; i < obj->count; i++, ft4++) {
+                ft4->tpage = obj->tpage;
+                ft4->clut = obj->clut;
+                setPrimQuadUvRect((u8 *)ft4, uv.x, uv.y, uv.w - 1, uv.h - 1);
+            }
+            break;
+        case 13:
+            gt4 = obj->gt4[FRAME_BUFFER_INDEX];
+            for (i = 0; i < obj->count; i++, gt4++) {
+                gt4->tpage = obj->tpage;
+                gt4->clut = obj->clut;
+                setPrimQuadUvRect((u8 *)gt4, uv.x, uv.y, uv.w - 1, uv.h - 1);
+            }
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E5AB0);
 
@@ -785,7 +957,23 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7598);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E76A8);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7880);
+void func_801E7880(LightMotion *motion) {
+    s32 t;
+
+    if (motion->frame < motion->duration) {
+        t = motion->frame % motion->period;
+        SCENE_LIGHT_MATRIX.m[motion->light][0] = motion->pos.vx + t * motion->posStep.vx;
+        SCENE_LIGHT_MATRIX.m[motion->light][1] = motion->pos.vy + t * motion->posStep.vy;
+        SCENE_LIGHT_MATRIX.m[motion->light][2] = motion->pos.vz + t * motion->posStep.vz;
+        SCENE_LIGHT_COLORS.m[0][motion->light] = motion->color.vx + t * motion->colorStep.vx;
+        SCENE_LIGHT_COLORS.m[1][motion->light] = motion->color.vy + t * motion->colorStep.vy;
+        SCENE_LIGHT_COLORS.m[2][motion->light] = motion->color.vz + t * motion->colorStep.vz;
+        if (++motion->frame == motion->duration) {
+            SCENE_LIGHT_MATRIX = D_801EF25C;
+            SCENE_LIGHT_COLORS = D_801EF27C;
+        }
+    }
+}
 
 void func_801E7AF4(void *obj) {
     SCENE_LIGHT_MATRIX = D_801EF25C;
@@ -1331,7 +1519,45 @@ void func_801EC160(Unk801EC160 *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC1F4);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC494);
+void func_801EC494(s32 x, s32 y, s32 value, u8 brightness) {
+    s32 digits[4];
+    Rect16 uv;
+    s32 any;
+    s32 clut;
+    s32 count;
+    s32 i;
+    s32 j;
+
+    count = 1;
+    digits[0] = value / 1000;
+    digits[1] = value % 1000 / 100;
+    digits[2] = value % 100 / 10;
+    digits[3] = value % 10;
+    uv.x = 0x78;
+    uv.y = 0xA8;
+    uv.w = 0x28;
+    uv.h = 0x18;
+    clut = 0x1469;
+    if (x != 0x1F) {
+        drawTexturedSprite(x, y, &uv, D_801EF38C, 0x1468, 1, brightness, 1);
+        x += 16;
+    }
+    uv.w = 0x18;
+    uv.y = 0xC0;
+    for (i = 0; i < 4; i++) {
+        j = 0;
+        any = 0;
+        do {
+            any |= digits[j];
+            j++;
+        } while (j <= i);
+        if (any != 0 || i == 3) {
+            uv.x = digits[i] * 24;
+            drawTexturedSprite(x + 4 + count * 21, y, &uv, D_801EF38C, clut, 1, brightness, 1);
+            count++;
+        }
+    }
+}
 
 void func_801EC6E0(s32 side) {
     Rect16 uv0;

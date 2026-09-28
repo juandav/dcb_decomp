@@ -19,6 +19,18 @@
 #include "dcb/card_render.h"
 
 typedef struct {
+     u8 unk0[0x2A6];
+     u8 partFlags[16];
+} ExpScreen;
+typedef struct {
+     char *name;
+     s32 unk4;
+     s32 unk8;
+} PartInfo;
+extern ExpScreen *D_801FC738;
+extern PartInfo D_801FBB38[];
+
+typedef struct {
      s8 active;
      s16 lhs[6];
      s16 rhs[6];
@@ -1291,7 +1303,81 @@ INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F3BE8);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F4174);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F4408);
+void func_801F4408(UiWindow *w) {
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 i;
+    s32 n;
+    s32 icon;
+    s32 palette;
+    char buf[24];
+
+    x = w->originX;
+    y = w->originY;
+    z = w->z;
+    drawText(x + 0x5A, y + 1, (s32)"Earned Digi-Parts", 6, 0);
+    n = 0;
+    for (i = 0; i < 128; i++) {
+        if ((D_801FC738->partFlags[i / 8] >> (i % 8)) & 1) {
+            n++;
+            if (n < (w->view.y - 15) / 13) {
+                continue;
+            }
+            if ((w->view.y + w->rect.h) / 13 < n) {
+                continue;
+            }
+            sprintf(buf, "*s0%3.3d", i);
+            drawText(x + 2, y + 15 + (n - 1) * 13, (s32)buf, 5, z);
+            if (i < 7) {
+                icon = 0;
+            } else if (i < 10) {
+                icon = 1;
+            } else if (i < 15) {
+                icon = 2;
+            } else if (i < 20) {
+                icon = 3;
+            } else if (i < 24) {
+                icon = 4;
+            } else if (i < 38) {
+                icon = 5;
+            } else if (i < 41) {
+                icon = 6;
+            } else if (i < 123) {
+                icon = 7;
+            } else {
+                icon = 8;
+            }
+            drawIcon(x + 0x16, y + 15 + (n - 1) * 13, 2, icon, z);
+            palette = 7;
+            if (i >= 24 && i < 38) {
+                palette = 4;
+            }
+            if (i >= 41 && i < 123) {
+                palette = 5;
+            }
+            drawText(x + 0x30, y + 15 + (n - 1) * 13, (s32)D_801FBB38[i].name, palette, z);
+        }
+    }
+    w->view.h = n * 13 + 15;
+    if (w->view.h - w->rect.h >= 0) {
+        if (PAD_STATES[0]->repeat & 1) {
+            scrollWindowTo((s16 *)w, 0, w->view.y - w->rect.h);
+        }
+        if (PAD_STATES[0]->repeat & 2) {
+            scrollWindowTo((s16 *)w, 0, w->view.y + w->rect.h);
+        }
+        if (PAD_STATES[0]->repeat & 0x1000) {
+            scrollWindowTo((s16 *)w, 0, w->view.y - 13);
+        }
+        if (PAD_STATES[0]->repeat & 0x4000) {
+            scrollWindowTo((s16 *)w, 0, w->view.y + 13);
+        }
+    }
+    if (n == 0) {
+        drawText(x + 0x1A, y + 0xE, (s32)"None", 7, 0);
+    }
+}
 
 void func_801F4794(RankUpWindow *w) {
     s32 x;
