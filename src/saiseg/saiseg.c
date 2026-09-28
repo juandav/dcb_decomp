@@ -143,6 +143,14 @@ typedef struct {
     u8 unk81;
     u8 pad82[2];
     u8 unk84;
+    u8 pad85[0x10E - 0x85];
+    u8 unk10E;
+    u8 pad10F[0x115 - 0x10F];
+    u8 unk115;
+    u8 pad116;
+    u8 unk117;
+    u8 pad118[0x11C - 0x118];
+    u8 unk11C;
 } Unk801F4588;
 extern Unk801F4588 D_801F4588;
 extern void (*D_801F3594[])(void);
@@ -600,7 +608,20 @@ s32 func_801E2E64(void) {
     return wasZero;
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E2E90);
+s32 func_801E2E90(void) {
+    s32 done;
+    s32 level;
+
+    D_801F4588.unk115 = 1;
+    level = D_801F4588.unk117;
+    done = level == 0xFF;
+    level += 8;
+    if (level > 0xFF) {
+        level = 0xFF;
+    }
+    D_801F469F = level;
+    return done;
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E2ED4);
 
@@ -753,7 +774,13 @@ void func_801E5548(void) {
     }
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E55AC);
+void func_801E55AC(void) {
+    removeFrameCallback(func_801E5548);
+    func_80014C08(1);
+    func_801EBA34(D_801F5260[0]);
+    func_801E3494();
+    func_801E34F0();
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E55F8);
 
@@ -1309,7 +1336,15 @@ void func_801F0EAC(void) {
     openPartnerEquipment(0);
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F0ECC);
+void func_801F1C84(void);
+
+void func_801F0ECC(u8 value) {
+    D_801F4AFF = value;
+    func_801F1C84();
+    func_80014C08(5);
+    D_801F4588.unk10E = 0;
+    D_801F4588.unk11C = 0;
+}
 
 void func_801F0F08(void) {
     do {

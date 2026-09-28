@@ -281,9 +281,125 @@ s32 func_801E1680(s32 a, s32 b) {
     return result;
 }
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E16A8);
+void func_801E16A8(s32 player, s32 slot, s32 x, s32 y, s32 brightness, s32 otIndex) {
+    s32 specialty;
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E1B70);
+    if (PLAYER_DATA(player).partners[slot].cardId == 0) {
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 8;
+            CUR_SPRT->sp.v0 = 0x29;
+            CUR_SPRT->sp.clut = 0x7FA0;
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = brightness;
+            CUR_SPRT->sp.g0 = brightness;
+            CUR_SPRT->sp.b0 = brightness;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x18);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        }
+    } else {
+        specialty = PLAYER_DATA(player).partners[slot].card[0].attr >> 4;
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0x30;
+            CUR_SPRT->sp.v0 = 0x29;
+            CUR_SPRT->sp.clut = getClut(0x200, specialty + 0x1F8);
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = brightness;
+            CUR_SPRT->sp.g0 = brightness;
+            CUR_SPRT->sp.b0 = brightness;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x18);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+            if (isSpritePoolFull() == 0) {
+                CUR_SPRT->sp.x0 = x;
+                CUR_SPRT->sp.y0 = y + 4;
+                CUR_SPRT->sp.u0 = 0;
+                CUR_SPRT->sp.v0 = getSlotPartnerIndex(player, slot) * 41;
+                CUR_SPRT->sp.clut = getClut(0x240, specialty | 0x1F0);
+                CUR_SPRT->sp.w = 40;
+                CUR_SPRT->sp.h = 40;
+                setSemiTrans(&CUR_SPRT->sp, 0);
+                CUR_SPRT->sp.r0 = brightness;
+                CUR_SPRT->sp.g0 = brightness;
+                CUR_SPRT->sp.b0 = brightness;
+                setDrawMode(&CUR_SPRT->dm, 0, 0, 0x97);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+                SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+            }
+        }
+    }
+}
+
+void func_801E1B70(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
+    s32 specialty;
+
+    if (PLAYER_DATA(player).partners[slot].unk292[0] == 0) {
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 8;
+            CUR_SPRT->sp.v0 = 0x29;
+            CUR_SPRT->sp.clut = 0x7FA0;
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = 0x80;
+            CUR_SPRT->sp.g0 = 0x80;
+            CUR_SPRT->sp.b0 = 0x80;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x18);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        }
+    } else {
+        specialty = ((DigimonCardData *)DIGIMON_CARDS)[PLAYER_DATA(player).partners[slot].unk292[0]].attr >> 4;
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0x30;
+            CUR_SPRT->sp.v0 = 0x29;
+            CUR_SPRT->sp.clut = getClut(0x200, specialty + 0x1F8);
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = 0x80;
+            CUR_SPRT->sp.g0 = 0x80;
+            CUR_SPRT->sp.b0 = 0x80;
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0x18);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+            if (isSpritePoolFull() == 0) {
+                CUR_SPRT->sp.x0 = x;
+                CUR_SPRT->sp.y0 = y + 4;
+                CUR_SPRT->sp.u0 = (getSelectedArmorIndex(player, getSlotPartnerIndex(player, slot)) + 1) * 44;
+                CUR_SPRT->sp.v0 = getSlotPartnerIndex(player, slot) * 41;
+                CUR_SPRT->sp.clut = getClut(0x240, specialty | 0x1F0);
+                CUR_SPRT->sp.w = 40;
+                CUR_SPRT->sp.h = 40;
+                setSemiTrans(&CUR_SPRT->sp, 0);
+                CUR_SPRT->sp.r0 = 0x80;
+                CUR_SPRT->sp.g0 = 0x80;
+                CUR_SPRT->sp.b0 = 0x80;
+                setDrawMode(&CUR_SPRT->dm, 0, 0, 0x97);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+                addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+                SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E2098);
 

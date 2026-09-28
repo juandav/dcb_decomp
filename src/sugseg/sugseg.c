@@ -20,6 +20,47 @@
 #include "dcb/stage.h"
 
 typedef struct {
+    u8 unk0[0x5C];
+    s32 unk5C;
+    s32 unk60;
+    s32 unk64;
+    s32 unk68;
+    s32 unk6C;
+    s32 texMode;
+    s32 unk74;
+    s32 abr;
+    u8 unk7C[0x28];
+    s32 r;
+    s32 g;
+    s32 b;
+    u8 unkB0[0x3C];
+    s32 unkEC;
+    u8 unkF0[8];
+    s32 unkF8;
+    u8 unkFC[0x30];
+    s32 unk12C;
+    s32 unk130;
+    u8 unk134[4];
+    s32 unk138;
+    s32 unk13C;
+    u8 unk140[0x10];
+    s32 texX;
+    s32 texY;
+    s32 texW;
+    s32 texH;
+    s32 clutX;
+    s32 clutY;
+} SpriteCommand;
+typedef struct {
+    u8 unk0[0x4B0];
+    s32 page;
+    u8 unk4B4[0x54];
+    s32 unk508;
+} Context;
+u16 func_80067644(s32 x, s32 y);
+void func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
+
+typedef struct {
     u8 unk0[8];
     s16 w;
     s16 h;
@@ -984,7 +1025,41 @@ void func_801E9654(u8 *a, u8 *b) {
     func_801E66D0(&pos, *(s32 *)(a + 0x70), *(s32 *)(a + 0x120), *(s16 *)(a + 0x80));
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E96C4);
+void func_801E96C4(SpriteCommand *cmd, Context *ctx) {
+    u8 color[3];
+    Rect16 uv;
+    EffectTemplate template;
+    s32 tpage;
+    s32 x;
+    s32 y;
+    s16 u;
+    s32 v;
+
+    func_801E9494(&template, cmd, ctx);
+    color[0] = cmd->r;
+    color[1] = cmd->g;
+    color[2] = cmd->b;
+    x = cmd->texX;
+    u = x & 0x3F;
+    y = (ctx->page << 8) + cmd->texY;
+    v = y & 0xFF;
+    switch (cmd->texMode) {
+    case 0:
+        u <<= 2;
+        break;
+    case 1:
+        u <<= 1;
+        break;
+    }
+    uv.x = u;
+    uv.y = v;
+    uv.w = cmd->texW;
+    uv.h = cmd->texH;
+    tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->page << 8) + cmd->texY);
+    func_801DE6E4(cmd->unkEC, color, cmd->unk68, cmd->unk6C, &template, cmd->unk64, cmd->unk60, cmd->unkF8, cmd->unk74, cmd->abr,
+                  cmd->unk12C, cmd->unk5C, cmd->unk130, &uv, tpage, func_80067644(cmd->clutX, (ctx->page << 8) + cmd->clutY),
+                  cmd->unk138, cmd->unk13C, ctx->unk508);
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9890);
 

@@ -17,6 +17,33 @@
 #include "dcb/player_rank.h"
 #include "dcb/menu.h"
 #include "dcb/sort.h"
+#include "dcb/scroll_bg.h"
+#include "dcb/prim_util.h"
+
+extern s32 D_801F4888;
+extern s32 D_801F488C;
+extern s32 D_801F4890;
+extern s32 D_801F4880;
+extern s32 D_801F4884;
+extern s32 D_801F4F28;
+extern UiWindow D_801F1B10;
+extern UiWindow D_801F1B60;
+extern UiWindow D_801F1BB0;
+void func_801E5C6C(UiWindow *window);
+typedef struct {
+    u16 cards[30];
+    char name[0x32];
+} StarterDeck;
+typedef struct {
+    u8 unk0[0x3D04];
+    StarterDeck starters[3];
+} DeckFile;
+extern s16 D_801F04C4[];
+extern s32 D_801F5290;
+extern s32 D_801F5294;
+extern s32 D_801F5298;
+extern u8 D_801F529C;
+extern POLY_FT4 D_801F51B0[][2];
 
 extern s8 D_801F1620[2][301];
 typedef struct {
@@ -156,7 +183,13 @@ typedef struct {
 } Unk801F52E0;
 extern Unk801F52E0 D_801F52E0[2];
 typedef struct {
-    u8 unk0[0x539];
+    u8 unk0[0x528];
+    void *unk528;
+    u8 pad52C[0x532 - 0x52C];
+    u8 unk532;
+    u8 unk533;
+    s8 unk534;
+    u8 pad535[0x539 - 0x535];
     u8 unk539;
 } Unk801F7B88;
 extern Unk801F7B88 D_801F7B88;
@@ -704,7 +737,82 @@ void func_801E5E7C(UiWindow *window) {
     func_801E54EC(window->originX, window->originY, window->z);
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E5EAC);
+void func_801E5EAC(void) {
+    Rect16 rect;
+    s32 i;
+
+    if (D_801F4888 != D_801F488C) {
+        if (D_801F488C == -1) {
+            rect.x = 0x32;
+            rect.y = 0x48;
+            rect.w = 0xDC;
+            rect.h = 0x52;
+            animateWindowTo(&D_801F1BB0, &rect);
+            playMenuSound(3);
+            D_801F4890 = 0;
+            D_801F488C = D_801F4888;
+        } else if (D_801F4888 == -1) {
+            if (D_801F4890 == 0) {
+                animateWindowTo(&D_801F1BB0, (Rect16 *)-1);
+                playMenuSound(4);
+            } else if (D_801F1BB0.from.w == 0) {
+                D_801F4890 = 0;
+                D_801F488C = -1;
+            }
+        }
+    }
+    drawWindow(&D_801F1B60, func_801E5C30, 0x19);
+    drawWindow(&D_801F1B10, func_801E5C6C, 0x19);
+    drawWindow(&D_801F1BB0, func_801E5E7C, 0x19);
+    D_801F4F0C -= 16;
+    if (D_801F4F0C < 16) {
+        D_801F4F0C = 16;
+    }
+    D_801F4F10 += 8;
+    if (D_801F4F10 > 0) {
+        D_801F4F10 = 0;
+    }
+    D_801F4F04 += 4;
+    if (D_801F4F04 > 28) {
+        D_801F4F04 = 28;
+    }
+    D_801F4880 -= 12;
+    if (D_801F4880 < 0xAA) {
+        D_801F4880 = 0xAA;
+    }
+    D_801F4F1C -= 16;
+    if (D_801F4F1C < 20) {
+        D_801F4F1C = 20;
+    }
+    D_801F4F20 = 0;
+    func_801E4C18(D_801F4F08, D_801F4F0C, 0);
+    func_801E4C18(D_801F4F08, D_801F4F0C, 1);
+    func_801E4C18(D_801F4F08, D_801F4F0C, 2);
+    for (i = 0; i < D_801F4F28; i++) {
+        func_801E4C18(i * 38 + D_801F4F00, D_801F4F04, 3);
+    }
+    func_801E4C18(D_801F4F00, D_801F4F04, 4);
+    func_801E4C18(D_801F4F00, D_801F4F04, 5);
+    func_801E4C18(D_801F4F00 + 0x26, D_801F4F04, 5);
+    func_801E4C18(D_801F4F00 + 0x4C, D_801F4F04, 5);
+    func_801E4C18(D_801F4F00 + 0x72, D_801F4F04, 5);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 10);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 11);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 12);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 13);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 14);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 15);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 16);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 17);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 18);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 19);
+    func_801E4C18(D_801F4880, D_801F4884, 6);
+    func_801E4C18(D_801F4880, D_801F4884, 7);
+    func_801E4C18(D_801F4880, D_801F4884, 8);
+    func_801E4C18(D_801F4880, D_801F4884, 9);
+    func_801E4C18(D_801F4F10, D_801F4F14, 20);
+    func_801E4C18(D_801F4F10, D_801F4F14, 21);
+}
 
 void func_801E62D8(void) {
     initScene3D(1);
@@ -818,7 +926,34 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E7EC4);
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DEAC8);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E826C);
+void func_801E826C(s32 deck) {
+    u8 *file;
+    DeckFile *decks;
+    s32 i;
+    u16 card;
+
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\DECK2.DEK", getCurrentTaskId(), -2);
+    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    decks = (DeckFile *)(file + 8);
+    obtainPartner(0, deck);
+    for (i = 0; i < 30; i++) {
+        card = (&decks->starters[deck])->cards[i];
+        setCardSlotFromId((u8 *)&PLAYER_DATA(0).savedDecks[0].cards[i], card);
+        if (findPartnerSlot(0, card) == -1) {
+            addCardToCollection(0, card, 1);
+        }
+    }
+    strcpy((char *)PLAYER_DATA(0).savedDecks[0].unk1, decks->starters[deck].name);
+    storeSavedDeck(0, &PLAYER_DATA(0).savedDecks[0], 0);
+    PLAYER_DATA(0).opponentDeckFlags[deck + 0x8E] |= 0x8000;
+    for (i = 0; i < 5; i++) {
+        addCardToCollection(0, D_801F04C4[deck * 10 + i * 2 + rand() % 2], 1);
+    }
+    PLAYER_DATA(0).unk56 = deck;
+    changeScrollingBackground(PLAYER_DATA(0).unk56, 0x380, 0, 0x380, 0x80);
+    func_801EBA74(deck);
+    freeHeapBlock(file);
+}
 
 void func_801E8494(s32 x, s32 y, s32 texX, s32 texY, s32 palette, u8 *rgb, s32 otIndex) {
     if (isSpritePoolFull() == 0) {
@@ -865,7 +1000,45 @@ void func_801E8E6C(void) {
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E8E9C);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E9244);
+void func_801E9244(s32 idx) {
+    POLY_FT4 *poly;
+    s32 cx;
+    s32 cy;
+    s32 angle;
+
+    D_801F5294 += 32;
+    cx = rsin(D_801F5294) * D_801F5290 / 4096 + 160;
+    cy = D_801F5290 * (rcos(D_801F5294) << 1) / 4096 + 60;
+    if (idx & 1) {
+        angle = D_801F5294;
+    } else {
+        angle = -D_801F5294;
+    }
+    poly = &D_801F51B0[idx][FRAME_BUFFER_INDEX];
+    initPrimByType(0xC, poly, 1, 0);
+    poly->r0 = D_801F529C;
+    poly->g0 = D_801F529C;
+    poly->b0 = D_801F529C;
+    poly->u0 = 0;
+    poly->v0 = 0;
+    poly->u1 = 0xEF;
+    poly->v1 = 0;
+    poly->u2 = 0;
+    poly->v2 = 0xEF;
+    poly->u3 = 0xEF;
+    poly->v3 = 0xEF;
+    poly->x0 = cx + D_801F5298 * 120 / 100 * rsin(angle) / 4096;
+    poly->y0 = cy + D_801F5298 * 120 / 100 * rcos(angle) / 4096;
+    poly->x1 = cx + D_801F5298 * 120 / 100 * rsin(angle + 0x400) / 4096;
+    poly->y1 = cy + D_801F5298 * 120 / 100 * rcos(angle + 0x400) / 4096;
+    poly->x2 = cx + D_801F5298 * 120 / 100 * rsin(angle + 0xC00) / 4096;
+    poly->y2 = cy + D_801F5298 * 120 / 100 * rcos(angle + 0xC00) / 4096;
+    poly->x3 = cx + D_801F5298 * 120 / 100 * rsin(angle + 0x800) / 4096;
+    poly->y3 = cy + D_801F5298 * 120 / 100 * rcos(angle + 0x800) / 4096;
+    poly->tpage = 0x2A;
+    poly->clut = 0x3E64;
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0], poly);
+}
 
 void func_801E96D8(s32 x, s32 y, s32 texX, s32 texY, s32 w, s32 h, s32 clutX, s32 clutY, s32 texMode,
                    s32 semiTrans, s32 blendMode, s32 shade, s32 otIndex) {
@@ -1056,7 +1229,12 @@ void func_801EBE80(void) {
     func_80014C08(0x7FFFFFFF);
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EBEDC);
+void func_801EBEDC(void) {
+    D_801F7B88.unk533 = 0;
+    D_801F7B88.unk534 = -1;
+    D_801F7B88.unk532 = 0;
+    D_801F7B88.unk528 = allocHeapBlock(0x4000, 0x63);
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EBF20);
 
