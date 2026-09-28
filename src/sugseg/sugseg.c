@@ -15,6 +15,130 @@
 #include "dcb/wire_grid.h"
 #include "dcb/anim_control.h"
 #include "dcb/player_data.h"
+#include "dcb/scroll_bg.h"
+
+typedef struct {
+    u8 unk0[0x13C];
+    u8 unk13C[0x20];
+    void *unk15C[2];
+    void *unk164[2];
+    void *unk16C[2];
+    void *unk174[2];
+    void *unk17C[2];
+    void *unk184[2];
+    void *unk18C[2];
+    void *unk194[2];
+    void *unk19C;
+    u8 unk1A0[0x38];
+    s16 unk1D8;
+} Unk801E1D80;
+typedef struct {
+    u8 unk0[0x26EC];
+    Rect16 clutRect;
+    u8 unk26F4[4];
+    u16 clut[256];
+} ModelData;
+typedef struct {
+    Rect16 rect;
+    u16 clut[512];
+    s16 unk408;
+    s16 unk40A;
+} ClutFade;
+typedef struct {
+    u8 unk0[0x98];
+    void *parent;
+    u8 unk9C[0x10];
+    s32 scale[3];
+    u8 unkB8[4];
+    s32 scale2[3];
+    u8 unkC8[4];
+    s16 unkCC[3];
+    u8 unkD2[2];
+    s16 pos[3];
+    u8 unkDA[2];
+    s16 pos2[3];
+    u8 unkE2[2];
+    s16 rot[3];
+    u8 unkEA[2];
+    s16 rot2[3];
+    u8 unkF2[2];
+    s16 unkF4[3];
+    u8 unkFA[0x26];
+    s16 unk120;
+    s16 unk122;
+    s16 unk124;
+    s16 unk126;
+    s16 unk128;
+    s16 unk12A;
+    s16 unk12C;
+    s16 unk12E;
+    s16 unk130;
+    u8 unk132[5];
+    u8 unk137;
+    u8 unk138[4];
+} EffectInit;
+typedef struct {
+    u8 unk0[0x65C];
+    s32 pos[3];
+    s32 pos2[3];
+    s32 unk674;
+    s32 unk678;
+    s32 rot[3];
+    s32 rot2[3];
+    s32 unk694[3];
+    s32 scale[3];
+    s32 scale2[3];
+    s32 unk6B8[3];
+    s32 unk6C4;
+    s32 unk6C8;
+    s32 unk6CC;
+    s32 unk6D0;
+    s32 unk6D4;
+    s32 unk6D8;
+    s32 unk6DC;
+    s32 unk6E0;
+} EffectCommand;
+typedef struct {
+    s32 v[4];
+} Entry16;
+void func_801E38A0(s16 a0, EffectTemplate *template, s32 a2, s32 a3, s32 a4, Entry16 *a5, u8 a6, s32 a7, s32 a8, s32 a9);
+void func_801E41AC(s32 a0, EffectTemplate *template, s32 a2, s32 a3, s32 a4, s32 a5, s32 a6, s32 a7, s32 a8);
+typedef struct {
+    u8 unk0[0x74];
+    s32 semi;
+    u8 unk78[0x2C];
+    s32 fromR;
+    s32 fromG;
+    s32 fromB;
+    s32 toR;
+    s32 toG;
+    s32 toB;
+    u8 unkBC[0x6C];
+    s32 flags;
+    u8 unk12C[0x10];
+    s32 fixedOtz;
+    u8 unk140[0x50];
+    s32 pattern;
+    s32 zOffset;
+    s32 spin;
+    s32 kind;
+    u8 unk1A0[0x55C];
+    s32 spreadY;
+    s32 spreadX;
+    s32 length;
+    s32 frames;
+    s32 speedRange;
+    s32 reverse;
+    s32 count;
+    s32 endLength;
+} StreakCommand;
+typedef struct {
+    u8 unk0[8];
+    s32 *unk8;
+} Unk801EA48C;
+Unk801EA48C *func_801EA258(s32 a0, s32 slot, s32 a2, s32 *state);
+s32 func_801E8500(Unk801EA48C *obj);
+void func_801EAB5C(void);
 
 typedef struct {
     u8 unk0[0x26D4];
@@ -302,7 +426,41 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E0F98);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E1960);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E1D80);
+void func_801E1D80(Unk801E1D80 *obj) {
+    s32 i;
+
+    freeHeapBlock(obj->unk19C);
+    if (obj->unk1D8 >= 0) {
+        func_801E72D4(obj->unk13C);
+    }
+    for (i = 0; i < 2; i++) {
+        if (obj->unk164[i] != NULL) {
+            freeHeapBlock(obj->unk164[i]);
+        }
+        if (obj->unk16C[i] != NULL) {
+            freeHeapBlock(obj->unk16C[i]);
+        }
+        if (obj->unk174[i] != NULL) {
+            freeHeapBlock(obj->unk174[i]);
+        }
+        if (obj->unk17C[i] != NULL) {
+            freeHeapBlock(obj->unk17C[i]);
+        }
+        if (obj->unk184[i] != NULL) {
+            freeHeapBlock(obj->unk184[i]);
+        }
+        if (obj->unk18C[i] != NULL) {
+            freeHeapBlock(obj->unk18C[i]);
+        }
+        if (obj->unk194[i] != NULL) {
+            freeHeapBlock(obj->unk194[i]);
+        }
+        if (obj->unk15C[i] != NULL) {
+            freeHeapBlock(obj->unk15C[i]);
+        }
+    }
+    freeHeapBlock(obj);
+}
 
 INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF38);
 
@@ -368,7 +526,25 @@ void func_801E40B0(void) {
     DB(0).draw.b0 = 0;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E40F0);
+void func_801E40F0(s32 slot, s32 target) {
+    ClutFade fade;
+    ModelData *model;
+    s32 i;
+
+    model = SCENE_3D->models[slot];
+    if (target != 0xFF) {
+        fade.rect = model->clutRect;
+        fade.unk408 = 0;
+        fade.unk40A = target;
+        for (i = 0; i < 256; i++) {
+            fade.clut[i] = model->clut[i];
+        }
+        func_801E3668(&fade, 0x8000);
+    } else {
+        LoadImage((s16 *)&model->clutRect, (s32)model->clut);
+        DrawSync(0);
+    }
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E41AC);
 
@@ -685,7 +861,42 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E8678);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E908C);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E92B0);
+void func_801E92B0(EffectInit *fx, EffectCommand *cmd, void *ctx) {
+    fx->pos[0] = cmd->pos[0];
+    fx->pos[1] = cmd->pos[1];
+    fx->pos[2] = cmd->pos[2];
+    fx->pos2[0] = cmd->pos2[0];
+    fx->pos2[1] = cmd->pos2[1];
+    fx->pos2[2] = cmd->pos2[2];
+    fx->unk120 = cmd->unk674;
+    fx->unk122 = cmd->unk678;
+    fx->rot[0] = cmd->rot[0];
+    fx->rot[1] = cmd->rot[1];
+    fx->rot[2] = cmd->rot[2];
+    fx->rot2[0] = cmd->rot2[0];
+    fx->rot2[1] = cmd->rot2[1];
+    fx->rot2[2] = cmd->rot2[2];
+    fx->unkF4[0] = cmd->unk694[0];
+    fx->unkF4[1] = cmd->unk694[1];
+    fx->unkF4[2] = cmd->unk694[2];
+    fx->scale[0] = cmd->scale[0];
+    fx->scale[1] = cmd->scale[1];
+    fx->scale[2] = cmd->scale[2];
+    fx->scale2[0] = cmd->scale2[0];
+    fx->scale2[1] = cmd->scale2[1];
+    fx->scale2[2] = cmd->scale2[2];
+    fx->unkCC[0] = cmd->unk6B8[0];
+    fx->unkCC[1] = cmd->unk6B8[1];
+    fx->unkCC[2] = cmd->unk6B8[2];
+    fx->unk12C = cmd->unk6C4;
+    fx->unk124 = cmd->unk6C8;
+    fx->unk137 = cmd->unk6CC;
+    fx->unk130 = cmd->unk6D0;
+    fx->unk128 = cmd->unk6D8;
+    fx->unk12A = cmd->unk6DC;
+    fx->unk126 = cmd->unk6E0;
+    fx->unk12E = cmd->unk6D4;
+}
 
 void func_801E9448(void *xform, u8 *obj) {
     SVECTOR pos;
@@ -739,11 +950,50 @@ EffectTemplate *func_801E9D14(s32 a0, s32 a1) {
     return cloneEffectObject(&template);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9D48);
+void func_801E9D48(u8 *obj, u8 *b) {
+    EffectTemplate buf;
+    EffectTemplate *template;
+    Entry16 *entry;
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9E04);
+    template = &buf;
+    func_801E9494(template, obj, b);
+    entry = *(Entry16 **)(obj + 0x6F0);
+    if (entry != NULL) {
+        entry += *(s32 *)(b + 0x4B0);
+    }
+    func_801E38A0(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x6EC), *(s32 *)(obj + 0x6F4), entry,
+                  *(s32 *)(obj + 0x128), *(s32 *)(obj + 0x72C), *(s32 *)(b + 0x508), *(s32 *)(b + 0x4B8));
+}
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9EAC);
+void func_801E9E04(u8 *obj, u8 *b) {
+    EffectTemplate buf;
+    EffectTemplate *template;
+    SVECTOR unused;
+
+    template = NULL;
+    if (*(s32 *)(obj + 0x6F0) != 0) {
+        template = &buf;
+        func_801E9494(template, obj, b);
+    }
+    func_801E41AC(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x71C), *(s32 *)(obj + 0x720),
+                  *(s32 *)(obj + 0x724), *(s32 *)(obj + 0x728), *(s32 *)(obj + 0x13C), *(s32 *)(b + 0x508));
+}
+
+void func_801E9EAC(StreakCommand *cmd, void *ctx) {
+    EffectTemplate template;
+    u8 from[3];
+    u8 to[3];
+
+    from[0] = cmd->fromR;
+    from[1] = cmd->fromG;
+    from[2] = cmd->fromB;
+    to[0] = cmd->toR;
+    to[1] = cmd->toG;
+    to[2] = cmd->toB;
+    func_801E9494(&template, cmd, ctx);
+    createStreakParticles(from, to, &template, cmd->spreadX, cmd->spreadY, cmd->length, cmd->endLength, cmd->frames, cmd->speedRange,
+                          cmd->reverse, cmd->count, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semi, cmd->flags, cmd->fixedOtz);
+}
 
 void func_801E9FE0(Unk801E9FE0 *obj) {
     VECTOR a;
@@ -795,7 +1045,34 @@ s32 func_801EA410(Unk801EA410 *obj, s32 *state) {
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EA48C);
+void func_801EA48C(s32 a0, s32 slot, s32 a2, s32 *state) {
+    Unk801EA48C *obj;
+    s32 prev;
+    s32 running;
+
+    /* the extra block is needed for the register allocation to match */
+    do {
+        prev = *state;
+        obj = func_801EA258(a0, slot, a2, state);
+        running = *obj->unk8;
+        do {
+            func_80014C08(FRAME_INTERVAL);
+            if (*state == 3) {
+                break;
+            }
+            if (running < 0 && *state < 0 && func_801EA410(obj, state) == 3) {
+                break;
+            }
+            running = func_801E8500(obj);
+            func_801EAB5C();
+        } while (running != 0);
+        if (prev == -2) {
+            pauseModelAnimation(slot);
+        }
+    } while (0);
+    *state = 0;
+    func_801EA3AC(obj);
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EA574);
 

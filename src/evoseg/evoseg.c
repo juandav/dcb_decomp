@@ -31,6 +31,50 @@ typedef struct {
     u16 tsb;
     u8 u2, v2;
     u16 pad;
+    u8 u3, v3;
+    u16 pad2;
+    u16 idx[8];
+} TmdPacketFT4;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+} PolyG3;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+    u8 r3, g3, b3, pad3;
+    s16 x3, y3;
+} PolyG4;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+} PolyF3;
+extern void (*D_801F02A8[])(s32);
+
+typedef struct {
+    u8 olen;
+    u8 ilen;
+    u8 flag;
+    u8 mode;
+    u8 u0, v0;
+    u16 cba;
+    u8 u1, v1;
+    u16 tsb;
+    u8 u2, v2;
+    u16 pad;
     u16 idx[8];
 } TmdPacketFT3;
 typedef struct {
@@ -476,9 +520,129 @@ void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E39CC);
+void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT4 *prim;
+    POLY_FT4 *poly;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E3D6C);
+    prim = D_801F0540;
+    poly = (POLY_FT4 *)func_80062C44();
+    func_800677A4(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    poly->u3 = prim->u3;
+    poly->v3 = prim->v3;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[1]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[5]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[7]];
+    v3.vx = vert->vx + offset.vx;
+    v3.vy = vert->vy + offset.vy;
+    v3.vz = vert->vz + offset.vz;
+    setlen(poly, 9);
+    setcode(poly, 0x2C);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
+
+void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT4 *prim;
+    POLY_FT4 *poly;
+
+    prim = D_801F0540;
+    poly = (POLY_FT4 *)func_80062C44();
+    func_800677A4(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    poly->u3 = prim->u3;
+    poly->v3 = prim->v3;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[1]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[2]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[4]];
+    v3.vx = vert->vx + offset.vx;
+    v3.vy = vert->vy + offset.vy;
+    v3.vz = vert->vz + offset.vz;
+    setlen(poly, 9);
+    setcode(poly, 0x2C);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
 void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
@@ -536,7 +700,67 @@ void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E4444);
+void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT4 *prim;
+    POLY_FT4 *poly;
+
+    prim = D_801F0540;
+    poly = (POLY_FT4 *)func_80062C44();
+    func_800677A4(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    poly->u3 = prim->u3;
+    poly->v3 = prim->v3;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[2]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[4]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[5]];
+    v3.vx = vert->vx + offset.vx;
+    v3.vy = vert->vy + offset.vy;
+    v3.vz = vert->vz + offset.vz;
+    setlen(poly, 9);
+    setcode(poly, 0x2C);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E47E4);
 
@@ -544,13 +768,209 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5024);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5244);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E55FC);
+void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    u16 *prim;
+    PolyF4 *poly;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5934);
+    prim = D_801F0540;
+    poly = (PolyF4 *)func_80062C44();
+    setlen(poly, 5);
+    setcode(poly, 0x28);
+    SetSemiTrans(poly, 1);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim[5]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[6]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[7]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[8]];
+    v3.vx = vert->vx + offset.vx;
+    v3.vy = vert->vy + offset.vy;
+    v3.vz = vert->vz + offset.vz;
+    setlen(poly, 5);
+    setcode(poly, 0x28);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5C1C);
+void func_801E5934(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    u16 *prim;
+    PolyG3 *poly;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5F54);
+    prim = D_801F0540;
+    poly = (PolyG3 *)func_80062C44();
+    setlen(poly, 6);
+    setcode(poly, 0x30);
+    SetSemiTrans(poly, 1);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim[5]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[7]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[9]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    setlen(poly, 6);
+    setcode(poly, 0x30);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
+
+void func_801E5C1C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    u16 *prim;
+    PolyG4 *poly;
+
+    prim = D_801F0540;
+    poly = (PolyG4 *)func_80062C44();
+    setlen(poly, 8);
+    setcode(poly, 0x38);
+    SetSemiTrans(poly, 1);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim[5]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[7]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[9]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[11]];
+    v3.vx = vert->vx + offset.vx;
+    v3.vy = vert->vy + offset.vy;
+    v3.vz = vert->vz + offset.vz;
+    setlen(poly, 8);
+    setcode(poly, 0x38);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
+
+void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    u16 *prim;
+    PolyF3 *poly;
+
+    prim = D_801F0540;
+    poly = (PolyF3 *)func_80062C44();
+    setlen(poly, 4);
+    setcode(poly, 0x20);
+    SetSemiTrans(poly, 1);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim[5]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[6]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim[7]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    setlen(poly, 4);
+    setcode(poly, 0x20);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
 INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DE084);
 
@@ -652,11 +1072,40 @@ void func_801E7B8C(void) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7BE4);
+void func_801E7BE4(void) {
+    D_801F5548[0].unk124 -= 10;
+    if (D_801F5548[0].unk124 < -0x58) {
+        D_801F5548[0].unk124 = -0x58;
+        D_801F5478.unkC1 = 0;
+        D_801F5250->vars[8] = -1;
+    }
+}
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7C3C);
+void func_801E7C3C(void) {
+    D_801F5548[0].unk124 -= 10;
+    if (D_801F5548[0].unk124 < -0x78) {
+        D_801F5548[0].unk124 = -0x78;
+        D_801F5548[1].unk124 += 10;
+        if (D_801F5548[1].unk124 >= 15) {
+            D_801F5548[1].unk124 = 14;
+            D_801F5478.unkC1 = 3;
+            D_801F0056 = 1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7CB4);
+void func_801E7CB4(void) {
+    D_801F5548[1].unk124 -= 10;
+    if (D_801F5548[1].unk124 < -0x78) {
+        D_801F5548[1].unk124 = -0x78;
+        D_801F5548[0].unk124 += 10;
+        if (D_801F5548[0].unk124 >= 15) {
+            D_801F5548[0].unk124 = 14;
+            D_801F5478.unkC1 = 3;
+            D_801F0056 = 1;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7D2C);
 
@@ -838,7 +1287,20 @@ void func_801EA934(s32 index) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EA9AC);
+void func_801EA9AC(void) {
+    D_801F5548[0].unk124 += 10;
+    D_801F5548[1].unk124 += 10;
+    if (D_801F5548[0].unk124 >= 15) {
+        D_801F5548[0].unk124 = 14;
+    }
+    if (D_801F5548[1].unk124 >= 0x67) {
+        D_801F5548[1].unk124 = 0x66;
+    }
+    if (D_801F5548[0].unk124 == 14 && D_801F5548[1].unk124 == 0x66) {
+        D_801F5478.unkC1 = 0;
+        D_801F5250->vars[8] = 1;
+    }
+}
 
 void func_801EAA5C(void) {
     D_801F5548[0].unk124 -= 10;
@@ -1056,7 +1518,20 @@ s32 func_801EE3BC(EvoLoader *loader) {
     return loader->vars[0];
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EE4E8);
+void func_801EE4E8(EvoLoader *loader) {
+    s32 i;
+
+    func_80014C08(FRAME_INTERVAL);
+    for (i = 0; i < 16; i++) {
+        if (loader->entries[i].kind != -1) {
+            D_801F02A8[loader->entries[i].kind](loader->entries[i].handle);
+        }
+    }
+    func_80014C08(FRAME_INTERVAL);
+    if (loader->buffer != NULL) {
+        freeHeapBlock(loader->buffer);
+    }
+}
 
 void func_801EE5B0(s32 kind, EvoObject *obj) {
     switch (kind) {

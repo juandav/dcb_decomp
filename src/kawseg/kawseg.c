@@ -16,6 +16,8 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/card_db.h"
 
+extern char *D_801FC168[];
+
 typedef struct {
     s16 id;
     s16 unk2;
@@ -487,9 +489,88 @@ s32 func_801E201C(Entry8 *entries, s32 n) {
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2100);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2A50);
+s32 func_801E2A50(s16 *cards, s32 player, s32 min) {
+    s32 best;
+    s32 count;
+    s32 i;
+    s16 card;
+    s32 dp;
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2C98);
+    best = 100;
+    for (i = 0; i < 4; i++) {
+        s16 id = cards[i];
+
+        if (id != -1) {
+            dp = PLAYER(player)->cards[id % 30].card[0x1C];
+            if (dp >= min && dp < best) {
+                best = dp;
+            }
+        }
+    }
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && best == PLAYER(player)->cards[card % 30].card[0x1C]) {
+            count++;
+        }
+    }
+    if (count == 0) {
+        return -1;
+    }
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && best != PLAYER(player)->cards[card % 30].card[0x1C]) {
+            cards[i] = -1;
+        }
+    }
+    if (count == 1) {
+        for (i = 0; i < 4; i++) {
+            if (cards[i] != -1) {
+                return cards[i];
+            }
+        }
+    }
+    return -2;
+}
+
+s32 func_801E2C98(s16 *cards, s32 player) {
+    s32 best;
+    s32 count;
+    s32 i;
+    s16 card;
+
+    best = -1;
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && best < PLAYER(player)->cards[card % 30].card[0x1C]) {
+            best = PLAYER(player)->cards[card % 30].card[0x1C];
+        }
+    }
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && best == PLAYER(player)->cards[card % 30].card[0x1C]) {
+            count++;
+        }
+    }
+    if (count == 0) {
+        return -1;
+    }
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && best != PLAYER(player)->cards[card % 30].card[0x1C]) {
+            cards[i] = -1;
+        }
+    }
+    if (count == 1) {
+        for (i = 0; i < 4; i++) {
+            if (cards[i] != -1) {
+                return cards[i];
+            }
+        }
+    }
+    return -2;
+}
 
 s32 func_801E2ED8(s16 *cards, s32 player) {
     s32 count;
@@ -522,9 +603,99 @@ s32 func_801E2ED8(s16 *cards, s32 player) {
     return -2;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E30D0);
+s32 func_801E30D0(s16 *cards, s32 player) {
+    s32 count;
+    s32 i;
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E3364);
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        if (cards[i] != -1) {
+            u8 level;
+            s16 card;
+
+            level = PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A];
+            card = cards[i];
+            if ((level & 0xF) == ((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF)) {
+                count++;
+            }
+        }
+    }
+    if (count == 0) {
+        return -1;
+    }
+    for (i = 0; i < 4; i++) {
+        if (cards[i] != -1) {
+            u8 level;
+            s16 card;
+
+            level = PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A];
+            card = cards[i];
+            if ((level & 0xF) != ((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF)) {
+                cards[i] = -1;
+            }
+        }
+    }
+    if (count == 1) {
+        for (i = 0; i < 4; i++) {
+            if (cards[i] != -1) {
+                return cards[i];
+            }
+        }
+    }
+    return -2;
+}
+
+s32 func_801E3364(s16 *cards, s32 player) {
+    s32 count;
+    s32 i;
+    s32 j;
+    s32 n;
+
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        n = 0;
+        if (cards[i] != -1) {
+            for (j = 0; j < 3; j++) {
+                Player *p = PLAYER(player);
+                s16 card = cards[i];
+
+                if ((s8)((DigimonCardData *)p->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+                    n++;
+                }
+            }
+            if (n != 0) {
+                count++;
+            }
+        }
+    }
+    if (count == 0) {
+        return -1;
+    }
+    for (i = 0; i < 4; i++) {
+        n = 0;
+        if (cards[i] != -1) {
+            for (j = 0; j < 3; j++) {
+                Player *p = PLAYER(player);
+                s16 card = cards[i];
+
+                if ((s8)((DigimonCardData *)p->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+                    n++;
+                }
+            }
+            if (n == 0) {
+                cards[i] = -1;
+            }
+        }
+    }
+    if (count == 1) {
+        for (i = 0; i < 4; i++) {
+            if (cards[i] != -1) {
+                return cards[i];
+            }
+        }
+    }
+    return -2;
+}
 
 s32 func_801E3574(s16 *ids) {
     s32 count;
@@ -691,7 +862,13 @@ void func_801EA708(void) {
     func_801EAB4C();
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EA7E8);
+void func_801EA7E8(void) {
+    if (DUEL->tutorial) {
+        freeScriptContext((*(ScriptRunner **)D_801D8340)->script, (*(ScriptRunner **)D_801D8340)->regs);
+        freeHeapBlock((*(ScriptRunner **)D_801D8340)->data);
+        freeHeapBlock(*(ScriptRunner **)D_801D8340);
+    }
+}
 
 void func_801EA868(UiWindow *window) {
     drawText(window->originX, window->originY, *(s32 *)(*(u8 **)D_801D8340 + 0x10), 7, window->z);
@@ -892,7 +1069,26 @@ void func_801ED608(void) {
     } while (!(PAD_STATES[0]->pressed & 0x40));
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ED65C);
+void func_801ED65C(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 tp, s32 semi, s32 abr, s32 brightness,
+                   s32 otz) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = (u % 64) * (4 >> tp);
+        CUR_SPRT->sp.v0 = v % 256;
+        CUR_SPRT->sp.clut = getClut(clutX, clutY);
+        CUR_SPRT->sp.w = w;
+        CUR_SPRT->sp.h = h;
+        setSemiTrans(&CUR_SPRT->sp, semi);
+        CUR_SPRT->sp.r0 = brightness;
+        CUR_SPRT->sp.g0 = brightness;
+        CUR_SPRT->sp.b0 = brightness;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(tp, abr, u, v));
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    }
+}
 
 void func_801ED8BC(s32 x, s32 y, char *name) {
     char buf[64];
@@ -1222,7 +1418,27 @@ void func_801F71A8(u8 *fx) {
     func_801E6424(&rect, rgb, rgb2, *(s32 *)(fx + 0x6C), *(s16 *)(fx + 0x70), *(s32 *)(fx + 0x110));
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F7264);
+void func_801F7264(u8 *fx, EffectTable *table) {
+    Bytes4 inner;
+    Bytes4 mid;
+    Bytes4 outer;
+    EffectTemplate template;
+
+    func_801F7128(&template, fx, table);
+    inner.b[0] = *(s32 *)(fx + 0x94);
+    inner.b[1] = *(s32 *)(fx + 0x98);
+    inner.b[2] = *(s32 *)(fx + 0x9C);
+    mid.b[0] = *(s32 *)(fx + 0xA0);
+    mid.b[1] = *(s32 *)(fx + 0xA4);
+    mid.b[2] = *(s32 *)(fx + 0xA8);
+    outer.b[0] = *(s32 *)(fx + 0xAC);
+    outer.b[1] = *(s32 *)(fx + 0xB0);
+    outer.b[2] = *(s32 *)(fx + 0xB4);
+    createRingEffect(*(s32 *)(fx + 0xDC), &inner, &mid, &outer, &template, *(s32 *)(fx + 0x54), *(s32 *)(fx + 0x68),
+                     *(s32 *)(fx + 0x6C), *(s32 *)(fx + 0x118), *(s32 *)(fx + 0xF4), *(s32 *)(fx + 0xF8), *(s32 *)(fx + 0x104),
+                     *(s32 *)(fx + 0xFC), *(s32 *)(fx + 0x100), NULL, 0, 0, 0, *(s32 *)(fx + 0x114), *(s32 *)(fx + 0x120),
+                     *(s32 *)(fx + 0x124), 0);
+}
 
 void func_801F73C8(s32 arg0, s32 arg1) {
     EffectTemplate template;
@@ -1231,7 +1447,23 @@ void func_801F73C8(s32 arg0, s32 arg1) {
     cloneEffectObject(&template);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F73FC);
+void func_801F73FC(u8 *fx, EffectTable *table) {
+    EffectTemplate template;
+    u8 startColor[3];
+    u8 endColor[3];
+
+    startColor[0] = *(s32 *)(fx + 0x94);
+    startColor[1] = *(s32 *)(fx + 0x98);
+    startColor[2] = *(s32 *)(fx + 0x9C);
+    endColor[0] = *(s32 *)(fx + 0xA0);
+    endColor[1] = *(s32 *)(fx + 0xA4);
+    endColor[2] = *(s32 *)(fx + 0xA8);
+    func_801F7128(&template, fx, table);
+    createStreakParticles(startColor, endColor, &template, *(s32 *)(fx + 0x2DC), *(s32 *)(fx + 0x2D8), *(s32 *)(fx + 0x2E0),
+                          *(s32 *)(fx + 0x2F4), *(s32 *)(fx + 0x2E4), *(s32 *)(fx + 0x2E8), *(s32 *)(fx + 0x2EC), *(s32 *)(fx + 0x2F0),
+                          *(s32 *)(fx + 0x13C), *(s32 *)(fx + 0x140), *(s32 *)(fx + 0x138), *(s32 *)(fx + 0x144), *(s16 *)(fx + 0x68),
+                          *(s32 *)(fx + 0x114), *(s32 *)(fx + 0x124));
+}
 
 void func_801F7530(void *ptr) {
     freeHeapBlock(ptr);
@@ -1256,7 +1488,38 @@ void func_801F77E0(void) {
     drawWindow(&D_801FC884, func_801F7A64, 0);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F7810);
+void func_801F7810(UiWindow *w) {
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 i;
+    char unused[8];
+
+    x = w->originX;
+    y = w->originY;
+    z = w->z;
+    for (i = 0; i < 51; i++) {
+        if (i < (s16)(w->view.y / 12)) {
+            continue;
+        }
+        if ((w->view.y + w->rect.h) / 12 < i) {
+            break;
+        }
+        drawText(x, y + i * 12, (s32)D_801FC168[i], 7, z);
+    }
+    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 2) {
+        scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] + w->rect.h);
+    }
+    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 1) {
+        scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] - w->rect.h);
+    }
+    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 0x1000) {
+        scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] - 12);
+    }
+    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 0x4000) {
+        scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] + 12);
+    }
+}
 
 INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DF604);
 
@@ -1287,7 +1550,9 @@ s32 func_801F8854(void) {
     allocTaskHeapBlock(0xE10);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F88E8);
+s32 func_801F88E8(void) {
+    freeHeapBlock(D_801D83F8);
+}
 
 void func_801F8910(CardSprite *sprite, u8 num) {
     sprite->flags |= 0x20;
