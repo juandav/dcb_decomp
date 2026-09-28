@@ -27,6 +27,9 @@
 #include "dcb/fade.h"
 #include "dcb/sound.h"
 #include "dcb/player_data.h"
+#include "dcb/save_checksum.h"
+
+extern s32 D_801F07FC[3];
 
 extern s32 D_801F4888;
 extern s32 D_801F488C;
@@ -4646,7 +4649,264 @@ u8 *func_801EEAB4(s32 value, s32 width, u8 *dst) {
     return dst;
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EEB9C);
+extern u8 D_801F8184;
+void func_80055730(void);
+void func_801EF4AC();
+void func_801EF568(s32 port);
+s32 func_801EF774(s32 port, s32 slot);
+s32 func_801EF880(s32 port);
+s32 func_801EF8A4(s32 port);
+s32 func_801EF900(s32 part, s32 port);
+s32 func_801EF9E8(s32 unused, s32 port);
+s16 func_801EFA90(s32 port);
+void func_801EFAC0(s32 port, s32 slot);
+u8 func_801EFE04(s32 player, s32 port, s32 slot);
+
+void func_801EEB9C(void) {
+    s32 player;
+    s32 port;
+    s32 slot;
+    s32 status;
+    s32 result;
+    s32 i;
+    s32 j;
+
+    D_801F80BC = -1;
+    do {
+        func_80014C08(FRAME_INTERVAL);
+        player = D_801F7B88.card;
+        port = ((SessionView *)D_8006E054)->saves[player].slot;
+        slot = ((SessionView *)D_8006E054)->saves[player].file;
+        status = 0;
+        switch (D_801F7B88.unk535) {
+        case 1:
+            if (D_801F80BF == 7 && port == 0) {
+                for (slot = 0; slot < 2; slot++) {
+                    status = func_801EF8A4(slot);
+                    if (status != 0) {
+                        break;
+                    }
+                }
+            } else {
+                status = func_801EF8A4(port);
+            }
+            D_801F7B88.unk540 = 0;
+            if (status == 1) {
+                if (D_801F7B88.mode == 0) {
+                    D_801F7B88.unk534 = 4;
+                    D_801F7B88.unk535 = 2;
+                } else {
+                    D_801F7B88.unk534 = 12;
+                    D_801F7B88.unk535 = 29;
+                }
+            } else if (status == 2) {
+                if (D_801F7B88.mode == 0) {
+                    D_801F7B88.unk535 = 7;
+                } else {
+                    D_801F7B88.unk534 = 3;
+                    D_801F7B88.unk535 = 11;
+                }
+            } else {
+                if (D_801F80BF == 7 && port == 0) {
+                    for (slot = 0; slot < 2; slot++) {
+                        scanMemoryCardFiles(slot);
+                        for (i = 0; i < 3; i++) {
+                            func_801EF774(slot, i);
+                        }
+                        status = (s8)(D_801F7B88.flags[slot][0] & D_801F7B88.flags[slot][1] & D_801F7B88.flags[slot][2]);
+                        if (status == 1) {
+                            D_801F7B88.unk53D = slot;
+                            status = func_801EF8A4(slot);
+                            if (status == 1) {
+                                D_801F7B88.unk534 = 12;
+                                D_801F7B88.unk535 = 29;
+                            } else if (status == 2) {
+                                D_801F7B88.unk534 = 3;
+                                D_801F7B88.unk535 = 11;
+                            } else {
+                                D_801F7B88.unk535 = 28;
+                            }
+                            break;
+                        }
+                    }
+                    if (D_801F80BD != 1) {
+                        break;
+                    }
+                } else {
+                    scanMemoryCardFiles(port);
+                    for (i = 0; i < 3; i++) {
+                        func_801EF774(port, i);
+                    }
+                }
+                D_801F7B88.unk536 = func_801EFA90(port);
+                switch (D_801F7B88.mode) {
+                case 0:
+                    status = D_801F80BE;
+                    for (i = 0; i < 3; i++) {
+                        if (D_801F7B88.flags[port][i] == 0) {
+                            status += 2;
+                        }
+                    }
+                    if (status < 2) {
+                        D_801F80BD = 6;
+                    } else {
+                        func_801ECA38();
+                        D_801F80BD = 3;
+                    }
+                    break;
+                case 7:
+                case 0xFF:
+                    status = (s8)(D_801F7B88.flags[port][0] & D_801F7B88.flags[port][1] & D_801F7B88.flags[port][2]);
+                    if (status == 1) {
+                        D_801F7B88.unk53D = port;
+                        D_801F7B88.unk535 = 28;
+                    } else {
+                        func_801ECA38();
+                        D_801F80BD = 10;
+                    }
+                    break;
+                }
+            }
+            break;
+        case 17:
+            D_801F80BC = -1;
+            break;
+        case 23:
+            if (D_801F80BF == 6 && port == 0) {
+                for (slot = 0; slot < 2; slot++) {
+                    status = func_801EFE04(slot, slot, ((SessionView *)D_8006E054)->saves[slot].file);
+                    if (status != 3) {
+                        break;
+                    }
+                }
+            } else {
+                status = func_801EFE04(player, port, slot);
+            }
+            switch (status) {
+            case 0:
+            case 2:
+                D_801F7B88.unk534 = 13;
+                D_801F7B88.unk535 = 19;
+                break;
+            case 1:
+                D_801F7B88.unk534 = 12;
+                D_801F7B88.unk535 = 19;
+                break;
+            case 3:
+                D_801F7B88.unk534 = -1;
+                D_801F7B88.unk535 = 24;
+                break;
+            }
+            break;
+        case 24:
+            status = func_801EF880(port);
+            if (status == 1) {
+                D_801F7B88.unk534 = 12;
+                D_801F7B88.unk535 = 19;
+                D_801F8184 = status;
+            }
+            break;
+        case 4:
+            func_801EF568(player);
+            func_801EFAC0(player, slot);
+            writeSaveChecksum(0x2774, D_801F7B88.buffer);
+            if (startMemoryCardSave(port, 2, (s32)D_801F7B88.buffer, D_801F07FC[slot], (McHeader *)MEMORY_CARD_SAVE_HEADER) == -1) {
+                D_801F7B88.unk535 = 5;
+            } else if (func_801EF900(player, port) == -1) {
+                D_801F80BD = 5;
+            } else {
+                D_801F7B88.unk534 = 21;
+                D_801F7B88.unk535 = 25;
+            }
+            break;
+        case 18:
+            func_801EF568(player);
+            func_801EFAC0(player, slot);
+            writeSaveChecksum(0x2774, D_801F7B88.buffer);
+            if (startMemoryCardSave(port, 2, (s32)D_801F7B88.buffer, D_801F07FC[slot], (McHeader *)MEMORY_CARD_SAVE_HEADER) == -1) {
+                D_801F7B88.unk535 = 20;
+            } else if (func_801EF900(player, port) == -1) {
+                D_801F80BD = 20;
+            } else {
+                D_801F7B88.unk539 = 0;
+                if (D_801F7B88.mode != 6 || player != 0) {
+                    playMenuSound(1);
+                    D_801F7B88.unk534 = 22;
+                    D_801F7B88.unk533 = 1;
+                    D_801F7B88.unk535 = 26;
+                } else {
+                    D_801F7B88.unk533 = 3;
+                    D_801F7B88.unk535 = 27;
+                }
+            }
+            break;
+        case 3:
+        case 10:
+            result = func_801EF880(port);
+            if (result == 1) {
+                D_801F8184 = result;
+                D_801F80BD = result;
+                func_801ECBE8();
+            }
+            break;
+        case 7:
+            result = func_801EF880(port);
+            if (result == 1) {
+                D_801F8184 = result;
+                D_801F80BD = result;
+            }
+            break;
+        case 8:
+            formatMemoryCard(port);
+            D_801F80BD = 1;
+            break;
+        case 9:
+            if (startMemoryCardLoad(port, (s32)D_801F7B88.buffer, D_801F07FC[slot]) == -1) {
+                D_801F7B88.unk535 = 13;
+                break;
+            }
+            D_801F7B88.unk533 = 0;
+            if (func_801EF9E8(player, port) == -1) {
+                D_801F7B88.unk535 = 13;
+                break;
+            }
+            if (verifySaveChecksum(((SaveSlot *)D_801F7B88.buffer)->size, D_801F7B88.buffer) == 1) {
+                D_801F7B88.progress = 0;
+                D_801F7B88.unk535 = 15;
+            } else {
+                D_801F7B88.unk534 = 20;
+                D_801F7B88.unk535 = 25;
+                if (player == 0) {
+                    if ((((PlayerProfile *)D_801F7B88.buffer)->unk20_0) == 1) {
+                        func_80055730();
+                    } else {
+                        func_80055740();
+                    }
+                }
+            }
+            break;
+        case 25:
+            D_801F7B88.unk533 = 1;
+            playMenuSound(1);
+            func_801EF4AC(player, port, slot);
+            D_801F7B88.unk535 = 12;
+            break;
+        case 20:
+            D_801F8184 = 1;
+            D_801F7B88.unk534 = 15;
+            D_801F7B88.unk535 = 21;
+            break;
+        case 13:
+            D_801F8184 = 1;
+            D_801F7B88.unk534 = 19;
+            D_801F7B88.unk535 = 14;
+            break;
+        case 29:
+            break;
+        }
+    } while (D_801F80C2 != 1);
+    func_80014C08(FRAME_INTERVAL);
+}
 
 void func_801EF4AC(s32 port, s32 slot, s32 file) {
     PlayerProfile *src;
