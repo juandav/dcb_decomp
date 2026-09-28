@@ -111,8 +111,9 @@ void initPolyGT3Pair(POLY_GT3 *poly, POLY_GT3 *otherPoly, u8 *color0, u8 *color1
     *otherPoly = *poly;
 }
 
+/* the callers pass a 12th argument that is never read */
 void initPolyGT4Pair(POLY_GT4 *poly, POLY_GT4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 tpage,
-                   s32 clut, Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans) {
+                   s32 clut, Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans, u8 unused) {
     func_800677E4(poly);
     poly->tpage = tpage;
     poly->clut = clut;
@@ -167,8 +168,9 @@ void initPolyF4Pair(s32 *poly, s32 *otherPoly, u8 *color, s32 blendMode, void *t
     }
 }
 
+/* the callers pass a 12th argument that is never read */
 void initPolyG4Pair(POLY_G4 *poly, POLY_G4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 blendMode,
-                   void *tpage0, void *tpage1, Rect16 *xyRect, u8 semiTrans) {
+                   void *tpage0, void *tpage1, Rect16 *xyRect, u8 semiTrans, u8 unused) {
     func_800677C4(poly);
     if (semiTrans) {
         SetSemiTrans(poly, 1);
@@ -248,7 +250,9 @@ void initPolyF3Pair(s32 *poly, s32 *otherPoly, u8 *color, s32 blendMode, void *t
     }
 }
 
-void initLineG2Pair(s32 *line, s32 *otherLine, u8 *color0, u8 *color1, s32 blendMode, void *tpage0, void *tpage1, u8 semiTrans) {
+/* the callers pass a 9th argument that is never read */
+void initLineG2Pair(s32 *line, s32 *otherLine, u8 *color0, u8 *color1, s32 blendMode, void *tpage0, void *tpage1, u8 semiTrans,
+                    u8 unused) {
     func_80067904(line);
     if (semiTrans) {
         SetSemiTrans(line, 1);

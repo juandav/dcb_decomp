@@ -13,9 +13,9 @@ void initPolyFT3Pair(POLY_FT3 *poly, s32 *otherPoly, u8 *color, s32 tpage, s32 c
 void initPolyGT3Pair(POLY_GT3 *poly, POLY_GT3 *otherPoly, u8 *color0, u8 *color1, u8 *color2, s32 tpage, s32 clut,
                    Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans);
 void initPolyGT4Pair(POLY_GT4 *poly, POLY_GT4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 tpage,
-                   s32 clut, Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans);
+                   s32 clut, Rect16 *uvRect, Rect16 *xyRect, u8 semiTrans, u8 unused);
 void initPolyG4Pair(POLY_G4 *poly, POLY_G4 *otherPoly, u8 *color0, u8 *color1, u8 *color2, u8 *color3, s32 blendMode,
-                   void *tpage0, void *tpage1, Rect16 *xyRect, u8 semiTrans);
+                   void *tpage0, void *tpage1, Rect16 *xyRect, u8 semiTrans, u8 unused);
 void initPolyG3Pair(s32 *poly, s32 *otherPoly, u8 *color0, u8 *color1, u8 *color2, s32 blendMode, void *tpage0, void *tpage1,
                    u8 semiTrans);
 
