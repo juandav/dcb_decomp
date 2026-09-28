@@ -8,7 +8,25 @@ INCLUDE_ASM("asm/endseg/nonmatchings/endseg", func_801DE80C);
 
 INCLUDE_ASM("asm/endseg/nonmatchings/endseg", func_801DEF8C);
 
-INCLUDE_ASM("asm/endseg/nonmatchings/endseg", func_801DF2BC);
+void func_801DF2BC(s32 x, s32 y) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = 0x40;
+        CUR_SPRT->sp.v0 = 0x80;
+        CUR_SPRT->sp.clut = 0x2DEC;
+        CUR_SPRT->sp.w = 40;
+        CUR_SPRT->sp.h = 48;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0xB);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    }
+}
 
 void func_801DF408(UiWindow *window) {
     s32 x;
