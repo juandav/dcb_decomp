@@ -57,8 +57,8 @@ void runCardArtLoader(void) {
     s32 cardId;
 
     CARD_ART_LAST_SPRITE = -1;
-    DUEL->unk812 = 0;
-    DUEL->unk826 = 0;
+    DUEL->stopArtLoader = 0;
+    DUEL->artSlot = 0;
     for (i = 0; i < 6; i++) {
         DUEL->cache[i].id = -1;
         DUEL->cache[i].used = 0;
@@ -68,15 +68,15 @@ void runCardArtLoader(void) {
         s32 slot;
 
         func_80014C08(FRAME_INTERVAL);
-        slot = DUEL->unk826 % 6;
+        slot = DUEL->artSlot % 6;
         DUEL->cache[slot].used = 0;
-        if (DUEL->unk812 != 0) {
+        if (DUEL->stopArtLoader != 0) {
             break;
         }
-        if (DUEL->unk81C == -1 || DUEL->unk81C == 4) {
+        if (DUEL->cursorSlot == -1 || DUEL->cursorSlot == 4) {
             continue;
         }
-        spriteIndex = *(s16 *)(DUEL->unk58 + 2);
+        spriteIndex = *(s16 *)(DUEL->cursor + 2);
         if (spriteIndex == -1) {
             continue;
         }
@@ -84,14 +84,14 @@ void runCardArtLoader(void) {
             continue;
         }
         if (spriteIndex != CARD_ART_LAST_SPRITE) {
-            cardId = PLAYER(DUEL->unk81B)->cards[spriteIndex % 30].id;
-            if (DUEL->unk811 != 0) {
+            cardId = PLAYER(DUEL->cursorPlayer)->cards[spriteIndex % 30].id;
+            if (DUEL->loadBusy != 0) {
                 continue;
             }
             DUEL->cache[slot].used = 0;
-            CARD_ART_LAST_SPRITE = *(s16 *)(DUEL->unk58 + 2);
+            CARD_ART_LAST_SPRITE = *(s16 *)(DUEL->cursor + 2);
             if (DUEL->cache[slot].id != cardId) {
-                DUEL->unk811 = 1;
+                DUEL->loadBusy = 1;
                 DUEL->cache[slot].id = cardId;
                 sprintf(path, "B:\\CARD\\LC%3.3d.TIM", cardId);
                 func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
@@ -99,7 +99,7 @@ void runCardArtLoader(void) {
                 uploadTim(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
                 DrawSync(0);
                 freeHeapBlock(tim);
-                DUEL->unk811 = 0;
+                DUEL->loadBusy = 0;
             }
             DUEL->cache[slot].used = 1;
             for (i = 0; i < 6; i++) {
@@ -112,7 +112,7 @@ void runCardArtLoader(void) {
             DUEL->cache[slot].used = 1;
         }
     }
-    DUEL->unk812 = 0;
+    DUEL->stopArtLoader = 0;
 }
 
 INCLUDE_ASM("asm/main/nonmatchings/card/card_render", loadDuelCardGraphics);
@@ -341,35 +341,35 @@ void renderPhaseBanner(void) {
     s8 phase;
     u8 playerLabel;
 
-    phase = DUEL_MSG_BAR.unk3;
+    phase = DUEL_MSG_BAR.phase;
     if (phase == -1) {
         return;
     }
-    playerLabel = DUEL_MSG_BAR.unk1;
+    playerLabel = DUEL_MSG_BAR.playerLabel;
     step = STATUS_STEP_SPRITES[DUEL_MSG_BAR.next];
-    if (DUEL_MSG_BAR.unkC != playerLabel || DUEL_MSG_BAR.unkB != step || DUEL_MSG_BAR.unkD != phase) {
-        DUEL_MSG_BAR.unk0 = 0;
-        DUEL_MSG_BAR.unkE = 0;
-        DUEL_MSG_BAR.unk10 = 0;
+    if (DUEL_MSG_BAR.bannerLabel != playerLabel || DUEL_MSG_BAR.bannerStep != step || DUEL_MSG_BAR.bannerPhase != phase) {
+        DUEL_MSG_BAR.bannerState = 0;
+        DUEL_MSG_BAR.echoAge = 0;
+        DUEL_MSG_BAR.timer = 0;
         DUEL_MSG_BAR.px = 0x154;
         DUEL_MSG_BAR.py = 0x66;
-        DUEL_MSG_BAR.unkC = playerLabel;
-        DUEL_MSG_BAR.unkB = step;
-        DUEL_MSG_BAR.unkD = phase;
+        DUEL_MSG_BAR.bannerLabel = playerLabel;
+        DUEL_MSG_BAR.bannerStep = step;
+        DUEL_MSG_BAR.bannerPhase = phase;
     }
     poly = (POLY_FT4 *)(CURRENT_FRAME_BUFFER->unk4078[11] + 0x320);
-    switch ((u8)DUEL_MSG_BAR.unk0) {
+    switch ((u8)DUEL_MSG_BAR.bannerState) {
     case 0:
         DUEL_MSG_BAR.px -= 14;
         if (DUEL_MSG_BAR.px < 0x5B) {
             DUEL_MSG_BAR.px = 0x5A;
-            DUEL_MSG_BAR.unk0++;
+            DUEL_MSG_BAR.bannerState++;
         }
         break;
     case 1:
-        DUEL_MSG_BAR.unkE += 2;
+        DUEL_MSG_BAR.echoAge += 2;
         for (i = 0; i < 6; i++) {
-            age = DUEL_MSG_BAR.unkE - i * 3;
+            age = DUEL_MSG_BAR.echoAge - i * 3;
             brightness = 0x100 - age * 20;
             if (brightness >= 0) {
                 initPrimByType(0xC, poly, 1, 0);
@@ -377,13 +377,13 @@ void renderPhaseBanner(void) {
                 poly->g0 = brightness;
                 poly->b0 = brightness;
                 poly->u0 = 0xD0;
-                poly->v0 = (DUEL_MSG_BAR.unk1 * 12 + 0x100) % 0x100;
+                poly->v0 = (DUEL_MSG_BAR.playerLabel * 12 + 0x100) % 0x100;
                 poly->u1 = 0xFF;
-                poly->v1 = (DUEL_MSG_BAR.unk1 * 12 + 0x100) % 0x100;
+                poly->v1 = (DUEL_MSG_BAR.playerLabel * 12 + 0x100) % 0x100;
                 poly->u2 = 0xD0;
-                poly->v2 = (DUEL_MSG_BAR.unk1 * 12 + 0x100) % 0x100 + 12;
+                poly->v2 = (DUEL_MSG_BAR.playerLabel * 12 + 0x100) % 0x100 + 12;
                 poly->u3 = 0xFF;
-                poly->v3 = (DUEL_MSG_BAR.unk1 * 12 + 0x100) % 0x100 + 12;
+                poly->v3 = (DUEL_MSG_BAR.playerLabel * 12 + 0x100) % 0x100 + 12;
                 poly->x0 = DUEL_MSG_BAR.px - age * 2;
                 poly->y0 = DUEL_MSG_BAR.py - age * 2;
                 poly->x1 = DUEL_MSG_BAR.px + 0x30;
@@ -401,13 +401,13 @@ void renderPhaseBanner(void) {
                 poly->g0 = brightness;
                 poly->b0 = brightness;
                 poly->u0 = 0xD0;
-                poly->v0 = (DUEL_MSG_BAR.unk3 * 24 + 0x130) % 0x100;
+                poly->v0 = (DUEL_MSG_BAR.phase * 24 + 0x130) % 0x100;
                 poly->u1 = 0xFC;
-                poly->v1 = (DUEL_MSG_BAR.unk3 * 24 + 0x130) % 0x100;
+                poly->v1 = (DUEL_MSG_BAR.phase * 24 + 0x130) % 0x100;
                 poly->u2 = 0xD0;
-                poly->v2 = (DUEL_MSG_BAR.unk3 * 24 + 0x130) % 0x100 + 0x18;
+                poly->v2 = (DUEL_MSG_BAR.phase * 24 + 0x130) % 0x100 + 0x18;
                 poly->u3 = 0xFC;
-                poly->v3 = (DUEL_MSG_BAR.unk3 * 24 + 0x130) % 0x100 + 0x18;
+                poly->v3 = (DUEL_MSG_BAR.phase * 24 + 0x130) % 0x100 + 0x18;
                 poly->x0 = DUEL_MSG_BAR.px - (s16)(age * 2 - 10);
                 poly->y0 = DUEL_MSG_BAR.py - (s16)(age - 8);
                 poly->x1 = (s16)(DUEL_MSG_BAR.px - (s16)(age * 2 - 10) + 0x2C) + age * 2;
@@ -446,23 +446,23 @@ void renderPhaseBanner(void) {
                 poly++;
             }
         }
-        if (++DUEL_MSG_BAR.unk10 > 0x10) {
-            DUEL_MSG_BAR.unk0++;
+        if (++DUEL_MSG_BAR.timer > 0x10) {
+            DUEL_MSG_BAR.bannerState++;
         }
         break;
     case 2:
-        DUEL_MSG_BAR.unkE = 0;
-        DUEL_MSG_BAR.unk10 = 0;
-        DUEL_MSG_BAR.tx = (DUEL_MSG_BAR.unk1 % 2) * -170 + 0xB8;
-        DUEL_MSG_BAR.ty = (DUEL_MSG_BAR.unk1 % 2) * -136 + 0xA8;
-        DUEL_MSG_BAR.unk0++;
+        DUEL_MSG_BAR.echoAge = 0;
+        DUEL_MSG_BAR.timer = 0;
+        DUEL_MSG_BAR.tx = (DUEL_MSG_BAR.playerLabel % 2) * -170 + 0xB8;
+        DUEL_MSG_BAR.ty = (DUEL_MSG_BAR.playerLabel % 2) * -136 + 0xA8;
+        DUEL_MSG_BAR.bannerState++;
         break;
     case 3:
-        DUEL_MSG_BAR.unk10++;
-        DUEL_MSG_BAR.px = (DUEL_MSG_BAR.tx - 0x5A) * DUEL_MSG_BAR.unk10 / 8 + 0x5A;
-        DUEL_MSG_BAR.py = (DUEL_MSG_BAR.ty - 0x66) * DUEL_MSG_BAR.unk10 / 8 + 0x66;
-        if (DUEL_MSG_BAR.unk10 >= 8) {
-            DUEL_MSG_BAR.unk0++;
+        DUEL_MSG_BAR.timer++;
+        DUEL_MSG_BAR.px = (DUEL_MSG_BAR.tx - 0x5A) * DUEL_MSG_BAR.timer / 8 + 0x5A;
+        DUEL_MSG_BAR.py = (DUEL_MSG_BAR.ty - 0x66) * DUEL_MSG_BAR.timer / 8 + 0x66;
+        if (DUEL_MSG_BAR.timer >= 8) {
+            DUEL_MSG_BAR.bannerState++;
         }
         break;
     case 4:
@@ -496,7 +496,7 @@ void renderPhaseBanner(void) {
     CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px;
     CUR_SPRT->sp.y0 = DUEL_MSG_BAR.py;
     CUR_SPRT->sp.u0 = 0xD0;
-    CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.unk1 * 12 + 0x100) % 0x100;
+    CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.playerLabel * 12 + 0x100) % 0x100;
     CUR_SPRT->sp.clut = 0x7C73;
     CUR_SPRT->sp.w = 0x2F;
     CUR_SPRT->sp.h = 12;
@@ -514,7 +514,7 @@ void renderPhaseBanner(void) {
     CUR_SPRT->sp.x0 = DUEL_MSG_BAR.px + 10;
     CUR_SPRT->sp.y0 = DUEL_MSG_BAR.py + 8;
     CUR_SPRT->sp.u0 = 0xD0;
-    CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.unk3 * 24 + 0x130) % 0x100;
+    CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.phase * 24 + 0x130) % 0x100;
     CUR_SPRT->sp.clut = 0x7C73;
     CUR_SPRT->sp.w = 0x2C;
     CUR_SPRT->sp.h = 0x18;
@@ -615,10 +615,10 @@ void renderHelpBar(s32 brightness) {
     GetDispEnv(&env);
     SetDrawArea(&HELP_BAR_RESTORE_AREA[FRAME_BUFFER_INDEX], (Rect16 *)env.disp);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &HELP_BAR_RESTORE_AREA[FRAME_BUFFER_INDEX]);
-    if (DUEL_MSG_BAR.cur2 != DUEL_MSG_BAR.next2 || DUEL_MSG_BAR.unkA != DUEL_MSG_BAR.unk1) {
+    if (DUEL_MSG_BAR.cur2 != DUEL_MSG_BAR.next2 || DUEL_MSG_BAR.curLabel2 != DUEL_MSG_BAR.playerLabel) {
         if (++DUEL_MSG_BAR.y2 > 0x10) {
             DUEL_MSG_BAR.cur2 = DUEL_MSG_BAR.next2;
-            DUEL_MSG_BAR.unkA = DUEL_MSG_BAR.unk1;
+            DUEL_MSG_BAR.curLabel2 = DUEL_MSG_BAR.playerLabel;
         }
     } else if (DUEL_MSG_BAR.y2 != 0) {
         DUEL_MSG_BAR.y2--;
@@ -630,7 +630,7 @@ void renderHelpBar(s32 brightness) {
         CUR_SPRT->sp.x0 = 0x10;
         CUR_SPRT->sp.y0 = 0xDB - DUEL_MSG_BAR.y2;
         CUR_SPRT->sp.u0 = 0xD0;
-        CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.unkA * 12 + 0x100) % 256;
+        CUR_SPRT->sp.v0 = (DUEL_MSG_BAR.curLabel2 * 12 + 0x100) % 256;
         CUR_SPRT->sp.clut = 0x7C73;
         CUR_SPRT->sp.w = 0x2F;
         CUR_SPRT->sp.h = 0xC;
@@ -642,7 +642,7 @@ void renderHelpBar(s32 brightness) {
         addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->sp);
         addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->dm);
         SPRITE_POOL_CURSOR += sizeof(SprtPacket);
-        if (DUEL_MSG_BAR.unkA == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
+        if (DUEL_MSG_BAR.curLabel2 == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
             drawTextColored(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
         } else {
             drawTextColored(0x40, 0xDB - DUEL_MSG_BAR.y2, (s32)HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], (s32 *)rgb, 7, 0xFFE);

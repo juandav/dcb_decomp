@@ -3,10 +3,10 @@
 
 #include "game.h"
 
-#define CUR_CARD (((CardCursor *)DUEL->unk58)->id)
+#define CUR_CARD (((CardCursor *)DUEL->cursor)->id)
 #define CHOICE (((Window *)&D_801D8278)->choice)
-#define ME DUEL->unk817
-#define OPP ((s8)(DUEL->unk817 ^ 1))
+#define ME DUEL->turnPlayer
+#define OPP ((s8)(DUEL->turnPlayer ^ 1))
 
 extern s8 D_801D83D4;
 extern s8 D_801D83D7;

@@ -140,13 +140,13 @@ s32 takePartnerCardFromOnlineDeck(s32 player) {
     s32 cardIndex;
 
     for (i = 0; i < 30; i++) {
-        if (PLAYER(player)->unk17D[i] != -1) {
-            cardIndex = PLAYER(player)->unk17D[i];
+        if (PLAYER(player)->onlineDeck[i] != -1) {
+            cardIndex = PLAYER(player)->onlineDeck[i];
             if (findPartnerSlot(player, PLAYER(player)->cards[cardIndex % 30].id) >= 0) {
                 for (j = i; j > 0; j--) {
-                    PLAYER(player)->unk17D[j] = PLAYER(player)->unk17D[j - 1];
+                    PLAYER(player)->onlineDeck[j] = PLAYER(player)->onlineDeck[j - 1];
                 }
-                PLAYER(player)->unk17D[0] = -1;
+                PLAYER(player)->onlineDeck[0] = -1;
                 return cardIndex;
             }
         }
@@ -230,7 +230,7 @@ s32 checkHandHasDigimonCard(s32 player) {
     i = 0;
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        cardIndex = duelPlayer->unk1B9[i];
+        cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 0) {
             return 0;
         }
@@ -246,7 +246,7 @@ s32 checkHandHasOptionCard(s32 player) {
     i = 0;
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        cardIndex = duelPlayer->unk1B9[i];
+        cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 1) {
             return 0;
         }
@@ -262,7 +262,7 @@ s32 checkHandHasDigivolveCard(s32 player) {
     i = 0;
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
-        cardIndex = duelPlayer->unk1B9[i];
+        cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 2) {
             return 0;
         }
@@ -315,21 +315,21 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
         return -1;
     }
     card = PLAYER(player)->cards[cardIndex % 30].card;
-    statShift = PLAYER(player)->unk178_15 - 1;
+    statShift = PLAYER(player)->statPenalty - 1;
     if (statShift < 0) {
         statShift = 0;
     }
     for (stackSlot = 2; stackSlot >= 0; stackSlot--) {
-        if (PLAYER(player)->unk1CA[stackSlot] == -1 || PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
-            PLAYER(player)->unk1CA[stackSlot] = cardIndex;
-            PLAYER(player)->unk178_19 = ((u8)card[0x1A] >> 4);
-            PLAYER(player)->unk11C[0] = (*(s16 *)(card + 0x1E) >> statShift) / 10 * 10;
-            PLAYER(player)->unk15C[0] = (*(s16 *)(card + 0x20) >> statShift) / 10 * 10;
-            PLAYER(player)->unk15C[1] = (*(s16 *)(card + 0x3C) >> statShift) / 10 * 10;
-            PLAYER(player)->unk15C[2] = (*(s16 *)(card + 0x58) >> statShift) / 10 * 10;
-            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
-            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
-            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+        if (PLAYER(player)->digimonStack[stackSlot] == -1 || PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
+            PLAYER(player)->digimonStack[stackSlot] = cardIndex;
+            PLAYER(player)->specialty = ((u8)card[0x1A] >> 4);
+            PLAYER(player)->stats[0] = (*(s16 *)(card + 0x1E) >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[0] = (*(s16 *)(card + 0x20) >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[1] = (*(s16 *)(card + 0x3C) >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[2] = (*(s16 *)(card + 0x58) >> statShift) / 10 * 10;
+            PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
+            PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
+            PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->unk178_30 = 0;
             return 0;
         }
@@ -357,15 +357,15 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     artRect.h = 0x28;
     MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
     for (stackSlot = 0; stackSlot < 3; stackSlot++) {
-        if (PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
-            PLAYER(player)->unk178_19 = (u8)armorCard[0x1A] >> 4;
-            PLAYER(player)->unk11C[0] = *(s16 *)(armorCard + 0x1E);
-            PLAYER(player)->unk15C[0] = *(s16 *)(armorCard + 0x20);
-            PLAYER(player)->unk15C[1] = *(s16 *)(armorCard + 0x3C);
-            PLAYER(player)->unk15C[2] = *(s16 *)(armorCard + 0x58);
-            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
-            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
-            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+        if (PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
+            PLAYER(player)->specialty = (u8)armorCard[0x1A] >> 4;
+            PLAYER(player)->stats[0] = *(s16 *)(armorCard + 0x1E);
+            PLAYER(player)->baseAttackPowers[0] = *(s16 *)(armorCard + 0x20);
+            PLAYER(player)->baseAttackPowers[1] = *(s16 *)(armorCard + 0x3C);
+            PLAYER(player)->baseAttackPowers[2] = *(s16 *)(armorCard + 0x58);
+            PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
+            PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
+            PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->unk178_30 = 0;
             PLAYER(player)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10);
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[partnerSlot + 1];
@@ -395,15 +395,15 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     artRect.h = 0x28;
     MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
     for (stackSlot = 0; stackSlot < 3; stackSlot++) {
-        if (PLAYER(player)->unk1CA[stackSlot] == cardIndex) {
-            PLAYER(player)->unk178_19 = (u8)baseCard[0x1A] >> 4;
-            PLAYER(player)->unk11C[0] = *(s16 *)(baseCard + 0x1E);
-            PLAYER(player)->unk15C[0] = *(s16 *)(baseCard + 0x20);
-            PLAYER(player)->unk15C[1] = *(s16 *)(baseCard + 0x3C);
-            PLAYER(player)->unk15C[2] = *(s16 *)(baseCard + 0x58);
-            PLAYER(player)->unk11C[1] = PLAYER(player)->unk15C[0];
-            PLAYER(player)->unk11C[2] = PLAYER(player)->unk15C[1];
-            PLAYER(player)->unk11C[3] = PLAYER(player)->unk15C[2];
+        if (PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
+            PLAYER(player)->specialty = (u8)baseCard[0x1A] >> 4;
+            PLAYER(player)->stats[0] = *(s16 *)(baseCard + 0x1E);
+            PLAYER(player)->baseAttackPowers[0] = *(s16 *)(baseCard + 0x20);
+            PLAYER(player)->baseAttackPowers[1] = *(s16 *)(baseCard + 0x3C);
+            PLAYER(player)->baseAttackPowers[2] = *(s16 *)(baseCard + 0x58);
+            PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
+            PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
+            PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->unk178_30 = 0;
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[0];
             return 0;
@@ -438,7 +438,7 @@ s32 sumDigivolvePoints(s32 player) {
     points = 0;
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 8; i++) {
-        cardIndex = duelPlayer->unk1C2[i];
+        cardIndex = duelPlayer->dpSlots[i];
         if (cardIndex != -1) {
             points += duelPlayer->cards[cardIndex % 30].card[0x1C];
         }
@@ -556,15 +556,15 @@ void shuffleOnlineDeck(s32 player) {
 
     cardCount = countOnlineDeckCards(player);
     if (cardCount >= 2) {
-        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->unk11A; pass++) {
+        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->shufflePasses; pass++) {
             for (i = 30 - cardCount; i < 30; i++) {
                 swapIndex = rand() % cardCount + (30 - cardCount);
-                swap = ((Player *)DUEL_PLAYERS[player])->unk17D[i];
-                ((Player *)DUEL_PLAYERS[player])->unk17D[i] = ((Player *)DUEL_PLAYERS[player])->unk17D[swapIndex];
-                ((Player *)DUEL_PLAYERS[player])->unk17D[swapIndex] = swap;
+                swap = ((Player *)DUEL_PLAYERS[player])->onlineDeck[i];
+                ((Player *)DUEL_PLAYERS[player])->onlineDeck[i] = ((Player *)DUEL_PLAYERS[player])->onlineDeck[swapIndex];
+                ((Player *)DUEL_PLAYERS[player])->onlineDeck[swapIndex] = swap;
             }
         }
-        ((Player *)DUEL_PLAYERS[player])->unk11A = 0;
+        ((Player *)DUEL_PLAYERS[player])->shufflePasses = 0;
     }
 }
 
@@ -577,15 +577,15 @@ void shuffleOfflineDeck(s32 player) {
 
     cardCount = countOfflineDeckCards(player);
     if (cardCount >= 2) {
-        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->unk11A; pass++) {
+        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->shufflePasses; pass++) {
             for (i = 30 - cardCount; i < 30; i++) {
                 swapIndex = rand() % cardCount + (30 - cardCount);
-                swap = ((Player *)DUEL_PLAYERS[player])->unk19B[i];
-                ((Player *)DUEL_PLAYERS[player])->unk19B[i] = ((Player *)DUEL_PLAYERS[player])->unk19B[swapIndex];
-                ((Player *)DUEL_PLAYERS[player])->unk19B[swapIndex] = swap;
+                swap = ((Player *)DUEL_PLAYERS[player])->offlineDeck[i];
+                ((Player *)DUEL_PLAYERS[player])->offlineDeck[i] = ((Player *)DUEL_PLAYERS[player])->offlineDeck[swapIndex];
+                ((Player *)DUEL_PLAYERS[player])->offlineDeck[swapIndex] = swap;
             }
         }
-        ((Player *)DUEL_PLAYERS[player])->unk11A = 0;
+        ((Player *)DUEL_PLAYERS[player])->shufflePasses = 0;
     }
 }
 
