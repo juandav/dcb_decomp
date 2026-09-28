@@ -33,7 +33,7 @@ s32 findNewPartnerAbility(Entry12 *abilityTable, s32 player, s32 slot) {
     s32 partnerIndex;
     s32 i;
 
-    level = ((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289;
+    level = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level;
     partnerIndex = getSlotPartnerIndex(player, slot);
     if (partnerIndex >= 0) {
         for (i = 0; i < 0x80; i++) {
@@ -54,7 +54,7 @@ s32 getExpForNextLevel(s32 level) {
 }
 
 s32 func_8004994C(s32 player, s32 slot) {
-    if ((s8)((s8)((Unk8006E050 *)PLAYER_PROFILES)[player].unk80[slot].unk289 % 5) != 0) {
+    if ((s8)((s8)((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level % 5) != 0) {
         return -1;
     }
     return rand() % 4;

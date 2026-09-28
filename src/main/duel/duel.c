@@ -246,7 +246,7 @@ void runDuelTurnLoop(void) {
                     waitForCpuDecision();
                     if (DUEL->unk804 == -1) {
                         for (i = 0; i < 4; i++) {
-                            if (PLAYER(ME)->unk1B9[i] != -1 && PLAYER(ME)->cards[(s8)(PLAYER(ME)->unk1B9[i] % 30)].state == 0) {
+                            if (PLAYER(ME)->unk1B9[i] != -1 && PLAYER(ME)->cards[(s8)(PLAYER(ME)->unk1B9[i] % 30)].type == 0) {
                                 DUEL->unk804 = PLAYER(ME)->unk1B9[i];
                                 break;
                             }
@@ -279,7 +279,7 @@ void runDuelTurnLoop(void) {
                 D_801D83D7 = 3;
             }
             if (func_801EBACC(ME, 1) == 0) {
-                if (PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].state == 0) {
+                if (PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].type == 0) {
                     playSoundEffect(0xA0);
                     func_801EC528(ME);
                     func_801EA558(CUR_CARD, ME);
@@ -395,7 +395,7 @@ void runDuelTurnLoop(void) {
             DUEL_MSG_BAR.next2 = 7;
             if (func_801EBACC(ME, 2) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
-                if (PLAYER(ME)->cards[i % 30].state == 0) {
+                if (PLAYER(ME)->cards[i % 30].type == 0) {
                     playSoundEffect(0xA0);
                     DUEL->unk80E = func_801ECBCC(CUR_CARD, ME);
                     DUEL->unk818++;
@@ -443,7 +443,7 @@ void runDuelTurnLoop(void) {
             DUEL->unk822 = 1;
             if (func_801EBACC(ME, 5) == 0) {
                 i = PLAYER(ME)->unk1B9[DUEL->unk81C];
-                if (PLAYER(ME)->cards[i % 30].state == 2) {
+                if (PLAYER(ME)->cards[i % 30].type == 2) {
                     playSoundEffect(0xA0);
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
                     if (func_801EA374(ME) != 0) {
@@ -824,8 +824,8 @@ void runDuelTurnLoop(void) {
                 D_801D83EC[0x109] = 4;
                 for (i = 0; i < 2; i++) {
                     PLAYER(i)->unk178_0 = PLAYER(i)->unk178_2;
-                    if (((Unk8006E050 *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0] != 0xFFFF) {
-                        ((Unk8006E050 *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0]++;
+                    if (((PlayerProfile *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0] != 0xFFFF) {
+                        ((PlayerProfile *)PLAYER_PROFILES)[i].unk36[PLAYER(i)->unk178_0]++;
                     }
                 }
                 waitDuelFrames(0x78);
@@ -877,7 +877,7 @@ void runDuelTurnLoop(void) {
                     DUEL->unk80A = handSlot;
                     func_801ECAC4(OPP);
                 } else {
-                    if (PLAYER(OPP)->cards[i % 30].state == 2) {
+                    if (PLAYER(OPP)->cards[i % 30].type == 2) {
                         break;
                     }
                     DUEL->unk80A = func_801ECB40(CUR_CARD, OPP);
@@ -961,7 +961,7 @@ void runDuelTurnLoop(void) {
                     DUEL->unk80A = handSlot;
                     func_801ECAC4(ME);
                 } else {
-                    if (PLAYER(ME)->cards[i % 30].state == 2) {
+                    if (PLAYER(ME)->cards[i % 30].type == 2) {
                         break;
                     }
                     DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
@@ -1005,7 +1005,7 @@ void runDuelTurnLoop(void) {
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 0xF;
             waitDuelFrames(0x3C);
-            if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
+            if (((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
                 ATTACK_ICON_TIMER = 0x20;
                 addFrameCallback((s32)renderAttackChoiceIcons);
                 while (ATTACK_ICON_TIMER != 0) {
@@ -1024,7 +1024,7 @@ void runDuelTurnLoop(void) {
         case 34:
             DUEL->unk822 = 0;
             DUEL->unk81C = -1;
-            if (!((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
+            if (!((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
                 func_80014C08(0x3C);
                 DUEL->state = 1;
                 func_80014C08(2);
@@ -1052,7 +1052,7 @@ void runDuelTurnLoop(void) {
         case 35:
             DUEL->unk822 = 0;
             knockedOut = 0;
-            if (((Unk8006E050 *)PLAYER_PROFILES)->unk20_3) {
+            if (((PlayerProfile *)PLAYER_PROFILES)->unk20_3) {
                 firstAttacker = DUEL->unk50;
                 secondAttacker = DUEL->unk54;
                 j = firstAttacker->unk178_17 & 1;

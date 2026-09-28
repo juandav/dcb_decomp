@@ -19,66 +19,66 @@ void updatePlayerRanks(s32 player) {
     s32 i;
     s32 completedSets;
 
-    rank = PLAYER_DATA(player).rankA;
+    rank = PLAYER_DATA(player).tamerRank;
     switch (rank) {
     case 0:
-        if (PLAYER_DATA(player).unk18 < 10) {
+        if (PLAYER_DATA(player).battleWins < 10) {
             break;
         }
         rank = 1;
     case 1:
-        if (PLAYER_DATA(player).unk18 < 25) {
+        if (PLAYER_DATA(player).battleWins < 25) {
             break;
         }
         rank = 2;
     case 2:
-        if (PLAYER_DATA(player).unk18 < 50) {
+        if (PLAYER_DATA(player).battleWins < 50) {
             break;
         }
         rank = 3;
     case 3:
-        if (PLAYER_DATA(player).unk18 < 100) {
+        if (PLAYER_DATA(player).battleWins < 100) {
             break;
         }
         rank = 4;
     case 4:
-        if (PLAYER_DATA(player).unk18 < 200) {
+        if (PLAYER_DATA(player).battleWins < 200) {
             break;
         }
         rank = 5;
     case 5:
-        if (PLAYER_DATA(player).unk18 < 300) {
+        if (PLAYER_DATA(player).battleWins < 300) {
             break;
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(player).unk18 < 500) {
+        if (PLAYER_DATA(player).battleWins < 500) {
             break;
         }
         rank = 7;
     }
-    PLAYER_DATA(player).rankA = rank;
+    PLAYER_DATA(player).tamerRank = rank;
 
     ownedCards = 0;
     for (i = 0; i < 6; i++) {
         specialtyCounts[i] = 0;
     }
     for (i = 0; i < 0xAC; i++) {
-        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        completedSets = PLAYER_DATA(player).cardCollection[i] & 7;
         if (completedSets != 0) {
             ownedCards += completedSets;
             specialtyCounts[DIGIMON_CARDS[i * 0x13C + 0x1A] >> 4]++;
         }
     }
     for (i = 0xBF; i < 0x125; i++) {
-        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        completedSets = PLAYER_DATA(player).cardCollection[i] & 7;
         if (completedSets != 0) {
             ownedCards += completedSets;
             specialtyCounts[5]++;
         }
     }
     for (i = 0x125; i < 0x12D; i++) {
-        completedSets = PLAYER_DATA(player).unk14B2[i] & 7;
+        completedSets = PLAYER_DATA(player).cardCollection[i] & 7;
         if (completedSets != 0) {
             ownedCards += completedSets;
             specialtyCounts[5]++;
@@ -91,7 +91,7 @@ void updatePlayerRanks(s32 player) {
         }
     }
 
-    rank = PLAYER_DATA(player).rankB;
+    rank = PLAYER_DATA(player).collectorRank;
     switch (rank) {
     case 0:
         if (ownedCards < 100) {
@@ -129,45 +129,45 @@ void updatePlayerRanks(s32 player) {
         }
         rank = 7;
     }
-    PLAYER_DATA(player).rankB = rank;
+    PLAYER_DATA(player).collectorRank = rank;
 
-    rank = PLAYER_DATA(player).rankC;
+    rank = PLAYER_DATA(player).battleRank;
     switch (rank) {
     case 0:
-        if (PLAYER_DATA(player).unk1C < 10) {
+        if (PLAYER_DATA(player).versusWins < 10) {
             break;
         }
         rank = 1;
     case 1:
-        if (PLAYER_DATA(player).unk1C < 20) {
+        if (PLAYER_DATA(player).versusWins < 20) {
             break;
         }
         rank = 2;
     case 2:
-        if (PLAYER_DATA(player).unk1C < 30) {
+        if (PLAYER_DATA(player).versusWins < 30) {
             break;
         }
         rank = 3;
     case 3:
-        if (PLAYER_DATA(player).unk1C < 40) {
+        if (PLAYER_DATA(player).versusWins < 40) {
             break;
         }
         rank = 4;
     case 4:
-        if (PLAYER_DATA(player).unk1C < 60) {
+        if (PLAYER_DATA(player).versusWins < 60) {
             break;
         }
         rank = 5;
     case 5:
-        if (PLAYER_DATA(player).unk1C < 80) {
+        if (PLAYER_DATA(player).versusWins < 80) {
             break;
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(player).unk1C < 100) {
+        if (PLAYER_DATA(player).versusWins < 100) {
             break;
         }
         rank = 7;
     }
-    PLAYER_DATA(player).rankC = rank;
+    PLAYER_DATA(player).battleRank = rank;
 }

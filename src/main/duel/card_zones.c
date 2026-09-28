@@ -231,7 +231,7 @@ s32 checkHandHasDigimonCard(s32 player) {
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
         cardIndex = duelPlayer->unk1B9[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 0) {
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 0) {
             return 0;
         }
     }
@@ -247,7 +247,7 @@ s32 checkHandHasOptionCard(s32 player) {
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
         cardIndex = duelPlayer->unk1B9[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 1) {
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 1) {
             return 0;
         }
     }
@@ -263,7 +263,7 @@ s32 checkHandHasDigivolveCard(s32 player) {
     duelPlayer = (Player *)DUEL_PLAYERS[player];
     for (; i < 4; i++) {
         cardIndex = duelPlayer->unk1B9[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].state == 2) {
+        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 2) {
             return 0;
         }
     }
@@ -348,8 +348,8 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
         return -1;
     }
     cardIndex = getActiveDigimonCard(player);
-    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).unk80[partnerSlot].unk292[0]);
-    armorCard = (s8 *)&PLAYER_DATA(player).unk80[partnerSlot] + 0x13C;
+    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].unk292[0]);
+    armorCard = (s8 *)&PLAYER_DATA(player).partners[partnerSlot] + 0x13C;
     PLAYER(player)->cards[cardIndex % 30].card = armorCard;
     artRect.x = ((player << 8) + (partnerSlot + 3) * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;
@@ -386,8 +386,8 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
         return -1;
     }
     cardIndex = getActiveDigimonCard(player);
-    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).unk80[partnerSlot].unk288);
-    baseCard = (s8 *)&PLAYER_DATA(player).unk80[partnerSlot];
+    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].cardId);
+    baseCard = (s8 *)&PLAYER_DATA(player).partners[partnerSlot];
     PLAYER(player)->cards[cardIndex % 30].card = baseCard;
     artRect.x = ((player << 8) + partnerSlot * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;

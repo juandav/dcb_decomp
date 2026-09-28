@@ -6,11 +6,11 @@
 typedef struct {
     /* 0x00 */ s16 id;
     /* 0x02 */ u8 unk2[0xE0];
-} Unk801D8400;
+} OptionCardData;
 typedef struct {
     /* 0x00 */ s16 id;
     /* 0x02 */ u8 unk2[0x6E];
-} Unk801D8404;
+} DigivolveCardData;
 
 extern u8 PARTNER_ARMOR_CARD_IDS[6][3];
 extern u8 *CARD_DB_FILE;
@@ -19,9 +19,9 @@ extern u8 *DIGIVOLVE_CARDS;
 extern u8 D_8006E50C[];
 extern u8 PARTNER_CARD_IDS[];
 extern u8 PARTNER_START_ABILITIES[];
-extern CardRec20 PARTNER_ABILITY_CONDITIONS[];
-extern CardRec10 PARTNER_ABILITY_ACTIONS[];
-extern CardEffect PARTNER_ABILITIES[];
+extern SupportCondition PARTNER_ABILITY_CONDITIONS[];
+extern SupportAction PARTNER_ABILITY_ACTIONS[];
+extern PartnerAbility PARTNER_ABILITIES[];
 extern u8 *PARTNER_ABILITY_TEXTS[];
 
 void loadCardDatabase();
@@ -40,11 +40,11 @@ void markBuildableOpponentDecks(s32 player);
 void addRewardCardsToCollection(s32 player);
 void countSeenCards(s32 player);
 void linkSavedDecks(s32 player);
-void linkDeckCardData(s32 player, Unk110 *deck);
+void linkDeckCardData(s32 player, PlayerDeck *deck);
 void setCardSlotFromId(u8 *out, s32 id);
-s32 countDeckCardsByFilter(s32 unused, Unk110 *deck, s32 mask);
-s32 storeSavedDeck(s32 player, Unk110 *src, s32 slot);
-s32 getSavedDeck(s32 player, Unk110 *out, s32 slot);
+s32 countDeckCardsByFilter(s32 unused, PlayerDeck *deck, s32 mask);
+s32 storeSavedDeck(s32 player, PlayerDeck *src, s32 slot);
+s32 getSavedDeck(s32 player, PlayerDeck *out, s32 slot);
 s32 deleteSavedDeck(s32 player, s32 slot);
 s32 func_800471F4(s32 deckId);
 void backupPartners(s32 player);

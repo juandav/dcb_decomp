@@ -280,7 +280,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
     s32 u;
 
     poly = (POLY_FT4 *)((u8 *)CURRENT_FRAME_BUFFER->unk4078[11] + (index * 80 + 0x280));
-    u = ((((Unk8006E050 *)PLAYER_PROFILES)->unk24 / 4) % 4) * 32;
+    u = ((((PlayerProfile *)PLAYER_PROFILES)->playTime / 4) % 4) * 32;
     initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
     poly->g0 = 0x80;
