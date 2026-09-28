@@ -129,7 +129,7 @@ $(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
 	$(PYTHON) tools/extract_drv.py $$< $$($(1)_NAME) $$@
 
 $(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
-$(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(BUILDDIR)/disks/$$($(1)_NAME).BIN
+$(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(wildcard config/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
 	@touch $$@
 
