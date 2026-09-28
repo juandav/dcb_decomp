@@ -27,6 +27,7 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/symbols.txt
+    - config/symbols_evoseg.txt
 
   undefined_funcs_auto_path: build/generated/undefined_funcs_auto_evoseg.txt
   undefined_syms_auto_path: build/generated/undefined_syms_auto_evoseg.txt
