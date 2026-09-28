@@ -1,0 +1,6 @@
+// SUGSEG's own symbols
+
+// alternate entry points of the executable's __subsf3 (libmath): GCC calls
+// them for float additions and divisions
+__addsf3 = 0x80026580; // type:func
+__divsf3 = 0x80026790; // type:func
