@@ -7,6 +7,31 @@
 #include "dcb/loader.h"
 #include "dcb/heap.h"
 #include "dcb/vram_upload.h"
+#include "dcb/menu.h"
+#include "dcb/memcard.h"
+
+typedef struct {
+    u8 unk0[9];
+    char name[0x13];
+    u8 cursor;
+    u8 unk1D[4];
+    u8 pad;
+} NameEntry;
+extern NameEntry D_801F2488;
+extern u8 D_801F24A4;
+extern CursorHighlight D_801F23E8;
+extern s32 D_801F3178;
+extern s32 D_801F317C;
+extern void *D_801F34D0[301];
+extern void *D_801F3990[301];
+extern void func_801E89FC(s16 x, s16 y, s16 clut, s32 u, s32 v, s16 w, s16 h, s8 unk7, u8 unk8, s8 unk9, s32 otIndex);
+extern SprtPacket *D_801F44A4;
+typedef struct {
+    u8 inDecks[3][301];
+    u8 unk387[301];
+    u8 spare[301];
+} DeckCardCounts;
+extern DeckCardCounts *D_801F4324;
 
 extern UiWindow D_801F22F8;
 extern UiWindow D_801F2398;
@@ -71,7 +96,34 @@ INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801DF9BC);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E0278);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E0948);
+void func_801E0948(UiWindow *window) {
+    Rect16 rect;
+    char buf[248];
+    s32 x = window->originX + 1;
+    s32 y = window->originY;
+    s32 z = window->z;
+
+    sprintf(buf, "*s0%s", D_801F2488.name);
+    drawText(x, y, (s32)buf, 7, z);
+    drawText(x + 0x4C, y, (s32)"Deck", 6, z);
+    if (PAD_STATES[D_801F2488.pad]->repeat & 4) {
+        if (D_801F2488.cursor != 0) {
+            playMenuSound(2);
+            D_801F2488.cursor--;
+        }
+    } else if (PAD_STATES[D_801F2488.pad]->repeat & 8) {
+        if (D_801F2488.cursor != 11 && D_801F2488.name[D_801F2488.cursor] != 0) {
+            D_801F2488.cursor++;
+            playMenuSound(2);
+        }
+    }
+    rect.x = x + D_801F24A4 * 6;
+    rect.y = y + 13;
+    rect.w = 6;
+    rect.h = 0;
+    moveCursorHighlight(&D_801F23E8, &rect);
+    drawCursorHighlight(&D_801F23E8, z);
+}
 
 void func_801E0B08(UiWindow *window) {
     s32 unused[2]; /* unused, but it is in the original stack frame */
@@ -98,7 +150,37 @@ INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E0FF0);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E11D4);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E14E4);
+void func_801E14E4(void) {
+    if (isSpritePoolFull() == 0) {
+        if (D_801F3178 != 0) {
+            D_801F317C += 4;
+            if (D_801F317C > 8) {
+                D_801F317C = 8;
+            }
+        } else {
+            D_801F317C -= 4;
+            if (D_801F317C < -0x20) {
+                D_801F317C = -0x20;
+            }
+        }
+        CUR_SPRT->sp.x0 = 6;
+        CUR_SPRT->sp.y0 = D_801F317C;
+        CUR_SPRT->sp.u0 = 0;
+        CUR_SPRT->sp.v0 = 0x40;
+        CUR_SPRT->sp.clut = 0x7C00;
+        CUR_SPRT->sp.w = 0x80;
+        CUR_SPRT->sp.h = 0x20;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setlen(&CUR_SPRT->dm, 1);
+        CUR_SPRT->dm.code[0] = 0xE1000005;
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    }
+}
 
 s32 func_801E1680(s32 a, s32 b) {
     s32 result = 7;
@@ -652,7 +734,31 @@ s32 func_801E69FC(s8 **a, s8 **b) {
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E6B04);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E6BE8);
+void func_801E6BE8(void) {
+    s32 n = 0;
+    s32 i;
+
+    for (i = 0; i < 0xBF; i++) {
+        D_801F34D0[n++] = &((DigimonCardData *)DIGIMON_CARDS)[i];
+    }
+    for (i = 0; i < 0x66; i++) {
+        D_801F34D0[n++] = &((OptionCardData *)OPTION_CARDS)[i];
+    }
+    for (i = 0; i < 8; i++) {
+        D_801F34D0[n++] = &((DigivolveCardData *)DIGIVOLVE_CARDS)[i];
+    }
+    for (i = 0; i < 3; i++) {
+        if (PLAYER_DATA(D_801F41BA).partners[i].cardId != 0) {
+            D_801F34D0[PLAYER_DATA(D_801F41BA).partners[i].cardId] = &PLAYER_DATA(D_801F41BA).partners[i].card[0];
+            if (PLAYER_DATA(D_801F41BA).partners[i].unk292[0] != 0) {
+                D_801F34D0[PLAYER_DATA(D_801F41BA).partners[i].unk292[0]] = &PLAYER_DATA(D_801F41BA).partners[i].card[1];
+            }
+        }
+    }
+    for (i = 0; i < 301; i++) {
+        D_801F3990[i] = D_801F34D0[i];
+    }
+}
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E6DA8);
 
@@ -1220,9 +1326,70 @@ INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E86D4);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E8798);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E8864);
+void func_801E8864(s16 cardId, s16 x, s16 y, u8 arg3, s32 otIndex) {
+    s32 specialty = ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr >> 4;
+    s32 u;
+    s32 v;
+    s32 clutY;
+    s16 page;
+    s16 column;
+    s16 row;
+    s32 pageU;
+    s32 columnU;
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E89FC);
+    if (cardId == 300) {
+        u = 0x230;
+        v = 0x1E0;
+    } else {
+        page = cardId / 50;
+        pageU = page << 6;
+        column = cardId % 5;
+        columnU = column * 12 + 0x240;
+        u = pageU + columnU;
+        row = cardId % 50;
+        row = row / 5;
+        v = row * 24 + 0x100;
+    }
+    if (cardId >= 0x11D || cardId == 200) {
+        clutY = 0x1FE;
+    } else if (cardId < 0xBF) {
+        clutY = specialty + 0x1F8;
+    } else {
+        clutY = 0x1FD;
+    }
+    func_801E89FC(x, y, getClut(0x240, clutY), u, v, 24, 24, 1, arg3, -1, otIndex);
+}
+
+void func_801E89FC(s16 x, s16 y, s16 clut, s32 u, s32 v, s16 w, s16 h, s8 tp, u8 brightness, s8 abr, s32 otIndex) {
+    u16 tpage = ((tp & 3) << 7) | ((abr & 3) << 5) | ((v & 0x100) >> 4) | ((u & 0x3C0) >> 6) | ((v & 0x200) << 2);
+
+    setlen(&D_801F44A4->sp, 4);
+    setcode(&D_801F44A4->sp, 0x64);
+    D_801F44A4->sp.clut = clut;
+    D_801F44A4->sp.w = w;
+    D_801F44A4->sp.h = h;
+    D_801F44A4->sp.x0 = x;
+    D_801F44A4->sp.y0 = y;
+    if (tp != 0) {
+        D_801F44A4->sp.u0 = (u % 64) << 1;
+    } else {
+        D_801F44A4->sp.u0 = (u % 64) << 2;
+    }
+    D_801F44A4->sp.v0 = v;
+    D_801F44A4->sp.r0 = brightness;
+    D_801F44A4->sp.g0 = brightness;
+    D_801F44A4->sp.b0 = brightness;
+    if (abr >= 0) {
+        tpage |= (abr & 3) << 5;
+        setSemiTrans(&D_801F44A4->sp, 1);
+    } else {
+        setSemiTrans(&D_801F44A4->sp, 0);
+    }
+    setDrawMode(&D_801F44A4->dm, 0, 0, tpage);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &D_801F44A4->sp);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &D_801F44A4->dm);
+    D_801F44A4++;
+}
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E8C04);
 
@@ -1245,7 +1412,38 @@ void func_801E8D98(UiWindow *window, Rect16 area, s32 label, s32 flags, s32 styl
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E8E8C);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E913C);
+void func_801E913C(u8 player) {
+    s32 i;
+    s32 j;
+    s32 id;
+
+    for (i = 0; i < 301; i++) {
+        D_801F4324->spare[i] = getOwnedCardCount(player, i);
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 301; j++) {
+            D_801F4324->inDecks[i][j] = 0;
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        if (PLAYER_DATA(player).savedDecks[i].inUse != 0) {
+            for (j = 0; j < 30; j++) {
+                id = getCardId(PLAYER_DATA(player).savedDecks[i].cards[j].type, ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].cards[j].index);
+                D_801F4324->inDecks[i][id]++;
+            }
+        }
+    }
+    for (i = 0; i < 301; i++) {
+        for (j = 1; j < 3; j++) {
+            if (D_801F4324->inDecks[0][i] < D_801F4324->inDecks[j][i]) {
+                D_801F4324->inDecks[0][i] = D_801F4324->inDecks[j][i];
+            }
+        }
+    }
+    for (i = 0; i < 301; i++) {
+        D_801F4324->spare[i] -= D_801F4324->inDecks[0][i];
+    }
+}
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E93B8);
 

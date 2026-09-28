@@ -17,6 +17,78 @@
 #include "dcb/player_data.h"
 
 typedef struct {
+    u8 unk0[0x26D4];
+    s32 unk26D4;
+} Unk801E3C2C_13C;
+typedef struct {
+    u8 unk0[0x139];
+    u8 unk139;
+    u8 unk13A[2];
+    Unk801E3C2C_13C *unk13C;
+    u8 unk140[0x20];
+    u8 unk160[0x40A];
+    s16 brightness;
+    s16 lastBrightness;
+    s8 modelSlot;
+    u8 unk56F;
+    s8 unk570;
+    s8 unk571;
+} Unk801E3C2C;
+extern MATRIX D_801EF25C;
+extern MATRIX D_801EF27C;
+typedef struct {
+    u8 unk0[0x130];
+    u32 animId;
+    u8 unk134[0x1C];
+    s32 pixelX;
+    s32 pixelY;
+    u8 unk158[8];
+    s32 clutX;
+    s32 clutY;
+} Unk801E8168;
+typedef struct {
+    u8 unk0[0x98];
+    void *parent;
+    u8 unk9C[0x10];
+    s32 unkAC[3];
+    u8 unkB8[4];
+    s32 unkBC[3];
+    u8 unkC8[4];
+    s16 unkCC[3];
+    u8 unkD2[2];
+    s16 unkD4[3];
+    u8 unkDA[2];
+    s16 unkDC[3];
+    u8 unkE2[2];
+    s16 unkE4[3];
+    u8 unkEA[2];
+    s16 unkEC[3];
+    u8 unkF2[2];
+    s16 unkF4[3];
+    u8 unkFA[0x32];
+    s16 unk12C;
+    s16 unk12E;
+    s16 unk130;
+    u8 unk132[5];
+    u8 unk137;
+    u8 unk138[4];
+} CameraEffect;
+extern CameraEffect D_801EF808;
+typedef struct {
+    u8 unk0[0x65C];
+    s32 unk65C[3];
+    s32 unk668[3];
+    u8 unk674[8];
+    s32 unk67C;
+    s32 unk680;
+    s32 unk684;
+    u8 unk688[0x18];
+    s32 unk6A0[3];
+    s32 unk6AC[3];
+} Unk801E9FE0;
+void func_801E76A8(VECTOR *a, VECTOR *b, VECTOR *c, VECTOR *d, s32 a4, s32 a5, s32 a6);
+
+typedef struct {
     s32 v[4];
 } Quad;
 typedef struct {
@@ -246,7 +318,30 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E3668);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E38A0);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E3C2C);
+void func_801E3C2C(Unk801E3C2C *obj) {
+    if (obj->unk571 != 0) {
+        if (obj->unk139 != 0) {
+            tickEffectStartDelay(obj);
+            SCENE_3D->modelState[obj->modelSlot] = -1;
+            return;
+        }
+        if (obj->unk13C->unk26D4 != -1) {
+            obj->brightness = updateEffectBrightness(obj, obj->brightness);
+            if (obj->brightness != obj->lastBrightness) {
+                obj->lastBrightness = obj->brightness;
+                func_801E3668(obj->unk160, 0x8000);
+            }
+            if (obj->brightness == 0) {
+                SCENE_3D->modelState[obj->modelSlot] = -1;
+                return;
+            }
+        }
+        SCENE_3D->modelState[obj->modelSlot] = 3;
+    }
+    if (obj->unk570 >= 0) {
+        func_801E7020(obj->unk140);
+    }
+}
 
 void func_801E3D2C(Unk801E3D2C *obj) {
     unloadModel(obj->modelSlot);
@@ -396,7 +491,29 @@ void func_801E7304(Image *image) {
     DrawSync(0);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E73C0);
+void func_801E73C0(Image *image) {
+    Image *self;
+    u8 *row;
+    u8 *p;
+    s8 first;
+    s32 x;
+    s32 y;
+
+    self = image;
+    y = 0;
+    row = image->pixels;
+    for (; y < image->rect.h; y++, row += image->rect.w * 2) {
+        p = row + image->rect.w * 2 - 1;
+        first = *p;
+        for (x = 0; x < image->rect.w * 2 - 1; x++) {
+            p[0] = p[-1];
+            p--;
+        }
+        *p = first;
+    }
+    LoadImage2(image, self->pixels);
+    DrawSync(0);
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7480);
 
@@ -406,7 +523,11 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E76A8);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7880);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7AF4);
+void func_801E7AF4(void *obj) {
+    SCENE_LIGHT_MATRIX = D_801EF25C;
+    SCENE_LIGHT_COLORS = D_801EF27C;
+    freeHeapBlock(obj);
+}
 
 void func_801E7BEC(Unk801E7BEC *cmd, Unk801E7BEC_Dst *dst) {
     switch (cmd->kind) {
@@ -450,7 +571,26 @@ void func_801E7C94(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7D28);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E8168);
+void func_801E8168(Unk801E8168 *obj, s32 dy, Chunk *pak) {
+    char path[32];
+    u32 *tim;
+    s32 loaded = 0;
+
+    tim = findPakChunk(pak, 5, obj->animId);
+    if (tim == NULL) {
+        sprintf(path, "E:\\ANM\\%d_%d.TIM", obj->animId / 10, obj->animId % 10);
+        tim = (u32 *)loadFile(path, getCurrentTaskId());
+        loaded = 1;
+        if (tim == NULL) {
+            return;
+        }
+    }
+    uploadTim(tim, obj->pixelX, obj->pixelY + dy, obj->clutX, obj->clutY + dy);
+    DrawSync(0);
+    if (loaded) {
+        freeHeapBlock(tim);
+    }
+}
 
 void func_801E826C(s32 id, Chunk *pak) {
     char path[32];
@@ -484,7 +624,41 @@ s32 func_801E8304(s32 id) {
     return 0;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E8358);
+void func_801E8358(void) {
+    CameraEffect fx;
+
+    fx.unkD4[0] = 100;
+    fx.unkD4[1] = -150;
+    fx.unkD4[2] = 9000;
+    fx.unkDC[0] = 100;
+    fx.unkDC[1] = -150;
+    fx.unkDC[2] = 9000;
+    fx.unkE4[0] = 160;
+    fx.unkE4[1] = 5800;
+    fx.unkE4[2] = 0;
+    fx.unkEC[0] = 0;
+    fx.unkEC[1] = 0;
+    fx.unkEC[2] = 0;
+    fx.unkF4[0] = 0;
+    fx.unkF4[1] = 0;
+    fx.unkF4[2] = 0;
+    fx.unkAC[0] = 0x1000;
+    fx.unkAC[1] = 0x1000;
+    fx.unkAC[2] = 0x1000;
+    fx.unkBC[0] = 0x1000;
+    fx.unkBC[1] = 0x1000;
+    fx.unkBC[2] = 0x1000;
+    fx.unkCC[0] = 0;
+    fx.unkCC[1] = 0;
+    fx.unkCC[2] = 0;
+    fx.unk137 = 0;
+    fx.unk130 = 0;
+    fx.unk12C = 0x80;
+    fx.parent = SCENE_3D->unk78;
+    fx.unk12E = 0;
+    D_801EF808 = fx;
+    initEffectObject(&D_801EF808);
+}
 
 void func_801E8470(Unk801E8470 *obj) {
     s32 i;
@@ -571,7 +745,26 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9E04);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9EAC);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E9FE0);
+void func_801E9FE0(Unk801E9FE0 *obj) {
+    VECTOR a;
+    VECTOR b;
+    VECTOR c;
+    VECTOR d;
+
+    a.vx = obj->unk65C[0];
+    a.vy = obj->unk65C[1];
+    a.vz = obj->unk65C[2];
+    b.vx = obj->unk668[0];
+    b.vy = obj->unk668[1];
+    b.vz = obj->unk668[2];
+    c.vx = obj->unk6A0[0];
+    c.vy = obj->unk6A0[1];
+    c.vz = obj->unk6A0[2];
+    d.vx = obj->unk6AC[0];
+    d.vy = obj->unk6AC[1];
+    d.vz = obj->unk6AC[2];
+    func_801E76A8(&a, &b, &c, &d, obj->unk67C, obj->unk680, obj->unk684);
+}
 
 void func_801EA0C0(void *ptr) {
     freeHeapBlock(ptr);
