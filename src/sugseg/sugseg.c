@@ -21,6 +21,18 @@
 #include "dcb/prim_util.h"
 
 typedef struct {
+    Rect16 rect;
+    void *buf0;
+    void *buf1;
+    s32 vertical;
+    s32 depth;
+    s16 speed;
+    s16 period;
+    s16 timer;
+} ScrollTex;
+s32 StoreImage(Rect16 *rect, void *p);
+
+typedef struct {
     VECTOR pos;
     VECTOR posStep;
     VECTOR color;
@@ -869,7 +881,98 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E651C);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E66D0);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E6814);
+void func_801E6814(ScrollTex *tex) {
+    Rect16 rects[4];
+
+    if (tex->speed == 0) {
+        return;
+    }
+    if (++tex->timer < tex->period) {
+        return;
+    }
+    tex->timer = 0;
+    if (!(tex->vertical & 1)) {
+        tex->speed = tex->speed % tex->rect.w;
+        if (tex->speed > 0) {
+            rects[0].x = tex->rect.x + tex->rect.w - tex->speed;
+            rects[0].y = tex->rect.y;
+            rects[0].w = tex->speed;
+            rects[0].h = tex->rect.h;
+            rects[1].x = tex->rect.x;
+            rects[1].y = tex->rect.y;
+            rects[1].w = tex->rect.w - tex->speed;
+            rects[1].h = tex->rect.h;
+            rects[2].x = tex->rect.x;
+            rects[2].y = tex->rect.y;
+            rects[2].w = tex->speed;
+            rects[2].h = tex->rect.h;
+            rects[3].x = tex->rect.x + tex->speed;
+            rects[3].y = tex->rect.y;
+            rects[3].w = tex->rect.w - tex->speed;
+            rects[3].h = tex->rect.h;
+        } else {
+            rects[0].x = tex->rect.x;
+            rects[0].y = tex->rect.y;
+            rects[0].w = -tex->speed;
+            rects[0].h = tex->rect.h;
+            rects[1].x = tex->rect.x - tex->speed;
+            rects[1].y = tex->rect.y;
+            rects[1].w = tex->rect.w + tex->speed;
+            rects[1].h = tex->rect.h;
+            rects[2].x = tex->rect.x + tex->rect.w + tex->speed;
+            rects[2].y = tex->rect.y;
+            rects[2].w = -tex->speed;
+            rects[2].h = tex->rect.h;
+            rects[3].x = tex->rect.x;
+            rects[3].y = tex->rect.y;
+            rects[3].w = tex->rect.w + tex->speed;
+            rects[3].h = tex->rect.h;
+        }
+    } else {
+        tex->speed = tex->speed % tex->rect.h;
+        if (tex->speed > 0) {
+            rects[0].x = tex->rect.x;
+            rects[0].y = tex->rect.y + tex->rect.h - tex->speed;
+            rects[0].w = tex->rect.w;
+            rects[0].h = tex->speed;
+            rects[1].x = tex->rect.x;
+            rects[1].y = tex->rect.y;
+            rects[1].w = tex->rect.w;
+            rects[1].h = tex->rect.h - tex->speed;
+            rects[2].x = tex->rect.x;
+            rects[2].y = tex->rect.y;
+            rects[2].w = tex->rect.w;
+            rects[2].h = tex->speed;
+            rects[3].x = tex->rect.x;
+            rects[3].y = tex->rect.y + tex->speed;
+            rects[3].w = tex->rect.w;
+            rects[3].h = tex->rect.h - tex->speed;
+        } else {
+            rects[0].x = tex->rect.x;
+            rects[0].y = tex->rect.y;
+            rects[0].w = tex->rect.w;
+            rects[0].h = -tex->speed;
+            rects[1].x = tex->rect.x;
+            rects[1].y = tex->rect.y - tex->speed;
+            rects[1].w = tex->rect.w;
+            rects[1].h = tex->rect.h + tex->speed;
+            rects[2].x = tex->rect.x;
+            rects[2].y = tex->rect.y + tex->rect.h + tex->speed;
+            rects[2].w = tex->rect.w;
+            rects[2].h = -tex->speed;
+            rects[3].x = tex->rect.x;
+            rects[3].y = tex->rect.y;
+            rects[3].w = tex->rect.w;
+            rects[3].h = tex->rect.h + tex->speed;
+        }
+    }
+    StoreImage(&rects[0], tex->buf1);
+    StoreImage(&rects[1], tex->buf0);
+    DrawSync(0);
+    LoadImage((s16 *)&rects[2], (s32)tex->buf1);
+    LoadImage((s16 *)&rects[3], (s32)tex->buf0);
+    DrawSync(0);
+}
 
 void func_801E6AF8(void **obj) {
     obj[3] = (void *)freeHeapBlock(obj[3]);

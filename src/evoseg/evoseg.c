@@ -21,6 +21,15 @@
 #include "dcb/transform.h"
 #include "dcb/loader.h"
 
+extern s32 D_801F5518;
+
+typedef struct {
+    void *data;
+    void *script;
+    s32 unk8;
+} EvoProgram;
+void *func_801E8650(void *data);
+
 typedef struct {
     s16 *win;
     u8 pad4[0x14 - 0x4];
@@ -1203,13 +1212,28 @@ s32 *func_801E86B4(s32 count) {
     return flags;
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8708);
+EvoProgram *func_801E8708(s32 index) {
+    char path[24];
+    void *data;
+    EvoProgram *program;
+
+    sprintf(path, "C:\\EVENT\\unit0%d.MSD", index);
+    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    data = (void *)func_80014C08(0x7FFFFFFF);
+    program = allocHeapBlock(sizeof(EvoProgram), 0x2C);
+    program->data = data;
+    program->script = func_801E8650(data);
+    return program;
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E87A8);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8BD8);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8C74);
+void func_801E8C74(void) {
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    D_801F5518 = func_80014C08(0x7FFFFFFF);
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8CD8);
 

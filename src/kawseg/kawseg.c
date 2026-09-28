@@ -1144,7 +1144,55 @@ s32 func_801ECE24(void) {
     DUEL->step = 23;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ECF0C);
+s32 func_801ECF0C(s32 player) {
+    s32 opponent;
+    s32 card;
+    s32 slot;
+    u8 *data;
+
+    opponent = player ^ 1;
+    if (PLAYER(player)->stats[0] == 0) {
+        if (((u8)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF) == 3) {
+            func_801FB444(opponent, 0xF);
+        }
+        DUEL->winner = opponent;
+        if (((*(u32 *)((u8 *)PLAYER(player) + 0x178) >> 14) & 1) && PLAYER(opponent)->wins != 2) {
+            func_801F6214(0x1D, player);
+            showStatChangePopup(player, *(s16 *)PLAYER(player)->unk166, 0);
+            PLAYER(player)->stats[0] = *(s16 *)PLAYER(player)->unk166;
+            waitForStatCountersToSettle();
+        } else {
+            data = DUEL_PLAYERS[opponent];
+            data += (getActiveDigimonCard(opponent) % 30) * sizeof(CardSlot);
+            card = ((Player *)data)->cards[0].index;
+            if (++PLAYER_DATA(opponent).unk11B6[card] >= 1000) {
+                PLAYER_DATA(opponent).unk11B6[card] = 999;
+            }
+            data = DUEL_PLAYERS[player];
+            data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);
+            card = ((Player *)data)->cards[0].index;
+            if (++PLAYER_DATA(player).unk1334[card] >= 1000) {
+                PLAYER_DATA(player).unk1334[card] = 999;
+            }
+            data = DUEL_PLAYERS[player];
+            data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);
+            slot = findArmorPartnerSlot(player, ((Player *)data)->cards[0].id);
+            if (slot != -1) {
+                func_801F6214(0x1E, player);
+                armorDevolvePartner(player, slot);
+            }
+            while (getActiveDigimonCard(player) != -1) {
+                card = getActiveDigimonCard(player);
+                ((CardAnim *)(D_801D833C + card * 36))->spr->pal = (u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4;
+                func_801EC608(card, player);
+                waitDuelFrames(20);
+            }
+        }
+        PLAYER(opponent)->wins++;
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ED334);
 
