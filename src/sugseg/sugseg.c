@@ -21,6 +21,8 @@
 #include "dcb/prim_util.h"
 #include "dcb/model_anim.h"
 #include "dcb/fade.h"
+#include "dcb/sound_play.h"
+#include "dcb/angle.h"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
@@ -289,7 +291,9 @@ void func_801EC8A4(s32 a0);
 
 typedef Unk801DF598 Unk801E1D80;
 typedef struct {
-    u8 unk0[0x10];
+    u8 unk0[6];
+    s16 id;
+    u8 unk8[8];
     s32 x;
     u8 unk14[0xA64];
     s16 unkA78;
@@ -531,7 +535,16 @@ typedef struct {
     u8 unk0[0x20];
     VECTOR pos;
     SVECTOR rot;
-    u8 unk38[0x104];
+    s32 unk38;
+    u8 unk3C[0xF2];
+    s16 unk12E;
+    s16 unk130;
+    s16 unk132;
+    u8 unk134[3];
+    u8 unk137;
+    u8 unk138;
+    u8 unk139;
+    u8 unk13A[2];
     u8 unk13C[0x20];
     void *unk15C;
     DrTPage *unk160[2];
@@ -539,14 +552,11 @@ typedef struct {
     POLY_G4 *unk170[2];
     POLY_FT4 *unk178[2];
     POLY_GT4 *unk180[2];
-    u8 xformA[0x4C];
-    u8 xformB[0x4C];
-    void *unk220[2];
-    u8 unk228[0x10];
-    VECTOR pos0;
-    VECTOR pos1;
-    SVECTOR rot0;
-    SVECTOR rot1;
+    u8 xforms[2][0x4C];
+    Table *tables[2];
+    Short4 hist[2];
+    VECTOR prevPos[2];
+    SVECTOR prevRot[2];
     u8 xform[0x4C];
     Rect16 uv;
     s32 unk2BC;
@@ -584,6 +594,8 @@ typedef struct {
 typedef struct {
     u8 count;
     u8 loop;
+    u8 w;
+    u8 h;
 } AnimHeader;
 typedef struct {
     Rect16 rect;
@@ -1766,7 +1778,7 @@ Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c
 
     obj = allocTaskHeapBlock(sizeof(Unk801E5144));
     for (i = 0; i < 2; i++) {
-        obj->unk220[i] = func_801DE0C0(count + 1, rows);
+        obj->tables[i] = func_801DE0C0(count + 1, rows);
     }
     obj->unk2C0 = clut;
     obj->unk2BC = tpage;
@@ -1782,11 +1794,11 @@ Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c
     *(EffectTemplate *)obj = *template;
     initEffectObject(obj);
     obj->unk2C4 = a19;
-    obj->pos1 = obj->pos0 = obj->pos;
-    obj->rot0 = obj->rot;
-    obj->rot1 = obj->rot;
-    initTransform(obj->xformA, (s32)obj, x0, 0, 0, 0, 0, 0);
-    initTransform(obj->xformB, (s32)obj, x1, 0, 0, 0, 0, 0);
+    obj->prevPos[1] = obj->prevPos[0] = obj->pos;
+    obj->prevRot[0] = obj->rot;
+    obj->prevRot[1] = obj->rot;
+    initTransform(obj->xforms[0], (s32)obj, x0, 0, 0, 0, 0, 0);
+    initTransform(obj->xforms[1], (s32)obj, x1, 0, 0, 0, 0, 0);
     obj->unk15C = allocTaskHeapBlock(a11 ? count * 16 : 16);
     func_801E5278(obj, a12, a13, a14, id, uv, tpage, clut);
     func_801E521C(obj, a11, c0, c1, c2, c3);
@@ -1797,7 +1809,189 @@ Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c
     return obj;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E4728);
+void func_801E5AB0(Unk801E5144 *obj);
+
+void func_801E4728(Unk801E5144 *obj) {
+    Short4 pos;
+    Short4 b;
+    Short4 c;
+    Short4 d;
+    Short4 delta;
+    s32 moved;
+    s32 i;
+    s32 j;
+    s32 k;
+    DrTPage *tp;
+    LineG2 *line;
+    POLY_G4 *g4;
+    POLY_FT4 *ft4;
+    POLY_GT4 *gt4;
+
+    moved = 0;
+    if (obj->unk139 != 0) {
+        tickEffectStartDelay(obj);
+        return;
+    }
+    PushMatrix();
+    tickEffectMotion((s32)obj, 0);
+    PopMatrix();
+    switch (obj->unk137) {
+    case 1:
+        obj->unk2D4 = obj->unk38 / 16;
+        if (obj->unk38 > 0x1000) {
+            obj->unk2D4 = 0x100 - (obj->unk38 - 0x1000) / 16;
+        }
+        break;
+    case 2:
+        obj->unk2D4 += obj->unk130;
+        break;
+    case 3:
+        if (obj->unk138 == 2) {
+            break;
+        }
+        if (obj->unk138 == 0) {
+            goto grow;
+        }
+        obj->unk2D4 -= obj->unk130;
+        if (obj->unk2D4 < 0) {
+            /* the extra block is needed for the register allocation to match */
+            do {
+                obj->unk2D4 = 0;
+            } while (0);
+            obj->unk138 = 2;
+        }
+        break;
+    case 4:
+        if (obj->unk138 == 0) {
+        grow:
+            obj->unk2D4 += obj->unk130;
+            if (obj->unk2D4 > 0x100) {
+                obj->unk2D4 = 0x100;
+                obj->unk138 = 1;
+            }
+        } else {
+            obj->unk2D4 -= obj->unk130;
+            if (obj->unk2D4 < 0) {
+                obj->unk2D4 = 0;
+                obj->unk138 = 0;
+            }
+        }
+        break;
+    }
+    if (obj->unk2D4 < 0) {
+        obj->unk2D4 = 0;
+    }
+    if (obj->unk2D4 > 0x100) {
+        obj->unk2D4 = 0x100;
+    }
+    if (obj->unk12E == 10) {
+        obj->unk2D4 = obj->unk132;
+    } else {
+        obj->unk132 = obj->unk2D4;
+    }
+    if (obj->unk2D4 == 0) {
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        PushMatrix();
+        updateTransformMatrix(obj->xforms[i], 0);
+        PopMatrix();
+        getTransformWorldPos(obj->xforms[i], &pos);
+        if (obj->unk2DA == 0) {
+            moved = 1;
+        } else if (obj->unk2DA == 1) {
+            if (obj->hist[i].v[0] != pos.v[0] || obj->hist[i].v[1] != pos.v[1] || obj->hist[i].v[2] != pos.v[2]) {
+                moved = 1;
+            }
+        } else {
+            moved = 1;
+            /* the extra block is needed for the delay slots to match */
+            do {
+                if (obj->prevPos[i].vx != obj->pos.vx || obj->prevPos[i].vy != obj->pos.vy || obj->prevPos[i].vz != obj->pos.vz ||
+                    obj->prevRot[i].vx != obj->rot.vx || obj->prevRot[i].vy != obj->rot.vy || obj->prevRot[i].vz != obj->rot.vz) {
+                    goto skip;
+                }
+            } while (0);
+            moved = 2;
+            delta.v[0] = obj->hist[i].v[0] - pos.v[0];
+            delta.v[1] = obj->hist[i].v[1] - pos.v[1];
+            delta.v[2] = obj->hist[i].v[2] - pos.v[2];
+            for (j = 0; j < obj->tables[i]->count; j++) {
+                obj->tables[i]->shorts[j].v[0] -= delta.v[0];
+                obj->tables[i]->shorts[j].v[1] -= delta.v[1];
+                obj->tables[i]->shorts[j].v[2] -= delta.v[2];
+            }
+        skip:
+            obj->prevPos[i] = obj->pos;
+            obj->prevRot[i] = obj->rot;
+        }
+        if (obj->unk2DC != 2) {
+            for (k = 0; k < obj->tables[i]->count; k++) {
+                obj->tables[i]->shorts[k] = pos;
+            }
+            obj->hist[i] = pos;
+            obj->unk2DC++;
+        }
+        if (moved == 1) {
+            func_801DE244(obj->tables[i], NULL, &pos);
+        }
+        obj->hist[i] = pos;
+    }
+    PushMatrix();
+    updateTransformMatrix(obj->xform, 0);
+    func_801E5AB0(obj);
+    switch (obj->unk2D9) {
+    case 1:
+        tp = obj->unk160[FRAME_BUFFER_INDEX];
+        line = obj->unk168[FRAME_BUFFER_INDEX];
+        for (i = 0; i < obj->count; i++, line++, tp++) {
+            func_801DE2F8(obj->tables[0], i, NULL, &pos);
+            func_801DE2F8(obj->tables[0], i + 1, NULL, &d);
+            transformAndAddLineG2((s32)line, (s32)tp, (s32)&pos, (s32)&d, obj->unk2D8, obj->unk2C4);
+        }
+        break;
+    case 9:
+        tp = obj->unk160[FRAME_BUFFER_INDEX];
+        g4 = obj->unk170[FRAME_BUFFER_INDEX];
+        for (i = 0; i < obj->count; i++, g4++, tp++) {
+            func_801DE2F8(obj->tables[0], i, NULL, &pos);
+            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
+            func_801DE2F8(obj->tables[1], i, NULL, &b);
+            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            transformAndAddPolyG4((s32)g4, (s32)tp, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, obj->unk2D8, 0, obj->unk2C4);
+        }
+        break;
+    case 12:
+        ft4 = obj->unk178[FRAME_BUFFER_INDEX];
+        if (obj->unk2D0 != -1) {
+            func_801E7020(obj->unk13C);
+        }
+        for (i = 0; i < obj->count; i++, ft4++) {
+            func_801DE2F8(obj->tables[0], i, NULL, &pos);
+            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
+            func_801DE2F8(obj->tables[1], i, NULL, &b);
+            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            setPrimQuadUvRect((u8 *)ft4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
+            transformAndAddPolyFT4((s32)ft4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
+        }
+        break;
+    case 13:
+        gt4 = obj->unk180[FRAME_BUFFER_INDEX];
+        if (obj->unk2D0 != -1) {
+            func_801E7020(obj->unk13C);
+        }
+        for (i = 0; i < obj->count; i++, gt4++) {
+            func_801DE2F8(obj->tables[0], i, NULL, &pos);
+            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
+            func_801DE2F8(obj->tables[1], i, NULL, &b);
+            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            setPrimQuadUvRect((u8 *)gt4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
+            transformAndAddPolyGT4((s32)gt4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
+        }
+        break;
+    }
+    PopMatrix();
+}
 
 void func_801E5144(Unk801E5144 *obj) {
     s32 i;
@@ -1808,7 +2002,7 @@ void func_801E5144(Unk801E5144 *obj) {
         freeHeapBlock(obj->unk178[i]);
         freeHeapBlock(obj->unk180[i]);
         freeHeapBlock(obj->unk160[i]);
-        func_801DE40C(obj->unk220[i]);
+        func_801DE40C((void **)obj->tables[i]);
     }
     if (obj->unk2D0 >= 0) {
         func_801E72D4(obj->unk13C);
@@ -2302,7 +2496,111 @@ void *func_801E6B84(s32 key, s32 *path, s32 sub, Chunk *pak) {
 
 INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF50);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E6C78);
+typedef struct {
+    u8 unk0[0x1A4];
+    Rect16 uv;
+    s32 tpage;
+    u8 unk1B0[0x2B];
+    u8 type;
+} Unk801E6C78;
+
+s32 func_801E6C78(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
+    Rect16 *uv;
+    s32 slot;
+    u8 y;
+    s32 dx;
+    s32 sub;
+    char path[32];
+    s16 n;
+    ModelData *model;
+    RingEffect *ring;
+    Unk801E6C78 *other;
+
+    uv = NULL;
+    slot = 0;
+    /* the extra block is needed for the register allocation to match */
+    do {
+        y = 0;
+        dx = 0;
+    } while (0);
+    sub = id;
+    switch (kind) {
+    case 0:
+        model = (ModelData *)obj;
+        if (model != NULL) {
+            slot = model->unk26D4 / 0x10000 + 5;
+            if (model->id > 1000) {
+                n = model->id / 10;
+                sprintf(path, "M:\\HDF%d\\%d_%d.tam", n, n, id);
+                if (((Unk801E3C2C *)model->owner)->unk574 == 0) {
+                    y = 0x80;
+                }
+                sub = model->id;
+            } else {
+                sprintf(path, "M:\\HDF%03d\\%d.tam", model->id, id);
+            }
+            id |= model->id << 8;
+        }
+        break;
+    case 1:
+        ring = obj;
+        if (ring->type == 0xD) {
+            uv = (Rect16 *)&ring->texCoords;
+            y = uv->y;
+            dx = uv->x / 4;
+            slot = ring->tpage;
+            sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
+        }
+        break;
+    case 3:
+        other = (Unk801E6C78 *)obj;
+        if (other->type == 0xD) {
+            uv = &other->uv;
+            y = uv->y;
+            dx = uv->x / 4;
+            slot = other->tpage;
+            sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
+        }
+        break;
+    case 4:
+        if (((Unk801E5144 *)obj)->unk2D9 == 12 || ((Unk801E5144 *)obj)->unk2D9 == 13) {
+            uv = &((Unk801E5144 *)obj)->uv;
+            y = uv->y;
+            slot = ((Unk801E5144 *)obj)->unk2BC;
+            sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
+        }
+        break;
+    }
+    if (slot != 0) {
+        ((Image *)arg3)->timer = 0;
+        ((Image *)arg3)->frame = 0;
+        ((Image *)arg3)->rect.x = (slot & 0xF) << 6;
+        ((Image *)arg3)->rect.y = ((slot >> 4) << 8) + y;
+        if (id >= 4) {
+            ((Image *)arg3)->header = func_801E6B84(id, (s32 *)path, sub, (Chunk *)pak);
+            if (((Image *)arg3)->header == NULL) {
+                return 0;
+            }
+            ((Image *)arg3)->frames = (AnimFrame *)(((Image *)arg3)->header + 1);
+            ((Image *)arg3)->rect.w = ((Image *)arg3)->header->w;
+            ((Image *)arg3)->rect.h = ((Image *)arg3)->header->h;
+            ((Image *)arg3)->pixels = NULL;
+        } else {
+            ((Image *)arg3)->rect.w = (uv->w + 1) / 4;
+            ((Image *)arg3)->rect.h = uv->h + 1;
+            ((Image *)arg3)->pixels = allocTaskHeapBlock(((Image *)arg3)->rect.w * 2 * ((Image *)arg3)->rect.h + 4);
+            StoreImage(&((Image *)arg3)->rect, ((Image *)arg3)->pixels);
+            DrawSync(0);
+        }
+        ((Image *)arg3)->dst = (s16 *)uv;
+        ((Image *)arg3)->type = id;
+        if (!(((Image *)arg3)->header->loop & 1)) {
+            ((Image *)arg3)->rect.x += dx;
+        }
+        return (s32)arg3;
+    }
+    return 0;
+}
 
 void func_801E7020(u8 *arg) {
     Image *image = (Image *)arg;
@@ -2542,7 +2840,84 @@ void func_801E7C94(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E7D28);
+void func_801E908C(EffectInit *fx, EffectCommand *cmd, s32 live);
+typedef struct Xform {
+    u8 unk0[0x48];
+    struct Xform *parent;
+} Xform;
+void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
+
+void func_801E7D28(Slots *slots, s32 id, EffectCommand *cmd) {
+    SVECTOR v;
+    SVECTOR unused;
+    VECTOR out;
+    MATRIX m;
+    Xform *chain[18];
+    Xform saved;
+    s32 flag;
+    Model *model;
+    GsCOORDINATE2 *coord;
+    Xform *xform;
+    s32 i;
+    s32 n;
+    Xform **p;
+
+    memset(&unused, 0, sizeof(unused));
+    model = SCENE_3D->models[slots->modelSlots[cmd->source]];
+    coord = model->coord;
+    func_801E908C((EffectInit *)slots->slots[id].value, cmd, 1);
+    PushMatrix();
+    if (cmd->source >= 0) {
+        SCENE_3D->root.flg = model->root.flg = 0;
+        SCENE_3D->root.coord = D_801DBEC0;
+        model->root.coord = D_801DBEC0;
+        for (i = 0; i < model->nobj; i++, coord++) {
+            coord->flg = 0;
+        }
+        GsGetLw(((Model *)SCENE_3D->models[slots->modelSlots[cmd->source]])->obj[cmd->target].coord2, &m);
+        SetRotMatrix((s32)&m);
+        func_8005C444(&m);
+    } else {
+        xform = (Xform *)slots->slots[id].value;
+        saved = *(Xform *)slots->xform;
+        initTransform(slots->xform, 0, 0, 0, 0, 0, 0, 0);
+        n = 0;
+        p = chain;
+        chain[0] = xform;
+        if (xform != (Xform *)slots->xform) {
+            do {
+                xform = xform->parent;
+                n++;
+                if (n >= 16) {
+                    break;
+                }
+                *(Xform **)((s32)p + (n << 2)) = xform;
+            } while (xform != (Xform *)slots->xform);
+        }
+        for (i = n; i > 0; i--) {
+            updateTransformMatrix(chain[i], 0);
+        }
+        *(Xform *)slots->xform = saved;
+    }
+    v.vx = cmd->pos[0];
+    v.vy = cmd->pos[1];
+    v.vz = cmd->pos[2];
+    RotTrans((u16 *)&v, &out, &flag);
+    cmd->pos[0] = out.vx;
+    cmd->pos[1] = out.vy;
+    cmd->pos[2] = out.vz;
+    v.vx = cmd->pos2[0];
+    v.vy = cmd->pos2[1];
+    v.vz = cmd->pos2[2];
+    RotTrans((u16 *)&v, &out, &flag);
+    cmd->pos2[0] = out.vx;
+    cmd->pos2[1] = out.vy;
+    cmd->pos2[2] = out.vz;
+    PopMatrix();
+    cmd->target = -1;
+    func_801E9494((EffectTemplate *)slots->slots[id].value, cmd, slots);
+    initEffectObject((void *)slots->slots[id].value);
+}
 
 void func_801E8168(Unk801E8168 *obj, s32 dy, Chunk *pak) {
     char path[32];
@@ -2682,7 +3057,228 @@ void func_801E864C(void *obj) {
     freeHeapBlock(obj);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E8678);
+extern u8 D_800795A8;
+/* BoneAnim with its nine channels as three groups of x, y, z */
+typedef struct {
+    AnimChan ch[3][3];
+} BoneChannels;
+/* takes a third argument, but this caller does not set it */
+void func_801E92B0();
+void func_801E9448(void *xform, u8 *obj);
+void func_801EA0E0(s32 index, s32 kind, s32 arg, Slots *slots);
+void func_801EAAAC(u8 *obj, s32 clearColor);
+
+void func_801E8678(Runner *runner) {
+    Slots *slots;
+    s32 *regs;
+    s32 result;
+    s32 anim;
+    s32 tpage;
+    s32 vramY;
+    u8 *prev;
+    u8 *next;
+    BoneChannels *src;
+    BoneChannels *dst;
+    s32 i;
+
+    slots = runner->slots;
+    if (runner->unk10 != 0) {
+        runner->unk10--;
+        return;
+    }
+    regs = runner->regs;
+    do {
+        result = runScriptToNextEvent(runner->context, regs);
+        if (result == 1) {
+            switch (((Script *)runner->context)->eventOp) {
+            case 10:
+                switch (((Script *)runner->context)->eventArg) {
+                case 0:
+                    func_801E908C((EffectInit *)&D_801EF808, (EffectCommand *)regs, 0);
+                    break;
+                case 1:
+                    func_801E92B0(&D_801EF808, regs);
+                    restartEffectMotion((u8 *)&D_801EF808);
+                    break;
+                case 2:
+                    SCREEN_COPY_EFFECT.abr = D_801EF29C = 0;
+                    SCREEN_COPY_EFFECT.mode = 1;
+                    break;
+                case 3:
+                    D_801EF29C = SCREEN_COPY_EFFECT.abr = SCREEN_COPY_EFFECT.x = SCREEN_COPY_EFFECT.y = SCREEN_COPY_EFFECT.mode = 0;
+                    SCREEN_COPY_EFFECT.r = 0xA8;
+                    SCREEN_COPY_EFFECT.g = 0xA8;
+                    SCREEN_COPY_EFFECT.b = 0xA8;
+                    break;
+                case 4:
+                    D_800795A8 = 0;
+                    break;
+                case 5:
+                    D_800795A8 = 1;
+                    break;
+                case 6:
+                    func_801E8168((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->unk508);
+                    break;
+                case 7:
+                    pauseModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
+                    break;
+                case 8:
+                    resumeModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
+                    break;
+                case 9:
+                    ((EffectCommand *)regs)->rot[1] = -computeVectorAngle(((EffectCommand *)regs)->pos[0] - ((EffectCommand *)regs)->pos2[0],
+                                                                          ((EffectCommand *)regs)->pos2[2] - ((EffectCommand *)regs)->pos[2]);
+                    break;
+                case 10:
+                    func_801EAAAC((u8 *)regs, 0);
+                    break;
+                }
+                break;
+            case 11:
+                switch (((Script *)runner->context)->eventArg) {
+                case 0:
+                    if ((s16)((Script *)runner->context)->params[0] >= 0) {
+                        func_801E826C((s16)((Script *)runner->context)->params[0], (Chunk *)slots->unk508);
+                    }
+                    break;
+                case 1:
+                    setModelAnimationPose(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
+                    break;
+                case 2:
+                    anim = (s16)((Script *)runner->context)->params[0];
+                    if (anim == 4 && D_801EF9A4[slots->modelSlots[((EffectCommand *)regs)->source]] <= 0) {
+                        anim = 5;
+                    }
+                    playModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source], anim);
+                    break;
+                case 3:
+                    playSoundEffect((s16)((Script *)runner->context)->params[0]);
+                    break;
+                case 5:
+                    func_801E7BEC((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
+                    func_801E908C((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 0);
+                    break;
+                case 6:
+                    func_801E9494((EffectTemplate *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, slots);
+                    initEffectObject((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value);
+                    func_801E7C94((Unk801E7C94 *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7C94_Src *)regs);
+                    break;
+                case 7:
+                    stopSoundVoice(((Script *)runner->context)->params[0]);
+                    break;
+                case 8:
+                    if (slots->slots[(s16)((Script *)runner->context)->params[0]].value != 0) {
+                        slots->slots[(s16)((Script *)runner->context)->params[0]].active = 1;
+                    }
+                    break;
+                case 9:
+                    slots->slots[(s16)((Script *)runner->context)->params[0]].active = 0;
+                    break;
+                case 10:
+                    if (runner->unk14 == 0) {
+                        if (runner->regs[0] != -1) {
+                            break;
+                        }
+                        runner->unk14 = 1;
+                    }
+                    runner->unk10 = (s16)((Script *)runner->context)->params[0] - 1;
+                    return;
+                case 13:
+                    func_801E9448((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (u8 *)regs);
+                    break;
+                case 14:
+                    switch ((s16)((Script *)runner->context)->params[0]) {
+                    case 2:
+                        D_80079584 = -1;
+                        SCENE_3D->modelState[0] = SCENE_3D->modelState[1] = 1;
+                        break;
+                    case 0:
+                        if (((Graphics *)&GRAPHICS)->targetModel > 0
+                            && *(s16 *)((u8 *)SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel] + 6) > 1000) {
+                            prev = SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel];
+                            ((Graphics *)&GRAPHICS)->targetModel = slots->modelSlots[((EffectCommand *)regs)->source];
+                            next = SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel];
+                            src = (BoneChannels *)(prev + 0xD80) + *(s16 *)(prev + 4);
+                            dst = (BoneChannels *)(next + 0xD80) + *(s16 *)(next + 4);
+                            for (i = 0; i < 3; i++) {
+                                dst->ch[0][i].unk0 = src->ch[0][i].unk0;
+                                dst->ch[1][i].unk0 = src->ch[1][i].unk0;
+                                dst->ch[2][i].unk0 = src->ch[2][i].unk0;
+                                dst->ch[0][i].d0 = dst->ch[1][i].d0 = dst->ch[2][i].d0 =
+                                    dst->ch[0][i].d1 = dst->ch[1][i].d1 = dst->ch[2][i].d1 =
+                                    dst->ch[0][i].val = dst->ch[1][i].val = dst->ch[2][i].val = 0;
+                            }
+                            *(s16 *)((u8 *)dst + 0x42) += *(s16 *)(prev + 0xC);
+                            *(s16 *)((u8 *)dst + 0x52) += *(s16 *)(prev + 0x10);
+                        } else {
+                            D_80079584 = slots->modelSlots[((EffectCommand *)regs)->source];
+                        }
+                        SCENE_3D->modelState[((Graphics *)&GRAPHICS)->targetModel] = 1;
+                        SCENE_3D->modelState[(s16)(((Graphics *)&GRAPHICS)->targetModel ^ 1)] = -1;
+                        *(s16 *)((Graphics *)&GRAPHICS)->pad96 = 0;
+                        break;
+                    case 1:
+                        ((Graphics *)&GRAPHICS)->targetModel = (s8)((u8 *)slots->slots[((EffectCommand *)regs)->source].value)[0x56E];
+                        *(s16 *)((Graphics *)&GRAPHICS)->pad96 = slots->modelSlots[0];
+                        break;
+                    }
+                    break;
+                case 15:
+                    func_801E7BEC((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
+                    func_801E908C((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 1);
+                    break;
+                case 16:
+                    slots->unk508 = func_801E8304((s16)((Script *)runner->context)->params[0]);
+                    break;
+                case 17:
+                    func_801E7D28(slots, (s16)((Script *)runner->context)->params[0], (EffectCommand *)regs);
+                    break;
+                case 18:
+                    func_801EAAAC((u8 *)regs, regs[30]);
+                    if ((SCREEN_COPY_EFFECT.mode = ((Script *)runner->context)->params[0]) >= 2) {
+                        SCREEN_COPY_EFFECT.abr = regs[30];
+                    }
+                    break;
+                case 19:
+                    func_801E40F0(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
+                    break;
+                }
+                break;
+            case 12:
+                switch (((Script *)runner->context)->eventArg) {
+                case 0:
+                    func_801EA0E0((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1], (s32)regs, slots);
+                    break;
+                case 5:
+                    ((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value)->unk12E = ((Script *)runner->context)->params[1];
+                    break;
+                case 4:
+                    regs[1] = computeVectorAngle((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1]);
+                    break;
+                case 1:
+                    regs[1] = rsin((s16)((Script *)runner->context)->params[1]) * (s16)((Script *)runner->context)->params[0] / 4096;
+                    break;
+                case 2:
+                    regs[1] = rcos((s16)((Script *)runner->context)->params[1]) * (s16)((Script *)runner->context)->params[0] / 4096;
+                    break;
+                case 3:
+                    playSoundEffectOnVoice((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1]);
+                    break;
+                }
+                break;
+            case 13:
+                if (((Script *)runner->context)->eventArg == 0) {
+                    tpage = (s16)((Script *)runner->context)->params[1];
+                    vramY = ((tpage & 0x10) << 4) + ((s16)((Script *)runner->context)->params[2] << 7);
+                    func_801EBBFC((s16)((Script *)runner->context)->params[0], (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
+                                  slots->unk508);
+                }
+                break;
+            }
+        }
+        clearScriptBusy(runner->context);
+    } while (result != 0);
+}
 
 void func_801E908C(EffectInit *fx, EffectCommand *cmd, s32 live) {
     if (live == 0) {
