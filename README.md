@@ -126,12 +126,12 @@ forks are not built.
 | Path | Contents |
 |---|---|
 | `src/main/` | the executable: `main.c`, `libmath.c` (soft-float) and one folder per subsystem |
-| `src/main/system/` | system setup, heap, CD files and archives, loader, pad, memory card, sound |
-| `src/main/gfx/` | primitives, transforms, TMD sorting, fades |
-| `src/main/model/` | models and their animation, 3D scenes, stages, effects |
-| `src/main/ui/` | windows, menus, text and strings, the game shell |
-| `src/main/duel/` | the card duel, its rules and the battle HUD |
-| `src/main/card/` | the card database, card rendering, player data |
+| `src/main/system/` | start-up (`boot`), the task scheduler (`task`), the render loop and vblank, the heap, CD files, the file loader, pak archives and their decompressor, pads, memory card saves, sound and music, and the flow between the game's screens (`game_flow`, `game_exit`) |
+| `src/main/gfx/` | display set-up, VRAM uploads, primitives and their helpers, 3D primitives, transforms, the TMD sorter, the screen fade and copy effects, the scrolling menu background |
+| `src/main/model/` | loading models, starting and evaluating their animations, the 3D scene and its camera, the floor grid, the duel stages, effect objects and particles |
+| `src/main/ui/` | windows, menus, dialogs, text drawing, string helpers, the hacking screen |
+| `src/main/duel/` | starting a duel, its set-up and session, the duel loop, the CPU opponent, each player's card zones, card movement, the battle HUD and its panels |
+| `src/main/card/` | the card database and collection, partners and their levels, player profiles and ranks, card rendering |
 | `src/main/script/` | the script interpreter |
 | `src/main/psyq/` | the PsyQ libraries, one file per library object |
 | `include/game.h` | types and declarations shared by several modules |
