@@ -130,8 +130,8 @@ typedef struct {
 } EvoClut;
 
 void func_801E0618(s32 arg);
-void D_801E2E30();
-void D_801E00F4();
+void func_801E2E30();
+void func_801E00F4();
 typedef struct {
     s16 x;
     s16 y;
@@ -149,7 +149,7 @@ typedef struct {
 void func_801DF7EC(s16 slot);
 void func_801E08D4(EvoPart *part, s32 arg);
 extern s16 D_80079584;
-void D_801DFC18();
+void func_801DFC18();
 typedef struct {
     s32 vx;
     s32 vy;
@@ -247,7 +247,7 @@ extern u8 D_801F59A4;
 extern u8 D_801F59A5;
 extern u8 D_801F59A6;
 extern s32 D_801F59A8;
-void D_801EF7DC();
+void func_801EF7DC();
 typedef struct {
     u8 pad0[0x118];
     s32 unk118;
@@ -310,9 +310,9 @@ void func_801DF724(s8 evolved) {
     func_80014A00(0x1B);
     func_80014A00(0x19);
     removeFrameCallback((s32)renderWireGrid);
-    removeFrameCallback((s32)D_801E2E30);
+    removeFrameCallback((s32)func_801E2E30);
     if (evolved == 0) {
-        removeFrameCallback((s32)D_801E00F4);
+        removeFrameCallback((s32)func_801E00F4);
     } else {
         removeFrameCallback((s32)renderSceneModels);
     }
@@ -366,16 +366,43 @@ void func_801DF914(s32 id) {
     SCENE_3D->modelState[0] = 1;
     playModelAnimation(0, 0);
     GRID_VISIBLE = 1;
-    func_800149B8(0, -1, 0, 0x400, D_801DFC18, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x400, func_801DFC18, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(10);
 }
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DF9D0);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DFEC0);
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DFB00);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DFC18);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DFD14);
+
+extern s16 D_801F2BFC[2];
+extern s8 D_801F540A;
+void func_801DFD14(void);
+
+void func_801DFEC0(void) {
+    s32 models[2];
+
+    models[0] = loadDigimonModelPak(0, D_801F2BFC[0], 1, 1);
+    models[1] = loadDigimonModelPak(1, D_801F2BFC[1], 1, 1);
+    func_801DF830();
+    D_80079584 = 0;
+    func_80014C08(20);
+    D_801F540A = 0;
+    playSoundEffect(0x8D);
+    func_800149B8(0, -1, 0, 0x400, func_801DFD14, getCurrentTaskId());
+    func_80014C08(0x7FFFFFFF);
+    func_80014C08(10);
+}
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801DFF78);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E00A4);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E00F4);
 
 void func_801E0488(s32 projection) {
     func_8005C484(160, 120);
@@ -438,6 +465,8 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E285C);
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E29AC);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E2C0C);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E2E30);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E2FC8);
 
@@ -799,6 +828,8 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E47E4);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5024);
 
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E51E4);
+
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E5244);
 
 void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
@@ -1071,6 +1102,10 @@ INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF13C);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E65A8);
 
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E6FCC);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7178);
+
 INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF15C);
 
 INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF168);
@@ -1228,6 +1263,8 @@ EvoProgram *func_801E8708(s32 index) {
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E87A8);
 
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E89F0);
+
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8BD8);
 
 void func_801E8C74(void) {
@@ -1250,6 +1287,8 @@ void func_801E8DC0(void) {
 }
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8E1C);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E8E88);
 
 void func_801E9390(EvoSlot *slot) {
     s32 i;
@@ -1318,6 +1357,8 @@ s32 func_801E97E4(s32 x, s32 y, EvoText *t, s32 z) {
 }
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E99A0);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E9B94);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E9C88);
 
@@ -1636,7 +1677,7 @@ void func_801EE330(s32 index) {
     D_801F59A5 = 0;
     D_801F59A6 = 0;
     data = decompressArchiveEntry(D_801F59A8, index);
-    func_800149B8(0, 0x1F, 0, 0x800, D_801EF7DC, data, getCurrentTaskId());
+    func_800149B8(0, 0x1F, 0, 0x800, func_801EF7DC, data, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     freeHeapBlock((void *)data);
 }
@@ -1742,3 +1783,5 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EF108);
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EF5C8);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EF65C);
+
+INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EF7DC);
