@@ -133,9 +133,9 @@ $(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(BUILDDIR)/disks/$$($(1)
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
 	@touch $$@
 
-$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld
+$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld config/undefined_syms.txt
 	$(LD) -nostdlib --no-check-sections -Map $(BUILDDIR)/$$($(1)_NAME).map \
-		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld \
+		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld -T config/undefined_syms.txt \
 		-T $(GENDIR)/undefined_syms_auto_$(1).txt \
 		-T $(GENDIR)/undefined_funcs_auto_$(1).txt -o $$@
 
