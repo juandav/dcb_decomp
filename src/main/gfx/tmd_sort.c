@@ -5,7 +5,7 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 
-Unk8006DF60 MODEL_TEXTURE_SLOTS[4] = {
+ModelTextureSlot MODEL_TEXTURE_SLOTS[4] = {
     { 0x002F0000, 0x103C0000 },
     { 0x002F0040, 0x103D0040 },
     { 0x002F0080, 0x103E0080 },
@@ -163,7 +163,7 @@ u32 *emitTexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
         len = 0x07000000;
         next += 8;
     }
-    if (otz >= (u32)SORT_WORK->unk20) {
+    if (otz >= (u32)SORT_WORK->otSize) {
         return packet;
     }
     tag = len | ot[otz];
@@ -209,7 +209,7 @@ u32 *emitTexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
         len = 0x09000000;
         next += 10;
     }
-    if (otz >= (u32)SORT_WORK->unk20) {
+    if (otz >= (u32)SORT_WORK->otSize) {
         return packet;
     }
     tag = len | ot[otz];
@@ -244,7 +244,7 @@ u32 *emitUntexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
         len = 0x04000000;
         next += 5;
     }
-    if (otz >= (u32)SORT_WORK->unk20) {
+    if (otz >= (u32)SORT_WORK->otSize) {
         return packet;
     }
     tag = len | ot[otz];
@@ -282,7 +282,7 @@ u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
         len = 0x05000000;
         next += 6;
     }
-    if (otz >= (u32)SORT_WORK->unk20) {
+    if (otz >= (u32)SORT_WORK->otSize) {
         return packet;
     }
     tag = len | ot[otz];
@@ -302,7 +302,7 @@ u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
     work->ot = ot;
     work->packet = packet & 0xFFFFFF;
     work->work = (u32 *)0x1F80007C;
-    work->unk20 = otSize;
+    work->otSize = otSize;
     partCount = *data++;
     work->data = data;
     for (; partCount > 0; partCount--) {
@@ -321,7 +321,7 @@ u32 sortEnvMappedModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
     work->ot = ot;
     work->packet = packet & 0xFFFFFF;
     work->work = (u32 *)0x1F80007C;
-    work->unk20 = otSize;
+    work->otSize = otSize;
     partCount = *data++;
     work->data = data;
     for (; partCount > 0; partCount--) {
@@ -397,7 +397,7 @@ u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
         return packet;
     }
     work = SORT_WORK;
-    packet[1] = work->unk2C;
+    packet[1] = work->envRgbCode;
     packet[3] = (envUv0 & 0xFFFF) | work->clut;
     packet[5] = (envUv1 & 0xFFFF) | work->tpage;
     packet[7] = (envUv2 | work->tpage) & 0xFFFF;
@@ -405,7 +405,7 @@ u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     gte_swc2(13, 16, packet);
     gte_swc2(14, 24, packet);
     gte_mfc2(7, otz);
-    if (otz >= (u32)work->unk20) {
+    if (otz >= (u32)work->otSize) {
         return packet;
     }
     tag = ot[otz] | 0x07000000;
@@ -448,13 +448,13 @@ void sortEnvMappedPrimitives(SortWork *w) {
         gouraud = code & 0x10000000;
         texInfo = *cursor++;
         if (texInfo >= 0) {
-            SORT_WORK->unk38 = 0;
-            SORT_WORK->unk2C = (texInfo & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->inlineTexture = 0;
+            SORT_WORK->envRgbCode = (texInfo & 0xFFFFFF) | 0x26000000;
             SORT_WORK->clut = MODEL_TEXTURE_SLOTS[texInfo >> 24].clut;
             SORT_WORK->tpage = MODEL_TEXTURE_SLOTS[texInfo >> 24].tpage;
         } else {
-            SORT_WORK->unk38 = 1;
-            SORT_WORK->unk2C = (texInfo & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->inlineTexture = 1;
+            SORT_WORK->envRgbCode = (texInfo & 0xFFFFFF) | 0x26000000;
             SORT_WORK->clut = *cursor++;
             SORT_WORK->tpage = *cursor++;
         }

@@ -50,24 +50,24 @@ void initDuelState(s32 isCpuDuel) {
 }
 
 void startDuelScene(void) {
-    Unk800794F8 *camera;
+    Graphics *camera;
 
     initScene3D(0);
     func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
     func_80014C08(2);
-    camera = (Unk800794F8 *)&GRAPHICS;
-    camera->unk54 = 0;
-    camera->unk56 = 0;
-    camera->unk58 = 0;
-    camera->unk7C = 0;
-    camera->unk80 = 0;
-    camera->unk84 = 0;
+    camera = (Graphics *)&GRAPHICS;
+    camera->rotX = 0;
+    camera->rotY = 0;
+    camera->rotZ = 0;
+    camera->posX = 0;
+    camera->posY = 0;
+    camera->posZ = 0;
     camera->unk8E = 0;
     camera->unk90 = 0x1C0;
     camera->unk92 = 0;
     camera->unk94 = 0;
-    camera->unk8C = -1;
-    camera->unk74 = 1;
+    camera->targetModel = -1;
+    camera->snapCamera = 1;
     (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
     func_80014C08(2);
 }

@@ -166,7 +166,7 @@ void runDuelTurnLoop(void) {
         case 5:
             DUEL->awaitingInput = 1;
             DUEL_MSG_BAR.next2 = 1;
-            if (PAD_STATES[ME]->unkA & 0x10) {
+            if (PAD_STATES[ME]->pressed & 0x10) {
                 playSoundEffect(0xA0);
                 DUEL_MSG_BAR.next = 3;
                 DUEL_MSG_BAR.next2 = 0;
@@ -188,10 +188,10 @@ void runDuelTurnLoop(void) {
                         break;
                     }
                 } while (DUEL->step == 5);
-            } else if (PAD_STATES[ME]->unkA & 0x40) {
+            } else if (PAD_STATES[ME]->pressed & 0x40) {
                 playSoundEffect(0xA0);
                 DUEL->step = 8;
-            } else if (PAD_STATES[ME]->unkA & 0x80) {
+            } else if (PAD_STATES[ME]->pressed & 0x80) {
                 playSoundEffect(0xA0);
                 DUEL->step = 7;
                 DUEL->returnStep = 4;
@@ -216,7 +216,7 @@ void runDuelTurnLoop(void) {
             for (;;) {
                 waitDuelFrames(1);
                 func_801EBACC(DUEL->viewPlayer, 0);
-                if (PAD_STATES[DUEL->viewPlayer]->unkA & 0x10) {
+                if (PAD_STATES[DUEL->viewPlayer]->pressed & 0x10) {
                     playSoundEffect(0xA1);
                     if (DUEL->returnStep == 0x19) {
                         D_801D83EC[0x31] = 1;
@@ -318,7 +318,7 @@ void runDuelTurnLoop(void) {
                         DUEL->step++;
                     }
                 }
-            } else if ((PAD_STATES[ME]->unkA & 0x10) && countOnlineDeckCards(ME) != 0) {
+            } else if ((PAD_STATES[ME]->pressed & 0x10) && countOnlineDeckCards(ME) != 0) {
                 playSoundEffect(0xA1);
                 func_801EC528(ME);
                 DUEL->step = 4;
@@ -400,7 +400,7 @@ void runDuelTurnLoop(void) {
                     DUEL->unk80E = func_801ECBCC(CUR_CARD, ME);
                     DUEL->step++;
                 }
-            } else if (PAD_STATES[ME]->unkA & 0x20) {
+            } else if (PAD_STATES[ME]->pressed & 0x20) {
                 playSoundEffect(0xA0);
                 DUEL->step++;
             }
@@ -464,14 +464,14 @@ void runDuelTurnLoop(void) {
                         DUEL->step++;
                     }
                 }
-            } else if (PAD_STATES[ME]->unkA & 0x30) {
+            } else if (PAD_STATES[ME]->pressed & 0x30) {
                 DUEL->cursorSlot = -1;
-                if (PAD_STATES[ME]->unkA & 0x20) {
+                if (PAD_STATES[ME]->pressed & 0x20) {
                     playSoundEffect(0xA0);
                     func_801EC528(ME);
                     D_801D83EC[ME * 0xD8 + 0x55] = 1;
                     DUEL->step = 0x13;
-                } else if (PAD_STATES[ME]->unkA & 0x10) {
+                } else if (PAD_STATES[ME]->pressed & 0x10) {
                     playSoundEffect(0xA1);
                     if (DUEL->unk80E >= 0) {
                         func_801ECA30(peekDpSlotTop(ME), ME, DUEL->unk80E);
@@ -592,7 +592,7 @@ void runDuelTurnLoop(void) {
                 D_801D83D7 = 6;
                 i = func_801EBACC(ME, 6);
                 if (i != 0) {
-                    if (PAD_STATES[ME]->unkA & 0x20) {
+                    if (PAD_STATES[ME]->pressed & 0x20) {
                         playSoundEffect(0xA0);
                         if (DUEL->unk80A >= 0) {
                             func_801EC8E0(ME, DUEL->unk80A);
@@ -601,7 +601,7 @@ void runDuelTurnLoop(void) {
                         DUEL->step = 0x13;
                         func_801EC528(ME);
                         D_801D83EC[ME * 0xD8 + 0x55] = 1;
-                    } else if (PAD_STATES[ME]->unkA & 0x10) {
+                    } else if (PAD_STATES[ME]->pressed & 0x10) {
                         playSoundEffect(0xA1);
                         if (DUEL->unk80A >= 0) {
                             func_801EC8E0(ME, DUEL->unk80A);
@@ -715,11 +715,11 @@ void runDuelTurnLoop(void) {
                     PLAYER(ME)->unk110 |= 8;
                     func_801FA4E4(ME);
                 }
-            } else if (PAD_STATES[ME]->unkA & 0x20) {
+            } else if (PAD_STATES[ME]->pressed & 0x20) {
                 playSoundEffect(0xA0);
                 DUEL->step++;
                 func_801EC528(ME);
-            } else if (PAD_STATES[ME]->unkA & 0x10) {
+            } else if (PAD_STATES[ME]->pressed & 0x10) {
                 playSoundEffect(0xA1);
                 func_801ECD68();
                 func_801EC528(ME);
@@ -797,16 +797,16 @@ void runDuelTurnLoop(void) {
                         PLAYER(i)->attackChoice = DUEL->cpuResult;
                     }
                 } else if (PLAYER(i)->attackChoice == 3) {
-                    if (PAD_STATES[i]->unkA & 0x20) {
+                    if (PAD_STATES[i]->pressed & 0x20) {
                         playSoundEffect(0xA0);
                         PLAYER(i)->attackChoice = 0;
-                    } else if (PAD_STATES[i]->unkA & 0x10) {
+                    } else if (PAD_STATES[i]->pressed & 0x10) {
                         playSoundEffect(0xA0);
                         PLAYER(i)->attackChoice = 1;
-                    } else if (PAD_STATES[i]->unkA & 0x40) {
+                    } else if (PAD_STATES[i]->pressed & 0x40) {
                         playSoundEffect(0xA0);
                         PLAYER(i)->attackChoice = 2;
-                    } else if (PAD_STATES[i]->unkA & 0x80) {
+                    } else if (PAD_STATES[i]->pressed & 0x80) {
                         playSoundEffect(0xA0);
                         func_801EC4CC(i);
                         D_801D83EC[0x31] = 4;
@@ -885,7 +885,7 @@ void runDuelTurnLoop(void) {
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->step++;
-            } else if (PAD_STATES[OPP]->unkA & 0x20) {
+            } else if (PAD_STATES[OPP]->pressed & 0x20) {
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->step++;
@@ -969,7 +969,7 @@ void runDuelTurnLoop(void) {
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 DUEL->step++;
-            } else if (PAD_STATES[ME]->unkA & 0x20) {
+            } else if (PAD_STATES[ME]->pressed & 0x20) {
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->step++;
@@ -1032,18 +1032,18 @@ void runDuelTurnLoop(void) {
                 playPolygonBattle();
                 DUEL->inPolygonBattle = 0;
                 func_80014C08(2);
-                ((Unk800794F8 *)&GRAPHICS)->unk54 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk56 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk58 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk7C = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk80 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk84 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk8E = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk90 = 0x1C0;
-                ((Unk800794F8 *)&GRAPHICS)->unk92 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk94 = 0;
-                ((Unk800794F8 *)&GRAPHICS)->unk8C = -1;
-                ((Unk800794F8 *)&GRAPHICS)->unk74 = 1;
+                ((Graphics *)&GRAPHICS)->rotX = 0;
+                ((Graphics *)&GRAPHICS)->rotY = 0;
+                ((Graphics *)&GRAPHICS)->rotZ = 0;
+                ((Graphics *)&GRAPHICS)->posX = 0;
+                ((Graphics *)&GRAPHICS)->posY = 0;
+                ((Graphics *)&GRAPHICS)->posZ = 0;
+                ((Graphics *)&GRAPHICS)->unk8E = 0;
+                ((Graphics *)&GRAPHICS)->unk90 = 0x1C0;
+                ((Graphics *)&GRAPHICS)->unk92 = 0;
+                ((Graphics *)&GRAPHICS)->unk94 = 0;
+                ((Graphics *)&GRAPHICS)->targetModel = -1;
+                ((Graphics *)&GRAPHICS)->snapCamera = 1;
                 func_80014C08(2);
                 DUEL->state = 6;
             }

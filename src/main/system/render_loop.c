@@ -53,26 +53,26 @@ void initGraphics(void) {
 }
 
 void runRenderLoop(void) {
-    Unk800794F8 *gfx;
+    Graphics *gfx;
     s32 framesToWait;
-    void (**callback)(Unk800793A0 *, s32);
+    void (**callback)(FrameBuffer *, s32);
 
-    gfx = (Unk800794F8 *)&GRAPHICS;
+    gfx = (Graphics *)&GRAPHICS;
     gfx->unk8[0] = 0;
     VBLANK_COUNTER = 0;
     for (; gfx->unk48 <= 0; gfx->unk48++) {
         pollPads();
         func_80014C08(1);
-        gfx->unk50 = VBLANK_COUNTER;
+        gfx->vblanksPerFrame = VBLANK_COUNTER;
         if (VBLANK_COUNTER == 0) {
-            gfx->unk50 = 1;
+            gfx->vblanksPerFrame = 1;
         }
         VBLANK_COUNTER = 0;
     }
     SetDispMask(1);
     FRAME_BUFFER_INDEX = 0;
-    CURRENT_FRAME_BUFFER = &gfx->unk98[0];
-    ClearOTagR(gfx->unk98[0].ot, 0x1000);
+    CURRENT_FRAME_BUFFER = &gfx->buffers[0];
+    ClearOTagR(gfx->buffers[0].ot, 0x1000);
     for (;;) {
         framesToWait = FRAME_INTERVAL;
         pollPads();
@@ -81,7 +81,7 @@ void runRenderLoop(void) {
             framesToWait--;
         }
         FRAME_BUFFER_INDEX ^= 1;
-        CURRENT_FRAME_BUFFER = &gfx->unk98[FRAME_BUFFER_INDEX];
+        CURRENT_FRAME_BUFFER = &gfx->buffers[FRAME_BUFFER_INDEX];
         ClearOTagR(CURRENT_FRAME_BUFFER->ot, 0x1000);
         if (SCREEN_COPY_EFFECT.mode != 0) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[0], &SCREEN_COPY_EFFECT.stp[1]);
@@ -98,15 +98,15 @@ void runRenderLoop(void) {
         renderScreenCopyEffect();
         func_80014AC8();
         DrawSync(0);
-        if (gfx->unk4C != 0) {
+        if (gfx->scene3dEnabled != 0) {
             GsSwapDispBuff();
         }
         PutDispEnv(&CURRENT_FRAME_BUFFER->disp);
         PutDrawEnv(&CURRENT_FRAME_BUFFER->draw);
         DrawOTag(&CURRENT_FRAME_BUFFER->ot[0xFFF]);
-        gfx->unk50 = VBLANK_COUNTER;
+        gfx->vblanksPerFrame = VBLANK_COUNTER;
         if (VBLANK_COUNTER == 0) {
-            gfx->unk50 = 1;
+            gfx->vblanksPerFrame = 1;
         }
         VBLANK_COUNTER = 0;
     }

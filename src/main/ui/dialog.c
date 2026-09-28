@@ -62,7 +62,7 @@ void initDialog(u8 *dialog, u8 *text, u32 flags) {
     openWindow(dialog, &r, -1, (s16 *)-1, 8, 0x77, 0x80, 8);
     dialog[0x38] = 4;
     if (dialog[0xA4] != 0) {
-        initCursorHighlight((Unk800190F4 *)(dialog + 0x44), (Rect16 *)-1, (Bytes4 *)-1);
+        initCursorHighlight((CursorHighlight *)(dialog + 0x44), (Rect16 *)-1, (Bytes4 *)-1);
     }
     dialog[0xA5] = 2;
     dialog[0xA6] = 0;
@@ -107,12 +107,12 @@ void dialogTask(u8 *dialog, s32 parentTask) {
     r.y = (240 - *(s16 *)(dialog + 0xAA)) / 2 + *(s16 *)(dialog + 0xAA) - 14;
     r.w = width;
     r.h = 12;
-    setCursorHighlight((Unk800190F4 *)(dialog + 0x44), &r, (Bytes4 *)-1);
+    setCursorHighlight((CursorHighlight *)(dialog + 0x44), &r, (Bytes4 *)-1);
     pads = PAD_STATES;
     on = 1;
     do {
         func_80014C08(FRAME_INTERVAL);
-        drawWindow((Unk80016F38 *)dialog, drawDialogBody, 0);
+        drawWindow((UiWindow *)dialog, drawDialogBody, 0);
         if (*(void (**)(void))(dialog + 0xA0) != 0) {
             (*(void (**)(void))(dialog + 0xA0))();
         }
@@ -125,13 +125,13 @@ void dialogTask(u8 *dialog, s32 parentTask) {
         } else {
             closeButtons = 0x40;
         }
-        if (pads[dialog[0xA6]]->unk2 & closeButtons) {
+        if (pads[dialog[0xA6]]->rawPressed & closeButtons) {
             break;
         }
     } while (dialog[0xB4] == 0);
     if (dialog[0xB4] != 0) {
         dialog[0xA5] = 3;
-    } else if (pads[dialog[0xA6]]->unk2 & 0x10) {
+    } else if (pads[dialog[0xA6]]->rawPressed & 0x10) {
         dialog[0xA5] = 0;
         dialog[0xB4] = on;
         playMenuSound(0);
@@ -139,10 +139,10 @@ void dialogTask(u8 *dialog, s32 parentTask) {
         dialog[0xB4] = on;
         playMenuSound(1);
     }
-    animateWindowTo((Unk80016F38 *)dialog, (Rect16 *)-1);
+    animateWindowTo((UiWindow *)dialog, (Rect16 *)-1);
     do {
         func_80014C08(FRAME_INTERVAL);
-        drawWindow((Unk80016F38 *)dialog, drawDialogBody, 0);
+        drawWindow((UiWindow *)dialog, drawDialogBody, 0);
         if (*(void (**)(void))(dialog + 0xA0) != 0) {
             (*(void (**)(void))(dialog + 0xA0))();
         }
@@ -165,27 +165,27 @@ void drawDialogBody(u8 *dialog) {
     y = *(s16 *)(dialog + 2) + *(s16 *)(dialog + 0xAA) - 0xE;
     if (dialog[0xA4] != 0) {
         if (dialog[0xB4] == 0) {
-            if ((PAD_STATES[dialog[0xA6]]->unk2 & 0x8000) && (s8)dialog[0xA5] != 1) {
+            if ((PAD_STATES[dialog[0xA6]]->rawPressed & 0x8000) && (s8)dialog[0xA5] != 1) {
                 dialog[0xA5] = 1;
                 r.x = *(s16 *)(dialog + 0xAC);
                 r.y = y;
                 r.w = *(s16 *)(dialog + 0xAE);
                 r.h = 0xC;
-                moveCursorHighlight((Unk800190F4 *)(dialog + 0x44), &r);
+                moveCursorHighlight((CursorHighlight *)(dialog + 0x44), &r);
                 playMenuSound(2);
             }
-            if ((PAD_STATES[dialog[0xA6]]->unk2 & 0x2000) && (s8)dialog[0xA5] != 2) {
+            if ((PAD_STATES[dialog[0xA6]]->rawPressed & 0x2000) && (s8)dialog[0xA5] != 2) {
                 dialog[0xA5] = 2;
                 r.x = *(s16 *)(dialog + 0xB0);
                 r.y = y;
                 r.w = *(s16 *)(dialog + 0xB2);
                 r.h = 0xC;
-                moveCursorHighlight((Unk800190F4 *)(dialog + 0x44), &r);
+                moveCursorHighlight((CursorHighlight *)(dialog + 0x44), &r);
                 playMenuSound(2);
             }
         }
         drawText(*(s16 *)(dialog + 0xAC), y, *(s32 *)(dialog + 0x98), 7, *(s16 *)(dialog + 0x3A));
         drawText(*(s16 *)(dialog + 0xB0), y, *(s32 *)(dialog + 0x9C), 7, *(s16 *)(dialog + 0x3A));
-        drawCursorHighlight((Unk800190F4 *)(dialog + 0x44), *(s16 *)(dialog + 0x3A));
+        drawCursorHighlight((CursorHighlight *)(dialog + 0x44), *(s16 *)(dialog + 0x3A));
     }
 }

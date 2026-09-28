@@ -270,9 +270,9 @@ void showArenaStage(s16 rotX) {
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }
-    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.r0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.r0 = STAGE_CLEAR_COLOR[0];
-    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.g0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.g0 = STAGE_CLEAR_COLOR[1];
-    ((Unk800794F8 *)&GRAPHICS)->unk98[0].draw.b0 = ((Unk800794F8 *)&GRAPHICS)->unk98[1].draw.b0 = STAGE_CLEAR_COLOR[2];
+    ((Graphics *)&GRAPHICS)->buffers[0].draw.r0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.r0 = STAGE_CLEAR_COLOR[0];
+    ((Graphics *)&GRAPHICS)->buffers[0].draw.g0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.g0 = STAGE_CLEAR_COLOR[1];
+    ((Graphics *)&GRAPHICS)->buffers[0].draw.b0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.b0 = STAGE_CLEAR_COLOR[2];
 }
 
 void unloadArenaStage(void) {

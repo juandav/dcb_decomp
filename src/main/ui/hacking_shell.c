@@ -187,7 +187,7 @@ void drawHackingTerminal(s16 *win) {
                 rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect[0] = 0x28;
                 rect[1] = 0x28;
-                animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)rect);
+                animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case 5:
@@ -196,7 +196,7 @@ void drawHackingTerminal(s16 *win) {
                 rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect[0] = 0x50;
                 rect[1] = 0x78;
-                animateWindowTo((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)rect);
+                animateWindowTo((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case 6:
@@ -205,7 +205,7 @@ void drawHackingTerminal(s16 *win) {
                 rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect[0] = (0x140 - rect[2]) >> 1;
                 rect[1] = 0xB4 - rect[3] / 2;
-                animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)rect);
+                animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)rect);
                 playMenuSound(3);
                 break;
             case '>':
@@ -249,10 +249,10 @@ void drawHackTauntText(void *win) {
 }
 
 void drawHackingWindows(void) {
-    drawWindow((Unk80016F38 *)&HACK_TAUNT_WINDOW, &drawHackTauntText, 0xA);
-    drawWindow((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, &drawHackPartnerMovedText, 0xA);
-    drawWindow((Unk80016F38 *)&HACK_ERROR_WINDOW, &drawHackErrorText, 0xA);
-    drawWindow((Unk80016F38 *)&HACK_TERMINAL_WINDOW, &drawHackingTerminal, 0xA);
+    drawWindow((UiWindow *)&HACK_TAUNT_WINDOW, &drawHackTauntText, 0xA);
+    drawWindow((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, &drawHackPartnerMovedText, 0xA);
+    drawWindow((UiWindow *)&HACK_ERROR_WINDOW, &drawHackErrorText, 0xA);
+    drawWindow((UiWindow *)&HACK_TERMINAL_WINDOW, &drawHackingTerminal, 0xA);
 }
 
 void runHackingSequence(s32 scriptIndex, s32 parentTask) {
@@ -279,31 +279,31 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     r.w = 0xA0;
     r.h = 0x54;
     openWindow(&HACK_TERMINAL_WINDOW, &r, -1, (s16 *)-1, 8, 0x58, 0x80, 0xC);
-    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk2C = (s32)"SHELL COMMAND";
-    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk38 = 2;
-    ((Unk80016F38 *)&HACK_TERMINAL_WINDOW)->unk39 = 8;
+    ((UiWindow *)&HACK_TERMINAL_WINDOW)->label = (s32)"SHELL COMMAND";
+    ((UiWindow *)&HACK_TERMINAL_WINDOW)->palette = 2;
+    ((UiWindow *)&HACK_TERMINAL_WINDOW)->labelPalette = 8;
     playMenuSound(3);
     measureText(STR_HACK_SYSTEM_ERROR);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     openWindow(&HACK_ERROR_WINDOW, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
-    ((Unk80016F38 *)&HACK_ERROR_WINDOW)->unk38 = 2;
+    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    ((UiWindow *)&HACK_ERROR_WINDOW)->palette = 2;
     measureText(STR_HACK_PARTNER_MOVED);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
-    openWindow((Unk80016F38 *)&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
-    ((Unk80016F38 *)&HACK_ERROR_WINDOW)[1].unk38 = 2;
+    openWindow((UiWindow *)&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
+    ((UiWindow *)&HACK_ERROR_WINDOW)[1].palette = 2;
     measureText(STR_HACK_TAUNT);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     r.x = (0x140 - r.w) >> 1;
     r.y = 0xB4 - r.h / 2;
     openWindow(&HACK_TAUNT_WINDOW, &r, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
-    ((Unk80016F38 *)&HACK_TAUNT_WINDOW)->unk2C = (s32)"MESSAGE";
-    ((Unk80016F38 *)&HACK_TAUNT_WINDOW)->unk38 = 4;
-    animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
+    ((UiWindow *)&HACK_TAUNT_WINDOW)->label = (s32)"MESSAGE";
+    ((UiWindow *)&HACK_TAUNT_WINDOW)->palette = 4;
+    animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     addFrameCallback((s32)drawHackingWindows);
     do {
         func_80014C08(FRAME_INTERVAL);
@@ -312,10 +312,10 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
         }
     } while (done == 0);
     playMenuSound(4);
-    animateWindowTo((Unk80016F38 *)&HACK_TERMINAL_WINDOW, (Rect16 *)-1);
-    animateWindowTo((Unk80016F38 *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
-    animateWindowTo((Unk80016F38 *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
-    animateWindowTo((Unk80016F38 *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
+    animateWindowTo((UiWindow *)&HACK_TERMINAL_WINDOW, (Rect16 *)-1);
+    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    animateWindowTo((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
+    animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     func_80014C08(20);
     removeFrameCallback((s32)drawHackingWindows);
     func_80014A48(parentTask);

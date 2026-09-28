@@ -23,7 +23,7 @@
 #define setDrawMode(p, dfe, dtd, tpage) \
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 #define CUR_SPRT ((SprtPacket *)SPRITE_POOL_CURSOR)
-#define DB(i) (((Unk800794F8 *)&GRAPHICS)->unk98[i])
+#define DB(i) (((Graphics *)&GRAPHICS)->buffers[i])
 #define PLAYER_DATA(p) (((PlayerProfile *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
 #define PLAYER(p) ((Player *)DUEL_PLAYERS[p])
@@ -54,12 +54,12 @@ typedef struct {
     /* 0x0000 */ DRAWENV draw;
     /* 0x005C */ DISPENV disp;
     /* 0x0070 */ u32 ot[0x1000];
-    /* 0x4070 */ void *unk4070;
+    /* 0x4070 */ void *scenePackets;
     /* 0x4074 */ s32 unk4074;
-    /* 0x4078 */ s32 unk4078[16];
-    /* 0x40B8 */ s32 unk40B8;
-    /* 0x40BC */ s32 unk40BC;
-} Unk800793A0;
+    /* 0x4078 */ s32 primSlots[16];
+    /* 0x40B8 */ s32 spritePool;
+    /* 0x40BC */ s32 windowPrimPool;
+} FrameBuffer;
 typedef struct {
     s16 x;
     s16 y;
@@ -125,46 +125,46 @@ typedef struct {
 } Unk801D6A4C;
 typedef struct {
     /* 0x00 */ u8 pad0[8];
-    /* 0x08 */ void (*unk8[16])(Unk800793A0 *, s32);
+    /* 0x08 */ void (*unk8[16])(FrameBuffer *, s32);
     /* 0x48 */ s32 unk48;
-    /* 0x4C */ s32 unk4C;
-    /* 0x50 */ s32 unk50;
-    s16 unk54;
-    s16 unk56;
-    s16 unk58;
+    /* 0x4C */ s32 scene3dEnabled;
+    /* 0x50 */ s32 vblanksPerFrame;
+    s16 rotX;
+    s16 rotY;
+    s16 rotZ;
     u8 pad5A[0x1A];
-    s32 unk74;
+    s32 snapCamera;
     u8 pad78[0x4];
-    s32 unk7C;
-    s32 unk80;
-    s32 unk84;
+    s32 posX;
+    s32 posY;
+    s32 posZ;
     u8 pad88[0x4];
-    s16 unk8C;
+    s16 targetModel;
     s16 unk8E;
     s16 unk90;
     s16 unk92;
     s16 unk94;
     u8 pad96[0x2];
-    Unk800793A0 unk98[2];
-} Unk800794F8;
+    FrameBuffer buffers[2];
+} Graphics;
 typedef struct {
-    /* 0x00 */ u16 unk0;
-    /* 0x02 */ u16 unk2;
-    /* 0x04 */ u16 unk4;
-    /* 0x06 */ u16 unk6;
-    /* 0x08 */ s16 unk8;
-    /* 0x0A */ s16 unkA;
-    /* 0x0C */ s16 unkC;
-    /* 0x0E */ s16 unkE;
-    /* 0x10 */ s8 unk10;
-    /* 0x11 */ s8 unk11;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ u16 unk14;
+    /* 0x00 */ u16 rawHeld;
+    /* 0x02 */ u16 rawPressed;
+    /* 0x04 */ u16 rawReleased;
+    /* 0x06 */ u16 rawRepeat;
+    /* 0x08 */ s16 held;
+    /* 0x0A */ s16 pressed;
+    /* 0x0C */ s16 released;
+    /* 0x0E */ s16 repeat;
+    /* 0x10 */ s8 repeatEnabled;
+    /* 0x11 */ s8 repeating;
+    /* 0x12 */ s16 holdTime;
+    /* 0x14 */ u16 repeatButtons;
     /* 0x16 */ s16 repeatDelay;
     /* 0x18 */ s16 repeatRate;
-    /* 0x1A */ u8 unk1A;
-    /* 0x1B */ u8 unk1B;
-    /* 0x1C */ s16 unk1C;
+    /* 0x1A */ u8 padStatus;
+    /* 0x1B */ u8 padType;
+    /* 0x1C */ s16 padExId;
 } PadState;
 typedef struct {
     u32 tag;
@@ -186,28 +186,28 @@ typedef struct {
     /* 0x0C */ u8 u0;
     /* 0x0D */ u8 v0;
     /* 0x0E */ u16 clut;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
+    /* 0x10 */ s16 w;
+    /* 0x12 */ s16 h;
     /* 0x14 */ u32 tpage[2];
     /* 0x1C */ u32 twin[3];
     /* 0x28 */ u32 twin0[3];
-} FadeBuf;
+} ScrollBgSprite;
 typedef struct {
-    /* 0x00 */ FadeBuf buf[2];
+    /* 0x00 */ ScrollBgSprite buf[2];
     /* 0x68 */ s32 tim;
     /* 0x6C */ s8 mode;
-    /* 0x6D */ s8 unk6D;
-    /* 0x6E */ u8 unk6E;
-    /* 0x6F */ u8 unk6F;
-    /* 0x70 */ s16 unk70;
-    /* 0x72 */ s16 unk72;
+    /* 0x6D */ s8 shownImage;
+    /* 0x6E */ u8 scrollMode;
+    /* 0x6F */ u8 scrollSpeed;
+    /* 0x70 */ s16 scrollPos;
+    /* 0x72 */ s16 brightness;
     /* 0x74 */ s16 w;
     /* 0x76 */ s16 h;
     /* 0x78 */ s16 x;
     /* 0x7A */ s16 y;
-    /* 0x7C */ u16 unk7C;
-    /* 0x7E */ u16 unk7E;
-} Fade;
+    /* 0x7C */ u16 texWindowW;
+    /* 0x7E */ u16 texWindowH;
+} ScrollBackground;
 typedef struct {
     /* 0x00 */ s32 unk0;
     /* 0x04 */ u8 loc[4];
@@ -221,27 +221,27 @@ typedef struct {
     /* 0x30 */ u8 buf[0x1000];
 } CdFile;
 typedef struct {
-    /* 0x00 */ s16 unk0;
-    /* 0x02 */ s16 unk2;
+    /* 0x00 */ s16 originX;
+    /* 0x02 */ s16 originY;
     /* 0x04 */ Rect16 view;
     /* 0x0C */ Rect16 rect;
     /* 0x14 */ Rect16 cur;
     /* 0x1C */ Rect16 from;
     /* 0x24 */ Rect16 delta;
-    /* 0x2C */ s32 unk2C;
-    /* 0x30 */ s16 unk30[4];
-    /* 0x38 */ u8 unk38;
-    /* 0x39 */ u8 unk39;
+    /* 0x2C */ s32 label;
+    /* 0x30 */ s16 scroll[4];
+    /* 0x38 */ u8 palette;
+    /* 0x39 */ u8 labelPalette;
     /* 0x3A */ s16 z;
-    /* 0x3C */ u8 unk3C;
-    /* 0x3D */ u8 unk3D;
-    /* 0x3E */ u8 unk3E;
-    /* 0x3F */ u8 unk3F;
-    /* 0x40 */ u8 unk40;
-    /* 0x41 */ s8 unk41;
-    /* 0x42 */ u8 unk42;
-    /* 0x43 */ u8 unk43;
-} Unk80016F38;
+    /* 0x3C */ u8 animFrames;
+    /* 0x3D */ u8 animFrame;
+    /* 0x3E */ u8 scrollStep;
+    /* 0x3F */ u8 flags;
+    /* 0x40 */ u8 brightness;
+    /* 0x41 */ s8 animDone;
+    /* 0x42 */ u8 style;
+    /* 0x43 */ u8 scrollbarStyle;
+} UiWindow;
 typedef struct {
     u32 addr : 24;
     u32 len : 8;
@@ -774,7 +774,7 @@ typedef struct {
 typedef struct {
     u32 tpage;
     u32 clut;
-} Unk8006DF60;
+} ModelTextureSlot;
 typedef struct {
     /* 0x00 */ char name[20];
     /* 0x14 */ s32 attr;
@@ -903,7 +903,7 @@ extern s32 SPRITE_POOL_CURSOR;
 extern u16 SYSTEM_TEX_X;
 extern u16 SYSTEM_TEX_Y;
 extern s32 PLAYER_PROFILES;
-extern Unk800793A0 *CURRENT_FRAME_BUFFER;
+extern FrameBuffer *CURRENT_FRAME_BUFFER;
 extern u8 FRAME_BUFFER_INDEX;
 extern s32 FRAME_INTERVAL;
 extern s32 GRAPHICS;
@@ -930,7 +930,7 @@ extern s32 PATH_SAISEG;
 extern s32 PATH_EVOSEG;
 extern s32 PATH_SUBSEG;
 extern s32 PATH_BG_ARC;
-extern Fade SCROLL_BACKGROUND;
+extern ScrollBackground SCROLL_BACKGROUND;
 extern s32 ATTACK_ICON_TIMER;
 extern s32 D_801D8278;
 extern u8 *D_801D83EC;

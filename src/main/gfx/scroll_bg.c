@@ -75,13 +75,13 @@ void freeScrollingBackground(void) {
 void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
     s32 i;
 
-    if (SCROLL_BACKGROUND.unk72 != 0 && SCROLL_BACKGROUND.unk72 != 0x80) {
+    if (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80) {
         do {
             func_80014C08(FRAME_INTERVAL);
-        } while (SCROLL_BACKGROUND.unk72 != 0 && SCROLL_BACKGROUND.unk72 != 0x80);
+        } while (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80);
     }
-    if (SCROLL_BACKGROUND.unk72 == 0) {
-        SCROLL_BACKGROUND.unk6D = -1;
+    if (SCROLL_BACKGROUND.brightness == 0) {
+        SCROLL_BACKGROUND.shownImage = -1;
     }
     SCROLL_BACKGROUND.mode = image;
     if (image >= 0) {
@@ -94,8 +94,8 @@ void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
             SetDrawTPage((SCROLL_BACKGROUND.buf + i)->tpage, 0, 0, GetTPage(0, 0, x, y));
         }
     }
-    SCROLL_BACKGROUND.unk6E = 0;
-    SCROLL_BACKGROUND.unk6F = 0x1E;
+    SCROLL_BACKGROUND.scrollMode = 0;
+    SCROLL_BACKGROUND.scrollSpeed = 0x1E;
 }
 
 void hideScrollingBackground(void) {
@@ -120,7 +120,7 @@ s16 ATTACK_ICON_ORIGIN_X[3] = { 0x80, -0x40, 0x140 };
 s16 ATTACK_ICON_ORIGIN_Y[2][3] = { { -0xF0, 0x99, 0x99 }, { 0xF0, 0x1C, 0x1C } };
 
 void renderScrollingBackground(void) {
-    Fade *bg;
+    ScrollBackground *bg;
     s32 tim;
     s16 texWindow[4];
     u8 buffer;
@@ -128,60 +128,60 @@ void renderScrollingBackground(void) {
     if (SCROLL_BACKGROUND.tim == 0 || *(u16 *)&SCROLL_BACKGROUND.mode == 0xFFFF) {
         return;
     }
-    switch (SCROLL_BACKGROUND.unk6E) {
+    switch (SCROLL_BACKGROUND.scrollMode) {
     case 0:
-        if ((s8)SCROLL_BACKGROUND.unk6F < 30) {
-            SCROLL_BACKGROUND.unk6F++;
+        if ((s8)SCROLL_BACKGROUND.scrollSpeed < 30) {
+            SCROLL_BACKGROUND.scrollSpeed++;
         }
         break;
     case 1:
-        if ((s8)SCROLL_BACKGROUND.unk6F >= -59) {
-            SCROLL_BACKGROUND.unk6F--;
+        if ((s8)SCROLL_BACKGROUND.scrollSpeed >= -59) {
+            SCROLL_BACKGROUND.scrollSpeed--;
         }
         break;
     }
     bg = &SCROLL_BACKGROUND;
-    bg->unk70 = (bg->unk70 + (s8)bg->unk6F) % 7680;
-    if (bg->mode != bg->unk6D) {
-        if (bg->unk6D == -1) {
-            if (bg->unk72 == 0) {
+    bg->scrollPos = (bg->scrollPos + (s8)bg->scrollSpeed) % 7680;
+    if (bg->mode != bg->shownImage) {
+        if (bg->shownImage == -1) {
+            if (bg->brightness == 0) {
                 tim = decompressArchiveEntry(bg->tim, bg->mode);
                 uploadTim((u32 *)tim, bg->x, bg->y, bg->w, bg->h);
                 if (bg->mode != 6) {
-                    bg->unk7C = 0x40;
+                    bg->texWindowW = 0x40;
                 } else {
-                    SCROLL_BACKGROUND.unk7C = 0x80;
+                    SCROLL_BACKGROUND.texWindowW = 0x80;
                 }
-                SCROLL_BACKGROUND.unk7E = 0x80;
+                SCROLL_BACKGROUND.texWindowH = 0x80;
                 DrawSync(0);
                 freeHeapBlock((void *)tim);
             }
-            SCROLL_BACKGROUND.unk72 += 6;
-            if (SCROLL_BACKGROUND.unk72 > 0x80) {
-                SCROLL_BACKGROUND.unk72 = 0x80;
-                SCROLL_BACKGROUND.unk6D = SCROLL_BACKGROUND.mode;
+            SCROLL_BACKGROUND.brightness += 6;
+            if (SCROLL_BACKGROUND.brightness > 0x80) {
+                SCROLL_BACKGROUND.brightness = 0x80;
+                SCROLL_BACKGROUND.shownImage = SCROLL_BACKGROUND.mode;
             }
         } else {
-            SCROLL_BACKGROUND.unk72 -= 6;
-            if (SCROLL_BACKGROUND.unk72 < 0) {
-                SCROLL_BACKGROUND.unk72 = 0;
-                SCROLL_BACKGROUND.unk6D = -1;
+            SCROLL_BACKGROUND.brightness -= 6;
+            if (SCROLL_BACKGROUND.brightness < 0) {
+                SCROLL_BACKGROUND.brightness = 0;
+                SCROLL_BACKGROUND.shownImage = -1;
             }
         }
     }
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin0);
     buffer = FRAME_BUFFER_INDEX;
-    SCROLL_BACKGROUND.buf[buffer].x0 = -((SCROLL_BACKGROUND.unk70 / 60) & 1);
+    SCROLL_BACKGROUND.buf[buffer].x0 = -((SCROLL_BACKGROUND.scrollPos / 60) & 1);
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].y0 = 0;
-    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].u0 = (SCROLL_BACKGROUND.unk70 / 60) & 0xFE;
-    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].v0 = SCROLL_BACKGROUND.unk70 / 60;
-    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].r0 = SCROLL_BACKGROUND.unk72;
-    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].g0 = SCROLL_BACKGROUND.unk72;
-    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].b0 = SCROLL_BACKGROUND.unk72;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].u0 = (SCROLL_BACKGROUND.scrollPos / 60) & 0xFE;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].v0 = SCROLL_BACKGROUND.scrollPos / 60;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].r0 = SCROLL_BACKGROUND.brightness;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].g0 = SCROLL_BACKGROUND.brightness;
+    SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].b0 = SCROLL_BACKGROUND.brightness;
     texWindow[0] = (SCROLL_BACKGROUND.x % 64) * 4;
     texWindow[1] = SCROLL_BACKGROUND.y % 256;
-    texWindow[2] = SCROLL_BACKGROUND.unk7C;
-    texWindow[3] = SCROLL_BACKGROUND.unk7E;
+    texWindow[2] = SCROLL_BACKGROUND.texWindowW;
+    texWindow[3] = SCROLL_BACKGROUND.texWindowH;
     SetTexWindow(SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin, texWindow);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX]);
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin);

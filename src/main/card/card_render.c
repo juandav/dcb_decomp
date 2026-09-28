@@ -176,7 +176,7 @@ void renderDuelBackground(s32 brightness) {
     POLY_FT4 *poly;
     u8 *polyBuf;
 
-    polyBuf = (u8 *)CURRENT_FRAME_BUFFER->unk4078[11];
+    polyBuf = (u8 *)CURRENT_FRAME_BUFFER->primSlots[11];
     poly = (POLY_FT4 *)(polyBuf + 0x1E0);
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
@@ -279,7 +279,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
     POLY_FT4 *poly;
     s32 u;
 
-    poly = (POLY_FT4 *)((u8 *)CURRENT_FRAME_BUFFER->unk4078[11] + (index * 80 + 0x280));
+    poly = (POLY_FT4 *)((u8 *)CURRENT_FRAME_BUFFER->primSlots[11] + (index * 80 + 0x280));
     u = ((((PlayerProfile *)PLAYER_PROFILES)->playTime / 4) % 4) * 32;
     initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
@@ -357,7 +357,7 @@ void renderPhaseBanner(void) {
         DUEL_MSG_BAR.bannerStep = step;
         DUEL_MSG_BAR.bannerPhase = phase;
     }
-    poly = (POLY_FT4 *)(CURRENT_FRAME_BUFFER->unk4078[11] + 0x320);
+    poly = (POLY_FT4 *)(CURRENT_FRAME_BUFFER->primSlots[11] + 0x320);
     switch ((u8)DUEL_MSG_BAR.bannerState) {
     case 0:
         DUEL_MSG_BAR.px -= 14;
@@ -782,7 +782,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     vertices[3].vz = 0;
     col = (u32 *)sprite->rgbc;
     fade = (u32 *)sprite->fade;
-    buf = (RawPolyFT4 *)CURRENT_FRAME_BUFFER->unk4078[10];
+    buf = (RawPolyFT4 *)CURRENT_FRAME_BUFFER->primSlots[10];
     nclip = RotAverageNclip4((s32)&vertices[0], (s32)&vertices[1], (s32)&vertices[2], (s32)&vertices[3], (s32)&sxy[0], (s32)&sxy[1],
                              (s32)&sxy[2], (s32)&sxy[3], &depthCue, &otz, &flag);
     if (nclip <= 0) {

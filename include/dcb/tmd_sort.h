@@ -20,15 +20,15 @@ typedef struct {
     /* 0x14 */ u32 code;
     /* 0x18 */ u32 textured;
     /* 0x1C */ u32 quad;
-    /* 0x20 */ void *unk20;
+    /* 0x20 */ void *otSize;
     /* 0x24 */ u32 count[2];
-    /* 0x2C */ u32 unk2C;
+    /* 0x2C */ u32 envRgbCode;
     /* 0x30 */ u32 tpage;
     /* 0x34 */ u32 clut;
-    /* 0x38 */ u32 unk38;
+    /* 0x38 */ u32 inlineTexture;
 } SortWork;
 
-extern Unk8006DF60 MODEL_TEXTURE_SLOTS[];
+extern ModelTextureSlot MODEL_TEXTURE_SLOTS[];
 
 void loadTriangleToGte(u32 index0, u32 *indices, u8 *workBuf);
 void loadGteVertex0(s32 gouraud, u32 index, u8 *workBuf);

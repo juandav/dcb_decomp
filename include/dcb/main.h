@@ -7,17 +7,17 @@ typedef struct {
     /* 0x00 */ char unk0[0x14];
     /* 0x14 */ int unk14;
 } Unk80077A0C;
-typedef struct Thread {
+typedef struct Task {
     /* 0x00 */ u32 flags;
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ struct Thread *next;
-    /* 0x0C */ struct Thread *prev;
+    /* 0x04 */ s32 waitFrames;
+    /* 0x08 */ struct Task *next;
+    /* 0x0C */ struct Task *prev;
     /* 0x10 */ s32 unk10;
-    /* 0x14 */ s32 unk14;
-    /* 0x18 */ s32 unk18;
+    /* 0x14 */ s32 id;
+    /* 0x18 */ s32 wakeResult;
     /* 0x1C */ s32 stack;
     /* 0x20 */ s32 regs[40];
-} Thread;
+} Task;
 
 extern s32 TASK_VSYNC_MODE;
 extern s16 *D_80077AEC;

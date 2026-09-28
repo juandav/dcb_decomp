@@ -51,10 +51,10 @@ void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize) {
     freeHeapBlock(tim);
     pool = allocPermanentHeapBlock(SPRITE_POOL_SIZE * sizeof(SprtPacket) * 2);
     for (i = 0; i < 2; i++) {
-        DB(i).unk40B8 = (s32)(pool + SPRITE_POOL_SIZE * i);
+        DB(i).spritePool = (s32)(pool + SPRITE_POOL_SIZE * i);
     }
     initSpritePoolPackets();
-    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->unk40B8;
+    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->spritePool;
 }
 
 void initSpritePoolPackets(void) {
@@ -66,17 +66,17 @@ void initSpritePoolPackets(void) {
     }
     for (i = 0; i < 2; i++) {
         for (j = 0; j < SPRITE_POOL_SIZE; j++) {
-            setDrawMode(&((SprtPacket *)DB(i).unk40B8)[j].dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
-            setSprt(&((SprtPacket *)DB(i).unk40B8)[j].sp);
-            setSemiTrans(&((SprtPacket *)DB(i).unk40B8)[j].sp, 1);
-            setShadeTex(&((SprtPacket *)DB(i).unk40B8)[j].sp, 0);
-            setRGB0(&((SprtPacket *)DB(i).unk40B8)[j].sp, 0x80, 0x80, 0x80);
+            setDrawMode(&((SprtPacket *)DB(i).spritePool)[j].dm, 0, 0, getTPage(0, 0, SYSTEM_TEX_X, SYSTEM_TEX_Y));
+            setSprt(&((SprtPacket *)DB(i).spritePool)[j].sp);
+            setSemiTrans(&((SprtPacket *)DB(i).spritePool)[j].sp, 1);
+            setShadeTex(&((SprtPacket *)DB(i).spritePool)[j].sp, 0);
+            setRGB0(&((SprtPacket *)DB(i).spritePool)[j].sp, 0x80, 0x80, 0x80);
         }
     }
 }
 
 void resetSpritePool(void) {
-    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->unk40B8;
+    SPRITE_POOL_CURSOR = CURRENT_FRAME_BUFFER->spritePool;
 }
 
 void drawPageSprite(s32 x, s32 y, s32 uvRect, u16 tpage, s32 palette, s32 z) {
@@ -778,7 +778,7 @@ void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z) {
 }
 
 s32 isSpritePoolFull(void) {
-    if (SPRITE_POOL_CURSOR == CURRENT_FRAME_BUFFER->unk40B8 + SPRITE_POOL_SIZE * 0x1C) {
+    if (SPRITE_POOL_CURSOR == CURRENT_FRAME_BUFFER->spritePool + SPRITE_POOL_SIZE * 0x1C) {
         return -1;
     }
     return 0;

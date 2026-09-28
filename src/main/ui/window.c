@@ -65,8 +65,8 @@ Rect16 HSCROLL_PART_UVS[8] = {
 s16 D_8006DEE8[4] = { 0x100, -1, -1, 0 };
 
 void initWindowPrimPool(s32 count) {
-    PanelPrims *pool;
-    PanelPrims *prims;
+    WindowPrims *pool;
+    WindowPrims *prims;
     s16 texWindow[4];
     u32 tpage;
     s32 i;
@@ -78,10 +78,10 @@ void initWindowPrimPool(s32 count) {
     WINDOW_TEX_Y = 0x100;
     WINDOW_CLUT_X = 0x3E0;
     WINDOW_CLUT_Y = 0x1F8;
-    pool = allocPermanentHeapBlock(WINDOW_PRIM_POOL_SIZE * sizeof(PanelPrims) * 2);
+    pool = allocPermanentHeapBlock(WINDOW_PRIM_POOL_SIZE * sizeof(WindowPrims) * 2);
     tpage = GetTPage(0, 0, WINDOW_TEX_X, WINDOW_TEX_Y);
     for (i = 0; i < 2; i++) {
-        prims = (PanelPrims *)(((Unk800794F8 *)&GRAPHICS)->unk98[i].unk40BC = (s32)(pool + WINDOW_PRIM_POOL_SIZE * i));
+        prims = (WindowPrims *)(((Graphics *)&GRAPHICS)->buffers[i].windowPrimPool = (s32)(pool + WINDOW_PRIM_POOL_SIZE * i));
         for (windowIndex = 0; windowIndex < WINDOW_PRIM_POOL_SIZE; windowIndex++, prims++) {
             for (j = 0; j < 4; j++) {
                 initPrimByType(0xC, &prims->ft4a[j], 0, 0);
@@ -107,15 +107,15 @@ void initWindowPrimPool(s32 count) {
             SetTexWindow(prims->twin, texWindow);
         }
     }
-    WINDOW_PRIM_CURSOR = CURRENT_FRAME_BUFFER->unk40BC;
+    WINDOW_PRIM_CURSOR = CURRENT_FRAME_BUFFER->windowPrimPool;
 }
 
 void resetWindowPrimPool(void) {
-    WINDOW_PRIM_CURSOR = CURRENT_FRAME_BUFFER->unk40BC;
+    WINDOW_PRIM_CURSOR = CURRENT_FRAME_BUFFER->windowPrimPool;
 }
 
 void openWindow(void *winPtr, void *rectPtr, s32 fromPtr, s16 *viewPtr, s32 flags, s32 style, s32 brightness, s32 frames) {
-    Unk80016F38 *w = winPtr;
+    UiWindow *w = winPtr;
     Rect16 *r = rectPtr;
     Rect16 *from = (Rect16 *)fromPtr;
     Rect16 *view = (Rect16 *)viewPtr;
@@ -173,34 +173,34 @@ void openWindow(void *winPtr, void *rectPtr, s32 fromPtr, s16 *viewPtr, s32 flag
     w->delta.y = w->cur.y - w->from.y;
     w->delta.w = w->cur.w - w->from.w;
     w->delta.h = w->cur.h - w->from.h;
-    w->unk0 = w->rect.x - w->view.x;
-    w->unk2 = w->rect.y - w->view.y;
-    w->unk30[0] = w->view.x;
-    w->unk30[1] = w->view.y;
-    w->unk30[2] = w->view.x;
-    w->unk30[3] = w->view.y;
-    w->unk3C = frames;
-    w->unk3D = 0;
-    w->unk3E = 0;
-    w->unk3F = flags;
-    w->unk41 = 0;
-    w->unk42 = style;
+    w->originX = w->rect.x - w->view.x;
+    w->originY = w->rect.y - w->view.y;
+    w->scroll[0] = w->view.x;
+    w->scroll[1] = w->view.y;
+    w->scroll[2] = w->view.x;
+    w->scroll[3] = w->view.y;
+    w->animFrames = frames;
+    w->animFrame = 0;
+    w->scrollStep = 0;
+    w->flags = flags;
+    w->animDone = 0;
+    w->style = style;
     if ((u32)brightness > 256) {
-        w->unk40 = 0xFF;
+        w->brightness = 0xFF;
     } else {
-        w->unk40 = brightness;
+        w->brightness = brightness;
     }
-    w->unk38 = 0;
-    w->unk39 = 0;
+    w->palette = 0;
+    w->labelPalette = 0;
     if ((style >> 4) < 5) {
-        w->unk43 = 0;
+        w->scrollbarStyle = 0;
     } else {
-        w->unk43 = 1;
+        w->scrollbarStyle = 1;
     }
-    w->unk2C = 0;
+    w->label = 0;
 }
 
-void animateWindowTo(Unk80016F38 *win, Rect16 *target) {
+void animateWindowTo(UiWindow *win, Rect16 *target) {
     s32 dx;
     s32 dy;
 
@@ -222,11 +222,11 @@ void animateWindowTo(Unk80016F38 *win, Rect16 *target) {
         win->delta.h = target->h - win->cur.h;
         win->cur = *target;
     }
-    win->unk3D = win->unk3C - win->unk3D;
-    if ((s8)win->unk3D < 0) {
-        win->unk3D = 0;
+    win->animFrame = win->animFrames - win->animFrame;
+    if ((s8)win->animFrame < 0) {
+        win->animFrame = 0;
     }
-    win->unk41 = 0;
+    win->animDone = 0;
 }
 
 void scrollWindowTo(s16 *win, s32 x, s32 y) {
@@ -251,7 +251,7 @@ void scrollWindowTo(s16 *win, s32 x, s32 y) {
     win[0x1B] = y;
 }
 
-s32 drawWindow(Unk80016F38 *win, void (*drawContents)(), s32 z) {
+s32 drawWindow(UiWindow *win, void (*drawContents)(), s32 z) {
     DISPENV env;
     Rect16 frameClip;
     Rect16 contentClip;
@@ -285,27 +285,27 @@ s32 drawWindow(Unk80016F38 *win, void (*drawContents)(), s32 z) {
         frameClip.w = win->from.w + 4;
         frameClip.h = win->from.h + 2;
         clipRectToBounds(&frameClip, (Rect16 *)&env);
-        contentClip.x = win->unk0 + win->view.x + env.disp[0] - 2;
-        contentClip.y = win->unk2 + win->view.y + env.disp[1] - 1;
+        contentClip.x = win->originX + win->view.x + env.disp[0] - 2;
+        contentClip.y = win->originY + win->view.y + env.disp[1] - 1;
         contentClip.w = win->rect.w + 4;
         contentClip.h = win->rect.h + 2;
-        if (win->unk3F & 2) {
+        if (win->flags & 2) {
             contentClip.w -= 8;
         }
-        if (win->unk3F & 4) {
+        if (win->flags & 4) {
             contentClip.h -= 8;
         }
         clipRectToBounds(&contentClip, &frameClip);
-        SetDrawArea((DR_AREA *)&WP->unk264[0x18], (Rect16 *)&env);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0x18]);
-        if (win->unk2C != 0 && (win->unk3F & 8) && (labelKind = WINDOW_STYLES[(win->unk42 >> 4) - 1].label) != 0) {
+        SetDrawArea((DR_AREA *)&WP->drawAreas[0x18], (Rect16 *)&env);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->drawAreas[0x18]);
+        if (win->label != 0 && (win->flags & 8) && (labelKind = WINDOW_STYLES[(win->style >> 4) - 1].label) != 0) {
             switch (labelKind) {
             case 1:
                 labelClip.x = frameClip.x;
                 labelClip.y = frameClip.y - 7;
                 labelClip.w = frameClip.w;
                 labelClip.h = 5;
-                drawSmallText(win->from.x, win->from.y - 8, win->unk2C, win->unk39, z);
+                drawSmallText(win->from.x, win->from.y - 8, win->label, win->labelPalette, z);
                 break;
             case 2:
                 labelClip.x = frameClip.x - 7;
@@ -313,7 +313,7 @@ s32 drawWindow(Unk80016F38 *win, void (*drawContents)(), s32 z) {
                 labelClip.w = 5;
                 labelClip.h = frameClip.h;
                 y = win->from.y;
-                drawVerticalText(win->from.x - 9, y + strlen((u8 *)win->unk2C) * 5, win->unk2C, win->unk39, z);
+                drawVerticalText(win->from.x - 9, y + strlen((u8 *)win->label) * 5, win->label, win->labelPalette, z);
                 break;
             case 3:
                 labelClip.x = frameClip.x - 6;
@@ -321,28 +321,28 @@ s32 drawWindow(Unk80016F38 *win, void (*drawContents)(), s32 z) {
                 labelClip.w = 5;
                 labelClip.h = frameClip.h;
                 y = win->from.y;
-                drawVerticalText(win->from.x - 8, y + strlen((u8 *)win->unk2C) * 5, win->unk2C, win->unk39, z);
+                drawVerticalText(win->from.x - 8, y + strlen((u8 *)win->label) * 5, win->label, win->labelPalette, z);
                 break;
             case 4:
                 labelClip.x = frameClip.x;
                 labelClip.y = frameClip.y - 10;
                 labelClip.w = frameClip.w;
                 labelClip.h = 5;
-                drawSmallText(win->from.x, win->from.y - 11, win->unk2C, win->unk39, z);
+                drawSmallText(win->from.x, win->from.y - 11, win->label, win->labelPalette, z);
                 break;
             }
             clipRectToBounds(&labelClip, (Rect16 *)&env);
-            SetDrawArea((DR_AREA *)&WP->unk264[0x24], &labelClip);
-            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0x24]);
+            SetDrawArea((DR_AREA *)&WP->drawAreas[0x24], &labelClip);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->drawAreas[0x24]);
         }
         drawVerticalScrollbar(win, z);
         drawHorizontalScrollbar(win, z);
-        SetDrawArea((DR_AREA *)&WP->unk264[0], &frameClip);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0]);
+        SetDrawArea((DR_AREA *)&WP->drawAreas[0], &frameClip);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->drawAreas[0]);
         drawContents(win, &CURRENT_FRAME_BUFFER->ot[z]);
-        SetDrawArea((DR_AREA *)&WP->unk264[0xC], &contentClip);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->unk264[0xC]);
-        drawWindowFrame(&win->from, win->unk42, win->unk3F & 1, win->unk40, win->unk38, z);
+        SetDrawArea((DR_AREA *)&WP->drawAreas[0xC], &contentClip);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->drawAreas[0xC]);
+        drawWindowFrame(&win->from, win->style, win->flags & 1, win->brightness, win->palette, z);
     }
     return ret;
 }
@@ -364,7 +364,7 @@ void clipRectToBounds(Rect16 *rect, Rect16 *bounds) {
     }
 }
 
-s32 stepWindowAnimation(Unk80016F38 *w) {
+s32 stepWindowAnimation(UiWindow *w) {
     s32 remaining;
     s32 dx;
     s32 dy;
@@ -372,50 +372,50 @@ s32 stepWindowAnimation(Unk80016F38 *w) {
     s32 ox;
     s32 oy;
 
-    remaining = (s8)w->unk3C - (s8)w->unk3D;
-    w->unk41 = 0;
+    remaining = (s8)w->animFrames - (s8)w->animFrame;
+    w->animDone = 0;
     delta = w->delta.x;
     if (delta < 0) {
-        w->from.x = w->cur.x - delta * remaining / (s8)w->unk3C;
+        w->from.x = w->cur.x - delta * remaining / (s8)w->animFrames;
     } else {
         dx = delta * remaining - 1;
-        w->from.x = w->cur.x - (dx + (s8)w->unk3C) / (s8)w->unk3C;
+        w->from.x = w->cur.x - (dx + (s8)w->animFrames) / (s8)w->animFrames;
     }
     delta = w->delta.y;
     if (delta < 0) {
-        w->from.y = w->cur.y - delta * remaining / (s8)w->unk3C;
+        w->from.y = w->cur.y - delta * remaining / (s8)w->animFrames;
     } else {
         dy = delta * remaining - 1;
-        w->from.y = w->cur.y - (dy + (s8)w->unk3C) / (s8)w->unk3C;
+        w->from.y = w->cur.y - (dy + (s8)w->animFrames) / (s8)w->animFrames;
     }
-    w->from.w = w->cur.w - w->delta.w * remaining / (s8)w->unk3C;
-    w->from.h = w->cur.h - w->delta.h * remaining / (s8)w->unk3C;
-    if ((s8)w->unk3E < 6) {
-        w->view.x = w->unk30[0] + (w->unk30[2] - w->unk30[0]) * (s8)w->unk3E / 6;
-        w->view.y = w->unk30[1] + (w->unk30[3] - w->unk30[1]) * (s8)w->unk3E / 6;
-        w->unk3E++;
+    w->from.w = w->cur.w - w->delta.w * remaining / (s8)w->animFrames;
+    w->from.h = w->cur.h - w->delta.h * remaining / (s8)w->animFrames;
+    if ((s8)w->scrollStep < 6) {
+        w->view.x = w->scroll[0] + (w->scroll[2] - w->scroll[0]) * (s8)w->scrollStep / 6;
+        w->view.y = w->scroll[1] + (w->scroll[3] - w->scroll[1]) * (s8)w->scrollStep / 6;
+        w->scrollStep++;
     } else {
-        w->view.x = w->unk30[2];
-        w->view.y = w->unk30[3];
+        w->view.x = w->scroll[2];
+        w->view.y = w->scroll[3];
     }
-    ox = w->delta.w * remaining / (s8)w->unk3C / 2;
+    ox = w->delta.w * remaining / (s8)w->animFrames / 2;
     if (ox < 0) {
-        ox = abs(w->delta.w * (s8)w->unk3D / (s8)w->unk3C) / 2;
+        ox = abs(w->delta.w * (s8)w->animFrame / (s8)w->animFrames) / 2;
     }
     ox += w->view.x;
-    oy = w->delta.h * remaining / (s8)w->unk3C / 2;
+    oy = w->delta.h * remaining / (s8)w->animFrames / 2;
     if (oy < 0) {
-        oy = abs(w->delta.h * (s8)w->unk3D / (s8)w->unk3C) / 2;
+        oy = abs(w->delta.h * (s8)w->animFrame / (s8)w->animFrames) / 2;
     }
     oy += w->view.y;
-    w->unk0 = w->from.x - ox;
-    w->unk2 = w->from.y - oy;
-    w->unk3D += FRAME_INTERVAL;
-    if ((s8)w->unk3D > (s8)w->unk3C) {
-        w->unk3D = w->unk3C;
-        w->unk41 = 1;
+    w->originX = w->from.x - ox;
+    w->originY = w->from.y - oy;
+    w->animFrame += FRAME_INTERVAL;
+    if ((s8)w->animFrame > (s8)w->animFrames) {
+        w->animFrame = w->animFrames;
+        w->animDone = 1;
     }
-    return w->unk41;
+    return w->animDone;
 }
 
 void drawWindowFrame(Rect16 *rect, u8 style, s32 semiTrans, s32 brightness, s32 palette, s32 z) {
@@ -509,16 +509,16 @@ void drawWindowFrame(Rect16 *rect, u8 style, s32 semiTrans, s32 brightness, s32 
             setSemiTrans(&WP->frame, semiTrans);
             setRGB0(&WP->frame, brightness, brightness, brightness);
             WP->frame.clut = clut;
-            SetTexWindow(WP->unk10C, (s16 *)&WINDOW_FILL_PATTERNS[styleIndex]);
+            SetTexWindow(WP->fillTwin, (s16 *)&WINDOW_FILL_PATTERNS[styleIndex]);
             addPrim(ot, &WP->frame);
         }
-        addPrim(ot, WP->unk10C);
+        addPrim(ot, WP->fillTwin);
         addPrim(ot, WP->tpage);
-        WINDOW_PRIM_CURSOR += sizeof(PanelPrims);
+        WINDOW_PRIM_CURSOR += sizeof(WindowPrims);
     }
 }
 
-void drawVerticalScrollbar(Unk80016F38 *w, s32 z) {
+void drawVerticalScrollbar(UiWindow *w, s32 z) {
     u16 clut;
     s32 x;
     s32 y;
@@ -530,14 +530,14 @@ void drawVerticalScrollbar(Unk80016F38 *w, s32 z) {
     s32 off;
     s32 thumbTop;
 
-    clut = getClut(WINDOW_CLUT_X + (w->unk38 % 2) * 16, WINDOW_CLUT_Y + w->unk38 / 2);
-    if (!(w->unk3F & 2) || w->rect.h >= w->view.h) {
+    clut = getClut(WINDOW_CLUT_X + (w->palette % 2) * 16, WINDOW_CLUT_Y + w->palette / 2);
+    if (!(w->flags & 2) || w->rect.h >= w->view.h) {
         return;
     }
-    x = w->unk0 + w->view.x + w->rect.w - 8;
-    y = w->unk2 + w->view.y;
+    x = w->originX + w->view.x + w->rect.w - 8;
+    y = w->originY + w->view.y;
     trackLength = w->rect.h - 0x10;
-    if (w->unk3F & 4) {
+    if (w->flags & 4) {
         trackLength -= 8;
     }
     thumbPos = w->view.y * trackLength / w->view.h;
@@ -563,21 +563,21 @@ void drawVerticalScrollbar(Unk80016F38 *w, s32 z) {
     setPrimQuadRect(&WP->ft4b[0], x, thumbTop + 2, 8, thumbSize - 4);
     setPrimQuadRect(&WP->ft4b[1], x, y + 8, 8, trackLength);
     for (i = 0; i < 4; i++) {
-        setUV0(&WP->lineb[i], VSCROLL_PART_UVS[i + w->unk43 * 4].x, VSCROLL_PART_UVS[i + w->unk43 * 4].y);
-        setWH(&WP->lineb[i], VSCROLL_PART_UVS[i + w->unk43 * 4].w, VSCROLL_PART_UVS[i + w->unk43 * 4].h);
-        setRGB0(&WP->lineb[i], w->unk40, w->unk40, w->unk40);
+        setUV0(&WP->lineb[i], VSCROLL_PART_UVS[i + w->scrollbarStyle * 4].x, VSCROLL_PART_UVS[i + w->scrollbarStyle * 4].y);
+        setWH(&WP->lineb[i], VSCROLL_PART_UVS[i + w->scrollbarStyle * 4].w, VSCROLL_PART_UVS[i + w->scrollbarStyle * 4].h);
+        setRGB0(&WP->lineb[i], w->brightness, w->brightness, w->brightness);
         WP->lineb[i].clut = clut;
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->lineb[i]);
     }
     for (i = 0; i < 2; i++) {
-        setPrimQuadUvRect((u8 *)&WP->ft4b[i], VSCROLL_BAR_UVS[i + w->unk43 * 2].x, VSCROLL_BAR_UVS[i + w->unk43 * 2].y, VSCROLL_BAR_UVS[i + w->unk43 * 2].w, VSCROLL_BAR_UVS[i + w->unk43 * 2].h);
-        setRGB0(&WP->ft4b[i], w->unk40, w->unk40, w->unk40);
+        setPrimQuadUvRect((u8 *)&WP->ft4b[i], VSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].x, VSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].y, VSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].w, VSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].h);
+        setRGB0(&WP->ft4b[i], w->brightness, w->brightness, w->brightness);
         WP->ft4b[i].clut = clut;
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->ft4b[i]);
     }
 }
 
-void drawHorizontalScrollbar(Unk80016F38 *w, s32 z) {
+void drawHorizontalScrollbar(UiWindow *w, s32 z) {
     u16 clut;
     s32 x;
     s32 y;
@@ -589,14 +589,14 @@ void drawHorizontalScrollbar(Unk80016F38 *w, s32 z) {
     s32 off;
     s32 thumbLeft;
 
-    clut = getClut(WINDOW_CLUT_X + (w->unk38 % 2) * 16, WINDOW_CLUT_Y + w->unk38 / 2);
-    if (!(w->unk3F & 4) || w->rect.w >= w->view.w) {
+    clut = getClut(WINDOW_CLUT_X + (w->palette % 2) * 16, WINDOW_CLUT_Y + w->palette / 2);
+    if (!(w->flags & 4) || w->rect.w >= w->view.w) {
         return;
     }
-    x = w->unk0 + w->view.x;
-    y = w->unk2 + w->view.y + w->rect.h - 8;
+    x = w->originX + w->view.x;
+    y = w->originY + w->view.y + w->rect.h - 8;
     trackLength = w->rect.w - 0x10;
-    if (w->unk3F & 2) {
+    if (w->flags & 2) {
         trackLength -= 8;
     }
     thumbPos = w->view.x * trackLength / w->view.w;
@@ -622,22 +622,22 @@ void drawHorizontalScrollbar(Unk80016F38 *w, s32 z) {
     setPrimQuadRect(&WP->ft4c[0], thumbLeft + 2, y, thumbSize - 4, 8);
     setPrimQuadRect(&WP->ft4c[1], x + 8, y, trackLength, 8);
     for (i = 0; i < 4; i++) {
-        setUV0(&WP->linec[i], HSCROLL_PART_UVS[i + w->unk43 * 4].x, HSCROLL_PART_UVS[i + w->unk43 * 4].y);
-        setWH(&WP->linec[i], HSCROLL_PART_UVS[i + w->unk43 * 4].w, HSCROLL_PART_UVS[i + w->unk43 * 4].h);
-        setRGB0(&WP->linec[i], w->unk40, w->unk40, w->unk40);
+        setUV0(&WP->linec[i], HSCROLL_PART_UVS[i + w->scrollbarStyle * 4].x, HSCROLL_PART_UVS[i + w->scrollbarStyle * 4].y);
+        setWH(&WP->linec[i], HSCROLL_PART_UVS[i + w->scrollbarStyle * 4].w, HSCROLL_PART_UVS[i + w->scrollbarStyle * 4].h);
+        setRGB0(&WP->linec[i], w->brightness, w->brightness, w->brightness);
         WP->linec[i].clut = clut;
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->linec[i]);
     }
     for (i = 0; i < 2; i++) {
-        setPrimQuadUvRect((u8 *)&WP->ft4c[i], HSCROLL_BAR_UVS[i + w->unk43 * 2].x, HSCROLL_BAR_UVS[i + w->unk43 * 2].y, HSCROLL_BAR_UVS[i + w->unk43 * 2].w, HSCROLL_BAR_UVS[i + w->unk43 * 2].h);
-        setRGB0(&WP->ft4c[i], w->unk40, w->unk40, w->unk40);
+        setPrimQuadUvRect((u8 *)&WP->ft4c[i], HSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].x, HSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].y, HSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].w, HSCROLL_BAR_UVS[i + w->scrollbarStyle * 2].h);
+        setRGB0(&WP->ft4c[i], w->brightness, w->brightness, w->brightness);
         WP->ft4c[i].clut = clut;
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &WP->ft4c[i]);
     }
 }
 
 int isWindowPrimPoolFull(void) {
-    if (WINDOW_PRIM_CURSOR == CURRENT_FRAME_BUFFER->unk40BC + WINDOW_PRIM_POOL_SIZE * 0x294) {
+    if (WINDOW_PRIM_CURSOR == CURRENT_FRAME_BUFFER->windowPrimPool + WINDOW_PRIM_POOL_SIZE * 0x294) {
         printf(STR_TOO_MANY_WINDOWS);
         return -1;
     }
