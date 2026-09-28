@@ -97,6 +97,13 @@ typedef struct {
     u32 tag;
     u8 r0, g0, b0, code;
     s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+} LineG2;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
     s16 x1, y1;
     s16 x2, y2;
 } POLY_F3;
@@ -527,11 +534,11 @@ typedef struct {
     u8 unk38[0x104];
     u8 unk13C[0x20];
     void *unk15C;
-    void *unk160[2];
-    void *unk168[2];
-    void *unk170[2];
-    void *unk178[2];
-    void *unk180[2];
+    DrTPage *unk160[2];
+    LineG2 *unk168[2];
+    POLY_G4 *unk170[2];
+    POLY_FT4 *unk178[2];
+    POLY_GT4 *unk180[2];
     u8 xformA[0x4C];
     u8 xformB[0x4C];
     void *unk220[2];
@@ -541,7 +548,7 @@ typedef struct {
     SVECTOR rot0;
     SVECTOR rot1;
     u8 xform[0x4C];
-    u8 unk2B4[8];
+    Rect16 uv;
     s32 unk2BC;
     s32 unk2C0;
     s32 unk2C4;
@@ -696,7 +703,7 @@ typedef struct {
     Rect16 uv;
 } Unk801EC160;
 void func_801EBFA0(s16 *dst, s32 count, s16 value);
-s32 func_801EC1F4(Unk801EC160 *obj, s32 a1, s32 a2, s32 a3);
+s32 func_801EC1F4(Unk801EC160 *obj, s32 count, s32 state, s32 speed);
 void func_801EBFD4(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count);
 extern s16 D_801EF37C;
 extern s32 D_801EF978[2];
@@ -1816,7 +1823,101 @@ void func_801E521C(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2
     obj->unk2D6 = -1;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E5278);
+void func_801E5278(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
+    s32 i;
+    LineG2 *line0;
+    LineG2 *line1;
+    POLY_G4 *g4a;
+    POLY_G4 *g4b;
+    POLY_FT4 *ft4a;
+    POLY_FT4 *ft4b;
+    POLY_GT4 *gt4a;
+    POLY_GT4 *gt4b;
+    DrTPage *tp0;
+    DrTPage *tp1;
+
+    for (i = 0; i < 2; i++) {
+        obj->unk160[i] = NULL;
+        obj->unk168[i] = NULL;
+        obj->unk170[i] = NULL;
+        obj->unk178[i] = NULL;
+        obj->unk180[i] = NULL;
+    }
+    switch (kind) {
+    case 1:
+        if (semiTrans) {
+            for (i = 0; i < 2; i++) {
+                obj->unk160[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            obj->unk168[i] = allocTaskHeapBlock(obj->count * sizeof(LineG2));
+        }
+        line0 = obj->unk168[0];
+        line1 = obj->unk168[1];
+        tp0 = obj->unk160[0];
+        tp1 = obj->unk160[1];
+        for (i = 0; i < obj->count; i++, line0++, line1++, tp0++, tp1++) {
+            if (!semiTrans) {
+                initLineG2Pair((s32 *)line0, (s32 *)line1, NULL, NULL, blend, NULL, NULL, 0, 1);
+            } else {
+                initLineG2Pair((s32 *)line0, (s32 *)line1, NULL, NULL, blend, tp0, tp1, 1, 1);
+            }
+        }
+        break;
+    case 9:
+        if (semiTrans) {
+            for (i = 0; i < 2; i++) {
+                obj->unk160[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            obj->unk170[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_G4));
+        }
+        g4a = obj->unk170[0];
+        g4b = obj->unk170[1];
+        tp0 = obj->unk160[0];
+        tp1 = obj->unk160[1];
+        for (i = 0; i < obj->count; i++, g4a++, g4b++, tp0++, tp1++) {
+            if (!semiTrans) {
+                initPolyG4Pair(g4a, g4b, NULL, NULL, NULL, NULL, blend, NULL, NULL, NULL, 0, 1);
+            } else {
+                initPolyG4Pair(g4a, g4b, NULL, NULL, NULL, NULL, blend, tp0, tp1, NULL, 1, 1);
+            }
+        }
+        break;
+    case 12:
+        for (i = 0; i < 2; i++) {
+            obj->unk178[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_FT4));
+        }
+        ft4a = obj->unk178[0];
+        ft4b = obj->unk178[1];
+        for (i = 0; i < obj->count; i++, ft4a++, ft4b++) {
+            if (!semiTrans) {
+                initPolyFT4Pair(ft4a, ft4b, NULL, tpage, clut, NULL, NULL, 0, 1);
+            } else {
+                initPolyFT4Pair(ft4a, ft4b, NULL, tpage, clut, NULL, NULL, 1, 1);
+            }
+        }
+        obj->uv = *uv;
+        break;
+    case 13:
+        for (i = 0; i < 2; i++) {
+            obj->unk180[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_GT4));
+        }
+        gt4a = obj->unk180[0];
+        gt4b = obj->unk180[1];
+        for (i = 0; i < obj->count; i++, gt4a++, gt4b++) {
+            if (!semiTrans) {
+                initPolyGT4Pair(gt4a, gt4b, NULL, NULL, NULL, NULL, tpage, clut, uv, NULL, 0, 1);
+            } else {
+                initPolyGT4Pair(gt4a, gt4b, NULL, NULL, NULL, NULL, tpage, clut, uv, NULL, 1, 1);
+            }
+        }
+        obj->uv = *uv;
+        break;
+    }
+}
 
 void func_801E57E0(Unk801E57E0 *obj) {
     Rect16 uv;
@@ -1867,13 +1968,6 @@ void func_801E57E0(Unk801E57E0 *obj) {
     }
 }
 
-typedef struct {
-    u32 tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    u8 r1, g1, b1, pad1;
-    s16 x1, y1;
-} LineG2;
 
 void func_801E5AB0(Unk801E5144 *obj) {
     u8 c0[3];
@@ -3389,7 +3483,51 @@ void func_801EC160(Unk801EC160 *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
     obj->unk16 = 0x80;
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC1F4);
+/* old-style definition: the callers pass an int, the byte is read here */
+s32 func_801EC1F4(obj, count, state, speed)
+    Unk801EC160 *obj;
+    s32 count;
+    s32 state;
+    s8 speed;
+{
+    s32 i;
+    s32 settled;
+
+    i = 0;
+    settled = 0;
+    for (; i < count; i++, obj++) {
+        switch (state) {
+        case 0:
+        case 1:
+            obj->unk0 = (obj->target[state] - obj->unk0) / (8 >> state) + obj->unk0;
+            if (ABS((s16)obj->unk0 - obj->target[state]) < 2) {
+                settled++;
+            }
+            break;
+        case 2:
+            if (obj->flags & 1) {
+                if (obj->unk16 <= 0) {
+                    obj->unk0 = (340.0f - obj->unk0) * 0.125f + obj->unk0;
+                    if (ABS((s16)obj->unk0 - obj->target[state]) < 2) {
+                        state = 3;
+                    }
+                } else {
+                    obj->unk16--;
+                }
+            } else {
+                obj->unk16 -= speed;
+                if (obj->unk16 <= 0) {
+                    state = 3;
+                }
+            }
+            break;
+        }
+    }
+    if (state < 2 && settled == count) {
+        state++;
+    }
+    return state;
+}
 
 void func_801EC494(s32 x, s32 y, s32 value, u8 brightness) {
     s32 digits[4];
