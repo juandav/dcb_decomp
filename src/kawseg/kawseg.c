@@ -1542,7 +1542,15 @@ s32 func_801F848C(void) {
     freeHeapBlock(D_801D83EC);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F84CC);
+extern Bytes4 D_801DFBC8;
+void func_801F851C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, u16 a5, Bytes4 *a6);
+
+void func_801F84CC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, u16 a5) {
+    Bytes4 color;
+
+    color = D_801DFBC8;
+    func_801F851C(a0, a1, a2, a3, a4, a5, &color);
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F851C);
 

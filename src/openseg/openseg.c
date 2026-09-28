@@ -156,7 +156,13 @@ typedef struct {
 } Unk801F52E0;
 extern Unk801F52E0 D_801F52E0[2];
 typedef struct {
-    u8 unk0[0x539];
+    u8 unk0[0x528];
+    void *unk528;
+    u8 pad52C[0x532 - 0x52C];
+    u8 unk532;
+    u8 unk533;
+    s8 unk534;
+    u8 pad535[0x539 - 0x535];
     u8 unk539;
 } Unk801F7B88;
 extern Unk801F7B88 D_801F7B88;
@@ -1056,7 +1062,12 @@ void func_801EBE80(void) {
     func_80014C08(0x7FFFFFFF);
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EBEDC);
+void func_801EBEDC(void) {
+    D_801F7B88.unk533 = 0;
+    D_801F7B88.unk534 = -1;
+    D_801F7B88.unk532 = 0;
+    D_801F7B88.unk528 = allocHeapBlock(0x4000, 0x63);
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EBF20);
 
