@@ -367,8 +367,8 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             }
             drawText(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
             drawIcon(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
-            if (card->unkE6 != 0) {
-                drawIcon(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
+            if (card->supportIcon != 0) {
+                drawIcon(panel->x + 0xE3, panel->y + 2, 0, card->supportIcon + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
                 drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->supportText[i], (s32 *)lineColors[7], 7, z);

@@ -18,9 +18,9 @@ typedef struct {
     /* 0x038 */ u8 unk38[0x104];
     /* 0x13C */ Model *model;
     /* 0x140 */ u8 unk140[0x42F];
-    /* 0x56F */ u8 unk56F;
+    /* 0x56F */ u8 axisMode;
     /* 0x570 */ u8 unk570;
-    /* 0x571 */ s8 unk571;
+    /* 0x571 */ s8 enabled;
 } ModelLink;
 
 extern MATRIX SCENE_LIGHT_MATRIX;

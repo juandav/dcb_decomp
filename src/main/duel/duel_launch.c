@@ -23,7 +23,7 @@
 
 void startCpuDuel(s32 deckIndex) {
     u8 *deckFile;
-    SavedDeck *decks;
+    PresetDeck *decks;
     s32 result;
 
     func_80014C08(2);
@@ -33,7 +33,7 @@ void startCpuDuel(s32 deckIndex) {
     func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, getCurrentTaskId());
     deckFile = (u8 *)func_80014C08(0x7FFFFFFF);
     ((SessionData *)D_8006E054)->npcDeckFile = deckFile;
-    decks = (SavedDeck *)(deckFile + 8);
+    decks = (PresetDeck *)(deckFile + 8);
     ((SessionData *)D_8006E054)->opponentDeckIndex = deckIndex;
     ((SessionData *)D_8006E054)->opponentDeck = decks[deckIndex];
     func_800149B8(0, -1, 0, 0x800, runDuel, 1, getCurrentTaskId(), 0, 0);

@@ -191,8 +191,8 @@ void runModelAnimationTask(void) {
     SCENE_3D_ENABLED = 1;
     slot = 0;
 loop_1:
-    model = SCENE_3D->unk13C[slot];
-    if (SCENE_3D->unk114[slot] > 0) {
+    model = SCENE_3D->models[slot];
+    if (SCENE_3D->modelState[slot] > 0) {
         animState = model + 0x2200;
         if ((*(s32 *)((s8 *)model + 0x2208)) >= 0) {
             timer = (*(s32 *)((s8 *)animState + 8)) - 1;

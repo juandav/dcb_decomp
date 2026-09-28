@@ -387,12 +387,12 @@ void markDeckCardsSeen(s32 player) {
 
 void markBuildableOpponentDecks(s32 player) {
     u8 needed[0x12D];
-    SavedDeck *decks;
+    PresetDeck *decks;
     s32 i;
     s32 j;
     s32 missing;
 
-    decks = (SavedDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+    decks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
     for (i = 0; i < 0x9F; i++) {
         if (((PlayerProfile *)PLAYER_PROFILES)[player].opponentDeckFlags[i] & 0x8000) {
             for (j = 0; j < 0x12D; j++) {
@@ -1194,12 +1194,12 @@ s32 updatePartnerStats(s32 player, s32 slot) {
             j = PARTNER_ABILITIES[ability].param;
             if (j != 0) {
                 PLAYER_DATA(player).partners[slot].card[0].supportConditions[0] = PARTNER_ABILITY_CONDITIONS[j - 1];
-                PLAYER_DATA(player).partners[slot].card[0].supportConditions[0].unkE = PARTNER_ABILITIES[ability].value;
+                PLAYER_DATA(player).partners[slot].card[0].supportConditions[0].value = PARTNER_ABILITIES[ability].value;
             }
             if (PARTNER_ABILITIES[ability].actionStart != 0) {
                 for (j = 0; j < PARTNER_ABILITIES[ability].actionCount; j++) {
                     PLAYER_DATA(player).partners[slot].card[0].supportActions[j] = PARTNER_ABILITY_ACTIONS[PARTNER_ABILITIES[ability].actionStart - 1 + j];
-                    PLAYER_DATA(player).partners[slot].card[0].supportActions[j].unkC = PARTNER_ABILITIES[ability].value;
+                    PLAYER_DATA(player).partners[slot].card[0].supportActions[j].value = PARTNER_ABILITIES[ability].value;
                 }
             }
             supportText = PARTNER_ABILITY_TEXTS[ability - 0x29];
@@ -1216,8 +1216,8 @@ s32 updatePartnerStats(s32 player, s32 slot) {
                 }
                 supportText++;
             }
-            PLAYER_DATA(player).partners[slot].card[0].unkE6 = PARTNER_ABILITIES[ability].unk6;
-            PLAYER_DATA(player).partners[slot].card[1].unkE6 = PARTNER_ABILITIES[ability].unk6;
+            PLAYER_DATA(player).partners[slot].card[0].supportIcon = PARTNER_ABILITIES[ability].unk6;
+            PLAYER_DATA(player).partners[slot].card[1].supportIcon = PARTNER_ABILITIES[ability].unk6;
             ret = 1;
             break;
         case 8:

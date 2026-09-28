@@ -22,7 +22,7 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 
-BgEntry ARENA_STAGES[56] = {
+ArenaStage ARENA_STAGES[56] = {
     { 0x50, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
     { 0x51, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
     { 0x52, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
@@ -104,13 +104,13 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
         loadModelAnimation(slot, 5, 5, pak);
         loadModelAnimation(slot, 6, 6, pak);
     } else {
-        setModelAnimationData(SCENE_3D->unk13C[slot],
+        setModelAnimationData(SCENE_3D->models[slot],
                       (s32 *)decompressToHeap(
-                          (s32)findPakChunk((Chunk *)((Model2220 *)SCENE_3D->unk13C[slot])->unk26F4, 1, 7), slot + 0x84),
+                          (s32)findPakChunk((Chunk *)((Model2220 *)SCENE_3D->models[slot])->pak, 1, 7), slot + 0x84),
                       7);
         applyAnimationFirstFrame(slot, 7);
     }
-    SCENE_3D->unk114[slot] = -1;
+    SCENE_3D->modelState[slot] = -1;
     truncatePakTextures((Chunk *)pak);
     return pak;
 }
@@ -235,18 +235,18 @@ void loadArenaStage(s32 stageId) {
     func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
     STAGE_PAK = func_80014C08(0x7FFFFFFF);
     loadModel(0x17, ARENA_STAGES[stageId].bg + 900, 0, STAGE_PAK, 0);
-    SCENE_3D->unk114[0x17] = -1;
-    ((Model2220 *)SCENE_3D->unk13C[23])->unk26D4 = 0xA0000;
-    ((Model2220 *)SCENE_3D->unk13C[23])->unk26D0 = 0x280000;
+    SCENE_3D->modelState[0x17] = -1;
+    ((Model2220 *)SCENE_3D->models[23])->tpageOffset = 0xA0000;
+    ((Model2220 *)SCENE_3D->models[23])->clutOffset = 0x280000;
     if (ARENA_STAGES[stageId].flags & 2) {
         loadModelAnimation(0x17, 0, 0, STAGE_PAK);
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }
-    SCENE_3D->unk114[0x18] = SCENE_3D->unk114[0x19] = 0;
-    SCENE_3D->unk114[0x1B] = ARENA_STAGES[stageId].unk2;
-    SCENE_3D->unk114[0x1A] = ARENA_STAGES[stageId].unk1;
-    *(s32 *)&SCENE_3D->unk114[0x24] = ARENA_STAGES[stageId].flags;
+    SCENE_3D->modelState[0x18] = SCENE_3D->modelState[0x19] = 0;
+    SCENE_3D->modelState[0x1B] = ARENA_STAGES[stageId].texAnimDelay;
+    SCENE_3D->modelState[0x1A] = ARENA_STAGES[stageId].texAnimFrames;
+    *(s32 *)&SCENE_3D->modelState[0x24] = ARENA_STAGES[stageId].flags;
     STAGE_CLEAR_COLOR[0] = ARENA_STAGES[stageId].rgb[0];
     STAGE_CLEAR_COLOR[1] = ARENA_STAGES[stageId].rgb[1];
     STAGE_CLEAR_COLOR[2] = ARENA_STAGES[stageId].rgb[2];
@@ -254,17 +254,17 @@ void loadArenaStage(s32 stageId) {
 }
 
 void showArenaStage(s16 rotX) {
-    Unk801D6A4C *scene;
+    Scene3D *scene;
     s32 tim;
 
     SCENE_3D_ENABLED = 1;
     scene = SCENE_3D;
-    *(s16 *)((u8 *)scene->unk13C[23] + 0xA78) = rotX;
-    tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, *(s16 *)((u8 *)scene->unk13C[23] + 6)));
+    *(s16 *)((u8 *)scene->models[23] + 0xA78) = rotX;
+    tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, *(s16 *)((u8 *)scene->models[23] + 6)));
     uploadTim((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
     freeHeapBlock((void *)tim);
-    if (rotX != 0 && (*(s32 *)&SCENE_3D->unk114[0x24] & 2)) {
+    if (rotX != 0 && (*(s32 *)&SCENE_3D->modelState[0x24] & 2)) {
         func_80014A00(0x1B);
         func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
         applyAnimationFirstFrame(0x17, 0);
@@ -283,15 +283,15 @@ void unloadArenaStage(void) {
 void animateStageTexture(u8 *model) {
     s32 vramSlot;
 
-    if (SCENE_3D->unk114[0x1B] != 0) {
-        if (++SCENE_3D->unk114[0x19] >= SCENE_3D->unk114[0x1B]) {
+    if (SCENE_3D->modelState[0x1B] != 0) {
+        if (++SCENE_3D->modelState[0x19] >= SCENE_3D->modelState[0x1B]) {
             vramSlot = *(s32 *)(model + 0x26D4) / 0x10000 + 5;
-            SCENE_3D->unk114[0x19] = 0;
-            if (++SCENE_3D->unk114[0x18] >= (u8)SCENE_3D->unk114[0x24] >> 3) {
-                SCENE_3D->unk114[0x18] = 0;
+            SCENE_3D->modelState[0x19] = 0;
+            if (++SCENE_3D->modelState[0x18] >= (u8)SCENE_3D->modelState[0x24] >> 3) {
+                SCENE_3D->modelState[0x18] = 0;
             }
             *(s32 *)(model + 0x26D0) =
-                (((((vramSlot & 0x10) << 4) + SCENE_3D->unk114[0x18]) << 6 | (vramSlot & 0xF) << 2) - 0x14) << 16;
+                (((((vramSlot & 0x10) << 4) + SCENE_3D->modelState[0x18]) << 6 | (vramSlot & 0xF) << 2) - 0x14) << 16;
         }
     }
 }

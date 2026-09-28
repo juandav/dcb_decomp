@@ -9,13 +9,13 @@
 #include "dcb/task.h"
 
 void loadPresetDeckForPlayer(s32 player) {
-    SavedDeck *presetDecks;
-    SavedDeck *deck;
+    PresetDeck *presetDecks;
+    PresetDeck *deck;
     s32 i;
     s32 partner;
     u16 cardId;
 
-    presetDecks = (SavedDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+    presetDecks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
     if (((SessionData *)D_8006E054)->npcDeckIndex[player] != -1) {
         deck = &presetDecks[((SessionData *)D_8006E054)->npcDeckIndex[player]];
         backupPartners(player);
@@ -26,8 +26,8 @@ void loadPresetDeckForPlayer(s32 player) {
             partner = getPartnerIndex(cardId);
             if (partner >= 0) {
                 addPartner(player, partner, 0);
-                if (deck->unk6D != 0) {
-                    unlockPartnerArmor(player, partner, deck->unk6D - 1);
+                if (deck->partnerArmor != 0) {
+                    unlockPartnerArmor(player, partner, deck->partnerArmor - 1);
                 }
             }
         }
@@ -98,8 +98,8 @@ void initDuelPlayers(s32 isCpuDuel) {
                 partner = getPartnerIndex(cardId);
                 if (partner >= 0) {
                     addPartner(1, partner, 0);
-                    if (((SessionData *)D_8006E054)->opponentDeck.unk6D != 0) {
-                        unlockPartnerArmor(1, partner, ((SessionData *)D_8006E054)->opponentDeck.unk6D - 1);
+                    if (((SessionData *)D_8006E054)->opponentDeck.partnerArmor != 0) {
+                        unlockPartnerArmor(1, partner, ((SessionData *)D_8006E054)->opponentDeck.partnerArmor - 1);
                     }
                 }
             }

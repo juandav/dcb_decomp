@@ -18,7 +18,7 @@ s32 isWithinDistance(SVECTOR *a, SVECTOR *b, s32 radius);
 void projectPointOntoLine(SVECTOR *start, SVECTOR *point, SVECTOR *end, VECTOR *out);
 s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16 radius);
 void *initEffectObject(void *fx);
-Unk13C *cloneEffectObject(Unk13C *template);
+EffectTemplate *cloneEffectObject(EffectTemplate *template);
 void updateEffectObject(s32 fx);
 void freeEffectObject(void *fx);
 s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir);

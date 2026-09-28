@@ -49,7 +49,7 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
         *slot = 0;
     }
     CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&D_80077A1C = 0xFFFF;
-    CURRENT_TASK = (Unk80077A0C *)((Task *)&TASKS - 1);
+    CURRENT_TASK = (TaskHeader *)((Task *)&TASKS - 1);
     ((Task *)&TASK_LIST_END)->flags = 0x8000FFFF;
     ((Task *)&TASK_LIST_END)->next = (Task *)CURRENT_TASK + 1;
     if (TASK_VSYNC_MODE != 0) {
@@ -114,7 +114,7 @@ long handleVsyncPreemption(void) {
     } else {
         PREEMPTED_TASK = task;
         task = (Task *)&TASKS;
-        CURRENT_TASK = (Unk80077A0C *)task;
+        CURRENT_TASK = (TaskHeader *)task;
         CURRENT_TASK_PRIORITY = TASKS;
         tcbRegs = (s32 *)(KERNEL_TCB + 8);
         regs = task->regs;
@@ -313,7 +313,7 @@ void exitCurrentTask(void) {
 }
 
 int killOtherTasks(void) {
-    int selfId = CURRENT_TASK->unk14;
+    int selfId = CURRENT_TASK->id;
     int i;
     int killedCount = 0;
 

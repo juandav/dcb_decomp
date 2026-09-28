@@ -47,8 +47,8 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
         packet = (u32)buffer->scenePackets;
         colorMatrix = SCENE_LIGHT_COLORS;
         for (i = 0; i < 24; i++) {
-            model = SCENE_3D->unk13C[i];
-            if (SCENE_3D->unk114[i] <= 0 || model->unk26D4 < 0) {
+            model = SCENE_3D->models[i];
+            if (SCENE_3D->modelState[i] <= 0 || model->tpageOffset < 0) {
                 continue;
             }
             lightMatrix = SCENE_LIGHT_MATRIX;
@@ -68,7 +68,7 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 ot += otDepth * 3;
                 animateStageTexture((u8 *)model);
             }
-            if (SCENE_3D->unk114[i] == 1) {
+            if (SCENE_3D->modelState[i] == 1) {
                 RotMatrix(&SCENE_WORLD_ROTATION, &SCENE_3D->root.coord);
                 SCENE_3D->root.flg = 0;
                 SCENE_3D->root.coord.t[0] = localScreen.t[0];
@@ -77,14 +77,14 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 RotMatrixYXZ(&model->rot, &model->root.coord);
                 model->root.flg = 0;
                 ScaleMatrix(&model->root.coord, &model->scale);
-            } else if (SCENE_3D->unk114[i] == 2) {
+            } else if (SCENE_3D->modelState[i] == 2) {
                 PopMatrix();
                 continue;
             } else {
-                link = (ModelLink *)model->unk26E0;
+                link = (ModelLink *)model->link;
                 memset(&rot, 0, 8);
-                if (link->unk571 != 0) {
-                    tickEffectMotion((s32)link, link->unk56F);
+                if (link->enabled != 0) {
+                    tickEffectMotion((s32)link, link->axisMode);
                     model->root.coord = link->m;
                     link->model->rot = link->rot;
                     link->model->pos = link->pos;
@@ -94,11 +94,11 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 SCENE_3D->root.coord.t[2] = 0;
                 SCENE_3D->root.coord.t[1] = 0;
                 SCENE_3D->root.coord.t[0] = 0;
-                SCENE_3D->unk114[i] = 2;
+                SCENE_3D->modelState[i] = 2;
             }
             scratch = (s32 *)0x1F800000;
-            scratch[12] = model->unk26D4;
-            scratch[13] = model->unk26D0;
+            scratch[12] = model->tpageOffset;
+            scratch[13] = model->clutOffset;
             obj = model->obj;
             for (j = 0; j < model->nobj; j++, obj++) {
                 obj->coord2->flg = 0;
@@ -125,15 +125,15 @@ void setupSceneProjection(s32 projection) {
     func_8005C484(0xA0, 0x78);
     func_8005C4A4(projection);
     func_80062484(projection);
-    SCENE_3D->unkC4.vpx = 0;
-    SCENE_3D->unkC4.vpy = 0;
-    SCENE_3D->unkC4.vpz = 0;
-    SCENE_3D->unkC4.vrx = 0;
-    SCENE_3D->unkC4.vry = 0;
-    SCENE_3D->unkC4.vrz = 0;
-    SCENE_3D->unkC4.rz = 0;
-    SCENE_3D->unkC4.super = 0;
-    GsSetRefView2(&SCENE_3D->unkC4);
+    SCENE_3D->view.vpx = 0;
+    SCENE_3D->view.vpy = 0;
+    SCENE_3D->view.vpz = 0;
+    SCENE_3D->view.vrx = 0;
+    SCENE_3D->view.vry = 0;
+    SCENE_3D->view.vrz = 0;
+    SCENE_3D->view.rz = 0;
+    SCENE_3D->view.super = 0;
+    GsSetRefView2(&SCENE_3D->view);
 }
 
 void setupSceneLighting(void) {
