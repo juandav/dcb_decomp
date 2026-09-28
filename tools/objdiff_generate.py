@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Write objdiff.json with one unit per game module.
 
-Each C file of the game (src/main/<subsystem>/<module>.c) is a unit, like
+Each C file of the game (src/main/<subsystem>/<module>.c, and each overlay's
+src/<overlay>/<module>.c) is a unit, like
 jype0/dw_decomp does: its target object is splat's full disassembly of that
 segment (asm/main/<path>.s), which holds its .rodata and .data too. The
 game's data that no module owns (asm/main/data/game.*.s, the .bss) is
@@ -45,9 +46,15 @@ UNOWNED_DATA = "game"
 
 
 def game_modules() -> list:
-    """The game's C modules in ROM order, from config/main.yaml."""
-    yaml = (ROOT / "config" / "main.yaml").read_text()
-    return [m for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", yaml, re.M) if m not in LIBRARIES]
+    """The game's C modules, as binary/path: the executable's in ROM order
+    (config/main.yaml), then each overlay's (config/<overlay>.yaml)."""
+    configs = ["main"] + sorted(p.stem for p in (ROOT / "config").glob("*.yaml") if p.stem != "main")
+    modules = []
+    for binary in configs:
+        yaml = (ROOT / "config" / f"{binary}.yaml").read_text()
+        modules += [f"{binary}/{m}" for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", yaml, re.M)
+                    if m not in LIBRARIES]
+    return modules
 
 
 def link(out: str, parts: list) -> None:
@@ -158,21 +165,21 @@ def relocate_data_by_section(path: str) -> None:
 
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
-    target = f"expected/asm/main/{module}.s.o"
-    target_all = f"expected/report/main/{module}.s.o"
+    target = f"expected/asm/{module}.s.o"
+    target_all = f"expected/report/{module}.s.o"
     link(target_all, [target] + data)
     target = target_all
     relocate_data_by_section(target)
-    base = f"build/report/main/{module}.c.o"
+    base = f"build/report/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
-    (ROOT / base).write_bytes((ROOT / f"build/src/main/{module}.c.o").read_bytes())
+    (ROOT / base).write_bytes((ROOT / f"build/src/{module}.c.o").read_bytes())
     pad_sections(base, target)
     name_rodata(base, target)
     return {
-        "name": f"main/{module}",
+        "name": module,
         "target_path": target,
         "base_path": base,
-        "metadata": {"progress_categories": ["game"], "source_path": f"src/main/{module}.c"},
+        "metadata": {"progress_categories": ["game"], "source_path": f"src/{module}.c"},
     }
 
 
@@ -185,7 +192,7 @@ def data_objects(name: str) -> list:
 def main() -> None:
     units = []
     for module in game_modules():
-        units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main" else []))
+        units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main/main" else []))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",

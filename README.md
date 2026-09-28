@@ -33,8 +33,11 @@ game to build it.
   out of the progress.
 - Progress is measured by objdiff with one unit per game module and tracked on
   [decomp.dev](https://decomp.dev/juandav/dcb_decomp).
-- The overlays the game loads from `P.DRV` (`ENDSEG`, `EVOSEG`, `KAWSEG`, ...)
-  are not part of the build yet.
+- The game loads overlays from `P.DRV` (`ENDSEG`, `EVOSEG`, `KAWSEG`,
+  `OPENSEG`, `SAISEG`, `SUBSEG`, `SUGSEG`) at the end of the executable's
+  `.bss`. `ENDSEG` (the ending) is in the build: `tools/extract_drv.py` takes
+  it out of `P.DRV`, `config/endseg.yaml` splits it, `src/endseg/` holds its C,
+  and `make compare` checks it too. The others will follow the same way.
 
 ## Dependencies
 

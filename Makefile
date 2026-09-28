@@ -108,7 +108,44 @@ ASM_OBJ := $(ASM_SRC:%.s=$(BUILDDIR)/%.s.o)
 TARGET_OBJ := $(TARGET_ASM:%.s=$(BUILDDIR)/%.s.o)
 OBJ := $(C_OBJ) $(ASM_OBJ)
 
-all: $(EXE)
+# Overlays: code the game loads from P.DRV at OVERLAY_LOAD_ADDR, the end of
+# the executable's .bss. Each one has a splat config, config/<name>.yaml,
+# its C files under src/<name>/ and its own ELF linked against the
+# executable's symbols; `make compare` checks them with the executable.
+OVERLAYS := endseg
+OVERLAY_DRIVE := disks/us/P.DRV
+OVERLAY_BINS := $(foreach o,$(OVERLAYS),$(BUILDDIR)/$(shell echo $(o) | tr a-z A-Z).BIN)
+
+# the executable's named symbols, as a linker script for the overlays
+$(GENDIR)/symbols_main.ld: config/symbols.txt
+	@mkdir -p $(dir $@)
+	sed -e 's|//.*||' $< > $@
+
+define OVERLAY_RULES
+$(1)_NAME := $(shell echo $(1) | tr a-z A-Z)
+
+$(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
+	@mkdir -p $$(dir $$@)
+	$(PYTHON) tools/extract_drv.py $$< $$($(1)_NAME) $$@
+
+$(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
+$(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(BUILDDIR)/disks/$$($(1)_NAME).BIN
+	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
+	@touch $$@
+
+$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld
+	$(LD) -nostdlib --no-check-sections -Map $(BUILDDIR)/$$($(1)_NAME).map \
+		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld \
+		-T $(GENDIR)/undefined_syms_auto_$(1).txt \
+		-T $(GENDIR)/undefined_funcs_auto_$(1).txt -o $$@
+
+$(BUILDDIR)/$$($(1)_NAME).BIN: $(BUILDDIR)/$$($(1)_NAME).elf
+	$(OBJCOPY) -O binary $$< $$@
+endef
+
+$(foreach o,$(OVERLAYS),$(eval $(call OVERLAY_RULES,$(o))))
+
+all: $(EXE) $(OVERLAY_BINS)
 
 # Only rerun splat when its own inputs change, never for Makefile edits
 $(GENDIR)/main.ld: .EXTRA_PREREQS :=
@@ -120,13 +157,13 @@ $(GENDIR)/main.ld: config/main.yaml config/symbols.txt
 		r=$$?; rm -f src/main/psyq.c; exit $$r
 	@touch $@
 
-generate: $(GENDIR)/main.ld
+generate: $(GENDIR)/main.ld $(foreach o,$(OVERLAYS),$(GENDIR)/$(o).ld)
 
 regenerate: reset
 	$(MAKE) generate
 
-compare: $(EXE)
-	@sha1sum -c config/SLUS_013.28.sha1
+compare: $(EXE) $(OVERLAY_BINS)
+	@sha1sum -c config/SLUS_013.28.sha1 config/overlays.sha1
 
 $(EXE): $(ELF)
 	$(OBJCOPY) -O binary $< $@
@@ -139,7 +176,7 @@ $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
-	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/main/%,%,$*) > $(@:.o=.s)
+	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/%,%,$*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
 	@# gas aligns .data and .bss to 16 and GCC's jump tables align .rodata
 	@# to 8; psylink packed the game's objects to 4, so a file's rodata can
