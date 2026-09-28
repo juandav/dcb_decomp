@@ -14,6 +14,25 @@
 #include "dcb/vram_upload.h"
 #include "dcb/dialog.h"
 #include "dcb/memcard.h"
+#include "dcb/player_rank.h"
+#include "dcb/menu.h"
+
+extern s32 D_801F1AFC;
+extern s32 D_801F1B00;
+u16 func_801E195C(s32 player, s32 card);
+extern s8 D_801F1880[2][301];
+typedef struct {
+    u8 unk0[9];
+    char name[13];
+    u8 cursor;
+} NameEntry;
+extern NameEntry D_801F50D8;
+extern CursorHighlight D_801F5038;
+extern s32 D_801F52D0;
+extern s32 D_801F4F00;
+extern s32 D_801F4F04;
+extern s32 D_801F5370;
+void func_801E96D8(s32 x, s32 y, s32 tpage, s32 v, s32 u, s32 w, s32 clutX, s32 clutY, s32 a8, s32 a9, s32 a10, s32 brightness, s32 z);
 
 typedef struct {
     SpuVolume volume;
@@ -351,7 +370,36 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E1308);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E143C);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E16A0);
+void func_801E16A0(void) {
+    if (isSpritePoolFull() == 0) {
+        if (D_801F1AFC != 0) {
+            D_801F1B00 += 4;
+            if (D_801F1B00 > 8) {
+                D_801F1B00 = 8;
+            }
+        } else {
+            D_801F1B00 -= 4;
+            if (D_801F1B00 < -32) {
+                D_801F1B00 = -32;
+            }
+        }
+        CUR_SPRT->sp.x0 = 6;
+        CUR_SPRT->sp.y0 = D_801F1B00;
+        CUR_SPRT->sp.u0 = 0x58;
+        CUR_SPRT->sp.v0 = 0x4A;
+        CUR_SPRT->sp.clut = 0x7FB8;
+        CUR_SPRT->sp.w = 0x80;
+        CUR_SPRT->sp.h = 0x20;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = 0x80;
+        CUR_SPRT->sp.g0 = 0x80;
+        CUR_SPRT->sp.b0 = 0x80;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, 0x1E);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    }
+}
 
 s32 func_801E1840(s32 player, s32 card) {
     s32 other;
@@ -376,13 +424,101 @@ s32 func_801E1840(s32 player, s32 card) {
     return shared;
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E195C);
+u16 func_801E195C(s32 player, s32 card) {
+    s32 other;
+    s32 otherCount;
+    s32 count;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E1AA4);
+    other = player ^ 1;
+    otherCount = getOwnedCardCount(other, card);
+    count = getOwnedCardCount(player, card);
+    for (i = 0; i < count; i++) {
+        for (j = 0; j < otherCount; j++) {
+            if (((PlayerProfile *)PLAYER_PROFILES)[player].cardCopySerials[card][i] != ((PlayerProfile *)PLAYER_PROFILES)[other].cardCopySerials[card][j]) {
+                return ((PlayerProfile *)PLAYER_PROFILES)[player].cardCopySerials[card][i];
+            }
+        }
+    }
+    return ((PlayerProfile *)PLAYER_PROFILES)[player].cardCopySerials[card][0];
+}
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E1C8C);
+void func_801E1AA4(s32 player, s32 card, s32 serial) {
+    PLAYER_DATA(player).cardCopySerials[card][getOwnedCardCount(player, card)] = serial;
+    if (PLAYER_DATA(player).cardCollection[card] == 0) {
+        PLAYER_DATA(player).cardCollection[card] |= 0x20;
+    }
+    PLAYER_DATA(player).cardCollection[card]++;
+    if ((PLAYER_DATA(player).cardCollection[card] & 7) == 6) {
+        PLAYER_DATA(player).cardCollection[card] |= 0x10;
+    }
+    if (((u8 *)getCardData(card))[0x19] == 0) {
+        PLAYER_DATA(player).cardCollection[card] |= 0x10;
+    }
+    PLAYER_DATA(player).cardCollection[card] |= 0xC8;
+    updatePlayerRanks(player);
+    if ((u16)++PLAYER_DATA(player).unk4C >= 10000) {
+        PLAYER_DATA(player).unk4C = 9999;
+    }
+}
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E1E5C);
+u16 func_801E1C8C(s32 player, s32 card) {
+    s32 count;
+    u16 serial;
+    s32 i;
+    s32 j;
+
+    count = getOwnedCardCount(player, card);
+    serial = func_801E195C(player, card);
+    for (i = 0; i < count; i++) {
+        if (PLAYER_DATA(player).cardCopySerials[card][i] == serial) {
+            for (j = i; j < count - 1; j++) {
+                PLAYER_DATA(player).cardCopySerials[card][j] = PLAYER_DATA(player).cardCopySerials[card][j + 1];
+            }
+            break;
+        }
+    }
+    PLAYER_DATA(player).cardCollection[card]--;
+    updatePlayerRanks(player);
+    if ((u16)++PLAYER_DATA(player).unk4E >= 10000) {
+        PLAYER_DATA(player).unk4E = 9999;
+    }
+    return serial;
+}
+
+void func_801E1E5C(void) {
+    s8 counts[3][301];
+    s32 player;
+    s32 i;
+    s32 j;
+    s32 max;
+
+    for (player = 0; player < 2; player++) {
+        for (i = 0; i < 301; i++) {
+            D_801F1880[player][i] = 0;
+            for (j = 0; j < 3; j++) {
+                counts[j][i] = 0;
+            }
+        }
+        for (i = 0; i < 3; i++) {
+            if (PLAYER_DATA(player).savedDecks[i].inUse != 0) {
+                for (j = 0; j < 30; j++) {
+                    counts[i][PLAYER_DATA(player).savedDecks[i].cards[j].id]++;
+                }
+            }
+        }
+        for (i = 0; i < 301; i++) {
+            max = 0;
+            for (j = 0; j < 3; j++) {
+                if (max < counts[j][i]) {
+                    max = counts[j][i];
+                }
+            }
+            D_801F1880[player][i] = max;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E2068);
 
@@ -496,7 +632,36 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E6FB8);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E7638);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E7C54);
+void func_801E7C54(UiWindow *window) {
+    Rect16 target;
+    char text[64];
+    s32 x;
+    s32 y;
+    s32 z;
+
+    x = window->originX + 1;
+    y = window->originY;
+    z = window->z;
+    sprintf(text, "*s0%s", D_801F50D8.name);
+    drawText(x, y, (s32)text, 7, z);
+    if (PAD_STATES[0]->repeat & 4) {
+        if (D_801F50D8.cursor != 0) {
+            playMenuSound(2);
+            D_801F50D8.cursor--;
+        }
+    } else if (PAD_STATES[0]->repeat & 8) {
+        if (D_801F50D8.cursor != 11 && D_801F50D8.name[D_801F50D8.cursor] != 0) {
+            playMenuSound(2);
+            D_801F50D8.cursor++;
+        }
+    }
+    target.x = x + D_801F50D8.cursor * 6;
+    target.y = y + 13;
+    target.w = 6;
+    target.h = 0;
+    moveCursorHighlight(&D_801F5038, &target);
+    drawCursorHighlight(&D_801F5038, z);
+}
 
 void func_801E7DC4(UiWindow *window) {
     s32 x;
@@ -544,7 +709,42 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E9938);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EA2F8);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EA874);
+void func_801EA874(void) {
+    s32 i;
+    s32 same;
+    s32 clutY;
+
+    if (D_801F52D0 == 1) {
+        D_801F4F00 += 8;
+        if (D_801F4F00 > 8) {
+            D_801F4F00 = 8;
+        }
+    } else {
+        D_801F4F00 -= 8;
+        if (D_801F4F00 < -140) {
+            D_801F4F00 = -140;
+        }
+    }
+    func_801E96D8(D_801F4F00, D_801F4F04, 0x300, 0, 0x8C, 0x96, 0x300, 0x96, 0, 1, 1, 0x80, 2);
+    same = (u16)PLAYER_DATA(0).unk10 == (u16)PLAYER_DATA(1).unk10;
+    if ((D_801F5370 & 3) != 3) {
+        same = 1;
+    }
+    for (i = 0; i < 7; i++) {
+        if (*((s8 *)D_8006E054 + 0x1028) == i) {
+            clutY = 0x98;
+            if (i == 1 && same) {
+                clutY = 0x99;
+            }
+        } else {
+            clutY = 0x97;
+            if (i == 1 && same) {
+                clutY = 0x9A;
+            }
+        }
+        func_801E96D8(D_801F4F00 + 0x19, D_801F4F04 + 0x16 + i * 16, 0x323, i * 16, 0x58, 0x10, 0x300, clutY, 0, 1, 0, 0x80, 2);
+    }
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EAA54);
 

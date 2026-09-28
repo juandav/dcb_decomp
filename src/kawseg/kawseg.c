@@ -12,6 +12,29 @@
 #include "dcb/battle_hud.h"
 #include "dcb/transform.h"
 #include "dcb/effect_object.h"
+#include "dcb/decompress.h"
+#include "dcb/scroll_bg.h"
+#include "dcb/card_db.h"
+
+typedef struct {
+    s16 id;
+    s16 unk2;
+    s16 unk4;
+    s16 unk6;
+} Entry8;
+s32 func_801E02D8(s32 player, s32 attr);
+s32 func_801E9F5C(s32 card, s32 player);
+extern u8 D_801FC87C;
+extern u8 D_801FC87D;
+extern u8 D_801FC87E;
+void func_801F7760(s32 arg0, s32 task);
+typedef struct {
+     u8 unk0[0xC];
+     s16 x;
+     s16 y;
+     u8 unk10[0x88];
+     s16 points[32][2];
+} Shape;
 
 s32 func_801E0558(s32 id, s32 player, s32 card);
 extern s16 D_801FB9D8[];
@@ -295,7 +318,28 @@ s32 func_801E0650(s32 id, s32 player) {
     return 0;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E0708);
+s32 func_801E0708(s32 player) {
+    s32 count;
+    s32 level;
+    s32 i;
+    Player *p;
+    s8 card;
+    u8 *data;
+
+    count = 0;
+    level = ((u8 *)((Player *)DUEL_PLAYERS[player])->cards[getActiveDigimonCard(player) % 30].card)[0x1A] & 0xF;
+    for (i = 0; i < 4; i++) {
+        p = (Player *)DUEL_PLAYERS[player];
+        card = p->hand[i];
+        if (card != -1 && p->cards[card % 30].type == 0) {
+            data = (u8 *)p->cards[card % 30].card;
+            if ((data[0x1A] & 0xF) == level && *(s16 *)(data + 0x1E) > p->displayedStats[0]) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
 
 s32 func_801E0868(s32 player, s32 card) {
     s32 i;
@@ -415,7 +459,31 @@ INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DDF38);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E19EC);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E201C);
+s32 func_801E201C(Entry8 *entries, s32 n) {
+    s32 i;
+    s32 j;
+    s32 count;
+
+    count = 0;
+    for (i = 0; i < n; i++) {
+        if (entries[i].id != -1) {
+            count++;
+        }
+    }
+    for (i = 0; i < count; i++) {
+    retry:
+        if (entries[i].id == -1) {
+            for (j = i; j < n - 1; j++) {
+                entries[j] = entries[j + 1];
+            }
+            entries[n - 1].id = -1;
+            if (entries[j].id == -1) {
+                goto retry;
+            }
+        }
+    }
+    return count;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2100);
 
@@ -423,13 +491,66 @@ INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2A50);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2C98);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E2ED8);
+s32 func_801E2ED8(s16 *cards, s32 player) {
+    s32 count;
+    s32 i;
+    s16 card;
+
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && func_801E02D8(player, (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4) == 1) {
+            count++;
+        }
+    }
+    if (count == 0) {
+        return -1;
+    }
+    for (i = 0; i < 4; i++) {
+        card = cards[i];
+        if (card != -1 && func_801E02D8(player, (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4) != 1) {
+            cards[i] = -1;
+        }
+    }
+    if (count == 1) {
+        for (i = 0; i < 4; i++) {
+            if (cards[i] != -1) {
+                return cards[i];
+            }
+        }
+    }
+    return -2;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E30D0);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E3364);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E3574);
+s32 func_801E3574(s16 *ids) {
+    s32 count;
+    s32 i;
+    s32 pick;
+
+    count = 0;
+    for (i = 0; i < 4; i++) {
+        if (ids[i] != -1) {
+            count++;
+        }
+    }
+    if (count != 0) {
+        pick = rand() % count;
+        count = 0;
+        for (i = 0; i < 4; i++) {
+            if (ids[i] != -1) {
+                if (count == pick) {
+                    return ids[i];
+                }
+                count++;
+            }
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E363C);
 
@@ -464,7 +585,37 @@ INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E81DC);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9700);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9ABC);
+s32 func_801E9ABC(s32 a, s32 op, s32 b) {
+    switch (op) {
+    case 0:
+        a += b;
+        if (a > 9990) {
+            a = 9990;
+        }
+        return a;
+    case 1:
+        if (a - b < 0) {
+            return 0;
+        }
+        return a - b;
+    case 2:
+        a *= b;
+        if (a > 9990) {
+            a = 9990;
+        }
+        return a;
+    case 3:
+        if ((a == 0) | (b == 0)) {
+            return 0;
+        }
+        a /= b;
+        if (a < 10) {
+            a = 10;
+        }
+        return a / 10 * 10;
+    }
+    return 0;
+}
 
 s32 func_801E9BAC(s32 a, s32 op, s32 b) {
     switch (op) {
@@ -488,7 +639,37 @@ INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9C1C);
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9F5C);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EA374);
+s32 func_801EA374(s32 player) {
+    s32 i;
+    u8 *data;
+
+    if (getPlayedCard(player) != -1) {
+        data = DUEL_PLAYERS[player];
+        data += (getPlayedCard(player) % 30) * sizeof(CardSlot);
+        if (((Player *)data)->cards[0].card[2] == 2) {
+            data = DUEL_PLAYERS[player];
+            data += (getPlayedCard(player) % 30) * sizeof(CardSlot);
+            switch (((Player *)data)->cards[0].card[0x1A]) {
+            case 4:
+                if (countEmptyDigimonStackSlots(player) < 2) {
+                    return 0;
+                }
+                break;
+            case 7:
+                if ((((Player *)DUEL_PLAYERS[player])->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF) == 1) {
+                    return 0;
+                }
+                break;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (func_801E9F5C(((Player *)DUEL_PLAYERS[player])->hand[i], player) == 0) {
+            return 0;
+        }
+    }
+    return -1;
+}
 
 s32 func_801EA558(s32 card, s32 player) {
     Player *p = (Player *)DUEL_PLAYERS[player];
@@ -554,7 +735,15 @@ s32 func_801EC570(s32 player) {
     return card;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EC608);
+s32 func_801EC608(s32 card, s32 player) {
+    if (removeCardFromHand(card, player) != -1) {
+        SPRITE_KIND(card) = 8;
+    } else if (removeCardFromDigimonStack(card, player) != -1) {
+        SPRITE_KIND(card) = 8;
+    }
+    ((CardAnim *)(D_801D833C + card * 36))->spr->pal = (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4;
+    discardCardToOfflineDeck(card, player);
+}
 
 s32 func_801EC704(s32 player) {
     s32 i;
@@ -649,7 +838,24 @@ s32 func_801ECBCC(s32 card, s32 player) {
     return result;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ECC58);
+s32 func_801ECC58(s32 player) {
+    s32 i;
+
+    while (func_80014C08(20), countEmptyHandSlots(player) != 4) {
+        for (i = 0; i < 4; i++) {
+            if (((Player *)DUEL_PLAYERS[player])->hand[i] != -1) {
+                SPRITE_KIND(((Player *)DUEL_PLAYERS[player])->hand[i]) = 8;
+                discardCardToOfflineDeck(((Player *)DUEL_PLAYERS[player])->hand[i], player);
+                removeCardFromHand(((Player *)DUEL_PLAYERS[player])->hand[i], player);
+                break;
+            }
+        }
+    }
+    while (func_801EC570(player) != -1) {
+        func_80014C08(20);
+        func_801FA780(player);
+    }
+}
 
 s32 func_801ECD68(void) {
     if (DUEL->unk80C >= 0) {
@@ -665,7 +871,16 @@ s32 func_801ECD68(void) {
     DUEL->step = 11;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ECE24);
+s32 func_801ECE24(void) {
+    while (peekDpSlotTop(DUEL->turnPlayer) != -1) {
+        discardCardToOfflineDeck(peekDpSlotTop(DUEL->turnPlayer), DUEL->turnPlayer);
+        SPRITE_KIND(peekDpSlotTop(DUEL->turnPlayer)) = 8;
+        removeCardFromDpSlots(peekDpSlotTop(DUEL->turnPlayer), DUEL->turnPlayer);
+        waitDuelFrames(20);
+    }
+    waitDuelFrames(30);
+    DUEL->step = 23;
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ECF0C);
 
@@ -687,7 +902,16 @@ void func_801ED8BC(s32 x, s32 y, char *name) {
     func_801ED65C(x, y, 0x1D0, 0xCA, 0xC0, 0x12, 0x190, 0xF9, 0, 0, 0, 0x80, 1);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801ED968);
+void func_801ED968(s32 x, s32 y, s32 wins, s32 losses) {
+    char buf[64];
+
+    sprintf(buf, "*s0%4d        %3d      %3d", wins + losses, wins, losses);
+    drawSmallText(x + 0x24, y + 9, (s32)"BATTLES", 6, 1);
+    drawSmallText(x + 0x66, y + 9, (s32)"WINS", 6, 1);
+    drawSmallText(x + 0x9C, y + 9, (s32)"LOSSES", 6, 1);
+    drawText(x + 8, y + 3, (s32)buf, 7, 1);
+    func_801ED65C(x, y, 0x1D0, 0xB8, 0xC0, 0x12, 0x190, 0xF9, 0, 0, 0, 0x80, 1);
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EDA84);
 
@@ -818,7 +1042,31 @@ s32 func_801F6268(s32 entry, s32 player) {
     func_801F6294(entry, player, player ^ 1, 0, 0);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F6294);
+void func_801F6294(s32 entry, s32 player1, s32 player2, s32 mode1, s32 mode2) {
+    s32 data;
+
+    D_801FC87C = player1;
+    switch (mode1) {
+    case 0:
+        D_801FC87D = getActiveDigimonCard(player1);
+        break;
+    case 1:
+        D_801FC87D = getPlayedCard(player1);
+        break;
+    }
+    switch (mode2) {
+    case 0:
+        D_801FC87E = getActiveDigimonCard(player2);
+        break;
+    case 1:
+        D_801FC87E = getPlayedCard(player2);
+        break;
+    }
+    data = decompressArchiveEntry(*(s32 *)((u8 *)D_801D8340 + 0x4C), entry);
+    func_800149B8(0, 0x1F, 0, 0x800, func_801F7760, data, getCurrentTaskId());
+    func_80014C08(0x7FFFFFFF);
+    freeHeapBlock((void *)data);
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F63AC);
 
@@ -859,9 +1107,91 @@ void func_801F65D8(s32 index, u8 *fx) {
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F663C);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F6D38);
+void func_801F6D38(EffectObject *o, u8 *fx, s32 current) {
+    if (current == 0) {
+        *(s32 *)(fx + 0x248) = o->px;
+        *(s32 *)(fx + 0x24C) = o->py;
+        *(s32 *)(fx + 0x250) = o->pz;
+        *(s32 *)(fx + 0x268) = (s16)o->rx0;
+        *(s32 *)(fx + 0x26C) = (s16)o->ry0;
+        *(s32 *)(fx + 0x270) = (s16)o->rz0;
+        *(s32 *)(fx + 0x28C) = o->sx0;
+        *(s32 *)(fx + 0x290) = o->sy0;
+        *(s32 *)(fx + 0x294) = o->sz0;
+    } else {
+        *(s32 *)(fx + 0x248) = o->posX;
+        *(s32 *)(fx + 0x24C) = o->posY;
+        *(s32 *)(fx + 0x250) = o->posZ;
+        *(s32 *)(fx + 0x268) = o->rotX;
+        *(s32 *)(fx + 0x26C) = o->rotY;
+        *(s32 *)(fx + 0x270) = o->rotZ;
+        *(s32 *)(fx + 0x28C) = o->sx;
+        *(s32 *)(fx + 0x290) = o->sy;
+        *(s32 *)(fx + 0x294) = o->sz;
+    }
+    *(s32 *)(fx + 0x254) = o->px2;
+    *(s32 *)(fx + 0x258) = o->py2;
+    *(s32 *)(fx + 0x25C) = o->pz2;
+    *(s32 *)(fx + 0x260) = *(s16 *)((u8 *)o + 0x120);
+    *(s32 *)(fx + 0x264) = *(s16 *)((u8 *)o + 0x122);
+    *(s32 *)(fx + 0x274) = o->drx;
+    *(s32 *)(fx + 0x278) = o->dry;
+    *(s32 *)(fx + 0x27C) = o->drz;
+    *(s32 *)(fx + 0x280) = o->ddrx;
+    *(s32 *)(fx + 0x284) = o->ddry;
+    *(s32 *)(fx + 0x288) = o->ddrz;
+    *(s32 *)(fx + 0x298) = o->sxT;
+    *(s32 *)(fx + 0x29C) = o->syT;
+    *(s32 *)(fx + 0x2A0) = o->szT;
+    *(s32 *)(fx + 0x2A4) = o->dsx;
+    *(s32 *)(fx + 0x2A8) = o->dsy;
+    *(s32 *)(fx + 0x2AC) = o->dsz;
+    *(s32 *)(fx + 0x2B0) = o->hitRadius;
+    *(s32 *)(fx + 0x2B4) = o->period;
+    *(s32 *)(fx + 0x2B8) = o->fadeMode;
+    *(s32 *)(fx + 0x2BC) = o->speed;
+    *(s32 *)(fx + 0x2C4) = *(s16 *)((u8 *)o + 0x128);
+    *(s32 *)(fx + 0x2C8) = *(s16 *)((u8 *)o + 0x12A);
+    *(s32 *)(fx + 0x2CC) = *(s16 *)((u8 *)o + 0x126);
+    *(s32 *)(fx + 0x2C0) = o->mode;
+}
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F6F44);
+void func_801F6F44(EffectObject *o, u8 *fx) {
+    o->px = *(s32 *)(fx + 0x248);
+    o->py = *(s32 *)(fx + 0x24C);
+    o->pz = *(s32 *)(fx + 0x250);
+    o->px2 = *(s32 *)(fx + 0x254);
+    o->py2 = *(s32 *)(fx + 0x258);
+    o->pz2 = *(s32 *)(fx + 0x25C);
+    *(s16 *)((u8 *)o + 0x120) = *(s32 *)(fx + 0x260);
+    *(s16 *)((u8 *)o + 0x122) = *(s32 *)(fx + 0x264);
+    o->rx0 = *(s32 *)(fx + 0x268);
+    o->ry0 = *(s32 *)(fx + 0x26C);
+    o->rz0 = *(s32 *)(fx + 0x270);
+    o->drx = *(s32 *)(fx + 0x274);
+    o->dry = *(s32 *)(fx + 0x278);
+    o->drz = *(s32 *)(fx + 0x27C);
+    o->ddrx = *(s32 *)(fx + 0x280);
+    o->ddry = *(s32 *)(fx + 0x284);
+    o->ddrz = *(s32 *)(fx + 0x288);
+    o->sx0 = *(s32 *)(fx + 0x28C);
+    o->sy0 = *(s32 *)(fx + 0x290);
+    o->sz0 = *(s32 *)(fx + 0x294);
+    o->sxT = *(s32 *)(fx + 0x298);
+    o->syT = *(s32 *)(fx + 0x29C);
+    o->szT = *(s32 *)(fx + 0x2A0);
+    o->dsx = *(s32 *)(fx + 0x2A4);
+    o->dsy = *(s32 *)(fx + 0x2A8);
+    o->dsz = *(s32 *)(fx + 0x2AC);
+    o->hitRadius = *(s32 *)(fx + 0x2B0);
+    o->period = *(s32 *)(fx + 0x2B4);
+    o->fadeMode = *(s32 *)(fx + 0x2B8);
+    o->speed = *(s32 *)(fx + 0x2BC);
+    *(s16 *)((u8 *)o + 0x128) = *(s32 *)(fx + 0x2C4);
+    *(s16 *)((u8 *)o + 0x12A) = *(s32 *)(fx + 0x2C8);
+    *(s16 *)((u8 *)o + 0x126) = *(s32 *)(fx + 0x2CC);
+    o->mode = *(s32 *)(fx + 0x2C0);
+}
 
 void func_801F70DC(void *xform, u8 *fx) {
     SVECTOR pos;
@@ -981,7 +1311,77 @@ void func_801F893C(CardSprite *sprite, u8 *to) {
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F8998);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F8C58);
+void func_801F8C58(Shape *shape, s32 x, s32 y, s32 d) {
+    s32 k;
+
+    k = d * 14 / 10;
+    shape->x = x;
+    shape->y = y;
+    shape->points[0][0] = -x;
+    shape->points[0][1] = -y - k;
+    shape->points[1][0] = x;
+    shape->points[1][1] = -y - k;
+    shape->points[2][0] = -x;
+    shape->points[2][1] = -y;
+    shape->points[3][0] = x;
+    shape->points[3][1] = -y;
+    shape->points[4][0] = x + k;
+    shape->points[4][1] = -y;
+    shape->points[5][0] = x + k;
+    shape->points[5][1] = y;
+    shape->points[6][0] = x;
+    shape->points[6][1] = -y;
+    shape->points[7][0] = x;
+    shape->points[7][1] = y;
+    shape->points[8][0] = -x - k;
+    shape->points[8][1] = -y;
+    shape->points[9][0] = -x - k;
+    shape->points[9][1] = y;
+    shape->points[10][0] = -x;
+    shape->points[10][1] = -y;
+    shape->points[11][0] = -x;
+    shape->points[11][1] = y;
+    shape->points[12][0] = -x;
+    shape->points[12][1] = y + k;
+    shape->points[13][0] = x;
+    shape->points[13][1] = y + k;
+    shape->points[14][0] = -x;
+    shape->points[14][1] = y;
+    shape->points[15][0] = x;
+    shape->points[15][1] = y;
+    shape->points[16][0] = -x - k;
+    shape->points[16][1] = -y;
+    shape->points[17][0] = -x - d;
+    shape->points[17][1] = -y - d;
+    shape->points[18][0] = -x;
+    shape->points[18][1] = -y;
+    shape->points[19][0] = -x;
+    shape->points[19][1] = -y - k;
+    shape->points[20][0] = x + k;
+    shape->points[20][1] = -y;
+    shape->points[21][0] = x + d;
+    shape->points[21][1] = -y - d;
+    shape->points[22][0] = x;
+    shape->points[22][1] = -y;
+    shape->points[23][0] = x;
+    shape->points[23][1] = -y - k;
+    shape->points[24][0] = x + k;
+    shape->points[24][1] = y;
+    shape->points[25][0] = x + d;
+    shape->points[25][1] = y + d;
+    shape->points[26][0] = x;
+    shape->points[26][1] = y;
+    shape->points[27][0] = x;
+    shape->points[27][1] = y + k;
+    shape->points[28][0] = -x - k;
+    shape->points[28][1] = y;
+    shape->points[29][0] = -x - d;
+    shape->points[29][1] = y + d;
+    shape->points[30][0] = -x;
+    shape->points[30][1] = y;
+    shape->points[31][0] = -x;
+    shape->points[31][1] = y + k;
+}
 
 void func_801F8DB4(void *ptr) {
     if (ptr != NULL) {
@@ -1057,11 +1457,75 @@ INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFBBC);
 
 INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFBC8);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FA30C);
+void func_801FA30C(s32 player) {
+    Player *p;
+    u32 flags;
+
+    if (getActiveDigimonCard(player) == -1) {
+        return;
+    }
+    p = (Player *)DUEL_PLAYERS[player];
+    if (((u32)p->unk110 >> 15) & 1) {
+        return;
+    }
+    switch (p->specialty) {
+    case 0:
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x800000;
+        break;
+    case 1:
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x1000000;
+        break;
+    case 2:
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x2000000;
+        break;
+    case 3:
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x4000000;
+        break;
+    case 4:
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x8000000;
+        break;
+    }
+    flags = ((Player *)DUEL_PLAYERS[player])->unk110;
+    if (((flags >> 23) & 1) + ((flags >> 24) & 1) + ((flags >> 25) & 1) + ((flags >> 26) & 1) + ((flags >> 27) & 1) == 5) {
+        func_801FB444(player, 0x18);
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x8000;
+    }
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FA4E4);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FA780);
+s32 func_801FA780(s32 player) {
+    s32 ids[4];
+    s32 same;
+    s32 partners;
+    s32 i;
+    s32 card;
+
+    same = 0;
+    partners = 0;
+    for (i = 0; i < 4; i++) {
+        card = ((Player *)DUEL_PLAYERS[player])->hand[i];
+        if (card == -1) {
+            ids[i] = card;
+            continue;
+        }
+        ids[i] = ((Player *)DUEL_PLAYERS[player])->cards[card % 30].id;
+        if (ids[0] == ids[i]) {
+            same++;
+        }
+        if (findPartnerSlot(player, ids[i]) >= 0) {
+            partners++;
+        }
+    }
+    if (same == 4) {
+        func_801FB444(player, 8);
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x40;
+    }
+    if (partners == 3) {
+        func_801FB444(player, 0x1B);
+        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x800;
+    }
+}
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FA918);
 

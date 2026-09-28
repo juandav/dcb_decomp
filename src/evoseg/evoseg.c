@@ -20,6 +20,49 @@
 #include "dcb/battle_hud.h"
 #include "dcb/transform.h"
 
+typedef struct {
+    u8 olen;
+    u8 ilen;
+    u8 flag;
+    u8 mode;
+    u8 u0, v0;
+    u16 cba;
+    u8 u1, v1;
+    u16 tsb;
+    u8 u2, v2;
+    u16 pad;
+    u16 idx[8];
+} TmdPacketFT3;
+typedef struct {
+    s16 r;
+    s16 g;
+    s16 b;
+} EvoColor;
+extern TmdPacketFT3 *D_801F0540;
+extern SVECTOR *D_801F0538;
+extern EvoColor D_801F0530;
+extern MATRIX D_801DBEA0;
+long func_80062C44(void);
+void func_80062C34(long base);
+typedef struct {
+    s16 first;
+    s16 last;
+} EvoRange;
+typedef struct {
+    u8 pad0[0x18];
+    u8 unk18;
+    u8 level;
+} EvoCardInfo;
+extern EvoRange D_801EFF00[];
+extern EvoCardInfo *D_801F4980[];
+typedef struct {
+    Rect16 rect;
+    u16 src[0x100];
+    u16 dst[0x100];
+    s16 brighten;
+    s16 level;
+} EvoClut;
+
 void func_801E0618(s32 arg);
 void D_801E2E30();
 void D_801E00F4();
@@ -321,15 +364,177 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E2C0C);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E2FC8);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E335C);
+void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT3 *prim;
+    POLY_FT3 *poly;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E3694);
+    prim = D_801F0540;
+    poly = (POLY_FT3 *)func_80062C44();
+    func_80067724(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[1]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[5]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    setlen(poly, 7);
+    setcode(poly, 0x24);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
+
+void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT3 *prim;
+    POLY_FT3 *poly;
+
+    prim = D_801F0540;
+    poly = (POLY_FT3 *)func_80062C44();
+    func_80067724(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[1]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[2]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    setlen(poly, 7);
+    setcode(poly, 0x24);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E39CC);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E3D6C);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E410C);
+void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+    SVECTOR v0;
+    SVECTOR v1;
+    SVECTOR v2;
+    SVECTOR v3;
+    SVECTOR offset;
+    SVECTOR *vert;
+    s32 depthCue;
+    s32 flag;
+    s32 otz;
+    TmdPacketFT3 *prim;
+    POLY_FT3 *poly;
+
+    prim = D_801F0540;
+    poly = (POLY_FT3 *)func_80062C44();
+    func_80067724(poly);
+    SetSemiTrans(poly, 0);
+    poly->r0 = D_801F0530.r;
+    poly->g0 = D_801F0530.g;
+    poly->b0 = D_801F0530.b;
+    poly->tpage = prim->tsb;
+    poly->clut = prim->cba;
+    poly->u0 = prim->u0;
+    poly->v0 = prim->v0;
+    poly->u1 = prim->u1;
+    poly->v1 = prim->v1;
+    poly->u2 = prim->u2;
+    poly->v2 = prim->v2;
+    offset.vx = pos->vx * mul / div;
+    offset.vy = pos->vy * mul / div;
+    offset.vz = pos->vz * mul / div;
+    vert = &D_801F0538[prim->idx[2]];
+    v0.vx = vert->vx + offset.vx;
+    v0.vy = vert->vy + offset.vy;
+    v0.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[3]];
+    v1.vx = vert->vx + offset.vx;
+    v1.vy = vert->vy + offset.vy;
+    v1.vz = vert->vz + offset.vz;
+    vert = &D_801F0538[prim->idx[4]];
+    v2.vx = vert->vx + offset.vx;
+    v2.vy = vert->vy + offset.vy;
+    v2.vz = vert->vz + offset.vz;
+    setlen(poly, 7);
+    setcode(poly, 0x24);
+    SetRotMatrix((s32)&D_801DBEA0);
+    func_8005C444(&D_801DBEA0);
+    otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
+    otz >>= 2;
+    if ((u32)(otz - 0x21) < 0xFDF) {
+        setSemiTrans(poly, 1);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+        func_80062C34((long)(poly + 1));
+    }
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E4444);
 
@@ -698,9 +903,106 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECC6C);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECCA0);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ED5F4);
+void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
+    s16 candidates[10];
+    s16 i;
+    s16 j;
+    s16 tmp;
+    s8 count;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ED8B0);
+    *out = -1;
+    if (level < 2) {
+        level = 2;
+    }
+    if (level >= 36) {
+        level = 35;
+    }
+    count = 0;
+    for (i = 0; i < 10; i++) {
+        candidates[i] = -1;
+    }
+    if (type == 5) {
+        for (i = D_801EFF00[5].first; i <= D_801EFF00[5].last; i++) {
+            if (D_801F4980[i]->level == level && i != excludeA && i != excludeB) {
+                candidates[count] = i;
+                count++;
+            }
+        }
+        for (i = D_801EFF00[6].first; i <= D_801EFF00[6].last; i++) {
+            if (D_801F4980[i]->level == level && i != excludeA && i != excludeB) {
+                candidates[count] = i;
+                count++;
+            }
+        }
+        for (i = 0; i < count; i++) {
+            j = rand() % count;
+            tmp = candidates[i];
+            candidates[i] = candidates[j];
+            candidates[j] = tmp;
+        }
+        *out = candidates[0];
+    } else {
+        for (i = D_801EFF00[type].first; i <= D_801EFF00[type].last; i++) {
+            if (D_801F4980[i]->level == level) {
+                *out = i;
+                return;
+            }
+        }
+    }
+}
+
+void func_801ED8B0(EvoClut *clut, u16 flags) {
+    u16 *src;
+    u16 *dst;
+    s32 brighten;
+    s32 level;
+    s32 i;
+    s32 color;
+    s32 r;
+    s32 g;
+    s32 b;
+
+    brighten = clut->brighten;
+    level = clut->level;
+    src = clut->src;
+    dst = clut->dst;
+    for (i = 0; i < clut->rect.w * clut->rect.h; i++) {
+        color = *src++;
+        if (color != 0) {
+            r = color & 0x1F;
+            g = (color >> 5) & 0x1F;
+            b = (color >> 10) & 0x1F;
+            if (brighten == 0) {
+                r = r * level / 255;
+                g = g * level / 255;
+                b = b * level / 255;
+            } else {
+                r += (31 - r) * level / 255;
+                g += (31 - g) * level / 255;
+                b += (31 - b) * level / 255;
+            }
+            if (r < 0) {
+                r = 0;
+            } else if (r >= 32) {
+                r = 31;
+            }
+            if (g < 0) {
+                g = 0;
+            } else if (g >= 32) {
+                g = 31;
+            }
+            if (b < 0) {
+                b = 0;
+            } else if (b >= 32) {
+                b = 31;
+            }
+            color = flags | (color & 0x8000) | (b << 10) | (g << 5) | r;
+        }
+        *dst++ = color;
+    }
+    LoadImage((s16 *)&clut->rect, (s32)clut->dst);
+    DrawSync(0);
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EDAE8);
 

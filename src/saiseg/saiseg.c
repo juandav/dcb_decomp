@@ -10,6 +10,81 @@
 #include "dcb/vram_upload.h"
 #include "dcb/scene3d.h"
 #include "dcb/game_flow.h"
+#include "dcb/loader.h"
+#include "dcb/duel_launch.h"
+#include "dcb/card_db.h"
+
+extern s8 D_801F460A;
+extern u8 D_801F4696;
+typedef struct {
+    u8 pad[0x10D];
+    s8 text[0x1B];
+    s8 length;
+} Unk801F4908;
+extern Unk801F4908 D_801F4908;
+typedef struct {
+    s32 unk0;
+    Script *script;
+    s32 *regs;
+} ScriptRunner;
+extern u8 D_801F4604[];
+typedef struct {
+    Rect16 rect;
+    s32 brightness;
+    s32 style;
+    s32 flags;
+    s32 label;
+    u8 labelPalette;
+} WindowDef;
+typedef struct {
+    s32 delay;
+    s32 count;
+} Unk801E8714Entry;
+typedef struct {
+    u8 pad[0x80];
+    Unk801E8714Entry entries[7];
+    s32 unkB8;
+    u8 padBC[7];
+    u8 unkC3;
+} Unk801F4AF0;
+extern Unk801F4AF0 *D_801F4AF0;
+extern WindowDef D_801F3460[5];
+void func_801E9988(UiWindow *window, WindowDef *def);
+void func_801E9B20(void);
+void func_801E9D50(void);
+void func_801E9DB0(void);
+typedef struct {
+    u8 pad[0x16];
+    u16 tpage;
+    u8 pad18[0x10];
+} Quad;
+typedef struct {
+    Quad quad[2];
+} QuadPair;
+typedef struct {
+    u32 tag;
+    u8 r0;
+    u8 g0;
+    u8 b0;
+    u8 code;
+    s16 x0;
+    s16 y0;
+    s16 x1;
+    s16 y1;
+    s16 x2;
+    s16 y2;
+    s16 x3;
+    s16 y3;
+} PolyF4;
+typedef struct {
+    u32 tag;
+    u32 code[1];
+} DrTPage;
+extern PolyF4 *D_801F5214[2];
+extern DrTPage D_801F5084[2][20];
+extern u8 D_801F4AFF;
+extern u8 D_801F46A5;
+extern s16 D_801F4AF8[3];
 
 typedef struct {
     u8 data[0x3C];
@@ -231,7 +306,20 @@ INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E04B8);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0650);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0684);
+void func_801E0684(void) {
+    s32 i;
+
+    if (D_801F460A == 0) {
+        for (i = 0; i < 4; i++) {
+            func_801EBA34(D_801F5260[i + 25]);
+        }
+    } else {
+        for (i = 0; i < 6; i++) {
+            func_801EBA34(D_801F5260[i + 25]);
+        }
+    }
+    D_801F4696 = 0;
+}
 
 void func_801E0724(void) {
     if (D_801F3594[D_801F4609] != NULL) {
@@ -256,7 +344,19 @@ INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0A74);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0B70);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0C54);
+void func_801E0C54(s32 ch) {
+    s8 last;
+
+    if (D_801F4908.length % 6 == 0 && D_801F4908.length != 0) {
+        last = D_801F4908.text[D_801F4908.length - 1];
+        D_801F4908.text[D_801F4908.length - 1] = 0x11;
+        D_801F4908.text[D_801F4908.length++] = 0x10;
+        D_801F4908.text[D_801F4908.length++] = last;
+        D_801F4908.text[D_801F4908.length++] = ch;
+    } else {
+        D_801F4908.text[D_801F4908.length++] = ch;
+    }
+}
 
 void func_801E0D54(void) {
     s32 i;
@@ -269,7 +369,23 @@ void func_801E0D54(void) {
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0D8C);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0F90);
+void func_801E0F90(UiWindow *window, Rect16 pos, s32 label, s32 style, s32 brightness) {
+    Rect16 rect;
+    Rect16 unused;
+    Rect16 view;
+
+    rect.x = pos.x - pos.w / 2;
+    rect.y = pos.y - pos.h / 2;
+    rect.w = pos.w & ~1;
+    rect.h = pos.h & ~1;
+    view.x = 0;
+    view.y = 0;
+    view.w = (pos.w + 10) & ~1;
+    view.h = 0x2000;
+    openWindow(window, &rect, -1, (s16 *)&view, style, brightness, 0x80, 0x10);
+    window->label = label;
+    window->labelPalette = 8;
+}
 
 INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE2F0);
 
@@ -279,7 +395,22 @@ INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE318);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E108C);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E1190);
+void func_801E1190(ScriptRunner *runner) {
+    s32 result;
+
+    do {
+        result = runScriptToNextEvent(runner->script, runner->regs);
+        if (result == 1) {
+            if (runner->script->eventOp == 10) {
+                if (runner->script->eventArg == 14) {
+                    D_801F4604[runner->regs[1] - 1] = result;
+                }
+            }
+            return;
+        }
+        clearScriptBusy(runner->script);
+    } while (result != 0);
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E1254);
 
@@ -292,7 +423,19 @@ void func_801E140C(void) {
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E1448);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E15EC);
+void func_801E15EC(UiWindow *window, WindowDef *def, s32 count) {
+    s32 i;
+
+    for (i = 0; i < count; i++) {
+        openWindow(window, def, -1, (s16 *)-1, def->flags, def->style, def->brightness, 12);
+        if (def->label != 0) {
+            window->label = def->label;
+        }
+        window->labelPalette = def->labelPalette;
+        window++;
+        def++;
+    }
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E16B0);
 
@@ -437,7 +580,25 @@ Unk801E4700 *func_801E4700(void) {
     return obj;
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E4754);
+void func_801E4754(void) {
+    char path[0x18];
+    u32 *pack;
+
+    if (((PlayerProfile *)PLAYER_PROFILES)->unkE < 10) {
+        sprintf(path, "C:\\DEBUG\\area0%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->unkE);
+    } else {
+        sprintf(path, "C:\\DEBUG\\area%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->unkE);
+    }
+    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    uploadTexturePack(pack);
+    freeHeapBlock(pack);
+    sprintf(path, "C:\\OBJECT\\world.TIS");
+    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    uploadTexturePack(pack);
+    freeHeapBlock(pack);
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E4878);
 
@@ -532,7 +693,32 @@ INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E8238);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E84BC);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E8714);
+s32 func_801E8714(void) {
+    s32 result = 1;
+    s32 finished = -1;
+    s32 i;
+
+    D_801F4AF0->unkB8 -= 15;
+    if (D_801F4AF0->unkB8 <= 0) {
+        D_801F4AF0->unkB8 = 0;
+        for (i = 0; i < 7; i++) {
+            if (D_801F4AF0->entries[i].delay <= 0) {
+                D_801F4AF0->entries[i].count++;
+                if (D_801F4AF0->entries[i].count >= 20) {
+                    D_801F4AF0->entries[i].count = 20;
+                    finished++;
+                }
+            } else {
+                D_801F4AF0->entries[i].delay--;
+            }
+        }
+    }
+    if (finished >= 6) {
+        D_801F4AF0->unkC3 = 2;
+        result = 0;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E87E8);
 
@@ -594,7 +780,26 @@ void func_801E9DB0(void) {
     func_80014C08(0x7FFFFFFF);
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E9E10);
+void func_801E9E10(s32 mode, s32 task) {
+    s32 i;
+
+    for (i = 0; i < 5; i++) {
+        func_801E9988(&D_801F46B0[i], &D_801F3460[i]);
+    }
+    switch (mode) {
+    case 0:
+        func_801E9B20();
+        break;
+    case 1:
+        func_801E9D50();
+        break;
+    case 2:
+        func_801E9DB0();
+        break;
+    }
+    D_801F4696 = 0;
+    func_80014A48(task);
+}
 
 void func_801E9F08(void) {
     D_801F4834 = 6;
@@ -698,9 +903,40 @@ void func_801EBDD0(Unk801EBDD0 *arg0, s16 width, s16 height) {
     arg0->corners[2].vy = halfHeight;
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EBE0C);
+void func_801EBE0C(QuadPair *pair, s32 abr) {
+    s16 tpage;
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EBE94);
+    if (abr >= 0) {
+        SetSemiTrans(&pair->quad[0], 1);
+        SetSemiTrans(&pair->quad[1], 1);
+        tpage = pair->quad[0].tpage & ~0x60;
+        tpage |= (abr & 3) << 5;
+        pair->quad[1].tpage = tpage;
+        pair->quad[0].tpage = tpage;
+    } else {
+        SetSemiTrans(&pair->quad[0], 0);
+        SetSemiTrans(&pair->quad[1], 0);
+    }
+}
+
+void func_801EBE94(void) {
+    PolyF4 *poly;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 2; i++) {
+        DB(i).primSlots[1] = (s32)(D_801F5214[i] = allocHeapBlock(20 * sizeof(PolyF4), 0x28));
+        poly = D_801F5214[i];
+        for (j = 0; j < 20; j++, poly++) {
+            func_80067784(poly);
+            poly->r0 = 0x7F;
+            poly->g0 = 0x44;
+            poly->b0 = 0xC;
+            SetSemiTrans(poly, 1);
+            SetDrawTPage(&D_801F5084[i][j], 0, 0, 0x20);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EBFB4);
 
@@ -745,7 +981,12 @@ INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EC1D8);
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EC41C);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EC51C);
+void func_801EC51C(void) {
+    s32 t = D_801F4E48.unk3D4;
+
+    D_801F4E48.unk3F6 = (t * 270 + (15 - t) * 136) / 15;
+    D_801F4E48.unk3F8 = (t * 183 + (15 - t) * 96) / 15;
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801EC5C4);
 
@@ -937,11 +1178,40 @@ void func_801F1944(RewardWindow *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F19C4);
+void func_801F19C4(UiWindow *window) {
+    if (D_801F4AFF == 0) {
+        drawText(window->originX + 2, window->originY + 1, (s32)"Earned a Prize Pack", 7, 0);
+        drawText(window->originX + 0x92, window->originY + 1, (s32)D_8006E31C[D_801F46A5], 6, 0);
+    } else {
+        drawText(window->originX + 2, window->originY + 1, (s32)"Received", 7, 0);
+    }
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F1A80);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F1B5C);
+void func_801F1B5C(void) {
+    s32 i;
+    s32 clearNew;
+    u8 flags;
+
+    for (i = 0; i < 3; i++) {
+        ((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i] = D_801F4AF8[i];
+        if (D_801F4AF8[i] >= 0) {
+            flags = ((PlayerProfile *)PLAYER_PROFILES)->cardCollection[((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i]];
+            clearNew = 0;
+            if (flags & 0x40) {
+                flags &= 0x20;
+                clearNew = flags != 0;
+            }
+            ((PlayerProfile *)PLAYER_PROFILES)->rewardResults[i] = addCardToCollection(0, ((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i], 1);
+            if (clearNew) {
+                ((PlayerProfile *)PLAYER_PROFILES)->cardCollection[((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i]] &= ~0x20;
+            }
+        } else {
+            ((PlayerProfile *)PLAYER_PROFILES)->rewardResults[i] = 100;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F1C84);
 
