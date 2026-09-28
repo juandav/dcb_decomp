@@ -10,8 +10,3 @@ __ltdf2 = __cmpdf2;
 D_8006E36B = 0x8006E36B;
 D_8006E36C = 0x8006E36C;
 D_8006E36D = 0x8006E36D;
-
-/* inside ENDSEG's counter arrays ([5], the totals), used by func_801DF47C (still assembly) */
-D_801E0D00 = 0x801E0D00;
-D_801E0D20 = 0x801E0D20;
-D_801E0D40 = 0x801E0D40;
