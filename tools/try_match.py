@@ -18,6 +18,13 @@ import sys,subprocess,struct,re,os,tempfile,glob
 from elftools.elf.elffile import ELFFile
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
+def original(binary):
+    """(bytes, vram) of a binary: the executable or an overlay (config/<binary>.yaml)."""
+    if binary=='main': return exe,0x80010000
+    y=open(f'{D}/config/{binary}.yaml').read()
+    path=re.search(r'target_path: (\S+)',y).group(1)
+    vram=int(re.search(r'vram: (0x[0-9A-Fa-f]+)',y).group(1),16)
+    return open(f'{D}/{path}','rb').read(),vram
 args=sys.argv[1:]
 gcc28='--gcc28' in args
 nocse='--nocse' in args
@@ -41,7 +48,7 @@ elif psyq:
     if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:
-    cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused"
+    cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
 cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
@@ -84,9 +91,10 @@ for l in dis.splitlines():
 for i,(off,name) in enumerate(syms):
     if want and name not in want: continue
     m=re.match(r'func_([0-9A-F]{8})',name)
-    found=glob.glob(f'{D}/asm/main/*matchings/**/{name}.s',recursive=True)
+    found=glob.glob(f'{D}/asm/*/*matchings/**/{name}.s',recursive=True)
     if not found: print(name,'?'); continue
     asm=found[0]
+    ob,ovram=original(asm[len(D)+5:].split('/')[0])
     t=open(asm).read()
     size=int(re.search(r'nonmatching \w+, 0x([0-9A-F]+)',t).group(1),16)
     addr=int(re.search(r'glabel '+name+r'\n\s+/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)
@@ -97,7 +105,7 @@ for i,(off,name) in enumerate(syms):
     for k in range(max(size,end-off)//4):
         o=off+4*k
         a=struct.unpack('<I',text[o:o+4])[0] if o<end else None
-        b=struct.unpack('<I',exe[addr-0x80010000+4*k:][:4])[0] if 4*k<size else None
+        b=struct.unpack('<I',ob[addr-ovram+4*k:][:4])[0] if 4*k<size else None
         rbad=False
         if a is not None and b is not None and o in rel:
             rbad=k<len(tl) and reloc_bad(o,a,tl[k])
