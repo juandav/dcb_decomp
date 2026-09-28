@@ -37,7 +37,7 @@ void tickVblankCounters(void) {
 
     if (PLAYER_PROFILES != 0) {
         for (i = 0; i < 2; i++) {
-            ((Unk8006E050 *)PLAYER_PROFILES)[i].unk24++;
+            ((PlayerProfile *)PLAYER_PROFILES)[i].playTime++;
         }
     }
     VBLANK_COUNTER++;

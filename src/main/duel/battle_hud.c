@@ -124,7 +124,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
     u8 shades[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
     char deckText[40];
     u8 *lineColors[10];
-    CardInfo *card;
+    DigimonCardData *card;
     s32 valueColor;
     s32 i;
     s32 k;
@@ -140,7 +140,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         idx = getActiveDigimonCard(player);
         if (idx >= 0) {
             valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
-            card = (CardInfo *)PLAYER(player)->cards[idx % 30].card;
+            card = (DigimonCardData *)PLAYER(player)->cards[idx % 30].card;
             drawSmallText(panel->x - player * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
             sprintf(text, "*s0%4d", PLAYER(player)->unk126[1]);
             drawText(panel->x + 42 + player * 25, panel->y + 11, (s32)text, valueColor, z);
@@ -148,7 +148,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             drawText(panel->x + 42 + player * 25, panel->y + 24, (s32)text, valueColor, z);
             sprintf(text, "*s0%4d", PLAYER(player)->unk126[3]);
             drawText(panel->x + 42 + player * 25, panel->y + 37, (s32)text, valueColor, z);
-            drawSmallText(panel->x + 24 + player * 24, panel->y + 51, (s32)CROSS_EFFECT_SHORT_NAMES[card->unkE4], 7, z);
+            drawSmallText(panel->x + 24 + player * 24, panel->y + 51, (s32)CROSS_EFFECT_SHORT_NAMES[card->crossEffect], 7, z);
         }
         sprintf(text, "*s0%2d", PLAYER(player)->unk126[4]);
         drawText(panel->x + 6 + player * 93, panel->y + 9, (s32)text, 7, z);
@@ -292,12 +292,12 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             lineColors[9] = shades[0];
             break;
         }
-        switch (PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].state) {
+        switch (PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].type) {
         case 0:
-            card = (CardInfo *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
-            sprintf(text, "*s0%2d", card->unk1B);
+            card = (DigimonCardData *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            sprintf(text, "*s0%2d", card->dpCost);
             drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)text, (s32 *)lineColors[0], 7, z);
-            sprintf(text, "*s0%2d", card->level);
+            sprintf(text, "*s0%2d", card->dpBonus);
             drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)text, (s32 *)lineColors[1], 7, z);
             if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
                 if (DUEL->unk81C < 4 && DUEL->unk81B == DUEL->unk817) {
@@ -361,9 +361,9 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
                 }
                 drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
             }
-            drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, CROSS_EFFECT_SHORT_NAMES[card->unkE4], 7, lineColors[6], z);
-            if (D_8006E4FC[card->unkE4] != 0) {
-                drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+            drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, CROSS_EFFECT_SHORT_NAMES[card->crossEffect], 7, lineColors[6], z);
+            if (D_8006E4FC[card->crossEffect] != 0) {
+                drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
             }
             drawText(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
             drawIcon(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
@@ -371,7 +371,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
                 drawIcon(panel->x + 0xE3, panel->y + 2, 0, card->unkE6 + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->text[i], (s32 *)lineColors[7], 7, z);
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)card->supportText[i], (s32 *)lineColors[7], 7, z);
             }
             break;
         case 1: {
@@ -406,7 +406,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
     }
     case 1:
     case 7:
-        card = (CardInfo *)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card;
+        card = (DigimonCardData *)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card;
         valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
         drawText(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
         sprintf(text, "*s0%4d", PLAYER(player)->unk11C[0]);
@@ -418,9 +418,9 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             sprintf(text, "*s0%4d", PLAYER(player)->unk15C[k]);
             drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)text, valueColor, z);
         }
-        drawText(panel->x + 0x47, panel->y + 0x32, (s32)CROSS_EFFECT_NAMES[card->unkE4], 7, z);
-        if (D_8006E4FC[card->unkE4] != 0) {
-            drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->unkE4] + 0x14, z);
+        drawText(panel->x + 0x47, panel->y + 0x32, (s32)CROSS_EFFECT_NAMES[card->crossEffect], 7, z);
+        if (D_8006E4FC[card->crossEffect] != 0) {
+            drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
         }
         if (PLAYER(player)->unk178_2 != 3) {
             if (PLAYER(player)->unk178_4 != PLAYER(player)->unk178_2) {

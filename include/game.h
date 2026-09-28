@@ -24,7 +24,7 @@
     (setlen(p, 1), (p)->code[0] = _get_mode(dfe, dtd, tpage))
 #define CUR_SPRT ((SprtPacket *)SPRITE_POOL_CURSOR)
 #define DB(i) (((Unk800794F8 *)&GRAPHICS)->unk98[i])
-#define PLAYER_DATA(p) (((Unk8006E050 *)PLAYER_PROFILES)[p])
+#define PLAYER_DATA(p) (((PlayerProfile *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)D_801D8340)
 #define PLAYER(p) ((Player *)DUEL_PLAYERS[p])
 #define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
@@ -505,20 +505,20 @@ typedef struct {
     /* 0x6 */ s16 y;
 } Popup;
 typedef struct {
-    /* 0x0 */ u8 state;
-    /* 0x1 */ u8 unk1;
+    /* 0x0 */ u8 type;
+    /* 0x1 */ u8 index;
     /* 0x2 */ s16 id;
     /* 0x4 */ s8 *card;
 } CardSlot;
 typedef struct {
-    /* 0x000 */ u8 unk0;
+    /* 0x000 */ u8 inUse;
     /* 0x001 */ u8 unk1[3];
     /* 0x004 */ s32 unk4[4];
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ s32 unk104;
     /* 0x108 */ u16 unk108[3];
     /* 0x10E */ u8 unk10E[2];
-} Unk110;
+} PlayerDeck;
 typedef struct {
     /* 0x000 */ u8 unk0[0x14];
     /* 0x014 */ CardSlot cards[30];
@@ -569,12 +569,12 @@ typedef struct {
     /* 0x00 */ u8 unk0[0xE];
     /* 0x0E */ s16 unkE;
     /* 0x10 */ u8 unk10[0x10];
-} CardRec20;
+} SupportCondition;
 typedef struct {
     /* 0x0 */ u8 unk0[0xC];
     /* 0xC */ s16 unkC;
     /* 0xE */ u8 unkE[2];
-} CardRec10;
+} SupportAction;
 typedef struct {
     /* 0x00 */ s16 power;
     /* 0x02 */ u8 unk2[4];
@@ -582,57 +582,57 @@ typedef struct {
 } CardAttack;
 typedef struct {
     /* 0x000 */ s16 id;
-    /* 0x002 */ u8 unk2;
+    /* 0x002 */ u8 type;
     /* 0x003 */ char name[0x17];
     /* 0x01A */ u8 attr;
-    /* 0x01B */ s8 unk1B;
-    /* 0x01C */ s8 level;
+    /* 0x01B */ s8 dpCost;
+    /* 0x01C */ s8 dpBonus;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ s16 hp;
     /* 0x020 */ CardAttack attack[3];
-    /* 0x074 */ CardRec20 unk74[2];
-    /* 0x0B4 */ CardRec10 unkB4[3];
-    /* 0x0E4 */ s8 unkE4;
-    /* 0x0E5 */ u8 unkE5;
+    /* 0x074 */ SupportCondition supportConditions[2];
+    /* 0x0B4 */ SupportAction supportActions[3];
+    /* 0x0E4 */ s8 crossEffect;
+    /* 0x0E5 */ u8 modelId;
     /* 0x0E6 */ s8 unkE6;
-    /* 0x0E7 */ u8 text[4][0x15];
+    /* 0x0E7 */ u8 supportText[4][0x15];
     /* 0x13B */ u8 unk13B;
-} CardInfo;
+} DigimonCardData;
 typedef struct {
-    /* 0x000 */ CardInfo card[2];
-    /* 0x278 */ u8 *unk278;
-    /* 0x27C */ u8 *unk27C;
-    /* 0x280 */ s16 unk280;
-    /* 0x282 */ s16 unk282[3];
-    /* 0x288 */ u8 unk288;
-    /* 0x289 */ u8 unk289;
-    /* 0x28A */ s16 unk28A;
-    /* 0x28C */ s8 unk28C[3];
-    /* 0x28F */ u8 unk28F[3];
+    /* 0x000 */ DigimonCardData card[2];
+    /* 0x278 */ u8 *baseCard;
+    /* 0x27C */ u8 *armorCard;
+    /* 0x280 */ s16 hpBonus;
+    /* 0x282 */ s16 attackBonus[3];
+    /* 0x288 */ u8 cardId;
+    /* 0x289 */ u8 level;
+    /* 0x28A */ s16 exp;
+    /* 0x28C */ s8 equippedAbilities[3];
+    /* 0x28F */ u8 unlockedArmors[3];
     /* 0x292 */ u8 unk292[6];
-} Deck;
+} Partner;
 typedef struct {
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 unkD;
     /* 0x000E */ u8 unkE;
     /* 0x000F */ u8 unkF;
     /* 0x0010 */ s16 unk10;
-    /* 0x0012 */ u16 unk12;
+    /* 0x0012 */ u16 seenCardCount;
     /* 0x0014 */ s16 unk14;
     /* 0x0016 */ s16 unk16;
-    /* 0x0018 */ u16 unk18;
-    /* 0x001A */ u16 unk1A;
-    /* 0x001C */ u16 unk1C;
-    /* 0x001E */ u16 unk1E;
+    /* 0x0018 */ u16 battleWins;
+    /* 0x001A */ u16 battleLosses;
+    /* 0x001C */ u16 versusWins;
+    /* 0x001E */ u16 versusLosses;
     /* 0x0020 */ u32 unk20_0 : 1;
     /* 0x0020 */ u32 unk20_1 : 1;
     /* 0x0020 */ u32 unk20_2 : 1;
     /* 0x0020 */ u32 unk20_3 : 1;
     /* 0x0020 */ u32 unk20_4 : 28;
-    /* 0x0024 */ s32 unk24;
-    /* 0x0028 */ u32 rankA : 3;
-    /* 0x0028 */ u32 rankB : 3;
-    /* 0x0028 */ u32 rankC : 3;
+    /* 0x0024 */ s32 playTime;
+    /* 0x0028 */ u32 tamerRank : 3;
+    /* 0x0028 */ u32 collectorRank : 3;
+    /* 0x0028 */ u32 battleRank : 3;
     /* 0x0029 */ u32 unk28_9 : 1;
     /* 0x0029 */ u32 unk28_10 : 1;
     /* 0x0029 */ u32 unk28_11 : 1;
@@ -642,7 +642,7 @@ typedef struct {
     /* 0x002C */ s32 unk2C;
     /* 0x0030 */ u8 unk30[6];
     /* 0x0036 */ u16 unk36[3];
-    /* 0x003C */ u8 unk3C[0x10];
+    /* 0x003C */ u8 ownedAbilities[0x10];
     /* 0x004C */ s16 unk4C;
     /* 0x004E */ s16 unk4E;
     /* 0x0050 */ s16 unk50;
@@ -650,26 +650,26 @@ typedef struct {
     /* 0x0054 */ s16 unk54;
     /* 0x0056 */ u16 unk56;
     /* 0x0058 */ u8 unk58[0x28];
-    /* 0x0080 */ Deck unk80[3];
+    /* 0x0080 */ Partner partners[3];
     /* 0x0848 */ s16 unk848[0x20];
     /* 0x0888 */ u16 unk888[0x8E];
     /* 0x09A4 */ u16 unk9A4[0x8E];
-    /* 0x0AC0 */ u16 unkAC0[0x9F];
+    /* 0x0AC0 */ u16 opponentDeckFlags[0x9F];
     /* 0x0BFE */ u16 unkBFE[0x9F];
     /* 0x0D3C */ s16 unkD3C[0xBF][3];
     /* 0x11B6 */ s16 unk11B6[0xBF];
     /* 0x1334 */ s16 unk1334[0xBF];
-    /* 0x14B2 */ u8 unk14B2[0x12D];
+    /* 0x14B2 */ u8 cardCollection[0x12D];
     /* 0x15DF */ u8 unk15DF;
-    /* 0x15E0 */ u16 unk15E0[301][6];
+    /* 0x15E0 */ u16 cardCopySerials[301][6];
     /* 0x23FC */ s32 unk23FC[12];
     /* 0x242C */ u8 unk242C[9];
     /* 0x2435 */ u8 unk2435[3];
-    /* 0x2438 */ Unk110 unk2438[3];
-    /* 0x2768 */ s16 unk2768[3];
-    /* 0x276E */ s8 unk276E[3];
+    /* 0x2438 */ PlayerDeck savedDecks[3];
+    /* 0x2768 */ s16 rewardCards[3];
+    /* 0x276E */ s8 rewardResults[3];
     /* 0x2771 */ u8 unk2771[3];
-} Unk8006E050;
+} PlayerProfile;
 typedef struct {
     /* 0x000 */ u8 unk0[0x1A2];
     /* 0x1A2 */ s16 unk1A2;
@@ -679,17 +679,17 @@ typedef struct {
     /* 0x1A9 */ u8 unk1A9;
 } Unk8006E054Sub;
 typedef struct {
-    /* 0x0000 */ u8 *unk0;
-    /* 0x0004 */ u8 unk4;
+    /* 0x0000 */ u8 *npcDeckFile;
+    /* 0x0004 */ u8 opponentDeckIndex;
     /* 0x0005 */ u8 unk5[3];
-    /* 0x0008 */ SavedDeck unk8;
+    /* 0x0008 */ SavedDeck opponentDeck;
     /* 0x0076 */ u8 unk76[2];
-    /* 0x0078 */ Deck unk78[2][3];
-    /* 0x1008 */ s16 unk1008[2];
+    /* 0x0078 */ Partner partnerBackup[2][3];
+    /* 0x1008 */ s16 npcDeckIndex[2];
     /* 0x100C */ Unk8006E054Sub *unk100C;
     /* 0x1010 */ u8 unk1010[0x17];
     /* 0x1027 */ u8 unk1027;
-} Unk8006E054;
+} SessionData;
 typedef struct {
     /* 0x0 */ u32 attribute;
     /* 0x4 */ GsCOORDINATE2 *coord2;
@@ -892,12 +892,12 @@ typedef struct {
 } Unk7F8;
 typedef struct {
     /* 0x0 */ u8 type;
-    /* 0x1 */ u8 unk1;
-    /* 0x2 */ u8 unk2;
-    /* 0x3 */ u8 unk3;
+    /* 0x1 */ u8 param;
+    /* 0x2 */ u8 actionStart;
+    /* 0x3 */ u8 actionCount;
     /* 0x4 */ s16 value;
     /* 0x6 */ s16 unk6;
-} CardEffect;
+} PartnerAbility;
 
 extern s32 SPRITE_POOL_CURSOR;
 extern u16 SYSTEM_TEX_X;

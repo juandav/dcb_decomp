@@ -357,7 +357,7 @@ void tickBattleHud(void) {
             }
         }
     }
-    if (rollingCount != 0 && !(((Unk8006E050 *)PLAYER_PROFILES)->unk24 & 3)) {
+    if (rollingCount != 0 && !(((PlayerProfile *)PLAYER_PROFILES)->playTime & 3)) {
         playSoundEffect(0xAA);
     }
     renderStatPopups();

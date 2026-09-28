@@ -29,38 +29,38 @@ void initPlayerData(void) {
 void func_8002D458(void) {
     s32 i;
 
-    ((Unk8006E054 *)D_8006E054)->unk1027 = 0;
-    ((Unk8006E054 *)D_8006E054)->unk100C->unk1A4 = 0;
-    ((Unk8006E054 *)D_8006E054)->unk100C->unk1A2 = 0;
-    ((Unk8006E054 *)D_8006E054)->unk100C->unk1A9 = 0;
-    ((Unk8006E054 *)D_8006E054)->unk100C->unk1A8 = 0;
+    ((SessionData *)D_8006E054)->unk1027 = 0;
+    ((SessionData *)D_8006E054)->unk100C->unk1A4 = 0;
+    ((SessionData *)D_8006E054)->unk100C->unk1A2 = 0;
+    ((SessionData *)D_8006E054)->unk100C->unk1A9 = 0;
+    ((SessionData *)D_8006E054)->unk100C->unk1A8 = 0;
     for (i = 0; i < 12; i++) {
-        ((Unk8006E050 *)PLAYER_PROFILES)->unk23FC[i] = 0;
+        ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] = 0;
     }
     for (i = 0; i < 9; i++) {
-        ((Unk8006E050 *)PLAYER_PROFILES)->unk242C[i] = 0;
+        ((PlayerProfile *)PLAYER_PROFILES)->unk242C[i] = 0;
     }
-    ((Unk8006E050 *)PLAYER_PROFILES)->unk2C = 0;
-    ((Unk8006E050 *)PLAYER_PROFILES)->unk14 = 0;
+    ((PlayerProfile *)PLAYER_PROFILES)->unk2C = 0;
+    ((PlayerProfile *)PLAYER_PROFILES)->unk14 = 0;
 }
 
 void resetPlayerData(void) {
-    Unk8006E050 *profile;
+    PlayerProfile *profile;
     s32 player;
     s32 j;
     s32 i;
 
-    profile = (Unk8006E050 *)PLAYER_PROFILES;
+    profile = (PlayerProfile *)PLAYER_PROFILES;
     for (i = 0; i < 12; i++) {
-        ((Unk8006E050 *)PLAYER_PROFILES)->unk23FC[i] = 0;
+        ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] = 0;
     }
-    ((Unk8006E050 *)PLAYER_PROFILES)->unk28_9 = 0;
+    ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 = 0;
     for (player = 0; player < 2; player++, profile++) {
         profile->name[0] = 0;
-        profile->unk18 = 0;
-        profile->unk1A = 0;
-        profile->unk1C = 0;
-        profile->unk1E = 0;
+        profile->battleWins = 0;
+        profile->battleLosses = 0;
+        profile->versusWins = 0;
+        profile->versusLosses = 0;
         profile->unkE = 0;
         profile->unk10 = rand();
         profile->unk28_10 = 0;
@@ -68,9 +68,9 @@ void resetPlayerData(void) {
         profile->unkD = 0;
         profile->unk28_11 = 0;
         profile->unk28_12 = 0;
-        profile->rankA = 0;
-        profile->rankB = 0;
-        profile->rankC = 0;
+        profile->tamerRank = 0;
+        profile->collectorRank = 0;
+        profile->battleRank = 0;
         profile->unk16 = 0x2774;
         profile->unk4C = 0;
         profile->unk4E = 0;
@@ -85,7 +85,7 @@ void resetPlayerData(void) {
             profile->unk58[i] = 0;
         }
         for (i = 0; i < 0x12D; i++) {
-            profile->unk14B2[i] = 0;
+            profile->cardCollection[i] = 0;
             for (j = 0; j < 8; j++) {
                 func_80045968(player, i, j);
             }
@@ -98,19 +98,19 @@ void resetPlayerData(void) {
             profile->unk1334[i] = 0;
         }
         for (i = 0; i < 3; i++) {
-            profile->unk80[i].unk288 = 0;
+            profile->partners[i].cardId = 0;
         }
         for (i = 0; i < 0x10; i++) {
-            profile->unk3C[i] = 0;
+            profile->ownedAbilities[i] = 0;
         }
         for (i = 0; i < 3; i++) {
-            profile->unk2438[i].unk0 = 0;
-            profile->unk2438[i].unk108[0] = 0;
-            profile->unk2438[i].unk108[1] = 0;
-            profile->unk2438[i].unk108[2] = 0;
+            profile->savedDecks[i].inUse = 0;
+            profile->savedDecks[i].unk108[0] = 0;
+            profile->savedDecks[i].unk108[1] = 0;
+            profile->savedDecks[i].unk108[2] = 0;
         }
         for (i = 0; i < 0x9F; i++) {
-            profile->unkAC0[i] = 0;
+            profile->opponentDeckFlags[i] = 0;
             profile->unkBFE[i] = 0;
         }
         for (i = 0; i < 0x8E; i++) {
@@ -124,9 +124,9 @@ void resetPlayerData(void) {
         profile->unk20_1 = 0;
         profile->unk20_2 = 0;
         profile->unk20_3 = 0;
-        profile->unk24 = 0;
+        profile->playTime = 0;
     }
-    strcpy(((Unk8006E050 *)PLAYER_PROFILES)->name, "Player");
+    strcpy(((PlayerProfile *)PLAYER_PROFILES)->name, "Player");
     func_8002D458();
 }
 
