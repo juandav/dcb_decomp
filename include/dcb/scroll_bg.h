@@ -1,7 +1,16 @@
-#ifndef DCB_EFFECT_H
-#define DCB_EFFECT_H
+#ifndef DCB_SCROLL_BG_H
+#define DCB_SCROLL_BG_H
 
 #include "game.h"
+#include "dcb/stage.h"
+
+void resetScrollingBackground(void);
+void fadeOutScrollingBackground(void);
+void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h);
+void loadScrollingBackground(void);
+void hideScrollingBackground(void);
+void setBackgroundScrollMode(s8 scrollMode);
+void freeScrollingBackground(void);
 
 typedef struct {
     /* 0x000 */ u8 unk0[0x10C];
@@ -126,36 +135,10 @@ extern s16 ATTACK_ICON_ORIGIN_X[3];
 extern s16 ATTACK_ICON_ORIGIN_Y[2][3];
 
 void renderScrollingBackground(void);
-s32 tickEffectMotion(s32 fxAddr, s32 applyFlag);
-void updateEffectLinearMotion(void *fx);
-void updateEffectArcMotion(void *fx);
-void updateEffectWaveXMotion(void *fx);
-void updateEffectWaveYMotion(void *fx);
-void updateEffectTiltedArcMotion(u8 *fx);
-void func_80030440(u8 *fx);
-void updateEffectShakeMotion(u8 *fx);
-s32 getVectorDistance(SVECTOR *from, SVECTOR *to);
-s32 isPointAlongSegment(SVECTOR *start, SVECTOR *end, SVECTOR *point);
-s32 isWithinDistance(SVECTOR *a, SVECTOR *b, s32 radius);
-void projectPointOntoLine(SVECTOR *start, SVECTOR *point, SVECTOR *end, VECTOR *out);
-s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16 radius);
-void *initEffectObject(void *fx);
-Unk13C *cloneEffectObject(Unk13C *template);
-void updateEffectObject(s32 fx);
-void freeEffectObject(void *fx);
-s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir);
-void restartEffectMotion(u8 *fx);
-void buildRingEffectMesh(Obj32 *ring);
 Obj32 *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, Unk13C *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
                      s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
                      s32 w, s32 x);
-void tickEffectStartDelay(void *fx);
-s16 updateEffectBrightness(void *fxObj, s16 brightness);
-void renderRingEffect(Obj32 *ring);
-void freeRingEffect(Obj32 *ring);
 Particles *createStreakParticles(u8 *startColor, u8 *endColor, Unk13C *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz);
-void renderStreakParticles(Particles *fx);
-void freeStreakParticles(void *fx);
 
-#endif /* DCB_EFFECT_H */
+#endif /* DCB_SCROLL_BG_H */

@@ -10,7 +10,8 @@
 #include "dcb/card_db.h"
 #include "dcb/duel_setup.h"
 #include "dcb/card_zones.h"
-#include "dcb/effect.h"
+#include "dcb/effect_object.h"
+#include "dcb/effect_prims.h"
 #include "dcb/duel_util.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
@@ -23,6 +24,8 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 #include "dcb/stage.h"
+#include "dcb/game_flow.h"
+#include "dcb/scroll_bg.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 

@@ -13,7 +13,8 @@
 #include "dcb/display.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
-#include "dcb/model.h"
+#include "dcb/anim_control.h"
+#include "dcb/model_load.h"
 
 void initPlayerData(void) {
     void *session;
