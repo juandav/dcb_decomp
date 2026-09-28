@@ -11,6 +11,17 @@
 #include "dcb/memcard.h"
 #include "dcb/sort.h"
 
+typedef struct {
+    u16 cardIds[30];
+    char name[0x32];
+} DeckRecord;
+extern Menu D_801F1934;
+extern UiWindow D_801F24B0;
+extern CursorHighlight D_801F2500;
+extern u16 D_801F2550[0x9F];
+extern char D_801DE010[];
+extern void func_801E0FF0();
+
 extern Menu D_801F219C;
 extern s32 D_801F2154[];
 extern s32 (*D_801F21C8[])(s8 *, s8 *);
@@ -167,7 +178,64 @@ INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DDFC0);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E0FF0);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E11D4);
+s32 func_801E11D4(PlayerDeck *deck, s32 player) {
+    u8 *file;
+    DeckRecord *records;
+    s32 i;
+    s32 count;
+    s32 done;
+    s32 selected;
+    u16 flags;
+    DeckRecord *record;
+
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
+    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    *(u8 **)D_8006E054 = file;
+    records = (DeckRecord *)(file + 8);
+    markBuildableOpponentDecks(player);
+    for (i = 0; i < 0x9F; i++) {
+        D_801F2550[i] = 0;
+    }
+    count = 0;
+    for (i = 0; i < 0x9F; i++) {
+        flags = PLAYER_DATA(player).opponentDeckFlags[i];
+        if (flags & 0x8000) {
+            D_801F2550[count] = i | (flags & 0xC000);
+            count++;
+        }
+    }
+    D_801F1934.pad = player;
+    D_801F1934.nrows = count;
+    D_801F24B0.view.h = count * D_801F1934.rowH;
+    openMenu(&D_801F1934, &D_801F24B0, &D_801F2500, (Bytes4 *)-1);
+    D_801F24B0.label = (s32)D_801DE010;
+    playMenuSound(3);
+    done = 0;
+    selected = -1;
+    do {
+        func_80014C08(FRAME_INTERVAL);
+        drawWindow(&D_801F24B0, func_801E0FF0, 0);
+        if ((PAD_STATES[player]->pressed & 0x40) && (D_801F2550[D_801F1934.row] & 0x4000)) {
+            playMenuSound(1);
+            selected = D_801F2550[D_801F1934.row] & 0x3FFF;
+            done = 1;
+        } else if (PAD_STATES[player]->pressed & 0x10) {
+            playMenuSound(0);
+            selected = -1;
+            done = 1;
+        }
+    } while (!done);
+    playMenuSound(4);
+    if (selected >= 0) {
+        record = &records[selected];
+        for (i = 0; i < 30; i++) {
+            setCardSlotFromId((u8 *)&deck->cards[i], record->cardIds[i]);
+        }
+        linkDeckCardData(player, deck);
+    }
+    freeHeapBlock(*(u8 **)D_8006E054);
+    return selected;
+}
 
 void func_801E14E4(void) {
     if (isSpritePoolFull() == 0) {

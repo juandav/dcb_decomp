@@ -18,6 +18,15 @@
 #include "dcb/menu.h"
 #include "dcb/sort.h"
 
+extern s8 D_801F1620[2][301];
+typedef struct {
+    UiWindow window;
+    u8 unk44[4];
+} Unk801F7C88;
+extern Unk801F7C88 D_801F7C88[3];
+extern UiWindow D_801F7D60;
+extern UiWindow D_801F53C8;
+
 void StUnSetRing(void);
 s32 DecDCTvlc2(u32 *bs, u32 *buf, u16 *table);
 s32 StFreeRing(u32 *base);
@@ -603,7 +612,42 @@ void func_801E1E5C(void) {
     }
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E2068);
+void func_801E2068(s32 player) {
+    s32 n;
+    s32 i;
+    s32 shared;
+    s32 other;
+
+    n = 0;
+    for (i = 0; i < 0xBF; i++) {
+        D_801F0CA0[player][n++] = &((DigimonCardData *)DIGIMON_CARDS)[i];
+    }
+    for (i = 0; i < 0x66; i++) {
+        D_801F0CA0[player][n++] = &((OptionCardData *)OPTION_CARDS)[i];
+    }
+    for (i = 0; i < 8; i++) {
+        D_801F0CA0[player][n++] = &((DigivolveCardData *)DIGIVOLVE_CARDS)[i];
+    }
+    for (i = 0; i < 3; i++) {
+        if (PLAYER_DATA(player).partners[i].cardId != 0) {
+            D_801F0CA0[player][PLAYER_DATA(player).partners[i].cardId] = &PLAYER_DATA(player).partners[i];
+        }
+    }
+    for (i = 0; i < 301; i++) {
+        shared = func_801E1840(player, i);
+        D_801F1620[player][i] = getOwnedCardCount(player, i) - D_801F1880[player][i];
+        if (D_801F1620[player][i] > getOwnedCardCount(player, i) - shared) {
+            D_801F1620[player][i] = getOwnedCardCount(player, i) - shared;
+        }
+        if (D_801F1620[player][i] < 0) {
+            D_801F1620[player][i] = 0;
+        }
+        other = player ^ 1;
+        if (D_801F1620[player][i] + getOwnedCardCount(other, i) >= 7) {
+            D_801F1620[player][i] = 6 - getOwnedCardCount(other, i);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E23C4);
 
@@ -776,7 +820,42 @@ INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DEAC8);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E826C);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E8494);
+void func_801E8494(s32 x, s32 y, s32 texX, s32 texY, s32 palette, u8 *rgb, s32 otIndex) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x + 2;
+        CUR_SPRT->sp.y0 = y + 5;
+        CUR_SPRT->sp.u0 = (texX % 64) * 2 + 2;
+        CUR_SPRT->sp.v0 = texY % 256 + 2;
+        CUR_SPRT->sp.clut = getClut(0x2C0, palette + 0xF9);
+        CUR_SPRT->sp.w = 36;
+        CUR_SPRT->sp.h = 36;
+        setSemiTrans(&CUR_SPRT->sp, 0);
+        CUR_SPRT->sp.r0 = rgb[0];
+        CUR_SPRT->sp.g0 = rgb[1];
+        CUR_SPRT->sp.b0 = rgb[2];
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(1, 0, texX, texY));
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        if (isSpritePoolFull() == 0) {
+            CUR_SPRT->sp.x0 = x;
+            CUR_SPRT->sp.y0 = y;
+            CUR_SPRT->sp.u0 = 0;
+            CUR_SPRT->sp.v0 = 0x80;
+            CUR_SPRT->sp.clut = getClut(0x2C0, palette + 0xB1);
+            CUR_SPRT->sp.w = 40;
+            CUR_SPRT->sp.h = 48;
+            setSemiTrans(&CUR_SPRT->sp, 0);
+            CUR_SPRT->sp.r0 = rgb[0];
+            CUR_SPRT->sp.g0 = rgb[1];
+            CUR_SPRT->sp.b0 = rgb[2];
+            setDrawMode(&CUR_SPRT->dm, 0, 0, 0xB);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+            addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+            SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E87E0);
 
@@ -1042,7 +1121,16 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EC994);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801ECA38);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801ECBE8);
+void func_801ECBE8(void) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        animateWindowTo(&D_801F7C88[i].window, (Rect16 *)-1);
+    }
+    animateWindowTo(&D_801F7D60, (Rect16 *)-1);
+    animateWindowTo(&D_801F53C8, (Rect16 *)-1);
+    playMenuSound(4);
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801ECC64);
 

@@ -16,6 +16,48 @@
 #include "dcb/anim_control.h"
 #include "dcb/player_data.h"
 #include "dcb/scroll_bg.h"
+#include "dcb/prim.h"
+#include "dcb/stage.h"
+
+typedef struct {
+    u8 unk0[8];
+    s16 w;
+    s16 h;
+    u8 unkC[6];
+    s8 originX;
+    s8 originY;
+} SpriteFrame;
+typedef struct {
+    u8 *tex;
+    SpriteFrame *frames;
+    POLY_FT4 polys[2];
+    SVECTOR pos;
+    SVECTOR v[4];
+    u8 unk80;
+    u8 unk81;
+    s8 unk82;
+    s8 unk83;
+    u16 scaleX;
+    u16 scaleY;
+    s8 flipX;
+    s8 flipY;
+    u8 unk8A;
+    s8 useOrigin;
+} Sprite;
+typedef struct {
+    s32 unk0;
+    s32 value;
+    s32 unk8;
+} DuelistStats;
+typedef struct {
+    DuelistStats players[2];
+} DuelState;
+extern u16 D_801EF38C;
+extern DuelState *D_801EF958;
+void func_801EC494(s32 x, s32 y, s32 value, u8 brightness);
+extern s16 D_801EF9A4[2];
+void func_801EDB64(void);
+void func_801EC8A4(s32 a0);
 
 typedef struct {
     u8 unk0[0x13C];
@@ -1142,7 +1184,27 @@ void func_801EB3EC(void) {
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EB458);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EB5CC);
+void func_801EB5CC(Sprite *sprite, s32 frame) {
+    SpriteFrame *f;
+    s32 xs[2];
+    s32 ys[2];
+
+    f = &sprite->frames[frame];
+    xs[0] = -(f->w * sprite->scaleX / 2);
+    xs[1] = f->w * sprite->scaleX + xs[0] - 1;
+    ys[0] = -(f->h * sprite->scaleY / 2);
+    ys[1] = f->h * sprite->scaleY + ys[0] - 1;
+    sprite->v[0].vx = sprite->v[2].vx = xs[sprite->flipX];
+    sprite->v[1].vx = sprite->v[3].vx = xs[sprite->flipX ^ 1];
+    sprite->v[0].vy = sprite->v[1].vy = ys[sprite->flipY];
+    sprite->v[2].vy = sprite->v[3].vy = ys[sprite->flipY ^ 1];
+    if (sprite->useOrigin != 0) {
+        sprite->v[0].vx = sprite->v[2].vx = sprite->v[0].vx - f->originX * sprite->scaleX;
+        sprite->v[1].vx = sprite->v[3].vx = sprite->v[1].vx - f->originX * sprite->scaleX;
+        sprite->v[0].vy = sprite->v[1].vy = sprite->v[0].vy - f->originY * sprite->scaleY;
+        sprite->v[2].vy = sprite->v[3].vy = sprite->v[2].vy - f->originY * sprite->scaleY;
+    }
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EB798);
 
@@ -1196,7 +1258,45 @@ INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC1F4);
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC494);
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC6E0);
+void func_801EC6E0(s32 side) {
+    Rect16 uv0;
+    Rect16 uv1;
+    u8 brightness[3];
+    s32 i;
+
+    i = 0;
+    memset(brightness, 0, 3);
+    side ^= 1;
+    uv0.x = 0xA0;
+    uv0.y = 0x90;
+    uv0.w = 0x60;
+    uv0.h = 0x10;
+    uv1.x = 0xA0;
+    uv1.y = 0xB0;
+    uv1.w = 0x3C;
+    uv1.h = 0x10;
+    for (; i < 150; i++) {
+        func_80014C08(FRAME_INTERVAL);
+        drawTexturedSprite(15, 0xAE, &uv0, D_801EF38C, 0x1568, 1, brightness[0], 1);
+        func_801EC494(0x1F, 0xC1, D_801EF958->players[side].value, brightness[1]);
+        drawTexturedSprite(0x3F, 0xD9, &uv1, D_801EF38C, 0x1569, 1, brightness[2], 1);
+        if (i < 20) {
+            brightness[0] = i * 8;
+        } else if (i < 40) {
+            brightness[1] = (i - 20) * 8;
+        } else if (i < 60) {
+            brightness[2] = (i - 40) * 8;
+        } else if (i < 71) {
+            /* hold */
+        } else if (i < 90) {
+            brightness[0] = (89 - i) * 8;
+        } else if (i < 110) {
+            brightness[1] = (109 - i) * 8;
+        } else if (i < 130) {
+            brightness[2] = (129 - i) * 8;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EC8A4);
 
@@ -1279,7 +1379,31 @@ void func_801EEBEC(s32 model, s32 anim) {
     playModelAnimation(model, anim);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EEC3C);
+void func_801EEC3C(s32 side, s32 amount) {
+    s32 state;
+
+    state = -1;
+    SCENE_3D->modelState[side] = 1;
+    D_80079584 = side;
+    func_800149B8(0, 0x1F, 0, 0x2000, func_801EA48C, D_801D81B0, side, 0, &state);
+    func_800149B8(0, -1, 0, 0x800, func_801EDB64);
+    while (state != 1) {
+        func_80014C08(FRAME_INTERVAL);
+    }
+    state = 2;
+    if (D_801EF958->players[side].value < amount) {
+        amount = D_801EF958->players[side].value;
+    }
+    D_801EF9A4[side] = D_801EF958->players[side].unk0 + amount;
+    if (D_801EF9A4[side] >= 0x2707) {
+        D_801EF9A4[side] = 0x2706;
+    }
+    func_801EC8A4(~side);
+    D_801EF9A4[side] -= D_801EF958->players[side ^ 1].value;
+    while (state != 0) {
+        func_80014C08(FRAME_INTERVAL);
+    }
+}
 
 void func_801EEE24(s32 model) {
     SCENE_3D->modelState[model] = 1;

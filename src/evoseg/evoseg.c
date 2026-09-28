@@ -21,6 +21,18 @@
 #include "dcb/transform.h"
 
 typedef struct {
+    s16 *win;
+    u8 pad4[0x14 - 0x4];
+    s16 unk14;
+    u8 pad16[0x26 - 0x16];
+    u8 unk26;
+} EvoList;
+extern EvoList D_801F0030;
+void func_801EE2DC();
+void func_801EB2A0(void);
+extern UiWindow D_801F51B8;
+
+typedef struct {
     u8 olen;
     u8 ilen;
     u8 flag;
@@ -1118,7 +1130,25 @@ void func_801E7CB4(void) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E7D2C);
+void func_801E7D2C(s32 active) {
+    if (active != 0) {
+        D_801F5548[0].unk124 -= 10;
+        D_801F5548[1].unk124 -= 10;
+        if (D_801F5548[0].unk124 < -0x58) {
+            D_801F5548[0].unk124 = -0x58;
+        }
+        if (D_801F5548[1].unk124 < 14) {
+            D_801F5548[1].unk124 = 14;
+        }
+        if (D_801F5548[0].unk124 == -0x58 && D_801F5548[1].unk124 == 14) {
+            D_801F5478.unkC4 = 2;
+            D_801F5250->vars[8] = -1;
+            D_801F5478.unkBB = 0;
+            D_801F5478.unkC1 = 0;
+            D_801F4E34[D_801F5478.unkAE]++;
+        }
+    }
+}
 
 void func_801E7E10(s8 mode) {
     if (mode == 0) {
@@ -1276,7 +1306,17 @@ INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EA530);
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EA598);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EA790);
+void func_801EA790(void) {
+    animateWindowTo(&D_801F5128, (Rect16 *)-1);
+    animateWindowTo(&D_801F43D0, &D_801F0038);
+    D_801F0030.unk26 = 1;
+    D_801F5478.unkC2 = 0;
+    D_801F5478.unkC1 = 3;
+    D_801F5478.unkC3 = 0;
+    D_801F0030.unk14 = 0;
+    scrollWindowTo(D_801F0030.win, 0, 0);
+    D_801F5250->vars[8] = -1;
+}
 
 void func_801EA820(void) {
     animateWindowTo(&D_801F5128, &D_801F01D8);
@@ -1284,7 +1324,22 @@ void func_801EA820(void) {
     D_801F0056 = 0;
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EA864);
+void func_801EA864(s32 index) {
+    EvoScene *scenes = D_801F5548;
+
+    scenes[index].unk124 -= 10;
+    if (scenes[index].unk124 < -0x58) {
+        scenes[index].unk124 = -0x58;
+        D_801F5478.unkC1 = 0;
+        D_801F5478.unkBB = 0;
+        D_801F5250->vars[8] = -1;
+        if (index == 0) {
+            D_801F4E34[D_801F5478.unkAC]--;
+        } else {
+            D_801F4E34[D_801F5478.unkAC]++;
+        }
+    }
+}
 
 void func_801EA934(s32 index) {
     EvoScene *scenes = D_801F5548;
@@ -1344,9 +1399,32 @@ void func_801EAAE8(s16 cardId) {
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EABB0);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EB0F4);
+void func_801EB0F4(void) {
+    PlayerProfile *profile;
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EB1D0);
+    D_801F5250->vars[8] = -2;
+    D_801F5250->vars[18] = 0;
+    D_801F5250->vars[19] = 0;
+    D_801F5250->vars[7] = 1;
+    func_801EE2DC(0, 0);
+    func_801EB2A0();
+    D_801F5478.unkC1 = 4;
+    removeCardFromCollection(0, D_801F5478.unkAE, 1);
+    D_801F4E34[D_801F5478.unkAE]--;
+    profile = (PlayerProfile *)PLAYER_PROFILES;
+    profile->unk52++;
+    if ((u16)profile->unk52 >= 10000) {
+        profile->unk52 = 9999;
+    }
+}
+
+void func_801EB1D0(void) {
+    D_801F5250->vars[8] = -1;
+    D_801F0056 = 1;
+    D_801F5478.unkC3 = 0;
+    animateWindowTo(&D_801F51B8, (Rect16 *)-1);
+    D_801F5478.unkC1 = 3;
+}
 
 void func_801EB234(void) {
     setScreenFadeParams(0, 2, 6);
@@ -1380,7 +1458,12 @@ void func_801ECBE8(void) {
     D_801F5478.unkCE = 0;
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801ECC24);
+void func_801ECC24(void) {
+    D_801F5478.unkC4 = 1;
+    D_801F5478.unkC1 = 8;
+    animateWindowTo(&D_801F43D0, (Rect16 *)-1);
+    D_801F0056 = 0;
+}
 
 void func_801ECC6C(void) {
     D_801F5478.unkC4 = 2;
