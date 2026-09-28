@@ -16,6 +16,12 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/card_db.h"
 
+typedef struct {
+    u32 unk0 : 12;
+    u32 count : 2;
+    u32 unk14 : 18;
+} Flags110;
+
 extern char *D_801FC168[];
 
 typedef struct {
@@ -1757,7 +1763,33 @@ void func_801FA30C(s32 player) {
     }
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FA4E4);
+s32 func_801FA4E4(s32 player) {
+    s32 card;
+    s16 hp;
+
+    card = getActiveDigimonCard(player);
+    if (card == -1) {
+        return;
+    }
+    hp = PLAYER(player)->stats[0];
+    if (hp != 0 && hp % 1110 == 0) {
+        func_801FB444(player, 0x1A);
+        PLAYER(0)->unk110 |= 0x400;
+    }
+    if (findPartnerSlot(player, PLAYER(player)->cards[card % 30].id) >= 0) {
+        func_801FB444(player, 0x1C);
+        ((Flags110 *)&PLAYER(player)->unk110)->count++;
+    } else if (findArmorPartnerSlot(player, PLAYER(player)->cards[card % 30].id) >= 0) {
+        func_801FB444(player, 0x1C);
+        ((Flags110 *)&PLAYER(player)->unk110)->count++;
+    }
+    if (!(((u32)PLAYER(player)->unk110 >> 30) & 1) && PLAYER(player)->digimonStack[0] >= 0 &&
+        findPartnerSlot(player, PLAYER(player)->cards[PLAYER(player)->digimonStack[2] % 30].id) >= 0) {
+        func_801FB444(player, 0x1D);
+        PLAYER(player)->unk110 |= 0x20000000;
+    }
+    func_801FA30C(player);
+}
 
 s32 func_801FA780(s32 player) {
     s32 ids[4];

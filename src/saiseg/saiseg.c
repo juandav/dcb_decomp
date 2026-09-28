@@ -14,6 +14,10 @@
 #include "dcb/duel_launch.h"
 #include "dcb/card_db.h"
 #include "dcb/sound_play.h"
+#include "dcb/scroll_bg.h"
+#include "dcb/memcard.h"
+
+void func_801E4AF4(s32 arg0);
 
 typedef struct {
     u8 text[0x3C];
@@ -137,6 +141,8 @@ typedef struct {
     s32 unk78;
     u8 pad7C[5];
     u8 unk81;
+    u8 pad82[2];
+    u8 unk84;
 } Unk801F4588;
 extern Unk801F4588 D_801F4588;
 extern void (*D_801F3594[])(void);
@@ -388,7 +394,13 @@ void func_801E0480(void) {
 
 INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E04B8);
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E0650);
+void func_801E0650(void) {
+    if (--D_801F4588.unk78 < 0) {
+        D_801F4588.unk78 = 0;
+        D_801F4588.unk81 = 3;
+        D_801F4588.unk84 = 0;
+    }
+}
 
 void func_801E0684(void) {
     s32 i;
@@ -890,7 +902,54 @@ void func_801E9AAC(void) {
     }
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E9B20);
+void func_801E9B20(void) {
+    stopMusic();
+    addFrameCallback((s32)func_801E9AAC);
+    setBackgroundScrollMode(1);
+    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 0, getCurrentTaskId(), 0, 0);
+    func_80014C08(360);
+    playMenuSound(3);
+    animateWindowTo(&D_801F46B0[0], &D_801F3460[0].rect);
+    func_80014C08(7);
+    playMenuSound(3);
+    animateWindowTo(&D_801F46B0[1], &D_801F3460[1].rect);
+    func_80014C08(8);
+    playMenuSound(3);
+    animateWindowTo(&D_801F46B0[2], &D_801F3460[2].rect);
+    func_80014C08(3);
+    playMenuSound(3);
+    animateWindowTo(&D_801F46B0[3], &D_801F3460[3].rect);
+    func_80014C08(2);
+    playMenuSound(3);
+    animateWindowTo(&D_801F46B0[4], &D_801F3460[4].rect);
+    func_80014C08(110);
+    playSoundEffect(0x18);
+    func_80014C08(480);
+    playSoundEffect(0x19);
+    func_80014C08(120);
+    playSoundEffect(0x19);
+    func_80014C08(240);
+    animateWindowTo(&D_801F46B0[0], (Rect16 *)-1);
+    playSoundEffect(0x19);
+    func_80014C08(4);
+    animateWindowTo(&D_801F46B0[1], (Rect16 *)-1);
+    playSoundEffect(0x19);
+    func_80014C08(2);
+    animateWindowTo(&D_801F46B0[2], (Rect16 *)-1);
+    playSoundEffect(0x19);
+    func_80014C08(3);
+    animateWindowTo(&D_801F46B0[3], (Rect16 *)-1);
+    playSoundEffect(0x19);
+    func_80014C08(1);
+    animateWindowTo(&D_801F46B0[4], (Rect16 *)-1);
+    playSoundEffect(0x19);
+    func_80014C08(120);
+    func_801E4AF4(1);
+    removeFrameCallback((s32)func_801E9AAC);
+    func_80014C08(170);
+    playSoundEffect(0x18);
+    func_80014C08(30);
+}
 
 void func_801E9D50(void) {
     func_800149B8(0, -1, 0, 0x800, runHackingSequence, 1, getCurrentTaskId(), 0, 0);

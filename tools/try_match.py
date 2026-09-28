@@ -91,7 +91,9 @@ for l in dis.splitlines():
 for i,(off,name) in enumerate(syms):
     if want and name not in want: continue
     m=re.match(r'func_([0-9A-F]{8})',name)
-    found=glob.glob(f'{D}/asm/*/*matchings/**/{name}.s',recursive=True)
+    # overlays share addresses, so a name can exist in several: OVERLAY picks one
+    binary=os.environ.get('OVERLAY','*')
+    found=glob.glob(f'{D}/asm/{binary}/*matchings/**/{name}.s',recursive=True)
     if not found: print(name,'?'); continue
     asm=found[0]
     ob,ovram=original(asm[len(D)+5:].split('/')[0])
