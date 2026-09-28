@@ -19,6 +19,7 @@
 #include "dcb/effect_object.h"
 #include "dcb/battle_hud.h"
 #include "dcb/transform.h"
+#include "dcb/loader.h"
 
 typedef struct {
     s16 *win;
@@ -1588,7 +1589,17 @@ INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF548);
 
 INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF550);
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EE1F4);
+s32 func_801EE1F4(s32 index) {
+    char path[32];
+    s32 file;
+
+    sprintf(path, "C:\\EVO_PAK\\%d.PAK", index);
+    file = loadFileTagged((s32 *)path, getCurrentTaskId(), 0x12C);
+    if (file != 0) {
+        return file;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801EE248);
 
