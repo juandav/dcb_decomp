@@ -118,29 +118,36 @@ def name_rodata(base: str, target: str) -> None:
     asm = {name[: -len(".NON_MATCHING")] for name in have if name.endswith(".NON_MATCHING")}
     args = []
     for name in sorted(asm):
-        args += ["--redefine-sym", f"{name}={name}.asm", "--strip-symbol", name + ".NON_MATCHING"]
+        args += ["--strip-symbol", name + ".NON_MATCHING"]
     for name, offset in rodata_symbols(target):
         if name not in have and re.fullmatch(r"(D|jtbl)_[0-9A-F]{8}", name):
             args += ["--add-symbol", f"{name}=.rodata:{offset:#x},object,global"]
+    # rodata the original keeps at the start of its .text (splat sees a
+    # function there) ends the target's .rodata early; a marker where it ends
+    # keeps the last table from running into it
+    end = len(section_bytes(target, ".rodata"))
+    if len(section_bytes(base, ".rodata")) > end:
+        args += ["--add-symbol", f"rodata_in_text={'.rodata'}:{end:#x},object,local"]
     if args:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
 
 
-def relocate_data_by_section(path: str) -> None:
-    """Make PATH's .data relocations into its own .rodata section-relative.
+def relocate_by_section(path: str, section: str) -> None:
+    """Make PATH's SECTION relocations into its own .rodata section-relative.
 
-    splat names the strings a table in .data points to, so the original's
-    relocations use those symbols; GCC relocates against .rodata plus the
-    offset, stored in the word. Same data, written differently: rewrite
-    them the way GCC does."""
+    splat names the strings a table in .data or .rodata points to, so the
+    original's relocations use those symbols; GCC relocates against .rodata
+    plus the offset, stored in the word, except for strings it only knows
+    by an extern name. Same data, written differently: rewrite both sides
+    the way GCC writes its literals."""
     with open(ROOT / path, "rb") as f:
         elf = ELFFile(f)
         names = [s.name for s in elf.iter_sections()]
-        if ".rel.data" not in names or ".rodata" not in names:
+        if ".rel" + section not in names or ".rodata" not in names:
             return
         rodata = names.index(".rodata")
-        data = elf.get_section_by_name(".data")
-        rel = elf.get_section_by_name(".rel.data")
+        data = elf.get_section_by_name(section)
+        rel = elf.get_section_by_name(".rel" + section)
         symtab = elf.get_section_by_name(".symtab")
         section_sym = next(i for i, s in enumerate(symtab.iter_symbols())
                            if s["st_info"]["type"] == "STT_SECTION" and s["st_shndx"] == rodata)
@@ -165,18 +172,61 @@ def relocate_data_by_section(path: str) -> None:
     (ROOT / path).write_bytes(blob)
 
 
+def relocate_text_by_function(path: str, section: str) -> None:
+    """Make PATH's SECTION relocations into .text relative to their function.
+
+    Jump tables point at labels inside functions: GCC relocates against .text
+    plus the offset, splat against a label. When the original's .text starts
+    with bytes that our C keeps in .rodata, the section offsets no longer
+    agree, so express both as the function that holds the label plus the
+    offset into it."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        names = [s.name for s in elf.iter_sections()]
+        if ".rel" + section not in names or ".text" not in names:
+            return
+        text = names.index(".text")
+        data = elf.get_section_by_name(section)
+        rel = elf.get_section_by_name(".rel" + section)
+        symtab = elf.get_section_by_name(".symtab")
+        syms = list(symtab.iter_symbols())
+        funcs = sorted((s["st_value"], s["st_size"], i) for i, s in enumerate(syms)
+                       if s["st_shndx"] == text and s["st_info"]["type"] == "STT_FUNC" and s["st_size"])
+        blob = bytearray((ROOT / path).read_bytes())
+        changed = False
+        for i, r in enumerate(rel.iter_relocations()):
+            sym = syms[r["r_info_sym"]]
+            if r["r_info_type"] != 2 or sym["st_shndx"] != text or sym["st_info"]["type"] == "STT_FUNC":
+                continue
+            word = data["sh_offset"] + r["r_offset"]
+            target = sym["st_value"] + int.from_bytes(blob[word:word + 4], "little")
+            owner = [(v, n) for v, size, n in funcs if v <= target < v + size]
+            if not owner:
+                continue
+            value, index = owner[0]
+            entry = rel["sh_offset"] + i * rel["sh_entsize"]
+            blob[entry + 4:entry + 8] = ((index << 8) | r["r_info_type"]).to_bytes(4, "little")
+            blob[word:word + 4] = (target - value).to_bytes(4, "little")
+            changed = True
+    if changed:
+        (ROOT / path).write_bytes(blob)
+
+
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
     target = f"expected/asm/{module}.s.o"
     target_all = f"expected/report/{module}.s.o"
     link(target_all, [target] + data)
     target = target_all
-    relocate_data_by_section(target)
     base = f"build/report/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
     (ROOT / base).write_bytes((ROOT / f"build/src/{module}.c.o").read_bytes())
     pad_sections(base, target)
     name_rodata(base, target)
+    for path in (target, base):
+        for section in (".data", ".rodata"):
+            relocate_by_section(path, section)
+            relocate_text_by_function(path, section)
     return {
         "name": module,
         "target_path": target,

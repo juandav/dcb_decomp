@@ -36,7 +36,7 @@
 #include "dcb/game_flow.h"
 #include "gte.h"
 
-void func_801E0AFC(GsDOBJ4 *obj, s16 mode);
+void func_801E0AFC(GsDOBJ4 *obj, s32 mode);
 void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
 void GsSetLsMatrix(MATRIX *m);
 void GsSetLightMatrix(MATRIX *m);
@@ -1153,7 +1153,501 @@ void func_801E08D4(EvoPart *part, s32 enable) {
     }
 }
 
-INCLUDE_ASM("asm/evoseg/nonmatchings/evoseg", func_801E0AFC);
+/* libgs TMD primitive layouts */
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 r0, g0, b0, code;
+    u16 n0, v0;
+    u16 v1, v2;
+} TMD_P_F3;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 r0, g0, b0, code;
+    u16 n0, v0;
+    u16 n1, v1;
+    u16 n2, v2;
+} TMD_P_G3;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 r0, g0, b0, code;
+    u16 n0, v0;
+    u16 v1, v2;
+    u16 v3, p;
+} TMD_P_F4;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 r0, g0, b0, code;
+    u16 n0, v0;
+    u16 n1, v1;
+    u16 n2, v2;
+    u16 n3, v3;
+} TMD_P_G4;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p;
+    u16 n0, v0;
+    u16 v1, v2;
+} TMD_P_TF3;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p;
+    u16 n0, v0;
+    u16 n1, v1;
+    u16 n2, v2;
+} TMD_P_TG3;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p0;
+    u8 r0, g0, b0, p1;
+    u16 v0, v1;
+    u16 v2, p2;
+} TMD_P_TNF3;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p0;
+    u8 tu3, tv3;
+    u16 p1;
+    u16 n0, v0;
+    u16 v1, v2;
+    u16 v3, p2;
+} TMD_P_TF4;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p0;
+    u8 tu3, tv3;
+    u16 p1;
+    u16 n0, v0;
+    u16 n1, v1;
+    u16 n2, v2;
+    u16 n3, v3;
+} TMD_P_TG4;
+typedef struct {
+    u8 out, in, dummy, cd;
+    u8 tu0, tv0;
+    u16 clut;
+    u8 tu1, tv1;
+    u16 tpage;
+    u8 tu2, tv2;
+    u16 p0;
+    u8 tu3, tv3;
+    u16 p1;
+    u8 r0, g0, b0, p2;
+    u16 v0, v1;
+    u16 v2, v3;
+} TMD_P_TNF4;
+
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+    u32 pad;
+} LINE_F4;
+
+/* the GPU packet being built: one of these, or a shattered wireframe */
+typedef union {
+    PolyF3 f3;
+    PolyF4 f4;
+    PolyG3 g3;
+    PolyG4 g4;
+    POLY_FT3 ft3;
+    POLY_FT4 ft4;
+    POLY_GT3 gt3;
+    POLY_GT4 gt4;
+    LINE_F4 line;
+} EvoPacket;
+
+extern MATRIX D_801DBE40;
+extern s16 D_801EF860;
+extern s16 D_801EF862;
+extern s8 D_801EF864[16];
+void MulMatrix0(MATRIX *m0, MATRIX *m1, MATRIX *m2);
+void SetLightMatrix(MATRIX *m);
+s32 RotNclip3(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, s32 *sxy0, s32 *sxy1, s32 *sxy2, s32 *p, s32 *otz, s32 *flag);
+s32 RotNclip4(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, SVECTOR *v3, s32 *sxy0, s32 *sxy1, s32 *sxy2, s32 *sxy3, s32 *p,
+              s32 *otz, s32 *flag);
+void NormalColorCol3(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, Color *in, Color *out0, Color *out1, Color *out2);
+void func_8005FBE4(SVECTOR *n, Color *in, Color *out);
+
+/* Wireframe of a quad that is shattering: a closed 4-point polyline v0 v1 v3 v2 */
+#define SHATTER_QUAD(pk, shade, otz)                        \
+    {                                                       \
+        LINE_F2 *line;                                      \
+        setlen(&(pk)->line, 6);                             \
+        setcode(&(pk)->line, 0x4C);                         \
+        (pk)->line.pad = 0x55555555;                        \
+        (pk)->line.r0 = (pk)->line.g0 = (pk)->line.b0 = shade; \
+        otz >>= 2;                                          \
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &(pk)->line); \
+        line = (LINE_F2 *)(&(pk)->line + 1);                \
+        setlen(line, 3);                                    \
+        setcode(line, 0x40);                                \
+        line->r0 = line->g0 = line->b0 = shade;             \
+        line->x0 = (pk)->line.x3;                           \
+        line->y0 = (pk)->line.y3;                           \
+        line->x1 = (pk)->line.x0;                           \
+        line->y1 = (pk)->line.y0;                           \
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);      \
+        pk = (EvoPacket *)(line + 1);                       \
+    }
+
+/* Wireframe of a triangle that is shattering: a closed polyline v0 v1 v2 v0 */
+#define SHATTER_TRI(pk, shade, otz)                           \
+    {                                                         \
+        (pk)->line.x3 = (pk)->line.x0;                        \
+        (pk)->line.y3 = (pk)->line.y0;                        \
+        setlen(&(pk)->line, 6);                               \
+        setcode(&(pk)->line, 0x4C);                           \
+        (pk)->line.pad = 0x55555555;                          \
+        (pk)->line.r0 = (pk)->line.g0 = (pk)->line.b0 = shade; \
+        otz >>= 2;                                            \
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &(pk)->line); \
+        pk = (EvoPacket *)(&(pk)->line + 1);                  \
+    }
+
+void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
+    Color rgb;
+    MATRIX m;
+    s32 p;
+    s32 otz;
+    s32 flag;
+    s32 i;
+    s32 nprim;
+    SVECTOR *norm;
+    SVECTOR *vert;
+    TmdPrim *prim;
+    EvoPacket *pk;
+    TmdObject *tmd;
+    GsCOORDINATE2 *coord;
+    s8 shade;
+    union {
+        TMD_P_F3 *f3;
+        TMD_P_G3 *g3;
+        TMD_P_F4 *f4;
+        TMD_P_G4 *g4;
+        TMD_P_TF3 *tf3;
+        TMD_P_TG3 *tg3;
+        TMD_P_TNF3 *tnf3;
+        TMD_P_TF4 *tf4;
+        TMD_P_TG4 *tg4;
+        TMD_P_TNF4 *tnf4;
+    } op;
+    s32 code;
+
+    shade = D_801EF860 + rand() % (D_801EF862 - D_801EF860);
+    tmd = (TmdObject *)obj->tmd;
+    vert = tmd->vertTop;
+    norm = tmd->normTop;
+    nprim = tmd->nprim;
+    prim = tmd->prims;
+    pk = (EvoPacket *)func_80062C44();
+    rgb.r = rgb.g = rgb.b = 0x80;
+    coord = obj->coord2;
+    if (coord->flg == 0) {
+        coord->flg = 1;
+        MulMatrix0(&coord->coord, &coord->super->workm, &coord->workm);
+    }
+    MulMatrix0(&D_801DBE40, &coord->workm, &m);
+    SetLightMatrix(&m);
+    CompMatrix(&D_801DBEA0, &coord->workm, &m);
+    func_801E00A4(&m);
+    for (i = 0; i < nprim; i++) {
+        if ((code = prim->mode & 0x3D) == 0x2C) {
+            op.tf4 = (TMD_P_TF4 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip4(&vert[op.tf4->v0], &vert[op.tf4->v1], &vert[op.tf4->v2], &vert[op.tf4->v3],
+                              (s32 *)&pk->ft4.x0, (s32 *)&pk->ft4.x1, (s32 *)&pk->ft4.x2, (s32 *)&pk->ft4.x3, &p, &otz,
+                              &flag) > 0) {
+                    func_8005FBE4(&norm[op.tf4->n0], &rgb, (Color *)&pk->ft4.r0);
+                    pk->ft4.u0 = op.tf4->tu0;
+                    pk->ft4.v0 = op.tf4->tv0;
+                    pk->ft4.u1 = op.tf4->tu1;
+                    pk->ft4.v1 = op.tf4->tv1;
+                    pk->ft4.u2 = op.tf4->tu2;
+                    pk->ft4.v2 = op.tf4->tv2;
+                    pk->ft4.u3 = op.tf4->tu3;
+                    pk->ft4.v3 = op.tf4->tv3;
+                    pk->ft4.clut = op.tf4->clut;
+                    pk->ft4.tpage = op.tf4->tpage;
+                    setlen(&pk->ft4, 9);
+                    setcode(&pk->ft4, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->ft4);
+                    pk = (EvoPacket *)(&pk->ft4 + 1);
+                }
+                prim = (TmdPrim *)(op.tf4 + 1);
+            } else {
+                if (RotNclip4(&vert[op.tf4->v0], &vert[op.tf4->v1], &vert[op.tf4->v2], &vert[op.tf4->v3],
+                              (s32 *)&pk->line.x0, (s32 *)&pk->line.x1, (s32 *)&pk->line.x3, (s32 *)&pk->line.x2, &p,
+                              &otz, &flag) > 0) {
+                    SHATTER_QUAD(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tf4 + 1);
+            }
+        } else if ((code = prim->mode & 0x3D) == 0x3C) {
+            op.tg4 = (TMD_P_TG4 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip4(&vert[op.tg4->v0], &vert[op.tg4->v1], &vert[op.tg4->v2], &vert[op.tg4->v3],
+                              (s32 *)&pk->gt4.x0, (s32 *)&pk->gt4.x1, (s32 *)&pk->gt4.x2, (s32 *)&pk->gt4.x3, &p, &otz,
+                              &flag) > 0) {
+                    NormalColorCol3(&norm[op.tg4->n0], &norm[op.tg4->n1], &norm[op.tg4->n2], &rgb, (Color *)&pk->gt4.r0,
+                                    (Color *)&pk->gt4.r1, (Color *)&pk->gt4.r2);
+                    func_8005FBE4(&norm[op.tg4->n3], &rgb, (Color *)&pk->gt4.r3);
+                    pk->gt4.u0 = op.tg4->tu0;
+                    pk->gt4.v0 = op.tg4->tv0;
+                    pk->gt4.u1 = op.tg4->tu1;
+                    pk->gt4.v1 = op.tg4->tv1;
+                    pk->gt4.u2 = op.tg4->tu2;
+                    pk->gt4.v2 = op.tg4->tv2;
+                    pk->gt4.u3 = op.tg4->tu3;
+                    pk->gt4.v3 = op.tg4->tv3;
+                    pk->gt4.clut = op.tg4->clut;
+                    pk->gt4.tpage = op.tg4->tpage;
+                    setlen(&pk->gt4, 12);
+                    setcode(&pk->gt4, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->gt4);
+                    pk = (EvoPacket *)(&pk->gt4 + 1);
+                }
+                prim = (TmdPrim *)(op.tg4 + 1);
+            } else {
+                if (RotNclip4(&vert[op.tg4->v0], &vert[op.tg4->v1], &vert[op.tg4->v2], &vert[op.tg4->v3],
+                              (s32 *)&pk->line.x0, (s32 *)&pk->line.x1, (s32 *)&pk->line.x3, (s32 *)&pk->line.x2, &p,
+                              &otz, &flag) > 0) {
+                    SHATTER_QUAD(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tg4 + 1);
+            }
+        } else if ((code = prim->mode & 0x35) == 0x34) {
+            op.tg3 = (TMD_P_TG3 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip3(&vert[op.tg3->v0], &vert[op.tg3->v1], &vert[op.tg3->v2], (s32 *)&pk->gt3.x0,
+                              (s32 *)&pk->gt3.x1, (s32 *)&pk->gt3.x2, &p, &otz, &flag) > 0) {
+                    NormalColorCol3(&norm[op.tg3->n0], &norm[op.tg3->n1], &norm[op.tg3->n2], &rgb, (Color *)&pk->gt3.r0,
+                                    (Color *)&pk->gt3.r1, (Color *)&pk->gt3.r2);
+                    pk->gt3.u0 = op.tg3->tu0;
+                    pk->gt3.v0 = op.tg3->tv0;
+                    pk->gt3.u1 = op.tg3->tu1;
+                    pk->gt3.v1 = op.tg3->tv1;
+                    pk->gt3.u2 = op.tg3->tu2;
+                    pk->gt3.v2 = op.tg3->tv2;
+                    pk->gt3.clut = op.tg3->clut;
+                    pk->gt3.tpage = op.tg3->tpage;
+                    setlen(&pk->gt3, 9);
+                    setcode(&pk->gt3, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->gt3);
+                    pk = (EvoPacket *)(&pk->gt3 + 1);
+                }
+                prim = (TmdPrim *)(op.tg3 + 1);
+            } else {
+                if (RotNclip3(&vert[op.tg3->v0], &vert[op.tg3->v1], &vert[op.tg3->v2], (s32 *)&pk->line.x0,
+                              (s32 *)&pk->line.x1, (s32 *)&pk->line.x2, &p, &otz, &flag) > 0) {
+                    SHATTER_TRI(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tg3 + 1);
+            }
+        } else if ((code = prim->mode & 0x35) == 0x24) {
+            op.tf3 = (TMD_P_TF3 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip3(&vert[op.tf3->v0], &vert[op.tf3->v1], &vert[op.tf3->v2], (s32 *)&pk->ft3.x0,
+                              (s32 *)&pk->ft3.x1, (s32 *)&pk->ft3.x2, &p, &otz, &flag) > 0) {
+                    func_8005FBE4(&norm[op.tf3->n0], &rgb, (Color *)&pk->ft3.r0);
+                    pk->ft3.u0 = op.tf3->tu0;
+                    pk->ft3.v0 = op.tf3->tv0;
+                    pk->ft3.u1 = op.tf3->tu1;
+                    pk->ft3.v1 = op.tf3->tv1;
+                    pk->ft3.u2 = op.tf3->tu2;
+                    pk->ft3.v2 = op.tf3->tv2;
+                    pk->ft3.clut = op.tf3->clut;
+                    pk->ft3.tpage = op.tf3->tpage;
+                    setlen(&pk->ft3, 7);
+                    setcode(&pk->ft3, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->ft3);
+                    pk = (EvoPacket *)(&pk->ft3 + 1);
+                }
+                prim = (TmdPrim *)(op.tf3 + 1);
+            } else {
+                if (RotNclip3(&vert[op.tf3->v0], &vert[op.tf3->v1], &vert[op.tf3->v2], (s32 *)&pk->line.x0,
+                              (s32 *)&pk->line.x1, (s32 *)&pk->line.x2, &p, &otz, &flag) > 0) {
+                    SHATTER_TRI(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tf3 + 1);
+            }
+        } else if ((prim->mode & 0x3D) == 0x2D) {
+            op.tnf4 = (TMD_P_TNF4 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip4(&vert[op.tnf4->v0], &vert[op.tnf4->v1], &vert[op.tnf4->v2], &vert[op.tnf4->v3],
+                              (s32 *)&pk->ft4.x0, (s32 *)&pk->ft4.x1, (s32 *)&pk->ft4.x2, (s32 *)&pk->ft4.x3, &p, &otz,
+                              &flag) > 0) {
+                    pk->ft4.u0 = op.tnf4->tu0;
+                    pk->ft4.v0 = op.tnf4->tv0;
+                    pk->ft4.u1 = op.tnf4->tu1;
+                    pk->ft4.v1 = op.tnf4->tv1;
+                    pk->ft4.u2 = op.tnf4->tu2;
+                    pk->ft4.v2 = op.tnf4->tv2;
+                    pk->ft4.u3 = op.tnf4->tu3;
+                    pk->ft4.v3 = op.tnf4->tv3;
+                    pk->ft4.clut = op.tnf4->clut;
+                    pk->ft4.tpage = op.tnf4->tpage;
+                    setlen(&pk->ft4, 9);
+                    setcode(&pk->ft4, 0x2C);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->ft4);
+                    pk = (EvoPacket *)(&pk->ft4 + 1);
+                }
+                prim = (TmdPrim *)(op.tnf4 + 1);
+            } else {
+                if (RotNclip4(&vert[op.tnf4->v0], &vert[op.tnf4->v1], &vert[op.tnf4->v2], &vert[op.tnf4->v3],
+                              (s32 *)&pk->line.x0, (s32 *)&pk->line.x1, (s32 *)&pk->line.x3, (s32 *)&pk->line.x2, &p,
+                              &otz, &flag) > 0) {
+                    SHATTER_QUAD(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tnf4 + 1);
+            }
+        } else if ((code = prim->mode & 0x3D) == 0x28) {
+            op.f4 = (TMD_P_F4 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip4(&vert[op.f4->v0], &vert[op.f4->v1], &vert[op.f4->v2], &vert[op.f4->v3], (s32 *)&pk->f4.x0,
+                              (s32 *)&pk->f4.x1, (s32 *)&pk->f4.x2, (s32 *)&pk->f4.x3, &p, &otz, &flag) > 0) {
+                    func_8005FBE4(&norm[op.f4->n0], &rgb, (Color *)&pk->f4.r0);
+                    setlen(&pk->f4, 5);
+                    setcode(&pk->f4, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->f4);
+                    pk = (EvoPacket *)(&pk->f4 + 1);
+                }
+                prim = (TmdPrim *)(op.f4 + 1);
+            } else {
+                if (RotNclip4(&vert[op.f4->v0], &vert[op.f4->v1], &vert[op.f4->v2], &vert[op.f4->v3],
+                              (s32 *)&pk->line.x0, (s32 *)&pk->line.x1, (s32 *)&pk->line.x3, (s32 *)&pk->line.x2, &p,
+                              &otz, &flag) > 0) {
+                    SHATTER_QUAD(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.f4 + 1);
+            }
+        } else if ((prim->mode & 0x35) == 0x25) {
+            op.tnf3 = (TMD_P_TNF3 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip3(&vert[op.tnf3->v0], &vert[op.tnf3->v1], &vert[op.tnf3->v2], (s32 *)&pk->ft3.x0,
+                              (s32 *)&pk->ft3.x1, (s32 *)&pk->ft3.x2, &p, &otz, &flag) > 0) {
+                    pk->ft3.u0 = op.tnf3->tu0;
+                    pk->ft3.v0 = op.tnf3->tv0;
+                    pk->ft3.u1 = op.tnf3->tu1;
+                    pk->ft3.v1 = op.tnf3->tv1;
+                    pk->ft3.u2 = op.tnf3->tu2;
+                    pk->ft3.v2 = op.tnf3->tv2;
+                    pk->ft3.clut = op.tnf3->clut;
+                    pk->ft3.tpage = op.tnf3->tpage;
+                    setlen(&pk->ft3, 7);
+                    setcode(&pk->ft3, 0x24);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->ft3);
+                    pk = (EvoPacket *)(&pk->ft3 + 1);
+                }
+                prim = (TmdPrim *)(op.tnf3 + 1);
+            } else {
+                if (RotNclip3(&vert[op.tnf3->v0], &vert[op.tnf3->v1], &vert[op.tnf3->v2], (s32 *)&pk->line.x0,
+                              (s32 *)&pk->line.x1, (s32 *)&pk->line.x2, &p, &otz, &flag) > 0) {
+                    SHATTER_TRI(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.tnf3 + 1);
+            }
+        } else if ((code = prim->mode & 0x3D) == 0x38) {
+            op.g4 = (TMD_P_G4 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip4(&vert[op.g4->v0], &vert[op.g4->v1], &vert[op.g4->v2], &vert[op.g4->v3], (s32 *)&pk->g4.x0,
+                              (s32 *)&pk->g4.x1, (s32 *)&pk->g4.x2, (s32 *)&pk->g4.x3, &p, &otz, &flag) > 0) {
+                    NormalColorCol3(&norm[op.g4->n0], &norm[op.g4->n1], &norm[op.g4->n2], &rgb, (Color *)&pk->g4.r0,
+                                    (Color *)&pk->g4.r1, (Color *)&pk->g4.r2);
+                    func_8005FBE4(&norm[op.g4->n3], &rgb, (Color *)&pk->g4.r3);
+                    setlen(&pk->g4, 8);
+                    setcode(&pk->g4, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->g4);
+                    pk = (EvoPacket *)(&pk->g4 + 1);
+                }
+                prim = (TmdPrim *)(op.g4 + 1);
+            } else {
+                if (RotNclip4(&vert[op.g4->v0], &vert[op.g4->v1], &vert[op.g4->v2], &vert[op.g4->v3],
+                              (s32 *)&pk->line.x0, (s32 *)&pk->line.x1, (s32 *)&pk->line.x3, (s32 *)&pk->line.x2, &p,
+                              &otz, &flag) > 0) {
+                    SHATTER_QUAD(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.g4 + 1);
+            }
+        } else if ((code = prim->mode & 0x35) == 0x30) {
+            op.g3 = (TMD_P_G3 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip3(&vert[op.g3->v0], &vert[op.g3->v1], &vert[op.g3->v2], (s32 *)&pk->g3.x0,
+                              (s32 *)&pk->g3.x1, (s32 *)&pk->g3.x2, &p, &otz, &flag) > 0) {
+                    func_8005FBE4(&norm[op.g3->n0], &rgb, (Color *)&pk->g3.r0);
+                    setlen(&pk->g3, 6);
+                    setcode(&pk->g3, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->g3);
+                    pk = (EvoPacket *)(&pk->g3 + 1);
+                }
+                prim = (TmdPrim *)(op.g3 + 1);
+            } else {
+                if (RotNclip3(&vert[op.g3->v0], &vert[op.g3->v1], &vert[op.g3->v2], (s32 *)&pk->line.x0,
+                              (s32 *)&pk->line.x1, (s32 *)&pk->line.x2, &p, &otz, &flag) > 0) {
+                    SHATTER_TRI(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.g3 + 1);
+            }
+        } else if ((code = prim->mode & 0x35) == 0x20) {
+            op.f3 = (TMD_P_F3 *)prim;
+            if (D_801EF864[i & 0xF] < mode) {
+                if (RotNclip3(&vert[op.f3->v0], &vert[op.f3->v1], &vert[op.f3->v2], (s32 *)&pk->f3.x0,
+                              (s32 *)&pk->f3.x1, (s32 *)&pk->f3.x2, &p, &otz, &flag) > 0) {
+                    func_8005FBE4(&norm[op.f3->n0], &rgb, (Color *)&pk->f3.r0);
+                    setlen(&pk->f3, 4);
+                    setcode(&pk->f3, code);
+                    otz >>= 2;
+                    addPrim(&CURRENT_FRAME_BUFFER->ot[otz], &pk->f3);
+                    pk = (EvoPacket *)(&pk->f3 + 1);
+                }
+                prim = (TmdPrim *)(op.f3 + 1);
+            } else {
+                if (RotNclip3(&vert[op.f3->v0], &vert[op.f3->v1], &vert[op.f3->v2], (s32 *)&pk->line.x0,
+                              (s32 *)&pk->line.x1, (s32 *)&pk->line.x2, &p, &otz, &flag) > 0) {
+                    SHATTER_TRI(pk, shade, otz);
+                }
+                prim = (TmdPrim *)(op.f3 + 1);
+            }
+        }
+    }
+    func_80062C34((long)pk);
+}
 
 void func_801E285C(void) {
     D_801DBFB0.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;
