@@ -16,6 +16,30 @@
 #include "dcb/memcard.h"
 #include "dcb/player_rank.h"
 #include "dcb/menu.h"
+#include "dcb/sort.h"
+
+void StUnSetRing(void);
+s32 DecDCTvlc2(u32 *bs, u32 *buf, u16 *table);
+s32 StFreeRing(u32 *base);
+typedef struct {
+    UiWindow window;
+    s32 player;
+} PlayerWindow;
+extern Menu D_801EFF30[2];
+extern Menu D_801EFFB4[2];
+extern char *D_801EFF88[];
+extern s32 (*D_801F000C[])(s8 *, s8 *);
+extern void *D_801F0CA0[2][301];
+void func_801E2068(s32 player);
+extern s32 D_801F4F08;
+extern s32 D_801F4F0C;
+extern s32 D_801F4F10;
+extern s32 D_801F4F14;
+extern s32 D_801F4F18;
+extern s32 D_801F4F1C;
+extern s32 D_801F4F20;
+void func_801EAA54(UiWindow *window);
+void func_801E4C18(s32 x, s32 y, s32 part);
 
 extern s32 D_801F1AFC;
 extern s32 D_801F1B00;
@@ -262,11 +286,37 @@ void func_801DFFD0(u8 *loc, void (*callback)()) {
     func_801E04CC(loc);
 }
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E00D4);
+void func_801E00D4(void) {
+    VSync(0);
+    D_801F0868 = 1;
+    func_801DFAC8();
+    func_80014C08(2);
+    freeHeapBlock(D_801F0840);
+    freeHeapBlock(D_801F0844);
+    freeHeapBlock(D_801F085C);
+    freeHeapBlock(D_801F084C);
+    DecDCToutCallback(0);
+    StUnSetRing();
+    func_801DFB70(0x3FFF);
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E0164);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E02C4);
+s32 func_801E02C4(DecEnv *env) {
+    u32 *frame;
+    s32 timeout;
+
+    timeout = 2000;
+    while ((frame = func_801E0350(env)) == NULL) {
+        if (--timeout == 0) {
+            return -1;
+        }
+    }
+    env->vlcid = env->vlcid == 0;
+    DecDCTvlc2(frame, env->vlcbuf[env->vlcid], D_801F084C);
+    StFreeRing(frame);
+    return 0;
+}
 
 u32 *func_801E0350(void) {
     u32 *addr;
@@ -368,7 +418,40 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E11D4);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E1308);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E143C);
+void func_801E143C(PlayerWindow *window) {
+    char text[72]; /* unused, but it sizes the frame */
+    Menu *menu;
+    s32 player;
+    s32 i;
+    s32 x;
+    s32 z;
+
+    player = window->player;
+    x = window->window.originX;
+    z = window->window.z;
+    for (i = 0; i < D_801EFFB4[player].nrows; i++) {
+        if (i < window->window.view.y / D_801EFFB4[player].rowH) {
+            continue;
+        }
+        if ((window->window.view.y + window->window.rect.h) / D_801EFFB4[player].rowH < i) {
+            break;
+        }
+        drawText(x, window->window.originY + i * D_801EFFB4[player].rowH + 1, (s32)D_801EFF88[i], 7, z);
+    }
+    menu = &D_801EFFB4[player];
+    updateMenuCursor(menu);
+    if (menu->active && (PAD_STATES[player]->pressed & 0x40)) {
+        playMenuSound(1);
+        if (D_801F000C[menu->row] != NULL) {
+            D_801F1B08 = player;
+            sortArray((s8 *)D_801F0CA0[player], 301, 4, D_801F000C[menu->row]);
+        } else {
+            func_801E2068(player);
+        }
+        D_801EFF30[player].row = 0;
+        centerMenuOnCursor(&D_801EFF30[player]);
+    }
+}
 
 void func_801E16A0(void) {
     if (isSpritePoolFull() == 0) {
@@ -701,7 +784,26 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E8E9C);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E9244);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E96D8);
+void func_801E96D8(s32 x, s32 y, s32 texX, s32 texY, s32 w, s32 h, s32 clutX, s32 clutY, s32 texMode,
+                   s32 semiTrans, s32 blendMode, s32 shade, s32 otIndex) {
+    if (isSpritePoolFull() == 0) {
+        CUR_SPRT->sp.x0 = x;
+        CUR_SPRT->sp.y0 = y;
+        CUR_SPRT->sp.u0 = (texX % 64) * (4 >> texMode);
+        CUR_SPRT->sp.v0 = texY % 256;
+        CUR_SPRT->sp.clut = getClut(clutX, clutY);
+        CUR_SPRT->sp.w = w;
+        CUR_SPRT->sp.h = h;
+        setSemiTrans(&CUR_SPRT->sp, semiTrans);
+        CUR_SPRT->sp.r0 = shade;
+        CUR_SPRT->sp.g0 = shade;
+        CUR_SPRT->sp.b0 = shade;
+        setDrawMode(&CUR_SPRT->dm, 0, 0, getTPage(texMode, blendMode, texX, texY));
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->sp);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otIndex], &CUR_SPRT->dm);
+        SPRITE_POOL_CURSOR += sizeof(SprtPacket);
+    }
+}
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DEB38);
 
@@ -748,7 +850,56 @@ void func_801EA874(void) {
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EAA54);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EAE84);
+void func_801EAE84(void) {
+    s32 i;
+
+    func_801EA874();
+    for (i = 0; i < 2; i++) {
+        drawWindow(&D_801F52E0[i].window, func_801EAA54, 4);
+    }
+    if (D_801F52D0 == 0) {
+        D_801F4F0C += 16;
+        if (D_801F4F0C > 240) {
+            D_801F4F0C = 240;
+        }
+        D_801F4F10 -= 8;
+        if (D_801F4F10 < -96) {
+            D_801F4F10 -= 96;
+        }
+        D_801F4F1C += 16;
+        if (D_801F4F1C > 240) {
+            D_801F4F1C = 240;
+        }
+    } else {
+        D_801F4F0C -= 16;
+        if (D_801F4F0C < 16) {
+            D_801F4F0C = 16;
+        }
+        D_801F4F10 += 8;
+        if (D_801F4F10 > 0) {
+            D_801F4F10 = 0;
+        }
+        D_801F4F1C -= 16;
+        if (D_801F4F1C < 20) {
+            D_801F4F1C = 20;
+        }
+    }
+    D_801F4F20 = 0;
+    func_801E4C18(D_801F4F08, D_801F4F0C, 0);
+    func_801E4C18(D_801F4F08, D_801F4F0C, 1);
+    func_801E4C18(D_801F4F08, D_801F4F0C, 2);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 10);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 11);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 12);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 13);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 14);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 15);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 16);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 17);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 18);
+    func_801E4C18(D_801F4F18, D_801F4F1C, 19);
+    func_801E4C18(D_801F4F10, D_801F4F14, 21);
+}
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DEC34);
 
@@ -954,9 +1105,84 @@ INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EE3DC);
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EE488);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EE998);
+u8 *func_801EE998(s32 value, s32 width, u8 *dst) {
+    s32 i;
+    s32 digit;
+    s32 quot;
+    s32 minus;
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EEAB4);
+    minus = 0;
+    if (width < 0) {
+        if (value < 0) {
+            *dst++ = 0x81;
+            *dst++ = 0x7C;
+        } else {
+            *dst++ = 0x81;
+            *dst++ = 0x7B;
+        }
+    } else if (value < 0) {
+        minus = 1;
+    }
+    width = abs(width);
+    value = abs(value);
+    for (i = 0; i < width; i++) {
+        *dst++ = 0x81;
+        *dst++ = 0x40;
+    }
+    *dst = 0;
+    if (minus) {
+        width--;
+    }
+    do {
+        if (width-- <= 0) {
+            break;
+        }
+        dst--;
+        quot = value / 10;
+        digit = value % 10;
+        *dst = digit + 0x4F;
+        *--dst = (digit + 0x824F) >> 8;
+        value = quot;
+    } while (value != 0);
+    if (minus) {
+        *--dst = 0x7C;
+        *--dst = 0x81;
+    }
+    return dst;
+}
+
+u8 *func_801EEAB4(s32 value, s32 width, u8 *dst) {
+    s32 i;
+    s32 digit;
+    s32 quot;
+
+    if (value < 0) {
+        *dst++ = 0x81;
+        *dst++ = 0x7C;
+    } else if (width < 0) {
+        *dst++ = 0x81;
+        *dst++ = 0x7B;
+    }
+    width = abs(width);
+    value = abs(value);
+    for (i = 0; i < width; i++) {
+        *dst++ = 0x82;
+        *dst++ = 0x4F;
+    }
+    *dst = 0;
+    do {
+        if (width-- <= 0) {
+            break;
+        }
+        dst--;
+        quot = value / 10;
+        digit = value % 10;
+        *dst = digit + 0x4F;
+        *--dst = (digit + 0x824F) >> 8;
+        value = quot;
+    } while (value != 0);
+    return dst;
+}
 
 INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801EEB9C);
 

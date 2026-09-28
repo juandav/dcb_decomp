@@ -9,6 +9,25 @@
 #include "dcb/vram_upload.h"
 #include "dcb/menu.h"
 #include "dcb/memcard.h"
+#include "dcb/sort.h"
+
+extern Menu D_801F219C;
+extern s32 D_801F2154[];
+extern s32 (*D_801F21C8[])(s8 *, s8 *);
+extern PlayerDeck *D_801F4328;
+extern void func_801E7B30(CardSlot *cards, s32 player);
+extern void func_801E7F8C(CardSlot *cards);
+typedef struct {
+    s16 request;
+    s16 ids[8];
+    s8 ages[8];
+    s8 busy;
+    s8 running;
+} CardImageCache;
+extern CardImageCache D_801F4188;
+extern s8 D_801F41A2;
+extern UiWindow D_801F3250;
+extern void func_801F0024();
 
 typedef struct {
     u8 unk0[9];
@@ -1285,7 +1304,35 @@ void func_801E7F8C(CardSlot *cards) {
     }
 }
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E8110);
+void func_801E8110(UiWindow *window) {
+    char buf[72]; /* unused, but it is in the original stack frame */
+    s32 x = window->originX;
+    s32 z = window->z;
+    s32 i;
+
+    for (i = 0; i < D_801F219C.nrows; i++) {
+        if (i < window->view.y / D_801F219C.rowH) {
+            continue;
+        }
+        if ((window->view.y + window->rect.h) / D_801F219C.rowH < i) {
+            break;
+        }
+        drawText(x, window->originY + i * D_801F219C.rowH + 1, D_801F2154[i], 7, z);
+    }
+    updateMenuCursor(&D_801F219C);
+    if (D_801F219C.active && (PAD_STATES[D_801F41A8.player]->pressed & 0x40)) {
+        playMenuSound(1);
+        if (D_801F21C8[D_801F219C.row] != NULL) {
+            linkDeckCardData(D_801F41A8.player, D_801F4328);
+            func_801E7B30(D_801F4328->cards, D_801F41A8.player);
+            sortArray((s8 *)D_801F4328->cards, 30, 8, D_801F21C8[D_801F219C.row]);
+            if (D_801F219C.row == 17) {
+                func_801E7F8C(D_801F4328->cards);
+                linkDeckCardData(D_801F41A8.player, D_801F4328);
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DF27C);
 
@@ -1309,7 +1356,62 @@ void func_801E831C(void) {
     printf("aaa\n");
 }
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801E83BC);
+void func_801E83BC(void) {
+    char path[64];
+    s32 i;
+    u32 *tim;
+    s32 slot;
+    s8 found;
+
+    for (i = 0; i < 8; i++) {
+        D_801F418A[i] = -1;
+        D_801F419A[i] = 0;
+    }
+    D_801F4188.running = 1;
+    D_801F4188.request = -1;
+    D_801F4188.busy = 0;
+    do {
+        func_80014C08(1);
+        if (D_801F4188.busy == 0) {
+            found = -1;
+            for (i = 0; i < 8; i++) {
+                if (D_801F4188.request == D_801F418A[i]) {
+                    found = i;
+                }
+            }
+            if (found == -1) {
+                slot = 0;
+                D_801F4188.busy = 1;
+                for (i = 1; i < 8; i++) {
+                    if (i == 1) {
+                        slot = 0;
+                    }
+                    if (D_801F419A[slot] > D_801F419A[i]) {
+                        slot = i;
+                    }
+                }
+                for (i = 0; i < 8; i++) {
+                    if (i != slot) {
+                        if (--D_801F4188.ages[i] < 0) {
+                            D_801F4188.ages[i] = 0;
+                        }
+                    } else {
+                        D_801F4188.ids[i] = D_801F4188.request;
+                        D_801F4188.ages[i] = 0;
+                    }
+                }
+                sprintf(path, "B:\\Card\\LC%3.3d.TIM", D_801F4188.ids[slot]);
+                func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+                tim = (u32 *)func_80014C08(0x7FFFFFFF);
+                uploadTim(tim, (slot / 4) * 32 + 0x140, (slot % 4) * 64 + 0x100, 0, slot + 0x1F4);
+                freeHeapBlock(tim);
+                D_801F4188.ages[slot] = 100;
+                D_801F4188.busy = 0;
+            }
+        }
+    } while (D_801F4188.running != 0);
+    D_801F41A2 = -1;
+}
 
 s32 func_801E8670(s16 id) {
     s32 i;
@@ -1704,7 +1806,9 @@ INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801F0024);
 
 INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801F0A20);
 
-INCLUDE_ASM("asm/subseg/nonmatchings/subseg", func_801F0BB0);
+void func_801F0BB0(void) {
+    drawWindow(&D_801F3250, func_801F0024, 30);
+}
 
 INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DF968);
 
