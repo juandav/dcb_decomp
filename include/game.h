@@ -657,8 +657,8 @@ typedef struct {
     /* 0x0AC0 */ u16 opponentDeckFlags[0x9F];
     /* 0x0BFE */ u16 unkBFE[0x9F];
     /* 0x0D3C */ s16 unkD3C[0xBF][3];
-    /* 0x11B6 */ s16 unk11B6[0xBF];
-    /* 0x1334 */ s16 unk1334[0xBF];
+    /* 0x11B6 */ u16 unk11B6[0xBF];
+    /* 0x1334 */ u16 unk1334[0xBF];
     /* 0x14B2 */ u8 cardCollection[0x12D];
     /* 0x15DF */ u8 unk15DF;
     /* 0x15E0 */ u16 cardCopySerials[301][6];
