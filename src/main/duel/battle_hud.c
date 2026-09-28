@@ -34,8 +34,8 @@ void waitForStatCountersToSettle(void) {
         unsettled = 0;
         for (player = 0; player < 2; player++) {
             for (i = 0; i < 5; i++) {
-                if (((Player *)DUEL_PLAYERS[player])->unk11C[i] !=
-                    ((Player *)DUEL_PLAYERS[player])->unk126[i]) {
+                if (((Player *)DUEL_PLAYERS[player])->stats[i] !=
+                    ((Player *)DUEL_PLAYERS[player])->displayedStats[i]) {
                     unsettled = 1;
                 }
             }
@@ -50,13 +50,13 @@ void showDpGainPopup(s32 player) {
     dpCard = peekDpSlotTop(player);
     if (dpCard != -1) {
         statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
-        PLAYER(player)->unk130[4].value = (s8)PLAYER(player)->cards[dpCard % 30].card[0x1C];
-        PLAYER(player)->unk130[4].type = 5;
-        PLAYER(player)->unk130[4].timer = 0x30;
-        PLAYER(player)->unk130[4].x = *(s16 *)(statusPanel + 0x10) + (s16)(player * 93 + 0x10);
-        PLAYER(player)->unk130[4].y = *(u16 *)(statusPanel + 0x12) + 2;
+        PLAYER(player)->statPopups[4].value = (s8)PLAYER(player)->cards[dpCard % 30].card[0x1C];
+        PLAYER(player)->statPopups[4].type = 5;
+        PLAYER(player)->statPopups[4].timer = 0x30;
+        PLAYER(player)->statPopups[4].x = *(s16 *)(statusPanel + 0x10) + (s16)(player * 93 + 0x10);
+        PLAYER(player)->statPopups[4].y = *(u16 *)(statusPanel + 0x12) + 2;
     } else {
-        PLAYER(player)->unk130[4].timer = 0;
+        PLAYER(player)->statPopups[4].timer = 0;
     }
 }
 
@@ -64,25 +64,25 @@ void showStatChangePopup(s32 player, s32 newValue, s32 stat) {
     s32 activeCard;
     u8 *statusPanel;
 
-    PLAYER(player)->unk130[stat].value = newValue - PLAYER(player)->unk11C[stat];
-    if (PLAYER(player)->unk130[stat].value == 0) {
-        PLAYER(player)->unk130[stat].type = 7;
-    } else if (PLAYER(player)->unk130[stat].value > 0) {
-        PLAYER(player)->unk130[stat].type = 5;
+    PLAYER(player)->statPopups[stat].value = newValue - PLAYER(player)->stats[stat];
+    if (PLAYER(player)->statPopups[stat].value == 0) {
+        PLAYER(player)->statPopups[stat].type = 7;
+    } else if (PLAYER(player)->statPopups[stat].value > 0) {
+        PLAYER(player)->statPopups[stat].type = 5;
     } else {
-        PLAYER(player)->unk130[stat].type = 2;
+        PLAYER(player)->statPopups[stat].type = 2;
     }
-    PLAYER(player)->unk130[stat].value = abs(PLAYER(player)->unk130[stat].value);
-    PLAYER(player)->unk130[stat].timer = 0x30;
+    PLAYER(player)->statPopups[stat].value = abs(PLAYER(player)->statPopups[stat].value);
+    PLAYER(player)->statPopups[stat].timer = 0x30;
     if (stat == 0) {
         activeCard = getActiveDigimonCard(player);
         projectCardSprite(*(void **)(D_801D833C + activeCard * 36), activeCard);
-        PLAYER(player)->unk130[0].x = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x34) + 0x19;
-        PLAYER(player)->unk130[0].y = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x36) + 0x15;
+        PLAYER(player)->statPopups[0].x = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x34) + 0x19;
+        PLAYER(player)->statPopups[0].y = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x36) + 0x15;
     } else {
         statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
-        PLAYER(player)->unk130[stat].x = *(u16 *)(statusPanel + 0x10) + player * 25 + 0x1C;
-        PLAYER(player)->unk130[stat].y = *(s16 *)(statusPanel + 0x12) + (s16)((stat - 1) * 13 + 3);
+        PLAYER(player)->statPopups[stat].x = *(u16 *)(statusPanel + 0x10) + player * 25 + 0x1C;
+        PLAYER(player)->statPopups[stat].y = *(s16 *)(statusPanel + 0x12) + (s16)((stat - 1) * 13 + 3);
     }
 }
 
@@ -95,23 +95,23 @@ void renderStatPopups(void) {
 
     for (player = 0; player < 2; player++) {
         for (stat = 4; stat >= 0; stat--) {
-            if (((Player *)DUEL_PLAYERS[player])->unk130[stat].timer != 0) {
-                ((Player *)DUEL_PLAYERS[player])->unk130[stat].timer--;
-                if (((Player *)DUEL_PLAYERS[player])->unk130[stat].type == 7) {
+            if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer != 0) {
+                ((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer--;
+                if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].type == 7) {
                     sign = "=";
-                } else if (((Player *)DUEL_PLAYERS[player])->unk130[stat].type == 5) {
+                } else if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].type == 5) {
                     sign = "+";
                 } else {
                     sign = "-";
                 }
-                age = ((Player *)DUEL_PLAYERS[player])->unk130[stat].timer;
+                age = ((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer;
                 if (age < 0x2C) {
                     age = 0x2C;
                 }
-                sprintf(text, "%s%d", sign, ((Player *)DUEL_PLAYERS[player])->unk130[stat].value);
-                drawBigDigits(((Player *)DUEL_PLAYERS[player])->unk130[stat].x + (0x30 - age),
-                              ((Player *)DUEL_PLAYERS[player])->unk130[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
-                              ((Player *)DUEL_PLAYERS[player])->unk130[stat].type, 0);
+                sprintf(text, "%s%d", sign, ((Player *)DUEL_PLAYERS[player])->statPopups[stat].value);
+                drawBigDigits(((Player *)DUEL_PLAYERS[player])->statPopups[stat].x + (0x30 - age),
+                              ((Player *)DUEL_PLAYERS[player])->statPopups[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
+                              ((Player *)DUEL_PLAYERS[player])->statPopups[stat].type, 0);
             }
         }
     }
@@ -119,7 +119,7 @@ void renderStatPopups(void) {
 
 void drawHudPanelContents(s32 panelIndex, s32 z) {
     s32 player = panelIndex / 6;
-    InfoPanel *panel = (InfoPanel *)D_801D83EC + panelIndex;
+    HudPanel *panel = (HudPanel *)D_801D83EC + panelIndex;
     char text[72];
     u8 shades[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
     char deckText[40];
@@ -139,18 +139,18 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
 
         idx = getActiveDigimonCard(player);
         if (idx >= 0) {
-            valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
+            valueColor = PLAYER(player)->statPenalty ? 3 : 7;
             card = (DigimonCardData *)PLAYER(player)->cards[idx % 30].card;
             drawSmallText(panel->x - player * 14 + 17, panel->y + 2, (s32)card->name, 7, z);
-            sprintf(text, "*s0%4d", PLAYER(player)->unk126[1]);
+            sprintf(text, "*s0%4d", PLAYER(player)->displayedStats[1]);
             drawText(panel->x + 42 + player * 25, panel->y + 11, (s32)text, valueColor, z);
-            sprintf(text, "*s0%4d", PLAYER(player)->unk126[2]);
+            sprintf(text, "*s0%4d", PLAYER(player)->displayedStats[2]);
             drawText(panel->x + 42 + player * 25, panel->y + 24, (s32)text, valueColor, z);
-            sprintf(text, "*s0%4d", PLAYER(player)->unk126[3]);
+            sprintf(text, "*s0%4d", PLAYER(player)->displayedStats[3]);
             drawText(panel->x + 42 + player * 25, panel->y + 37, (s32)text, valueColor, z);
             drawSmallText(panel->x + 24 + player * 24, panel->y + 51, (s32)CROSS_EFFECT_SHORT_NAMES[card->crossEffect], 7, z);
         }
-        sprintf(text, "*s0%2d", PLAYER(player)->unk126[4]);
+        sprintf(text, "*s0%2d", PLAYER(player)->displayedStats[4]);
         drawText(panel->x + 6 + player * 93, panel->y + 9, (s32)text, 7, z);
         k = 8 - countEmptyDpSlots(player);
         if (k != 0) {
@@ -196,14 +196,14 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
     case 10:
         sprintf(text, "%s Deck", PLAYER(player)->unk0 + 1);
         drawText(panel->x + 1 + (0x82 - measureText((u8 *)text)) / 2, panel->y + 0x33 + player * -50, (s32)text, 7, z);
-        drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(player)->unk1CE)) / 2, panel->y + 0x33 + player * -50,
-                      (s32)PLAYER(player)->unk1CE, 7, z);
+        drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(player)->name)) / 2, panel->y + 0x33 + player * -50,
+                      (s32)PLAYER(player)->name, 7, z);
         k = countOnlineDeckCards(player) >= 8 ? 7 : 2;
         sprintf(text, "*s0%2d", countOnlineDeckCards(player));
         drawText(panel->x + 4 + player * 0xEC, panel->y + 0x1E + player * 14, (s32)text, k, z);
         sprintf(text, "*s0%2d", countOfflineDeckCards(player));
         drawText(panel->x + 4 + player * 0xEC, panel->y + 6 + player * 14, (s32)text, 7, z);
-        for (k = 0; k < PLAYER(player)->unk17C; k++) {
+        for (k = 0; k < PLAYER(player)->wins; k++) {
             drawWinMarker(panel->x + 0xDF + player * -0xDD, panel->y + 4 + player * 13 + k * 15, 0x4A);
         }
         break;
@@ -212,19 +212,19 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         s32 artLoaded;
         s32 powerShift;
 
-        if (*(s16 *)(DUEL->unk58 + 2) == -1) {
+        if (*(s16 *)(DUEL->cursor + 2) == -1) {
             break;
         }
-        artLoaded = DUEL->cache[DUEL->unk826].used;
+        artLoaded = DUEL->cache[DUEL->artSlot].used;
         if (artLoaded == 1) {
             if (isSpritePoolFull() != 0) {
                 break;
             }
             CUR_SPRT->sp.x0 = panel->x;
             CUR_SPRT->sp.y0 = panel->y + 7;
-            CUR_SPRT->sp.u0 = (DUEL->unk826 & 1) << 6;
-            CUR_SPRT->sp.v0 = ((DUEL->unk826 >> 1) << 6) + 0x40;
-            CUR_SPRT->sp.clut = (0x1FF - DUEL->unk826) << 6;
+            CUR_SPRT->sp.u0 = (DUEL->artSlot & 1) << 6;
+            CUR_SPRT->sp.v0 = ((DUEL->artSlot >> 1) << 6) + 0x40;
+            CUR_SPRT->sp.clut = (0x1FF - DUEL->artSlot) << 6;
             CUR_SPRT->sp.w = 64;
             CUR_SPRT->sp.h = 64;
             setSemiTrans(&CUR_SPRT->sp, 0);
@@ -235,21 +235,21 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             SPRITE_POOL_CURSOR += sizeof(SprtPacket);
-        } else if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19 || DUEL->unk81C == 4) {
+        } else if (SPRITE_KIND(*(s16 *)(DUEL->cursor + 2)) == 0x19 || DUEL->cursorSlot == 4) {
             drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, 0);
         } else {
-            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, SPRITE(*(s16 *)(DUEL->unk58 + 2)));
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, SPRITE(*(s16 *)(DUEL->cursor + 2)));
         }
-        if (SPRITE_KIND(*(s16 *)(DUEL->unk58 + 2)) == 0x19) {
+        if (SPRITE_KIND(*(s16 *)(DUEL->cursor + 2)) == 0x19) {
             drawText(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
             break;
         }
-        if (DUEL->unk81C == 4) {
+        if (DUEL->cursorSlot == 4) {
             if (DUEL->unk81D == 4) {
                 sprintf(deckText, "*h-1All-or-Nothing\nGamble!\nCards left in the\nOnline Deck are %d.",
-                        countOnlineDeckCards(DUEL->unk81B));
+                        countOnlineDeckCards(DUEL->cursorPlayer));
             } else {
-                sprintf(deckText, "*h-1Cards left in the\nOnline Deck is %d.", countOnlineDeckCards(DUEL->unk81B));
+                sprintf(deckText, "*h-1Cards left in the\nOnline Deck is %d.", countOnlineDeckCards(DUEL->cursorPlayer));
             }
             drawText(panel->x + 0x8E, panel->y + 0x10, (s32)deckText, 7, z);
             break;
@@ -292,19 +292,19 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             lineColors[9] = shades[0];
             break;
         }
-        switch (PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].type) {
+        switch (PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].type) {
         case 0:
-            card = (DigimonCardData *)PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            card = (DigimonCardData *)PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
             sprintf(text, "*s0%2d", card->dpCost);
             drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)text, (s32 *)lineColors[0], 7, z);
             sprintf(text, "*s0%2d", card->dpBonus);
             drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)text, (s32 *)lineColors[1], 7, z);
             if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
-                if (DUEL->unk81C < 4 && DUEL->unk81B == DUEL->unk817) {
+                if (DUEL->cursorSlot < 4 && DUEL->cursorPlayer == DUEL->turnPlayer) {
                     if (DUEL->unk81D == 1) {
                         powerShift = card->attr & 0xF;
                     } else {
-                        powerShift = PLAYER(player)->unk178_15;
+                        powerShift = PLAYER(player)->statPenalty;
                     }
                     powerShift--;
                     valueColor = 3;
@@ -321,15 +321,15 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
                         drawTextColored(x + 0x56, i * 12 + y + 0x1A, (s32)text, (s32 *)lineColors[i + 3], valueColor, z);
                     }
                     drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
-                } else if (DUEL->unk81C == 6) {
-                    valueColor = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+                } else if (DUEL->cursorSlot == 6) {
+                    valueColor = PLAYER(DUEL->cursorPlayer)->statPenalty ? 3 : 7;
                     for (i = 0; i < 4; i++) {
-                        sprintf(text, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                        sprintf(text, "*s0%4d", PLAYER(DUEL->cursorPlayer)->stats[i]);
                         x = panel->x;
                         y = panel->y;
                         drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)text, (s32 *)lineColors[i + 2], valueColor, z);
                     }
-                    drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+                    drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->cursorPlayer)->specialty, z);
                 } else {
                     sprintf(text, "*s0%4d", card->hp);
                     drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)text, (s32 *)lineColors[2], 7, z);
@@ -341,15 +341,15 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
                     }
                     drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
                 }
-            } else if (DUEL->unk81C == 6) {
-                valueColor = PLAYER(DUEL->unk81B)->unk178_15 ? 3 : 7;
+            } else if (DUEL->cursorSlot == 6) {
+                valueColor = PLAYER(DUEL->cursorPlayer)->statPenalty ? 3 : 7;
                 for (i = 0; i < 4; i++) {
-                    sprintf(text, "*s0%4d", PLAYER(DUEL->unk81B)->unk11C[i]);
+                    sprintf(text, "*s0%4d", PLAYER(DUEL->cursorPlayer)->stats[i]);
                     x = panel->x;
                     y = panel->y;
                     drawTextColored(x + 0x56, i * 12 + y + 0xE, (s32)text, (s32 *)lineColors[i + 2], valueColor, z);
                 }
-                drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->unk81B)->unk178_19, z);
+                drawIcon(panel->x + 0xC3, panel->y + 1, 0, PLAYER(DUEL->cursorPlayer)->specialty, z);
             } else {
                 sprintf(text, "*s0%4d", card->hp);
                 drawTextColored(panel->x + 0x56, panel->y + 0xE, (s32)text, (s32 *)lineColors[2], 7, z);
@@ -377,7 +377,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         case 1: {
             s8 *optionCard;
 
-            optionCard = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            optionCard = PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
             drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 5, z);
             if (optionCard[0x8C] != 0) {
@@ -392,7 +392,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         case 2: {
             s8 *optionCard;
 
-            optionCard = PLAYER(DUEL->unk81B)->cards[(s16)(*(s16 *)(DUEL->unk58 + 2) % 30)].card;
+            optionCard = PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
             drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 6, z);
             for (i = 0; i < 4; i++) {
@@ -407,37 +407,37 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
     case 1:
     case 7:
         card = (DigimonCardData *)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card;
-        valueColor = PLAYER(player)->unk178_15 ? 3 : 7;
+        valueColor = PLAYER(player)->statPenalty ? 3 : 7;
         drawText(panel->x + 4, panel->y + 1, (s32)card->name, 6, z);
-        sprintf(text, "*s0%4d", PLAYER(player)->unk11C[0]);
+        sprintf(text, "*s0%4d", PLAYER(player)->stats[0]);
         drawText(panel->x + 0x82, panel->y + 1, (s32)text, valueColor, z);
         drawIconColored(panel->x + 0xA4, panel->y + 2, 0, (card->attr & 0xF) + 0x10, shades[0], z);
-        drawIconColored(panel->x + 0xB6, panel->y + 2, 0, PLAYER(player)->unk178_19, shades[0], z);
+        drawIconColored(panel->x + 0xB6, panel->y + 2, 0, PLAYER(player)->specialty, shades[0], z);
         for (k = 0; k < 3; k++) {
             drawText(panel->x + 0x25, panel->y + 13 + k * 12, (s32)card->attack[k].name, 7, z);
-            sprintf(text, "*s0%4d", PLAYER(player)->unk15C[k]);
+            sprintf(text, "*s0%4d", PLAYER(player)->baseAttackPowers[k]);
             drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)text, valueColor, z);
         }
         drawText(panel->x + 0x47, panel->y + 0x32, (s32)CROSS_EFFECT_NAMES[card->crossEffect], 7, z);
         if (D_8006E4FC[card->crossEffect] != 0) {
             drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
         }
-        if (PLAYER(player)->unk178_2 != 3) {
-            if (PLAYER(player)->unk178_4 != PLAYER(player)->unk178_2) {
-                PLAYER(player)->unk16E = 0;
+        if (PLAYER(player)->attackChoice != 3) {
+            if (PLAYER(player)->shownAttack != PLAYER(player)->attackChoice) {
+                PLAYER(player)->attackHighlightTimer = 0;
             }
-            PLAYER(player)->unk178_4 = PLAYER(player)->unk178_2;
-            if (PLAYER(player)->unk16E < 28) {
-                PLAYER(player)->unk16E++;
-                panel->clut = getClut(784, player * 8 + 0x1F0 + PLAYER(player)->unk16E / 4);
+            PLAYER(player)->shownAttack = PLAYER(player)->attackChoice;
+            if (PLAYER(player)->attackHighlightTimer < 28) {
+                PLAYER(player)->attackHighlightTimer++;
+                panel->clut = getClut(784, player * 8 + 0x1F0 + PLAYER(player)->attackHighlightTimer / 4);
             } else {
                 panel->clut = getClut(784, player * 8 + 0x1F7);
             }
         } else {
-            PLAYER(player)->unk178_4 = 3;
+            PLAYER(player)->shownAttack = 3;
             panel->clut = getClut(784, player * 8 + 0x1F0);
         }
-        isOpponent = DUEL->unk817 != player;
+        isOpponent = DUEL->turnPlayer != player;
         func_80044504(panel->x + 0xA7, panel->y + 0x32, isOpponent, 0x80, z);
         break;
     }

@@ -43,35 +43,35 @@ void initDuelPlayers(s32 isCpuDuel) {
 
     for (i = 0; i < 2; i++) {
         DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4);
-        PLAYER(i)->unk178_17 = (1 - isCpuDuel) * 2 + i;
+        PLAYER(i)->controller = (1 - isCpuDuel) * 2 + i;
         PLAYER(i)->unk0[0] = 1;
         for (j = 0; j < 30; j++) {
             PLAYER(i)->cards[j].id = 0;
             PLAYER(i)->cards[j].type = 0;
             PLAYER(i)->cards[j].index = 0;
-            PLAYER(i)->unk17D[j] = i * 30 + j;
-            PLAYER(i)->unk19B[j] = -1;
+            PLAYER(i)->onlineDeck[j] = i * 30 + j;
+            PLAYER(i)->offlineDeck[j] = -1;
         }
         for (j = 0; j < 4; j++) {
-            PLAYER(i)->unk1B9[j] = -1;
+            PLAYER(i)->hand[j] = -1;
         }
         for (j = 0; j < 8; j++) {
-            PLAYER(i)->unk1C2[j] = -1;
+            PLAYER(i)->dpSlots[j] = -1;
         }
         for (j = 0; j < 3; j++) {
-            PLAYER(i)->unk1CA[j] = -1;
+            PLAYER(i)->digimonStack[j] = -1;
         }
-        PLAYER(i)->unk1CD = -1;
-        PLAYER(i)->unk17C = 0;
+        PLAYER(i)->playedCard = -1;
+        PLAYER(i)->wins = 0;
         *(s32 *)(DUEL_PLAYERS[i] + 0x114) = 0;
         for (j = 0; j < 5; j++) {
-            PLAYER(i)->unk11C[j] = 0;
-            PLAYER(i)->unk126[j] = 0;
-            PLAYER(i)->unk130[j].value = 0;
-            PLAYER(i)->unk130[j].type = 0;
-            PLAYER(i)->unk130[j].timer = 0;
-            PLAYER(i)->unk130[j].x = 0;
-            PLAYER(i)->unk130[j].y = 0;
+            PLAYER(i)->stats[j] = 0;
+            PLAYER(i)->displayedStats[j] = 0;
+            PLAYER(i)->statPopups[j].value = 0;
+            PLAYER(i)->statPopups[j].type = 0;
+            PLAYER(i)->statPopups[j].timer = 0;
+            PLAYER(i)->statPopups[j].x = 0;
+            PLAYER(i)->statPopups[j].y = 0;
         }
     }
     if (isCpuDuel != 0) {

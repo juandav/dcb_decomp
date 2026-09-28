@@ -21,27 +21,27 @@
     (a)->spr->rot.vy = RY - (RY - (a)->ry) * (a)->count / (a)->total;        \
     (a)->spr->rot.vz = RZ - (RZ - (a)->rz) * (a)->count / (a)->total;        \
     (a)->spr->scale = SC - (SC - (a)->scale) * (a)->count / (a)->total
-#define SLOT(p, o) ((BoardSlot *)(D_801D83EC + (p) * 0xD8 + (o)))
+#define SLOT(p, o) ((HudAnchor *)(D_801D83EC + (p) * 0xD8 + (o)))
 #define UNK7F8(c) ((*(Unk7F8 **)((u8 *)D_801D8340 + 0x7F8))[c])
-#define PANEL(i) (((InfoPanel *)D_801D83EC)[i])
+#define PANEL(i) (((HudPanel *)D_801D83EC)[i])
 
 typedef struct Panel {
     /* 0x00 */ u8 unk0[0xC];
-    /* 0x0C */ u8 unkC;
-    /* 0x0D */ u8 unkD;
-    /* 0x0E */ u8 unkE;
-    /* 0x0F */ u8 unkF;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s16 unk16;
-    /* 0x18 */ s16 unk18;
-    /* 0x1A */ s16 unk1A;
+    /* 0x0C */ u8 flags;
+    /* 0x0D */ u8 state;
+    /* 0x0E */ u8 total;
+    /* 0x0F */ u8 count;
+    /* 0x10 */ s16 x;
+    /* 0x12 */ s16 y;
+    /* 0x14 */ s16 targetX;
+    /* 0x16 */ s16 targetY;
+    /* 0x18 */ s16 startX;
+    /* 0x1A */ s16 startY;
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ struct Panel *parent;
 } Panel;
 typedef struct {
-    /* 0x00 */ u8 unk0[4];
+    /* 0x00 */ u8 rgb[4];
     /* 0x04 */ s16 clut;
     /* 0x06 */ u8 unk6[6];
     /* 0x0C */ u8 flags;
@@ -51,8 +51,8 @@ typedef struct {
     /* 0x12 */ s16 y;
     /* 0x14 */ u8 unk14[8];
     /* 0x1C */ s32 z;
-    /* 0x20 */ u8 unk20[4];
-} InfoPanel;
+    /* 0x20 */ u8 parent[4];
+} HudPanel;
 typedef struct {
     /* 0x00 */ CardSprite *spr;
     /* 0x04 */ s32 x;

@@ -39,7 +39,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         UNK7F8(cardIndex).ry = 0x2800;
         UNK7F8(cardIndex).rz = 0x1C00;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
         anim->count = 0;
         break;
     case 1:
@@ -140,7 +140,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x1000;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
         break;
     case 8:
         ANIM_SAVE(anim);
@@ -177,7 +177,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2400;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->unkC;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
         break;
     case 11:
         ANIM_SAVE(anim);
@@ -199,7 +199,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
                 s16 scale;
 
                 for (i = 2; i >= 0; i--) {
-                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
+                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->digimonStack[i]) {
                         break;
                     }
                     stackDepth++;
@@ -233,7 +233,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
                 s16 scale;
 
                 for (i = 2; i >= 0; i--) {
-                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
+                    if (cardIndex == ((Player *)DUEL_PLAYERS[player])->digimonStack[i]) {
                         break;
                     }
                     stackDepth++;
@@ -257,7 +257,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
 
             stackDepth = 0;
             for (i = 2; i >= 0; i--) {
-                if (cardIndex == ((Player *)DUEL_PLAYERS[player])->unk1CA[i]) {
+                if (cardIndex == ((Player *)DUEL_PLAYERS[player])->digimonStack[i]) {
                     break;
                 }
                 stackDepth++;
@@ -269,7 +269,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             anim->spr->rot.vy = 0x2000;
             anim->spr->rot.vz = 0x2000;
             anim->spr->scale = 0x1000;
-            anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->unkC;
+            anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->flags;
             break;
     }
     case 16:
@@ -343,7 +343,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x1000;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x6C)->unkC;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x6C)->flags;
         break;
     case 22:
         if (anim->count != 0) {
@@ -436,7 +436,7 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->unkC;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->flags;
         break;
     case 29:
         ANIM_SAVE(anim);
@@ -518,7 +518,7 @@ void renderBoardCards(void) {
     resetCardPolyCount();
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 8; j++) {
-            card = PLAYER(i)->unk1C2[j];
+            card = PLAYER(i)->dpSlots[j];
             if (card >= 0) {
                 renderCardSprite(SPRITE(card), card);
                 if (SPRITE_KIND(card) == 0x1C) {
@@ -526,24 +526,24 @@ void renderBoardCards(void) {
                 }
             }
         }
-        card = PLAYER(i)->unk1CD;
+        card = PLAYER(i)->playedCard;
         if (card >= 0) {
             renderCardSprite(SPRITE(card), card);
         }
         hpLabelDrawn = 0;
         for (j = 0; j < 3; j++) {
-            card = PLAYER(i)->unk1CA[j];
+            card = PLAYER(i)->digimonStack[j];
             if (card >= 0) {
                 if (!hpLabelDrawn) {
-                    ((u8 *)SPRITE(card))[0x14] = PLAYER(i)->unk178_19;
+                    ((u8 *)SPRITE(card))[0x14] = PLAYER(i)->specialty;
                     hpLabelDrawn = 1;
                     if (SPRITE_KIND(card) < 0x1D) {
-                        hpColor = PLAYER(i)->unk178_15 ? 3 : 7;
+                        hpColor = PLAYER(i)->statPenalty ? 3 : 7;
                         projectCardSprite(SPRITE(card), card);
                         z = *(s32 *)((u8 *)SPRITE(card) + 0x38);
                         drawIcon(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30, 0,
                                       0x1A, z);
-                        sprintf(text, "%4d", PLAYER(i)->unk126[0]);
+                        sprintf(text, "%4d", PLAYER(i)->displayedStats[0]);
                         drawText(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30,
                                       (s32)text, hpColor, z);
                         hpLabelRect.x = 0x60;
@@ -559,7 +559,7 @@ void renderBoardCards(void) {
             }
         }
         for (j = 0; j < 30; j++) {
-            card = PLAYER(i)->unk19B[j];
+            card = PLAYER(i)->offlineDeck[j];
             if (card >= 0) {
                 renderCardSprite(SPRITE(card), card);
                 if (SPRITE_KIND(card) == 10) {
@@ -568,13 +568,13 @@ void renderBoardCards(void) {
             }
         }
         for (j = 3; j >= 0; j--) {
-            card = PLAYER(i)->unk1B9[j];
+            card = PLAYER(i)->hand[j];
             if (card >= 0) {
                 renderCardSprite(SPRITE(card), card);
             }
         }
         for (j = 0; j < 30; j++) {
-            card = PLAYER(i)->unk17D[j];
+            card = PLAYER(i)->onlineDeck[j];
             if (card >= 0) {
                 renderCardSprite(SPRITE(card), card);
                 if (SPRITE_KIND(card) == 0) {

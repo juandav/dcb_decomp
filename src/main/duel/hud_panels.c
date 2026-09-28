@@ -30,20 +30,20 @@ void startPanelMove(Panel *panel, s16 targetX, s16 targetY, s32 frames) {
     if (frames == 0) {
         frames = 1;
     }
-    panel->unkC |= 0x80;
+    panel->flags |= 0x80;
     if (panel->parent != 0) {
-        panel->unkC = panel->parent->unkC;
-        panel->unk18 = panel->unk10 - panel->parent->unk10;
-        panel->unk1A = panel->unk12 - panel->parent->unk12;
+        panel->flags = panel->parent->flags;
+        panel->startX = panel->x - panel->parent->x;
+        panel->startY = panel->y - panel->parent->y;
     } else {
-        panel->unk18 = panel->unk10;
-        panel->unk1A = panel->unk12;
+        panel->startX = panel->x;
+        panel->startY = panel->y;
     }
-    panel->unk14 = targetX;
-    panel->unk16 = targetY;
-    panel->unkE = frames;
-    panel->unkF = frames;
-    panel->unkD++;
+    panel->targetX = targetX;
+    panel->targetY = targetY;
+    panel->total = frames;
+    panel->count = frames;
+    panel->state++;
 }
 
 s32 stepPanelMove(Panel *panel) {
@@ -52,33 +52,33 @@ s32 stepPanelMove(Panel *panel) {
 
     parentX = 0;
     parentY = 0;
-    panel->unkF--;
+    panel->count--;
     if (panel->parent != 0) {
-        panel->unkC = panel->parent->unkC;
-        parentX = panel->parent->unk10;
-        parentY = panel->parent->unk12;
+        panel->flags = panel->parent->flags;
+        parentX = panel->parent->x;
+        parentY = panel->parent->y;
     }
-    panel->unk10 = parentX + (panel->unk14 - (panel->unk14 - panel->unk18) * panel->unkF / panel->unkE);
-    panel->unk12 = parentY + (panel->unk16 - (panel->unk16 - panel->unk1A) * panel->unkF / panel->unkE);
-    if (panel->unkF == 0) {
-        panel->unkD++;
+    panel->x = parentX + (panel->targetX - (panel->targetX - panel->startX) * panel->count / panel->total);
+    panel->y = parentY + (panel->targetY - (panel->targetY - panel->startY) * panel->count / panel->total);
+    if (panel->count == 0) {
+        panel->state++;
     }
-    return panel->unkF;
+    return panel->count;
 }
 
 void holdPanelAtTarget(Panel *panel) {
     s16 x;
     s16 y;
 
-    x = panel->unk14;
-    y = panel->unk16;
+    x = panel->targetX;
+    y = panel->targetY;
     if (panel->parent != 0) {
-        panel->unkC = panel->parent->unkC;
-        x += panel->parent->unk10;
-        y += panel->parent->unk12;
+        panel->flags = panel->parent->flags;
+        x += panel->parent->x;
+        y += panel->parent->y;
     }
-    panel->unk10 = x;
-    panel->unk12 = y;
+    panel->x = x;
+    panel->y = y;
 }
 
 void tickDeckPanel(s32 player) {
@@ -326,25 +326,25 @@ void tickBattleHud(void) {
         tickCardInfoPanel(i);
     }
     for (player = 0; player < 2; player++) {
-        PLAYER(player)->unk11C[4] = sumDigivolvePoints(player);
+        PLAYER(player)->stats[4] = sumDigivolvePoints(player);
         if (getActiveDigimonCard(player) == -1) {
             for (i = 0; i < 4; i++) {
-                PLAYER(player)->unk126[i] = 0;
-                PLAYER(player)->unk11C[i] = 0;
+                PLAYER(player)->displayedStats[i] = 0;
+                PLAYER(player)->stats[i] = 0;
             }
         }
         for (i = 0; i < 5; i++) {
-            delta = PLAYER(player)->unk126[i] - PLAYER(player)->unk11C[i];
+            delta = PLAYER(player)->displayedStats[i] - PLAYER(player)->stats[i];
             step = (delta < 0 ? -delta : delta) / 16 + 1;
-            if (PLAYER(player)->unk126[i] < PLAYER(player)->unk11C[i]) {
-                PLAYER(player)->unk126[i] += step;
-                if (PLAYER(player)->unk126[i] > PLAYER(player)->unk11C[i]) {
-                    PLAYER(player)->unk126[i] = PLAYER(player)->unk11C[i];
+            if (PLAYER(player)->displayedStats[i] < PLAYER(player)->stats[i]) {
+                PLAYER(player)->displayedStats[i] += step;
+                if (PLAYER(player)->displayedStats[i] > PLAYER(player)->stats[i]) {
+                    PLAYER(player)->displayedStats[i] = PLAYER(player)->stats[i];
                 }
-            } else if (PLAYER(player)->unk126[i] > PLAYER(player)->unk11C[i]) {
-                PLAYER(player)->unk126[i] -= step;
-                if (PLAYER(player)->unk126[i] < PLAYER(player)->unk11C[i]) {
-                    PLAYER(player)->unk126[i] = PLAYER(player)->unk11C[i];
+            } else if (PLAYER(player)->displayedStats[i] > PLAYER(player)->stats[i]) {
+                PLAYER(player)->displayedStats[i] -= step;
+                if (PLAYER(player)->displayedStats[i] < PLAYER(player)->stats[i]) {
+                    PLAYER(player)->displayedStats[i] = PLAYER(player)->stats[i];
                 }
             }
         }
@@ -352,7 +352,7 @@ void tickBattleHud(void) {
     rollingCount = 0;
     for (player = 0; player < 2; player++) {
         for (i = 0; i < 5; i++) {
-            if (PLAYER(player)->unk126[i] != PLAYER(player)->unk11C[i]) {
+            if (PLAYER(player)->displayedStats[i] != PLAYER(player)->stats[i]) {
                 rollingCount++;
             }
         }
