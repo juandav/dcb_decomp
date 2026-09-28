@@ -112,7 +112,7 @@ OBJ := $(C_OBJ) $(ASM_OBJ)
 # the executable's .bss. Each one has a splat config, config/<name>.yaml,
 # its C files under src/<name>/ and its own ELF linked against the
 # executable's symbols; `make compare` checks them with the executable.
-OVERLAYS := endseg
+OVERLAYS := endseg evoseg kawseg openseg saiseg subseg sugseg
 OVERLAY_DRIVE := disks/us/P.DRV
 OVERLAY_BINS := $(foreach o,$(OVERLAYS),$(BUILDDIR)/$(shell echo $(o) | tr a-z A-Z).BIN)
 

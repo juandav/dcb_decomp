@@ -1,0 +1,59 @@
+name: sugseg
+sha1: cfbc3b5e812d6fabb29077e1bb653d01eb00feb6
+options:
+  basename: sugseg
+  # extracted from disks/us/P.DRV by tools/extract_drv.py
+  target_path: build/disks/SUGSEG.BIN
+  base_path: ..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/sugseg
+  src_path: src/sugseg
+  build_path: build
+
+  ld_script_path: build/generated/sugseg.ld
+
+  global_vram_start: 0x80000000
+  global_vram_end: 0x80200000
+
+  find_file_boundaries: True
+  gp_value: 0x80077A08
+
+  generate_asm_macros_files: False
+
+  section_order: [".rodata", ".text", ".data", ".bss"]
+
+  # the executable's symbols, which the overlay calls and reads
+  symbol_addrs_path:
+    - config/symbols.txt
+
+  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_sugseg.txt
+  undefined_syms_auto_path: build/generated/undefined_syms_auto_sugseg.txt
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+
+  migrate_rodata_to_functions: True
+  create_data_pads: False
+  # src/sugseg/sugseg.c exists
+  create_c_files: False
+
+segments:
+  # loaded at OVERLAY_LOAD_ADDR, the end of the executable's .bss
+  - name: sugseg
+    type: code
+    start: 0x0
+    vram: 0x801DDF38
+    align: 4
+    subalign: 4
+    subsegments:
+      - [0x0, .rodata, sugseg]
+      - [0x184, c, sugseg]
+      - [0x11324, data, sugseg]
+
+  - [0x11A70]

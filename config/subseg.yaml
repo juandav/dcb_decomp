@@ -1,0 +1,59 @@
+name: subseg
+sha1: 196a1be8b432e5e46de9d02973d97ab2d098dbb1
+options:
+  basename: subseg
+  # extracted from disks/us/P.DRV by tools/extract_drv.py
+  target_path: build/disks/SUBSEG.BIN
+  base_path: ..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/subseg
+  src_path: src/subseg
+  build_path: build
+
+  ld_script_path: build/generated/subseg.ld
+
+  global_vram_start: 0x80000000
+  global_vram_end: 0x80200000
+
+  find_file_boundaries: True
+  gp_value: 0x80077A08
+
+  generate_asm_macros_files: False
+
+  section_order: [".rodata", ".text", ".data", ".bss"]
+
+  # the executable's symbols, which the overlay calls and reads
+  symbol_addrs_path:
+    - config/symbols.txt
+
+  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_subseg.txt
+  undefined_syms_auto_path: build/generated/undefined_syms_auto_subseg.txt
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+
+  migrate_rodata_to_functions: True
+  create_data_pads: False
+  # src/subseg/subseg.c exists
+  create_c_files: False
+
+segments:
+  # loaded at OVERLAY_LOAD_ADDR, the end of the executable's .bss
+  - name: subseg
+    type: code
+    start: 0x0
+    vram: 0x801DDF38
+    align: 4
+    subalign: 4
+    subsegments:
+      - [0x0, .rodata, subseg]
+      - [0x1A7C, c, subseg]
+      - [0x139A0, data, subseg]
+
+  - [0x16570]
