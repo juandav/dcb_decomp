@@ -16,7 +16,7 @@ typedef struct {
     /* 0x08 */ u8 vol[2];
     /* 0x0A */ u8 unkA[2];
     /* 0x0C */ u8 *data[2];
-    /* 0x14 */ SndSlot unk14;
+    /* 0x14 */ SndSlot seBank;
     /* 0x20 */ SndSlot slot[2];
 } SndState;
 

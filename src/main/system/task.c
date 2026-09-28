@@ -49,15 +49,15 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
         *slot = 0;
     }
     CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&D_80077A1C = 0xFFFF;
-    CURRENT_TASK = (Unk80077A0C *)((Thread *)&TASKS - 1);
-    ((Thread *)&TASK_LIST_END)->flags = 0x8000FFFF;
-    ((Thread *)&TASK_LIST_END)->next = (Thread *)CURRENT_TASK + 1;
+    CURRENT_TASK = (Unk80077A0C *)((Task *)&TASKS - 1);
+    ((Task *)&TASK_LIST_END)->flags = 0x8000FFFF;
+    ((Task *)&TASK_LIST_END)->next = (Task *)CURRENT_TASK + 1;
     if (TASK_VSYNC_MODE != 0) {
-        ((Thread *)&TASK_LIST_END)->prev = (Thread *)&TASK_LIST_END;
+        ((Task *)&TASK_LIST_END)->prev = (Task *)&TASK_LIST_END;
     } else {
         D_80077AEC = &TASKS;
     }
-    ((Thread *)&TASK_LIST_END)->unk14 = -1;
+    ((Task *)&TASK_LIST_END)->id = -1;
     tcbTable = *(s32 **)0x108;
     KERNEL_TCB = *tcbTable;
     src = (s32 *)(KERNEL_TCB + 8);
@@ -93,12 +93,12 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
 }
 
 long handleVsyncPreemption(void) {
-    Thread *task;
+    Task *task;
     s32 *tcbRegs;
     s32 *regs;
     s32 i;
 
-    task = (Thread *)CURRENT_TASK;
+    task = (Task *)CURRENT_TASK;
     tickVblankCounters();
     tcbRegs = (s32 *)(KERNEL_TCB + 8);
     regs = task->regs;
@@ -113,7 +113,7 @@ long handleVsyncPreemption(void) {
         }
     } else {
         PREEMPTED_TASK = task;
-        task = (Thread *)&TASKS;
+        task = (Task *)&TASKS;
         CURRENT_TASK = (Unk80077A0C *)task;
         CURRENT_TASK_PRIORITY = TASKS;
         tcbRegs = (s32 *)(KERNEL_TCB + 8);
@@ -147,9 +147,9 @@ void *selectNextTask(void *current) {
 }
 
 s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unused, s32 entry, s32 a0, s32 a1, s32 a2, s32 a3) {
-    Thread *task;
-    Thread *prev;
-    Thread *next;
+    Task *task;
+    Task *prev;
+    Task *next;
     s32 ret;
     s32 prevFlags;
     s32 nextFlags;
@@ -158,7 +158,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     s32 i;
     s32 stack;
 
-    task = (Thread *)&TASKS + taskId;
+    task = (Task *)&TASKS + taskId;
     if (taskId != 0) {
         if ((s32)task->flags < 0) {
             return -1;
@@ -175,7 +175,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     }
     ret = 0;
     if (insertPos < 0) {
-        prev = (Thread *)&TASKS;
+        prev = (Task *)&TASKS;
         if (priority >= *(u16 *)prev) {
             do {
                 prev = prev->prev;
@@ -185,7 +185,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     }
     if (insertPos >= 32) {
         insertPos -= 32;
-        prev = (Thread *)&TASKS + insertPos;
+        prev = (Task *)&TASKS + insertPos;
         if ((s32)prev->flags >= 0) {
             return -3;
         }
@@ -198,7 +198,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
         next = prev->next;
         next->prev = task;
     } else {
-        next = (Thread *)&TASKS + insertPos;
+        next = (Task *)&TASKS + insertPos;
         if ((s32)next->flags >= 0) {
             return -3;
         }
@@ -230,8 +230,8 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     task->regs[7] = a3;
     task->regs[31] = (s32)func_80014A90;
     task->regs[28] = TASK_GP;
-    task->unk14 = taskId;
-    task->unk18 = 0;
+    task->id = taskId;
+    task->wakeResult = 0;
     stack = (s32)allocHeapBlock(stackSize, -3);
     if (stack == 0) {
         return -6;

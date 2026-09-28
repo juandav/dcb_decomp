@@ -4,9 +4,9 @@
 #include "game.h"
 
 typedef struct {
-    /* 0x0000 */ int unk0;
+    /* 0x0000 */ int openMode;
     /* 0x0004 */ char unk4[0x102C];
-} Unk80081710;
+} DiscFileSlot;
 typedef struct {
     /* 0x00 */ s32 key;
     /* 0x04 */ s32 sector;
@@ -15,7 +15,7 @@ typedef struct {
     /* 0x10 */ s32 name[4];
 } FileEntry;
 
-extern Unk80081710 DISC_FILES[4];
+extern DiscFileSlot DISC_FILES[4];
 extern s32 DRIVE_DIRECTORY_CACHED;
 extern s32 DRIVE_DIRECTORY;
 extern FileEntry ROOT_DIRECTORY_ENTRY;

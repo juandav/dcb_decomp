@@ -9,7 +9,7 @@ FileEntry ROOT_DIRECTORY_ENTRY = { 0 };
 
 void initDiscDrive(void) {
     u8 cdMode[8];
-    Unk80081710 *handle;
+    DiscFileSlot *handle;
     s32 i;
 
     ResetCallback();
@@ -27,7 +27,7 @@ void initDiscDrive(void) {
     func_8005A344(0);
     handle = DISC_FILES;
     for (i = 3; i >= 0; i--, handle++) {
-        handle->unk0 = 0;
+        handle->openMode = 0;
     }
     DRIVE_DIRECTORY_CACHED = 0;
 }
@@ -256,12 +256,12 @@ s32 closeDiscFile(CdFile *file) {
 }
 
 int closeAllDiscFiles(void) {
-    Unk80081710 *handle = DISC_FILES;
+    DiscFileSlot *handle = DISC_FILES;
     int i;
 
     for (i = 3; i >= 0; i--, handle++) {
-        if (handle->unk0 > 0) {
-            handle->unk0 = 0;
+        if (handle->openMode > 0) {
+            handle->openMode = 0;
         }
     }
     return func_8005A364(0, 0) == 5;

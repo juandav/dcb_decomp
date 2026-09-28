@@ -28,19 +28,19 @@ void resetPadStates(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        PAD_STATES[i]->unk10 = 1;
-        PAD_STATES[i]->unk11 = 0;
-        PAD_STATES[i]->unk12 = 0;
-        PAD_STATES[i]->unk1A = 0;
-        PAD_STATES[i]->unk1B = 0;
-        PAD_STATES[i]->unk0 = 0;
-        PAD_STATES[i]->unk6 = 0;
-        PAD_STATES[i]->unk4 = 0;
-        PAD_STATES[i]->unk2 = 0;
-        PAD_STATES[i]->unk8 = 0;
-        PAD_STATES[i]->unkE = 0;
-        PAD_STATES[i]->unkC = 0;
-        PAD_STATES[i]->unkA = 0;
+        PAD_STATES[i]->repeatEnabled = 1;
+        PAD_STATES[i]->repeating = 0;
+        PAD_STATES[i]->holdTime = 0;
+        PAD_STATES[i]->padStatus = 0;
+        PAD_STATES[i]->padType = 0;
+        PAD_STATES[i]->rawHeld = 0;
+        PAD_STATES[i]->rawRepeat = 0;
+        PAD_STATES[i]->rawReleased = 0;
+        PAD_STATES[i]->rawPressed = 0;
+        PAD_STATES[i]->held = 0;
+        PAD_STATES[i]->repeat = 0;
+        PAD_STATES[i]->released = 0;
+        PAD_STATES[i]->pressed = 0;
         setPadRepeatRate(i, 0x1E, 2);
     }
 }
@@ -53,24 +53,24 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
     s16 prevHoldTime;
 
     if (rawData[1] == 0x80) {
-        pad->unk0 = 0;
-        pad->unk6 = 0;
-        pad->unk4 = 0;
-        pad->unk2 = 0;
+        pad->rawHeld = 0;
+        pad->rawRepeat = 0;
+        pad->rawReleased = 0;
+        pad->rawPressed = 0;
         return 0;
     }
-    pad->unk1A = PadGetState(port);
-    pad->unk1B = PadInfoMode(port, 1, 0);
-    pad->unk1C = PadInfoMode(port, 2, 0);
-    if (pad->unk1A == 0 || rawData[0] != 0) {
-        pad->unk0 = 0;
-        pad->unk6 = 0;
-        pad->unk4 = 0;
-        pad->unk2 = 0;
+    pad->padStatus = PadGetState(port);
+    pad->padType = PadInfoMode(port, 1, 0);
+    pad->padExId = PadInfoMode(port, 2, 0);
+    if (pad->padStatus == 0 || rawData[0] != 0) {
+        pad->rawHeld = 0;
+        pad->rawRepeat = 0;
+        pad->rawReleased = 0;
+        pad->rawPressed = 0;
         return 0;
     }
     skip = 0;
-    switch (pad->unk1B) {
+    switch (pad->padType) {
     case 1:
     case 3:
     case 6:
@@ -85,41 +85,41 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
     if (skip) {
         return 0;
     }
-    changed = pad->unk0;
-    pad->unk0 = ~((rawData[2] << 8) | rawData[3]);
-    changed ^= pad->unk0;
-    pressed = changed & pad->unk0;
-    pad->unk2 = pressed;
-    pad->unk4 = changed & ~pad->unk0;
-    pad->unk6 = pressed;
-    if (pad->unk10) {
-        held = pad->unk0;
-        if (held == pad->unk14 && held != 0) {
-            prevHoldTime = pad->unk12;
-            pad->unk12 = prevHoldTime + ((Unk800794F8 *)&GRAPHICS)->unk50;
-            if (pad->unk11 == 0) {
-                if (pad->unk12 < pad->repeatDelay) {
+    changed = pad->rawHeld;
+    pad->rawHeld = ~((rawData[2] << 8) | rawData[3]);
+    changed ^= pad->rawHeld;
+    pressed = changed & pad->rawHeld;
+    pad->rawPressed = pressed;
+    pad->rawReleased = changed & ~pad->rawHeld;
+    pad->rawRepeat = pressed;
+    if (pad->repeatEnabled) {
+        held = pad->rawHeld;
+        if (held == pad->repeatButtons && held != 0) {
+            prevHoldTime = pad->holdTime;
+            pad->holdTime = prevHoldTime + ((Graphics *)&GRAPHICS)->vblanksPerFrame;
+            if (pad->repeating == 0) {
+                if (pad->holdTime < pad->repeatDelay) {
                     return 0;
                 }
                 if (prevHoldTime != 0) {
-                    pad->unk11 = 1;
-                    pad->unk12 = 0;
-                    pad->unk6 = pressed | held;
+                    pad->repeating = 1;
+                    pad->holdTime = 0;
+                    pad->rawRepeat = pressed | held;
                 }
             } else {
-                if (pad->unk12 < pad->repeatRate) {
+                if (pad->holdTime < pad->repeatRate) {
                     return 0;
                 }
-                pad->unk12 = 0;
-                pad->unk6 |= held;
+                pad->holdTime = 0;
+                pad->rawRepeat |= held;
             }
         } else {
-            pad->unk14 = held;
-            pad->unk11 = 0;
-            pad->unk12 = 0;
+            pad->repeatButtons = held;
+            pad->repeating = 0;
+            pad->holdTime = 0;
         }
-    } else if (pad->unk4) {
-        pad->unk10 = 1;
+    } else if (pad->rawReleased) {
+        pad->repeatEnabled = 1;
     }
     return 0;
 }

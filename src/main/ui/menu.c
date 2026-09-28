@@ -14,7 +14,7 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-void initCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color) {
+void initCursorHighlight(CursorHighlight *highlight, Rect16 *rect, Bytes4 *color) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
@@ -24,66 +24,66 @@ void initCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color) {
     setCursorHighlight(highlight, rect, color);
 }
 
-void setCursorHighlight(Unk800190F4 *highlight, Rect16 *rect, Bytes4 *color) {
+void setCursorHighlight(CursorHighlight *highlight, Rect16 *rect, Bytes4 *color) {
     if (rect == (Rect16 *)-1) {
-        highlight->unk30.x = 0;
-        highlight->unk30.y = 0;
-        highlight->unk30.w = 0;
-        highlight->unk30.h = 0;
+        highlight->from.x = 0;
+        highlight->from.y = 0;
+        highlight->from.w = 0;
+        highlight->from.h = 0;
     } else {
-        highlight->unk30 = *rect;
+        highlight->from = *rect;
     }
-    highlight->unk38 = highlight->unk30;
-    highlight->unk40 = highlight->unk30;
+    highlight->target = highlight->from;
+    highlight->cur = highlight->from;
     if (color == (Bytes4 *)-1) {
-        highlight->unk48.b[0] = 0;
-        highlight->unk48.b[1] = 0;
-        highlight->unk48.b[2] = 0x80;
+        highlight->color.b[0] = 0;
+        highlight->color.b[1] = 0;
+        highlight->color.b[2] = 0x80;
     } else {
-        highlight->unk48 = *color;
+        highlight->color = *color;
     }
-    highlight->unk4C = 0x80;
-    highlight->unk4D = 0;
+    highlight->brightness = 0x80;
+    highlight->step = 0;
 }
 
-void moveCursorHighlight(Unk800190F4 *highlight, Rect16 *target) {
-    if (highlight->unk4D >= 6) {
-        highlight->unk4D = 0;
+void moveCursorHighlight(CursorHighlight *highlight, Rect16 *target) {
+    if (highlight->step >= 6) {
+        highlight->step = 0;
     }
-    highlight->unk30 = highlight->unk40;
-    highlight->unk38 = *target;
+    highlight->from = highlight->cur;
+    highlight->target = *target;
 }
 
 void setCursorHighlightColor(void *highlight, Bytes4 *color) {
     *(Bytes4 *)((s8 *)highlight + 0x48) = *color;
 }
 
-void drawCursorHighlight(Unk800190F4 *highlight, s32 z) {
-    if (highlight->unk4D < 6) {
-        highlight->unk40.x = highlight->unk30.x + (highlight->unk38.x - highlight->unk30.x) * highlight->unk4D / 6;
-        highlight->unk40.y = highlight->unk30.y + (highlight->unk38.y - highlight->unk30.y) * highlight->unk4D / 6;
-        highlight->unk40.w = highlight->unk30.w + (highlight->unk38.w - highlight->unk30.w) * highlight->unk4D / 6;
-        highlight->unk40.h = highlight->unk30.h + (highlight->unk38.h - highlight->unk30.h) * highlight->unk4D / 6;
-        highlight->unk4D++;
+void drawCursorHighlight(CursorHighlight *highlight, s32 z) {
+    if (highlight->step < 6) {
+        highlight->cur.x = highlight->from.x + (highlight->target.x - highlight->from.x) * highlight->step / 6;
+        highlight->cur.y = highlight->from.y + (highlight->target.y - highlight->from.y) * highlight->step / 6;
+        highlight->cur.w = highlight->from.w + (highlight->target.w - highlight->from.w) * highlight->step / 6;
+        highlight->cur.h = highlight->from.h + (highlight->target.h - highlight->from.h) * highlight->step / 6;
+        highlight->step++;
     } else {
-        highlight->unk40 = highlight->unk38;
+        highlight->cur = highlight->target;
     }
-    (highlight->prim + FRAME_BUFFER_INDEX)->x0 = highlight->unk40.x - 2;
-    (highlight->prim + FRAME_BUFFER_INDEX)->y0 = highlight->unk40.y - 1;
-    (highlight->prim + FRAME_BUFFER_INDEX)->w = highlight->unk40.w + 4;
-    (highlight->prim + FRAME_BUFFER_INDEX)->h = highlight->unk40.h + 2;
-    (highlight->prim + FRAME_BUFFER_INDEX)->r0 = highlight->unk48.b[0] * highlight->unk4C / 128;
-    (highlight->prim + FRAME_BUFFER_INDEX)->g0 = highlight->unk48.b[1] * highlight->unk4C / 128;
-    (highlight->prim + FRAME_BUFFER_INDEX)->b0 = highlight->unk48.b[2] * highlight->unk4C / 128;
+    (highlight->prim + FRAME_BUFFER_INDEX)->x0 = highlight->cur.x - 2;
+    (highlight->prim + FRAME_BUFFER_INDEX)->y0 = highlight->cur.y - 1;
+    (highlight->prim + FRAME_BUFFER_INDEX)->w = highlight->cur.w + 4;
+    (highlight->prim + FRAME_BUFFER_INDEX)->h = highlight->cur.h + 2;
+    (highlight->prim + FRAME_BUFFER_INDEX)->r0 = highlight->color.b[0] * highlight->brightness / 128;
+    (highlight->prim + FRAME_BUFFER_INDEX)->g0 = highlight->color.b[1] * highlight->brightness / 128;
+    (highlight->prim + FRAME_BUFFER_INDEX)->b0 = highlight->color.b[2] * highlight->brightness / 128;
     addPrim(&CURRENT_FRAME_BUFFER->ot[z], &highlight->prim[FRAME_BUFFER_INDEX]);
     addPrim(&CURRENT_FRAME_BUFFER->ot[z], &highlight->dm[FRAME_BUFFER_INDEX]);
 }
 
-void openMenu(void *menu, void *win, Unk800190F4 *highlight, Bytes4 *color) {
+void openMenu(void *menu, void *win, CursorHighlight *highlight, Bytes4 *color) {
     s16 view[4];
 
     (*(void **)((s8 *)menu + 0)) = win;
-    (*(Unk800190F4 **)((s8 *)menu + 4)) = highlight;
+    (*(CursorHighlight **)((s8 *)menu + 4)) = highlight;
     (*(s16 *)((s8 *)menu + 0x12)) = -1;
     (*(s16 *)((s8 *)menu + 0x16)) = -1;
     (*(s8 *)((s8 *)menu + 0x26)) = 1;
@@ -110,21 +110,21 @@ void centerMenuOnCursor(void *menu) {
     target[1] = ((*(u16 *)((s8 *)win + 0xE)) - (*(u16 *)((s8 *)win + 0x36))) + (*(u8 *)((s8 *)menu + 0x23)) + (*(s16 *)((s8 *)menu + 0x14)) * (*(u8 *)((s8 *)menu + 0x25));
     target[2] = (*(u16 *)((s8 *)menu + 0x1A));
     target[3] = (*(u16 *)((s8 *)menu + 0x1C));
-    moveCursorHighlight(*(Unk800190F4 **)((s8 *)menu + 4), (Rect16 *)target);
+    moveCursorHighlight(*(CursorHighlight **)((s8 *)menu + 4), (Rect16 *)target);
 }
 
 s32 updateMenuCursor(Menu *menu) {
-    Unk80016F38 *win;
-    Unk800190F4 *highlight;
+    UiWindow *win;
+    CursorHighlight *highlight;
     s16 target[4];
 
     win = menu->win;
     highlight = menu->cursor;
     menu->moved = 0;
     if (menu->active != 0) {
-        highlight->unk4C = 0x80;
+        highlight->brightness = 0x80;
         if (menu->nrows >= 2 && menu->rowH != 0) {
-            if (PAD_STATES[menu->pad]->unkE & 0x1000) {
+            if (PAD_STATES[menu->pad]->repeat & 0x1000) {
                 playMenuSound(2);
                 menu->moved = 1;
                 if (--menu->row < 0) {
@@ -132,13 +132,13 @@ s32 updateMenuCursor(Menu *menu) {
                     menu->row = menu->nrows - 1;
                 } else {
                 if (menu->row == 0) {
-                    PAD_STATES[menu->pad]->unk10 = 0;
+                    PAD_STATES[menu->pad]->repeatEnabled = 0;
                 }
-                if (menu->row * menu->rowH < win->unk30[3]) {
+                if (menu->row * menu->rowH < win->scroll[3]) {
                     scrollWindowTo((s16 *)win, 0, menu->row * menu->rowH);
                 }
                 }
-            } else if (PAD_STATES[menu->pad]->unkE & 0x4000) {
+            } else if (PAD_STATES[menu->pad]->repeat & 0x4000) {
                 playMenuSound(2);
                 menu->moved = 1;
                 if (++menu->row >= menu->nrows) {
@@ -146,54 +146,54 @@ s32 updateMenuCursor(Menu *menu) {
                     menu->row = 0;
                 } else {
                 if (menu->row == menu->nrows - 1) {
-                    PAD_STATES[menu->pad]->unk10 = 0;
+                    PAD_STATES[menu->pad]->repeatEnabled = 0;
                 }
-                if (menu->row * menu->rowH >= win->unk30[3] + win->rect.h) {
+                if (menu->row * menu->rowH >= win->scroll[3] + win->rect.h) {
                     scrollWindowTo((s16 *)win, 0, (menu->row + 1) * menu->rowH - win->rect.h);
                 }
                 }
-            } else if (PAD_STATES[menu->pad]->unkE & 0x1) {
+            } else if (PAD_STATES[menu->pad]->repeat & 0x1) {
                 if (menu->row != 0) {
                     playMenuSound(2);
                 }
                 menu->moved = 1;
                 menu->row -= (win->rect.h + menu->rowH - 1) / menu->rowH;
                 if (menu->row < 0) {
-                    PAD_STATES[menu->pad]->unk10 = 0;
+                    PAD_STATES[menu->pad]->repeatEnabled = 0;
                     scrollWindowTo((s16 *)win, 0, 0);
                     menu->row = 0;
                 } else {
                     if (menu->row == 0) {
-                        PAD_STATES[menu->pad]->unk10 = 0;
+                        PAD_STATES[menu->pad]->repeatEnabled = 0;
                     }
-                    scrollWindowTo((s16 *)win, 0, win->unk30[3] - (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
+                    scrollWindowTo((s16 *)win, 0, win->scroll[3] - (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
                 }
-            } else if (PAD_STATES[menu->pad]->unkE & 0x2) {
+            } else if (PAD_STATES[menu->pad]->repeat & 0x2) {
                 if (menu->row != menu->nrows - 1) {
                     playMenuSound(2);
                 }
                 menu->moved = 1;
                 menu->row += (win->rect.h + menu->rowH - 1) / menu->rowH;
                 if (menu->row >= menu->nrows) {
-                    PAD_STATES[menu->pad]->unk10 = 0;
+                    PAD_STATES[menu->pad]->repeatEnabled = 0;
                     scrollWindowTo((s16 *)win, 0, win->view.h - win->rect.h);
                     menu->row = menu->nrows - 1;
                 } else {
                     if (menu->row == menu->nrows - 1) {
-                        PAD_STATES[menu->pad]->unk10 = 0;
+                        PAD_STATES[menu->pad]->repeatEnabled = 0;
                     }
-                    scrollWindowTo((s16 *)win, 0, win->unk30[3] + (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
+                    scrollWindowTo((s16 *)win, 0, win->scroll[3] + (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
                 }
             }
         }
     } else {
-        highlight->unk4C = 0x40;
+        highlight->brightness = 0x40;
     }
     if (menu->row != menu->prevRow || menu->col != menu->prevCol) {
         menu->prevCol = menu->col;
         menu->prevRow = menu->row;
-        target[0] = (win->rect.x - win->unk30[2]) + menu->ox + menu->col * menu->colW;
-        target[1] = (win->rect.y - win->unk30[3]) + menu->oy + menu->row * menu->rowH;
+        target[0] = (win->rect.x - win->scroll[2]) + menu->ox + menu->col * menu->colW;
+        target[1] = (win->rect.y - win->scroll[3]) + menu->oy + menu->row * menu->rowH;
         target[2] = menu->cw;
         target[3] = menu->ch;
         moveCursorHighlight(menu->cursor, (Rect16 *)target);

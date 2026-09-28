@@ -23,7 +23,7 @@
 
 s32 D_8006DF80 = 0xFF;
 
-void renderSceneModels(Unk800793A0 *buffer, s32 bufferIndex) {
+void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     MATRIX localScreen;
     SVECTOR position;
     MATRIX lightMatrix;
@@ -44,7 +44,7 @@ void renderSceneModels(Unk800793A0 *buffer, s32 bufferIndex) {
     ot = SCENE_3D->ot[bufferIndex].org;
     otDepth = 0xFFF;
     if (SCENE_3D_ENABLED != 0) {
-        packet = (u32)buffer->unk4070;
+        packet = (u32)buffer->scenePackets;
         colorMatrix = SCENE_LIGHT_COLORS;
         for (i = 0; i < 24; i++) {
             model = SCENE_3D->unk13C[i];
@@ -149,7 +149,7 @@ void initScene3D(s32 allocBuffers) {
     func_8006A804();
     for (i = 0; i < 2; i++) {
         if (allocBuffers) {
-            DB(i).unk4070 = allocHeapBlock(0xBB80, 0x7F);
+            DB(i).scenePackets = allocHeapBlock(0xBB80, 0x7F);
         }
         SCENE_3D->ot[i].length = 12;
         SCENE_3D->ot[i].org = DB(i).ot;

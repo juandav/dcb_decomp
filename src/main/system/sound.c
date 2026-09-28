@@ -54,7 +54,7 @@ void loadSoundEffectBank(s32 bankId) {
     u8 *pak;
     SndSlot *bank;
 
-    bank = &((SndState *)&SOUND_STATE)->unk14;
+    bank = &((SndState *)&SOUND_STATE)->seBank;
     if (bank->id != bankId) {
         while (SOUND_LOAD_BUSY != 0) {
             func_80014C08(FRAME_INTERVAL);

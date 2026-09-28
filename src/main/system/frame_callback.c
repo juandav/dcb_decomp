@@ -58,21 +58,21 @@ void clearFramePrimSlots(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[0] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[1] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[2] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[3] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[4] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[5] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[6] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[7] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[8] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[9] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[10] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[11] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[12] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[13] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[14] = 0;
-        ((Unk800794F8 *)&GRAPHICS)->unk98[i].unk4078[15] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[0] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[1] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[2] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[3] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[4] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[5] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[6] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[7] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[8] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[9] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[10] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[11] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[12] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[13] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[14] = 0;
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[15] = 0;
     }
 }

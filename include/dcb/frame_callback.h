@@ -5,21 +5,21 @@
 
 #define setUV0(p, _u0, _v0) (p)->u0 = (_u0), (p)->v0 = (_v0)
 #define setWH(p, _w, _h) (p)->w = _w, (p)->h = _h
-#define WP ((PanelPrims *)WINDOW_PRIM_CURSOR)
+#define WP ((WindowPrims *)WINDOW_PRIM_CURSOR)
 
 typedef struct {
     /* 0x000 */ POLY_FT4 ft4a[4];
     /* 0x0A0 */ SPRT linea[4];
     /* 0x0F0 */ SPRT frame;
     /* 0x104 */ u8 tpage[8];
-    /* 0x10C */ u8 unk10C[0xC];
+    /* 0x10C */ u8 fillTwin[0xC];
     /* 0x118 */ u8 twin[0xC];
     /* 0x124 */ SPRT lineb[4];
     /* 0x174 */ POLY_FT4 ft4b[2];
     /* 0x1C4 */ SPRT linec[4];
     /* 0x214 */ POLY_FT4 ft4c[2];
-    /* 0x264 */ u8 unk264[0x30];
-} PanelPrims;
+    /* 0x264 */ u8 drawAreas[0x30];
+} WindowPrims;
 
 extern s32 WINDOW_PRIM_CURSOR;
 extern u16 WINDOW_PRIM_POOL_SIZE;
