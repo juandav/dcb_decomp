@@ -724,7 +724,14 @@ typedef struct {
     s32 subKey;
 } Entry;
 extern Entry *D_801EF950;
-void func_801EBBFC(s32 a0, s32 a1, s32 a2, s32 a3);
+#define setEntry(e, _key, _data, _subKey) \
+    do {                                  \
+        (e)->key = (_key);                \
+        (e)->data = (_data);              \
+        (e)->subKey = (_subKey);          \
+    } while (0)
+extern char D_801DE0B0[];
+void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey);
 typedef struct {
     float unk0;
     s16 target[2];
@@ -4849,7 +4856,56 @@ void func_801EB874(Sprite *sprite, s16 brightness) {
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EBBFC);
+void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey) {
+    char path[20];
+    s32 task;
+    Entry *entry;
+    u8 *data;
+    u8 *copy;
+    u32 *tims;
+    SpriteFrame *frame;
+    s32 i;
+
+    task = getCurrentTaskId();
+    entry = func_801EB380(id, subKey);
+    if (entry == NULL) {
+        return;
+    }
+    data = findPakChunk((Chunk *)subKey, 3, id);
+    if (data == NULL) {
+        sprintf(path, "E:\\SPRITE\\%d.a2d", id);
+        data = (u8 *)loadFileTagged((s32 *)path, task, 0x80);
+    } else {
+        copy = allocHeapBlock(((s32 *)data)[-1], 0x80);
+        bcopy(data, copy, ((s32 *)data)[-1]);
+        data = copy;
+    }
+    if (data == NULL) {
+        return;
+    }
+    x -= 0x140;
+    tims = findPakChunk((Chunk *)subKey, 5, id);
+    if (tims == NULL) {
+        sprintf(path, D_801DE0B0, data);
+        tims = (u32 *)loadFile(path, task);
+        uploadTimListOffset(tims, x, y);
+        freeHeapBlock(tims);
+    } else {
+        uploadTimListOffset(tims, x, y);
+    }
+    data += 0x14;
+    setEntry(entry, id, data, subKey);
+    ((SpriteSheet *)entry->data)->x += x;
+    ((SpriteSheet *)entry->data)->y += y;
+    ((SpriteSheet *)entry->data)->clutX += x;
+    ((SpriteSheet *)entry->data)->clutY += y;
+    frame = (SpriteFrame *)(entry->data + 0x10);
+    for (i = 0; i < ((SpriteSheet *)entry->data)->frameCount; i++) {
+        frame->v0 += y;
+        frame->v1 += y;
+        frame++;
+    }
+}
 
 void func_801EBE20(s32 a0, s32 a1, s32 a2) {
     func_801EBBFC(a0, a1, a2, 0);
