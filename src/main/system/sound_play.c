@@ -152,7 +152,3 @@ void playMusic(s32 slotIndex, s32 trackId, s32 volume) {
         func_800149B8(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 0);
     }
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/system/sound_play", PATH_OPENSEG_BIN);
-
-INCLUDE_RODATA("asm/main/nonmatchings/system/sound_play", PATH_DIGIMON_MOV);
