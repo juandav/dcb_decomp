@@ -30,7 +30,7 @@
 #include "dcb/str_util.h"
 
 void resetScrollingBackground(void) {
-    D_801D8260 = 0;
+    SCROLL_BACKGROUND.tim = 0;
 }
 
 void loadScrollingBackground(void) {
@@ -55,16 +55,16 @@ void loadScrollingBackground(void) {
         initPrimByType(0xE, sprite, 0, 0);
         sprite->w = 0x141;
         sprite->h = 0xF0;
-        /* buf[i].twin0: an empty texture window, drawn after the sprite to
-           turn windowing back off */
+        /* an empty texture window, drawn after the sprite to turn windowing
+           back off */
         texWindow[0] = 0;
         texWindow[1] = 0;
         texWindow[2] = 0;
         texWindow[3] = 0;
-        SetTexWindow((u8 *)&D_801D8220 + i * sizeof(ScrollBgSprite), texWindow);
+        SetTexWindow((u8 *)SCROLL_BACKGROUND.buf[i].twin0, texWindow);
     }
     spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\BG.ARC", getCurrentTaskId(), -2);
-    D_801D8260 = waitFrames(0x7FFFFFFF);
+    SCROLL_BACKGROUND.tim = waitFrames(0x7FFFFFFF);
 }
 
 void freeScrollingBackground(void) {
@@ -112,11 +112,11 @@ void hideScrollingBackground(void) {
 }
 
 void fadeOutScrollingBackground(void) {
-    D_801D8264 = -1;
+    SCROLL_BACKGROUND.mode = -1;
 }
 
 void setBackgroundScrollMode(s8 scrollMode) {
-    D_801D8266 = scrollMode;
+    SCROLL_BACKGROUND.scrollMode = scrollMode;
 }
 
 s16 ATTACK_ICON_ORIGIN_X[3] = { 0x80, -0x40, 0x140 };

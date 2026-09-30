@@ -38,7 +38,7 @@ void startCpuDuel(s32 deckIndex) {
     ((SessionData *)SESSION_DATA)->opponentDeck = decks[deckIndex];
     spawnTask(0, -1, 0, 0x800, runDuel, 1, getCurrentTaskId(), 0, 0);
     result = waitFrames(0x7FFFFFFF);
-    if (*((s8 *)DUEL_STATE + 0x81F) == 0) {
+    if (DUEL->tutorial == 0) {
         if (result != 0) {
             if (++PLAYER_DATA(0).battleLosses >= 1000) {
                 PLAYER_DATA(0).battleLosses = 999;

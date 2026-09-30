@@ -25,7 +25,6 @@ typedef struct Task {
 } Task;
 
 extern s32 TASK_VSYNC_MODE;
-extern Task *D_80077AEC; /* TASK_LIST_END.next: where the list wraps around to */
 extern Task TASKS[32];
 extern s16 CURRENT_TASK_PRIORITY;
 extern s16 PREEMPTED_TASK_PRIORITY;
@@ -33,7 +32,6 @@ extern s16 DEFERRED_TASK_PRIORITY;
 extern Task TASK_LIST_END;
 extern struct TCB *KERNEL_TCB;
 extern s32 VSYNC_EVENT;
-extern s32 D_80077BC0; /* TASKS[0].regs */
 extern Task *CURRENT_TASK;
 extern Task *PREEMPTED_TASK;
 extern Task *DEFERRED_TASK;

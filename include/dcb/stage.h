@@ -19,10 +19,6 @@ extern s32 STAGE_FADE_LEVEL;
 extern u8 STAGE_CLEAR_COLOR[3];
 extern s32 STAGE_PAK;
 extern u8 D_801F80C1;
-extern s32 D_801D8260;
-extern s32 D_801D8220;
-extern s8 D_801D8264;
-extern s8 D_801D8266;
 
 void animateStageTexture(Model *model);
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims);
