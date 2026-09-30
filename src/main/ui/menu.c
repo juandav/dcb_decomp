@@ -54,8 +54,8 @@ void moveCursorHighlight(CursorHighlight *highlight, Rect16 *target) {
     highlight->target = *target;
 }
 
-void setCursorHighlightColor(void *highlight, Bytes4 *color) {
-    *(Bytes4 *)((s8 *)highlight + 0x48) = *color;
+void setCursorHighlightColor(CursorHighlight *highlight, Bytes4 *color) {
+    highlight->color = *color;
 }
 
 void drawCursorHighlight(CursorHighlight *highlight, s32 z) {
@@ -79,38 +79,39 @@ void drawCursorHighlight(CursorHighlight *highlight, s32 z) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[z], &highlight->dm[FRAME_BUFFER_INDEX]);
 }
 
-void openMenu(void *menu, void *win, CursorHighlight *highlight, Bytes4 *color) {
+void openMenu(Menu *menu, UiWindow *win, CursorHighlight *highlight, Bytes4 *color) {
     s16 view[4];
 
-    (*(void **)((s8 *)menu + 0)) = win;
-    (*(CursorHighlight **)((s8 *)menu + 4)) = highlight;
-    (*(s16 *)((s8 *)menu + 0x12)) = -1;
-    (*(s16 *)((s8 *)menu + 0x16)) = -1;
-    (*(s8 *)((s8 *)menu + 0x26)) = 1;
-    (*(s8 *)((s8 *)menu + 0x27)) = 0;
+    menu->win = win;
+    menu->cursor = highlight;
+    menu->prevCol = -1;
+    menu->prevRow = -1;
+    menu->active = 1;
+    menu->moved = 0;
+    /* the window shows the whole grid, scrolled to center the current row */
     view[0] = 0;
-    view[1] = (*(s16 *)((s8 *)menu + 0x14)) * (*(u8 *)((s8 *)menu + 0x25)) - ((*(s16 *)((s8 *)menu + 0xE)) - (*(u8 *)((s8 *)menu + 0x25))) / 2;
-    view[2] = (*(u8 *)((s8 *)menu + 0x24)) * (*(s16 *)((s8 *)menu + 0x1E));
-    view[3] = (*(u8 *)((s8 *)menu + 0x25)) * (*(s16 *)((s8 *)menu + 0x20));
-    openWindow(win, (s8 *)menu + 8, -1, view, (*(u8 *)((s8 *)menu + 0x18)), (*(u8 *)((s8 *)menu + 0x19)), 0x80, 0xC);
-    view[0] = (*(u8 *)((s8 *)menu + 0x22)) + (*(u16 *)((s8 *)win + 0));
-    view[1] = (*(u8 *)((s8 *)menu + 0x23)) + (*(u16 *)((s8 *)win + 2)) + (*(s16 *)((s8 *)menu + 0x14)) * (*(u8 *)((s8 *)menu + 0x25));
-    view[2] = (*(u16 *)((s8 *)menu + 0x1A));
-    view[3] = (*(u16 *)((s8 *)menu + 0x1C));
+    view[1] = menu->row * menu->rowH - (menu->rect.h - menu->rowH) / 2;
+    view[2] = menu->colW * menu->ncols;
+    view[3] = menu->rowH * menu->nrows;
+    openWindow(win, &menu->rect, -1, view, menu->windowFlags, menu->windowStyle, 0x80, 0xC);
+    view[0] = menu->ox + win->originX;
+    view[1] = menu->oy + win->originY + menu->row * menu->rowH;
+    view[2] = menu->cw;
+    view[3] = menu->ch;
     initCursorHighlight(highlight, (Rect16 *)view, color);
 }
 
-void centerMenuOnCursor(void *menu) {
+void centerMenuOnCursor(Menu *menu) {
     s16 target[4];
-    void *win;
+    UiWindow *win;
 
-    win = (*(void **)((s8 *)menu + 0));
-    scrollWindowTo(win, 0, (*(s16 *)((s8 *)menu + 0x14)) * (*(u8 *)((s8 *)menu + 0x25)) - ((*(s16 *)((s8 *)menu + 0xE)) - (*(u8 *)((s8 *)menu + 0x25))) / 2);
-    target[0] = ((*(u16 *)((s8 *)win + 0xC)) - (*(u16 *)((s8 *)win + 0x34))) + (*(u8 *)((s8 *)menu + 0x22)) + (*(s16 *)((s8 *)menu + 0x10)) * (*(u8 *)((s8 *)menu + 0x24));
-    target[1] = ((*(u16 *)((s8 *)win + 0xE)) - (*(u16 *)((s8 *)win + 0x36))) + (*(u8 *)((s8 *)menu + 0x23)) + (*(s16 *)((s8 *)menu + 0x14)) * (*(u8 *)((s8 *)menu + 0x25));
-    target[2] = (*(u16 *)((s8 *)menu + 0x1A));
-    target[3] = (*(u16 *)((s8 *)menu + 0x1C));
-    moveCursorHighlight(*(CursorHighlight **)((s8 *)menu + 4), (Rect16 *)target);
+    win = menu->win;
+    scrollWindowTo((s16 *)win, 0, menu->row * menu->rowH - (menu->rect.h - menu->rowH) / 2);
+    target[0] = (win->rect.x - win->scroll[2]) + menu->ox + menu->col * menu->colW;
+    target[1] = (win->rect.y - win->scroll[3]) + menu->oy + menu->row * menu->rowH;
+    target[2] = menu->cw;
+    target[3] = menu->ch;
+    moveCursorHighlight(menu->cursor, (Rect16 *)target);
 }
 
 s32 updateMenuCursor(Menu *menu) {
@@ -125,34 +126,37 @@ s32 updateMenuCursor(Menu *menu) {
         highlight->brightness = 0x80;
         if (menu->nrows >= 2 && menu->rowH != 0) {
             if (PAD_STATES[menu->pad]->repeat & 0x1000) {
+                /* up: wraps around to the last row */
                 playMenuSound(2);
                 menu->moved = 1;
                 if (--menu->row < 0) {
                     scrollWindowTo((s16 *)win, 0, win->view.h - win->rect.h);
                     menu->row = menu->nrows - 1;
                 } else {
-                if (menu->row == 0) {
-                    PAD_STATES[menu->pad]->repeatEnabled = 0;
-                }
-                if (menu->row * menu->rowH < win->scroll[3]) {
-                    scrollWindowTo((s16 *)win, 0, menu->row * menu->rowH);
-                }
+                    if (menu->row == 0) {
+                        PAD_STATES[menu->pad]->repeatEnabled = 0;
+                    }
+                    if (menu->row * menu->rowH < win->scroll[3]) {
+                        scrollWindowTo((s16 *)win, 0, menu->row * menu->rowH);
+                    }
                 }
             } else if (PAD_STATES[menu->pad]->repeat & 0x4000) {
+                /* down: wraps around to the first row */
                 playMenuSound(2);
                 menu->moved = 1;
                 if (++menu->row >= menu->nrows) {
                     scrollWindowTo((s16 *)win, 0, 0);
                     menu->row = 0;
                 } else {
-                if (menu->row == menu->nrows - 1) {
-                    PAD_STATES[menu->pad]->repeatEnabled = 0;
-                }
-                if (menu->row * menu->rowH >= win->scroll[3] + win->rect.h) {
-                    scrollWindowTo((s16 *)win, 0, (menu->row + 1) * menu->rowH - win->rect.h);
-                }
+                    if (menu->row == menu->nrows - 1) {
+                        PAD_STATES[menu->pad]->repeatEnabled = 0;
+                    }
+                    if (menu->row * menu->rowH >= win->scroll[3] + win->rect.h) {
+                        scrollWindowTo((s16 *)win, 0, (menu->row + 1) * menu->rowH - win->rect.h);
+                    }
                 }
             } else if (PAD_STATES[menu->pad]->repeat & 0x1) {
+                /* L2: one page up (a page is the rows that fit in the window) */
                 if (menu->row != 0) {
                     playMenuSound(2);
                 }
@@ -169,6 +173,7 @@ s32 updateMenuCursor(Menu *menu) {
                     scrollWindowTo((s16 *)win, 0, win->scroll[3] - (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
                 }
             } else if (PAD_STATES[menu->pad]->repeat & 0x2) {
+                /* R2: one page down */
                 if (menu->row != menu->nrows - 1) {
                     playMenuSound(2);
                 }
@@ -187,6 +192,7 @@ s32 updateMenuCursor(Menu *menu) {
             }
         }
     } else {
+        /* an inactive menu dims its cursor */
         highlight->brightness = 0x40;
     }
     if (menu->row != menu->prevRow || menu->col != menu->prevCol) {

@@ -8,18 +8,25 @@
 #include "dcb/screen_copy.h"
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
+#include <kernel.h>
+
+/* The scheduler runs with the kernel's TCB: switching tasks means copying a
+ * task's saved registers in or out of KERNEL_TCB->reg.
+ * func_8006A804/func_8006A814 are EnterCriticalSection/ExitCriticalSection,
+ * func_8006A794/func_8006A7C4 OpenEvent/EnableEvent (B0 calls 0x08/0x0C). */
 
 void setTaskVsyncMode(s32 vsyncMode) {
-    s16 *task;
+    Task *task;
     s32 i;
 
     func_8006A804();
     if (vsyncMode != 0) {
         if (TASK_VSYNC_MODE == 0) {
             TASK_VSYNC_MODE = 1;
-            task = &TASKS;
-            for (i = 0x1F; i >= 0; i--, task += 0x60) {
-                if (*task > 0) {
+            /* the list end now wraps around to the first task that isn't the main one */
+            task = TASKS;
+            for (i = 31; i >= 0; i--, task++) {
+                if (task->status.priority > 0) {
                     D_80077AEC = task;
                     break;
                 }
@@ -27,16 +34,16 @@ void setTaskVsyncMode(s32 vsyncMode) {
         }
     } else if (TASK_VSYNC_MODE != 0) {
         TASK_VSYNC_MODE = 0;
-        D_80077AEC = &TASKS;
+        D_80077AEC = TASKS;
     }
     func_8006A814();
 }
 
 s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a2, s32 a3) {
-    s32 *slot;
-    s32 *mainTask;
-    s32 *tcbTable;
-    s32 *src;
+    Task *task;
+    Task *mainTask;
+    struct TCBH *pcb;
+    unsigned long *src;
     s32 *dst;
     s32 i;
     s32 j;
@@ -45,44 +52,48 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
 
     func_8006A804();
     TASK_VSYNC_MODE = mode;
-    for (slot = (s32 *)&TASKS, i = 0x1F; i >= 0; i--, slot += 0x30) {
-        *slot = 0;
+    for (task = TASKS, i = 31; i >= 0; i--, task++) {
+        task->status.flags = 0;
     }
     CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&D_80077A1C = 0xFFFF;
-    CURRENT_TASK = (TaskHeader *)((Task *)&TASKS - 1);
-    ((Task *)&TASK_LIST_END)->flags = 0x8000FFFF;
-    ((Task *)&TASK_LIST_END)->next = (Task *)CURRENT_TASK + 1;
+    CURRENT_TASK = TASKS - 1;
+    TASK_LIST_END.status.flags = 0x8000FFFF;
+    TASK_LIST_END.prev = CURRENT_TASK + 1;
     if (TASK_VSYNC_MODE != 0) {
-        ((Task *)&TASK_LIST_END)->prev = (Task *)&TASK_LIST_END;
+        TASK_LIST_END.next = &TASK_LIST_END;
     } else {
-        D_80077AEC = &TASKS;
+        D_80077AEC = TASKS;
     }
-    ((Task *)&TASK_LIST_END)->id = -1;
-    tcbTable = *(s32 **)0x108;
-    KERNEL_TCB = *tcbTable;
-    src = (s32 *)(KERNEL_TCB + 8);
+    TASK_LIST_END.id = -1;
+    /* 0x108 holds the kernel's process control block, whose first word is
+     * the running TCB */
+    pcb = *(struct TCBH **)0x108;
+    KERNEL_TCB = pcb->entry;
+    src = KERNEL_TCB->reg;
     dst = &D_80077BC0;
-    for (j = 0x27; j >= 0; j--) {
+    for (j = 39; j >= 0; j--) {
         *dst++ = *src++;
     }
-    mainTask = (s32 *)&TASKS;
-    mainTask[0] = 0xA0000000;
-    mainTask[0x28] = entry;
-    mainTask[0x2B] = 0x4000FF04;
-    mainTask[0xC] = a0;
-    mainTask[0xD] = a1;
-    mainTask[0xE] = a2;
-    mainTask[0xF] = a3;
-    mainTask[2] = (s32)&TASK_LIST_END;
-    mainTask[3] = (s32)&TASK_LIST_END;
-    mainTask[5] = 0;
-    mainTask[6] = 0;
+    /* the main task is TASKS[0], priority 0 */
+    mainTask = TASKS;
+    mainTask->status.flags = 0xA0000000;
+    mainTask->regs[R_EPC] = entry;
+    mainTask->regs[R_SR] = 0x4000FF04;
+    mainTask->regs[R_A0] = a0;
+    mainTask->regs[R_A1] = a1;
+    mainTask->regs[R_A2] = a2;
+    mainTask->regs[R_A3] = a3;
+    mainTask->prev = &TASK_LIST_END;
+    mainTask->next = &TASK_LIST_END;
+    mainTask->id = 0;
+    mainTask->wakeResult = 0;
     stack = (s32)allocHeapBlock(stackSize, -3);
     if (stack == 0) {
         return -6;
     }
-    mainTask[7] = stack;
-    mainTask[0x25] = stack + (stackSize & ~7) - 0x20;
+    mainTask->stack = stack;
+    mainTask->regs[R_SP] = stack + (stackSize & ~7) - 0x20;
+    /* preempt the running task at every vsync (root counter 3) */
     vsyncEvent = func_8006A794(0xF2000003, 2, 0x1000, (long (*)())handleVsyncPreemption);
     func_8006A7C4(vsyncEvent);
     SetRCnt(0xF2000003, 1, 0x1000);
@@ -94,78 +105,83 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
 
 long handleVsyncPreemption(void) {
     Task *task;
-    s32 *tcbRegs;
+    unsigned long *tcbRegs;
     s32 *regs;
     s32 i;
 
-    task = (Task *)CURRENT_TASK;
+    task = CURRENT_TASK;
     tickVblankCounters();
-    tcbRegs = (s32 *)(KERNEL_TCB + 8);
+    tcbRegs = KERNEL_TCB->reg;
     regs = task->regs;
-    for (i = 0x27; i >= 0; i--) {
+    for (i = 39; i >= 0; i--) {
         *regs++ = *tcbRegs++;
     }
-    task->flags |= 0x20000000;
+    task->status.flags |= 0x20000000;
     if ((PREEMPTED_TASK_PRIORITY = CURRENT_TASK_PRIORITY) == 0) {
         if (TASK_VSYNC_MODE == 0) {
-            D_80077A14 = &TASKS;
+            D_80077A14 = TASKS;
             D_80077A1C = 0;
         }
     } else {
+        /* switch to the main task */
         PREEMPTED_TASK = task;
-        task = (Task *)&TASKS;
-        CURRENT_TASK = (TaskHeader *)task;
-        CURRENT_TASK_PRIORITY = TASKS;
-        tcbRegs = (s32 *)(KERNEL_TCB + 8);
+        task = TASKS;
+        CURRENT_TASK = task;
+        CURRENT_TASK_PRIORITY = TASKS[0].status.priority;
+        tcbRegs = KERNEL_TCB->reg;
         regs = task->regs;
-        for (i = 0x27; i >= 0; i--) {
+        for (i = 39; i >= 0; i--) {
             *tcbRegs++ = *regs++;
         }
     }
 }
 
-void *selectNextTask(void *current) {
-    s16 *next = *(s16 **)((s8 *)current + 0xC);
-    s16 prio = *next;
+Task *selectNextTask(Task *current) {
+    Task *next = current->next;
+    s16 priority = next->status.priority;
 
-    if (*next > 0 && prio == PREEMPTED_TASK_PRIORITY) {
+    if (next->status.priority > 0 && priority == PREEMPTED_TASK_PRIORITY) {
+        /* go back to the task that the vsync preempted */
         D_80077A14 = next;
-        D_80077A1C = prio;
+        D_80077A1C = priority;
         next = PREEMPTED_TASK;
         PREEMPTED_TASK_PRIORITY = -1;
     } else {
-        prio = *next;
-        if ((u16)prio > (u16)D_80077A1C) {
-            prio = D_80077A1C;
+        priority = next->status.priority;
+        if ((u16)priority > (u16)D_80077A1C) {
+            priority = D_80077A1C;
             next = D_80077A14;
             *(u16 *)&D_80077A1C = 0xFFFF;
         }
     }
     CURRENT_TASK = next;
-    CURRENT_TASK_PRIORITY = prio;
+    CURRENT_TASK_PRIORITY = priority;
     return next;
 }
 
+/* Starts a task in slot taskId (0: the first free one). insertPos < 0 places
+ * it by priority; 0-31 right after that task and 32-63 right before task
+ * insertPos - 32, clamping the priority so the list stays sorted. */
 s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unused, s32 entry, s32 a0, s32 a1, s32 a2, s32 a3) {
     Task *task;
-    Task *prev;
-    Task *next;
+    Task *after;
+    Task *before;
     s32 ret;
-    s32 prevFlags;
-    s32 nextFlags;
-    s32 *src;
+    s32 afterFlags;
+    s32 beforeFlags;
+    unsigned long *src;
     s32 *dst;
     s32 i;
     s32 stack;
 
-    task = (Task *)&TASKS + taskId;
+    task = TASKS + taskId;
     if (taskId != 0) {
-        if ((s32)task->flags < 0) {
+        if (task->status.flags < 0) {
             return -1;
         }
     } else {
         for (taskId++; taskId < 32; taskId++) {
-            if ((s32)(++task)->flags >= 0) {
+            if ((++task)->status.flags >= 0) {
                 break;
             }
         }
@@ -175,61 +191,62 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     }
     ret = 0;
     if (insertPos < 0) {
-        prev = (Task *)&TASKS;
-        if (priority >= *(u16 *)prev) {
+        after = TASKS;
+        if (priority >= (u16)after->status.priority) {
             do {
-                prev = prev->prev;
-            } while (priority >= *(u16 *)prev);
+                after = after->next;
+            } while (priority >= (u16)after->status.priority);
         }
-        goto after;
+        goto link;
     }
     if (insertPos >= 32) {
         insertPos -= 32;
-        prev = (Task *)&TASKS + insertPos;
-        if ((s32)prev->flags >= 0) {
+        after = TASKS + insertPos;
+        if (after->status.flags >= 0) {
             return -3;
         }
-        prevFlags = prev->flags;
-        if ((u16)prevFlags < priority) {
+        afterFlags = after->status.flags;
+        if ((u16)afterFlags < priority) {
             ret = -0x86;
-            priority = prevFlags;
+            priority = afterFlags;
         }
-    after:
-        next = prev->next;
-        next->prev = task;
+    link:
+        before = after->prev;
+        before->next = task;
     } else {
-        next = (Task *)&TASKS + insertPos;
-        if ((s32)next->flags >= 0) {
+        before = TASKS + insertPos;
+        if (before->status.flags >= 0) {
             return -3;
         }
-        nextFlags = next->flags;
-        if (priority < (u16)nextFlags) {
+        beforeFlags = before->status.flags;
+        if (priority < (u16)beforeFlags) {
             ret = -0x86;
-            priority = nextFlags;
+            priority = beforeFlags;
         }
-        prev = next->prev;
-        next->prev = task;
+        after = before->next;
+        before->next = task;
     }
-    prev->next = task;
-    task->next = next;
-    task->prev = prev;
-    if (TASK_VSYNC_MODE != 0 && priority > 0 && *(s16 *)next == 0) {
-        D_80077AEC = (s16 *)task;
+    after->prev = task;
+    task->prev = before;
+    task->next = after;
+    if (TASK_VSYNC_MODE != 0 && priority > 0 && before->status.priority == 0) {
+        D_80077AEC = task;
     }
-    src = (s32 *)(KERNEL_TCB + 8);
+    src = KERNEL_TCB->reg;
     dst = task->regs;
-    for (i = 0x27; i >= 0; i--) {
+    for (i = 39; i >= 0; i--) {
         *dst++ = *src++;
     }
-    task->flags = priority | 0xA0000000;
-    task->regs[32] = entry;
-    task->regs[35] = 0x4000FF04;
-    task->regs[4] = a0;
-    task->regs[5] = a1;
-    task->regs[6] = a2;
-    task->regs[7] = a3;
-    task->regs[31] = (s32)func_80014A90;
-    task->regs[28] = TASK_GP;
+    task->status.flags = priority | 0xA0000000;
+    task->regs[R_EPC] = entry;
+    task->regs[R_SR] = 0x4000FF04;
+    task->regs[R_A0] = a0;
+    task->regs[R_A1] = a1;
+    task->regs[R_A2] = a2;
+    task->regs[R_A3] = a3;
+    /* returning from the entry point ends the task */
+    task->regs[R_RA] = (s32)func_80014A90;
+    task->regs[R_GP] = TASK_GP;
     task->id = taskId;
     task->wakeResult = 0;
     stack = (s32)allocHeapBlock(stackSize, -3);
@@ -237,87 +254,88 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
         return -6;
     }
     task->stack = stack;
-    task->regs[29] = stack + (stackSize & ~7) - 0x20;
+    task->regs[R_SP] = stack + (stackSize & ~7) - 0x20;
     return ret;
 }
 
 s32 killTask(s32 taskId) {
-    void *task;
-    void *prev;
-    void *next;
-    void **sentinel;
+    Task *task;
+    Task *prev;
+    Task *next;
+    Task *listEnd;
 
-    task = (s8 *)&TASKS + taskId * 0xC0;
-    if ((*(s32 *)((s8 *)task + 0)) >= 0) {
+    task = TASKS + taskId;
+    if (task->status.flags >= 0) {
         return -0x83;
     }
     if (task == CURRENT_TASK) {
         return -4;
     }
-    if (task == &TASKS) {
+    if (task == TASKS) {
         return -5;
     }
-    prev = (*(void **)((s8 *)task + 8));
-    next = (*(void **)((s8 *)task + 0xC));
-    (*(void **)((s8 *)prev + 0xC)) = next;
-    (*(void **)((s8 *)next + 8)) = prev;
+    prev = task->prev;
+    next = task->next;
+    prev->next = next;
+    next->prev = prev;
     if (TASK_VSYNC_MODE != 0) {
-        sentinel = (void **)&TASK_LIST_END;
-        if (sentinel[3] == task) {
-            sentinel[3] = next;
+        listEnd = &TASK_LIST_END;
+        if (listEnd->next == task) {
+            listEnd->next = next;
         }
     }
     if ((PREEMPTED_TASK_PRIORITY > 0) && (task == PREEMPTED_TASK)) {
         PREEMPTED_TASK = next;
-        PREEMPTED_TASK_PRIORITY = (*(u16 *)((s8 *)next + 0));
+        PREEMPTED_TASK_PRIORITY = (u16)next->status.priority;
     }
     if ((D_80077A1C >= 0) && (task == D_80077A14)) {
         D_80077A14 = next;
-        D_80077A1C = (*(u16 *)((s8 *)next + 0));
+        D_80077A1C = (u16)next->status.priority;
     }
-    freeHeapBlocksByTag((*(s32 *)((s8 *)task + 0x14)));
-    freeHeapBlock((*(void **)((s8 *)task + 0x1C)));
-    (*(s32 *)((s8 *)task + 0)) = 0;
+    freeHeapBlocksByTag(task->id);
+    freeHeapBlock((void *)task->stack);
+    task->status.flags = 0;
     return 0;
 }
 
 void exitCurrentTask(void) {
-    void *task;
-    void *prev;
-    void *next;
-    void **sentinel;
+    Task *task;
+    Task *prev;
+    Task *next;
+    Task *listEnd;
 
     task = CURRENT_TASK;
-    prev = (*(void **)((s8 *)task + 8));
-    next = (*(void **)((s8 *)task + 0xC));
-    (*(void **)((s8 *)prev + 0xC)) = next;
-    (*(void **)((s8 *)next + 8)) = prev;
+    prev = task->prev;
+    next = task->next;
+    prev->next = next;
+    next->prev = prev;
     if (TASK_VSYNC_MODE != 0) {
-        sentinel = (void **)&TASK_LIST_END;
-        if (sentinel[3] == task) {
-            sentinel[3] = next;
+        listEnd = &TASK_LIST_END;
+        if (listEnd->next == task) {
+            listEnd->next = next;
         }
     }
     if ((PREEMPTED_TASK_PRIORITY > 0) && (task == PREEMPTED_TASK)) {
         PREEMPTED_TASK = next;
-        PREEMPTED_TASK_PRIORITY = (*(u16 *)((s8 *)next + 0));
+        PREEMPTED_TASK_PRIORITY = (u16)next->status.priority;
     }
     if ((D_80077A1C >= 0) && (task == D_80077A14)) {
         D_80077A14 = next;
-        D_80077A1C = (*(u16 *)((s8 *)next + 0));
+        D_80077A1C = (u16)next->status.priority;
     }
-    freeHeapBlocksByTag((*(s32 *)((s8 *)task + 0x14)));
-    freeHeapBlock((*(void **)((s8 *)task + 0x1C)));
-    (*(s32 *)((s8 *)task + 0)) = 0;
+    freeHeapBlocksByTag(task->id);
+    freeHeapBlock((void *)task->stack);
+    task->status.flags = 0;
     selectNextTask(task);
 }
 
+/* func_80014A00 is killTask with the interrupts off */
 int killOtherTasks(void) {
     int selfId = CURRENT_TASK->id;
     int i;
     int killedCount = 0;
 
-    for (i = 1; i < 0x20; i++) {
+    for (i = 1; i < 32; i++) {
         if (i == selfId) {
             continue;
         }
@@ -329,33 +347,33 @@ int killOtherTasks(void) {
 }
 
 s32 getCurrentTaskId(void) {
-    return (*(s32 *)((s8 *)CURRENT_TASK + 0x14));
+    return CURRENT_TASK->id;
 }
 
 s32 wakeTask(s32 taskId, s32 result) {
-    void *task;
+    Task *task;
 
-    task = (s8 *)&TASKS + taskId * 0xC0;
-    if ((*(s32 *)((s8 *)task + 0)) >= 0) {
+    task = TASKS + taskId;
+    if (task->status.flags >= 0) {
         return -3;
     }
     if (task == CURRENT_TASK) {
         return -0x84;
     }
-    (*(s32 *)((s8 *)task + 0x18)) = result;
-    (*(s32 *)((s8 *)task + 4)) = 0;
+    task->wakeResult = result;
+    task->waitFrames = 0;
     return 0;
 }
 
 s32 getTaskWaitFrames(s32 taskId) {
-    void *task;
+    Task *task;
 
-    task = (s8 *)&TASKS + taskId * 0xC0;
-    if ((*(s32 *)((s8 *)task + 0)) >= 0) {
+    task = TASKS + taskId;
+    if (task->status.flags >= 0) {
         return -3;
     }
     if (task == CURRENT_TASK) {
         return -0x84;
     }
-    return (*(s32 *)((s8 *)task + 4));
+    return task->waitFrames;
 }
