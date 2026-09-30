@@ -189,14 +189,11 @@ void loadGteQuadVertex3(s32 gouraud, u32 index, u8 *workBuf) {
 
 u32 *emitTexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     u32 *next;
-    register u32 rgb asm("$8");
     u32 len;
     u32 otz;
     u32 tag;
 
-    gte_mfc2(20, rgb);
-    gte_swc2(12, 8, packet);
-    packet[1] = rgb | code;
+    gte_stsxy0_rgbcode(packet, code);
     next = packet;
     if (gouraud) {
         gte_swc2(2, 12, packet);
