@@ -62,12 +62,12 @@ s32 startModelAnimation(s32 slot, s32 anim, s32 loopKey, s32 rootOnly) {
     animState->keyCount = keyCount;
     animState->clip = anim;
     if (loopKey == -2) {
-        loopKey = *(s16 *)((s8 *)model->anims[anim].data + 0x1A);
+        loopKey = ((KeyFrame *)model->anims[anim].data)->bone[0].pad16;
     }
     animState->loopKey = loopKey;
     animState->key = 0;
     animState->timeScale = 1.0f;
-    return loadNextAnimationKeyframe((Model2220 *)model, 0, -1);
+    return loadNextAnimationKeyframe(model, 0, -1);
 }
 
 /* The animation cache keys are 0x10000000 | modelId << 8 | anim. */
@@ -177,7 +177,7 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     BoneAnim *bone;
     GsCOORDINATE2 *coord;
     SVECTOR *rot;
-    s16 *keyframe;
+    KeyBone *key;
     s32 *rotChan;
     s32 *posChan;
     s32 *scaleChan;
@@ -188,22 +188,22 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     bone = (BoneAnim *)model->keys;
     coord = model->coord;
     rot = model->rots;
-    keyframe = (s16 *)((u8 *)model->anims[anim].data + 4);
+    key = ((KeyFrame *)model->anims[anim].data)->bone;
     /* nobj bones plus the root */
-    for (i = 0; i < model->nobj + 1; i++, keyframe += 12, bone++, coord++, rot++) {
-        /* zero the velocity of the nine channels */
+    for (i = 0; i < model->nobj + 1; i++, key++, bone++, coord++, rot++) {
+        /* zero the velocity of the nine channels (j << 4: one AnimChan) */
         for (j = 0, rotChan = &bone->ch[0].velocity, posChan = &bone->ch[3].velocity, scaleChan = &bone->ch[6].velocity; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }
-        bone->ch[0].value = keyframe[0] << 20;
-        bone->ch[1].value = keyframe[1] << 20;
-        bone->ch[2].value = keyframe[2] << 20;
-        bone->ch[3].value = keyframe[4] << 16;
-        bone->ch[4].value = keyframe[5] << 16;
-        bone->ch[5].value = keyframe[6] << 16;
-        bone->ch[6].value = keyframe[8] << 16;
-        bone->ch[7].value = keyframe[9] << 16;
-        bone->ch[8].value = keyframe[10] << 16;
+        bone->ch[0].value = key->rx << 20;
+        bone->ch[1].value = key->ry << 20;
+        bone->ch[2].value = key->rz << 20;
+        bone->ch[3].value = key->tx << 16;
+        bone->ch[4].value = key->ty << 16;
+        bone->ch[5].value = key->tz << 16;
+        bone->ch[6].value = key->sx << 16;
+        bone->ch[7].value = key->sy << 16;
+        bone->ch[8].value = key->sz << 16;
         if (i < model->nobj) {
             rot->vx = bone->ch[0].value / 0x100000;
             rot->vy = bone->ch[1].value / 0x100000;
