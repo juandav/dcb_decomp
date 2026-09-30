@@ -27,13 +27,14 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 #include "dcb/fade.h"
+#include "dcb/overlay_calls.h"
 
 void initDuelState(s32 isCpuDuel) {
     void *block;
 
     CARD_ANIMS = block = allocTaskHeapBlock(0x870);
     DUEL_STATE = block = allocTaskHeapBlock(0x86C);
-    DUEL->sprites = (void *)func_801F8854();
+    DUEL->sprites = (void *)KAW_allocCardPolys();
     DUEL->turnPlayer = rand() % 2;
     DUEL->step = 0;
     DUEL->cursorPlayer = 0;
@@ -45,7 +46,7 @@ void initDuelState(s32 isCpuDuel) {
     DUEL->awaitingInput = 0;
     DUEL->quit = 0;
     DUEL->tutorialBusy = 0;
-    func_801F8200();
+    KAW_initHudPanels();
     initDuelPlayers(isCpuDuel);
     DUEL->cursorMode = -1;
 }
@@ -77,7 +78,7 @@ void spawnDuelTasks(s32 isCpuDuel) {
     s32 stageId;
     s32 stageArg;
 
-    DUEL->cursor = (u8 *)func_801F8998(0, 0x26, 0x2E, 0xA, 1);
+    DUEL->cursor = (u8 *)KAW_createCursor(0, 0x26, 0x2E, 0xA, 1);
     spawnTask(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
     if ((isCpuDuel != 0) && (DUEL->tutorial == 0)) {
         spawnTask(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
@@ -95,8 +96,8 @@ void spawnDuelTasks(s32 isCpuDuel) {
 
 void teardownDuelScene(void) {
     endTask(0x19);
-    func_801F848C();
-    func_801F88E8();
+    KAW_freeHudPanels();
+    KAW_freeCardPolys();
     freeHeapBlocksByTag(0x7F);
 }
 
@@ -115,27 +116,11 @@ void renderDuelFrame(void) {
     if (DUEL->inPolygonBattle == 0) {
         /* the expanding/shrinking ring, drawn by KAWSEG */
         if (DUEL->ringMode != -1) {
-            func_801F97F4();
+            KAW_renderRing();
         }
-        func_801EB53C(D_801D83D1);
+        KAW_drawHandHints(D_801D83D1);
     }
 }
-
-/* KAWSEG, the duel overlay; D_801F2A40 is a task that main only passes by address */
-void func_801F003C(s32, s32);
-void func_801F1AA8(s32, s32);
-void func_801F9EAC(s32);
-void func_801F6170(void);
-void func_801F96F0(void);
-void func_801F7B2C(void);
-void func_801F9794(void);
-void D_801F2A40();
-extern s32 D_801FC734;
-void func_801F8DB4(void *);
-void func_801F4A24(void);
-void func_801F5E50(void);
-void func_801F61E4(void);
-void func_801EA7E8(void);
 
 void runDuel(s32 mode, s32 parent) {
     Rect16 r = { 320, 0, 640, 512 };
@@ -156,17 +141,17 @@ void runDuel(s32 mode, s32 parent) {
         i = 7;
     }
     changeScrollingBackground(i, 0x280, 0, 0x280, 0x80);
-    func_801F003C(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
-    func_801F1AA8(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
+    KAW_runDeckSelect(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
+    KAW_runVersusIntro(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
     spawnDuelTasks(mode);
     for (i = 0; i < 2; i++) {
-        func_801F9EAC(i);
+        KAW_resetBonusFlags(i);
     }
     timer = 0;
-    func_801F6170();
+    KAW_loadEffectArchive();
     fadeOutScrollingBackground();
     freeScrollingBackground();
-    func_801F96F0();
+    KAW_initRing();
     setScreenFadeParams(1, 2, 6);
     DUEL->fade = 0x80;
     DUEL->inPolygonBattle = 0;
@@ -178,7 +163,7 @@ void runDuel(s32 mode, s32 parent) {
             DUEL->state++;
             break;
         case 0:
-            func_801F7B2C();
+            KAW_tickDuelMenu();
             break;
         case 1:
             PLAYER_PANEL(0, HUD_DECK)->state = 11;
@@ -313,7 +298,7 @@ void runDuel(s32 mode, s32 parent) {
             break;
         }
     }
-    func_801F9794();
+    KAW_freeRing();
     PAD_INPUT_ENABLED = 1;
     DUEL->stopTurnLoop = -1;
     DUEL->stopArtLoader = -1;
@@ -324,18 +309,18 @@ void runDuel(s32 mode, s32 parent) {
         waitFrames(FRAME_INTERVAL);
     }
     loadScrollingBackground();
-    spawnTask(0, -1, 0, 0x800, D_801F2A40, mode, winner, ((SessionData *)SESSION_DATA)->opponentDeckIndex, 0);
+    spawnTask(0, -1, 0, 0x800, KAW_runResultScreen, mode, winner, ((SessionData *)SESSION_DATA)->opponentDeckIndex, 0);
     waitFrames(FRAME_INTERVAL);
-    while (D_801FC734 != 0) {
+    while (KAW_RESULT_SCREEN_STATE != 0) {
         waitFrames(FRAME_INTERVAL);
-        if (D_801FC734 == 1) {
+        if (KAW_RESULT_SCREEN_STATE == 1) {
             removeFrameCallback((s32)renderDuelFrame);
         }
     }
     while (DUEL->stopTurnLoop != 0) {
         waitFrames(FRAME_INTERVAL);
     }
-    func_801F8DB4(DUEL->cursor);
+    KAW_freeCursor(DUEL->cursor);
     if (DUEL->tutorial == 0 && mode != 0) {
         while (DUEL->stopCpuTask != 0) {
             waitFrames(FRAME_INTERVAL);
@@ -360,10 +345,10 @@ void runDuel(s32 mode, s32 parent) {
             changeScrollingBackground(7, 0x280, 0, 0x280, 0x80);
         }
         if (j) {
-            func_801F4A24();
+            KAW_runExpScreen();
         }
         if (winner == 0) {
-            func_801F5E50();
+            KAW_runPrizeScreen();
         }
         fadeOutScrollingBackground();
     } else if (mode == 0) {
@@ -417,9 +402,9 @@ void runDuel(s32 mode, s32 parent) {
             }
         }
     }
-    func_801F61E4();
+    KAW_freeEffectArchive();
     teardownDuelScene();
-    func_801EA7E8();
+    KAW_freeTutorial();
     waitFrames(4);
     stopMusic();
     resumeTask(parent, winner);

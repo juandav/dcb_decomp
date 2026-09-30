@@ -32,6 +32,7 @@
 #include "dcb/str_util.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
+#include "dcb/overlay_calls.h"
 
 void runMainTask(void) {
     s32 mainTaskId;
@@ -61,7 +62,7 @@ void runMainTask(void) {
         PAD_INPUT_ENABLED = 1;
         spawnTask(0, -1, 0, 0x800, playOpeningMovie, 2, mainTaskId);
         waitFrames(0x7FFFFFFF);
-        func_801E055C(0);
+        OPEN_playMovie(0);
         loadSoundEffectBank(1);
         stopMusic();
         resetDisplay(0x140, 0xF0, 0);

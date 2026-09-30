@@ -25,6 +25,8 @@ options:
 
   symbol_addrs_path:
     - config/symbols.txt
+    # the overlay functions the executable calls, under their overlay's names
+    - config/symbols_overlay_calls.txt
 
   undefined_funcs_auto_path: build/generated/undefined_funcs_auto_main.txt
   undefined_syms_auto_path: build/generated/undefined_syms_auto_main.txt

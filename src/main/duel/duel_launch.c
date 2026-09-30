@@ -20,6 +20,7 @@
 #include "dcb/transform.h"
 #include "dcb/text.h"
 #include "dcb/str_util.h"
+#include "dcb/overlay_calls.h"
 
 void startCpuDuel(s32 deckIndex) {
     u8 *deckFile;
@@ -55,7 +56,7 @@ void startCpuDuel(s32 deckIndex) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     ((SessionData *)SESSION_DATA)->areaSession->duelResult = result;
-    spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
 }
 
 void startVersusDuel(void) {
@@ -88,5 +89,5 @@ void startVersusDuel(void) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x800, D_801EB2E8, getCurrentTaskId(), 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, OPEN_runBattleWithFriend, getCurrentTaskId(), 0, 0, 0);
 }

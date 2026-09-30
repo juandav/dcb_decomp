@@ -57,6 +57,10 @@ updates it once per frame, `render*`/`draw*` draws it, `init*`, `load*`,
 
 Every renamed symbol also goes in `config/symbols.txt`, so that splat's
 disassembly of the original uses the same name and objdiff keeps pairing them.
+An overlay function or global that the executable uses by address keeps the
+overlay's name there too, but in `config/symbols_overlay_calls.txt`, which only
+the executable's splat config reads (another overlay may be loaded at that
+address), with its declaration in `include/dcb/overlay_calls.h`.
 
 ## Pull requests
 

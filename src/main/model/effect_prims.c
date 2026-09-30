@@ -24,6 +24,7 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 #include "dcb/transform.h"
+#include "dcb/overlay_calls.h"
 
 /* per segment, the vertices at its two edge angles on the inner ring, the
    middle ring (midPercent of the way out, in radius and z) and the outer ring */
@@ -97,7 +98,7 @@ RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColo
         ring->texCoords = *texCoords;
         ring->tpage = tpage;
         ring->clut = clut;
-        if (texAnimId >= 0 && func_801E6C78(texAnimId, 1, ring, ring->texAnim, x) != 0) {
+        if (texAnimId >= 0 && SUG_startTexAnim(texAnimId, 1, ring, ring->texAnim, x) != 0) {
             ring->texAnimActive = 1;
         } else {
             ring->texAnimActive = -1;
@@ -215,7 +216,7 @@ void renderRingEffect(RingEffect *ring) {
         u8 *otherPrim;
 
         if (ring->texAnimActive >= 0) {
-            func_801E7020(ring->texAnim);
+            SUG_tickTexAnim(ring->texAnim);
         }
         prim = ring->prims[FRAME_BUFFER_INDEX];
         otherPrim = ring->prims[FRAME_BUFFER_INDEX ^ 1];
@@ -269,7 +270,7 @@ void freeRingEffect(RingEffect *ring) {
         freeHeapBlock(ring->prims[i]);
     }
     if (ring->texAnimActive >= 0) {
-        func_801E72D4(ring->texAnim);
+        SUG_freeTexAnim(ring->texAnim);
     }
     freeHeapBlock(ring->vertices);
     freeHeapBlock(ring);

@@ -21,6 +21,7 @@
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
+#include "dcb/overlay_calls.h"
 
 ArenaStage ARENA_STAGES[56] = {
     { 0x50, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
@@ -217,7 +218,7 @@ void playPolygonBattle(void) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     playLoadedMusic(1);
-    spawnTask(0, -1, 0, 0x2000, D_801EEE90, 0, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x2000, SUG_runPolygonBattle, 0, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     SCENE_3D_ENABLED = 0;
     waitFrames(2);

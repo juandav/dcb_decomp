@@ -392,7 +392,7 @@ void OPEN_startCdStream(CdLocation *loc) {
     } while (CdRead2(0x1E0) == 0);
 }
 
-/* main calls it as func_801E055C, declared s32 in game.h; nothing is returned */
+/* main declares it s32 (dcb/overlay_calls.h); nothing is returned */
 s32 OPEN_playMovie(s32 index) {
     MovieHeights movie = OPEN_MOVIE_HEIGHTS;
     s32 wait;

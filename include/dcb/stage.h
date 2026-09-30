@@ -13,12 +13,10 @@ typedef struct {
 extern DuelDigimonModels DUEL_DIGIMON_MODELS[2];
 extern void *D_801D81AC;
 extern void *EAT_UP_HP_SKILL;
-extern u8 D_801EEE90[];
 extern ArenaStage ARENA_STAGES[];
 extern s32 STAGE_FADE_LEVEL;
 extern u8 STAGE_CLEAR_COLOR[3];
 extern s32 STAGE_PAK;
-extern u8 D_801F80C1;
 
 void animateStageTexture(Model *model);
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims);
