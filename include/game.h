@@ -1120,7 +1120,7 @@ void SpuSetVoiceAttr(SpuVoiceAttr *);
 s16 SsVabOpenHeadSticky(u8 *, s16, s32);
 s32 SsVabTransBody(s32, s16);
 s32 SsVabTransCompleted(s32);
-s32 func_801DFBAC(s32 *);
+s32 func_801DFBAC(char *);
 extern short SsUtKeyOnV(short voice, short vabId, short prog, short tone,
                         short note, short fine, short voll, short volr);
 s32 SsUtKeyOffV(s16);

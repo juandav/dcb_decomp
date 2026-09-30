@@ -25,8 +25,6 @@ extern SndState SOUND_STATE;
 extern s32 SOUND_LOAD_BUSY;
 extern s8 *SE_BANK_INFO[];
 extern s32 SFX_BASE_NOTE;
-extern s32 PATH_OPENSEG_BIN;
-extern s32 PATH_DIGIMON_MOV;
 extern s32 NEXT_SFX_VOICE;
 extern u16 D_8006E04C;
 extern s16 D_801D813E;

@@ -68,7 +68,7 @@ segments:
       - [0x9C0, .rodata, ui/text]
       - [0xD44, .rodata, ui/str_util]
       - [0xD78, .rodata, system/sound]
-      - [0xD98, .rodata, system/sound_play]
+      - [0xD98, .rodata, system/opening_movie]
       - [0xDB8, .rodata, system/memcard]
       - [0xF94, .rodata, card/player_rank]
       - [0xFF0, .rodata, card/player_data]
