@@ -29,4 +29,71 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/duel/cpu_decision", runCpuDecisionTask);
+/* KAWSEG's CPU decision routines */
+s32 func_801E19EC(s32);
+s32 func_801E2100(s32);
+s32 func_801E157C(s32);
+s32 func_801E3FF4(s32);
+s32 func_801E3AF8(s32);
+s32 func_801E363C(s32);
+s32 func_801DFFD4(s32);
+s32 func_801E4E08(s32);
+s32 func_801E3C00(s32);
+s32 func_801E0CCC(s32);
+s32 func_801E4E58(s32);
+void func_801E5710(void);
+
+/* clears the request and waits a frame for the next one */
+#define WAIT_FOR_CPU_REQUEST()           \
+    do {                                 \
+        DUEL->cpuRequest = 0;            \
+        func_80014C08(FRAME_INTERVAL);   \
+    } while (0)
+
+void runCpuDecisionTask(void) {
+    s32 r;
+
+    DUEL->stopCpuTask = 0;
+    WAIT_FOR_CPU_REQUEST();
+    if (DUEL->stopCpuTask == 0) {
+        do {
+            switch (DUEL->cpuRequest) {
+            case 0:
+                break;
+            case 1:
+                DUEL->cpuResult = func_801E19EC(DUEL->cpuPlayer);
+                break;
+            case 2:
+                DUEL->cpuResult = func_801E2100(DUEL->cpuPlayer);
+                break;
+            case 3:
+                r = func_801E157C(DUEL->cpuPlayer);
+                func_801E3FF4(DUEL->cpuPlayer);
+                func_801E3AF8(r);
+                DUEL->cpuResult = func_801E363C(DUEL->cpuPlayer);
+                break;
+            case 4:
+                if (func_801DFFD4(DUEL->cpuPlayer)) {
+                    DUEL->cpuResult = func_801E4E08(DUEL->cpuPlayer);
+                } else {
+                    DUEL->cpuResult = -1;
+                }
+                break;
+            case 5:
+                DUEL->cpuResult = func_801E3C00(DUEL->cpuPlayer);
+                break;
+            case 6:
+                func_801E0CCC(DUEL->cpuPlayer);
+                func_801E4E58(DUEL->cpuPlayer);
+                func_80014C08(60);
+                break;
+            case 7:
+                func_801E0CCC(DUEL->cpuPlayer);
+                func_801E5710();
+                break;
+            }
+            WAIT_FOR_CPU_REQUEST();
+        } while (DUEL->stopCpuTask == 0);
+    }
+    DUEL->stopCpuTask = 0;
+}
