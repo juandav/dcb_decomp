@@ -7439,4 +7439,115 @@ s32 func_801FAA54(s32 x, s32 y, s32 count, s32 z, s32 exp) {
     return 1;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801FB444);
+typedef struct {
+    u8 unk0[8];
+    PolyF4 banner[2];
+    DR_MODE bannerMode[2];
+} DuelBanner;
+#define BANNER ((DuelBanner *)D_801D8340)
+
+void func_801FB444(s32 player, s32 id) {
+    s32 show;
+    s32 x;
+    s32 y;
+    s32 h;
+    s32 frame;
+
+    if (PLAYER(1)->controller != 1 || player != 0) {
+        return;
+    }
+    show = 0;
+    switch (id) {
+    case 24:
+        if (!FLAGS110(player)->f15) {
+            show = 1;
+        }
+        break;
+    case 28:
+        if (FLAGS110(player)->count == 2) {
+            show = 1;
+        }
+        break;
+    case 29:
+        if (!FLAGS110(player)->f29) {
+            show = 1;
+        }
+        break;
+    case 10:
+        if (!FLAGS110(player)->f14) {
+            show = 1;
+        }
+        break;
+    case 27:
+        if (!FLAGS110(player)->f11) {
+            show = 1;
+        }
+        break;
+    case 8:
+        if (!FLAGS110(player)->f6) {
+            show = 1;
+        }
+        break;
+    case 15:
+        show = 1;
+        FLAGS110(player)->f19 = 1;
+        break;
+    case 19:
+        show = 1;
+        FLAGS110(player)->f22 = 1;
+        break;
+    case 25:
+        show = 1;
+        FLAGS110(player)->f9 = 1;
+        break;
+    case 26:
+        show = 1;
+        FLAGS110(player)->f10 = 1;
+        break;
+    }
+    if (show == 0) {
+        return;
+    }
+    x = -200;
+    y = 0x6E;
+    h = 0;
+    frame = 0;
+    do {
+        func_80014C08(FRAME_INTERVAL);
+        if (frame < 100) {
+            x += 16;
+            if (x > 160) {
+                x = 160;
+            }
+            h++;
+            if (h >= 9) {
+                h = 8;
+            }
+        } else {
+            x += 16;
+            if (x > 0x208) {
+                x = 0x208;
+            }
+            h--;
+            if (h < 0) {
+                h = 0;
+            }
+        }
+        frame++;
+        drawText(x - measureText(D_801FC300[id].name) / 2, y - 6, (s32)D_801FC300[id].name, 7, 0);
+        SetDrawTPage(&BANNER->bannerMode[FRAME_BUFFER_INDEX], 0, 0, GetTPage(0, 2, 0, 0));
+        initPrimByType(8, &BANNER->banner[FRAME_BUFFER_INDEX], 1, 0);
+        setPrimRgb0(&BANNER->banner[FRAME_BUFFER_INDEX], 0xC0, 0xC0, 0xC0);
+        SetSemiTrans(&BANNER->banner[FRAME_BUFFER_INDEX], 1);
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->x0 = 0;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->y0 = y - h;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->x1 = 0x140;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->y1 = y - h;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->x2 = 0;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->y2 = y - h + h * 2;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->x3 = 0x140;
+        (&BANNER->banner[FRAME_BUFFER_INDEX])->y3 = y - h + h * 2;
+        AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)&BANNER->banner[FRAME_BUFFER_INDEX]);
+        AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)&BANNER->bannerMode[FRAME_BUFFER_INDEX]);
+    } while (frame < 120);
+}
