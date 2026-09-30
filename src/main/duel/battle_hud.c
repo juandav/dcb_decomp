@@ -2,6 +2,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/battle_hud.h"
+#include "dcb/card_db.h"
 #include "dcb/duel_launch.h"
 #include "dcb/card_render.h"
 #include "dcb/duel.h"
@@ -34,8 +35,7 @@ void waitForStatCountersToSettle(void) {
         unsettled = 0;
         for (player = 0; player < 2; player++) {
             for (i = 0; i < 5; i++) {
-                if (((Player *)DUEL_PLAYERS[player])->stats[i] !=
-                    ((Player *)DUEL_PLAYERS[player])->displayedStats[i]) {
+                if (PLAYER(player)->stats[i] != PLAYER(player)->displayedStats[i]) {
                     unsettled = 1;
                 }
             }
@@ -45,16 +45,16 @@ void waitForStatCountersToSettle(void) {
 
 void showDpGainPopup(s32 player) {
     s32 dpCard;
-    u8 *statusPanel;
+    Panel *statusPanel;
 
     dpCard = peekDpSlotTop(player);
     if (dpCard != -1) {
-        statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
-        PLAYER(player)->statPopups[4].value = (s8)PLAYER(player)->cards[dpCard % 30].card[0x1C];
+        statusPanel = PLAYER_PANEL(player, HUD_STATUS);
+        PLAYER(player)->statPopups[4].value = ((DigimonCardData *)PLAYER(player)->cards[dpCard % 30].card)->dpBonus;
         PLAYER(player)->statPopups[4].type = 5;
         PLAYER(player)->statPopups[4].timer = 0x30;
-        PLAYER(player)->statPopups[4].x = *(s16 *)(statusPanel + 0x10) + (s16)(player * 93 + 0x10);
-        PLAYER(player)->statPopups[4].y = *(u16 *)(statusPanel + 0x12) + 2;
+        PLAYER(player)->statPopups[4].x = statusPanel->x + (s16)(player * 93 + 0x10);
+        PLAYER(player)->statPopups[4].y = statusPanel->y + 2;
     } else {
         PLAYER(player)->statPopups[4].timer = 0;
     }
@@ -62,7 +62,7 @@ void showDpGainPopup(s32 player) {
 
 void showStatChangePopup(s32 player, s32 newValue, s32 stat) {
     s32 activeCard;
-    u8 *statusPanel;
+    Panel *statusPanel;
 
     PLAYER(player)->statPopups[stat].value = newValue - PLAYER(player)->stats[stat];
     if (PLAYER(player)->statPopups[stat].value == 0) {
@@ -76,13 +76,14 @@ void showStatChangePopup(s32 player, s32 newValue, s32 stat) {
     PLAYER(player)->statPopups[stat].timer = 0x30;
     if (stat == 0) {
         activeCard = getActiveDigimonCard(player);
-        projectCardSprite(*(void **)(D_801D833C + activeCard * 36), activeCard);
-        PLAYER(player)->statPopups[0].x = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x34) + 0x19;
-        PLAYER(player)->statPopups[0].y = *(u16 *)(*(u8 **)(D_801D833C + activeCard * 36) + 0x36) + 0x15;
+        /* the HP popup sits on the Digimon's card, the others on the status panel */
+        projectCardSprite(SPRITE(activeCard), activeCard);
+        PLAYER(player)->statPopups[0].x = SPRITE(activeCard)->sx + 0x19;
+        PLAYER(player)->statPopups[0].y = SPRITE(activeCard)->sy + 0x15;
     } else {
-        statusPanel = D_801D83EC + (player * 0xD8 + 0x48);
-        PLAYER(player)->statPopups[stat].x = *(u16 *)(statusPanel + 0x10) + player * 25 + 0x1C;
-        PLAYER(player)->statPopups[stat].y = *(s16 *)(statusPanel + 0x12) + (s16)((stat - 1) * 13 + 3);
+        statusPanel = PLAYER_PANEL(player, HUD_STATUS);
+        PLAYER(player)->statPopups[stat].x = statusPanel->x + player * 25 + 0x1C;
+        PLAYER(player)->statPopups[stat].y = statusPanel->y + (s16)((stat - 1) * 13 + 3);
     }
 }
 
@@ -95,23 +96,23 @@ void renderStatPopups(void) {
 
     for (player = 0; player < 2; player++) {
         for (stat = 4; stat >= 0; stat--) {
-            if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer != 0) {
-                ((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer--;
-                if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].type == 7) {
+            if (PLAYER(player)->statPopups[stat].timer != 0) {
+                PLAYER(player)->statPopups[stat].timer--;
+                if (PLAYER(player)->statPopups[stat].type == 7) {
                     sign = "=";
-                } else if (((Player *)DUEL_PLAYERS[player])->statPopups[stat].type == 5) {
+                } else if (PLAYER(player)->statPopups[stat].type == 5) {
                     sign = "+";
                 } else {
                     sign = "-";
                 }
-                age = ((Player *)DUEL_PLAYERS[player])->statPopups[stat].timer;
+                age = PLAYER(player)->statPopups[stat].timer;
                 if (age < 0x2C) {
                     age = 0x2C;
                 }
-                sprintf(text, "%s%d", sign, ((Player *)DUEL_PLAYERS[player])->statPopups[stat].value);
-                drawBigDigits(((Player *)DUEL_PLAYERS[player])->statPopups[stat].x + (0x30 - age),
-                              ((Player *)DUEL_PLAYERS[player])->statPopups[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
-                              ((Player *)DUEL_PLAYERS[player])->statPopups[stat].type, 0);
+                sprintf(text, "%s%d", sign, PLAYER(player)->statPopups[stat].value);
+                drawBigDigits(PLAYER(player)->statPopups[stat].x + (0x30 - age),
+                              PLAYER(player)->statPopups[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
+                              PLAYER(player)->statPopups[stat].type, 0);
             }
         }
     }
@@ -194,7 +195,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         break;
     case 4:
     case 10:
-        sprintf(text, "%s Deck", PLAYER(player)->unk0 + 1);
+        sprintf(text, "%s Deck", PLAYER(player)->deckName);
         drawText(panel->x + 1 + (0x82 - measureText((u8 *)text)) / 2, panel->y + 0x33 + player * -50, (s32)text, 7, z);
         drawText(panel->x + 0x85 + (0x78 - measureText((u8 *)PLAYER(player)->name)) / 2, panel->y + 0x33 + player * -50,
                       (s32)PLAYER(player)->name, 7, z);
@@ -212,7 +213,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         s32 artLoaded;
         s32 powerShift;
 
-        if (*(s16 *)(DUEL->cursor + 2) == -1) {
+        if (CUR_CARD == -1) {
             break;
         }
         artLoaded = DUEL->cache[DUEL->artSlot].used;
@@ -235,12 +236,12 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->sp);
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             SPRITE_POOL_CURSOR += sizeof(SprtPacket);
-        } else if (SPRITE_KIND(*(s16 *)(DUEL->cursor + 2)) == 0x19 || DUEL->cursorSlot == 4) {
+        } else if (SPRITE_KIND(CUR_CARD) == 0x19 || DUEL->cursorSlot == 4) {
             drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, 0);
         } else {
-            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, SPRITE(*(s16 *)(DUEL->cursor + 2)));
+            drawCardArtPlaceholder(panel->x, panel->y + 7, z, player, SPRITE(CUR_CARD));
         }
-        if (SPRITE_KIND(*(s16 *)(DUEL->cursor + 2)) == 0x19) {
+        if (SPRITE_KIND(CUR_CARD) == 0x19) {
             drawText(panel->x + 0x8E, panel->y + 0x10, (s32)"*h-1All-or-Nothing\nGamble!", 7, z);
             break;
         }
@@ -292,9 +293,9 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             lineColors[9] = shades[0];
             break;
         }
-        switch (PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].type) {
+        switch (PLAYER(DUEL->cursorPlayer)->cards[(s16)(CUR_CARD % 30)].type) {
         case 0:
-            card = (DigimonCardData *)PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
+            card = (DigimonCardData *)PLAYER(DUEL->cursorPlayer)->cards[(s16)(CUR_CARD % 30)].card;
             sprintf(text, "*s0%2d", card->dpCost);
             drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)text, (s32 *)lineColors[0], 7, z);
             sprintf(text, "*s0%2d", card->dpBonus);
@@ -375,29 +376,27 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             }
             break;
         case 1: {
-            s8 *optionCard;
+            OptionCardData *optionCard;
 
-            optionCard = PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
-            drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
+            optionCard = (OptionCardData *)PLAYER(DUEL->cursorPlayer)->cards[(s16)(CUR_CARD % 30)].card;
+            drawText(panel->x + 0x44, panel->y + 1, (s32)optionCard->name, 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 5, z);
-            if (optionCard[0x8C] != 0) {
-                drawIcon(panel->x + 0xE3, panel->y + 2, 0, optionCard[0x8C] + 0x14, z);
+            if (optionCard->supportIcon != 0) {
+                drawIcon(panel->x + 0xE3, panel->y + 2, 0, optionCard->supportIcon + 0x14, z);
             }
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(optionCard + 0x8D + i * 21), (s32 *)lineColors[8], 7,
-                              z);
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)optionCard->text[i], (s32 *)lineColors[8], 7, z);
             }
             break;
         }
         case 2: {
-            s8 *optionCard;
+            DigivolveCardData *digivolveCard;
 
-            optionCard = PLAYER(DUEL->cursorPlayer)->cards[(s16)(*(s16 *)(DUEL->cursor + 2) % 30)].card;
-            drawText(panel->x + 0x44, panel->y + 1, (s32)(optionCard + 3), 7, z);
+            digivolveCard = (DigivolveCardData *)PLAYER(DUEL->cursorPlayer)->cards[(s16)(CUR_CARD % 30)].card;
+            drawText(panel->x + 0x44, panel->y + 1, (s32)digivolveCard->name, 7, z);
             drawIcon(panel->x + 0xC3, panel->y + 1, 0, 6, z);
             for (i = 0; i < 4; i++) {
-                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)(optionCard + 0x1B + i * 21), (s32 *)lineColors[9], 7,
-                              z);
+                drawTextColored(panel->x + 0x8E, panel->y + 0x10 + i * 12, (s32)digivolveCard->text[i], (s32 *)lineColors[9], 7, z);
             }
             break;
         }

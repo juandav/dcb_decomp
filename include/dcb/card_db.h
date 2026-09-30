@@ -5,7 +5,12 @@
 
 typedef struct {
     /* 0x00 */ s16 id;
-    /* 0x02 */ u8 unk2[0xE0];
+    /* 0x02 */ u8 type;
+    /* 0x03 */ char name[0x16];
+    /* 0x19 */ u8 unk19[0x73];
+    /* 0x8C */ s8 supportIcon;
+    /* 0x8D */ u8 text[4][0x15];
+    /* 0xE1 */ u8 unkE1;
 } OptionCardData;
 typedef struct {
     /* 0x00 */ s16 id;

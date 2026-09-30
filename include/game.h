@@ -545,7 +545,8 @@ typedef struct {
     /* 0x10E */ u8 unk10E[2];
 } PlayerDeck;
 typedef struct {
-    /* 0x000 */ u8 unk0[0x14];
+    /* 0x000 */ u8 unk0;
+    /* 0x001 */ char deckName[0x13];
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ u8 unk104[0xC];
     /* 0x110 */ s32 bonusFlags; /* one bit per end-of-duel bonus earned (kawseg) */

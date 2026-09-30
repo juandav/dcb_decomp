@@ -44,7 +44,7 @@ void initDuelPlayers(s32 isCpuDuel) {
     for (i = 0; i < 2; i++) {
         DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4);
         PLAYER(i)->controller = (1 - isCpuDuel) * 2 + i;
-        PLAYER(i)->unk0[0] = 1;
+        PLAYER(i)->unk0 = 1;
         for (j = 0; j < 30; j++) {
             PLAYER(i)->cards[j].id = 0;
             PLAYER(i)->cards[j].type = 0;

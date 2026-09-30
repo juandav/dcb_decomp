@@ -3913,7 +3913,7 @@ s32 func_801EAB4C(void) {
                         PLAYER(player)->cards[slot].type = 2;
                         PLAYER(player)->cards[slot].index = id - 0x125;
                     }
-                    PLAYER(player)->unk0[0] = 1;
+                    PLAYER(player)->unk0 = 1;
                     break;
                 case 2:
                     DUEL_MSG_BAR.playerLabel = (*(ScriptRunner **)D_801D8340)->script->params[0];
