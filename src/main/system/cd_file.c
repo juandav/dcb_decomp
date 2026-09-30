@@ -151,7 +151,7 @@ retry:
         *drivePathCursor++ = '\\';
         *drivePathCursor++ = toupper((s8)*cursor);
         cursor += 2;
-        copyString((s8 *)drivePathCursor, (s8 *)PATH_DRV_SUFFIX);
+        copyString((s8 *)drivePathCursor, (s8 *)".DRV;1");
         if (CdSearchFile(file->loc, drivePath) == 0) {
             return 0;
         }
