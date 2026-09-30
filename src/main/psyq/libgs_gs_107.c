@@ -6,7 +6,7 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-extern MATRIX D_801DBE40;
+extern MATRIX GsLIGHTWSMATRIX;
 void func_8006295C(MATRIX *m);
 void func_800629C0(MATRIX *m);
 
@@ -22,7 +22,7 @@ int GsSetFlatLight(int id, GsF_LIGHT *lt) {
     cr = lt->r;
     cg = lt->g;
     cb = lt->b;
-    lm = D_801DBE40;
+    lm = GsLIGHTWSMATRIX;
     func_800629C0(&cm);
     r = SquareRoot0(lt->vx * lt->vx + lt->vy * lt->vy + lt->vz * lt->vz);
     if (r == 0) {
@@ -54,7 +54,7 @@ int GsSetFlatLight(int id, GsF_LIGHT *lt) {
         cm.m[2][2] = (cb << 12) / 255;
         break;
     }
-    D_801DBE40 = lm;
+    GsLIGHTWSMATRIX = lm;
     func_8006295C(&cm);
     return 0;
 }

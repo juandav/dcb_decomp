@@ -145,5 +145,5 @@ void runDuelMessageWindow(void) {
  * loaders: declared const there, GCC would keep the value across calls,
  * which the original code doesn't (GCC only warns about the mismatch).
  */
-extern u8 D_801DDF38[];
-const s32 OVERLAY_LOAD_ADDR = (s32)D_801DDF38;
+extern u8 OVERLAY_AREA[];
+const s32 OVERLAY_LOAD_ADDR = (s32)OVERLAY_AREA;

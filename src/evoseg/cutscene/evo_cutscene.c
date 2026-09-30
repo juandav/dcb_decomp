@@ -209,7 +209,7 @@ extern _GsFCALL GsFCALL4;
 extern u16 EVO_BANNER_CLUT[16];
 extern s8 EVO_BANNER_FADE;
 extern u8 EVO_BANNER_BRIGHTNESS;
-extern MATRIX D_801DBE40;
+extern MATRIX GsLIGHTWSMATRIX;
 
 void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
 void GsSetLsMatrix(MATRIX *m);
@@ -791,7 +791,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
         coord->flg = 1;
         MulMatrix0(&coord->coord, &coord->super->workm, &coord->workm);
     }
-    MulMatrix0(&D_801DBE40, &coord->workm, &m);
+    MulMatrix0(&GsLIGHTWSMATRIX, &coord->workm, &m);
     SetLightMatrix(&m);
     CompMatrix(&GsWSMATRIX, &coord->workm, &m);
     EVO_setGteMatrix(&m);
