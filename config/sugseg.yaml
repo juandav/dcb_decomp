@@ -41,7 +41,7 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
-  # src/sugseg/sugseg.c exists
+  # the C files in src/sugseg/ exist
   create_c_files: False
 
 segments:
@@ -53,8 +53,33 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, .rodata, sugseg]
-      - [0x188, c, sugseg]
-      - [0x11324, .data, sugseg]
+      - [0x0, .rodata, sug_history]
+      - [0x4, .rodata, sug_gradient]
+      - [0x18, .rodata, sug_tex_anim]
+      - [0x5C, .rodata, sug_effect_script]
+      - [0x164, .rodata, sug_sprite]
+      - [0x188, c, sug_history]
+      - [0x7AC, c, sug_sphere]
+      - [0x3FB0, c, sug_gradient]
+      - [0x5730, c, sug_model_effect]
+      - [0x5E5C, c, sug_stage_fade]
+      - [0x6274, c, sug_sprite_effect]
+      - [0x648C, c, sug_trail]
+      - [0x84EC, c, sug_fade_rect]
+      - [0x8798, c, sug_scroll_texture]
+      - [0x8C08, c, sug_tex_anim]
+      - [0x9770, c, sug_light_motion]
+      - [0x9CB4, c, sug_effect_script]
+      - [0xC63C, c, sug_screen_copy]
+      - [0xD448, c, sug_sprite]
+      - [0xDF34, c, sug_camera]
+      - [0xE068, c, sug_hud]
+      - [0xFD14, c, sug_battle]
+      - [0x11324, c, sug_bss]
+      - [0x11324, .data, sug_light_motion]
+      - [0x11364, .data, sug_battle]
+      - [0x11368, .data, sug_screen_copy]
+      - [0x1136C, .data, sug_effect_script]
+      - [0x11444, .data, sug_bss]
 
   - [0x11A70]
