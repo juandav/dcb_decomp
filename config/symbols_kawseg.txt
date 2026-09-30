@@ -1,0 +1,6 @@
+// KAWSEG's own symbols
+
+// func_801F71A8 calls SUGSEG's func_801E6424 (a colour quad drawer, same
+// arguments as SUGSEG's own caller), but in KAWSEG that address is in the
+// middle of func_801E5710: a label, not a function
+func_801E6424 = 0x801E6424; // type:label
