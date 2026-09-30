@@ -37,7 +37,7 @@
 #include "dcb/game_flow.h"
 #include "gte.h"
 
-void func_801E0AFC(GsDOBJ4 *obj, s32 mode);
+void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode);
 void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m);
 void GsSetLsMatrix(MATRIX *m);
 void GsSetLightMatrix(MATRIX *m);
@@ -56,13 +56,13 @@ typedef struct {
     Script *script;
     s32 *vars;
 } EvoProgram;
-Script *func_801E8650(EvoMsd *data);
+Script *EVO_createScriptContext(EvoMsd *data);
 
-extern Menu D_801F0030;
-extern Menu D_801F005C;
-void func_801EE2DC(s32 index, s32 arg);
-void func_801EE330(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_801EB2A0(void);
+extern Menu EVO_CARD_LIST_MENU;
+extern Menu EVO_SORT_MENU;
+void EVO_playEffect(s32 index, s32 arg);
+void EVO_playEffectScript(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void EVO_findPartnerReward(void);
 
 typedef struct {
     u8 olen;
@@ -125,9 +125,9 @@ typedef struct {
     s16 g;
     s16 b;
 } EvoColor;
-extern s8 *D_801F0540;
-extern SVECTOR *D_801F0538;
-extern EvoColor D_801F0530;
+extern s8 *EVO_SHARD_PRIM;
+extern SVECTOR *EVO_SHARD_VERTS;
+extern EvoColor EVO_SHARD_COLOR;
 extern MATRIX D_801DBEA0;
 long func_80062C44(void);
 void func_80062C34(long base);
@@ -139,14 +139,14 @@ typedef struct {
     s16 id;
     s8 type;
     u8 name[0x15];
-    u8 unk18;
+    u8 fusionPoints;
     u8 level;
     u8 attr;
     u8 pad1B[0xE5 - 0x1B];
     u8 modelId;
 } EvoCardInfo;
-extern EvoRange D_801EFF00[];
-extern EvoCardInfo *D_801F4980[];
+extern EvoRange EVO_CARD_ID_RANGES[];
+extern EvoCardInfo *EVO_CARDS_BY_ID[];
 typedef struct {
     Rect16 rect;
     u16 src[0x100];
@@ -155,9 +155,9 @@ typedef struct {
     s16 level;
 } EvoClut;
 
-void func_801E0618(s32 arg);
-void func_801E2E30();
-void func_801E00F4();
+void EVO_initShatterScene(s32 arg);
+void EVO_tickShatter();
+void EVO_renderCutsceneModels();
 typedef struct {
     s16 x;
     s16 y;
@@ -198,10 +198,10 @@ typedef struct {
     u8 pad1F84[0x22B0 - 0x1F84];
     MATRIX matrices[2];
 } EvoModel;
-void func_801DF7EC(s16 slot);
-void func_801E08D4(EvoPart *part, s32 enable);
+void EVO_restartModelAnimation(s16 slot);
+void EVO_remapPartTextures(EvoPart *part, s32 enable);
 extern s16 D_80079584;
-void func_801DFC18(s32 parentTask);
+void EVO_runFusedDigimonTask(s32 parentTask);
 typedef struct {
     s32 vx;
     s32 vy;
@@ -212,51 +212,53 @@ typedef struct {
     u8 pad;
 } FlatLight;
 s32 GsSetFlatLight(s32 id, FlatLight *light);
-extern u8 *D_801F4E34;
-extern u8 *D_801F4E40[3];
+extern u8 *EVO_SPARE_CARD_COUNTS;
+extern u8 *EVO_DECK_CARD_COUNTS[3];
+/* The state of the fusion screen (EVO_FUSION) */
 typedef struct {
-    u8 pad0[0xA0];
-    s32 *unkA0;
-    s32 unkA4;
-    s32 unkA8;
-    s16 unkAC;
-    s16 unkAE;
-    s16 unkB0;
-    s16 candidates[2];
-    s8 unkB6;
-    s8 unkB7;
-    s8 unkB8;
-    s8 unkB9;
-    s8 unkBA;
-    s8 unkBB;
-    s8 unkBC;
-    s8 unkBD;
-    s8 unkBE;
-    s8 unkBF;
-    s8 unkC0;
-    s8 unkC1;
-    s8 unkC2;
-    s8 unkC3;
-    s8 unkC4;
-    s8 unkC5;
-    s8 unkC6;
-    s8 unkC7;
-    s8 unkC8;
-    s8 unkC9;
-    s8 unkCA;
-    u8 unkCB;
-    s8 busy[3];
-} EvoMenu;
+    /* 0x00 */ u8 pad0[0xA0];
+    /* 0xA0 */ s32 *cardArchive; /* B:\M_CARD.ARC: an offset per card id to its TIM */
+    /* 0xA4 */ s32 swapTimer;    /* the Card Fusion / Partner Fusion panels swapping places */
+    /* 0xA8 */ s32 resumeOffset; /* where the script goes on after the cutscene */
+    /* 0xAC */ s16 firstCard;    /* the first card, or the partner's card in Partner Fusion */
+    /* 0xAE */ s16 secondCard;
+    /* 0xB0 */ s16 result;       /* the card made, the Digi-Part won or the experience to add */
+    /* 0xB2 */ s16 candidates[2];
+    /* 0xB6 */ s8 partnerKind;   /* index in EVO_PARTNER_CARD_IDS, then -1/-2 while adding exp */
+    /* 0xB7 */ s8 rewardStep;
+    /* 0xB8 */ s8 roll;
+    /* 0xB9 */ s8 swapState;
+    /* 0xBA */ s8 fusionType;    /* 0: Card Fusion, 1: Partner Fusion */
+    /* 0xBB */ s8 scriptState;   /* 0: the script runs; otherwise it waits */
+    /* 0xBC */ s8 typeChoiceOpen;
+    /* 0xBD */ s8 unkBD;
+    /* 0xBE */ s8 partnerListOpen;
+    /* 0xBF */ s8 partnerCount;
+    /* 0xC0 */ s8 partner;       /* the partner picked in the partner list */
+    /* 0xC1 */ s8 step;          /* which handler EVO_runFusion calls every frame */
+    /* 0xC2 */ s8 sortMenuOpen;
+    /* 0xC3 */ s8 previewOpen;
+    /* 0xC4 */ s8 pickSlot;      /* 1: picking the first card, 2: the second */
+    /* 0xC5 */ s8 resultKind;    /* 0: by level, 1: a recipe (with the cutscene), 2: a lucky one */
+    /* 0xC6 */ s8 hideResult;
+    /* 0xC7 */ s8 cutscene;      /* leave the screen to play the fusion cutscene */
+    /* 0xC8 */ s8 resultStep;
+    /* 0xC9 */ s8 textTyping;
+    /* 0xCA */ s8 unit;          /* which fusion unit: its script, music and portrait */
+    /* 0xCB */ u8 blinkTimer;
+    /* 0xCC */ s8 busy[3];
+} EvoFusion;
+/* One of the two card trays ("TRAY1", "TRAY2") */
 typedef struct {
-    POLY_FT4 polys[2][3];
-    u8 padF0[0x120 - 0xF0];
-    s32 unk120;
-    s16 unk124;
-    s16 unk126;
-    u8 pad128[0x12C - 0x128];
-} EvoScene;
-extern EvoMenu D_801F5478;
-extern EvoScene D_801F5548[2];
+    /* 0x000 */ POLY_FT4 polys[2][3];
+    /* 0x0F0 */ u8 padF0[0x120 - 0xF0];
+    /* 0x120 */ s32 merge; /* tray 2: the merge started; tray 1: its frames */
+    /* 0x124 */ s16 x;
+    /* 0x126 */ s16 y;
+    /* 0x128 */ u8 pad128[0x12C - 0x128];
+} EvoTray;
+extern EvoFusion EVO_FUSION;
+extern EvoTray EVO_TRAYS[2];
 typedef struct {
     u32 tag;
     u32 code[1];
@@ -272,62 +274,64 @@ typedef struct {
     s16 x2, y2;
     s16 x3, y3;
 } PolyF4;
+/* An additive full-screen quad that flashes the screen white */
 typedef struct {
-    DrTPage tpage[2];
-    PolyF4 poly[2];
-    s16 unk40;
-    s8 unk42;
-} EvoFade;
-extern EvoFade D_801F53C8;
-void func_801E7F64(void);
-void func_801E81C4(EvoProgram *program);
-extern EvoProgram *D_801F5250;
+    /* 0x00 */ DrTPage tpage[2];
+    /* 0x10 */ PolyF4 poly[2];
+    /* 0x40 */ s16 brightness;
+    /* 0x42 */ s8 on;
+} EvoScreenFlash;
+extern EvoScreenFlash EVO_SCREEN_FLASH;
+void EVO_drawScreenFlash(void);
+void EVO_runFusionScript(EvoProgram *program);
+extern EvoProgram *EVO_SCRIPT;
 typedef struct {
     u8 text[0x3C];
     s16 pos;
     s8 active;
     s8 len;
 } EvoText;
-extern UiWindow D_801F43D0;
-void func_801ECC6C(void);
-extern s8 D_801F59A4;
-extern s8 D_801F59A5;
-extern s8 D_801F59A6;
-extern u8 *D_801F59A8;
-void func_801EF7DC();
+extern UiWindow EVO_CARD_LIST_WINDOW;
+void EVO_startSecondCardPick(void);
+extern s8 EVO_EFFECT_PLAYER;
+extern s8 EVO_EFFECT_SPRITE_1;
+extern s8 EVO_EFFECT_SPRITE_2;
+extern u8 *EVO_EFFECT_ARCHIVE;
+void EVO_runEffectScriptTask();
+/* An effect object: the same layout as EffectObject */
 typedef struct {
-    u8 pad0[0x20];
-    VECTOR curRot;
-    SVECTOR curScale;
-    s32 curPos[3];
-    u8 pad44[0x98 - 0x44];
-    void *unk98;
-    u8 pad9C[0xAC - 0x9C];
-    VECTOR pos;
-    VECTOR vel;
-    SVECTOR accel;
-    SVECTOR rot;
-    SVECTOR rotVel;
-    SVECTOR scale;
-    SVECTOR scaleVel;
-    SVECTOR scaleAccel;
-    u8 padFC[0x118 - 0xFC];
-    s32 unk118;
-    s32 unk11C;
-    s16 unk120;
-    s16 unk122;
-    s16 unk124;
-    s16 unk126;
-    s16 unk128;
-    s16 unk12A;
-    s16 unk12C;
-    s16 unk12E;
-    s16 unk130;
-    u8 pad132[0x137 - 0x132];
-    u8 unk137;
-    u8 unk138;
-    u8 unk139;
-    u8 pad13A[2];
+    /* 0x000 */ u8 pad0[0x20];
+    /* 0x020 */ VECTOR curRot;
+    /* 0x030 */ SVECTOR curScale;
+    /* 0x038 */ s32 curPos[3];
+    /* 0x044 */ u8 pad44[0x98 - 0x44];
+    /* 0x098 */ void *parent;
+    /* 0x09C */ u8 pad9C[0xAC - 0x9C];
+    /* 0x0AC */ VECTOR pos;
+    /* 0x0BC */ VECTOR vel;
+    /* 0x0CC */ SVECTOR accel;
+    /* 0x0D4 */ SVECTOR rot;
+    /* 0x0DC */ SVECTOR rotVel;
+    /* 0x0E4 */ SVECTOR scale;
+    /* 0x0EC */ SVECTOR scaleVel;
+    /* 0x0F4 */ SVECTOR scaleAccel;
+    /* 0x0FC */ u8 padFC[0x118 - 0xFC];
+    /* 0x118 */ s32 state;
+    /* 0x11C */ s32 flag;
+    /* 0x120 */ s16 moveSpeed;
+    /* 0x122 */ s16 moveAccel;
+    /* 0x124 */ s16 period;
+    /* 0x126 */ s16 waveFreq;
+    /* 0x128 */ s16 wavePhase;
+    /* 0x12A */ s16 waveAmplitude;
+    /* 0x12C */ s16 hitRadius;
+    /* 0x12E */ s16 mode;
+    /* 0x130 */ s16 speed;
+    /* 0x132 */ u8 pad132[0x137 - 0x132];
+    /* 0x137 */ u8 fadeMode;
+    /* 0x138 */ u8 fadeState;
+    /* 0x139 */ u8 suspended;
+    /* 0x13A */ u8 pad13A[2];
 } EvoFx;
 typedef struct {
     s16 kind;
@@ -341,11 +345,11 @@ typedef struct {
     EvoEntry entries[16];
     s32 counter;
     void *buffer;
-} EvoLoader;
-extern EvoFx D_801F5868;
-extern void (*D_801F0280[])(EvoFx *);
-extern void (*D_801F02A8[])(EvoFx *);
-void func_801EE69C(EvoLoader *loader);
+} EvoEffectScript;
+extern EvoFx EVO_EFFECT_ROOT;
+extern void (*EVO_EFFECT_TICK_FUNCS[])(EvoFx *);
+extern void (*EVO_EFFECT_FREE_FUNCS[])(EvoFx *);
+void EVO_runEffectScript(EvoEffectScript *loader);
 typedef struct {
     u8 pad[0x260];
     s32 x;
@@ -368,11 +372,11 @@ void func_801F893C(void *sprite, Color *color);
 
 typedef struct {
     UiWindow win;
-    s8 unk44;
+    s8 isPartner;
     s8 z;
     u8 pad46[2];
 } EvoWindow;
-extern EvoWindow D_801F4E58[];
+extern EvoWindow EVO_WINDOWS[];
 
 typedef struct {
     Rect16 rect;
@@ -382,34 +386,34 @@ typedef struct {
     s32 label;
     u8 labelPalette;
 } EvoWindowDef;
-extern EvoWindowDef D_801F00C0[];
+extern EvoWindowDef EVO_WINDOW_DEFS[];
 
-extern u8 D_801F5358;
+extern u8 EVO_MAX_CARD_LEVEL;
 
-extern SVECTOR *D_801F2BBC;
-extern s8 D_801F05F8;
-extern s8 D_801F05F4;
-void func_801E285C(void);
+extern SVECTOR *EVO_SHARD_VERTEX_POOL;
+extern s8 EVO_SHATTER_STARTED;
+extern s8 EVO_CUTSCENE_STEP;
+void EVO_initGsSortTable(void);
 
 typedef struct {
     char *name;
     s8 learnLevels[6];
     u8 unkA[2];
 } EvoAbilityInfo;
-extern EvoAbilityInfo D_801EF8D4[];
+extern EvoAbilityInfo EVO_DIGI_PARTS[];
 typedef struct {
     u8 pad0[0xA5];
     s8 choice;
 } EvoDialog;
-extern EvoDialog D_801F57A8;
-extern u8 D_801F57A0;
-extern u8 D_801F57A1;
-extern s16 D_801F5860[4];
-extern s32 D_801F4E50;
-extern UiWindow D_801F5410;
-void func_801EB670(void);
+extern EvoDialog EVO_DIALOG;
+extern u8 EVO_RANK_UP_STATE;
+extern u8 EVO_LEVEL_UP_PENDING;
+extern s16 EVO_STAT_BONUSES[4];
+extern s32 EVO_NEW_DIGI_PART;
+extern UiWindow EVO_RANK_UP_WINDOW;
+void EVO_addPartnerExp(void);
 
-extern EvoFx *(*D_801F0294[])(s32 *, EvoLoader *);
+extern EvoFx *(*EVO_EFFECT_CREATE_FUNCS[])(s32 *, EvoEffectScript *);
 
 /* libgs's GsSortObject4J function table (_GsFCALL) */
 #define GsDivMODE_NDIV 0
@@ -453,26 +457,26 @@ typedef struct {
     s32 args[34];
 } EvoFxParams;
 
-extern s16 D_801F2BFC[3];
-void func_801DFD14(s32 parentTask);
-extern EvoText D_801F5258[4];
-s32 func_801E943C(u8 *src);
+extern s16 EVO_CUTSCENE_MODELS[3];
+void EVO_runShatterTask(s32 parentTask);
+extern EvoText EVO_TEXT_LINES[4];
+s32 EVO_addTextLine(u8 *src);
 typedef struct {
     u8 card;
     u8 ability;
 } EvoAbilityReward;
-extern u8 D_801EFED4[6];
-extern EvoAbilityReward D_801EFF1C[][5];
+extern u8 EVO_PARTNER_CARD_IDS[6];
+extern EvoAbilityReward EVO_PARTNER_FUSION_REWARDS[][5];
 
-extern u8 D_801F5360;
+extern u8 EVO_CARD_RECEIVED;
 
 typedef struct {
     u8 pad0[0x20];
     s16 joint;
     s16 timer;
 } EvoSpark;
-void func_801E5244(EvoSpark *spark);
-s32 func_801E5024(s32 min, s32 max);
+void EVO_drawSpark(EvoSpark *spark);
+s32 EVO_randomRange(s32 min, s32 max);
 
 typedef struct {
     s16 timer;
@@ -481,11 +485,11 @@ typedef struct {
     SVECTOR *verts;
     s8 *prims;
     s16 primCount;
-    s16 unk12;
+    s16 part;
 } EvoShard;
-extern EvoShard *D_801F05FC;
+extern EvoShard *EVO_SHARDS;
 
-extern Rect16 D_801F00B8;
+extern Rect16 EVO_RANK_UP_RECT;
 
 typedef struct {
     u8 pad0[0xE];
@@ -493,64 +497,64 @@ typedef struct {
     u8 pad10[0x33 - 0x10];
     s8 side;
 } EvoChoice;
-extern EvoChoice D_801F5380;
+extern EvoChoice EVO_TYPE_CHOICE;
 
-extern u8 D_801F4E4C;
-void func_801E7E8C(s32 mode);
-void func_801EA2D4(void);
+extern u8 EVO_SCRIPT_HALTED;
+void EVO_runChoiceDialog(s32 mode);
+void EVO_closeFusionTypeChoice(void);
 
 extern u8 D_800795A8;
-void func_801EF108(EvoFx *fx, s32 *vars, EvoLoader *loader);
+void EVO_initEffectFromParams(EvoFx *fx, s32 *vars, EvoEffectScript *loader);
 void func_801F8928(void *sprite);
 void func_801F8910(void *sprite, s32 arg);
 
-extern SVECTOR *D_801F2BB8;
+extern SVECTOR *EVO_SHARD_VERTEX_CURSOR;
 
 SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 
-extern s8 D_801EFEDC[][6];
-void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB);
+extern s8 EVO_FUSION_RESULT_TYPES[][6];
+void EVO_findCardOfLevel(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB);
 
-void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E5934(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E5C1C(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul);
-void func_801E9390(EvoText *slot);
-void func_801EA110(void);
-void func_801EA414(void);
-void func_801EA530(void);
-void func_801EA790(void);
-void func_801EA820(void);
-void func_801EB0F4(void);
-void func_801EB1D0(void);
-void func_801EB234(void);
-void func_801ECBE8(void);
-void func_801ECC24(void);
-void func_801EED18(EvoFx *fx, EvoFxParams *params, s32 current);
-void func_801EEF24(EvoFx *fx, EvoFxParams *params);
-void func_801EF0BC(void *xform, EvoObject *obj);
-void func_801EF5C8(s32 index, s32 kind, s32 *vars, EvoLoader *loader);
+void EVO_drawShardTG3(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardTF3(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardTG4(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardTF4(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardTNF3(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardF4(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardG3(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardG4(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_drawShardF3(SVECTOR *pos, s32 unused, s16 div, s16 mul);
+void EVO_clearTextLines(EvoText *slot);
+void EVO_openFusionTypeChoice(void);
+void EVO_openPartnerList(void);
+void EVO_closePartnerList(void);
+void EVO_openCardList(void);
+void EVO_closeCardList(void);
+void EVO_startPartnerFusion(void);
+void EVO_cancelPartnerFusion(void);
+void EVO_leaveForCutscene(void);
+void EVO_resetFusion(void);
+void EVO_cancelFirstCard(void);
+void EVO_getEffectParams(EvoFx *fx, EvoFxParams *params, s32 current);
+void EVO_setEffectParams(EvoFx *fx, EvoFxParams *params);
+void EVO_getEffectWorldPos(void *xform, EvoObject *obj);
+void EVO_createEffectEntry(s32 index, s32 kind, s32 *vars, EvoEffectScript *loader);
 
-EvoLoader *func_801EF65C(EvoMsd *data);
+EvoEffectScript *EVO_createEffectScript(EvoMsd *data);
 
 s32 StoreImage(Rect16 *rect, void *p);
-extern u16 D_801F02C8[16];
-extern s8 D_801F02C0;
-extern u8 D_801F02E8;
-void func_801DFB00(void);
+extern u16 EVO_BANNER_CLUT[16];
+extern s8 EVO_BANNER_FADE;
+extern u8 EVO_BANNER_BRIGHTNESS;
+void EVO_drawFusionBanner(void);
 
 const char D_801DDF38[] = "\t";
 
-void func_801DF9D0(void);
+void EVO_initFusionBanner(void);
 
-void func_801DFEC0(s32 unused);
-void func_801E8E88();
+void EVO_shatterFusionModels(s32 unused);
+void EVO_runFusion();
 
 typedef struct {
     s32 count;
@@ -560,38 +564,38 @@ typedef struct {
     s8 next;
     s8 model;
 } EvoShatter;
-extern EvoShatter D_801F0600;
-extern s16 D_801F0550[40];
-extern s16 D_801F05A0[42];
-extern s16 D_801EF874[40];
-extern u16 D_801F05F6;
+extern EvoShatter EVO_SHATTER;
+extern s16 EVO_SHATTER_ORDER[40];
+extern s16 EVO_SHATTER_TIMERS[42];
+extern s16 EVO_PART_DRAW_MODES[40];
+extern u16 EVO_SHATTER_DELAY;
 
-s32 func_801E47E4(s32 part, s32 arg);
-void func_801E2FC8(s32 index);
+s32 EVO_addShard(s32 part, s32 arg);
+void EVO_drawShard(s32 index);
 
-void func_801E2C0C(s32 model);
+void EVO_startShatter(s32 model);
 
-extern u32 D_801F2BB0;
-extern u32 D_801EF85C;
-extern EvoSpark D_801F02F0[16];
-void func_801E51E4(EvoSpark *spark);
+extern u32 EVO_RAND_SEED_LO;
+extern u32 EVO_RAND_SEED_HI;
+extern EvoSpark EVO_SPARKS[16];
+void EVO_runSparkTask(EvoSpark *spark);
 
-extern char *D_801F0000[];
-extern s32 (*D_801F0088[])(s8 *, s8 *);
-extern EvoCardInfo *D_801F44C0[];
-void func_801E65A8(void);
+extern char *EVO_SORT_LABELS[];
+extern s32 (*EVO_SORT_COMPARES[])(s8 *, s8 *);
+extern EvoCardInfo *EVO_CARD_LIST[];
+void EVO_initCardList(void);
 
-extern void (*D_801F0248[])();
-extern UiWindow D_801F4380;
-void func_801E7178();
-void func_801E9B94(UiWindow *w);
-void func_801E6FCC(UiWindow *w);
-void func_801E780C(EvoScene *scene);
+extern void (*EVO_WINDOW_DRAW_FUNCS[])();
+extern UiWindow EVO_SORT_WINDOW;
+void EVO_drawCardList();
+void EVO_drawRankUpBanner(UiWindow *w);
+void EVO_drawSortMenu(UiWindow *w);
+void EVO_drawTray(EvoTray *tray);
 
-s32 func_801E97E4(s32 x, s32 y, EvoText *t, s32 z);
+s32 EVO_typeTextLine(s32 x, s32 y, EvoText *t, s32 z);
 
-extern CursorHighlight D_801F4470;
-extern CursorHighlight D_801F4420;
+extern CursorHighlight EVO_CARD_LIST_CURSOR;
+extern CursorHighlight EVO_SORT_CURSOR;
 
 void GsMulCoord3(MATRIX *m1, MATRIX *m2);
 
@@ -619,58 +623,58 @@ typedef struct {
     u8 pad572[2];
     s32 unk574;
 } EvoModelFx;
-void func_801ED8B0(EvoClut *clut, u16 flags);
+void EVO_uploadShadedClut(EvoClut *clut, u16 flags);
 
-void func_801E9C88(void);
-void func_801EA598(void);
-void func_801EABB0(void);
-void func_801EB440(void);
-void func_801EBA08(void);
-void func_801EA9AC(void);
-void func_801EAA5C(void);
+void EVO_tickFusionTypeChoice(void);
+void EVO_tickPartnerList(void);
+void EVO_tickCardList(void);
+void EVO_tickPartnerReward(void);
+void EVO_tickFusionResult(void);
+void EVO_showBothTrays(void);
+void EVO_repickSecondCard(void);
 void func_801EBE08(void);
-void func_801EA864(s32 index);
-void func_801EA934(s32 index);
-void func_801EBD64(void);
-void func_801EBD04(void);
-void func_801E89F0(void);
-void func_801DFF78(void);
-void func_801E623C(void);
-void func_801E8C74(void);
-void func_801E62D0(void);
-void func_801EE248(void);
-void func_801E6398(void);
-void func_801E87A8(void);
-void func_801E80E4(void);
-EvoProgram *func_801E8708(s32 index);
-s32 *func_801E86B4(s32 count);
-s32 func_801E8614(EvoProgram *program);
-void func_801E8BD8(void);
-void func_801E8DC0(void);
-void func_801E7B8C(void);
-void func_801E7CB4(void);
-void func_801E7C3C(void);
-void func_801E7BE4(void);
-void func_801E7D2C(s32 active);
-void func_801E8E1C(void);
+void EVO_slideTrayOut(s32 index);
+void EVO_slideTrayIn(s32 index);
+void EVO_showCutsceneResult(void);
+void EVO_closeFusionResult(void);
+void EVO_renderFusion(void);
+void EVO_runFusionCutscene(void);
+void EVO_loadUnitTextures(void);
+void EVO_loadCardImages(void);
+void EVO_initFusionScene(void);
+void EVO_loadEffectArchive(void);
+void EVO_countSpareCards(void);
+void EVO_openWindows(void);
+void EVO_initScreenFlash(void);
+EvoProgram *EVO_loadUnitScript(s32 index);
+s32 *EVO_allocScriptRegisters(s32 count);
+s32 EVO_tickFusionScript(EvoProgram *program);
+void EVO_advanceText(void);
+void EVO_loadScriptFlags(void);
+void EVO_slideInFirstTray(void);
+void EVO_swapToFirstTray(void);
+void EVO_swapToSecondTray(void);
+void EVO_slideOutFirstTray(void);
+void EVO_cancelSecondCard(s32 active);
+void EVO_saveScriptFlags(void);
 
-extern s16 D_801F5458;
-void func_801E8CD8(s32 id, s32 slot);
-s16 func_801ECCA0(void);
-void func_801EAAE8(s16 cardId);
+extern s16 EVO_CURSOR_CARD;
+void EVO_loadCardImage(s32 id, s32 slot);
+s16 EVO_findFusionResult(void);
+void EVO_checkCardCapacity(s16 cardId);
 
-extern Bytes4 D_801EFF58[];
-extern Bytes4 D_801EFF60;
-extern Bytes4 D_801EFF64;
-extern char D_801DF15C[];
-extern char D_801DF168[];
-extern char D_801DF16C[];
+extern Bytes4 EVO_TEXT_COLORS[];
+extern Bytes4 EVO_TEXT_COLOR_GREY;
+extern Bytes4 EVO_TEXT_COLOR_RED;
+extern char EVO_FMT_CARD_NUMBER[];
+extern char EVO_FMT_CARD_COUNT[];
+extern char EVO_STR_CARDS[];
 
-extern char D_801DF548[];
+extern char EVO_STR_SPEC[];
 
-void func_801DF658(s8 evolved) {
+void EVO_initCutsceneScene(s8 evolved) {
     if (evolved == 0) {
-        func_801E0618(1);
+        EVO_initShatterScene(1);
         createWireGrid(3000, 3000, 11, 11, 1, 0);
     } else {
         initScene3D(1);
@@ -683,13 +687,13 @@ void func_801DF658(s8 evolved) {
     func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
 }
 
-void func_801DF724(s8 evolved) {
+void EVO_freeCutsceneScene(s8 evolved) {
     func_80014A00(0x1B);
     func_80014A00(0x19);
     removeFrameCallback((s32)renderWireGrid);
-    removeFrameCallback((s32)func_801E2E30);
+    removeFrameCallback((s32)EVO_tickShatter);
     if (evolved == 0) {
-        removeFrameCallback((s32)func_801E00F4);
+        removeFrameCallback((s32)EVO_renderCutsceneModels);
     } else {
         removeFrameCallback((s32)renderSceneModels);
     }
@@ -707,12 +711,12 @@ void func_801DF724(s8 evolved) {
     freeHeapBlocksByTag(0x40);
 }
 
-void func_801DF7EC(s16 slot) {
+void EVO_restartModelAnimation(s16 slot) {
     applyAnimationFirstFrame(slot, 0);
     startModelAnimation(slot, 0, -2, 0);
 }
 
-void func_801DF830(void) {
+void EVO_placeFusionModels(void) {
     Graphics *camera;
     EvoModel *model;
     EvoPart *part;
@@ -726,14 +730,14 @@ void func_801DF830(void) {
     SCENE_3D->modelState[0] = 1;
     SCENE_3D->modelState[1] = -1;
     GRID_VISIBLE = 1;
-    func_801DF7EC(0);
+    EVO_restartModelAnimation(0);
     model = SCENE_3D->models[1];
     for (i = 0, part = model->parts; i < model->partCount; i++, part++) {
-        func_801E08D4(part, 1);
+        EVO_remapPartTextures(part, 1);
     }
 }
 
-void func_801DF914(s32 id) {
+void EVO_showFusedDigimon(s32 id) {
     loadDigimonModelPak(0, id, 0, 0);
     func_80014C08(2);
     func_80014C08(20);
@@ -743,34 +747,34 @@ void func_801DF914(s32 id) {
     SCENE_3D->modelState[0] = 1;
     playModelAnimation(0, 0);
     GRID_VISIBLE = 1;
-    func_800149B8(0, -1, 0, 0x400, func_801DFC18, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x400, EVO_runFusedDigimonTask, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(10);
 }
 
-void func_801DF9D0(void) {
+void EVO_initFusionBanner(void) {
     Rect16 rect = { 320, 240, 32, 1 };
     s8 i;
 
-    StoreImage(&rect, D_801F02C8);
+    StoreImage(&rect, EVO_BANNER_CLUT);
     for (i = 0; i < 16; i++) {
-        if (D_801F02C8[i] != 0) {
-            D_801F02C8[i] |= 0x8000;
+        if (EVO_BANNER_CLUT[i] != 0) {
+            EVO_BANNER_CLUT[i] |= 0x8000;
         } else {
-            D_801F02C8[i] = 0;
+            EVO_BANNER_CLUT[i] = 0;
         }
     }
-    LoadImage((s16 *)&rect, (s32)D_801F02C8);
+    LoadImage((s16 *)&rect, (s32)EVO_BANNER_CLUT);
     for (i = 0; i < 16; i++) {
-        if (D_801F02C8[i] != 0) {
-            D_801F02C8[i] = 0xFFFF;
+        if (EVO_BANNER_CLUT[i] != 0) {
+            EVO_BANNER_CLUT[i] = 0xFFFF;
         }
     }
     rect.y = 241;
-    LoadImage((s16 *)&rect, (s32)D_801F02C8);
-    D_801F02C0 = 2;
-    D_801F02E8 = 0;
-    addFrameCallback((s32)func_801DFB00);
+    LoadImage((s16 *)&rect, (s32)EVO_BANNER_CLUT);
+    EVO_BANNER_FADE = 2;
+    EVO_BANNER_BRIGHTNESS = 0;
+    addFrameCallback((s32)EVO_drawFusionBanner);
 }
 
 const u8 D_801DDF44[20][3] = {
@@ -796,127 +800,127 @@ const u8 D_801DDF44[20][3] = {
     { 0x52, 0x97, 0xFD },
 };
 
-void func_801DFB00(void) {
+void EVO_drawFusionBanner(void) {
     Rect16 uv;
 
-    if (D_801F02C0 == 1) {
-        D_801F02E8 += 8;
-        if (D_801F02E8 > 0x80) {
-            D_801F02E8 = 0x80;
+    if (EVO_BANNER_FADE == 1) {
+        EVO_BANNER_BRIGHTNESS += 8;
+        if (EVO_BANNER_BRIGHTNESS > 0x80) {
+            EVO_BANNER_BRIGHTNESS = 0x80;
         }
-    } else if (D_801F02C0 == 2) {
-        if (D_801F02E8 >= 8) {
-            D_801F02E8 -= 8;
+    } else if (EVO_BANNER_FADE == 2) {
+        if (EVO_BANNER_BRIGHTNESS >= 8) {
+            EVO_BANNER_BRIGHTNESS -= 8;
         } else {
-            D_801F02E8 = 0;
+            EVO_BANNER_BRIGHTNESS = 0;
         }
     }
     uv.x = 0;
     uv.y = 0x80;
     uv.w = 0xFF;
     uv.h = 0x27;
-    drawTexturedSprite(0x28, 0xB4, &uv, 0x25, 0x3C14, 0, D_801F02E8, 0);
-    drawTexturedSprite(0x28, 0xB4, &uv, 0x45, 0x3C54, 0, D_801F02E8, 0);
+    drawTexturedSprite(0x28, 0xB4, &uv, 0x25, 0x3C14, 0, EVO_BANNER_BRIGHTNESS, 0);
+    drawTexturedSprite(0x28, 0xB4, &uv, 0x45, 0x3C54, 0, EVO_BANNER_BRIGHTNESS, 0);
 }
 
-void func_801DFC18(s32 parentTask) {
+void EVO_runFusedDigimonTask(s32 parentTask) {
     s32 frames;
 
-    func_801DF9D0();
+    EVO_initFusionBanner();
     setScreenFadeParams(1, 1, 8);
     playSoundEffect(0x8D);
     func_80014C08(120);
-    D_801F02C0 = 1;
+    EVO_BANNER_FADE = 1;
     func_80014C08(180);
     frames = 0;
     do {
         func_80014C08(FRAME_INTERVAL);
         frames++;
         if ((PAD_STATES[0]->pressed & 0x40) || frames > 180) {
-            D_801F02C0 = 2;
-            D_801F05F4 = 6;
+            EVO_BANNER_FADE = 2;
+            EVO_CUTSCENE_STEP = 6;
         }
-    } while (D_801F05F4 != 6);
-    D_801F53C8.unk42 = 1;
+    } while (EVO_CUTSCENE_STEP != 6);
+    EVO_SCREEN_FLASH.on = 1;
     func_80014C08(10);
     func_80014A48(parentTask);
 }
 
-void func_801DFD14(s32 parentTask) {
+void EVO_runShatterTask(s32 parentTask) {
     do {
         func_80014C08(FRAME_INTERVAL);
-        switch (D_801F05F4) {
+        switch (EVO_CUTSCENE_STEP) {
         case 1:
             func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
             func_80014C08(60);
-            D_801F05F4 = 2;
+            EVO_CUTSCENE_STEP = 2;
             SCENE_3D->modelState[0] = -1;
             break;
         case 2:
             playSoundEffect(0x8D);
-            func_801E2C0C(1);
+            EVO_startShatter(1);
             SCENE_3D->modelState[1] = 1;
             applyAnimationFirstFrame(1, 0);
             startModelAnimation(1, 0, -2, 0);
             D_80079584 = 1;
             func_80014C08(5);
             setScreenFadeParams(1, 1, 8);
-            D_801F05F4 = 3;
+            EVO_CUTSCENE_STEP = 3;
             break;
         case 4:
             func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
             func_80014C08(60);
-            D_801F05F4 = 5;
+            EVO_CUTSCENE_STEP = 5;
             break;
         }
-    } while (D_801F05F4 != 5);
+    } while (EVO_CUTSCENE_STEP != 5);
     func_80014C08(10);
     func_80014A48(parentTask);
 }
 
-void func_801DFEC0(s32 unused) {
+void EVO_shatterFusionModels(s32 unused) {
     s32 models[2];
 
-    models[0] = loadDigimonModelPak(0, D_801F2BFC[0], 1, 1);
-    models[1] = loadDigimonModelPak(1, D_801F2BFC[1], 1, 1);
-    func_801DF830();
+    models[0] = loadDigimonModelPak(0, EVO_CUTSCENE_MODELS[0], 1, 1);
+    models[1] = loadDigimonModelPak(1, EVO_CUTSCENE_MODELS[1], 1, 1);
+    EVO_placeFusionModels();
     D_80079584 = 0;
     func_80014C08(20);
-    D_801F53C8.unk42 = 0;
+    EVO_SCREEN_FLASH.on = 0;
     playSoundEffect(0x8D);
-    func_800149B8(0, -1, 0, 0x400, func_801DFD14, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x400, EVO_runShatterTask, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(10);
 }
 
-void func_801DFF78(void) {
+void EVO_runFusionCutscene(void) {
     loadSoundEffectBank(0);
     playMusic(0, 0x88, 100);
-    func_801DF658(0);
-    func_801DFEC0(0x73);
-    func_801DF724(0);
+    EVO_initCutsceneScene(0);
+    EVO_shatterFusionModels(0x73);
+    EVO_freeCutsceneScene(0);
     func_80014C08(2);
     playMusic(0, 0x89, 100);
     func_80014C08(2);
-    func_801DF658(1);
-    func_801DF914(D_801F2BFC[2]);
-    func_801DF724(1);
+    EVO_initCutsceneScene(1);
+    EVO_showFusedDigimon(EVO_CUTSCENE_MODELS[2]);
+    EVO_freeCutsceneScene(1);
     func_80014C08(10);
     do {
         func_80014C08(1);
     } while (PAD_STATES[0]->pressed & 0x40);
-    removeFrameCallback((s32)func_801DFB00);
+    removeFrameCallback((s32)EVO_drawFusionBanner);
     loadSoundEffectBank(1);
     changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->unk56, 0x380, 0, 0x380, 0x80);
-    func_800149B8(0, -1, 0, 0x400, func_801E8E88, -1, getCurrentTaskId(), 0, 0);
+    func_800149B8(0, -1, 0, 0x400, EVO_runFusion, -1, getCurrentTaskId(), 0, 0);
 }
 
-void func_801E00A4(MATRIX *m) {
+void EVO_setGteMatrix(MATRIX *m) {
     gte_SetRotMatrix(m);
     gte_SetTransMatrix(m);
 }
 
-void func_801E00F4(FrameBuffer *buffer, s32 bufferIndex) {
+void EVO_renderCutsceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     MATRIX localScreen;
     SVECTOR position;
     MATRIX unused;
@@ -952,9 +956,9 @@ void func_801E00F4(FrameBuffer *buffer, s32 bufferIndex) {
             RotMatrixYXZ(&model->rot, &model->root.coord);
             model->root.flg = 0;
             ScaleMatrix(&model->root.coord, &model->scale);
-            if (D_801F05F8 == 0) {
-                func_801E2C0C(0);
-                D_801F05F8 = 1;
+            if (EVO_SHATTER_STARTED == 0) {
+                EVO_startShatter(0);
+                EVO_SHATTER_STARTED = 1;
             }
             scratch = (s32 *)0x1F800000;
             scratch[12] = model->tpageOffset;
@@ -967,8 +971,8 @@ void func_801E00F4(FrameBuffer *buffer, s32 bufferIndex) {
                     GsGetLs(obj->coord2, &localScreen);
                     GsSetLsMatrix(&localScreen);
                     GsSetLightMatrix(&localScreen);
-                    if (D_801EF874[j] != 16) {
-                        func_801E0AFC(obj, D_801EF874[j]);
+                    if (EVO_PART_DRAW_MODES[j] != 16) {
+                        EVO_renderDissolvingObject(obj, EVO_PART_DRAW_MODES[j]);
                     } else {
                         GsSortObject4(obj, &SCENE_3D->ot[bufferIndex], 2, (u32 *)0x1F800000);
                     }
@@ -979,7 +983,7 @@ void func_801E00F4(FrameBuffer *buffer, s32 bufferIndex) {
     }
 }
 
-void func_801E0488(s32 projection) {
+void EVO_initView(s32 projection) {
     func_8005C484(160, 120);
     func_8005C4A4(projection);
     func_80062484(projection);
@@ -994,7 +998,7 @@ void func_801E0488(s32 projection) {
     GsSetRefView2(&SCENE_3D->view);
 }
 
-void func_801E04F8(void) {
+void EVO_initLights(void) {
     ((FlatLight *)SCENE_3D->unkE4)[0].vx = 0;
     ((FlatLight *)SCENE_3D->unkE4)[0].vy = -100;
     ((FlatLight *)SCENE_3D->unkE4)[0].vz = 100;
@@ -1021,10 +1025,10 @@ void func_801E04F8(void) {
     GsSetLightMode(0);
 }
 
-void func_801E0618(s32 allocBuffers) {
+void EVO_initShatterScene(s32 allocBuffers) {
     s32 i;
 
-    func_801E285C();
+    EVO_initGsSortTable();
     initModelScene();
     func_8006A804();
     for (i = 0; i < 2; i++) {
@@ -1037,13 +1041,13 @@ void func_801E0618(s32 allocBuffers) {
         SCENE_3D->ot[i].point = 0;
         SCENE_3D->ot[i].tag = SCENE_3D->ot[i].org + 0xFFF;
     }
-    D_801F05FC = allocHeapBlock(0x4B0, 0x7F);
-    D_801F2BBC = allocHeapBlock(0x3E80, 0x7F);
-    D_801F05F8 = 0;
-    D_801F05F4 = 0;
+    EVO_SHARDS = allocHeapBlock(0x4B0, 0x7F);
+    EVO_SHARD_VERTEX_POOL = allocHeapBlock(0x3E80, 0x7F);
+    EVO_SHATTER_STARTED = 0;
+    EVO_CUTSCENE_STEP = 0;
     GsInit3D();
-    func_801E0488(0x1C0);
-    func_801E04F8();
+    EVO_initView(0x1C0);
+    EVO_initLights();
     func_8006A814();
     {
         MATRIX lightMatrices[2] = {
@@ -1060,11 +1064,11 @@ void func_801E0618(s32 allocBuffers) {
     }
     if (allocBuffers) {
         mountDriveTask((s32)"M:", getCurrentTaskId());
-        addFrameCallback((s32)func_801E00F4);
+        addFrameCallback((s32)EVO_renderCutsceneModels);
     }
 }
 
-void func_801E08D4(EvoPart *part, s32 enable) {
+void EVO_remapPartTextures(EvoPart *part, s32 enable) {
     TmdObject *tmd;
     s32 count;
     TmdPrim *prim;
@@ -1256,9 +1260,9 @@ typedef union {
 } EvoPacket;
 
 extern MATRIX D_801DBE40;
-extern s16 D_801EF860;
-extern s16 D_801EF862;
-extern s8 D_801EF864[16];
+extern s16 EVO_WIRE_SHADE_MIN;
+extern s16 EVO_WIRE_SHADE_MAX;
+extern s8 EVO_DISSOLVE_PATTERN[16];
 void MulMatrix0(MATRIX *m0, MATRIX *m1, MATRIX *m2);
 void SetLightMatrix(MATRIX *m);
 s32 RotNclip3(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, s32 *sxy0, s32 *sxy1, s32 *sxy2, s32 *p, s32 *otz, s32 *flag);
@@ -1303,7 +1307,7 @@ void func_8005FBE4(SVECTOR *n, Color *in, Color *out);
         pk = (EvoPacket *)(&(pk)->line + 1);                  \
     }
 
-void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
+void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     Color rgb;
     MATRIX m;
     s32 p;
@@ -1332,7 +1336,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
     } op;
     s32 code;
 
-    shade = D_801EF860 + rand() % (D_801EF862 - D_801EF860);
+    shade = EVO_WIRE_SHADE_MIN + rand() % (EVO_WIRE_SHADE_MAX - EVO_WIRE_SHADE_MIN);
     tmd = (TmdObject *)obj->tmd;
     vert = tmd->vertTop;
     norm = tmd->normTop;
@@ -1348,11 +1352,11 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
     MulMatrix0(&D_801DBE40, &coord->workm, &m);
     SetLightMatrix(&m);
     CompMatrix(&D_801DBEA0, &coord->workm, &m);
-    func_801E00A4(&m);
+    EVO_setGteMatrix(&m);
     for (i = 0; i < nprim; i++) {
         if ((code = prim->mode & 0x3D) == 0x2C) {
             op.tf4 = (TMD_P_TF4 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.tf4->v0], &vert[op.tf4->v1], &vert[op.tf4->v2], &vert[op.tf4->v3],
                               (s32 *)&pk->ft4.x0, (s32 *)&pk->ft4.x1, (s32 *)&pk->ft4.x2, (s32 *)&pk->ft4.x3, &p, &otz,
                               &flag) > 0) {
@@ -1384,7 +1388,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x3D) == 0x3C) {
             op.tg4 = (TMD_P_TG4 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.tg4->v0], &vert[op.tg4->v1], &vert[op.tg4->v2], &vert[op.tg4->v3],
                               (s32 *)&pk->gt4.x0, (s32 *)&pk->gt4.x1, (s32 *)&pk->gt4.x2, (s32 *)&pk->gt4.x3, &p, &otz,
                               &flag) > 0) {
@@ -1418,7 +1422,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x35) == 0x34) {
             op.tg3 = (TMD_P_TG3 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.tg3->v0], &vert[op.tg3->v1], &vert[op.tg3->v2], (s32 *)&pk->gt3.x0,
                               (s32 *)&pk->gt3.x1, (s32 *)&pk->gt3.x2, &p, &otz, &flag) > 0) {
                     NormalColorCol3(&norm[op.tg3->n0], &norm[op.tg3->n1], &norm[op.tg3->n2], &rgb, (Color *)&pk->gt3.r0,
@@ -1447,7 +1451,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x35) == 0x24) {
             op.tf3 = (TMD_P_TF3 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.tf3->v0], &vert[op.tf3->v1], &vert[op.tf3->v2], (s32 *)&pk->ft3.x0,
                               (s32 *)&pk->ft3.x1, (s32 *)&pk->ft3.x2, &p, &otz, &flag) > 0) {
                     func_8005FBE4(&norm[op.tf3->n0], &rgb, (Color *)&pk->ft3.r0);
@@ -1475,7 +1479,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((prim->mode & 0x3D) == 0x2D) {
             op.tnf4 = (TMD_P_TNF4 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.tnf4->v0], &vert[op.tnf4->v1], &vert[op.tnf4->v2], &vert[op.tnf4->v3],
                               (s32 *)&pk->ft4.x0, (s32 *)&pk->ft4.x1, (s32 *)&pk->ft4.x2, (s32 *)&pk->ft4.x3, &p, &otz,
                               &flag) > 0) {
@@ -1506,7 +1510,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x3D) == 0x28) {
             op.f4 = (TMD_P_F4 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.f4->v0], &vert[op.f4->v1], &vert[op.f4->v2], &vert[op.f4->v3], (s32 *)&pk->f4.x0,
                               (s32 *)&pk->f4.x1, (s32 *)&pk->f4.x2, (s32 *)&pk->f4.x3, &p, &otz, &flag) > 0) {
                     func_8005FBE4(&norm[op.f4->n0], &rgb, (Color *)&pk->f4.r0);
@@ -1527,7 +1531,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((prim->mode & 0x35) == 0x25) {
             op.tnf3 = (TMD_P_TNF3 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.tnf3->v0], &vert[op.tnf3->v1], &vert[op.tnf3->v2], (s32 *)&pk->ft3.x0,
                               (s32 *)&pk->ft3.x1, (s32 *)&pk->ft3.x2, &p, &otz, &flag) > 0) {
                     pk->ft3.u0 = op.tnf3->tu0;
@@ -1554,7 +1558,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x3D) == 0x38) {
             op.g4 = (TMD_P_G4 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.g4->v0], &vert[op.g4->v1], &vert[op.g4->v2], &vert[op.g4->v3], (s32 *)&pk->g4.x0,
                               (s32 *)&pk->g4.x1, (s32 *)&pk->g4.x2, (s32 *)&pk->g4.x3, &p, &otz, &flag) > 0) {
                     NormalColorCol3(&norm[op.g4->n0], &norm[op.g4->n1], &norm[op.g4->n2], &rgb, (Color *)&pk->g4.r0,
@@ -1577,7 +1581,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x35) == 0x30) {
             op.g3 = (TMD_P_G3 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.g3->v0], &vert[op.g3->v1], &vert[op.g3->v2], (s32 *)&pk->g3.x0,
                               (s32 *)&pk->g3.x1, (s32 *)&pk->g3.x2, &p, &otz, &flag) > 0) {
                     func_8005FBE4(&norm[op.g3->n0], &rgb, (Color *)&pk->g3.r0);
@@ -1597,7 +1601,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
             }
         } else if ((code = prim->mode & 0x35) == 0x20) {
             op.f3 = (TMD_P_F3 *)prim;
-            if (D_801EF864[i & 0xF] < mode) {
+            if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.f3->v0], &vert[op.f3->v1], &vert[op.f3->v2], (s32 *)&pk->f3.x0,
                               (s32 *)&pk->f3.x1, (s32 *)&pk->f3.x2, &p, &otz, &flag) > 0) {
                     func_8005FBE4(&norm[op.f3->n0], &rgb, (Color *)&pk->f3.r0);
@@ -1620,7 +1624,7 @@ void func_801E0AFC(GsDOBJ4 *obj, s32 mode) {
     func_80062C34((long)pk);
 }
 
-void func_801E285C(void) {
+void EVO_initGsSortTable(void) {
     D_801DBFB0.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;
     D_801DBFB0.tf3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTF3L;
     D_801DBFB0.tf3[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTF3NL;
@@ -1650,7 +1654,7 @@ void func_801E285C(void) {
     D_801DBFB0.nf4[GsDivMODE_NDIV] = GsTMDfastNF4;
 }
 
-void func_801E29AC(GsCOORDINATE2 *coord, MATRIX *m) {
+void EVO_getCoordWorldMatrix(GsCOORDINATE2 *coord, MATRIX *m) {
     GsCOORDINATE2 *chain[100];
     GsCOORDINATE2 **p;
 
@@ -1668,7 +1672,7 @@ void func_801E29AC(GsCOORDINATE2 *coord, MATRIX *m) {
     }
 }
 
-void func_801E2AA8(s32 part, MATRIX *m) {
+void EVO_getPartWorldMatrix(s32 part, MATRIX *m) {
     GsCOORDINATE2 root;
     GsCOORDINATE2 node;
     VECTOR trans;
@@ -1679,141 +1683,141 @@ void func_801E2AA8(s32 part, MATRIX *m) {
     RotMatrix(&((Model *)SCENE_3D->models[0])->rots[0], &root.coord);
     ScaleMatrix(&root.coord, ((Model *)SCENE_3D->models[0])->boneScale);
     TransMatrix(&root.coord, &trans);
-    func_801E29AC(&node, m);
+    EVO_getCoordWorldMatrix(&node, m);
 }
 
-void func_801E2C0C(s32 model) {
+void EVO_startShatter(s32 model) {
     s32 i;
     s32 j;
     s16 tmp;
     u8 unused[0x50]; /* stack space the original reserves but never touches */
 
-    D_801F0600.total = -1;
-    D_801F0600.next = 0;
-    D_801F0600.count = 0;
-    D_801F0600.model = model;
-    D_801F2BB8 = D_801F2BBC;
+    EVO_SHATTER.total = -1;
+    EVO_SHATTER.next = 0;
+    EVO_SHATTER.count = 0;
+    EVO_SHATTER.model = model;
+    EVO_SHARD_VERTEX_CURSOR = EVO_SHARD_VERTEX_POOL;
     for (i = 0; i < 60; i++) {
-        D_801F05FC[i].timer = -1;
+        EVO_SHARDS[i].timer = -1;
     }
     for (i = 0; i < 40; i++) {
-        D_801EF874[i] = 0x10;
+        EVO_PART_DRAW_MODES[i] = 0x10;
     }
-    D_801F0600.total = ((EvoModel *)SCENE_3D->models[D_801F0600.model])->partCount;
-    D_801F0600.queue = D_801F0550;
-    for (i = 0; i < D_801F0600.total; i++) {
-        D_801F05A0[i] = 1;
+    EVO_SHATTER.total = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->partCount;
+    EVO_SHATTER.queue = EVO_SHATTER_ORDER;
+    for (i = 0; i < EVO_SHATTER.total; i++) {
+        EVO_SHATTER_TIMERS[i] = 1;
     }
-    for (i = 0; i < D_801F0600.total; i++) {
-        D_801F0550[i] = i;
+    for (i = 0; i < EVO_SHATTER.total; i++) {
+        EVO_SHATTER_ORDER[i] = i;
     }
-    for (i = 0; i < D_801F0600.total; i++) {
-        j = rand() % D_801F0600.total;
-        tmp = D_801F0550[i];
-        D_801F0550[i] = D_801F0550[j];
-        D_801F0550[j] = tmp;
+    for (i = 0; i < EVO_SHATTER.total; i++) {
+        j = rand() % EVO_SHATTER.total;
+        tmp = EVO_SHATTER_ORDER[i];
+        EVO_SHATTER_ORDER[i] = EVO_SHATTER_ORDER[j];
+        EVO_SHATTER_ORDER[j] = tmp;
     }
-    if (D_801F05F8 == 0) {
-        addFrameCallback((s32)func_801E2E30);
-        D_801F05F8 = 1;
+    if (EVO_SHATTER_STARTED == 0) {
+        addFrameCallback((s32)EVO_tickShatter);
+        EVO_SHATTER_STARTED = 1;
     }
-    D_801F05F6 = 120;
+    EVO_SHATTER_DELAY = 120;
 }
 
-void func_801E2E30(void) {
+void EVO_tickShatter(void) {
     s32 part;
     s32 i;
 
-    if (D_801F0600.next < D_801F0600.total) {
-        if (D_801F05F6 != 0) {
-            D_801F05F6--;
+    if (EVO_SHATTER.next < EVO_SHATTER.total) {
+        if (EVO_SHATTER_DELAY != 0) {
+            EVO_SHATTER_DELAY--;
         } else {
-            D_801F05A0[D_801F0600.next]--;
+            EVO_SHATTER_TIMERS[EVO_SHATTER.next]--;
         }
-        if (D_801F05A0[D_801F0600.next] < 0) {
-            part = *D_801F0600.queue++;
-            D_801F0600.next++;
-            func_801E47E4(part, part);
-            D_801EF874[part] = 0;
+        if (EVO_SHATTER_TIMERS[EVO_SHATTER.next] < 0) {
+            part = *EVO_SHATTER.queue++;
+            EVO_SHATTER.next++;
+            EVO_addShard(part, part);
+            EVO_PART_DRAW_MODES[part] = 0;
             playSoundEffect(0x58);
         }
     }
-    if (D_801F0600.next > D_801F0600.total - 1) {
-        if (D_801F05F4 == 0) {
-            D_801F05F4 = 1;
-        } else if (D_801F05F4 == 3) {
-            D_801F05F4 = 4;
+    if (EVO_SHATTER.next > EVO_SHATTER.total - 1) {
+        if (EVO_CUTSCENE_STEP == 0) {
+            EVO_CUTSCENE_STEP = 1;
+        } else if (EVO_CUTSCENE_STEP == 3) {
+            EVO_CUTSCENE_STEP = 4;
         }
     }
-    for (i = 0; i < D_801F0600.count; i++) {
-        func_801E2FC8(i);
+    for (i = 0; i < EVO_SHATTER.count; i++) {
+        EVO_drawShard(i);
     }
 }
 
-void func_801E2FC8(s32 index) {
+void EVO_drawShard(s32 index) {
     EvoShard *shard;
     SVECTOR *offset;
     s32 count;
 
-    shard = &D_801F05FC[index];
+    shard = &EVO_SHARDS[index];
     offset = shard->offsets;
     count = shard->primCount;
-    D_801F0540 = shard->prims;
-    D_801F0538 = shard->verts;
+    EVO_SHARD_PRIM = shard->prims;
+    EVO_SHARD_VERTS = shard->verts;
     if (shard->timer < 120) {
         if (shard->timer >= 0) {
             shard->timer++;
-            D_801F0530.r = (61 - shard->timer) * 74 / 60 + 54;
-            D_801F0530.g = D_801F0530.r;
-            D_801F0530.b = D_801F0530.r;
+            EVO_SHARD_COLOR.r = (61 - shard->timer) * 74 / 60 + 54;
+            EVO_SHARD_COLOR.g = EVO_SHARD_COLOR.r;
+            EVO_SHARD_COLOR.b = EVO_SHARD_COLOR.r;
             while (count-- > 0) {
-                if (D_801F0540[3] == 0x34 || D_801F0540[3] == 0x36) {
-                    func_801E335C(offset, 0, 120, shard->timer);
+                if (EVO_SHARD_PRIM[3] == 0x34 || EVO_SHARD_PRIM[3] == 0x36) {
+                    EVO_drawShardTG3(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x1C;
-                } else if (D_801F0540[3] == 0x24) {
-                    func_801E3694(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x1C;
+                } else if (EVO_SHARD_PRIM[3] == 0x24) {
+                    EVO_drawShardTF3(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x18;
-                } else if (D_801F0540[3] == 0x3C || D_801F0540[3] == 0x3E) {
-                    func_801E39CC(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x18;
+                } else if (EVO_SHARD_PRIM[3] == 0x3C || EVO_SHARD_PRIM[3] == 0x3E) {
+                    EVO_drawShardTG4(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x24;
-                } else if (D_801F0540[3] == 0x2C) {
-                    func_801E3D6C(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x24;
+                } else if (EVO_SHARD_PRIM[3] == 0x2C) {
+                    EVO_drawShardTF4(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x20;
-                } else if (D_801F0540[3] == 0x25) {
-                    func_801E410C(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x20;
+                } else if (EVO_SHARD_PRIM[3] == 0x25) {
+                    EVO_drawShardTNF3(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x1C;
-                } else if (D_801F0540[3] == 0x2D || D_801F0540[3] == 0x2F) {
-                    func_801E4444(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x1C;
+                } else if (EVO_SHARD_PRIM[3] == 0x2D || EVO_SHARD_PRIM[3] == 0x2F) {
+                    EVO_drawShardTNF4(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x20;
-                } else if (D_801F0540[3] == 0x28) {
-                    func_801E55FC(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x20;
+                } else if (EVO_SHARD_PRIM[3] == 0x28) {
+                    EVO_drawShardF4(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x14;
-                } else if (D_801F0540[3] == 0x30) {
-                    func_801E5934(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x14;
+                } else if (EVO_SHARD_PRIM[3] == 0x30) {
+                    EVO_drawShardG3(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x14;
-                } else if (D_801F0540[3] == 0x38) {
-                    func_801E5C1C(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x14;
+                } else if (EVO_SHARD_PRIM[3] == 0x38) {
+                    EVO_drawShardG4(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x18;
-                } else if (D_801F0540[3] == 0x20) {
-                    func_801E5F54(offset, 0, 120, shard->timer);
+                    EVO_SHARD_PRIM += 0x18;
+                } else if (EVO_SHARD_PRIM[3] == 0x20) {
+                    EVO_drawShardF3(offset, 0, 120, shard->timer);
                     offset++;
-                    D_801F0540 += 0x10;
+                    EVO_SHARD_PRIM += 0x10;
                 }
             }
         }
     }
 }
 
-void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -1826,13 +1830,13 @@ void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT3 *prim;
     POLY_FT3 *poly;
 
-    prim = (TmdPacketFT3 *)D_801F0540;
+    prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
     poly = (POLY_FT3 *)func_80062C44();
     func_80067724(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -1844,15 +1848,15 @@ void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[1]];
+    vert = &EVO_SHARD_VERTS[prim->idx[1]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[5]];
+    vert = &EVO_SHARD_VERTS[prim->idx[5]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
@@ -1869,7 +1873,7 @@ void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -1882,13 +1886,13 @@ void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT3 *prim;
     POLY_FT3 *poly;
 
-    prim = (TmdPacketFT3 *)D_801F0540;
+    prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
     poly = (POLY_FT3 *)func_80062C44();
     func_80067724(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -1900,15 +1904,15 @@ void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[1]];
+    vert = &EVO_SHARD_VERTS[prim->idx[1]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[2]];
+    vert = &EVO_SHARD_VERTS[prim->idx[2]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
@@ -1925,7 +1929,7 @@ void func_801E3694(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -1938,13 +1942,13 @@ void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT4 *prim;
     POLY_FT4 *poly;
 
-    prim = (TmdPacketFT4 *)D_801F0540;
+    prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
     poly = (POLY_FT4 *)func_80062C44();
     func_800677A4(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -1958,19 +1962,19 @@ void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[1]];
+    vert = &EVO_SHARD_VERTS[prim->idx[1]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[5]];
+    vert = &EVO_SHARD_VERTS[prim->idx[5]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[7]];
+    vert = &EVO_SHARD_VERTS[prim->idx[7]];
     v3.vx = vert->vx + offset.vx;
     v3.vy = vert->vy + offset.vy;
     v3.vz = vert->vz + offset.vz;
@@ -1987,7 +1991,7 @@ void func_801E39CC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2000,13 +2004,13 @@ void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT4 *prim;
     POLY_FT4 *poly;
 
-    prim = (TmdPacketFT4 *)D_801F0540;
+    prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
     poly = (POLY_FT4 *)func_80062C44();
     func_800677A4(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -2020,19 +2024,19 @@ void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[1]];
+    vert = &EVO_SHARD_VERTS[prim->idx[1]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[2]];
+    vert = &EVO_SHARD_VERTS[prim->idx[2]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[4]];
+    vert = &EVO_SHARD_VERTS[prim->idx[4]];
     v3.vx = vert->vx + offset.vx;
     v3.vy = vert->vy + offset.vy;
     v3.vz = vert->vz + offset.vz;
@@ -2049,7 +2053,7 @@ void func_801E3D6C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTNF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2062,13 +2066,13 @@ void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT3 *prim;
     POLY_FT3 *poly;
 
-    prim = (TmdPacketFT3 *)D_801F0540;
+    prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
     poly = (POLY_FT3 *)func_80062C44();
     func_80067724(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -2080,15 +2084,15 @@ void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[2]];
+    vert = &EVO_SHARD_VERTS[prim->idx[2]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[4]];
+    vert = &EVO_SHARD_VERTS[prim->idx[4]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
@@ -2105,7 +2109,7 @@ void func_801E410C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2118,13 +2122,13 @@ void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     TmdPacketFT4 *prim;
     POLY_FT4 *poly;
 
-    prim = (TmdPacketFT4 *)D_801F0540;
+    prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
     poly = (POLY_FT4 *)func_80062C44();
     func_800677A4(poly);
     SetSemiTrans(poly, 0);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     poly->tpage = prim->tsb;
     poly->clut = prim->cba;
     poly->u0 = prim->u0;
@@ -2138,19 +2142,19 @@ void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim->idx[2]];
+    vert = &EVO_SHARD_VERTS[prim->idx[2]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[3]];
+    vert = &EVO_SHARD_VERTS[prim->idx[3]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[4]];
+    vert = &EVO_SHARD_VERTS[prim->idx[4]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim->idx[5]];
+    vert = &EVO_SHARD_VERTS[prim->idx[5]];
     v3.vx = vert->vx + offset.vx;
     v3.vy = vert->vy + offset.vy;
     v3.vz = vert->vz + offset.vz;
@@ -2167,7 +2171,7 @@ void func_801E4444(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-s32 func_801E47E4(s32 part, s32 arg) {
+s32 EVO_addShard(s32 part, s32 arg) {
     SVECTOR out;
     MATRIX rot;
     MATRIX world;
@@ -2190,32 +2194,32 @@ s32 func_801E47E4(s32 part, s32 arg) {
     u32 i;
     u32 k;
 
-    obj = ((EvoModel *)SCENE_3D->models[D_801F0600.model])->parts[part].tmd;
+    obj = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->parts[part].tmd;
     if (obj == NULL) {
         return -1;
     }
-    for (slot = 0; slot < 30 && D_801F05FC[slot].timer >= 0; slot++) {
+    for (slot = 0; slot < 30 && EVO_SHARDS[slot].timer >= 0; slot++) {
     }
     if (slot == 30) {
         return -1;
     }
     PushMatrix();
-    rot = ((EvoModel *)SCENE_3D->models[D_801F0600.model])->matrices[part];
-    verts = D_801F2BB8;
+    rot = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->matrices[part];
+    verts = EVO_SHARD_VERTEX_CURSOR;
     vert = obj->vertTop;
-    world = ((EvoModel *)SCENE_3D->models[D_801F0600.model])->matrices[part];
+    world = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->matrices[part];
     for (i = 0; i < obj->nvert; i++) {
         ApplyMatrixSV(&world, vert++, &out);
-        D_801F2BB8->vx = out.vx + world.t[0];
-        D_801F2BB8->vy = out.vy + world.t[1];
-        D_801F2BB8->vz = out.vz + world.t[2];
-        D_801F2BB8++;
+        EVO_SHARD_VERTEX_CURSOR->vx = out.vx + world.t[0];
+        EVO_SHARD_VERTEX_CURSOR->vy = out.vy + world.t[1];
+        EVO_SHARD_VERTEX_CURSOR->vz = out.vz + world.t[2];
+        EVO_SHARD_VERTEX_CURSOR++;
     }
-    shard = &D_801F05FC[slot];
+    shard = &EVO_SHARDS[slot];
     shard->timer = 0;
     shard->count = obj->nprim;
-    shard->offsets = D_801F2BB8;
-    shard->unk12 = arg;
+    shard->offsets = EVO_SHARD_VERTEX_CURSOR;
+    shard->part = arg;
     shard->verts = verts;
     shard->prims = (s8 *)obj->primTop;
     shard->primCount = obj->nprim;
@@ -2233,10 +2237,10 @@ s32 func_801E47E4(s32 part, s32 arg) {
             center.vx = (n0.vx + n1.vx + n2.vx) / 3;
             center.vy = (n0.vy + n1.vy + n2.vy) / 3;
             center.vz = (n0.vz + n1.vz + n2.vz) / 3;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x1C;
             break;
         case 0x1C:
@@ -2252,85 +2256,85 @@ s32 func_801E47E4(s32 part, s32 arg) {
             center.vx = (n0.vx + n1.vx + n2.vx) / 3;
             center.vy = (n0.vy + n1.vy + n2.vy) / 3;
             center.vz = (n0.vz + n1.vz + n2.vz) / 3;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x24;
             break;
         case 0x0C:
             ApplyMatrixSV(&rot, &obj->normTop[*(u16 *)(prim + 0x14)], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x20;
             break;
         case 0x04:
             ApplyMatrixSV(&rot, &obj->normTop[*(u16 *)(prim + 0x10)], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x18;
             break;
         case 0x0D:
         case 0x0F:
             ApplyMatrixSV(&rot, &obj->normTop[1], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x20;
             break;
         case 0x05:
             ApplyMatrixSV(&rot, &obj->normTop[1], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x1C;
             break;
         case 0x08:
         case 0x10:
             ApplyMatrixSV(&rot, &obj->normTop[*(u16 *)(prim + 0x8)], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x14;
             break;
         case 0x18:
             ApplyMatrixSV(&rot, &obj->normTop[*(u16 *)(prim + 0x8)], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x18;
             break;
         case 0x00:
             ApplyMatrixSV(&rot, &obj->normTop[*(u16 *)(prim + 0x8)], &n0);
             center = n0;
-            D_801F2BB8->vx = center.vx;
-            D_801F2BB8->vy = center.vy;
-            D_801F2BB8->vz = center.vz;
-            D_801F2BB8++;
+            EVO_SHARD_VERTEX_CURSOR->vx = center.vx;
+            EVO_SHARD_VERTEX_CURSOR->vy = center.vy;
+            EVO_SHARD_VERTEX_CURSOR->vz = center.vz;
+            EVO_SHARD_VERTEX_CURSOR++;
             prim += 0x10;
             break;
         }
     }
     PopMatrix();
-    D_801F0600.count = slot + 1;
+    EVO_SHATTER.count = slot + 1;
     return slot;
 }
 
-s32 func_801E5024(s32 min, s32 max) {
+s32 EVO_randomRange(s32 min, s32 max) {
     s32 tmp;
 
     if (max == min) {
@@ -2341,28 +2345,28 @@ s32 func_801E5024(s32 min, s32 max) {
         min = max;
         max = tmp;
     }
-    D_801F2BB0 = D_801F2BB0 * 0x41C650AD + 0x3039;
-    D_801EF85C = D_801EF85C * 0x41C650AD + 0x3039;
-    return min + ((D_801F2BB0 >> 16) | (D_801EF85C << 16)) % (max - min + 1);
+    EVO_RAND_SEED_LO = EVO_RAND_SEED_LO * 0x41C650AD + 0x3039;
+    EVO_RAND_SEED_HI = EVO_RAND_SEED_HI * 0x41C650AD + 0x3039;
+    return min + ((EVO_RAND_SEED_LO >> 16) | (EVO_RAND_SEED_HI << 16)) % (max - min + 1);
 }
 
-void func_801E50BC(void) {
+void EVO_clearSparks(void) {
     EvoSpark *spark;
     s32 i;
 
     for (i = 0; i < 16; i++) {
-        spark = &D_801F02F0[i];
+        spark = &EVO_SPARKS[i];
         spark->joint = -1;
     }
 }
 
-s32 func_801E50F8(s16 joint, s16 timer) {
+s32 EVO_addSpark(s16 joint, s16 timer) {
     EvoSpark *spark;
     EvoSpark *slot;
     s32 i;
 
     for (i = 0; i < 16; i++) {
-        slot = &D_801F02F0[i];
+        slot = &EVO_SPARKS[i];
         if (slot->joint == -1) {
             break;
         }
@@ -2370,24 +2374,24 @@ s32 func_801E50F8(s16 joint, s16 timer) {
     if (i == 16) {
         return -1;
     }
-    spark = &D_801F02F0[i];
+    spark = &EVO_SPARKS[i];
     spark->joint = joint;
     spark->timer = timer;
-    func_800149B8(0, -1, 0, 0x1000, func_801E51E4, spark, getCurrentTaskId(), 0, 0);
+    func_800149B8(0, -1, 0, 0x1000, EVO_runSparkTask, spark, getCurrentTaskId(), 0, 0);
     return i;
 }
 
-void func_801E51E4(EvoSpark *spark) {
+void EVO_runSparkTask(EvoSpark *spark) {
     do {
         func_80014C08(1);
-        func_801E5244(spark);
+        EVO_drawSpark(spark);
     } while (--spark->timer >= 0);
     func_80014C08(10);
     spark->joint = -1;
     func_80014A90();
 }
 
-void func_801E5244(EvoSpark *spark) {
+void EVO_drawSpark(EvoSpark *spark) {
     MATRIX mat;
     SVECTOR from;
     SVECTOR to;
@@ -2412,7 +2416,7 @@ void func_801E5244(EvoSpark *spark) {
     from.vy = mat.t[1];
     from.vz = mat.t[2];
     dist = to.vx * to.vx + to.vy * to.vy + to.vz * to.vz;
-    len = func_801E5024(400, 500);
+    len = EVO_randomRange(400, 500);
     len *= len;
     if (dist == 0) {
         dist = 1;
@@ -2420,9 +2424,9 @@ void func_801E5244(EvoSpark *spark) {
     to.vx = from.vx + to.vx * len / dist;
     to.vy = from.vy + to.vy * len / dist;
     to.vz = from.vz + to.vz * len / dist;
-    tip.vx = to.vx + func_801E5024(-80, 80);
-    tip.vy = to.vy + func_801E5024(-80, 80);
-    tip.vz = to.vz + func_801E5024(-80, 80);
+    tip.vx = to.vx + EVO_randomRange(-80, 80);
+    tip.vy = to.vy + EVO_randomRange(-80, 80);
+    tip.vz = to.vz + EVO_randomRange(-80, 80);
     poly = (PolyF3 *)func_80062C44();
     func_80067704(poly);
     SetSemiTrans(poly, 1);
@@ -2440,7 +2444,7 @@ void func_801E5244(EvoSpark *spark) {
     PopMatrix();
 }
 
-void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2453,30 +2457,30 @@ void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     u16 *prim;
     PolyF4 *poly;
 
-    prim = (u16 *)D_801F0540;
+    prim = (u16 *)EVO_SHARD_PRIM;
     poly = (PolyF4 *)func_80062C44();
     setlen(poly, 5);
     setcode(poly, 0x28);
     SetSemiTrans(poly, 1);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim[5]];
+    vert = &EVO_SHARD_VERTS[prim[5]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[6]];
+    vert = &EVO_SHARD_VERTS[prim[6]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[7]];
+    vert = &EVO_SHARD_VERTS[prim[7]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[8]];
+    vert = &EVO_SHARD_VERTS[prim[8]];
     v3.vx = vert->vx + offset.vx;
     v3.vy = vert->vy + offset.vy;
     v3.vz = vert->vz + offset.vz;
@@ -2493,7 +2497,7 @@ void func_801E55FC(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E5934(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2506,26 +2510,26 @@ void func_801E5934(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     u16 *prim;
     PolyG3 *poly;
 
-    prim = (u16 *)D_801F0540;
+    prim = (u16 *)EVO_SHARD_PRIM;
     poly = (PolyG3 *)func_80062C44();
     setlen(poly, 6);
     setcode(poly, 0x30);
     SetSemiTrans(poly, 1);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim[5]];
+    vert = &EVO_SHARD_VERTS[prim[5]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[7]];
+    vert = &EVO_SHARD_VERTS[prim[7]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[9]];
+    vert = &EVO_SHARD_VERTS[prim[9]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
@@ -2542,7 +2546,7 @@ void func_801E5934(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E5C1C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2555,30 +2559,30 @@ void func_801E5C1C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     u16 *prim;
     PolyG4 *poly;
 
-    prim = (u16 *)D_801F0540;
+    prim = (u16 *)EVO_SHARD_PRIM;
     poly = (PolyG4 *)func_80062C44();
     setlen(poly, 8);
     setcode(poly, 0x38);
     SetSemiTrans(poly, 1);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim[5]];
+    vert = &EVO_SHARD_VERTS[prim[5]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[7]];
+    vert = &EVO_SHARD_VERTS[prim[7]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[9]];
+    vert = &EVO_SHARD_VERTS[prim[9]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[11]];
+    vert = &EVO_SHARD_VERTS[prim[11]];
     v3.vx = vert->vx + offset.vx;
     v3.vy = vert->vy + offset.vy;
     v3.vz = vert->vz + offset.vz;
@@ -2595,7 +2599,7 @@ void func_801E5C1C(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
+void EVO_drawShardF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
@@ -2608,26 +2612,26 @@ void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     u16 *prim;
     PolyF3 *poly;
 
-    prim = (u16 *)D_801F0540;
+    prim = (u16 *)EVO_SHARD_PRIM;
     poly = (PolyF3 *)func_80062C44();
     setlen(poly, 4);
     setcode(poly, 0x20);
     SetSemiTrans(poly, 1);
-    poly->r0 = D_801F0530.r;
-    poly->g0 = D_801F0530.g;
-    poly->b0 = D_801F0530.b;
+    poly->r0 = EVO_SHARD_COLOR.r;
+    poly->g0 = EVO_SHARD_COLOR.g;
+    poly->b0 = EVO_SHARD_COLOR.b;
     offset.vx = pos->vx * mul / div;
     offset.vy = pos->vy * mul / div;
     offset.vz = pos->vz * mul / div;
-    vert = &D_801F0538[prim[5]];
+    vert = &EVO_SHARD_VERTS[prim[5]];
     v0.vx = vert->vx + offset.vx;
     v0.vy = vert->vy + offset.vy;
     v0.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[6]];
+    vert = &EVO_SHARD_VERTS[prim[6]];
     v1.vx = vert->vx + offset.vx;
     v1.vy = vert->vy + offset.vy;
     v1.vz = vert->vz + offset.vz;
-    vert = &D_801F0538[prim[7]];
+    vert = &EVO_SHARD_VERTS[prim[7]];
     v2.vx = vert->vx + offset.vx;
     v2.vy = vert->vy + offset.vy;
     v2.vz = vert->vz + offset.vz;
@@ -2644,11 +2648,11 @@ void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-u32 D_801EF85C = 0x13CC25;
-s16 D_801EF860 = 0x37;
-s16 D_801EF862 = 0xFF;
-s8 D_801EF864[16] = { 6, 3, 11, 8, 10, 13, 1, 4, 14, 7, 12, 15, 5, 2, 9, 0 };
-s16 D_801EF874[40] = {
+u32 EVO_RAND_SEED_HI = 0x13CC25;
+s16 EVO_WIRE_SHADE_MIN = 0x37;
+s16 EVO_WIRE_SHADE_MAX = 0xFF;
+s8 EVO_DISSOLVE_PATTERN[16] = { 6, 3, 11, 8, 10, 13, 1, 4, 14, 7, 12, 15, 5, 2, 9, 0 };
+s16 EVO_PART_DRAW_MODES[40] = {
     16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
     16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
     16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
@@ -2658,8 +2662,8 @@ s16 D_801EF874[40] = {
 /* not referenced by any code */
 u8 D_801EF8C4[16] = { 0x40, 0x48, 0x4C, 0x50, 0x58, 0x5C, 0x20, 0x28, 0x24, 0x2C, 0x30, 0x38, 0x34, 0x3C, 0xF6, 0x57 };
 
-/* not referenced by any code */
-EvoAbilityInfo D_801EF8D4[128] = {
+/* the Digi-Parts: their text and the rank each partner learns them at */
+EvoAbilityInfo EVO_DIGI_PARTS[128] = {
     { "HP+50.", { 3, 5, 1, 99, 3, 7 } },
     { "HP+100.", { 17, 16, 8, 12, 14, 19 } },
     { "HP+150.", { 29, 32, 19, 25, 32, 33 } },
@@ -2790,8 +2794,8 @@ EvoAbilityInfo D_801EF8D4[128] = {
     { "Rare Card even more likely to appear.", { -1, 90, 99, 96, 70, -1 } },
 };
 
-u8 D_801EFED4[6] = { 0xAF, 0xB6, 0xBE, 0xB7, 0xB8, 0xBB };
-s8 D_801EFEDC[6][6] = {
+u8 EVO_PARTNER_CARD_IDS[6] = { 0xAF, 0xB6, 0xBE, 0xB7, 0xB8, 0xBB };
+s8 EVO_FUSION_RESULT_TYPES[6][6] = {
     { 5, 2, 3, 4, 1, 0 },
     { 2, 5, 4, 0, 2, 1 },
     { 3, 4, 5, 1, 3, 2 },
@@ -2799,10 +2803,10 @@ s8 D_801EFEDC[6][6] = {
     { 1, 2, 3, 0, 5, 4 },
     { 0, 1, 2, 3, 4, 5 },
 };
-EvoRange D_801EFF00[7] = {
+EvoRange EVO_CARD_ID_RANGES[7] = {
     { 0, 33 }, { 34, 68 }, { 69, 102 }, { 103, 138 }, { 139, 171 }, { 191, 272 }, { 294, 300 },
 };
-EvoAbilityReward D_801EFF1C[6][5] = {
+EvoAbilityReward EVO_PARTNER_FUSION_REWARDS[6][5] = {
     { { 0x00, 0x09 }, { 0x04, 0x49 }, { 0x0C, 0x78 }, { 0x08, 0x30 }, { 0x02, 0x7E } },
     { { 0x45, 0x7A }, { 0x4C, 0x4D }, { 0x0D, 0x3E }, { 0x03, 0x35 }, { 0x07, 0x7C } },
     { { 0x22, 0x06 }, { 0x8E, 0x76 }, { 0x97, 0x4F }, { 0x8C, 0x3A }, { 0x28, 0x75 } },
@@ -2810,9 +2814,9 @@ EvoAbilityReward D_801EFF1C[6][5] = {
     { { 0x47, 0x7F }, { 0x4D, 0x66 }, { 0x49, 0x6D }, { 0x76, 0x37 }, { 0x4E, 0x68 } },
     { { 0x68, 0x7D }, { 0x69, 0x4B }, { 0x75, 0x3F }, { 0x6B, 0x3C }, { 0x4F, 0x23 } },
 };
-Bytes4 D_801EFF58[2] = { { { 0x80, 0x80, 0x80, 0 } }, { { 0x40, 0x40, 0x40, 0 } } };
-Bytes4 D_801EFF60 = { { 0x60, 0x60, 0x60, 0 } };
-Bytes4 D_801EFF64 = { { 0xC0, 0x60, 0x60, 0 } };
+Bytes4 EVO_TEXT_COLORS[2] = { { { 0x80, 0x80, 0x80, 0 } }, { { 0x40, 0x40, 0x40, 0 } } };
+Bytes4 EVO_TEXT_COLOR_GREY = { { 0x60, 0x60, 0x60, 0 } };
+Bytes4 EVO_TEXT_COLOR_RED = { { 0xC0, 0x60, 0x60, 0 } };
 
 /* not referenced by any code */
 Rect16 D_801EFF68[14] = {
@@ -2838,7 +2842,7 @@ s16 D_801EFFD8[2][10] = {
     { -0x78, 0x29, 0xE, 0x29, 0x50, 0x74, -0x1, 0x0, 0xC, 0x1 },
 };
 
-const u8 D_801DF03C[20][4] = {
+const u8 EVO_FUSION_RECIPES[20][4] = {
     { 0x01, 0x04, 0x00, 0xEC },
     { 0x04, 0x23, 0x00, 0xEC },
     { 0x02, 0x25, 0x01, 0xED },
@@ -2861,7 +2865,7 @@ const u8 D_801DF03C[20][4] = {
     { 0x52, 0x97, 0x8E, 0xFD },
 };
 
-void func_801E623C(void) {
+void EVO_loadUnitTextures(void) {
     char path[24];
     u32 *pack;
 
@@ -2872,7 +2876,7 @@ void func_801E623C(void) {
     freeHeapBlock(pack);
 }
 
-char *D_801F0000[12] = {
+char *EVO_SORT_LABELS[12] = {
     "Number",
     "*a0 Fire",
     "*a1 Ice",
@@ -2887,7 +2891,7 @@ char *D_801F0000[12] = {
     "Number of Cards that can be Fused.",
 };
 
-void func_801E62D0(void) {
+void EVO_initFusionScene(void) {
     Graphics *camera;
 
     initScene3D(1);
@@ -2911,63 +2915,63 @@ void func_801E62D0(void) {
     func_80014C08(2);
 }
 
-void func_801E6398(void) {
+void EVO_countSpareCards(void) {
     s32 i;
     s32 j;
 
     for (i = 0; i < 0x12D; i++) {
-        D_801F4E34[i] = getOwnedCardCount(0, i);
+        EVO_SPARE_CARD_COUNTS[i] = getOwnedCardCount(0, i);
     }
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 0x12D; j++) {
-            D_801F4E40[i][j] = 0;
+            EVO_DECK_CARD_COUNTS[i][j] = 0;
         }
     }
     for (i = 0; i < 3; i++) {
         if (((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].inUse != 0) {
             for (j = 0; j < 30; j++) {
-                D_801F4E40[i][getCardId(((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].cards[j].type,
+                EVO_DECK_CARD_COUNTS[i][getCardId(((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].cards[j].type,
                                         ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].cards[j].index)]++;
             }
         }
     }
     for (i = 0; i < 0x12D; i++) {
         for (j = 1; j < 3; j++) {
-            if (D_801F4E40[0][i] < D_801F4E40[j][i]) {
-                D_801F4E40[0][i] = D_801F4E40[j][i];
+            if (EVO_DECK_CARD_COUNTS[0][i] < EVO_DECK_CARD_COUNTS[j][i]) {
+                EVO_DECK_CARD_COUNTS[0][i] = EVO_DECK_CARD_COUNTS[j][i];
             }
         }
     }
     for (i = 0; i < 0x12D; i++) {
-        D_801F4E34[i] -= D_801F4E40[0][i];
+        EVO_SPARE_CARD_COUNTS[i] -= EVO_DECK_CARD_COUNTS[0][i];
     }
 }
 
-void func_801E65A8(void) {
+void EVO_initCardList(void) {
     s32 i;
     s32 j;
 
     for (i = 0, j = 0; j < 0xBF; j++, i++) {
-        D_801F44C0[i] = (EvoCardInfo *)(DIGIMON_CARDS + j * 0x13C);
-        D_801F4980[i] = D_801F44C0[i];
+        EVO_CARD_LIST[i] = (EvoCardInfo *)(DIGIMON_CARDS + j * 0x13C);
+        EVO_CARDS_BY_ID[i] = EVO_CARD_LIST[i];
     }
     for (j = 0; j < 0x66; j++, i++) {
-        D_801F44C0[i] = (EvoCardInfo *)(OPTION_CARDS + j * 0xE2);
-        D_801F4980[i] = D_801F44C0[i];
+        EVO_CARD_LIST[i] = (EvoCardInfo *)(OPTION_CARDS + j * 0xE2);
+        EVO_CARDS_BY_ID[i] = EVO_CARD_LIST[i];
     }
     for (j = 0; j < 8; j++, i++) {
-        D_801F44C0[i] = (EvoCardInfo *)(DIGIVOLVE_CARDS + j * 0x70);
-        D_801F4980[i] = D_801F44C0[i];
+        EVO_CARD_LIST[i] = (EvoCardInfo *)(DIGIVOLVE_CARDS + j * 0x70);
+        EVO_CARDS_BY_ID[i] = EVO_CARD_LIST[i];
     }
     for (j = 0; j < 3; j++) {
         if (((PlayerProfile *)PLAYER_PROFILES)->partners[j].cardId != 0) {
-            D_801F44C0[((PlayerProfile *)PLAYER_PROFILES)->partners[j].cardId] =
+            EVO_CARD_LIST[((PlayerProfile *)PLAYER_PROFILES)->partners[j].cardId] =
                 (EvoCardInfo *)&((PlayerProfile *)PLAYER_PROFILES)->partners[j].card[0];
         }
     }
 }
 
-s32 func_801E6718(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareFireCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3000,7 +3004,7 @@ s32 func_801E6718(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E67F4(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareIceCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3033,7 +3037,7 @@ s32 func_801E67F4(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E68D0(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareNatureCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3066,7 +3070,7 @@ s32 func_801E68D0(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E69B0(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareDarknessCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3099,7 +3103,7 @@ s32 func_801E69B0(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6A90(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareRareCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3132,7 +3136,7 @@ s32 func_801E6A90(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6B70(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareOptionCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka = (*a)->type == 1;
     s32 kb = (*b)->type == 1;
 
@@ -3145,7 +3149,7 @@ s32 func_801E6B70(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6C04(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareDigivolveCards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka = (*a)->type == 2;
     s32 kb = (*b)->type == 2;
 
@@ -3158,7 +3162,7 @@ s32 func_801E6C04(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6C98(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareLevel0Cards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3191,7 +3195,7 @@ s32 func_801E6C98(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6D74(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareLevel2Cards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3224,7 +3228,7 @@ s32 func_801E6D74(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6E54(EvoCardInfo **a, EvoCardInfo **b) {
+s32 EVO_compareLevel3Cards(EvoCardInfo **a, EvoCardInfo **b) {
     s32 ka;
     s32 kb;
 
@@ -3257,9 +3261,9 @@ s32 func_801E6E54(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-s32 func_801E6F34(EvoCardInfo **a, EvoCardInfo **b) {
-    s32 ka = D_801F4E34[(*a)->id];
-    s32 kb = D_801F4E34[(*b)->id];
+s32 EVO_compareSpareCounts(EvoCardInfo **a, EvoCardInfo **b) {
+    s32 ka = EVO_SPARE_CARD_COUNTS[(*a)->id];
+    s32 kb = EVO_SPARE_CARD_COUNTS[(*b)->id];
 
     if (!(((PlayerProfile *)PLAYER_PROFILES)->cardCollection[(*a)->id] & 0x40)) {
         ka = -1;
@@ -3270,57 +3274,57 @@ s32 func_801E6F34(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
-Menu D_801F0030 = { 0, 0, { 0x6A, 0x2C, 0xD0, 0x6C }, 0, -1, 0, -1, 0xA, 0x61, 0x74, 0xC, 0, 301, 0x36, 1, 0, 0xC };
-Menu D_801F005C = { 0, 0, { 0x28, 0x3C, 0xCA, 0x70 }, 0, -1, 0, -1, 0xA, 0x56, 0xC0, 0xC, 0, 12, 0, 1, 0, 0xE };
+Menu EVO_CARD_LIST_MENU = { 0, 0, { 0x6A, 0x2C, 0xD0, 0x6C }, 0, -1, 0, -1, 0xA, 0x61, 0x74, 0xC, 0, 301, 0x36, 1, 0, 0xC };
+Menu EVO_SORT_MENU = { 0, 0, { 0x28, 0x3C, 0xCA, 0x70 }, 0, -1, 0, -1, 0xA, 0x56, 0xC0, 0xC, 0, 12, 0, 1, 0, 0xE };
 
 typedef s32 (*EvoCardCompare)(s8 *, s8 *);
 
-s32 (*D_801F0088[12])(s8 *, s8 *) = {
+s32 (*EVO_SORT_COMPARES[12])(s8 *, s8 *) = {
     0,
-    (EvoCardCompare)func_801E6718,
-    (EvoCardCompare)func_801E67F4,
-    (EvoCardCompare)func_801E68D0,
-    (EvoCardCompare)func_801E69B0,
-    (EvoCardCompare)func_801E6A90,
-    (EvoCardCompare)func_801E6B70,
-    (EvoCardCompare)func_801E6C04,
-    (EvoCardCompare)func_801E6C98,
-    (EvoCardCompare)func_801E6D74,
-    (EvoCardCompare)func_801E6E54,
-    (EvoCardCompare)func_801E6F34,
+    (EvoCardCompare)EVO_compareFireCards,
+    (EvoCardCompare)EVO_compareIceCards,
+    (EvoCardCompare)EVO_compareNatureCards,
+    (EvoCardCompare)EVO_compareDarknessCards,
+    (EvoCardCompare)EVO_compareRareCards,
+    (EvoCardCompare)EVO_compareOptionCards,
+    (EvoCardCompare)EVO_compareDigivolveCards,
+    (EvoCardCompare)EVO_compareLevel0Cards,
+    (EvoCardCompare)EVO_compareLevel2Cards,
+    (EvoCardCompare)EVO_compareLevel3Cards,
+    (EvoCardCompare)EVO_compareSpareCounts,
 };
 
-Rect16 D_801F00B8 = { 0xD, 0x4A, 0x48, 0x9 };
+Rect16 EVO_RANK_UP_RECT = { 0xD, 0x4A, 0x48, 0x9 };
 
-void func_801E6FCC(UiWindow *w) {
+void EVO_drawSortMenu(UiWindow *w) {
     s32 x = w->originX;
     s32 z = w->z;
     s32 i;
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
-    for (i = 0; i < D_801F005C.nrows; i++) {
-        if (i < w->view.y / D_801F005C.rowH) {
+    for (i = 0; i < EVO_SORT_MENU.nrows; i++) {
+        if (i < w->view.y / EVO_SORT_MENU.rowH) {
             continue;
         }
-        if ((w->view.y + w->rect.h) / D_801F005C.rowH < i) {
+        if ((w->view.y + w->rect.h) / EVO_SORT_MENU.rowH < i) {
             break;
         }
-        drawText(x, w->originY + i * D_801F005C.rowH + 1, (s32)D_801F0000[i], 7, z);
+        drawText(x, w->originY + i * EVO_SORT_MENU.rowH + 1, (s32)EVO_SORT_LABELS[i], 7, z);
     }
-    updateMenuCursor(&D_801F005C);
-    if (D_801F005C.active != 0 && (PAD_STATES[0]->pressed & 0x40)) {
+    updateMenuCursor(&EVO_SORT_MENU);
+    if (EVO_SORT_MENU.active != 0 && (PAD_STATES[0]->pressed & 0x40)) {
         playMenuSound(1);
-        D_801F0030.row = 0;
-        centerMenuOnCursor(&D_801F0030);
-        if (D_801F0088[D_801F005C.row] != NULL) {
-            sortArray((s8 *)D_801F44C0, 0x12D, 4, D_801F0088[D_801F005C.row]);
+        EVO_CARD_LIST_MENU.row = 0;
+        centerMenuOnCursor(&EVO_CARD_LIST_MENU);
+        if (EVO_SORT_COMPARES[EVO_SORT_MENU.row] != NULL) {
+            sortArray((s8 *)EVO_CARD_LIST, 0x12D, 4, EVO_SORT_COMPARES[EVO_SORT_MENU.row]);
         } else {
-            func_801E65A8();
+            EVO_initCardList();
         }
     }
 }
 
-void func_801E7178(UiWindow *w) {
+void EVO_drawCardList(UiWindow *w) {
     char text[72];
     u8 *color;
     s32 x;
@@ -3333,40 +3337,40 @@ void func_801E7178(UiWindow *w) {
     x = w->originX;
     z = w->z;
     x -= 10;
-    if (D_801F5380.unkE == 0) {
+    if (EVO_TYPE_CHOICE.unkE == 0) {
         w->brightness = 0x80;
     } else {
         w->brightness = 0x40;
     }
-    for (i = 0; i < D_801F0030.nrows; i++) {
-        if (i < w->view.y / D_801F0030.rowH) {
+    for (i = 0; i < EVO_CARD_LIST_MENU.nrows; i++) {
+        if (i < w->view.y / EVO_CARD_LIST_MENU.rowH) {
             continue;
         }
-        if ((w->view.y + w->rect.h) / D_801F0030.rowH < i) {
+        if ((w->view.y + w->rect.h) / EVO_CARD_LIST_MENU.rowH < i) {
             break;
         }
-        y = w->originY + i * D_801F0030.rowH + 1;
-        type = D_801F44C0[i]->type;
-        color = D_801EFF58[0].b;
+        y = w->originY + i * EVO_CARD_LIST_MENU.rowH + 1;
+        type = EVO_CARD_LIST[i]->type;
+        color = EVO_TEXT_COLORS[0].b;
         palette = 7;
-        if (D_801F44C0[i]->unk18 == 0) {
+        if (EVO_CARD_LIST[i]->fusionPoints == 0) {
             palette = 3;
         }
-        if (type == 0 && (D_801F44C0[i]->attr & 0xF) > D_801F5358) {
+        if (type == 0 && (EVO_CARD_LIST[i]->attr & 0xF) > EVO_MAX_CARD_LEVEL) {
             palette = 3;
         }
-        if (((PlayerProfile *)PLAYER_PROFILES)->cardCollection[D_801F44C0[i]->id] & 0x40) {
-            if (D_801F4E34[D_801F44C0[i]->id] == 0) {
-                color = D_801EFF60.b;
+        if (((PlayerProfile *)PLAYER_PROFILES)->cardCollection[EVO_CARD_LIST[i]->id] & 0x40) {
+            if (EVO_SPARE_CARD_COUNTS[EVO_CARD_LIST[i]->id] == 0) {
+                color = EVO_TEXT_COLOR_GREY.b;
             }
-            drawTextColored(x + 0x3C, y, D_801F44C0[i]->name, color, palette, z);
+            drawTextColored(x + 0x3C, y, EVO_CARD_LIST[i]->name, color, palette, z);
             switch (type) {
             case 0:
-                drawIconColored(x + 0x20, y, 0, D_801F44C0[i]->attr >> 4, color, z);
+                drawIconColored(x + 0x20, y, 0, EVO_CARD_LIST[i]->attr >> 4, color, z);
                 if (palette == 3) {
-                    drawIconColored(x + 0x2C, y, 0, (D_801F44C0[i]->attr & 0xF) + 0x10, D_801EFF64.b, z);
+                    drawIconColored(x + 0x2C, y, 0, (EVO_CARD_LIST[i]->attr & 0xF) + 0x10, EVO_TEXT_COLOR_RED.b, z);
                 } else {
-                    drawIconColored(x + 0x2C, y, 0, (D_801F44C0[i]->attr & 0xF) + 0x10, color, z);
+                    drawIconColored(x + 0x2C, y, 0, (EVO_CARD_LIST[i]->attr & 0xF) + 0x10, color, z);
                 }
                 break;
             case 1:
@@ -3381,74 +3385,74 @@ void func_801E7178(UiWindow *w) {
             drawTextColored(x + 0x20, y, "??", color, palette, z);
             drawTextColored(x + 0x3C, y, "------------------", color, palette, z);
         }
-        sprintf(text, D_801DF15C, D_801F44C0[i]->id);
+        sprintf(text, EVO_FMT_CARD_NUMBER, EVO_CARD_LIST[i]->id);
         drawTextColored(x + 0xA, y, text, color, palette, z);
-        sprintf(text, D_801DF168, D_801F4E34[D_801F44C0[i]->id]);
+        sprintf(text, EVO_FMT_CARD_COUNT, EVO_SPARE_CARD_COUNTS[EVO_CARD_LIST[i]->id]);
         drawTextColored(x + 0xB5, y, text, color, palette, z);
-        drawTinyTextColored(x + 0xBD, y + 6, D_801DF16C, palette, color, z);
+        drawTinyTextColored(x + 0xBD, y + 6, EVO_STR_CARDS, palette, color, z);
     }
-    updateMenuCursor(&D_801F0030);
+    updateMenuCursor(&EVO_CARD_LIST_MENU);
 }
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF15C);
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_FMT_CARD_NUMBER);
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF168);
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_FMT_CARD_COUNT);
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF16C);
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_STR_CARDS);
 
-void func_801E75B0(EvoWindow *w) {
+void EVO_drawFusionTypeTitle(EvoWindow *w) {
     s32 x = w->win.originX;
     s32 y = w->win.originY;
     s32 z = w->win.z;
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
-    if (w->unk44 == 0) {
-        drawTextColored(x + 0x4B, y, "Card Fusion", D_801EFF58[D_801F5380.side].b, 6, z);
+    if (w->isPartner == 0) {
+        drawTextColored(x + 0x4B, y, "Card Fusion", EVO_TEXT_COLORS[EVO_TYPE_CHOICE.side].b, 6, z);
     } else {
-        drawTextColored(x + 0x41, y, "Partner Fusion", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 6, z);
+        drawTextColored(x + 0x41, y, "Partner Fusion", EVO_TEXT_COLORS[(s8)(EVO_TYPE_CHOICE.side ^ 1)].b, 6, z);
     }
 }
 
-void func_801E765C(EvoWindow *w) {
+void EVO_drawFusionTypeHelp(EvoWindow *w) {
     s32 x = w->win.originX;
     s32 y = w->win.originY;
     s32 z = w->win.z;
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
-    if (w->unk44 == 0) {
+    if (w->isPartner == 0) {
         x += 2;
-        drawTextColored(x, y, "*w1Create a New Card", D_801EFF58[D_801F5380.side].b, 8, z);
-        drawTextColored(x, y + 0xC, "*w1by Fusing 2 Cards.", D_801EFF58[D_801F5380.side].b, 8, z);
-        drawTextColored(x, y + 0x18, "*w1Partner Cards can't be used.", D_801EFF58[D_801F5380.side].b, 8, z);
+        drawTextColored(x, y, "*w1Create a New Card", EVO_TEXT_COLORS[EVO_TYPE_CHOICE.side].b, 8, z);
+        drawTextColored(x, y + 0xC, "*w1by Fusing 2 Cards.", EVO_TEXT_COLORS[EVO_TYPE_CHOICE.side].b, 8, z);
+        drawTextColored(x, y + 0x18, "*w1Partner Cards can't be used.", EVO_TEXT_COLORS[EVO_TYPE_CHOICE.side].b, 8, z);
     } else {
         x += 2;
-        drawTextColored(x, y, "*w1Increase Experience Points by", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
-        drawTextColored(x, y + 0xC, "*w1Fusing a Card to a Partner Card.", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
-        drawTextColored(x, y + 0x18, "*w1Also,2 Partner Cards can't be Fused.", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
+        drawTextColored(x, y, "*w1Increase Experience Points by", EVO_TEXT_COLORS[(s8)(EVO_TYPE_CHOICE.side ^ 1)].b, 8, z);
+        drawTextColored(x, y + 0xC, "*w1Fusing a Card to a Partner Card.", EVO_TEXT_COLORS[(s8)(EVO_TYPE_CHOICE.side ^ 1)].b, 8, z);
+        drawTextColored(x, y + 0x18, "*w1Also,2 Partner Cards can't be Fused.", EVO_TEXT_COLORS[(s8)(EVO_TYPE_CHOICE.side ^ 1)].b, 8, z);
     }
 }
 
-void func_801E780C(EvoScene *scene) {
+void EVO_drawTray(EvoTray *tray) {
     char text[40];
     Rect16 uv;
     POLY_FT4 *poly;
     s32 player;
 
-    poly = scene->polys[FRAME_BUFFER_INDEX];
+    poly = tray->polys[FRAME_BUFFER_INDEX];
     player = 2;
-    if (scene == &D_801F5548[0]) {
+    if (tray == &EVO_TRAYS[0]) {
         player = 1;
     }
     /* the index is added before the field offset in the original */
-    if (((EvoMenu *)((u8 *)&D_801F5478 + player))->busy[0] == 0) {
+    if (((EvoFusion *)((u8 *)&EVO_FUSION + player))->busy[0] == 0) {
         bzero((Scene3D *)text, 0x21);
         sprintf(text, "TRAY%d", player);
-        drawLargeText(scene->unk124 + 16, 0x5C, (s32)text, 7, 0x1D);
+        drawLargeText(tray->x + 16, 0x5C, (s32)text, 7, 0x1D);
         uv.x = 0;
         uv.y = 0x74;
         uv.w = 0x50;
         uv.h = 0x74;
-        drawTexturedSprite(scene->unk124, scene->unk126, &uv, 0x18, 0x7BDF, 0x1E, 0x80, 0);
+        drawTexturedSprite(tray->x, tray->y, &uv, 0x18, 0x7BDF, 0x1E, 0x80, 0);
         return;
     }
     setlen(poly, 9);
@@ -3458,14 +3462,14 @@ void func_801E780C(EvoScene *scene) {
     poly->r0 = 0x80;
     poly->g0 = 0x80;
     poly->b0 = 0x80;
-    poly->x0 = scene->unk124;
-    poly->y0 = scene->unk126;
-    poly->x1 = scene->unk124 + 0x50;
-    poly->y1 = scene->unk126;
-    poly->x2 = scene->unk124;
-    poly->y2 = scene->unk126 + 0x74;
-    poly->x3 = scene->unk124 + 0x50;
-    poly->y3 = scene->unk126 + 0x74;
+    poly->x0 = tray->x;
+    poly->y0 = tray->y;
+    poly->x1 = tray->x + 0x50;
+    poly->y1 = tray->y;
+    poly->x2 = tray->x;
+    poly->y2 = tray->y + 0x74;
+    poly->x3 = tray->x + 0x50;
+    poly->y3 = tray->y + 0x74;
     poly->u0 = 0;
     poly->v0 = 0;
     poly->u1 = 0x50;
@@ -3478,7 +3482,7 @@ void func_801E780C(EvoScene *scene) {
     poly++;
     setlen(poly, 9);
     setcode(poly, 0x2C);
-    if (player == 1 && D_801F5478.unkC6 == 0) {
+    if (player == 1 && EVO_FUSION.hideResult == 0) {
         poly->clut = 0x7A98;
         poly->u0 = 0;
         poly->v0 = 0x40;
@@ -3503,18 +3507,18 @@ void func_801E780C(EvoScene *scene) {
     poly->r0 = 0x80;
     poly->g0 = 0x80;
     poly->b0 = 0x80;
-    poly->x0 = scene->unk124 + 8;
-    poly->y0 = scene->unk126 + 0x14;
-    poly->x1 = scene->unk124 + 0x48;
-    poly->y1 = scene->unk126 + 0x14;
-    poly->x2 = scene->unk124 + 8;
-    poly->y2 = scene->unk126 + 0x54;
-    poly->x3 = scene->unk124 + 0x48;
-    poly->y3 = scene->unk126 + 0x54;
+    poly->x0 = tray->x + 8;
+    poly->y0 = tray->y + 0x14;
+    poly->x1 = tray->x + 0x48;
+    poly->y1 = tray->y + 0x14;
+    poly->x2 = tray->x + 8;
+    poly->y2 = tray->y + 0x54;
+    poly->x3 = tray->x + 0x48;
+    poly->y3 = tray->y + 0x54;
     addPrim(&CURRENT_FRAME_BUFFER->ot[28], poly);
 }
 
-EvoWindowDef D_801F00C0[14] = {
+EvoWindowDef EVO_WINDOW_DEFS[14] = {
     { { 0x10, 0x24, 0x40, 0x40 }, 0x80, 0x66, 8, 0, 8 },
     { { 0x5C, 0x2A, 0xDE, 0xC }, 0x80, 0x56, 8, 0, 8 },
     { { 0x62, 0x3E, 0xD8, 0x24 }, 0x80, 0x66, 8, 0, 8 },
@@ -3532,141 +3536,141 @@ EvoWindowDef D_801F00C0[14] = {
 };
 const char D_801DF260[] = "";
 
-void func_801E7B8C(void) {
-    D_801F5548[0].unk124 += 10;
-    if (D_801F5548[0].unk124 >= 15) {
-        D_801F5548[0].unk124 = 14;
-        D_801F5478.unkC1 = 3;
-        D_801F0030.active = 1;
-        D_801F5478.unkBB = 0;
+void EVO_slideInFirstTray(void) {
+    EVO_TRAYS[0].x += 10;
+    if (EVO_TRAYS[0].x >= 15) {
+        EVO_TRAYS[0].x = 14;
+        EVO_FUSION.step = 3;
+        EVO_CARD_LIST_MENU.active = 1;
+        EVO_FUSION.scriptState = 0;
     }
 }
 
-void func_801E7BE4(void) {
-    D_801F5548[0].unk124 -= 10;
-    if (D_801F5548[0].unk124 < -0x58) {
-        D_801F5548[0].unk124 = -0x58;
-        D_801F5478.unkC1 = 0;
-        D_801F5250->vars[8] = -1;
+void EVO_slideOutFirstTray(void) {
+    EVO_TRAYS[0].x -= 10;
+    if (EVO_TRAYS[0].x < -0x58) {
+        EVO_TRAYS[0].x = -0x58;
+        EVO_FUSION.step = 0;
+        EVO_SCRIPT->vars[8] = -1;
     }
 }
 
-void func_801E7C3C(void) {
-    D_801F5548[0].unk124 -= 10;
-    if (D_801F5548[0].unk124 < -0x78) {
-        D_801F5548[0].unk124 = -0x78;
-        D_801F5548[1].unk124 += 10;
-        if (D_801F5548[1].unk124 >= 15) {
-            D_801F5548[1].unk124 = 14;
-            D_801F5478.unkC1 = 3;
-            D_801F0030.active = 1;
+void EVO_swapToSecondTray(void) {
+    EVO_TRAYS[0].x -= 10;
+    if (EVO_TRAYS[0].x < -0x78) {
+        EVO_TRAYS[0].x = -0x78;
+        EVO_TRAYS[1].x += 10;
+        if (EVO_TRAYS[1].x >= 15) {
+            EVO_TRAYS[1].x = 14;
+            EVO_FUSION.step = 3;
+            EVO_CARD_LIST_MENU.active = 1;
         }
     }
 }
 
-void func_801E7CB4(void) {
-    D_801F5548[1].unk124 -= 10;
-    if (D_801F5548[1].unk124 < -0x78) {
-        D_801F5548[1].unk124 = -0x78;
-        D_801F5548[0].unk124 += 10;
-        if (D_801F5548[0].unk124 >= 15) {
-            D_801F5548[0].unk124 = 14;
-            D_801F5478.unkC1 = 3;
-            D_801F0030.active = 1;
+void EVO_swapToFirstTray(void) {
+    EVO_TRAYS[1].x -= 10;
+    if (EVO_TRAYS[1].x < -0x78) {
+        EVO_TRAYS[1].x = -0x78;
+        EVO_TRAYS[0].x += 10;
+        if (EVO_TRAYS[0].x >= 15) {
+            EVO_TRAYS[0].x = 14;
+            EVO_FUSION.step = 3;
+            EVO_CARD_LIST_MENU.active = 1;
         }
     }
 }
 
-void func_801E7D2C(s32 active) {
+void EVO_cancelSecondCard(s32 active) {
     if (active != 0) {
-        D_801F5548[0].unk124 -= 10;
-        D_801F5548[1].unk124 -= 10;
-        if (D_801F5548[0].unk124 < -0x58) {
-            D_801F5548[0].unk124 = -0x58;
+        EVO_TRAYS[0].x -= 10;
+        EVO_TRAYS[1].x -= 10;
+        if (EVO_TRAYS[0].x < -0x58) {
+            EVO_TRAYS[0].x = -0x58;
         }
-        if (D_801F5548[1].unk124 < 14) {
-            D_801F5548[1].unk124 = 14;
+        if (EVO_TRAYS[1].x < 14) {
+            EVO_TRAYS[1].x = 14;
         }
-        if (D_801F5548[0].unk124 == -0x58 && D_801F5548[1].unk124 == 14) {
-            D_801F5478.unkC4 = 2;
-            D_801F5250->vars[8] = -1;
-            D_801F5478.unkBB = 0;
-            D_801F5478.unkC1 = 0;
-            D_801F4E34[D_801F5478.unkAE]++;
+        if (EVO_TRAYS[0].x == -0x58 && EVO_TRAYS[1].x == 14) {
+            EVO_FUSION.pickSlot = 2;
+            EVO_SCRIPT->vars[8] = -1;
+            EVO_FUSION.scriptState = 0;
+            EVO_FUSION.step = 0;
+            EVO_SPARE_CARD_COUNTS[EVO_FUSION.secondCard]++;
         }
     }
 }
 
-void func_801E7E10(s8 mode) {
+void EVO_toggleMessageWindows(s8 mode) {
     if (mode == 0) {
-        animateWindowTo(&D_801F4E58[6].win, &D_801F00C0[6].rect);
-        animateWindowTo(&D_801F4E58[7].win, &D_801F00C0[7].rect);
+        animateWindowTo(&EVO_WINDOWS[6].win, &EVO_WINDOW_DEFS[6].rect);
+        animateWindowTo(&EVO_WINDOWS[7].win, &EVO_WINDOW_DEFS[7].rect);
     } else if (mode == 1) {
-        animateWindowTo(&D_801F4E58[6].win, (Rect16 *)-1);
-        animateWindowTo(&D_801F4E58[7].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[6].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[7].win, (Rect16 *)-1);
     }
 }
 
-void func_801E7E8C(s32 mode) {
-    initDialog((u8 *)&D_801F57A8, NULL, 1);
+void EVO_runChoiceDialog(s32 mode) {
+    initDialog((u8 *)&EVO_DIALOG, NULL, 1);
     if (mode != 1) {
-        D_801F57A8.choice = 1;
+        EVO_DIALOG.choice = 1;
     }
-    runDialog(&D_801F57A8);
-    switch (D_801F57A8.choice) {
+    runDialog(&EVO_DIALOG);
+    switch (EVO_DIALOG.choice) {
     case 0:
-        D_801F5250->vars[1] = 0;
+        EVO_SCRIPT->vars[1] = 0;
         break;
     case 1:
-        D_801F5250->vars[1] = 1;
+        EVO_SCRIPT->vars[1] = 1;
         break;
     case 2:
-        D_801F5250->vars[1] = 2;
+        EVO_SCRIPT->vars[1] = 2;
         break;
     }
 }
 
-void func_801E7F64(void) {
-    if (D_801F53C8.unk42 == 0) {
-        D_801F53C8.unk40 -= 8;
-        if (D_801F53C8.unk40 < 0) {
-            D_801F53C8.unk40 = 0;
+void EVO_drawScreenFlash(void) {
+    if (EVO_SCREEN_FLASH.on == 0) {
+        EVO_SCREEN_FLASH.brightness -= 8;
+        if (EVO_SCREEN_FLASH.brightness < 0) {
+            EVO_SCREEN_FLASH.brightness = 0;
         }
     } else {
-        D_801F53C8.unk40 += 8;
-        if (D_801F53C8.unk40 >= 0x100) {
-            D_801F53C8.unk40 = 0xFF;
+        EVO_SCREEN_FLASH.brightness += 8;
+        if (EVO_SCREEN_FLASH.brightness >= 0x100) {
+            EVO_SCREEN_FLASH.brightness = 0xFF;
         }
     }
-    if (D_801F53C8.unk40 != 0) {
-        D_801F53C8.poly[FRAME_BUFFER_INDEX].r0 = D_801F53C8.poly[FRAME_BUFFER_INDEX].g0 =
-            D_801F53C8.poly[FRAME_BUFFER_INDEX].b0 = D_801F53C8.unk40;
-        addPrim(&CURRENT_FRAME_BUFFER->ot[25], &D_801F53C8.poly[FRAME_BUFFER_INDEX]);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[25], &D_801F53C8.tpage[FRAME_BUFFER_INDEX]);
+    if (EVO_SCREEN_FLASH.brightness != 0) {
+        EVO_SCREEN_FLASH.poly[FRAME_BUFFER_INDEX].r0 = EVO_SCREEN_FLASH.poly[FRAME_BUFFER_INDEX].g0 =
+            EVO_SCREEN_FLASH.poly[FRAME_BUFFER_INDEX].b0 = EVO_SCREEN_FLASH.brightness;
+        addPrim(&CURRENT_FRAME_BUFFER->ot[25], &EVO_SCREEN_FLASH.poly[FRAME_BUFFER_INDEX]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[25], &EVO_SCREEN_FLASH.tpage[FRAME_BUFFER_INDEX]);
     }
 }
 
-void func_801E80E4(void) {
+void EVO_initScreenFlash(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        func_80067784(&D_801F53C8.poly[i]);
-        SetSemiTrans(&D_801F53C8.poly[i], 1);
-        setPrimQuadRect(&D_801F53C8.poly[i], 0, 0, 320, 240);
-        SetDrawTPage(&D_801F53C8.tpage[i], 0, 0, 0x20);
-        D_801F53C8.poly[i].b0 = 0;
-        D_801F53C8.poly[i].g0 = 0;
-        D_801F53C8.poly[i].r0 = 0;
+        func_80067784(&EVO_SCREEN_FLASH.poly[i]);
+        SetSemiTrans(&EVO_SCREEN_FLASH.poly[i], 1);
+        setPrimQuadRect(&EVO_SCREEN_FLASH.poly[i], 0, 0, 320, 240);
+        SetDrawTPage(&EVO_SCREEN_FLASH.tpage[i], 0, 0, 0x20);
+        EVO_SCREEN_FLASH.poly[i].b0 = 0;
+        EVO_SCREEN_FLASH.poly[i].g0 = 0;
+        EVO_SCREEN_FLASH.poly[i].r0 = 0;
     }
-    D_801F53C8.unk42 = 0;
-    D_801F53C8.unk40 = 0;
-    addFrameCallback((s32)func_801E7F64);
+    EVO_SCREEN_FLASH.on = 0;
+    EVO_SCREEN_FLASH.brightness = 0;
+    addFrameCallback((s32)EVO_drawScreenFlash);
 }
 
-void func_801E81C4(EvoProgram *data) {
+void EVO_runFusionScript(EvoProgram *data) {
     s32 result;
 
-    if (D_801F4E4C == 1) {
+    if (EVO_SCRIPT_HALTED == 1) {
         return;
     }
     do {
@@ -3676,110 +3680,110 @@ void func_801E81C4(EvoProgram *data) {
             case 10:
                 switch (data->script->eventArg) {
                 case 0:
-                    if (func_801E943C((u8 *)data->vars[4]) == -1) {
-                        D_801F5478.unkBB = 1;
+                    if (EVO_addTextLine((u8 *)data->vars[4]) == -1) {
+                        EVO_FUSION.scriptState = 1;
                         return;
                     }
                     break;
                 case 1:
                     return;
                 case 2:
-                    func_801E7E10(0);
+                    EVO_toggleMessageWindows(0);
                     break;
                 case 4:
-                    func_801EA110();
+                    EVO_openFusionTypeChoice();
                     return;
                 case 5:
-                    func_801EA2D4();
+                    EVO_closeFusionTypeChoice();
                     return;
                 case 11:
-                    D_801F5478.unkBB = 2;
+                    EVO_FUSION.scriptState = 2;
                     return;
                 case 12:
-                    func_801E9390(D_801F5258);
+                    EVO_clearTextLines(EVO_TEXT_LINES);
                     break;
                 case 8:
-                    func_801EA414();
+                    EVO_openPartnerList();
                     break;
                 case 9:
-                    func_801EA530();
+                    EVO_closePartnerList();
                     break;
                 case 10:
-                    func_801EA790();
+                    EVO_openCardList();
                     break;
                 case 13:
-                    func_801EA820();
+                    EVO_closeCardList();
                     break;
                 case 6:
-                    func_801ECBE8();
+                    EVO_resetFusion();
                     break;
                 case 7:
-                    func_801ECC24();
+                    EVO_cancelFirstCard();
                     break;
                 case 14:
-                    func_801ECC6C();
+                    EVO_startSecondCardPick();
                     break;
                 case 15:
-                    D_801F5478.unkC4 = 1;
+                    EVO_FUSION.pickSlot = 1;
                     break;
                 case 16:
-                    func_801EB234();
+                    EVO_leaveForCutscene();
                     break;
                 case 17:
-                    func_801EB0F4();
+                    EVO_startPartnerFusion();
                     return;
                 case 18:
-                    func_801EB1D0();
+                    EVO_cancelPartnerFusion();
                     return;
                 case 19:
-                    D_801F5478.unkA8 = D_801F5250->script->pc - D_801F5250->script->start;
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC8 = 0;
-                    D_801F5478.unkC1 = 10;
+                    EVO_FUSION.resumeOffset = EVO_SCRIPT->script->pc - EVO_SCRIPT->script->start;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.resultStep = 0;
+                    EVO_FUSION.step = 10;
                     return;
                 case 20:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC8 = 0;
-                    D_801F5478.unkC1 = 12;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.resultStep = 0;
+                    EVO_FUSION.step = 12;
                     return;
                 case 21:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC1 = 13;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.step = 13;
                     return;
                 case 22:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC1 = 5;
-                    animateWindowTo(&D_801F43D0, &D_801F0030.rect);
-                    D_801F0030.active = 1;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.step = 5;
+                    animateWindowTo(&EVO_CARD_LIST_WINDOW, &EVO_CARD_LIST_MENU.rect);
+                    EVO_CARD_LIST_MENU.active = 1;
                     return;
                 default:
-                    D_801F4E4C = 0;
+                    EVO_SCRIPT_HALTED = 0;
                     break;
                 }
                 break;
             case 11:
                 switch (data->script->eventArg) {
                 case 0:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC1 = 15;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.step = 15;
                     return;
                 case 1:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC1 = 14;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.step = 14;
                     return;
                 case 2:
-                    func_801E7E8C((s16)data->script->params[0]);
+                    EVO_runChoiceDialog((s16)data->script->params[0]);
                     break;
                 case 3:
-                    animateWindowTo(&D_801F4E58[(s16)data->script->params[0]].win, (Rect16 *)-1);
+                    animateWindowTo(&EVO_WINDOWS[(s16)data->script->params[0]].win, (Rect16 *)-1);
                     if ((s16)data->script->params[0] == -1) {
-                        animateWindowTo(&D_801F43D0, &D_801F0030.rect);
-                        D_801F0030.active = 1;
+                        animateWindowTo(&EVO_CARD_LIST_WINDOW, &EVO_CARD_LIST_MENU.rect);
+                        EVO_CARD_LIST_MENU.active = 1;
                     }
                     break;
                 case 4:
-                    D_801F5478.unkBB = 4;
-                    D_801F5478.unkC1 = 16;
+                    EVO_FUSION.scriptState = 4;
+                    EVO_FUSION.step = 16;
                     return;
                 case 5:
                     playSoundEffect((s16)data->script->params[0]);
@@ -3788,13 +3792,13 @@ void func_801E81C4(EvoProgram *data) {
                     func_80014C08((s16)data->script->params[0]);
                     break;
                 case 7:
-                    D_801F5478.unkB7 = data->script->params[0];
+                    EVO_FUSION.rewardStep = data->script->params[0];
                     return;
                 case 8:
                     if ((s16)data->script->params[0] == 0) {
-                        D_801F5478.busy[1] = 0;
+                        EVO_FUSION.busy[1] = 0;
                     } else {
-                        D_801F5478.busy[2] = 0;
+                        EVO_FUSION.busy[2] = 0;
                     }
                     break;
                 }
@@ -3808,13 +3812,13 @@ void func_801E81C4(EvoProgram *data) {
     } while (result != 0);
 }
 
-s32 func_801E8614(EvoProgram *program) {
+s32 EVO_tickFusionScript(EvoProgram *program) {
     *program->vars = 1;
-    func_801E81C4(program);
+    EVO_runFusionScript(program);
     return *program->vars;
 }
 
-Script *func_801E8650(EvoMsd *data) {
+Script *EVO_createScriptContext(EvoMsd *data) {
     Script *script;
 
     script = allocHeapBlock(sizeof(Script), 0x2C);
@@ -3827,7 +3831,7 @@ Script *func_801E8650(EvoMsd *data) {
     return script;
 }
 
-s32 *func_801E86B4(s32 count) {
+s32 *EVO_allocScriptRegisters(s32 count) {
     s32 *flags;
     s32 *p;
     s32 i;
@@ -3840,7 +3844,7 @@ s32 *func_801E86B4(s32 count) {
     return flags;
 }
 
-EvoProgram *func_801E8708(s32 index) {
+EvoProgram *EVO_loadUnitScript(s32 index) {
     char path[24];
     EvoMsd *data;
     EvoProgram *program;
@@ -3850,123 +3854,123 @@ EvoProgram *func_801E8708(s32 index) {
     data = (EvoMsd *)func_80014C08(0x7FFFFFFF);
     program = allocHeapBlock(sizeof(EvoProgram), 0x2C);
     program->data = data;
-    program->script = func_801E8650(data);
+    program->script = EVO_createScriptContext(data);
     return program;
 }
 
-void func_801E87A8(void) {
+void EVO_openWindows(void) {
     EvoWindowDef *def;
     s32 i;
 
-    for (def = D_801F00C0, i = 0; i < 14; i++, def++) {
-        D_801F4E58[i].z = 30;
-        openWindow(&D_801F4E58[i].win, def, -1, (s16 *)-1, def->flags, def->style, def->brightness, 12);
+    for (def = EVO_WINDOW_DEFS, i = 0; i < 14; i++, def++) {
+        EVO_WINDOWS[i].z = 30;
+        openWindow(&EVO_WINDOWS[i].win, def, -1, (s16 *)-1, def->flags, def->style, def->brightness, 12);
         if (def->label != 0) {
-            D_801F4E58[i].win.label = def->label;
+            EVO_WINDOWS[i].win.label = def->label;
         }
-        D_801F4E58[i].win.labelPalette = def->labelPalette;
-        animateWindowTo(&D_801F4E58[i].win, (Rect16 *)-1);
+        EVO_WINDOWS[i].win.labelPalette = def->labelPalette;
+        animateWindowTo(&EVO_WINDOWS[i].win, (Rect16 *)-1);
     }
     for (i = 0; i < 3; i++) {
-        D_801F4E58[i].unk44 = 0;
-        D_801F4E58[i + 3].unk44 = 1;
+        EVO_WINDOWS[i].isPartner = 0;
+        EVO_WINDOWS[i + 3].isPartner = 1;
     }
-    openMenu(&D_801F0030, &D_801F43D0, &D_801F4470, (Bytes4 *)-1);
-    animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-    D_801F43D0.labelPalette = 8;
-    D_801F43D0.label = (s32)"CARD LIST";
-    D_801F0030.active = 0;
-    openMenu(&D_801F005C, &D_801F4380, &D_801F4420, (Bytes4 *)-1);
-    animateWindowTo(&D_801F4380, (Rect16 *)-1);
-    D_801F4380.label = (s32)"SORT MENU";
-    D_801F4380.labelPalette = 8;
-    D_801F4E58[12].z = 0x1B;
-    D_801F4E58[13].z = 5;
-    D_801F4E58[13].win.palette = 2;
-    D_801F57A0 = 0;
-    openWindow(&D_801F5410, &D_801F00B8, -1, (s16 *)-1, 0, 0x36, 0x80, 12);
-    animateWindowTo(&D_801F5410, (Rect16 *)-1);
-    D_801F5410.palette = 2;
+    openMenu(&EVO_CARD_LIST_MENU, &EVO_CARD_LIST_WINDOW, &EVO_CARD_LIST_CURSOR, (Bytes4 *)-1);
+    animateWindowTo(&EVO_CARD_LIST_WINDOW, (Rect16 *)-1);
+    EVO_CARD_LIST_WINDOW.labelPalette = 8;
+    EVO_CARD_LIST_WINDOW.label = (s32)"CARD LIST";
+    EVO_CARD_LIST_MENU.active = 0;
+    openMenu(&EVO_SORT_MENU, &EVO_SORT_WINDOW, &EVO_SORT_CURSOR, (Bytes4 *)-1);
+    animateWindowTo(&EVO_SORT_WINDOW, (Rect16 *)-1);
+    EVO_SORT_WINDOW.label = (s32)"SORT MENU";
+    EVO_SORT_WINDOW.labelPalette = 8;
+    EVO_WINDOWS[12].z = 0x1B;
+    EVO_WINDOWS[13].z = 5;
+    EVO_WINDOWS[13].win.palette = 2;
+    EVO_RANK_UP_STATE = 0;
+    openWindow(&EVO_RANK_UP_WINDOW, &EVO_RANK_UP_RECT, -1, (s16 *)-1, 0, 0x36, 0x80, 12);
+    animateWindowTo(&EVO_RANK_UP_WINDOW, (Rect16 *)-1);
+    EVO_RANK_UP_WINDOW.palette = 2;
 }
 
-void func_801E89E8(void) {
+void EVO_drawEmptyWindow(void) {
 }
 
-void func_801E89F0(void) {
+void EVO_renderFusion(void) {
     s32 i;
     s32 t;
 
-    if (D_801F5478.unkC8 == 1 && D_801F5548[1].unk120 == 1 && D_801F5548[0].unk120 < 30) {
-        D_801F5548[0].unk120++;
-        if (D_801F5548[0].unk120 >= 30) {
-            D_801F5548[0].unk120 = 30;
-            D_801F5478.unkC6 = 0;
+    if (EVO_FUSION.resultStep == 1 && EVO_TRAYS[1].merge == 1 && EVO_TRAYS[0].merge < 30) {
+        EVO_TRAYS[0].merge++;
+        if (EVO_TRAYS[0].merge >= 30) {
+            EVO_TRAYS[0].merge = 30;
+            EVO_FUSION.hideResult = 0;
         }
-        t = D_801F5548[0].unk120;
-        D_801F5548[0].unk124 = (t * 58 + (30 - t) * 14) / 30;
-        D_801F5548[1].unk124 = (t * 58 + (30 - t) * 102) / 30;
+        t = EVO_TRAYS[0].merge;
+        EVO_TRAYS[0].x = (t * 58 + (30 - t) * 14) / 30;
+        EVO_TRAYS[1].x = (t * 58 + (30 - t) * 102) / 30;
     }
     for (i = 0; i < 14; i++) {
-        drawWindow(&D_801F4E58[i].win, D_801F0248[i], D_801F4E58[i].z);
+        drawWindow(&EVO_WINDOWS[i].win, EVO_WINDOW_DRAW_FUNCS[i], EVO_WINDOWS[i].z);
     }
-    drawWindow(&D_801F5410, func_801E9B94, 5);
-    drawWindow(&D_801F43D0, func_801E7178, 0x1D);
-    drawWindow(&D_801F4380, func_801E6FCC, 0x1C);
+    drawWindow(&EVO_RANK_UP_WINDOW, EVO_drawRankUpBanner, 5);
+    drawWindow(&EVO_CARD_LIST_WINDOW, EVO_drawCardList, 0x1D);
+    drawWindow(&EVO_SORT_WINDOW, EVO_drawSortMenu, 0x1C);
     for (i = 0; i < 2; i++) {
-        func_801E780C(&D_801F5548[i]);
+        EVO_drawTray(&EVO_TRAYS[i]);
     }
 }
 
-void func_801E8BD8(void) {
-    if (D_801F5478.unkC9 == 0 && (PAD_STATES[0]->pressed & 0x40)) {
-        func_801E9390(D_801F5258);
-        if (D_801F5478.unkBB == 1) {
-            func_801E943C((u8 *)D_801F5250->vars[4]);
+void EVO_advanceText(void) {
+    if (EVO_FUSION.textTyping == 0 && (PAD_STATES[0]->pressed & 0x40)) {
+        EVO_clearTextLines(EVO_TEXT_LINES);
+        if (EVO_FUSION.scriptState == 1) {
+            EVO_addTextLine((u8 *)EVO_SCRIPT->vars[4]);
         }
-        D_801F5478.unkBB = 0;
+        EVO_FUSION.scriptState = 0;
         playSoundEffect(0);
     }
 }
 
-void func_801E8C74(void) {
+void EVO_loadCardImages(void) {
     func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    D_801F5478.unkA0 = (s32 *)func_80014C08(0x7FFFFFFF);
+    EVO_FUSION.cardArchive = (s32 *)func_80014C08(0x7FFFFFFF);
 }
 
-void func_801E8CD8(s32 id, s32 slot) {
+void EVO_loadCardImage(s32 id, s32 slot) {
     char path[64];
     u32 *tim;
 
-    D_801F5478.busy[0] = 1;
+    EVO_FUSION.busy[0] = 1;
     sprintf(path, "B:\\CARD\\LC%3.3d.TIM", id);
     func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
     tim = (u32 *)func_80014C08(0x7FFFFFFF);
     uploadTim(tim, (slot & 1) * 32 + 0x240, (slot >> 1) * 64 + 0x100, 0x180, slot + 0x1E8);
     DrawSync(0);
     freeHeapBlock(tim);
-    D_801F5478.busy[0] = 0;
+    EVO_FUSION.busy[0] = 0;
 }
 
-void func_801E8DC0(void) {
+void EVO_loadScriptFlags(void) {
     s32 i;
     s32 bit;
     PlayerProfile *profile;
 
     for (i = 20, bit = 0, profile = (PlayerProfile *)PLAYER_PROFILES; i < 30; i++, bit++) {
         if ((1 << bit) & profile->unk2C) {
-            D_801F5250->vars[i] = 1;
+            EVO_SCRIPT->vars[i] = 1;
         }
     }
 }
 
-void func_801E8E1C(void) {
+void EVO_saveScriptFlags(void) {
     s32 i;
     s32 bit;
 
     i = 20;
     bit = 0;
     while (bit < 32) {
-        if (D_801F5250->vars[i] != 0) {
+        if (EVO_SCRIPT->vars[i] != 0) {
             ((PlayerProfile *)PLAYER_PROFILES)->unk2C |= 1 << bit;
         }
         i++;
@@ -3977,146 +3981,146 @@ void func_801E8E1C(void) {
     }
 }
 
-void func_801E8E88(s32 program) {
+void EVO_runFusion(s32 unit) {
     s32 running = 1;
     s32 i;
 
-    func_801E623C();
-    func_801E8C74();
-    func_801E62D0();
-    func_801EE248();
+    EVO_loadUnitTextures();
+    EVO_loadCardImages();
+    EVO_initFusionScene();
+    EVO_loadEffectArchive();
     for (i = 0; i < 3; i++) {
-        D_801F4E40[i] = allocTaskHeapBlock(0x12D);
+        EVO_DECK_CARD_COUNTS[i] = allocTaskHeapBlock(0x12D);
     }
-    D_801F4E34 = allocTaskHeapBlock(0x12D);
-    func_801E6398();
-    func_801E87A8();
-    func_801E9390(D_801F5258);
-    if (program >= 0) {
-        D_801F5478.unkCA = program;
-        func_801E80E4();
+    EVO_SPARE_CARD_COUNTS = allocTaskHeapBlock(0x12D);
+    EVO_countSpareCards();
+    EVO_openWindows();
+    EVO_clearTextLines(EVO_TEXT_LINES);
+    if (unit >= 0) {
+        EVO_FUSION.unit = unit;
+        EVO_initScreenFlash();
     }
-    D_801F5250 = func_801E8708(D_801F5478.unkCA);
-    D_801F5250->vars = func_801E86B4(30);
-    if (program < 0) {
-        playMusic(0, D_801F5478.unkCA + 0x85, 100);
-        D_801F5478.unkC1 = 17;
-        D_801F5478.unkBB = 0;
-        D_801F5478.unkC6 = 0;
-        D_801F5250->script->pc = D_801F5250->script->start + D_801F5478.unkA8;
-        func_801E7E10(0);
+    EVO_SCRIPT = EVO_loadUnitScript(EVO_FUSION.unit);
+    EVO_SCRIPT->vars = EVO_allocScriptRegisters(30);
+    if (unit < 0) {
+        playMusic(0, EVO_FUSION.unit + 0x85, 100);
+        EVO_FUSION.step = 17;
+        EVO_FUSION.scriptState = 0;
+        EVO_FUSION.hideResult = 0;
+        EVO_SCRIPT->script->pc = EVO_SCRIPT->script->start + EVO_FUSION.resumeOffset;
+        EVO_toggleMessageWindows(0);
     } else {
-        func_801E65A8();
-        D_801F5478.unkC1 = 0;
-        D_801F5478.unkBB = 0;
-        D_801F5478.unkC6 = 1;
+        EVO_initCardList();
+        EVO_FUSION.step = 0;
+        EVO_FUSION.scriptState = 0;
+        EVO_FUSION.hideResult = 1;
     }
-    D_801F5478.unkA4 = 0;
-    D_801F5478.unkBC = 0;
-    D_801F5478.unkBD = 0;
-    D_801F5478.unkBE = 0;
-    D_801F5478.unkBA = 0;
-    D_801F5478.unkC2 = 0;
-    D_801F5478.unkC8 = 0;
+    EVO_FUSION.swapTimer = 0;
+    EVO_FUSION.typeChoiceOpen = 0;
+    EVO_FUSION.unkBD = 0;
+    EVO_FUSION.partnerListOpen = 0;
+    EVO_FUSION.fusionType = 0;
+    EVO_FUSION.sortMenuOpen = 0;
+    EVO_FUSION.resultStep = 0;
     for (i = 0; i < 2; i++) {
-        D_801F5548[i].unk124 = -0x78;
-        D_801F5548[i].unk126 = 0x29;
+        EVO_TRAYS[i].x = -0x78;
+        EVO_TRAYS[i].y = 0x29;
     }
-    addFrameCallback((s32)func_801E89F0);
-    func_801E8DC0();
+    addFrameCallback((s32)EVO_renderFusion);
+    EVO_loadScriptFlags();
     do {
         func_80014C08(1);
-        switch (D_801F5478.unkBB) {
+        switch (EVO_FUSION.scriptState) {
         case 0:
-            running = func_801E8614(D_801F5250);
+            running = EVO_tickFusionScript(EVO_SCRIPT);
             break;
         case 1:
         case 2:
-            func_801E8BD8();
+            EVO_advanceText();
             break;
         }
-        switch (D_801F5478.unkC1) {
+        switch (EVO_FUSION.step) {
         case 0:
             break;
         case 1:
-            func_801E9C88();
+            EVO_tickFusionTypeChoice();
             break;
         case 2:
-            func_801EA598();
+            EVO_tickPartnerList();
             break;
         case 3:
-            func_801EABB0();
+            EVO_tickCardList();
             break;
         case 4:
-            func_801EB440();
+            EVO_tickPartnerReward();
             break;
         case 5:
-            func_801E7B8C();
+            EVO_slideInFirstTray();
             break;
         case 6:
-            func_801E7CB4();
+            EVO_swapToFirstTray();
             break;
         case 7:
-            func_801E7C3C();
+            EVO_swapToSecondTray();
             break;
         case 8:
-            func_801E7BE4();
+            EVO_slideOutFirstTray();
             break;
         case 10:
-            func_801EBA08();
+            EVO_tickFusionResult();
             break;
         case 11:
-            func_801EA9AC();
+            EVO_showBothTrays();
             break;
         case 12:
-            func_801EAA5C();
+            EVO_repickSecondCard();
             break;
         case 13:
             func_801EBE08();
             break;
         case 14:
-            func_801EA864((s16)D_801F5250->script->params[0]);
+            EVO_slideTrayOut((s16)EVO_SCRIPT->script->params[0]);
             break;
         case 15:
-            func_801EA934((s16)D_801F5250->script->params[0]);
+            EVO_slideTrayIn((s16)EVO_SCRIPT->script->params[0]);
             break;
         case 16:
-            func_801E7D2C((s16)D_801F5250->script->params[0]);
+            EVO_cancelSecondCard((s16)EVO_SCRIPT->script->params[0]);
             break;
         case 17:
-            func_801EBD64();
+            EVO_showCutsceneResult();
             break;
         case 18:
-            func_801EBD04();
+            EVO_closeFusionResult();
             break;
         }
-    } while (running != 0 && D_801F5478.unkC7 == 0);
+    } while (running != 0 && EVO_FUSION.cutscene == 0);
     if (running == 0) {
-        animateWindowTo(&D_801F4E58[6].win, (Rect16 *)-1);
-        animateWindowTo(&D_801F4E58[7].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[6].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[7].win, (Rect16 *)-1);
         func_80014C08(20);
     }
-    func_801E8E1C();
-    removeFrameCallback((s32)func_801E89F0);
+    EVO_saveScriptFlags();
+    removeFrameCallback((s32)EVO_renderFusion);
     removeFrameCallback((s32)renderSceneModels);
     func_80014C08(1);
     func_80014A00(0x1B);
-    freeHeapBlock(D_801F5478.unkA0);
-    freeHeapBlock(D_801F5250->data);
+    freeHeapBlock(EVO_FUSION.cardArchive);
+    freeHeapBlock(EVO_SCRIPT->data);
     freeHeapBlocksByTag(0x2C);
-    freeHeapBlock(D_801F59A8);
+    freeHeapBlock(EVO_EFFECT_ARCHIVE);
     freeHeapBlocksByTag(0x7F);
-    if (D_801F5478.unkC7 != 0) {
+    if (EVO_FUSION.cutscene != 0) {
         func_80014C08(60);
         hideScrollingBackground();
-        func_800149B8(0, -1, 0, 0x400, func_801DFF78, 0, getCurrentTaskId(), 0, 0);
+        func_800149B8(0, -1, 0, 0x400, EVO_runFusionCutscene, 0, getCurrentTaskId(), 0, 0);
     } else {
-        removeFrameCallback((s32)func_801E7F64);
+        removeFrameCallback((s32)EVO_drawScreenFlash);
         func_800149B8(0, -1, 0, 0x400, returnToWorldMap, 0, 0, 0, 0);
     }
 }
 
-void func_801E9390(EvoText *slot) {
+void EVO_clearTextLines(EvoText *slot) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -4125,7 +4129,7 @@ void func_801E9390(EvoText *slot) {
     }
 }
 
-EvoText *func_801E93B0(EvoText *slot) {
+EvoText *EVO_allocTextLine(EvoText *slot) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -4144,7 +4148,7 @@ EvoText *func_801E93B0(EvoText *slot) {
     return NULL;
 }
 
-s32 func_801E943C(u8 *src) {
+s32 EVO_addTextLine(u8 *src) {
     u8 *playerName;
     u8 *cardName;
     EvoText *t;
@@ -4153,8 +4157,8 @@ s32 func_801E943C(u8 *src) {
     s32 end;
 
     playerName = (u8 *)PLAYER_PROFILES;
-    cardName = D_801F4980[D_801F5478.unkB0]->name;
-    t = func_801E93B0(D_801F5258);
+    cardName = EVO_CARDS_BY_ID[EVO_FUSION.result]->name;
+    t = EVO_allocTextLine(EVO_TEXT_LINES);
     if (t == NULL) {
         /* Shift-JIS: "the text has run out of lines" */
         printf("\x83" "e\x83L\x83X\x83g\x82\xCC\x8Ds\x90\x94\x82\xAA\x82\xA2\x82\xC1\x82\xCF\x82\xA2\x82\xC9\x82\xC8\x82\xE8\x82\xDC\x82\xB5\x82\xBD\n");
@@ -4229,7 +4233,7 @@ s32 func_801E943C(u8 *src) {
         t->active = 1;
     }
     t->len = i;
-    for (i = 0; i < 4 && t != D_801F5258; i++) {
+    for (i = 0; i < 4 && t != EVO_TEXT_LINES; i++) {
         t--;
     }
     return i;
@@ -4237,7 +4241,7 @@ s32 func_801E943C(u8 *src) {
 
 const char D_801DF3B0[] = "";
 
-s32 func_801E97E4(s32 x, s32 y, EvoText *t, s32 z) {
+s32 EVO_typeTextLine(s32 x, s32 y, EvoText *t, s32 z) {
     u8 buf[64];
     u8 *dst;
     u8 *src;
@@ -4288,184 +4292,184 @@ s32 func_801E97E4(s32 x, s32 y, EvoText *t, s32 z) {
     return 1;
 }
 
-s32 func_801E99A0(s16 x, s16 y, s32 z) {
+s32 EVO_typeTextLines(s16 x, s16 y, s32 z) {
     EvoText *t;
     s32 i;
 
-    for (t = D_801F5258, i = 0; i < 4; i++, t++) {
-        if (t->active != 0 && func_801E97E4(x, y + i * 12, t, z) == 1) {
+    for (t = EVO_TEXT_LINES, i = 0; i < 4; i++, t++) {
+        if (t->active != 0 && EVO_typeTextLine(x, y + i * 12, t, z) == 1) {
             return 1;
         }
     }
     return 0;
 }
 
-void func_801E9A58(UiWindow *w) {
+void EVO_drawMessageWindow(UiWindow *w) {
     s32 x = w->originX;
     s32 y = w->originY;
     s32 z = w->z;
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
-    D_801F5478.unkC9 = func_801E99A0(x, y, z);
-    if (D_801F5478.unkC9 == 0 && ((u8)D_801F5478.unkBB == 2 || (u8)D_801F5478.unkBB == 3)) {
-        if (++D_801F5478.unkCB & 0x10) {
+    EVO_FUSION.textTyping = EVO_typeTextLines(x, y, z);
+    if (EVO_FUSION.textTyping == 0 && ((u8)EVO_FUSION.scriptState == 2 || (u8)EVO_FUSION.scriptState == 3)) {
+        if (++EVO_FUSION.blinkTimer & 0x10) {
             drawIcon(x + 200, y + 0x25, 0, 0x1B, z);
         }
     } else {
-        D_801F5478.unkCB = 0;
+        EVO_FUSION.blinkTimer = 0;
     }
 }
 
-void func_801E9B0C(UiWindow *w) {
+void EVO_drawUnitPortrait(UiWindow *w) {
     Rect16 uv;
     s32 x = w->originX;
     s32 y = w->originY;
     s32 z = w->z;
 
     uv.x = 0x28;
-    uv.y = D_801F5478.unkCA * 56;
+    uv.y = EVO_FUSION.unit * 56;
     uv.w = 0x40;
     uv.h = 0x38;
     drawTexturedSprite(x, y, &uv, 0x98, 0x7C18, z, w->brightness, -1);
 }
 
-void func_801E9B94(UiWindow *w) {
+void EVO_drawRankUpBanner(UiWindow *w) {
     s32 x = w->originX;
     s32 y = w->originY;
     s32 z = w->z;
 
-    if (D_801F57A0 == 2) {
+    if (EVO_RANK_UP_STATE == 2) {
         drawLargeText(x + 1, y + 1, (s32)"RANK MAX!", 7, z);
-    } else if (D_801F57A0 == 1) {
+    } else if (EVO_RANK_UP_STATE == 1) {
         drawLargeText(x + 1, y + 1, (s32)"RANK UP!", 7, z);
     }
 }
 
-void func_801E9C18(UiWindow *w) {
+void EVO_drawReceivedBanner(UiWindow *w) {
     s32 x = w->originX;
     s32 y = w->originY;
     s32 z = w->z;
 
-    if (D_801F5360 == 0) {
+    if (EVO_CARD_RECEIVED == 0) {
         drawLargeText(x + 1, y + 1, (s32)"FULL SET!", 7, z);
     } else {
         drawLargeText(x + 1, y + 1, (s32)"RECEIVED!", 7, z);
     }
 }
 
-void func_801E9C88(void) {
+void EVO_tickFusionTypeChoice(void) {
     Rect16 rects[6];
     s32 i;
     s32 dx;
     s32 dy;
 
-    if (D_801F5478.unkB9 == 0) {
+    if (EVO_FUSION.swapState == 0) {
         if (PAD_STATES[0]->pressed & 0x5000) {
             playSoundEffect(2);
-            if (D_801F5478.unkBA == 0) {
-                D_801F5478.unkB9 = 1;
-            } else if (D_801F5478.unkBA == 1) {
-                D_801F5478.unkB9 = 2;
+            if (EVO_FUSION.fusionType == 0) {
+                EVO_FUSION.swapState = 1;
+            } else if (EVO_FUSION.fusionType == 1) {
+                EVO_FUSION.swapState = 2;
             }
         } else if (PAD_STATES[0]->pressed & 0x40) {
             playSoundEffect(0);
-            D_801F5250->vars[8] = 1;
-            D_801F5250->vars[1] = D_801F5380.side;
-            D_801F5478.unkBB = 0;
+            EVO_SCRIPT->vars[8] = 1;
+            EVO_SCRIPT->vars[1] = EVO_TYPE_CHOICE.side;
+            EVO_FUSION.scriptState = 0;
         } else if (PAD_STATES[0]->pressed & 0x10) {
             playSoundEffect(1);
-            D_801F5250->vars[8] = 2;
-            D_801F5478.unkBB = 0;
+            EVO_SCRIPT->vars[8] = 2;
+            EVO_FUSION.scriptState = 0;
         }
-    } else if (D_801F5478.unkB9 == 1) {
-        D_801F5478.unkA4++;
-        if (D_801F5478.unkA4 >= 21) {
-            D_801F5478.unkA4 = 20;
-            D_801F5478.unkB9 = 0;
-            D_801F5478.unkBA = 1;
+    } else if (EVO_FUSION.swapState == 1) {
+        EVO_FUSION.swapTimer++;
+        if (EVO_FUSION.swapTimer >= 21) {
+            EVO_FUSION.swapTimer = 20;
+            EVO_FUSION.swapState = 0;
+            EVO_FUSION.fusionType = 1;
         }
-    } else if (D_801F5478.unkB9 == 2) {
-        D_801F5478.unkA4++;
-        if (D_801F5478.unkA4 >= 41) {
-            D_801F5478.unkA4 = 0;
-            D_801F5478.unkB9 = 0;
-            D_801F5478.unkBA = 0;
+    } else if (EVO_FUSION.swapState == 2) {
+        EVO_FUSION.swapTimer++;
+        if (EVO_FUSION.swapTimer >= 41) {
+            EVO_FUSION.swapTimer = 0;
+            EVO_FUSION.swapState = 0;
+            EVO_FUSION.fusionType = 0;
         }
     }
-    D_801F5380.side = D_801F5478.unkBA;
+    EVO_TYPE_CHOICE.side = EVO_FUSION.fusionType;
     for (i = 0; i < 3; i++) {
-        D_801F4E58[i].win.brightness = 0x80 - D_801F5380.side * 64;
-        D_801F4E58[i + 3].win.brightness = D_801F5380.side * 64 + 64;
+        EVO_WINDOWS[i].win.brightness = 0x80 - EVO_TYPE_CHOICE.side * 64;
+        EVO_WINDOWS[i + 3].win.brightness = EVO_TYPE_CHOICE.side * 64 + 64;
     }
-    dy = rsin(D_801F5478.unkA4 * 1024 / 20) * 40 / 4096;
-    dx = rsin(D_801F5478.unkA4 * 2048 / 20) * 60 / 4096;
+    dy = rsin(EVO_FUSION.swapTimer * 1024 / 20) * 40 / 4096;
+    dx = rsin(EVO_FUSION.swapTimer * 2048 / 20) * 60 / 4096;
     for (i = 0; i < 3; i++) {
-        rects[i] = D_801F00C0[i].rect;
-        rects[i + 3] = D_801F00C0[i + 3].rect;
+        rects[i] = EVO_WINDOW_DEFS[i].rect;
+        rects[i + 3] = EVO_WINDOW_DEFS[i + 3].rect;
         rects[i].x += dx;
         rects[i].y += dy;
         rects[i + 3].x -= dx;
         rects[i + 3].y -= dy;
-        D_801F4E58[i].win.animFrame = D_801F4E58[i].win.animFrames;
-        D_801F4E58[i + 3].win.animFrame = D_801F4E58[i + 3].win.animFrames;
-        animateWindowTo(&D_801F4E58[i].win, &rects[i]);
-        animateWindowTo(&D_801F4E58[i + 3].win, &rects[i + 3]);
+        EVO_WINDOWS[i].win.animFrame = EVO_WINDOWS[i].win.animFrames;
+        EVO_WINDOWS[i + 3].win.animFrame = EVO_WINDOWS[i + 3].win.animFrames;
+        animateWindowTo(&EVO_WINDOWS[i].win, &rects[i]);
+        animateWindowTo(&EVO_WINDOWS[i + 3].win, &rects[i + 3]);
     }
     for (i = 0; i < 6; i++) {
         if (i < 3) {
-            D_801F4E58[i].z = D_801F5380.side + 30;
+            EVO_WINDOWS[i].z = EVO_TYPE_CHOICE.side + 30;
         } else {
-            D_801F4E58[i].z = (D_801F5380.side + 30) ^ 1;
+            EVO_WINDOWS[i].z = (EVO_TYPE_CHOICE.side + 30) ^ 1;
         }
     }
 }
 
-void func_801EA110(void) {
+void EVO_openFusionTypeChoice(void) {
     s32 i;
 
-    D_801F5358 = D_801F5250->vars[12];
+    EVO_MAX_CARD_LEVEL = EVO_SCRIPT->vars[12];
     for (i = 0; i < 3; i++) {
-        D_801F4E58[i].win.brightness = 0x80 - D_801F5380.side * 64;
-        D_801F4E58[i + 3].win.brightness = D_801F5380.side * 64 + 64;
+        EVO_WINDOWS[i].win.brightness = 0x80 - EVO_TYPE_CHOICE.side * 64;
+        EVO_WINDOWS[i + 3].win.brightness = EVO_TYPE_CHOICE.side * 64 + 64;
     }
-    if (D_801F5478.unkBC == 0) {
-        D_801F5478.unkBC = 1;
-        D_801F5478.unkB9 = 0;
-        D_801F5478.unkC1 = 1;
-        D_801F5250->vars[8] = -1;
+    if (EVO_FUSION.typeChoiceOpen == 0) {
+        EVO_FUSION.typeChoiceOpen = 1;
+        EVO_FUSION.swapState = 0;
+        EVO_FUSION.step = 1;
+        EVO_SCRIPT->vars[8] = -1;
         for (i = 0; i < 6; i++) {
-            if (D_801F5478.unkBA == 0) {
-                animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i].rect);
+            if (EVO_FUSION.fusionType == 0) {
+                animateWindowTo(&EVO_WINDOWS[i].win, &EVO_WINDOW_DEFS[i].rect);
             } else if (i < 3) {
-                animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i + 3].rect);
+                animateWindowTo(&EVO_WINDOWS[i].win, &EVO_WINDOW_DEFS[i + 3].rect);
             } else {
-                animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i - 3].rect);
+                animateWindowTo(&EVO_WINDOWS[i].win, &EVO_WINDOW_DEFS[i - 3].rect);
             }
         }
         func_80014C08(30);
     }
 }
 
-void func_801EA2D4(void) {
+void EVO_closeFusionTypeChoice(void) {
     s32 i;
 
-    if (D_801F5478.unkBC == 1) {
-        D_801F5478.unkBC = 0;
-        D_801F5478.unkC1 = 0;
+    if (EVO_FUSION.typeChoiceOpen == 1) {
+        EVO_FUSION.typeChoiceOpen = 0;
+        EVO_FUSION.step = 0;
         for (i = 0; i < 6; i++) {
-            D_801F4E58[i].win.animFrame = D_801F4E58[i].win.animFrames - 1;
-            animateWindowTo(&D_801F4E58[i].win, (Rect16 *)-1);
+            EVO_WINDOWS[i].win.animFrame = EVO_WINDOWS[i].win.animFrames - 1;
+            animateWindowTo(&EVO_WINDOWS[i].win, (Rect16 *)-1);
         }
     }
 }
 
-void func_801EA358(EvoWindow *w) {
+void EVO_drawFusionTypeIcon(EvoWindow *w) {
     Rect16 uv;
     s32 x = w->win.originX;
     s32 y = w->win.originY;
     s32 z = w->win.z;
 
-    if (w->unk44 == 0) {
+    if (w->isPartner == 0) {
         uv.x = 0;
         uv.y = 0;
         uv.w = 0x40;
@@ -4480,282 +4484,282 @@ void func_801EA358(EvoWindow *w) {
     }
 }
 
-void func_801EA414(void) {
+void EVO_openPartnerList(void) {
     s32 i;
 
-    if (D_801F5478.unkBE == 0) {
-        D_801F5478.unkBE = 1;
-        D_801F5478.unkBF = 0;
-        D_801F5478.unkC0 = 0;
+    if (EVO_FUSION.partnerListOpen == 0) {
+        EVO_FUSION.partnerListOpen = 1;
+        EVO_FUSION.partnerCount = 0;
+        EVO_FUSION.partner = 0;
         for (i = 10; i < 12; i++) {
-            animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i].rect);
+            animateWindowTo(&EVO_WINDOWS[i].win, &EVO_WINDOW_DEFS[i].rect);
         }
         for (i = 0; i < 3; i++) {
             if (((PlayerProfile *)PLAYER_PROFILES)->partners[i].cardId != 0) {
-                D_801F5478.unkBF++;
+                EVO_FUSION.partnerCount++;
             }
         }
     }
-    D_801F5250->vars[8] = -1;
-    D_801F5478.unkC1 = 2;
+    EVO_SCRIPT->vars[8] = -1;
+    EVO_FUSION.step = 2;
 }
 
-void func_801EA530(void) {
+void EVO_closePartnerList(void) {
     s32 i;
 
-    D_801F5478.unkBE = 0;
-    D_801F5478.unkC1 = 0;
+    EVO_FUSION.partnerListOpen = 0;
+    EVO_FUSION.step = 0;
     for (i = 10; i < 12; i++) {
-        animateWindowTo(&D_801F4E58[i].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[i].win, (Rect16 *)-1);
     }
 }
 
-void func_801EA598(void) {
+void EVO_tickPartnerList(void) {
     if (PAD_STATES[0]->pressed & 0x40) {
         playSoundEffect(0);
-        D_801F5478.unkC1 = 0;
-        D_801F5250->vars[8] = 1;
-        D_801F5478.unkAC = ((PlayerProfile *)PLAYER_PROFILES)->partners[D_801F5478.unkC0].cardId;
+        EVO_FUSION.step = 0;
+        EVO_SCRIPT->vars[8] = 1;
+        EVO_FUSION.firstCard = ((PlayerProfile *)PLAYER_PROFILES)->partners[EVO_FUSION.partner].cardId;
     } else if (PAD_STATES[0]->pressed & 0x10) {
         playSoundEffect(1);
-        D_801F5478.unkC1 = 0;
-        D_801F5250->vars[8] = 2;
+        EVO_FUSION.step = 0;
+        EVO_SCRIPT->vars[8] = 2;
     } else if (PAD_STATES[0]->repeat & 0x4000) {
-        D_801F5478.unkC0++;
-        if (D_801F5478.unkC0 >= D_801F5478.unkBF) {
-            D_801F5478.unkC0 = 0;
+        EVO_FUSION.partner++;
+        if (EVO_FUSION.partner >= EVO_FUSION.partnerCount) {
+            EVO_FUSION.partner = 0;
         } else {
             playSoundEffect(2);
         }
-        if (D_801F5478.unkBF == 0 || D_801F5478.unkC0 >= D_801F5478.unkBF - 1) {
+        if (EVO_FUSION.partnerCount == 0 || EVO_FUSION.partner >= EVO_FUSION.partnerCount - 1) {
             PAD_STATES[0]->repeatEnabled = 0;
         }
     } else if (PAD_STATES[0]->repeat & 0x1000) {
-        D_801F5478.unkC0--;
-        if (D_801F5478.unkC0 < 0) {
-            D_801F5478.unkC0 = D_801F5478.unkBF - 1;
+        EVO_FUSION.partner--;
+        if (EVO_FUSION.partner < 0) {
+            EVO_FUSION.partner = EVO_FUSION.partnerCount - 1;
         } else {
             playSoundEffect(2);
         }
-        if (D_801F5478.unkC0 <= 0) {
+        if (EVO_FUSION.partner <= 0) {
             PAD_STATES[0]->repeatEnabled = 0;
         }
     }
 }
 
-void func_801EA790(void) {
-    animateWindowTo(&D_801F4E58[10].win, (Rect16 *)-1);
-    animateWindowTo(&D_801F43D0, &D_801F0030.rect);
-    D_801F0030.active = 1;
-    D_801F5478.unkC2 = 0;
-    D_801F5478.unkC1 = 3;
-    D_801F5478.unkC3 = 0;
-    D_801F0030.row = 0;
-    scrollWindowTo((s16 *)D_801F0030.win, 0, 0);
-    D_801F5250->vars[8] = -1;
+void EVO_openCardList(void) {
+    animateWindowTo(&EVO_WINDOWS[10].win, (Rect16 *)-1);
+    animateWindowTo(&EVO_CARD_LIST_WINDOW, &EVO_CARD_LIST_MENU.rect);
+    EVO_CARD_LIST_MENU.active = 1;
+    EVO_FUSION.sortMenuOpen = 0;
+    EVO_FUSION.step = 3;
+    EVO_FUSION.previewOpen = 0;
+    EVO_CARD_LIST_MENU.row = 0;
+    scrollWindowTo((s16 *)EVO_CARD_LIST_MENU.win, 0, 0);
+    EVO_SCRIPT->vars[8] = -1;
 }
 
-void func_801EA820(void) {
-    animateWindowTo(&D_801F4E58[10].win, &D_801F00C0[10].rect);
-    animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-    D_801F0030.active = 0;
+void EVO_closeCardList(void) {
+    animateWindowTo(&EVO_WINDOWS[10].win, &EVO_WINDOW_DEFS[10].rect);
+    animateWindowTo(&EVO_CARD_LIST_WINDOW, (Rect16 *)-1);
+    EVO_CARD_LIST_MENU.active = 0;
 }
 
-void func_801EA864(s32 index) {
-    EvoScene *scenes = D_801F5548;
+void EVO_slideTrayOut(s32 index) {
+    EvoTray *trays = EVO_TRAYS;
 
-    scenes[index].unk124 -= 10;
-    if (scenes[index].unk124 < -0x58) {
-        scenes[index].unk124 = -0x58;
-        D_801F5478.unkC1 = 0;
-        D_801F5478.unkBB = 0;
-        D_801F5250->vars[8] = -1;
+    trays[index].x -= 10;
+    if (trays[index].x < -0x58) {
+        trays[index].x = -0x58;
+        EVO_FUSION.step = 0;
+        EVO_FUSION.scriptState = 0;
+        EVO_SCRIPT->vars[8] = -1;
         if (index == 0) {
-            D_801F4E34[D_801F5478.unkAC]--;
+            EVO_SPARE_CARD_COUNTS[EVO_FUSION.firstCard]--;
         } else {
-            D_801F4E34[D_801F5478.unkAC]++;
+            EVO_SPARE_CARD_COUNTS[EVO_FUSION.firstCard]++;
         }
     }
 }
 
-void func_801EA934(s32 index) {
-    EvoScene *scenes = D_801F5548;
+void EVO_slideTrayIn(s32 index) {
+    EvoTray *trays = EVO_TRAYS;
 
-    scenes[index].unk124 += 10;
-    if (scenes[index].unk124 >= 15) {
-        scenes[index].unk124 = 14;
-        D_801F5478.unkC1 = 0;
-        D_801F5478.unkBB = 0;
-        D_801F5250->vars[8] = -1;
+    trays[index].x += 10;
+    if (trays[index].x >= 15) {
+        trays[index].x = 14;
+        EVO_FUSION.step = 0;
+        EVO_FUSION.scriptState = 0;
+        EVO_SCRIPT->vars[8] = -1;
     }
 }
 
-void func_801EA9AC(void) {
-    D_801F5548[0].unk124 += 10;
-    D_801F5548[1].unk124 += 10;
-    if (D_801F5548[0].unk124 >= 15) {
-        D_801F5548[0].unk124 = 14;
+void EVO_showBothTrays(void) {
+    EVO_TRAYS[0].x += 10;
+    EVO_TRAYS[1].x += 10;
+    if (EVO_TRAYS[0].x >= 15) {
+        EVO_TRAYS[0].x = 14;
     }
-    if (D_801F5548[1].unk124 >= 0x67) {
-        D_801F5548[1].unk124 = 0x66;
+    if (EVO_TRAYS[1].x >= 0x67) {
+        EVO_TRAYS[1].x = 0x66;
     }
-    if (D_801F5548[0].unk124 == 14 && D_801F5548[1].unk124 == 0x66) {
-        D_801F5478.unkC1 = 0;
-        D_801F5250->vars[8] = 1;
-    }
-}
-
-void func_801EAA5C(void) {
-    D_801F5548[0].unk124 -= 10;
-    D_801F5548[1].unk124 -= 10;
-    if (D_801F5548[1].unk124 < 14) {
-        D_801F5548[0].unk124 = -0x58;
-        D_801F5548[1].unk124 = 14;
-        D_801F5478.unkC1 = 0;
-        D_801F5478.unkBB = 0;
-        animateWindowTo(&D_801F43D0, &D_801F0030.rect);
-        func_801ECC6C();
+    if (EVO_TRAYS[0].x == 14 && EVO_TRAYS[1].x == 0x66) {
+        EVO_FUSION.step = 0;
+        EVO_SCRIPT->vars[8] = 1;
     }
 }
 
-void func_801EAAE8(s16 cardId) {
+void EVO_repickSecondCard(void) {
+    EVO_TRAYS[0].x -= 10;
+    EVO_TRAYS[1].x -= 10;
+    if (EVO_TRAYS[1].x < 14) {
+        EVO_TRAYS[0].x = -0x58;
+        EVO_TRAYS[1].x = 14;
+        EVO_FUSION.step = 0;
+        EVO_FUSION.scriptState = 0;
+        animateWindowTo(&EVO_CARD_LIST_WINDOW, &EVO_CARD_LIST_MENU.rect);
+        EVO_startSecondCardPick();
+    }
+}
+
+void EVO_checkCardCapacity(s16 cardId) {
     if (cardId < 0) {
         cardId = -1;
     }
-    if (D_801F5250->vars[13] != 0) {
-        D_801F5250->vars[11] = 0;
+    if (EVO_SCRIPT->vars[13] != 0) {
+        EVO_SCRIPT->vars[11] = 0;
         return;
     }
-    D_801F5250->vars[11] = getOwnedCardCount(0, cardId);
+    EVO_SCRIPT->vars[11] = getOwnedCardCount(0, cardId);
     if ((((PlayerProfile *)PLAYER_PROFILES)->cardCollection[cardId] & 7) + 1 >= 7) {
-        D_801F5250->vars[11] = -1;
+        EVO_SCRIPT->vars[11] = -1;
     } else {
-        D_801F5250->vars[11] = 0;
+        EVO_SCRIPT->vars[11] = 0;
     }
 }
 
-void func_801EABB0(void) {
+void EVO_tickCardList(void) {
     s16 cardId;
     s32 blocked = 0;
     s32 i;
 
-    cardId = D_801F44C0[D_801F0030.row]->id;
-    D_801F5458 = cardId;
+    cardId = EVO_CARD_LIST[EVO_CARD_LIST_MENU.row]->id;
+    EVO_CURSOR_CARD = cardId;
     if (PAD_STATES[0]->pressed & 0x100) {
-        if (D_801F5478.unkC3 != 0) {
+        if (EVO_FUSION.previewOpen != 0) {
             return;
         }
-        if (D_801F5478.unkC2 == 0) {
-            D_801F5478.unkC2 = 1;
-            D_801F0030.active = 0;
-            animateWindowTo(&D_801F4380, &D_801F005C.rect);
+        if (EVO_FUSION.sortMenuOpen == 0) {
+            EVO_FUSION.sortMenuOpen = 1;
+            EVO_CARD_LIST_MENU.active = 0;
+            animateWindowTo(&EVO_SORT_WINDOW, &EVO_SORT_MENU.rect);
             playSoundEffect(3);
             return;
         }
         playSoundEffect(4);
-        D_801F5478.unkC2 = 0;
-        D_801F0030.active = 1;
-        animateWindowTo(&D_801F4380, (Rect16 *)-1);
-    } else if (D_801F5478.unkC2 == 0) {
-        if (D_801F5478.unkC3 == 0) {
+        EVO_FUSION.sortMenuOpen = 0;
+        EVO_CARD_LIST_MENU.active = 1;
+        animateWindowTo(&EVO_SORT_WINDOW, (Rect16 *)-1);
+    } else if (EVO_FUSION.sortMenuOpen == 0) {
+        if (EVO_FUSION.previewOpen == 0) {
             if (PAD_STATES[0]->pressed & 0x40) {
-                if (D_801F44C0[D_801F0030.row]->unk18 == 0) {
+                if (EVO_CARD_LIST[EVO_CARD_LIST_MENU.row]->fusionPoints == 0) {
                     blocked = 1;
-                } else if (D_801F44C0[D_801F0030.row]->type == 0 &&
-                           (D_801F44C0[D_801F0030.row]->attr & 0xF) > D_801F5358) {
+                } else if (EVO_CARD_LIST[EVO_CARD_LIST_MENU.row]->type == 0 &&
+                           (EVO_CARD_LIST[EVO_CARD_LIST_MENU.row]->attr & 0xF) > EVO_MAX_CARD_LEVEL) {
                     blocked = 1;
                 }
-                if (D_801F4E34[cardId] == 0) {
+                if (EVO_SPARE_CARD_COUNTS[cardId] == 0) {
                     return;
                 }
                 if (cardId >= 0xAC && cardId < 0xBF) {
                     for (i = 0; i < 6; i++) {
-                        if (D_801EFED4[i] == cardId) {
+                        if (EVO_PARTNER_CARD_IDS[i] == cardId) {
                             i = -1;
                             break;
                         }
                     }
                     if (i == -1) {
-                        initDialog((u8 *)&D_801F57A8, "You can't use Partner Cards\nin Fusion.", 0);
+                        initDialog((u8 *)&EVO_DIALOG, "You can't use Partner Cards\nin Fusion.", 0);
                     } else {
-                        initDialog((u8 *)&D_801F57A8, "You can't use that Card in Fusion.", 0);
+                        initDialog((u8 *)&EVO_DIALOG, "You can't use that Card in Fusion.", 0);
                     }
-                    runDialog(&D_801F57A8);
+                    runDialog(&EVO_DIALOG);
                     return;
                 }
                 if (blocked) {
                     return;
                 }
                 playSoundEffect(0);
-                if (D_801F5478.unkBA == 0) {
-                    if (D_801F5478.unkC4 != 2) {
-                        D_801F0030.active = 0;
-                        D_801F5250->vars[8] = 1;
-                        D_801F5478.unkC1 = 0;
-                        func_801E8CD8(cardId, 0);
-                        D_801F5478.unkAC = cardId;
-                        D_801F5478.busy[1] = 1;
+                if (EVO_FUSION.fusionType == 0) {
+                    if (EVO_FUSION.pickSlot != 2) {
+                        EVO_CARD_LIST_MENU.active = 0;
+                        EVO_SCRIPT->vars[8] = 1;
+                        EVO_FUSION.step = 0;
+                        EVO_loadCardImage(cardId, 0);
+                        EVO_FUSION.firstCard = cardId;
+                        EVO_FUSION.busy[1] = 1;
                         return;
                     }
-                    D_801F0030.active = 0;
-                    func_801E8CD8(cardId, 1);
+                    EVO_CARD_LIST_MENU.active = 0;
+                    EVO_loadCardImage(cardId, 1);
                     do {
                         func_80014C08(1);
-                    } while (D_801F5478.busy[0] != 0);
-                    D_801F5478.unkAE = cardId;
-                    func_801ECCA0();
-                    func_801EAAE8(D_801F5478.unkB0);
-                    D_801F5478.unkC1 = 11;
-                    animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-                    D_801F4E34[D_801F5478.unkAE]--;
-                    D_801F5478.busy[2] = 1;
-                    func_801E8CD8(D_801F5478.unkB0, 2);
+                    } while (EVO_FUSION.busy[0] != 0);
+                    EVO_FUSION.secondCard = cardId;
+                    EVO_findFusionResult();
+                    EVO_checkCardCapacity(EVO_FUSION.result);
+                    EVO_FUSION.step = 11;
+                    animateWindowTo(&EVO_CARD_LIST_WINDOW, (Rect16 *)-1);
+                    EVO_SPARE_CARD_COUNTS[EVO_FUSION.secondCard]--;
+                    EVO_FUSION.busy[2] = 1;
+                    EVO_loadCardImage(EVO_FUSION.result, 2);
                     do {
                         func_80014C08(1);
-                    } while (D_801F5478.busy[0] != 0);
-                } else if (D_801F5478.unkBA == 1) {
-                    D_801F0030.active = 0;
-                    uploadTim((u32 *)((u8 *)D_801F5478.unkA0 + D_801F5478.unkA0[cardId]), 0x1C0, 0x190, 0x180, 0x1FC);
-                    D_801F5478.unkAE = cardId;
-                    D_801F5478.unkC3 = 1;
-                    animateWindowTo(&D_801F4E58[12].win, &D_801F00C0[12].rect);
+                    } while (EVO_FUSION.busy[0] != 0);
+                } else if (EVO_FUSION.fusionType == 1) {
+                    EVO_CARD_LIST_MENU.active = 0;
+                    uploadTim((u32 *)((u8 *)EVO_FUSION.cardArchive + EVO_FUSION.cardArchive[cardId]), 0x1C0, 0x190, 0x180, 0x1FC);
+                    EVO_FUSION.secondCard = cardId;
+                    EVO_FUSION.previewOpen = 1;
+                    animateWindowTo(&EVO_WINDOWS[12].win, &EVO_WINDOW_DEFS[12].rect);
                 }
             } else if (PAD_STATES[0]->pressed & 0x10) {
-                D_801F5478.unkC3 = 0;
-                D_801F5478.unkC1 = 0;
-                D_801F5250->vars[8] = 2;
+                EVO_FUSION.previewOpen = 0;
+                EVO_FUSION.step = 0;
+                EVO_SCRIPT->vars[8] = 2;
                 playSoundEffect(1);
             }
         } else if (PAD_STATES[0]->pressed & 0x40) {
             playSoundEffect(0);
-            D_801F5478.unkC1 = 0;
-            D_801F5250->vars[8] = 1;
+            EVO_FUSION.step = 0;
+            EVO_SCRIPT->vars[8] = 1;
         } else if (PAD_STATES[0]->pressed & 0x10) {
             playSoundEffect(1);
-            D_801F0030.active = 1;
-            D_801F5478.unkC3 = 0;
-            animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
+            EVO_CARD_LIST_MENU.active = 1;
+            EVO_FUSION.previewOpen = 0;
+            animateWindowTo(&EVO_WINDOWS[12].win, (Rect16 *)-1);
         }
     } else if (PAD_STATES[0]->pressed & 0x10) {
         playSoundEffect(4);
-        D_801F5478.unkC2 = 0;
-        D_801F0030.active = 1;
-        animateWindowTo(&D_801F4380, (Rect16 *)-1);
+        EVO_FUSION.sortMenuOpen = 0;
+        EVO_CARD_LIST_MENU.active = 1;
+        animateWindowTo(&EVO_SORT_WINDOW, (Rect16 *)-1);
     }
 }
 
-void func_801EB0F4(void) {
+void EVO_startPartnerFusion(void) {
     PlayerProfile *profile;
 
-    D_801F5250->vars[8] = -2;
-    D_801F5250->vars[18] = 0;
-    D_801F5250->vars[19] = 0;
-    D_801F5250->vars[7] = 1;
-    func_801EE2DC(0, 0);
-    func_801EB2A0();
-    D_801F5478.unkC1 = 4;
-    removeCardFromCollection(0, D_801F5478.unkAE, 1);
-    D_801F4E34[D_801F5478.unkAE]--;
+    EVO_SCRIPT->vars[8] = -2;
+    EVO_SCRIPT->vars[18] = 0;
+    EVO_SCRIPT->vars[19] = 0;
+    EVO_SCRIPT->vars[7] = 1;
+    EVO_playEffect(0, 0);
+    EVO_findPartnerReward();
+    EVO_FUSION.step = 4;
+    removeCardFromCollection(0, EVO_FUSION.secondCard, 1);
+    EVO_SPARE_CARD_COUNTS[EVO_FUSION.secondCard]--;
     profile = (PlayerProfile *)PLAYER_PROFILES;
     profile->unk52++;
     if ((u16)profile->unk52 >= 10000) {
@@ -4763,91 +4767,91 @@ void func_801EB0F4(void) {
     }
 }
 
-void func_801EB1D0(void) {
-    D_801F5250->vars[8] = -1;
-    D_801F0030.active = 1;
-    D_801F5478.unkC3 = 0;
-    animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
-    D_801F5478.unkC1 = 3;
+void EVO_cancelPartnerFusion(void) {
+    EVO_SCRIPT->vars[8] = -1;
+    EVO_CARD_LIST_MENU.active = 1;
+    EVO_FUSION.previewOpen = 0;
+    animateWindowTo(&EVO_WINDOWS[12].win, (Rect16 *)-1);
+    EVO_FUSION.step = 3;
 }
 
-void func_801EB234(void) {
+void EVO_leaveForCutscene(void) {
     setScreenFadeParams(0, 2, 6);
     func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
-    D_801F5478.unkC7 = 1;
+    EVO_FUSION.cutscene = 1;
 }
 
-void func_801EB2A0(void) {
+void EVO_findPartnerReward(void) {
     s32 i;
     s32 ability;
 
-    D_801F5478.unkB6 = -1;
+    EVO_FUSION.partnerKind = -1;
     ability = -1;
     for (i = 0; i < 6; i++) {
-        if (D_801EFED4[i] == D_801F5478.unkAC && D_801F5478.unkB6 == -1) {
-            D_801F5478.unkB6 = i;
+        if (EVO_PARTNER_CARD_IDS[i] == EVO_FUSION.firstCard && EVO_FUSION.partnerKind == -1) {
+            EVO_FUSION.partnerKind = i;
         }
     }
-    if (D_801F5478.unkB6 != -1) {
+    if (EVO_FUSION.partnerKind != -1) {
         for (i = 0; i < 5; i++) {
-            if (D_801EFF1C[D_801F5478.unkB6][i].card == D_801F5478.unkAE && ability == -1) {
-                ability = D_801EFF1C[D_801F5478.unkB6][i].ability;
+            if (EVO_PARTNER_FUSION_REWARDS[EVO_FUSION.partnerKind][i].card == EVO_FUSION.secondCard && ability == -1) {
+                ability = EVO_PARTNER_FUSION_REWARDS[EVO_FUSION.partnerKind][i].ability;
                 if (getPartnerAbilityState(0, ability) == 0) {
                     grantPartnerAbility(0, ability);
-                    D_801F5478.unkB7 = 0;
+                    EVO_FUSION.rewardStep = 0;
                 } else {
                     ability = -1;
                 }
-                D_801F5478.unkB0 = ability;
+                EVO_FUSION.result = ability;
             }
         }
     }
     if (ability == -1) {
-        D_801F5478.unkB7 = 3;
-        D_801F5250->vars[19] = ability;
-        D_801F5478.unkB6 = ability;
-        D_801F5478.unkB0 = D_801F4980[D_801F5478.unkAE]->unk18;
+        EVO_FUSION.rewardStep = 3;
+        EVO_SCRIPT->vars[19] = ability;
+        EVO_FUSION.partnerKind = ability;
+        EVO_FUSION.result = EVO_CARDS_BY_ID[EVO_FUSION.secondCard]->fusionPoints;
     }
 }
 
-void func_801EB440(void) {
+void EVO_tickPartnerReward(void) {
     char text[168];
     s32 i;
 
-    switch (D_801F5478.unkB7) {
+    switch (EVO_FUSION.rewardStep) {
     case 0:
-        D_801F5250->vars[18] = 2;
+        EVO_SCRIPT->vars[18] = 2;
         break;
     case 1:
-        sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c6[%s]", D_801F5478.unkB0, D_801EF8D4[D_801F5478.unkB0].name);
-        initDialog((u8 *)&D_801F57A8, text, 0x80);
-        runDialog(&D_801F57A8);
-        D_801F5478.unkB7 = 10;
-        D_801F5478.unkC1 = 3;
-        D_801F0030.active = 1;
-        D_801F5478.unkC3 = 0;
+        sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c6[%s]", EVO_FUSION.result, EVO_DIGI_PARTS[EVO_FUSION.result].name);
+        initDialog((u8 *)&EVO_DIALOG, text, 0x80);
+        runDialog(&EVO_DIALOG);
+        EVO_FUSION.rewardStep = 10;
+        EVO_FUSION.step = 3;
+        EVO_CARD_LIST_MENU.active = 1;
+        EVO_FUSION.previewOpen = 0;
         for (i = 0; i < 4; i++) {
-            D_801F5860[i] = 0;
+            EVO_STAT_BONUSES[i] = 0;
         }
-        D_801F5250->vars[8] = -1;
+        EVO_SCRIPT->vars[8] = -1;
         break;
     case 2:
-        if (D_801F5250->vars[19] == -1) {
-            func_801EB670();
-        } else if (D_801F5478.unkBB == 0) {
-            if (D_801F57A1 == 0) {
-                if (D_801F4E50 != -1) {
-                    grantPartnerAbility(0, D_801F4E50);
-                    sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c6[%s]", D_801F4E50, D_801EF8D4[D_801F4E50].name);
-                    initDialog((u8 *)&D_801F57A8, text, 0x80);
-                    runDialog(&D_801F57A8);
+        if (EVO_SCRIPT->vars[19] == -1) {
+            EVO_addPartnerExp();
+        } else if (EVO_FUSION.scriptState == 0) {
+            if (EVO_LEVEL_UP_PENDING == 0) {
+                if (EVO_NEW_DIGI_PART != -1) {
+                    grantPartnerAbility(0, EVO_NEW_DIGI_PART);
+                    sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c6[%s]", EVO_NEW_DIGI_PART, EVO_DIGI_PARTS[EVO_NEW_DIGI_PART].name);
+                    initDialog((u8 *)&EVO_DIALOG, text, 0x80);
+                    runDialog(&EVO_DIALOG);
                 }
-                D_801F5250->vars[19] = -1;
-                if (D_801F57A0 != 0) {
-                    animateWindowTo(&D_801F5410, (Rect16 *)-1);
+                EVO_SCRIPT->vars[19] = -1;
+                if (EVO_RANK_UP_STATE != 0) {
+                    animateWindowTo(&EVO_RANK_UP_WINDOW, (Rect16 *)-1);
                 }
             } else {
-                D_801F57A1 = 0;
+                EVO_LEVEL_UP_PENDING = 0;
             }
         }
         break;
@@ -4863,25 +4867,25 @@ void func_801EB440(void) {
     }
 }
 
-void func_801EB670(void) {
+void EVO_addPartnerExp(void) {
     char text[168];
     Partner *partner;
     s32 ability;
     s32 i;
 
-    partner = &((PlayerProfile *)PLAYER_PROFILES)->partners[D_801F5478.unkC0];
+    partner = &((PlayerProfile *)PLAYER_PROFILES)->partners[EVO_FUSION.partner];
     bzero((Scene3D *)text, 0xA1);
-    if (D_801F5478.unkB6 >= 0) {
-        D_801F5250->vars[18] = 2;
-        sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c7[%s]", D_801F5478.unkB0, D_801EF8D4[D_801F5478.unkB0].name);
-        initDialog((u8 *)&D_801F57A8, text, 0x80);
-        runDialog(&D_801F57A8);
-        D_801F5478.unkB6 = -2;
+    if (EVO_FUSION.partnerKind >= 0) {
+        EVO_SCRIPT->vars[18] = 2;
+        sprintf(text, "Obtained\nDigi-Part *c5 No.%3.3d\n*c7[%s]", EVO_FUSION.result, EVO_DIGI_PARTS[EVO_FUSION.result].name);
+        initDialog((u8 *)&EVO_DIALOG, text, 0x80);
+        runDialog(&EVO_DIALOG);
+        EVO_FUSION.partnerKind = -2;
         return;
     }
-    if (D_801F5478.unkB6 == -1) {
-        if (D_801F5478.unkB0 > 0) {
-            D_801F5478.unkB0--;
+    if (EVO_FUSION.partnerKind == -1) {
+        if (EVO_FUSION.result > 0) {
+            EVO_FUSION.result--;
             if ((s8)partner->level < 99) {
                 partner->exp++;
                 if (getExpForNextLevel((s8)partner->level) - (u16)partner->exp > 0) {
@@ -4889,79 +4893,79 @@ void func_801EB670(void) {
                 }
                 partner->level++;
                 if ((s8)partner->level >= 99) {
-                    D_801F5478.unkB0 = 0;
+                    EVO_FUSION.result = 0;
                 }
-                ability = findNewPartnerAbility((AbilityLearnEntry *)D_801EF8D4, 0, D_801F5478.unkC0);
-                D_801F5250->vars[19] = 1;
-                D_801F4E50 = -1;
-                D_801F57A1 = 1;
-                D_801F57A0 = 1;
-                animateWindowTo(&D_801F5410, &D_801F00B8);
+                ability = findNewPartnerAbility((AbilityLearnEntry *)EVO_DIGI_PARTS, 0, EVO_FUSION.partner);
+                EVO_SCRIPT->vars[19] = 1;
+                EVO_NEW_DIGI_PART = -1;
+                EVO_LEVEL_UP_PENDING = 1;
+                EVO_RANK_UP_STATE = 1;
+                animateWindowTo(&EVO_RANK_UP_WINDOW, &EVO_RANK_UP_RECT);
                 if (ability >= 0) {
-                    D_801F5250->vars[19] = 2;
-                    D_801F4E50 = ability;
+                    EVO_SCRIPT->vars[19] = 2;
+                    EVO_NEW_DIGI_PART = ability;
                 }
-                ability = func_8004994C(0, D_801F5478.unkC0);
+                ability = func_8004994C(0, EVO_FUSION.partner);
                 if (ability >= 0) {
-                    D_801F5860[ability] += 10;
+                    EVO_STAT_BONUSES[ability] += 10;
                 }
             } else {
-                D_801F57A0 = 2;
-                animateWindowTo(&D_801F5410, &D_801F00B8);
+                EVO_RANK_UP_STATE = 2;
+                animateWindowTo(&EVO_RANK_UP_WINDOW, &EVO_RANK_UP_RECT);
                 do {
                     func_80014C08(1);
                 } while (!(PAD_STATES[0]->pressed & 0x40));
                 playMenuSound(1);
-                animateWindowTo(&D_801F5410, (Rect16 *)-1);
-                D_801F5478.unkB0 = 0;
+                animateWindowTo(&EVO_RANK_UP_WINDOW, (Rect16 *)-1);
+                EVO_FUSION.result = 0;
             }
         } else {
             for (i = 0; i < 4; i++) {
                 if (i == 0) {
-                    partner->hpBonus += D_801F5860[0];
+                    partner->hpBonus += EVO_STAT_BONUSES[0];
                 } else {
-                    partner->attackBonus[i - 1] += D_801F5860[i];
+                    partner->attackBonus[i - 1] += EVO_STAT_BONUSES[i];
                 }
             }
-            updatePartnerStats(0, D_801F5478.unkC0);
-            D_801F5478.unkB6 = -2;
+            updatePartnerStats(0, EVO_FUSION.partner);
+            EVO_FUSION.partnerKind = -2;
         }
         return;
     }
-    D_801F5478.unkB7 = 10;
-    D_801F5478.unkC1 = 3;
-    D_801F0030.active = 1;
-    D_801F5478.unkC3 = 0;
+    EVO_FUSION.rewardStep = 10;
+    EVO_FUSION.step = 3;
+    EVO_CARD_LIST_MENU.active = 1;
+    EVO_FUSION.previewOpen = 0;
     for (i = 0; i < 4; i++) {
-        D_801F5860[i] = 0;
+        EVO_STAT_BONUSES[i] = 0;
     }
-    D_801F5250->vars[8] = -1;
+    EVO_SCRIPT->vars[8] = -1;
 }
 
-void func_801EBA08(void) {
+void EVO_tickFusionResult(void) {
     s32 i;
 
-    if (D_801F5478.unkC8 == 0) {
-        D_801F5478.unkC8 = 1;
+    if (EVO_FUSION.resultStep == 0) {
+        EVO_FUSION.resultStep = 1;
         for (i = 0; i < 2; i++) {
-            D_801F5548[i].unk120 = 0;
+            EVO_TRAYS[i].merge = 0;
         }
-        D_801F5250->vars[8] = -1;
+        EVO_SCRIPT->vars[8] = -1;
         return;
     }
-    if (D_801F5478.unkC8 == 1) {
-        if (D_801F5478.unkC5 == 1) {
-            func_801EE2DC(7, 0);
+    if (EVO_FUSION.resultStep == 1) {
+        if (EVO_FUSION.resultKind == 1) {
+            EVO_playEffect(7, 0);
         } else {
-            func_801EE2DC(6, 0);
+            EVO_playEffect(6, 0);
         }
-        removeCardFromCollection(0, D_801F5478.unkAC, 1);
-        removeCardFromCollection(0, D_801F5478.unkAE, 1);
-        if (addCardToCollection(0, D_801F5478.unkB0, 1) >= 0) {
-            D_801F4E34[D_801F5478.unkB0]++;
-            D_801F5360 = 1;
+        removeCardFromCollection(0, EVO_FUSION.firstCard, 1);
+        removeCardFromCollection(0, EVO_FUSION.secondCard, 1);
+        if (addCardToCollection(0, EVO_FUSION.result, 1) >= 0) {
+            EVO_SPARE_CARD_COUNTS[EVO_FUSION.result]++;
+            EVO_CARD_RECEIVED = 1;
         } else {
-            D_801F5360 = 0;
+            EVO_CARD_RECEIVED = 0;
         }
         ((PlayerProfile *)PLAYER_PROFILES)->unk50++;
         if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk50 >= 10000) {
@@ -4971,69 +4975,69 @@ void func_801EBA08(void) {
         if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk52 >= 10000) {
             ((PlayerProfile *)PLAYER_PROFILES)->unk52 = 9999;
         }
-        if (D_801F5250->vars[13] != 0) {
+        if (EVO_SCRIPT->vars[13] != 0) {
             ((PlayerProfile *)PLAYER_PROFILES)->unk54++;
             if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk54 >= 10000) {
                 ((PlayerProfile *)PLAYER_PROFILES)->unk54 = 9999;
             }
         }
-        if (D_801F5478.unkC5 == 1) {
-            D_801F5478.unkC7 = 1;
-            D_801F2BFC[0] = D_801F4980[D_801F5478.unkAC]->modelId;
-            D_801F2BFC[1] = D_801F4980[D_801F5478.unkAE]->modelId;
+        if (EVO_FUSION.resultKind == 1) {
+            EVO_FUSION.cutscene = 1;
+            EVO_CUTSCENE_MODELS[0] = EVO_CARDS_BY_ID[EVO_FUSION.firstCard]->modelId;
+            EVO_CUTSCENE_MODELS[1] = EVO_CARDS_BY_ID[EVO_FUSION.secondCard]->modelId;
             return;
         }
-        animateWindowTo(&D_801F4E58[13].win, &D_801F00C0[13].rect);
-        D_801F5478.unkC8 = 2;
+        animateWindowTo(&EVO_WINDOWS[13].win, &EVO_WINDOW_DEFS[13].rect);
+        EVO_FUSION.resultStep = 2;
     }
-    D_801F5548[0].unk124 = 0x3A;
-    D_801F5548[1].unk124 = -0x58;
-    D_801F5478.unkBB = 0;
+    EVO_TRAYS[0].x = 0x3A;
+    EVO_TRAYS[1].x = -0x58;
+    EVO_FUSION.scriptState = 0;
     if (PAD_STATES[0]->pressed & 0x40) {
-        animateWindowTo(&D_801F4E58[13].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[13].win, (Rect16 *)-1);
         playSoundEffect(0);
-        D_801F5478.unkC1 = 0x12;
-        D_801F5478.unkC8 = 3;
+        EVO_FUSION.step = 0x12;
+        EVO_FUSION.resultStep = 3;
     }
 }
 
-void func_801EBD04(void) {
-    D_801F5548[0].unk124 -= 10;
-    if (D_801F5548[0].unk124 < -0x58) {
-        D_801F5548[0].unk124 = -0x58;
-        D_801F5478.unkC1 = 0;
-        D_801F5250->vars[8] = 1;
-        D_801F5478.unkC8 = 0;
+void EVO_closeFusionResult(void) {
+    EVO_TRAYS[0].x -= 10;
+    if (EVO_TRAYS[0].x < -0x58) {
+        EVO_TRAYS[0].x = -0x58;
+        EVO_FUSION.step = 0;
+        EVO_SCRIPT->vars[8] = 1;
+        EVO_FUSION.resultStep = 0;
     }
 }
 
-void func_801EBD64(void) {
-    if (D_801F5478.unkC7 != 0) {
-        func_801EE2DC(8, 0);
-        D_801F5478.unkC7 = 0;
-        animateWindowTo(&D_801F4E58[13].win, &D_801F00C0[13].rect);
+void EVO_showCutsceneResult(void) {
+    if (EVO_FUSION.cutscene != 0) {
+        EVO_playEffect(8, 0);
+        EVO_FUSION.cutscene = 0;
+        animateWindowTo(&EVO_WINDOWS[13].win, &EVO_WINDOW_DEFS[13].rect);
     }
     if (PAD_STATES[0]->pressed & 0x40) {
-        animateWindowTo(&D_801F4E58[13].win, (Rect16 *)-1);
+        animateWindowTo(&EVO_WINDOWS[13].win, (Rect16 *)-1);
         playSoundEffect(0);
-        D_801F5478.unkC1 = 0x12;
-        D_801F5478.unkC8 = 3;
+        EVO_FUSION.step = 0x12;
+        EVO_FUSION.resultStep = 3;
     }
 }
 
 void func_801EBE08(void) {
-    D_801F5548[0].unk124 -= 10;
-    if (D_801F5548[0].unk124 < -0x58) {
-        D_801F5548[0].unk124 = -0x58;
-        D_801F5478.unkC1 = 0;
-        D_801F5478.unkBB = 0;
-        D_801F5250->vars[8] = 1;
+    EVO_TRAYS[0].x -= 10;
+    if (EVO_TRAYS[0].x < -0x58) {
+        EVO_TRAYS[0].x = -0x58;
+        EVO_FUSION.step = 0;
+        EVO_FUSION.scriptState = 0;
+        EVO_SCRIPT->vars[8] = 1;
     }
 }
 
 #define PARTNER(i) (((PlayerProfile *)PLAYER_PROFILES)->partners[i])
 
-void func_801EBE68(UiWindow *w) {
+void EVO_drawPartnerList(UiWindow *w) {
     Rect16 rect;
     char text[72];
     s32 x;
@@ -5052,7 +5056,7 @@ void func_801EBE68(UiWindow *w) {
         if (PARTNER(i).cardId == 0) {
             continue;
         }
-        if (D_801F5478.unkC0 == i) {
+        if (EVO_FUSION.partner == i) {
             dim = 0;
             level = 0; /* dead store, but it keeps the branch the original has */
         } else {
@@ -5068,38 +5072,38 @@ void func_801EBE68(UiWindow *w) {
         rect.w = 40;
         rect.h = 40;
         drawTexturedSprite(x, y, &rect, 0x97, ((level + 0x1F8) << 6) | 0x18, z, dim ? 0x40 : 0x80, -1);
-        drawTextColored(x + 0x2C, y + 2, PARTNER(i).card[0].name, D_801EFF58[dim].b, 8, z);
-        drawLargeTextColored(x + 0x82, y + 4, "NEXT", 6, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0x2C, y + 2, PARTNER(i).card[0].name, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawLargeTextColored(x + 0x82, y + 4, "NEXT", 6, EVO_TEXT_COLORS[dim].b, z);
         next = 0;
         if ((s8)PARTNER(i).level < 99) {
             next = getExpForNextLevel((s8)PARTNER(i).level) - (u16)PARTNER(i).exp;
         }
         sprintf(text, "*s0%3d", next);
-        drawTextColored(x + 0xB0, y + 2, text, D_801EFF58[dim].b, 8, z);
+        drawTextColored(x + 0xB0, y + 2, text, EVO_TEXT_COLORS[dim].b, 8, z);
         y += 2;
-        drawLargeTextColored(x + 0x2C, y + 0x10, "RANK", 6, D_801EFF58[dim].b, z);
+        drawLargeTextColored(x + 0x2C, y + 0x10, "RANK", 6, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%2d", (s8)PARTNER(i).level);
-        drawTextColored(x + 0x56, y + 0xE, text, D_801EFF58[dim].b, 8, z);
-        drawIconColored(x + 0x6C, y + 0xE, 0, 0x1A, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0x56, y + 0xE, text, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawIconColored(x + 0x6C, y + 0xE, 0, 0x1A, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", PARTNER(i).card[0].hp);
-        drawTextColored(x + 0x7A, y + 0xE, text, D_801EFF58[dim].b, 8, z);
-        drawIconColored(x + 0x9C, y + 0xE, 0, 7, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0x7A, y + 0xE, text, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawIconColored(x + 0x9C, y + 0xE, 0, 7, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", PARTNER(i).card[0].attack[0].power);
-        drawTextColored(x + 0xAA, y + 0xE, text, D_801EFF58[dim].b, 8, z);
-        drawIconColored(x + 0x6C, y + 0x1A, 0, 8, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0xAA, y + 0xE, text, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawIconColored(x + 0x6C, y + 0x1A, 0, 8, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", PARTNER(i).card[0].attack[1].power);
-        drawTextColored(x + 0x7A, y + 0x1A, text, D_801EFF58[dim].b, 8, z);
-        drawIconColored(x + 0x9C, y + 0x1A, 0, 9, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0x7A, y + 0x1A, text, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawIconColored(x + 0x9C, y + 0x1A, 0, 9, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", PARTNER(i).card[0].attack[2].power);
-        drawTextColored(x + 0xAA, y + 0x1A, text, D_801EFF58[dim].b, 8, z);
-        drawLargeTextColored(x + 0x2C, y + 0x1C, "EXP", 6, D_801EFF58[dim].b, z);
+        drawTextColored(x + 0xAA, y + 0x1A, text, EVO_TEXT_COLORS[dim].b, 8, z);
+        drawLargeTextColored(x + 0x2C, y + 0x1C, "EXP", 6, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", (u16)PARTNER(i).exp);
-        drawTextColored(x + 0x4A, y + 0x1A, text, D_801EFF58[dim].b, 8, z);
+        drawTextColored(x + 0x4A, y + 0x1A, text, EVO_TEXT_COLORS[dim].b, 8, z);
         y += 0x28;
     }
 }
 
-void func_801EC434(UiWindow *w) {
+void EVO_drawPartnerStatus(UiWindow *w) {
     u8 palettes[8] = { 2, 1, 4, 9, 6, 8, 8, 8 };
     char text[72];
     Rect16 rect;
@@ -5114,41 +5118,41 @@ void func_801EC434(UiWindow *w) {
     x = w->originX;
     y = w->originY;
     z = w->z;
-    partner = &PARTNER(D_801F5478.unkC0);
+    partner = &PARTNER(EVO_FUSION.partner);
     w->palette = palettes[partner->card[0].attr >> 4];
-    drawTextColored(x, y, partner->card[0].name, D_801EFF58[0].b, 7, z);
-    drawLargeTextColored(x, y + 0x10, "RANK", 6, D_801EFF58[0].b, z);
+    drawTextColored(x, y, partner->card[0].name, EVO_TEXT_COLORS[0].b, 7, z);
+    drawLargeTextColored(x, y + 0x10, "RANK", 6, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%2d", (s8)partner->level);
-    drawTextColored(x + 0x34, y + 0xE, text, D_801EFF58[0].b, 7, z);
-    drawLargeTextColored(x, y + 0x1E, "EXP", 6, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x34, y + 0xE, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawLargeTextColored(x, y + 0x1E, "EXP", 6, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%4d", (u16)partner->exp);
-    drawTextColored(x + 0x28, y + 0x1C, text, D_801EFF58[0].b, 7, z);
-    drawLargeTextColored(x, y + 0x2C, "NEXT", 6, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x28, y + 0x1C, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawLargeTextColored(x, y + 0x2C, "NEXT", 6, EVO_TEXT_COLORS[0].b, z);
     next = 0;
     if ((s8)partner->level < 99) {
         next = getExpForNextLevel((s8)partner->level) - (u16)partner->exp;
     }
     sprintf(text, "*s0%3d", next);
-    drawTextColored(x + 0x2E, y + 0x2A, text, D_801EFF58[0].b, 7, z);
-    drawIconColored(x, y + 0x38, 0, 0x1A, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x2E, y + 0x2A, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawIconColored(x, y + 0x38, 0, 0x1A, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%4d", partner->card[0].hp);
-    drawTextColored(x + 0x28, y + 0x38, text, D_801EFF58[0].b, 7, z);
-    drawIconColored(x, y + 0x46, 0, 7, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x28, y + 0x38, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawIconColored(x, y + 0x46, 0, 7, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%4d", partner->card[0].attack[0].power);
-    drawTextColored(x + 0x28, y + 0x46, text, D_801EFF58[0].b, 7, z);
-    drawIconColored(x, y + 0x54, 0, 8, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x28, y + 0x46, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawIconColored(x, y + 0x54, 0, 8, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%4d", partner->card[0].attack[1].power);
-    drawTextColored(x + 0x28, y + 0x54, text, D_801EFF58[0].b, 7, z);
-    drawIconColored(x, y + 0x62, 0, 9, D_801EFF58[0].b, z);
+    drawTextColored(x + 0x28, y + 0x54, text, EVO_TEXT_COLORS[0].b, 7, z);
+    drawIconColored(x, y + 0x62, 0, 9, EVO_TEXT_COLORS[0].b, z);
     sprintf(text, "*s0%4d", partner->card[0].attack[2].power);
-    drawTextColored(x + 0x28, y + 0x62, text, D_801EFF58[0].b, 7, z);
+    drawTextColored(x + 0x28, y + 0x62, text, EVO_TEXT_COLORS[0].b, 7, z);
     for (i = 0; i < 4; i++) {
-        if (D_801F5860[i] > 0) {
-            sprintf(text, "+%d", D_801F5860[i]);
-            drawTextColored(x + 0x42, y + (i + 4) * 14, text, D_801EFF58[0].b, 5, z);
+        if (EVO_STAT_BONUSES[i] > 0) {
+            sprintf(text, "+%d", EVO_STAT_BONUSES[i]);
+            drawTextColored(x + 0x42, y + (i + 4) * 14, text, EVO_TEXT_COLORS[0].b, 5, z);
         }
     }
-    index = getSlotPartnerIndex(0, D_801F5478.unkC0);
+    index = getSlotPartnerIndex(0, EVO_FUSION.partner);
     rect.x = (index % 3) * 84;
     rect.y = (index / 3) * 123;
     rect.w = 0x54;
@@ -5156,7 +5160,7 @@ void func_801EC434(UiWindow *w) {
     drawTexturedSprite(x, y, &rect, 0x1A, getClut(index * 16 + 0x190, 0x1EF), z, 0x80, -1);
 }
 
-void func_801EC8DC(UiWindow *w) {
+void EVO_drawCardInfo(UiWindow *w) {
     Rect16 rect;
     char text[72];
     s32 x;
@@ -5167,28 +5171,28 @@ void func_801EC8DC(UiWindow *w) {
     x = w->originX;
     y = w->originY;
     z = w->z;
-    id = D_801F5478.unkAE;
+    id = EVO_FUSION.secondCard;
     if (id < 0xBF) {
-        sprintf(text, D_801DF15C, ((DigimonCardData *)(DIGIMON_CARDS + id * 0x13C))->id);
+        sprintf(text, EVO_FMT_CARD_NUMBER, ((DigimonCardData *)(DIGIMON_CARDS + id * 0x13C))->id);
         drawText(x + 0x40, y + 0xD, (s32)text, 7, z);
         drawText(x, y, (s32)((DigimonCardData *)(DIGIMON_CARDS + id * 0x13C))->name, 7, z);
         drawIcon(x + 0x46, y + 0x1A, 0, ((DigimonCardData *)(DIGIMON_CARDS + id * 0x13C))->attr >> 4, z);
         drawIcon(x + 0x46, y + 0x27, 0, (((DigimonCardData *)(DIGIMON_CARDS + id * 0x13C))->attr & 0xF) + 0x10, z);
         drawLargeText(x, y + 0x2A, (s32)"Level", 6, z);
     } else if ((id -= 0xBF) < 0x66) {
-        sprintf(text, D_801DF15C, ((DigimonCardData *)(OPTION_CARDS + id * 0xE2))->id);
+        sprintf(text, EVO_FMT_CARD_NUMBER, ((DigimonCardData *)(OPTION_CARDS + id * 0xE2))->id);
         drawText(x + 0x40, y + 0xD, (s32)text, 7, z);
         drawText(x, y, (s32)((DigimonCardData *)(OPTION_CARDS + id * 0xE2))->name, 7, z);
         drawIcon(x + 0x46, y + 0x1A, 0, 5, z);
     } else {
         id -= 0x66;
-        sprintf(text, D_801DF15C, ((DigimonCardData *)(DIGIVOLVE_CARDS + id * 0x70))->id);
+        sprintf(text, EVO_FMT_CARD_NUMBER, ((DigimonCardData *)(DIGIVOLVE_CARDS + id * 0x70))->id);
         drawText(x + 0x40, y + 0xD, (s32)text, 7, z);
         drawText(x, y, (s32)((DigimonCardData *)(DIGIVOLVE_CARDS + id * 0x70))->name, 7, z);
         drawIcon(x + 0x46, y + 0x1A, 0, 6, z);
     }
     drawLargeText(x, y + 0x12, (s32)"Number", 6, z);
-    drawLargeText(x, y + 0x1E, (s32)D_801DF548, 6, z);
+    drawLargeText(x, y + 0x1E, (s32)EVO_STR_SPEC, 6, z);
     rect.x = 0;
     rect.y = 0x90;
     rect.w = 0x28;
@@ -5196,54 +5200,54 @@ void func_801EC8DC(UiWindow *w) {
     drawTexturedSprite(x + 0x60, y + 0xD, &rect, 0x97, 0x7F18, z, 0x80, -1);
 }
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF548);
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_STR_SPEC);
 
-void func_801ECBE8(void) {
-    D_801F5478.unkAE = -1;
-    D_801F5478.unkAC = -1;
-    D_801F5478.unkC6 = 1;
-    D_801F5478.unkBB = 4;
-    D_801F5478.unkC2 = 0;
-    D_801F5478.unkC3 = 0;
-    D_801F5478.unkC4 = 1;
-    D_801F5478.busy[1] = 0;
-    D_801F5478.busy[2] = 0;
+void EVO_resetFusion(void) {
+    EVO_FUSION.secondCard = -1;
+    EVO_FUSION.firstCard = -1;
+    EVO_FUSION.hideResult = 1;
+    EVO_FUSION.scriptState = 4;
+    EVO_FUSION.sortMenuOpen = 0;
+    EVO_FUSION.previewOpen = 0;
+    EVO_FUSION.pickSlot = 1;
+    EVO_FUSION.busy[1] = 0;
+    EVO_FUSION.busy[2] = 0;
 }
 
-void func_801ECC24(void) {
-    D_801F5478.unkC4 = 1;
-    D_801F5478.unkC1 = 8;
-    animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-    D_801F0030.active = 0;
+void EVO_cancelFirstCard(void) {
+    EVO_FUSION.pickSlot = 1;
+    EVO_FUSION.step = 8;
+    animateWindowTo(&EVO_CARD_LIST_WINDOW, (Rect16 *)-1);
+    EVO_CARD_LIST_MENU.active = 0;
 }
 
-void func_801ECC6C(void) {
-    D_801F5478.unkC4 = 2;
-    D_801F5250->vars[8] = -1;
-    D_801F5478.unkC1 = 7;
+void EVO_startSecondCardPick(void) {
+    EVO_FUSION.pickSlot = 2;
+    EVO_SCRIPT->vars[8] = -1;
+    EVO_FUSION.step = 7;
 }
 
-s16 func_801ECCA0(void) {
+s16 EVO_findFusionResult(void) {
     s8 types[2];
     s8 i;
     s8 j;
     s8 level;
     s8 kind;
 
-    D_801F5478.unkB0 = -1;
-    level = D_801F4980[D_801F5478.unkAC]->unk18 + D_801F4980[D_801F5478.unkAE]->unk18;
+    EVO_FUSION.result = -1;
+    level = EVO_CARDS_BY_ID[EVO_FUSION.firstCard]->fusionPoints + EVO_CARDS_BY_ID[EVO_FUSION.secondCard]->fusionPoints;
     for (i = 0; i < 2; i++) {
         if (i == 0) {
-            types[0] = D_801F4980[D_801F5478.unkAC]->type;
+            types[0] = EVO_CARDS_BY_ID[EVO_FUSION.firstCard]->type;
         } else {
-            types[i] = D_801F4980[D_801F5478.unkAE]->type;
+            types[i] = EVO_CARDS_BY_ID[EVO_FUSION.secondCard]->type;
         }
         switch (types[i]) {
         case 0:
             if (i == 0) {
-                types[0] = D_801F4980[D_801F5478.unkAC]->attr >> 4;
+                types[0] = EVO_CARDS_BY_ID[EVO_FUSION.firstCard]->attr >> 4;
             } else {
-                types[i] = D_801F4980[D_801F5478.unkAE]->attr >> 4;
+                types[i] = EVO_CARDS_BY_ID[EVO_FUSION.secondCard]->attr >> 4;
             }
             break;
         case 1:
@@ -5252,104 +5256,104 @@ s16 func_801ECCA0(void) {
             break;
         }
     }
-    kind = D_801EFEDC[types[0]][types[1]];
+    kind = EVO_FUSION_RESULT_TYPES[types[0]][types[1]];
     for (j = 0; j < 2; j++) {
         for (i = 0; i < 20; i++) {
-            if (D_801DF03C[i][j] == D_801F5478.unkAC && D_801DF03C[i][1 - j] == D_801F5478.unkAE) {
-                D_801F5478.unkB0 = D_801DF03C[i][2];
-                D_801F2BFC[2] = D_801DF03C[i][3];
+            if (EVO_FUSION_RECIPES[i][j] == EVO_FUSION.firstCard && EVO_FUSION_RECIPES[i][1 - j] == EVO_FUSION.secondCard) {
+                EVO_FUSION.result = EVO_FUSION_RECIPES[i][2];
+                EVO_CUTSCENE_MODELS[2] = EVO_FUSION_RECIPES[i][3];
             }
         }
     }
-    D_801F5250->vars[14] = 0;
-    D_801F5250->vars[13] = 0;
-    if (D_801F5478.unkB0 == -1) {
-        D_801F5478.unkB8 = rand() % 100;
-        if (D_801F5478.unkB8 < 0) {
-            D_801F5478.unkB8 = D_801F5478.unkB8 * -1;
+    EVO_SCRIPT->vars[14] = 0;
+    EVO_SCRIPT->vars[13] = 0;
+    if (EVO_FUSION.result == -1) {
+        EVO_FUSION.roll = rand() % 100;
+        if (EVO_FUSION.roll < 0) {
+            EVO_FUSION.roll = EVO_FUSION.roll * -1;
         }
-        if (D_801F5478.unkB8 <= (s8)(level / 10)) {
-            D_801F5250->vars[13] = 1;
-            D_801F5478.unkC5 = 2;
-            D_801F5478.unkB8 = rand() % 100;
-            if (D_801F5478.unkB8 < 0) {
-                D_801F5478.unkB8 = D_801F5478.unkB8 * -1;
+        if (EVO_FUSION.roll <= (s8)(level / 10)) {
+            EVO_SCRIPT->vars[13] = 1;
+            EVO_FUSION.resultKind = 2;
+            EVO_FUSION.roll = rand() % 100;
+            if (EVO_FUSION.roll < 0) {
+                EVO_FUSION.roll = EVO_FUSION.roll * -1;
             }
-            if (D_801F5478.unkB8 < 21) {
-                D_801F5478.unkB0 = rand() % 12 + 0x111;
-                if (getOwnedCardCount(0, D_801F5478.unkB0) >= 6) {
-                    D_801F5478.unkB0 = 200;
+            if (EVO_FUSION.roll < 21) {
+                EVO_FUSION.result = rand() % 12 + 0x111;
+                if (getOwnedCardCount(0, EVO_FUSION.result) >= 6) {
+                    EVO_FUSION.result = 200;
                 }
-            } else if (D_801F5478.unkB8 < 61) {
-                D_801F5478.unkB0 = 200;
+            } else if (EVO_FUSION.roll < 61) {
+                EVO_FUSION.result = 200;
             } else {
-                D_801F5478.unkB8 = rand() % 3 + 1;
-                func_801ED5F4(kind, level + D_801F5478.unkB8, &D_801F5478.unkB0, D_801F5478.unkAC, D_801F5478.unkAE);
-                if (D_801F5478.unkB0 == D_801F5478.unkAC || D_801F5478.unkB0 == D_801F5478.unkAE) {
-                    D_801F5478.unkB0 = -1;
+                EVO_FUSION.roll = rand() % 3 + 1;
+                EVO_findCardOfLevel(kind, level + EVO_FUSION.roll, &EVO_FUSION.result, EVO_FUSION.firstCard, EVO_FUSION.secondCard);
+                if (EVO_FUSION.result == EVO_FUSION.firstCard || EVO_FUSION.result == EVO_FUSION.secondCard) {
+                    EVO_FUSION.result = -1;
                 }
-                for (i = 0; D_801F5478.unkB0 == -1;) {
+                for (i = 0; EVO_FUSION.result == -1;) {
                     i++;
-                    func_801ED5F4(kind, level + D_801F5478.unkB8 + i, &D_801F5478.candidates[0], 500, 500);
-                    func_801ED5F4(kind, level + D_801F5478.unkB8 - i, &D_801F5478.candidates[1], 500, 500);
-                    if (D_801F5478.candidates[0] != -1 && D_801F5478.candidates[1] != -1) {
-                        D_801F5478.unkB0 = D_801F5478.candidates[rand() % 2];
-                    } else if (D_801F5478.candidates[0] != -1) {
-                        D_801F5478.unkB0 = D_801F5478.candidates[0];
-                    } else if (D_801F5478.candidates[1] != -1) {
-                        D_801F5478.unkB0 = D_801F5478.candidates[1];
+                    EVO_findCardOfLevel(kind, level + EVO_FUSION.roll + i, &EVO_FUSION.candidates[0], 500, 500);
+                    EVO_findCardOfLevel(kind, level + EVO_FUSION.roll - i, &EVO_FUSION.candidates[1], 500, 500);
+                    if (EVO_FUSION.candidates[0] != -1 && EVO_FUSION.candidates[1] != -1) {
+                        EVO_FUSION.result = EVO_FUSION.candidates[rand() % 2];
+                    } else if (EVO_FUSION.candidates[0] != -1) {
+                        EVO_FUSION.result = EVO_FUSION.candidates[0];
+                    } else if (EVO_FUSION.candidates[1] != -1) {
+                        EVO_FUSION.result = EVO_FUSION.candidates[1];
                     }
-                    if (D_801F5478.unkB0 == D_801F5478.unkAC || D_801F5478.unkB0 == D_801F5478.unkAE) {
-                        D_801F5478.unkB0 = -1;
+                    if (EVO_FUSION.result == EVO_FUSION.firstCard || EVO_FUSION.result == EVO_FUSION.secondCard) {
+                        EVO_FUSION.result = -1;
                     }
                 }
             }
         } else {
-            func_801ED5F4(kind, level, &D_801F5478.unkB0, D_801F5478.unkAC, D_801F5478.unkAE);
-            if (D_801F5478.unkB0 == D_801F5478.unkAC || D_801F5478.unkB0 == D_801F5478.unkAE) {
-                D_801F5478.unkB0 = -1;
+            EVO_findCardOfLevel(kind, level, &EVO_FUSION.result, EVO_FUSION.firstCard, EVO_FUSION.secondCard);
+            if (EVO_FUSION.result == EVO_FUSION.firstCard || EVO_FUSION.result == EVO_FUSION.secondCard) {
+                EVO_FUSION.result = -1;
             }
-            for (i = 0; D_801F5478.unkB0 == -1;) {
+            for (i = 0; EVO_FUSION.result == -1;) {
                 i++;
-                func_801ED5F4(kind, level + i, &D_801F5478.candidates[0], 500, 500);
-                func_801ED5F4(kind, level - i, &D_801F5478.candidates[1], 500, 500);
-                if (D_801F5478.candidates[0] != -1 && D_801F5478.candidates[1] != -1) {
-                    D_801F5478.unkB0 = D_801F5478.candidates[rand() % 2];
-                } else if (D_801F5478.candidates[0] != -1) {
-                    D_801F5478.unkB0 = D_801F5478.candidates[0];
-                } else if (D_801F5478.candidates[1] != -1) {
-                    D_801F5478.unkB0 = D_801F5478.candidates[1];
+                EVO_findCardOfLevel(kind, level + i, &EVO_FUSION.candidates[0], 500, 500);
+                EVO_findCardOfLevel(kind, level - i, &EVO_FUSION.candidates[1], 500, 500);
+                if (EVO_FUSION.candidates[0] != -1 && EVO_FUSION.candidates[1] != -1) {
+                    EVO_FUSION.result = EVO_FUSION.candidates[rand() % 2];
+                } else if (EVO_FUSION.candidates[0] != -1) {
+                    EVO_FUSION.result = EVO_FUSION.candidates[0];
+                } else if (EVO_FUSION.candidates[1] != -1) {
+                    EVO_FUSION.result = EVO_FUSION.candidates[1];
                 }
-                if (D_801F5478.unkB0 == D_801F5478.unkAC || D_801F5478.unkB0 == D_801F5478.unkAE) {
-                    D_801F5478.unkB0 = -1;
+                if (EVO_FUSION.result == EVO_FUSION.firstCard || EVO_FUSION.result == EVO_FUSION.secondCard) {
+                    EVO_FUSION.result = -1;
                 }
             }
-            D_801F5478.unkC5 = 0;
+            EVO_FUSION.resultKind = 0;
         }
     } else {
-        D_801F5478.unkC5 = 1;
-        D_801F5250->vars[14] = 1;
+        EVO_FUSION.resultKind = 1;
+        EVO_SCRIPT->vars[14] = 1;
     }
-    switch (D_801F4980[D_801F5478.unkB0]->type) {
+    switch (EVO_CARDS_BY_ID[EVO_FUSION.result]->type) {
     case 0:
-        D_801F5250->vars[15] = D_801F4980[D_801F5478.unkB0]->attr & 0xF;
-        D_801F5250->vars[16] = D_801F4980[D_801F5478.unkB0]->attr >> 4;
+        EVO_SCRIPT->vars[15] = EVO_CARDS_BY_ID[EVO_FUSION.result]->attr & 0xF;
+        EVO_SCRIPT->vars[16] = EVO_CARDS_BY_ID[EVO_FUSION.result]->attr >> 4;
         break;
     case 1:
-        D_801F5250->vars[15] = 5;
-        D_801F5250->vars[16] = 5;
+        EVO_SCRIPT->vars[15] = 5;
+        EVO_SCRIPT->vars[16] = 5;
         break;
     case 2:
-        D_801F5250->vars[15] = 6;
-        D_801F5250->vars[16] = 6;
+        EVO_SCRIPT->vars[15] = 6;
+        EVO_SCRIPT->vars[16] = 6;
         break;
     }
-    D_801F5250->vars[17] = D_801F5478.unkC5;
-    D_801F5250->vars[11] = D_801F5478.unkB0;
-    return D_801F5478.unkB0;
+    EVO_SCRIPT->vars[17] = EVO_FUSION.resultKind;
+    EVO_SCRIPT->vars[11] = EVO_FUSION.result;
+    return EVO_FUSION.result;
 }
 
-void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
+void EVO_findCardOfLevel(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
     s16 candidates[10];
     s16 i;
     s16 j;
@@ -5368,14 +5372,14 @@ void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
         candidates[i] = -1;
     }
     if (type == 5) {
-        for (i = D_801EFF00[5].first; i <= D_801EFF00[5].last; i++) {
-            if (D_801F4980[i]->level == level && i != excludeA && i != excludeB) {
+        for (i = EVO_CARD_ID_RANGES[5].first; i <= EVO_CARD_ID_RANGES[5].last; i++) {
+            if (EVO_CARDS_BY_ID[i]->level == level && i != excludeA && i != excludeB) {
                 candidates[count] = i;
                 count++;
             }
         }
-        for (i = D_801EFF00[6].first; i <= D_801EFF00[6].last; i++) {
-            if (D_801F4980[i]->level == level && i != excludeA && i != excludeB) {
+        for (i = EVO_CARD_ID_RANGES[6].first; i <= EVO_CARD_ID_RANGES[6].last; i++) {
+            if (EVO_CARDS_BY_ID[i]->level == level && i != excludeA && i != excludeB) {
                 candidates[count] = i;
                 count++;
             }
@@ -5388,8 +5392,8 @@ void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
         }
         *out = candidates[0];
     } else {
-        for (i = D_801EFF00[type].first; i <= D_801EFF00[type].last; i++) {
-            if (D_801F4980[i]->level == level) {
+        for (i = EVO_CARD_ID_RANGES[type].first; i <= EVO_CARD_ID_RANGES[type].last; i++) {
+            if (EVO_CARDS_BY_ID[i]->level == level) {
                 *out = i;
                 return;
             }
@@ -5397,7 +5401,7 @@ void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB) {
     }
 }
 
-void func_801ED8B0(EvoClut *clut, u16 flags) {
+void EVO_uploadShadedClut(EvoClut *clut, u16 flags) {
     u16 *src;
     u16 *dst;
     s32 brighten;
@@ -5450,7 +5454,7 @@ void func_801ED8B0(EvoClut *clut, u16 flags) {
     DrawSync(0);
 }
 
-EvoModelFx *func_801EDAE8(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unused, s32 vramSlot, u8 arg6,
+EvoModelFx *EVO_createModelEffect(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unused, s32 vramSlot, u8 arg6,
                           s32 loop, s32 pak, s32 arg9) {
     EvoModelFx *obj;
     s32 slot;
@@ -5497,23 +5501,23 @@ EvoModelFx *func_801EDAE8(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unuse
         obj->prevLevel = level;
         obj->clut.level = level;
         if (level != 0xFF) {
-            func_801ED8B0(&obj->clut, 0x8000);
+            EVO_uploadShadedClut(&obj->clut, 0x8000);
         }
     }
     obj->unk56F = arg6;
     return obj;
 }
 
-void func_801EDE18(EvoModelFx *obj) {
+void EVO_tickModelEffect(EvoModelFx *obj) {
     if (obj->active != 0) {
-        if (obj->fx.unk139 != 0) {
+        if (obj->fx.suspended != 0) {
             tickEffectStartDelay(obj);
             SCENE_3D->modelState[obj->slot] = -1;
         } else {
             obj->clut.level = updateEffectBrightness(obj, obj->clut.level);
             if (obj->clut.level != obj->prevLevel) {
                 obj->prevLevel = obj->clut.level;
-                func_801ED8B0(&obj->clut, 0x8000);
+                EVO_uploadShadedClut(&obj->clut, 0x8000);
             }
             if (obj->clut.level == 0) {
                 SCENE_3D->modelState[obj->slot] = -1;
@@ -5524,16 +5528,16 @@ void func_801EDE18(EvoModelFx *obj) {
     }
 }
 
-void func_801EDEF8(EvoModelFx *obj) {
+void EVO_freeModelEffect(EvoModelFx *obj) {
     unloadModel(obj->slot);
     if (obj->clut.level != 0xFF) {
         obj->clut.level = 0xFF;
-        func_801ED8B0(&obj->clut, 0x8000);
+        EVO_uploadShadedClut(&obj->clut, 0x8000);
     }
     freeHeapBlock(obj);
 }
 
-EvoFadeRect *func_801EDF48(s16 *rect, Bytes4 *from, Bytes4 *to, u8 blendMode, s16 speed, u8 mode) {
+EvoFadeRect *EVO_createFadeRect(s16 *rect, Bytes4 *from, Bytes4 *to, u8 blendMode, s16 speed, u8 mode) {
     EvoFadeRect *f;
 
     f = allocTaskHeapBlock(sizeof(EvoFadeRect));
@@ -5550,7 +5554,7 @@ EvoFadeRect *func_801EDF48(s16 *rect, Bytes4 *from, Bytes4 *to, u8 blendMode, s1
     return f;
 }
 
-s32 func_801EE040(EvoFadeRect *f) {
+s32 EVO_tickFadeRect(EvoFadeRect *f) {
     PolyF4 *poly;
     DrTPage *tpage;
     s32 doneIn = 0;
@@ -5588,7 +5592,7 @@ s32 func_801EE040(EvoFadeRect *f) {
     return -1;
 }
 
-s32 func_801EE1F4(s32 index) {
+s32 EVO_loadEffectPak(s32 index) {
     char path[32];
     s32 file;
 
@@ -5600,62 +5604,62 @@ s32 func_801EE1F4(s32 index) {
     return 0;
 }
 
-void func_801EE248(void) {
+void EVO_loadEffectArchive(void) {
     func_800149B8(0, -1, 0, 0x800, loadFileTagged, "C:\\Unit_eff.arc", getCurrentTaskId(), -2);
-    D_801F59A8 = (u8 *)func_80014C08(0x7FFFFFFF);
+    EVO_EFFECT_ARCHIVE = (u8 *)func_80014C08(0x7FFFFFFF);
 }
 
-void func_801EE2B4(void) {
-    freeHeapBlock(D_801F59A8);
+void EVO_freeEffectArchive(void) {
+    freeHeapBlock(EVO_EFFECT_ARCHIVE);
 }
 
-void func_801EE2DC(s32 index, s32 arg) {
-    func_801EE330(index, arg, arg, 0, 0);
+void EVO_playEffect(s32 index, s32 arg) {
+    EVO_playEffectScript(index, arg, arg, 0, 0);
 }
 
 void func_801EE304(s32 index, s32 arg, s32 arg2) {
-    func_801EE330(index, arg, arg, arg2, arg2);
+    EVO_playEffectScript(index, arg, arg, arg2, arg2);
 }
 
-void func_801EE330(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+void EVO_playEffectScript(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 data;
 
-    D_801F59A4 = 0;
-    D_801F59A5 = 0;
-    D_801F59A6 = 0;
-    data = decompressArchiveEntry((s32)D_801F59A8, index);
-    func_800149B8(0, 0x1F, 0, 0x800, func_801EF7DC, data, getCurrentTaskId());
+    EVO_EFFECT_PLAYER = 0;
+    EVO_EFFECT_SPRITE_1 = 0;
+    EVO_EFFECT_SPRITE_2 = 0;
+    data = decompressArchiveEntry((s32)EVO_EFFECT_ARCHIVE, index);
+    func_800149B8(0, 0x1F, 0, 0x800, EVO_runEffectScriptTask, data, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     freeHeapBlock((void *)data);
 }
 
-s32 func_801EE3BC(EvoLoader *loader) {
+s32 EVO_tickEffectScript(EvoEffectScript *loader) {
     s32 i;
 
     PushMatrix();
-    tickEffectMotion((s32)&D_801F5868, 0);
+    tickEffectMotion((s32)&EVO_EFFECT_ROOT, 0);
     PopMatrix();
     loader->vars[0] = 1;
-    func_801EE69C(loader);
+    EVO_runEffectScript(loader);
     for (i = 0; i < 16; i++) {
-        if (loader->entries[i].active != 0 && D_801F0280[loader->entries[i].kind] != NULL) {
-            D_801F0280[loader->entries[i].kind](loader->entries[i].handle);
+        if (loader->entries[i].active != 0 && EVO_EFFECT_TICK_FUNCS[loader->entries[i].kind] != NULL) {
+            EVO_EFFECT_TICK_FUNCS[loader->entries[i].kind](loader->entries[i].handle);
             if (loader->entries[i].kind > 0) {
-                loader->vars[i + 88] = loader->entries[i].handle->unk118;
-                loader->vars[i + 120] = loader->entries[i].handle->unk11C;
+                loader->vars[i + 88] = loader->entries[i].handle->state;
+                loader->vars[i + 120] = loader->entries[i].handle->flag;
             }
         }
     }
     return loader->vars[0];
 }
 
-void func_801EE4E8(EvoLoader *loader) {
+void EVO_freeEffectEntries(EvoEffectScript *loader) {
     s32 i;
 
     func_80014C08(FRAME_INTERVAL);
     for (i = 0; i < 16; i++) {
         if (loader->entries[i].kind != -1) {
-            D_801F02A8[loader->entries[i].kind](loader->entries[i].handle);
+            EVO_EFFECT_FREE_FUNCS[loader->entries[i].kind](loader->entries[i].handle);
         }
     }
     func_80014C08(FRAME_INTERVAL);
@@ -5664,7 +5668,7 @@ void func_801EE4E8(EvoLoader *loader) {
     }
 }
 
-void func_801EE5B0(s32 kind, EvoObject *obj) {
+void EVO_setZonePosition(s32 kind, EvoObject *obj) {
     switch (kind) {
     case 0:
         obj->x = 28;
@@ -5699,7 +5703,7 @@ void func_801EE5B0(s32 kind, EvoObject *obj) {
     }
 }
 
-void func_801EE638(s32 index, EvoLight *light) {
+void EVO_setCardSpriteColor(s32 index, EvoLight *light) {
     Color color;
 
     if (index >= 0) {
@@ -5710,7 +5714,7 @@ void func_801EE638(s32 index, EvoLight *light) {
     }
 }
 
-void func_801EE69C(EvoLoader *loader) {
+void EVO_runEffectScript(EvoEffectScript *loader) {
     s32 *vars;
     s32 result;
     s32 index;
@@ -5727,11 +5731,11 @@ void func_801EE69C(EvoLoader *loader) {
             case 10:
                 switch (loader->script->eventArg) {
                 case 0:
-                    func_801EED18(&D_801F5868, (EvoFxParams *)vars, 0);
+                    EVO_getEffectParams(&EVO_EFFECT_ROOT, (EvoFxParams *)vars, 0);
                     break;
                 case 1:
-                    func_801EEF24(&D_801F5868, (EvoFxParams *)vars);
-                    restartEffectMotion((u8 *)&D_801F5868);
+                    EVO_setEffectParams(&EVO_EFFECT_ROOT, (EvoFxParams *)vars);
+                    restartEffectMotion((u8 *)&EVO_EFFECT_ROOT);
                     break;
                 case 2:
                     D_800794E7 = 1;
@@ -5746,42 +5750,42 @@ void func_801EE69C(EvoLoader *loader) {
                     D_800795A8 = 1;
                     break;
                 case 6:
-                    func_801EE5B0(D_801F59A5, (EvoObject *)vars);
+                    EVO_setZonePosition(EVO_EFFECT_SPRITE_1, (EvoObject *)vars);
                     break;
                 case 7:
-                    func_801EE5B0(D_801F59A6, (EvoObject *)vars);
+                    EVO_setZonePosition(EVO_EFFECT_SPRITE_2, (EvoObject *)vars);
                     break;
                 case 8:
-                    func_801EE638(D_801F59A5, (EvoLight *)vars);
+                    EVO_setCardSpriteColor(EVO_EFFECT_SPRITE_1, (EvoLight *)vars);
                     break;
                 case 9:
-                    func_801EE638(D_801F59A6, (EvoLight *)vars);
+                    EVO_setCardSpriteColor(EVO_EFFECT_SPRITE_2, (EvoLight *)vars);
                     break;
                 case 10:
-                    index = D_801F59A5;
+                    index = EVO_EFFECT_SPRITE_1;
                     if (index >= 0) {
                         func_801F8928(SPRITE(index));
                     }
                     break;
                 case 11:
-                    index = D_801F59A6;
+                    index = EVO_EFFECT_SPRITE_2;
                     if (index >= 0) {
                         func_801F8928(SPRITE(index));
                     }
                     break;
                 case 12:
-                    D_801F5548[0].unk120 = 0;
-                    D_801F5548[1].unk120 = 1;
+                    EVO_TRAYS[0].merge = 0;
+                    EVO_TRAYS[1].merge = 1;
                     break;
                 case 13:
-                    D_801F53C8.unk42 = 1;
+                    EVO_SCREEN_FLASH.on = 1;
                     break;
                 case 14:
-                    D_801F53C8.unk42 = 0;
+                    EVO_SCREEN_FLASH.on = 0;
                     break;
                 case 15:
-                    D_801F5548[0].unk124 = 0x3A;
-                    D_801F5548[1].unk124 = -0x58;
+                    EVO_TRAYS[0].x = 0x3A;
+                    EVO_TRAYS[1].x = -0x58;
                     break;
                 }
                 break;
@@ -5791,10 +5795,10 @@ void func_801EE69C(EvoLoader *loader) {
                     playSoundEffect((s16)loader->script->params[0]);
                     break;
                 case 1:
-                    func_801EED18(loader->entries[(s16)loader->script->params[0]].handle, (EvoFxParams *)vars, 0);
+                    EVO_getEffectParams(loader->entries[(s16)loader->script->params[0]].handle, (EvoFxParams *)vars, 0);
                     break;
                 case 2:
-                    func_801EF108(loader->entries[(s16)loader->script->params[0]].handle, vars, loader);
+                    EVO_initEffectFromParams(loader->entries[(s16)loader->script->params[0]].handle, vars, loader);
                     initEffectObject(loader->entries[(s16)loader->script->params[0]].handle);
                     break;
                 case 3:
@@ -5812,59 +5816,59 @@ void func_801EE69C(EvoLoader *loader) {
                     loader->counter = (s16)loader->script->params[0] - 1;
                     return;
                 case 7:
-                    func_801EF0BC(loader->entries[(s16)loader->script->params[0]].handle, (EvoObject *)vars);
+                    EVO_getEffectWorldPos(loader->entries[(s16)loader->script->params[0]].handle, (EvoObject *)vars);
                     break;
                 case 8:
-                    func_801EED18(loader->entries[(s16)loader->script->params[0]].handle, (EvoFxParams *)vars, 1);
+                    EVO_getEffectParams(loader->entries[(s16)loader->script->params[0]].handle, (EvoFxParams *)vars, 1);
                     break;
                 case 9:
-                    func_801EE5B0(getActiveDigimonCard(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoObject *)vars);
+                    EVO_setZonePosition(getActiveDigimonCard(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoObject *)vars);
                     break;
                 case 10:
-                    func_801EE5B0(getPlayedCard(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoObject *)vars);
+                    EVO_setZonePosition(getPlayedCard(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoObject *)vars);
                     break;
                 case 11:
-                    func_801EE5B0(peekOnlineDeckTop(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoObject *)vars);
+                    EVO_setZonePosition(peekOnlineDeckTop(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoObject *)vars);
                     break;
                 case 12:
-                    func_801EE5B0(peekOfflineDeckTop(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoObject *)vars);
+                    EVO_setZonePosition(peekOfflineDeckTop(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoObject *)vars);
                     break;
                 case 15:
-                    func_801EE638(peekOnlineDeckTop(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoLight *)vars);
+                    EVO_setCardSpriteColor(peekOnlineDeckTop(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoLight *)vars);
                     break;
                 case 16:
-                    func_801EE638(peekOfflineDeckTop(D_801F59A4 ^ (s16)loader->script->params[0]), (EvoLight *)vars);
+                    EVO_setCardSpriteColor(peekOfflineDeckTop(EVO_EFFECT_PLAYER ^ (s16)loader->script->params[0]), (EvoLight *)vars);
                     break;
                 case 18:
                     printf("NO USE\n");
                     break;
                 case 19:
-                    index = D_801F59A5;
+                    index = EVO_EFFECT_SPRITE_1;
                     if (index >= 0) {
                         func_801F8910(SPRITE(index), (s16)loader->script->params[0]);
                     }
                     break;
                 case 20:
-                    index = D_801F59A6;
+                    index = EVO_EFFECT_SPRITE_2;
                     if (index >= 0) {
                         func_801F8910(SPRITE(index), (s16)loader->script->params[0]);
                     }
                     break;
                 case 21:
-                    func_801EE5B0((s16)loader->script->params[0], (EvoObject *)vars);
+                    EVO_setZonePosition((s16)loader->script->params[0], (EvoObject *)vars);
                     break;
                 case 22:
-                    loader->buffer = (void *)func_801EE1F4((s16)loader->script->params[0]);
+                    loader->buffer = (void *)EVO_loadEffectPak((s16)loader->script->params[0]);
                     break;
                 case 23:
-                    animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
+                    animateWindowTo(&EVO_WINDOWS[12].win, (Rect16 *)-1);
                     break;
                 }
                 break;
             case 12:
                 switch (loader->script->eventArg) {
                 case 6:
-                    func_801EF5C8((s16)loader->script->params[0], (s16)loader->script->params[1], vars, loader);
+                    EVO_createEffectEntry((s16)loader->script->params[0], (s16)loader->script->params[1], vars, loader);
                     break;
                 case 1:
                     vars[1] = rsin((s16)loader->script->params[1]) * (s16)loader->script->params[0] / 4096;
@@ -5886,7 +5890,7 @@ void func_801EE69C(EvoLoader *loader) {
     } while (result != 0);
 }
 
-void func_801EED18(EvoFx *fx, EvoFxParams *params, s32 current) {
+void EVO_getEffectParams(EvoFx *fx, EvoFxParams *params, s32 current) {
     if (current == 0) {
         params->args[0] = fx->rot.vx;
         params->args[1] = fx->rot.vy;
@@ -5911,8 +5915,8 @@ void func_801EED18(EvoFx *fx, EvoFxParams *params, s32 current) {
     params->args[3] = fx->rotVel.vx;
     params->args[4] = fx->rotVel.vy;
     params->args[5] = fx->rotVel.vz;
-    params->args[6] = fx->unk120;
-    params->args[7] = fx->unk122;
+    params->args[6] = fx->moveSpeed;
+    params->args[7] = fx->moveAccel;
     params->args[11] = fx->scaleVel.vx;
     params->args[12] = fx->scaleVel.vy;
     params->args[13] = fx->scaleVel.vz;
@@ -5925,25 +5929,25 @@ void func_801EED18(EvoFx *fx, EvoFxParams *params, s32 current) {
     params->args[23] = fx->accel.vx;
     params->args[24] = fx->accel.vy;
     params->args[25] = fx->accel.vz;
-    params->args[26] = fx->unk12C;
-    params->args[27] = fx->unk124;
-    params->args[28] = fx->unk137;
-    params->args[29] = fx->unk130;
-    params->args[31] = fx->unk128;
-    params->args[32] = fx->unk12A;
-    params->args[33] = fx->unk126;
-    params->args[30] = fx->unk12E;
+    params->args[26] = fx->hitRadius;
+    params->args[27] = fx->period;
+    params->args[28] = fx->fadeMode;
+    params->args[29] = fx->speed;
+    params->args[31] = fx->wavePhase;
+    params->args[32] = fx->waveAmplitude;
+    params->args[33] = fx->waveFreq;
+    params->args[30] = fx->mode;
 }
 
-void func_801EEF24(EvoFx *fx, EvoFxParams *params) {
+void EVO_setEffectParams(EvoFx *fx, EvoFxParams *params) {
     fx->rot.vx = params->args[0];
     fx->rot.vy = params->args[1];
     fx->rot.vz = params->args[2];
     fx->rotVel.vx = params->args[3];
     fx->rotVel.vy = params->args[4];
     fx->rotVel.vz = params->args[5];
-    fx->unk120 = params->args[6];
-    fx->unk122 = params->args[7];
+    fx->moveSpeed = params->args[6];
+    fx->moveAccel = params->args[7];
     fx->scale.vx = params->args[8];
     fx->scale.vy = params->args[9];
     fx->scale.vz = params->args[10];
@@ -5962,17 +5966,17 @@ void func_801EEF24(EvoFx *fx, EvoFxParams *params) {
     fx->accel.vx = params->args[23];
     fx->accel.vy = params->args[24];
     fx->accel.vz = params->args[25];
-    fx->unk12C = params->args[26];
-    fx->unk124 = params->args[27];
-    fx->unk137 = params->args[28];
-    fx->unk130 = params->args[29];
-    fx->unk128 = params->args[31];
-    fx->unk12A = params->args[32];
-    fx->unk126 = params->args[33];
-    fx->unk12E = params->args[30];
+    fx->hitRadius = params->args[26];
+    fx->period = params->args[27];
+    fx->fadeMode = params->args[28];
+    fx->speed = params->args[29];
+    fx->wavePhase = params->args[31];
+    fx->waveAmplitude = params->args[32];
+    fx->waveFreq = params->args[33];
+    fx->mode = params->args[30];
 }
 
-void func_801EF0BC(void *xform, EvoObject *obj) {
+void EVO_getEffectWorldPos(void *xform, EvoObject *obj) {
     SVECTOR pos;
 
     getTransformWorldPos(xform, &pos);
@@ -5981,18 +5985,18 @@ void func_801EF0BC(void *xform, EvoObject *obj) {
     obj->z = pos.vz;
 }
 
-void func_801EF108(EvoFx *fx, s32 *vars, EvoLoader *loader) {
-    func_801EEF24(fx, (EvoFxParams *)vars);
+void EVO_initEffectFromParams(EvoFx *fx, s32 *vars, EvoEffectScript *loader) {
+    EVO_setEffectParams(fx, (EvoFxParams *)vars);
     if (vars[186] == -2) {
-        fx->unk98 = NULL;
+        fx->parent = NULL;
     } else if (vars[186] == -1) {
-        fx->unk98 = &D_801F5868;
+        fx->parent = &EVO_EFFECT_ROOT;
     } else {
-        fx->unk98 = loader->entries[vars[186]].handle;
+        fx->parent = loader->entries[vars[186]].handle;
     }
 }
 
-EvoFx *func_801EF188(s32 *vars) {
+EvoFx *EVO_createFadeRectFromParams(s32 *vars) {
     Rect16 rect;
     Bytes4 from;
     Bytes4 to;
@@ -6007,16 +6011,16 @@ EvoFx *func_801EF188(s32 *vars) {
     to.b[0] = vars[41];
     to.b[1] = vars[42];
     to.b[2] = vars[43];
-    return (EvoFx *)func_801EDF48((s16 *)&rect, &from, &to, vars[28], vars[29], vars[69]);
+    return (EvoFx *)EVO_createFadeRect((s16 *)&rect, &from, &to, vars[28], vars[29], vars[69]);
 }
 
-EvoFx *func_801EF244(s32 *vars, EvoLoader *loader) {
+EvoFx *EVO_createRingFromParams(s32 *vars, EvoEffectScript *loader) {
     Bytes4 inner;
     Bytes4 mid;
     Bytes4 outer;
     EvoFx fx;
 
-    func_801EF108(&fx, vars, loader);
+    EVO_initEffectFromParams(&fx, vars, loader);
     inner.b[0] = vars[38];
     inner.b[1] = vars[39];
     inner.b[2] = vars[40];
@@ -6031,22 +6035,22 @@ EvoFx *func_801EF244(s32 *vars, EvoLoader *loader) {
                                      vars[70], vars[73], vars[74], 0);
 }
 
-EvoFx *func_801EF3A8(s32 *vars, EvoLoader *loader) {
+EvoFx *EVO_createEffectObjectFromParams(s32 *vars, EvoEffectScript *loader) {
     EvoFx fx;
 
-    func_801EF108(&fx, vars, loader);
+    EVO_initEffectFromParams(&fx, vars, loader);
     return (EvoFx *)cloneEffectObject((EffectTemplate *)&fx);
 }
 
-EvoFx *func_801EF3DC(s32 *vars, EvoLoader *loader) {
+EvoFx *EVO_createModelEffectFromParams(s32 *vars, EvoEffectScript *loader) {
     EvoFx fx;
     EvoFx *template = &fx;
 
-    func_801EF108(template, vars, loader);
-    return (EvoFx *)func_801EDAE8(vars[56], template, vars[84], vars[85], -1, vars[86], vars[70], vars[87], (s32)loader->buffer, 0);
+    EVO_initEffectFromParams(template, vars, loader);
+    return (EvoFx *)EVO_createModelEffect(vars[56], template, vars[84], vars[85], -1, vars[86], vars[70], vars[87], (s32)loader->buffer, 0);
 }
 
-EvoFx *func_801EF474(s32 *vars, EvoLoader *loader) {
+EvoFx *EVO_createStreaksFromParams(s32 *vars, EvoEffectScript *loader) {
     EvoFx fx;
     Bytes4 start;
     Bytes4 end;
@@ -6057,21 +6061,21 @@ EvoFx *func_801EF474(s32 *vars, EvoLoader *loader) {
     end.b[0] = vars[41];
     end.b[1] = vars[42];
     end.b[2] = vars[43];
-    func_801EF108(&fx, vars, loader);
+    EVO_initEffectFromParams(&fx, vars, loader);
     return (EvoFx *)createStreakParticles(start.b, end.b, (EffectTemplate *)&fx, vars[189], vars[188], vars[190], vars[195],
                                           vars[191], vars[192], vars[193], vars[194], vars[80], vars[81], vars[79],
                                           vars[82], vars[27], vars[70], vars[74]);
 }
 
-void func_801EF5A8(void *obj) {
+void EVO_freeFadeRect(void *obj) {
     freeHeapBlock(obj);
 }
 
-void func_801EF5C8(s32 index, s32 kind, s32 *vars, EvoLoader *loader) {
-    if (D_801F0294[kind] != NULL) {
+void EVO_createEffectEntry(s32 index, s32 kind, s32 *vars, EvoEffectScript *loader) {
+    if (EVO_EFFECT_CREATE_FUNCS[kind] != NULL) {
         loader->entries[index].kind = kind;
         loader->entries[index].active = 0;
-        loader->entries[index].handle = D_801F0294[kind](vars, loader);
+        loader->entries[index].handle = EVO_EFFECT_CREATE_FUNCS[kind](vars, loader);
         loader->counter++;
         if ((loader->counter & 0xF) == 0) {
             func_80014C08(FRAME_INTERVAL);
@@ -6079,12 +6083,12 @@ void func_801EF5C8(s32 index, s32 kind, s32 *vars, EvoLoader *loader) {
     }
 }
 
-EvoLoader *func_801EF65C(EvoMsd *data) {
+EvoEffectScript *EVO_createEffectScript(EvoMsd *data) {
     EvoFx fx;
-    EvoLoader *loader;
+    EvoEffectScript *loader;
     s32 i;
 
-    loader = allocTaskHeapBlock(sizeof(EvoLoader));
+    loader = allocTaskHeapBlock(sizeof(EvoEffectScript));
     loader->data = data;
     loader->script = createScriptContext(data);
     loader->vars = allocScriptRegisters(0xC4);
@@ -6119,158 +6123,158 @@ EvoLoader *func_801EF65C(EvoMsd *data) {
     fx.accel.vx = 0;
     fx.accel.vy = 0;
     fx.accel.vz = 0;
-    fx.unk137 = 0;
-    fx.unk130 = 0;
-    fx.unk12C = 0x80;
-    fx.unk98 = SCENE_3D->unk78;
-    fx.unk12E = 0;
-    D_801F5868 = fx;
-    initEffectObject(&D_801F5868);
-    func_801EE69C(loader);
+    fx.fadeMode = 0;
+    fx.speed = 0;
+    fx.hitRadius = 0x80;
+    fx.parent = SCENE_3D->unk78;
+    fx.mode = 0;
+    EVO_EFFECT_ROOT = fx;
+    initEffectObject(&EVO_EFFECT_ROOT);
+    EVO_runEffectScript(loader);
     return loader;
 }
 
-void func_801EF7DC(EvoMsd *data, s32 parentTask) {
-    EvoLoader *loader;
+void EVO_runEffectScriptTask(EvoMsd *data, s32 parentTask) {
+    EvoEffectScript *loader;
 
-    loader = func_801EF65C(data);
+    loader = EVO_createEffectScript(data);
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (func_801EE3BC(loader) != 0);
-    func_801EE4E8(loader);
+    } while (EVO_tickEffectScript(loader) != 0);
+    EVO_freeEffectEntries(loader);
     freeScriptContext(loader->script, loader->vars);
     freeHeapBlock(loader);
     func_80014A48(parentTask);
 }
 
-void (*D_801F0248[14])() = {
-    func_801EA358, func_801E75B0, func_801E765C, func_801EA358, func_801E75B0, func_801E765C, func_801E9B0C,
-    func_801E9A58, func_801E89E8, func_801E89E8, func_801EBE68, func_801EC434, func_801EC8DC, func_801E9C18,
+void (*EVO_WINDOW_DRAW_FUNCS[14])() = {
+    EVO_drawFusionTypeIcon, EVO_drawFusionTypeTitle, EVO_drawFusionTypeHelp, EVO_drawFusionTypeIcon, EVO_drawFusionTypeTitle, EVO_drawFusionTypeHelp, EVO_drawUnitPortrait,
+    EVO_drawMessageWindow, EVO_drawEmptyWindow, EVO_drawEmptyWindow, EVO_drawPartnerList, EVO_drawPartnerStatus, EVO_drawCardInfo, EVO_drawReceivedBanner,
 };
 
 typedef void (*EvoFxFunc)(EvoFx *);
 
-void (*D_801F0280[5])(EvoFx *) = {
-    (EvoFxFunc)func_801EE040,
+void (*EVO_EFFECT_TICK_FUNCS[5])(EvoFx *) = {
+    (EvoFxFunc)EVO_tickFadeRect,
     (EvoFxFunc)renderRingEffect,
     (EvoFxFunc)updateEffectObject,
     (EvoFxFunc)renderStreakParticles,
-    (EvoFxFunc)func_801EDE18,
+    (EvoFxFunc)EVO_tickModelEffect,
 };
 
-EvoFx *(*D_801F0294[5])(s32 *, EvoLoader *) = {
-    (EvoFx * (*)(s32 *, EvoLoader *)) func_801EF188,
-    func_801EF244,
-    func_801EF3A8,
-    func_801EF474,
-    func_801EF3DC,
+EvoFx *(*EVO_EFFECT_CREATE_FUNCS[5])(s32 *, EvoEffectScript *) = {
+    (EvoFx * (*)(s32 *, EvoEffectScript *)) EVO_createFadeRectFromParams,
+    EVO_createRingFromParams,
+    EVO_createEffectObjectFromParams,
+    EVO_createStreaksFromParams,
+    EVO_createModelEffectFromParams,
 };
 
-void (*D_801F02A8[5])(EvoFx *) = {
-    (EvoFxFunc)func_801EF5A8,
+void (*EVO_EFFECT_FREE_FUNCS[5])(EvoFx *) = {
+    (EvoFxFunc)EVO_freeFadeRect,
     (EvoFxFunc)freeRingEffect,
     (EvoFxFunc)freeEffectObject,
     (EvoFxFunc)freeStreakParticles,
-    (EvoFxFunc)func_801EDEF8,
+    (EvoFxFunc)EVO_freeModelEffect,
 };
 
 /* not referenced by any code */
 u32 D_801F02BC = 0xF05B2E46;
 
-s8 D_801F02C0 = 0;
+s8 EVO_BANNER_FADE = 0;
 /* not referenced by any code */
 u8 D_801F02C4[4] = { 0 };
-u16 D_801F02C8[16] = { 0 };
-u8 D_801F02E8 = 0;
+u16 EVO_BANNER_CLUT[16] = { 0 };
+u8 EVO_BANNER_BRIGHTNESS = 0;
 /* not referenced by any code */
 u8 D_801F02E9 = 0x23;
 u8 D_801F02EA = 0x8F;
 u8 D_801F02EB = 0x2B;
 u8 D_801F02EC[4] = { 0x74, 0x68, 0x7F, 0xC3 };
-EvoSpark D_801F02F0[16] = { { { 0 } } };
-EvoColor D_801F0530 = { 0 };
-SVECTOR *D_801F0538 = 0;
+EvoSpark EVO_SPARKS[16] = { { { 0 } } };
+EvoColor EVO_SHARD_COLOR = { 0 };
+SVECTOR *EVO_SHARD_VERTS = 0;
 /* not referenced by any code */
 u8 D_801F053C[4] = { 0 };
-s8 *D_801F0540 = 0;
+s8 *EVO_SHARD_PRIM = 0;
 /* not referenced by any code */
 u8 D_801F0544[12] = { 0 };
-s16 D_801F0550[40] = { 0 };
-s16 D_801F05A0[42] = { 0 };
-s8 D_801F05F4 = 0;
-u16 D_801F05F6 = 0;
-s8 D_801F05F8 = 0;
-EvoShard *D_801F05FC = 0;
-EvoShatter D_801F0600 = { 0 };
+s16 EVO_SHATTER_ORDER[40] = { 0 };
+s16 EVO_SHATTER_TIMERS[42] = { 0 };
+s8 EVO_CUTSCENE_STEP = 0;
+u16 EVO_SHATTER_DELAY = 0;
+s8 EVO_SHATTER_STARTED = 0;
+EvoShard *EVO_SHARDS = 0;
+EvoShatter EVO_SHATTER = { 0 };
 /* not referenced by any code */
 u8 D_801F062C[0x2584] = { 0 };
-u32 D_801F2BB0 = 0;
+u32 EVO_RAND_SEED_LO = 0;
 /* not referenced by any code */
 u8 D_801F2BB4[4] = { 0 };
-SVECTOR *D_801F2BB8 = 0;
-SVECTOR *D_801F2BBC = 0;
+SVECTOR *EVO_SHARD_VERTEX_CURSOR = 0;
+SVECTOR *EVO_SHARD_VERTEX_POOL = 0;
 /* not referenced by any code */
 u8 D_801F2BC0[0x3C] = { 0 };
-s16 D_801F2BFC[3] = { 0 };
+s16 EVO_CUTSCENE_MODELS[3] = { 0 };
 /* not referenced by any code */
 u8 D_801F2C04[0x177C] = { 0 };
-UiWindow D_801F4380 = { 0 };
+UiWindow EVO_SORT_WINDOW = { 0 };
 /* not referenced by any code */
 u8 D_801F43C4[12] = { 0 };
-UiWindow D_801F43D0 = { 0 };
+UiWindow EVO_CARD_LIST_WINDOW = { 0 };
 /* not referenced by any code */
 u8 D_801F4414[12] = { 0 };
-CursorHighlight D_801F4420 = { { { 0 } } };
-CursorHighlight D_801F4470 = { { { 0 } } };
-EvoCardInfo *D_801F44C0[301] = { 0 };
+CursorHighlight EVO_SORT_CURSOR = { { { 0 } } };
+CursorHighlight EVO_CARD_LIST_CURSOR = { { { 0 } } };
+EvoCardInfo *EVO_CARD_LIST[301] = { 0 };
 /* not referenced by any code */
 u8 D_801F4974[12] = { 0 };
-EvoCardInfo *D_801F4980[301] = { 0 };
-u8 *D_801F4E34 = 0;
+EvoCardInfo *EVO_CARDS_BY_ID[301] = { 0 };
+u8 *EVO_SPARE_CARD_COUNTS = 0;
 /* not referenced by any code */
 u8 D_801F4E38[8] = { 0 };
-u8 *D_801F4E40[3] = { 0 };
-u8 D_801F4E4C = 0;
-s32 D_801F4E50 = 0;
+u8 *EVO_DECK_CARD_COUNTS[3] = { 0 };
+u8 EVO_SCRIPT_HALTED = 0;
+s32 EVO_NEW_DIGI_PART = 0;
 /* not referenced by any code */
 u8 D_801F4E54[4] = { 0 };
-EvoWindow D_801F4E58[14] = { { { 0 } } };
+EvoWindow EVO_WINDOWS[14] = { { { 0 } } };
 /* not referenced by any code */
 u8 D_801F5248[8] = { 0 };
-EvoProgram *D_801F5250 = 0;
+EvoProgram *EVO_SCRIPT = 0;
 /* not referenced by any code */
 u8 D_801F5254[4] = { 0 };
-EvoText D_801F5258[4] = { { { 0 } } };
-u8 D_801F5358 = 0;
+EvoText EVO_TEXT_LINES[4] = { { { 0 } } };
+u8 EVO_MAX_CARD_LEVEL = 0;
 /* not referenced by any code */
 u8 D_801F535C[4] = { 0 };
-u8 D_801F5360 = 0;
+u8 EVO_CARD_RECEIVED = 0;
 /* not referenced by any code */
 u8 D_801F5364[28] = { 0 };
-EvoChoice D_801F5380 = { { 0 } };
+EvoChoice EVO_TYPE_CHOICE = { { 0 } };
 /* not referenced by any code */
 u8 D_801F53B4[20] = { 0 };
-EvoFade D_801F53C8 = { { { 0 } } };
+EvoScreenFlash EVO_SCREEN_FLASH = { { { 0 } } };
 /* not referenced by any code */
 u8 D_801F540C[4] = { 0 };
-UiWindow D_801F5410 = { 0 };
+UiWindow EVO_RANK_UP_WINDOW = { 0 };
 /* not referenced by any code */
 u8 D_801F5454[4] = { 0 };
-s16 D_801F5458 = 0;
+s16 EVO_CURSOR_CARD = 0;
 /* not referenced by any code */
 u8 D_801F545C[28] = { 0 };
-EvoMenu D_801F5478 = { { 0 } };
-EvoScene D_801F5548[2] = { { { { { 0 } } } } };
-u8 D_801F57A0 = 0;
-u8 D_801F57A1 = 0;
+EvoFusion EVO_FUSION = { { 0 } };
+EvoTray EVO_TRAYS[2] = { { { { { 0 } } } } };
+u8 EVO_RANK_UP_STATE = 0;
+u8 EVO_LEVEL_UP_PENDING = 0;
 /* not referenced by any code */
 u8 D_801F57A4[4] = { 0 };
-EvoDialog D_801F57A8 = { { 0 } };
+EvoDialog EVO_DIALOG = { { 0 } };
 /* not referenced by any code */
 u8 D_801F5850[16] = { 0 };
-s16 D_801F5860[4] = { 0 };
-EvoFx D_801F5868 = { { 0 } };
-s8 D_801F59A4 = 0;
-s8 D_801F59A5 = 0;
-s8 D_801F59A6 = 0;
-u8 *D_801F59A8 = 0;
+s16 EVO_STAT_BONUSES[4] = { 0 };
+EvoFx EVO_EFFECT_ROOT = { { 0 } };
+s8 EVO_EFFECT_PLAYER = 0;
+s8 EVO_EFFECT_SPRITE_1 = 0;
+s8 EVO_EFFECT_SPRITE_2 = 0;
+u8 *EVO_EFFECT_ARCHIVE = 0;
