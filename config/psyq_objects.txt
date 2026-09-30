@@ -133,7 +133,7 @@ libcd_c_007
 libcd_c_008
 libcd_c_009 gcc2.8
 libcd_c_010
-libcd_c_011
+libcd_c_011 gcc2.8
 libcd_bios_1 gcc2.8
 libcd_bios_1_2 gcc2.8
 libcd_s_002
