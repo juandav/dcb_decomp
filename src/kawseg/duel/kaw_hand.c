@@ -13,7 +13,7 @@
 #include "dcb/pad.h"
 #include "dcb/kaw_battle_sim.h"
 
-double func_80026264(s32 x); /* the __floatsidf stub at the end of __cmpdf2 */
+double intToDouble(s32 x); /* the __floatsidf stub at the end of __cmpdf2 */
 
 void KAW_pickCardArtSlot(void) {
     s32 id;
@@ -191,7 +191,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (y < cy) {
-                        dist = func_80026D8C(func_80026264((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
+                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -213,7 +213,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (cy < y) {
-                        dist = func_80026D8C(func_80026264((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
+                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -235,7 +235,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (x < cx) {
-                        dist = func_80026D8C(func_80026264((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
+                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -257,7 +257,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (cx < x) {
-                        dist = func_80026D8C(func_80026264((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
+                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -301,7 +301,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
 }
 
 s32 KAW_openCardSelect(s32 player) {
-    D_801D83D1 = (*(u32 *)(DUEL_PLAYERS[player] + 0x178) >> 17) & 3;
+    MSG_BAR_PLAYER_LABEL = (*(u32 *)(DUEL_PLAYERS[player] + 0x178) >> 17) & 3;
     HUD_PANELS[player * 0xD8 + 0xD] = player + 1;
 }
 

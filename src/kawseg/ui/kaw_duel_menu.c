@@ -251,7 +251,7 @@ void KAW_tickDuelMenu(void) {
                     KAW_DUEL->quit = 0;
                     break;
                 case 1:
-                    KAW_DUEL->quit = ((D_801D83D1 & 1) + 2) ^ 1;
+                    KAW_DUEL->quit = ((MSG_BAR_PLAYER_LABEL & 1) + 2) ^ 1;
                     break;
                 }
                 break;

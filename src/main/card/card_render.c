@@ -750,13 +750,15 @@ void renderHelpBar(s32 brightness) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &HELP_BAR_CLIP_AREA[FRAME_BUFFER_INDEX]);
 }
 
-void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z) {
+/* Draws the 24x12 badge of the attack panel: side 0 for the turn player,
+   1 for the other (each has its own row and CLUT in the system texture). */
+void drawTurnSideBadge(s32 x, s32 y, s32 side, s32 brightness, s32 z) {
     if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
         CUR_SPRT->sp.y0 = y;
         CUR_SPRT->sp.u0 = 0xD0;
-        CUR_SPRT->sp.v0 = (n * 12 + 0x153) % 256;
-        CUR_SPRT->sp.clut = getClut(0x300, n + 0x1FC);
+        CUR_SPRT->sp.v0 = (side * 12 + 0x153) % 256;
+        CUR_SPRT->sp.clut = getClut(0x300, side + 0x1FC);
         CUR_SPRT->sp.w = 0x18;
         CUR_SPRT->sp.h = 0xC;
         setSemiTrans(&CUR_SPRT->sp, 0);

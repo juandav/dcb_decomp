@@ -62,7 +62,7 @@ Rect16 HSCROLL_PART_UVS[8] = {
     { 0x98, 0xE8, 2, 8 },
     { 0x9E, 0xE8, 2, 8 },
 };
-s16 D_8006DEE8[4] = { 0x100, -1, -1, 0 };
+s16 UNUSED_WINDOW_RECT[4] = { 0x100, -1, -1, 0 };
 
 void initWindowPrimPool(s32 count) {
     WindowPrims *pool;

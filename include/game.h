@@ -995,7 +995,7 @@ extern s32 DUEL_DIALOG;
 extern u8 *HUD_PANELS;
 extern u8 *CARD_ANIMS;
 extern MsgBar DUEL_MSG_BAR;
-extern u8 D_801D83D1;
+extern u8 MSG_BAR_PLAYER_LABEL;
 void runSceneCameraTask(s32 preset);
 
 s32 VSync(s32);

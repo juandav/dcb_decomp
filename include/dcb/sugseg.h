@@ -502,7 +502,7 @@ typedef struct {
 extern BattleState *SUG_BATTLE;
 extern s16 SUG_TARGET_HP[2];
 extern MATRIX GsIDMATRIX;
-extern s16 D_80079584;
+extern s16 CAMERA_TARGET_MODEL;
 
 s32 StoreImage(Rect16 *rect, void *p);
 void initPolyF4Pair();

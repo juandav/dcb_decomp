@@ -8,8 +8,8 @@
 #define ME DUEL->turnPlayer
 #define OPP ((s8)(DUEL->turnPlayer ^ 1))
 
-extern s8 D_801D83D4;
-extern s8 D_801D83D7;
+extern s8 MSG_BAR_NEXT;
+extern s8 MSG_BAR_NEXT2;
 
 void runDuelTurnLoop(void);
 

@@ -78,7 +78,7 @@ void StUnSetRing(void);
 s32 DecDCTvlc2(u32 *bs, u32 *buf, u16 *table);
 s32 StFreeRing(u32 *base);
 void SpuSetCommonAttr(SpuCommonAttr *attr);
-s32 func_8005A784(CdAttenuation *atv);
+s32 CdMix(CdAttenuation *atv);
 void SsSetSerialAttr(s8 s_num, s8 attr, s8 mode);
 void SsSetSerialVol(s8 s_num, s16 voll, s16 volr);
 void DecDCTReset(s32 mode);
@@ -161,7 +161,7 @@ void OPEN_setMovieVolume(s32 cdVolume, s32 masterVolume) {
     atv.val1 = 0;
     atv.val2 = 0xFF;
     atv.val3 = 0;
-    func_8005A784(&atv);
+    CdMix(&atv);
     SsSetSerialAttr(0, 0, 1);
     SsSetSerialVol(0, 0x7F, 0x7F);
 }

@@ -91,7 +91,7 @@ void SUG_runCameraOrbit(s32 frames, s32 resetCamera) {
         camera->targetPitch = 400;
         *(s32 *)&camera->pad5A[0x16] = 0x190000;
     }
-    D_80079584 = -1;
+    CAMERA_TARGET_MODEL = -1;
     SCENE_3D->modelState[0] = 1;
     SCENE_3D->modelState[1] = 1;
     do {
@@ -112,7 +112,7 @@ void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 sw
             SCENE_3D->modelState[SUG_PREV_MODEL] = -1;
             applyAnimationFirstFrame(SUG_PREV_MODEL, 0);
         }
-        D_80079584 = SUG_ACTIVE_MODEL;
+        CAMERA_TARGET_MODEL = SUG_ACTIVE_MODEL;
     }
     while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 1) {
         waitFrames(FRAME_INTERVAL);
@@ -173,7 +173,7 @@ void SUG_playBattleExchange(void) {
     }
     SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = -1;
     SUG_ACTIVE_MODEL = SUG_BATTLE->flags.bits.turn;
-    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81AC, SUG_BATTLE->flags.bits.turn, 1, &SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT]);
+    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, BATTLE_START_SKILL, SUG_BATTLE->flags.bits.turn, 1, &SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT]);
     do {
         waitFrames(FRAME_INTERVAL);
     } while (DUEL->state != 3);
@@ -192,7 +192,7 @@ void SUG_playBattleExchange(void) {
     SUG_showWireGrid();
     ((ModelData *)SCENE_3D->models[23])->unkA78 = 0;
     setScreenFadeParams(1, 1, 6);
-    SUG_playAttackTurn(SUG_BATTLE->flags.bits.turn ^ 1, 1, D_801D81AC, SUG_showHpBanner, 0);
+    SUG_playAttackTurn(SUG_BATTLE->flags.bits.turn ^ 1, 1, BATTLE_START_SKILL, SUG_showHpBanner, 0);
     SUG_playAttackTurn(other, 0, SUG_SKILL_SCRIPTS[other * 2], SUG_showHpBanner, 0);
     SUG_runCameraOrbit(0x78, 1);
     SCENE_3D->modelState[first ^ 1] = -1;
@@ -262,7 +262,7 @@ done:
     if (winner >= 0) {
         SCENE_3D->modelState[winner] = 1;
         playModelAnimation(winner, 6);
-        D_80079584 = winner;
+        CAMERA_TARGET_MODEL = winner;
         waitFrames(FRAME_INTERVAL);
         SCENE_3D->modelState[winner ^ 1] = -1;
         SUG_showWinnerBanner(winner);
@@ -280,7 +280,7 @@ done:
 void SUG_playSoloAnimation(s32 model, s32 anim) {
     SCENE_3D->modelState[model] = 1;
     SCENE_3D->modelState[model ^ 1] = -1;
-    D_80079584 = model;
+    CAMERA_TARGET_MODEL = model;
     playModelAnimation(model, anim);
 }
 
@@ -289,7 +289,7 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
 
     state = -1;
     SCENE_3D->modelState[side] = 1;
-    D_80079584 = side;
+    CAMERA_TARGET_MODEL = side;
     spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, EAT_UP_HP_SKILL, side, 0, &state);
     spawnTask(0, -1, 0, 0x800, SUG_showEatUpHpBanner);
     while (state != 1) {
@@ -313,7 +313,7 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
 void SUG_playNoDamageTurn(s32 model) {
     SCENE_3D->modelState[model] = 1;
     playModelAnimation(model, 0);
-    D_80079584 = model;
+    CAMERA_TARGET_MODEL = model;
     SCENE_3D->modelState[model ^ 1] = -1;
     SUG_showAttackBanner(~model);
 }

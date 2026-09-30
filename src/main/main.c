@@ -8,7 +8,7 @@
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 
-s32 D_8006DD3C[2] = { 0, 0 };
+s32 UNUSED_MAIN_WORDS[2] = { 0, 0 };
 
 /*
  * The memory sizes PsyQ's startup code (__SN_ENTRY_POINT) reads before it

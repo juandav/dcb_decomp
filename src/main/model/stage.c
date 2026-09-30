@@ -177,7 +177,7 @@ void runDuelStageTask(s32 stageId) {
     pak = loadFile((s32) "A:\\BATTLE.PAK", getCurrentTaskId());
     if (pak != 0) {
         uploadTimList(findPakChunk((Chunk *)pak, 5, 0x68));
-        D_801D81AC = (void *)loadSkill(999, pak);
+        BATTLE_START_SKILL = (void *)loadSkill(999, pak);
         EAT_UP_HP_SKILL = (void *)loadSkill(998, pak);
         truncatePakTextures((Chunk *)pak);
     }

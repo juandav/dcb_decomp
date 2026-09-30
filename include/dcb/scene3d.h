@@ -36,7 +36,7 @@ extern s16 GRID_ROWS;
 extern s16 GRID_LINE_COUNT;
 extern s32 GRID_VISIBLE;
 extern u8 GRID_PULSE_PHASE;
-extern s32 D_8007956C;
+extern s32 CAMERA_SNAP;
 
 void setupSceneProjection(s32 projection);
 void setupSceneLighting(void);

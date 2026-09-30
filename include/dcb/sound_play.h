@@ -12,7 +12,7 @@ void playSoundEffectOnVoice(s32 voice, s32 sound);
 void stopSoundVoice(s16 voice);
 void fadeOutMusicTask(s32 slotIndex, s32 step);
 void fadeOutMusic(s32 step);
-void func_8002B850(void);
+void emptyMusicFunction(void);
 void playLoadedMusic(s32 slotIndex);
 void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad);
 void waitForMusicChange(void);

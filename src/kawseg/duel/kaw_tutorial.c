@@ -179,7 +179,7 @@ s32 KAW_tickTutorial(void) {
                     DUEL->cpuResult = (s16)KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 2:
-                    D_801D83D4 = KAW_DUEL->tutorialScript->script->params[0];
+                    MSG_BAR_NEXT = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 3:
                     playSoundEffect((s16)KAW_DUEL->tutorialScript->script->params[0]);
@@ -194,7 +194,7 @@ s32 KAW_tickTutorial(void) {
                     KAW_closeCardSelect((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 6:
-                    D_801D83D1 = KAW_DUEL->tutorialScript->script->params[0];
+                    MSG_BAR_PLAYER_LABEL = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 }
                 break;

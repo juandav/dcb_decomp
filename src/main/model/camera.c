@@ -29,7 +29,7 @@ s32 stepCameraTowardTarget(u8 *camera, s32 *pos, s32 distance, s16 *target) {
     s32 delta;
     s32 step;
 
-    if (D_8007956C != 0) {
+    if (CAMERA_SNAP != 0) {
         *(s32 *)(camera + 0x5C) = -pos[0];
         *(s32 *)(camera + 0x60) = -pos[1];
         *(s32 *)(camera + 0x64) = -pos[2];
