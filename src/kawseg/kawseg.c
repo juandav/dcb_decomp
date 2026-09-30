@@ -3726,7 +3726,59 @@ void func_801EA868(UiWindow *window) {
     drawText(window->originX, window->originY, *(s32 *)(*(u8 **)D_801D8340 + 0x10), 7, window->z);
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801EA8B4);
+extern UiWindow D_801FC410;
+
+s32 func_801EA8B4(s32 y, u8 *src) {
+    Rect16 rect;
+    u8 text[200];
+    u8 *dst;
+    s32 w;
+    s32 h;
+    s32 i;
+
+    text[0] = '*';
+    text[1] = 's';
+    text[2] = '0';
+    dst = &text[3];
+    DUEL->awaitingInput = 0;
+    do {
+        if (*src < 0x81 || *src > 0x98) {
+            if (src[0] == '*' && src[1] == 'p') {
+                src += 2;
+                *dst = 0;
+                strcpy(dst, PLAYER(0)->name);
+                dst += strlen(PLAYER(0)->name);
+                continue;
+            }
+        } else {
+            *dst++ = *src++;
+        }
+        *dst++ = *src++;
+    } while (src[-1] != 0);
+    (*(ScriptRunner **)D_801D8340)->unk10 = (s32)text;
+    measureText((u8 *)(*(ScriptRunner **)D_801D8340)->unk10);
+    w = (TEXT_WIDTH + 1) / 2;
+    rect.w = w * 2;
+    h = (TEXT_HEIGHT + 1) / 2;
+    rect.h = h * 2;
+    rect.x = (320 - rect.w) >> 1;
+    rect.y = y - rect.h / 2;
+    openWindow(&D_801FC410, &rect, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
+    D_801FC410.label = (s32)"TUTORIAL";
+    D_801FC410.palette = 4;
+    playSoundEffect(0xA3);
+    PAD_INPUT_ENABLED = 0;
+    do {
+        func_80014C08(FRAME_INTERVAL);
+    } while (drawWindow(&D_801FC410, func_801EA868, 0) == 0 || ((PAD_STATES[0]->rawPressed & 0x40) >> 6) == 0);
+    playSoundEffect(0xA4);
+    animateWindowTo(&D_801FC410, (Rect16 *)-1);
+    for (i = 0; i < 16; i++) {
+        func_80014C08(FRAME_INTERVAL);
+        drawWindow(&D_801FC410, func_801EA868, 0);
+    }
+    PAD_INPUT_ENABLED = 0;
+}
 
 void func_801F97C4(s32 arg0, s32 arg1, s32 arg2);
 void func_801F97E4(void);
