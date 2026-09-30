@@ -31,9 +31,9 @@ extern int D_80070E04[];
 extern int D_80070E84[];
 extern volatile u_long *D_80070F0C;
 
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013538);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013548);
+/* CD_sync / CD_ready report a timeout with these */
+const char D_80013538[] = "CD timeout: ";
+const char D_80013548[] = "%s:(%s) Sync=%s, Ready=%s\n";
 
 static inline void _memcpy(u_char *dst, u_char *src, int n) {
     if (dst != NULL) {
