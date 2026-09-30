@@ -9,9 +9,6 @@ typedef struct {
     /* 0xA */ u8 unkA[2];
 } AbilityLearnEntry;
 
-extern u8 STR_HACK_SYSTEM_ERROR[];
-extern u8 STR_HACK_PARTNER_MOVED[];
-extern u8 STR_HACK_TAUNT[];
 extern s32 HACK_WAIT_FRAMES;
 extern s32 HACK_BLINK_TIMER;
 extern s32 HACK_TYPING_MODE;
