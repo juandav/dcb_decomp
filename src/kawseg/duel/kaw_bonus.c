@@ -419,7 +419,7 @@ s32 KAW_drawBonuses(s32 x, s32 y, s32 count, s32 z, s32 exp) {
     return 1;
 }
 
-#define BANNER ((DuelBanner *)D_801D8340)
+#define BANNER ((DuelBanner *)DUEL_STATE)
 
 void KAW_showBonusBanner(s32 player, s32 id) {
     s32 show;

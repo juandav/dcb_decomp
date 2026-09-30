@@ -32,13 +32,13 @@ void startCpuDuel(s32 deckIndex) {
     waitFrames(2);
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     deckFile = (u8 *)waitFrames(0x7FFFFFFF);
-    ((SessionData *)D_8006E054)->npcDeckFile = deckFile;
+    ((SessionData *)SESSION_DATA)->npcDeckFile = deckFile;
     decks = (PresetDeck *)(deckFile + 8);
-    ((SessionData *)D_8006E054)->opponentDeckIndex = deckIndex;
-    ((SessionData *)D_8006E054)->opponentDeck = decks[deckIndex];
+    ((SessionData *)SESSION_DATA)->opponentDeckIndex = deckIndex;
+    ((SessionData *)SESSION_DATA)->opponentDeck = decks[deckIndex];
     spawnTask(0, -1, 0, 0x800, runDuel, 1, getCurrentTaskId(), 0, 0);
     result = waitFrames(0x7FFFFFFF);
-    if (*((s8 *)D_801D8340 + 0x81F) == 0) {
+    if (*((s8 *)DUEL_STATE + 0x81F) == 0) {
         if (result != 0) {
             if (++PLAYER_DATA(0).battleLosses >= 1000) {
                 PLAYER_DATA(0).battleLosses = 999;
@@ -54,7 +54,7 @@ void startCpuDuel(s32 deckIndex) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    ((u8 *)((SessionData *)D_8006E054)->unk100C)[0x1A6] = result;
+    ((u8 *)((SessionData *)SESSION_DATA)->unk100C)[0x1A6] = result;
     spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
 }
 
@@ -64,8 +64,8 @@ void startVersusDuel(void) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
-    ((SessionData *)D_8006E054)->npcDeckFile = (u8 *)waitFrames(0x7FFFFFFF);
-    ((SessionData *)D_8006E054)->unk1010[0x12] = 0;
+    ((SessionData *)SESSION_DATA)->npcDeckFile = (u8 *)waitFrames(0x7FFFFFFF);
+    ((SessionData *)SESSION_DATA)->unk1010[0x12] = 0;
     spawnTask(0, -1, 0, 0x800, runDuel, 0, getCurrentTaskId(), 0, 0);
     if (waitFrames(0x7FFFFFFF) != 0) {
         if (++PLAYER_DATA(0).versusLosses >= 1000) {

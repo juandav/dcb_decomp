@@ -348,7 +348,7 @@ freeRingEffect = 0x80032AA0; // type:func
 createStreakParticles = 0x80032B44; // type:func
 renderStreakParticles = 0x80033258; // type:func
 freeStreakParticles = 0x80033CD4; // type:func
-func_80033D9C = 0x80033D9C; // type:func
+isCrossPressedByTurnPlayer = 0x80033D9C; // type:func
 renderAttackChoiceIcons = 0x80033F34; // type:func
 runDuelTurnLoop = 0x80034260; // type:func
 runCpuDecisionTask = 0x80038F68; // type:func
@@ -397,7 +397,7 @@ equipPartnerAbility = 0x800493EC; // type:func
 unequipPartnerAbility = 0x8004949C; // type:func
 canEquipPartnerAbility = 0x800495B4; // type:func
 findNewPartnerAbility = 0x80049840; // type:func
-func_8004994C = 0x8004994C; // type:func
+rollPartnerAbility = 0x8004994C; // type:func
 drawHackingTerminal = 0x80049A14; // type:func
 drawHackErrorText = 0x80049DC0; // type:func
 drawHackPartnerMovedText = 0x80049E00; // type:func
@@ -945,6 +945,12 @@ PARTNER_ABILITY_TEXTS = 0x8006EDB4;
 PARTNER_ABILITY_CONDITIONS = 0x8006E534;
 PARTNER_ABILITY_ACTIONS = 0x8006E774;
 REWARD_CARD_RANGES = 0x8006E35C;
+assignCardCopySerial = 0x80045968; // type:func
+getBaseDeckId = 0x800471F4; // type:func
+BASE_DECK_IDS = 0x8006E50C;
+CARD_PACK_NAMES = 0x8006E31C;
+GLYPH_UPLOAD_BUSY = 0x8006E294;
+SESSION_DATA = 0x8006E054;
 
 // Graphics
 transformAndAddPolyGT4 = 0x8001D900; // type:func
@@ -1382,6 +1388,12 @@ DUEL_PLAYERS = 0x801D8348;
 CROSS_EFFECT_SHORT_NAMES = 0x8006E47C;
 CROSS_EFFECT_NAMES = 0x8006E4BC;
 DUEL_VRAM_CLEAR_RECT = 0x80011350;
+DUEL_DIALOG = 0x801D8278;
+DUEL_STATE = 0x801D8340;
+HUD_PANELS = 0x801D83EC;
+CARD_ANIMS = 0x801D833C;
+STAT_POPUP_RGB = 0x8006E298;
+CROSS_EFFECT_ICONS = 0x8006E4FC;
 
 // Script
 clearScriptBusy = 0x80021954; // type:func

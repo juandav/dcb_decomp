@@ -25,9 +25,9 @@
 #define CUR_SPRT ((SprtPacket *)SPRITE_POOL_CURSOR)
 #define DB(i) (((Graphics *)&GRAPHICS)->buffers[i])
 #define PLAYER_DATA(p) (((PlayerProfile *)PLAYER_PROFILES)[p])
-#define DUEL ((Duel *)D_801D8340)
+#define DUEL ((Duel *)DUEL_STATE)
 #define PLAYER(p) ((Player *)DUEL_PLAYERS[p])
-#define SPRITE_KIND(c) (*(s8 *)(D_801D833C + (c) * 36 + 0x22))
+#define SPRITE_KIND(c) (*(s8 *)(CARD_ANIMS + (c) * 36 + 0x22))
 
 typedef struct {
     /* 0x00 */ s16 clip[4];
@@ -971,14 +971,14 @@ extern s32 OVERLAY_LOAD_ADDR;
 extern s32 MUSIC_CHANGE_BUSY;
 extern s32 PENDING_MUSIC_CHANGES;
 extern u8 *DIGIMON_CARDS;
-extern void *D_8006E054;
-extern void *D_801D8340;
+extern void *SESSION_DATA;
+extern void *DUEL_STATE;
 extern u8 *DUEL_PLAYERS[];
 extern ScrollBackground SCROLL_BACKGROUND;
 extern s32 ATTACK_ICON_TIMER;
-extern s32 D_801D8278;
-extern u8 *D_801D83EC;
-extern u8 *D_801D833C;
+extern s32 DUEL_DIALOG;
+extern u8 *HUD_PANELS;
+extern u8 *CARD_ANIMS;
 extern MsgBar DUEL_MSG_BAR;
 extern u8 D_801D83D1;
 void runSceneCameraTask(s32 preset);

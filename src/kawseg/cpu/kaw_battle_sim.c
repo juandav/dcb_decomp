@@ -148,7 +148,7 @@ s32 KAW_resolveBattle(s32 quiet) {
         card = getActiveDigimonCard(player);
         if (card != -1) {
             effects[i + 4].card = (u8 *)PLAYER(player)->cards[card % 30].card;
-            effects[i + 4].order = D_8006E4FC[((DigimonCardData *)effects[i + 4].card)->crossEffect];
+            effects[i + 4].order = CROSS_EFFECT_ICONS[((DigimonCardData *)effects[i + 4].card)->crossEffect];
         }
     }
     for (i = 3; i > 0; i--) {

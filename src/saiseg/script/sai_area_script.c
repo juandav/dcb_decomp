@@ -272,7 +272,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     spawnTask(0, -1, 0, 0x400, SAI_grantDigiPart, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 17:
-                    ((SessionData *)D_8006E054)->npcDeckIndex[0] = runner->script->params[0];
+                    ((SessionData *)SESSION_DATA)->npcDeckIndex[0] = runner->script->params[0];
                     break;
                 case 18:
                     ((PlayerProfile *)PLAYER_PROFILES)->unk14 += runner->script->params[0];
@@ -291,19 +291,19 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 case 21:
                     for (i = 0; i < 3; i++) {
                         if (((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].inUse == 0) {
-                            ((SessionData *)((u8 *)D_8006E054 + i))->unk1010[0x13] = 0;
+                            ((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] = 0;
                         } else if (countDeckCardsByFilter(0, &((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i], (s16)runner->script->params[0]) != 0) {
-                            ((SessionData *)((u8 *)D_8006E054 + i))->unk1010[0x13] = 0;
+                            ((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] = 0;
                         } else {
-                            ((SessionData *)((u8 *)D_8006E054 + i))->unk1010[0x13] = 1;
+                            ((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] = 1;
                         }
                     }
-                    if (((SessionData *)D_8006E054)->unk1010[0x13] == 1 || ((SessionData *)D_8006E054)->unk1010[0x14] == 1 ||
-                        ((SessionData *)D_8006E054)->unk1010[0x15] == 1) {
-                        ((SessionData *)D_8006E054)->unk1010[0x12] = 1;
+                    if (((SessionData *)SESSION_DATA)->unk1010[0x13] == 1 || ((SessionData *)SESSION_DATA)->unk1010[0x14] == 1 ||
+                        ((SessionData *)SESSION_DATA)->unk1010[0x15] == 1) {
+                        ((SessionData *)SESSION_DATA)->unk1010[0x12] = 1;
                         SAI_SCRIPT[0]->regs[1] = 0;
                     } else {
-                        ((SessionData *)D_8006E054)->unk1010[0x12] = 0;
+                        ((SessionData *)SESSION_DATA)->unk1010[0x12] = 0;
                         SAI_SCRIPT[0]->regs[1] = 1;
                     }
                     break;
@@ -380,7 +380,7 @@ ScriptRunner *SAI_createAreaScript(void) {
     u8 unused[0x18];
     ScriptRunner *obj = allocHeapBlock(sizeof(ScriptRunner), 0x31);
 
-    obj->unk0 = *(s32 *)&((SessionData *)D_8006E054)->unk100C->unk0[0x190];
+    obj->unk0 = *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x190];
     obj->script = SAI_createScriptContext((u8 *)obj->unk0);
     return obj;
 }

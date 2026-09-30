@@ -63,8 +63,8 @@ void KAW_pickCardArtSlot(void) {
     rect.y = player * 24 + 0x30;                                                                         \
     rect.w = 0x1B;                                                                                       \
     rect.h = 0x18;                                                                                       \
-    drawPageSprite(((CardAnim *)(D_801D833C + card * 36))->spr->sx + dx,                                 \
-                   ((CardAnim *)(D_801D833C + card * 36))->spr->sy + dy, (s32)&rect,                     \
+    drawPageSprite(((CardAnim *)(CARD_ANIMS + card * 36))->spr->sx + dx,                                 \
+                   ((CardAnim *)(CARD_ANIMS + card * 36))->spr->sy + dy, (s32)&rect,                     \
                    getTPage(0, 2, SYSTEM_TEX_X, SYSTEM_TEX_Y), 0xC, 0x32)
 
 s32 KAW_drawHandHints(s32 player) {
@@ -274,12 +274,12 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     }
     if (DUEL->cursorSlot < 6) {
         if (DUEL->cursorPlayer == 0) {
-            if (D_801D83EC[player * 0xD8 + 0xD] == 4) {
-                D_801D83EC[player * 0xD8 + 0xD] = 1;
+            if (HUD_PANELS[player * 0xD8 + 0xD] == 4) {
+                HUD_PANELS[player * 0xD8 + 0xD] = 1;
             }
         } else {
-            if (D_801D83EC[player * 0xD8 + 0xD] == 4) {
-                D_801D83EC[player * 0xD8 + 0xD] = 2;
+            if (HUD_PANELS[player * 0xD8 + 0xD] == 4) {
+                HUD_PANELS[player * 0xD8 + 0xD] = 2;
             }
         }
     }
@@ -302,13 +302,13 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
 
 s32 KAW_openCardSelect(s32 player) {
     D_801D83D1 = (*(u32 *)(DUEL_PLAYERS[player] + 0x178) >> 17) & 3;
-    D_801D83EC[player * 0xD8 + 0xD] = player + 1;
+    HUD_PANELS[player * 0xD8 + 0xD] = player + 1;
 }
 
 s32 KAW_closeCardSelect(s32 index) {
     DUEL->cursorSlot = -1;
     KAW_DUEL->cursorMode = -1;
-    D_801D83EC[index * 0xD8 + 0xD] = 5;
+    HUD_PANELS[index * 0xD8 + 0xD] = 5;
 }
 
 s32 KAW_drawCardToHand(s32 player) {

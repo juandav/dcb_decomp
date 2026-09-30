@@ -33,7 +33,7 @@
 void tickCardMotion(s32 cardIndex, s32 player) {
     CardAnim *anim;
 
-    anim = &((CardAnim *)D_801D833C)[cardIndex];
+    anim = &((CardAnim *)CARD_ANIMS)[cardIndex];
     anim->spr->flags |= 0x80;
     switch (SPRITE_KIND(cardIndex)) {
     case 0:

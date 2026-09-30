@@ -47,7 +47,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
     KAW_MATCH_SCREEN->unk770 = mode;
     KAW_MATCH_SCREEN->deckId = deckId;
     if (mode != 0) {
-        i = func_800471F4(deckId);
+        i = getBaseDeckId(deckId);
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[i];
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->unk888[i];
         if (!KAW_DUEL->tutorial && winner != 0) {

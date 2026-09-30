@@ -61,7 +61,7 @@ void runDuelTurnLoop(void) {
             waitFrames(0x1E);
             /* against opponent 0x8C, partner cards in the player's deck move to
                the bottom of the Online Deck and the hacking sequence plays */
-            if (PLAYER(1)->controller == 1 && ((SessionData *)D_8006E054)->opponentDeckIndex == 0x8C) {
+            if (PLAYER(1)->controller == 1 && ((SessionData *)SESSION_DATA)->opponentDeckIndex == 0x8C) {
                 for (i = 0, j = 0; i < 30; i++) {
                     if ((u32)findPartnerSlot(0, PLAYER(0)->cards[i].id) < 3) {
                         j = 1;
@@ -134,14 +134,14 @@ void runDuelTurnLoop(void) {
                 if (countOnlineDeckCards(ME) == 0) {
                     D_801D83D4 = 2;
                     sprintf(message, "There are no more Cards, so %s loses!", PLAYER(ME)->name);
-                    initDialog((u8 *)&D_801D8278, message, 0);
+                    initDialog((u8 *)&DUEL_DIALOG, message, 0);
                     runDuelMessageWindow();
                     DUEL->winner = ME ^ 1;
                     DUEL->step = 0x26;
                 } else {
                     D_801D83D4 = 1;
                     if (PLAYER(ME)->controller != 1) {
-                        initDialog((u8 *)&D_801D8278, "Redrawing Cards because there are\nno Digimon Cards.", 0);
+                        initDialog((u8 *)&DUEL_DIALOG, "Redrawing Cards because there are\nno Digimon Cards.", 0);
                         runDuelMessageWindow();
                     }
                     DUEL->step = 6;
@@ -178,7 +178,7 @@ void runDuelTurnLoop(void) {
                 DUEL_MSG_BAR.next = 3;
                 DUEL_MSG_BAR.next2 = 0;
                 do {
-                    initDialog((u8 *)&D_801D8278, "This will discard all Cards.\nIs this OK?", 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "This will discard all Cards.\nIs this OK?", 1);
                     runDuelMessageWindow();
                     switch (CHOICE) {
                     case 0:
@@ -295,7 +295,7 @@ void runDuelTurnLoop(void) {
                     if (i != -1) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
                             D_801D83D4 = 5;
-                            initDialog((u8 *)&D_801D8278, "Do you want to Armor Digivolve?", 1);
+                            initDialog((u8 *)&DUEL_DIALOG, "Do you want to Armor Digivolve?", 1);
                             runDuelMessageWindow();
                             switch (CHOICE) {
                             case 0:
@@ -335,7 +335,7 @@ void runDuelTurnLoop(void) {
             DUEL->awaitingInput = 0;
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 6;
-            initDialog((u8 *)&D_801D8278, "Is it OK to end the Preparation Phase?", 1);
+            initDialog((u8 *)&DUEL_DIALOG, "Is it OK to end the Preparation Phase?", 1);
             runDuelMessageWindow();
             switch (CHOICE) {
             case 0:
@@ -454,7 +454,7 @@ void runDuelTurnLoop(void) {
                     playSoundEffect(0xA0);
                     DUEL->playedFromSlot = func_801ECB40(CUR_CARD, ME);
                     if (func_801EA374(ME) != 0) {
-                        initDialog((u8 *)&D_801D8278, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
+                        initDialog((u8 *)&DUEL_DIALOG, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
                         runDuelMessageWindow();
                         switch (CHOICE) {
                         case 0:
@@ -497,7 +497,7 @@ void runDuelTurnLoop(void) {
                 option = (DigivolveCardData *)PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
                 switch (option->effect) {
                 case 4:
-                    initDialog((u8 *)&D_801D8278, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
                     if (PLAYER(ME)->controller != 1) {
                         runDuelMessageWindow();
                     } else {
@@ -523,7 +523,7 @@ void runDuelTurnLoop(void) {
                     }
                     break;
                 case 7:
-                    initDialog((u8 *)&D_801D8278, "Your Digimon's Level will become *e3,\ndo you still want to \"Armor Digi-devolve\"?", 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "Your Digimon's Level will become *e3,\ndo you still want to \"Armor Digi-devolve\"?", 1);
                     if (PLAYER(ME)->controller != 1) {
                         runDuelMessageWindow();
                     } else {
@@ -738,7 +738,7 @@ void runDuelTurnLoop(void) {
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 0xA;
             PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
-            initDialog((u8 *)&D_801D8278, "Is it OK to end the Digivolve Phase?", 1);
+            initDialog((u8 *)&DUEL_DIALOG, "Is it OK to end the Digivolve Phase?", 1);
             runDuelMessageWindow();
             switch (CHOICE) {
             case 0:
@@ -765,7 +765,7 @@ void runDuelTurnLoop(void) {
                     DUEL_MSG_BAR.phase = 2;
                     DUEL_MSG_BAR.next = 0xB;
                     sprintf(message, "Since %s has no Digimon,\nthere is no Battle Phase.", PLAYER(OPP)->name);
-                    initDialog((u8 *)&D_801D8278, message, 0);
+                    initDialog((u8 *)&DUEL_DIALOG, message, 0);
                     runDuelMessageWindow();
                 }
                 DUEL->step = 0x25;
@@ -866,8 +866,8 @@ void runDuelTurnLoop(void) {
             } else {
                 DUEL->playedFromSlot = -1;
                 if (countEmptyHandSlots(OPP) == 4 && countOnlineDeckCards(OPP) == 0) {
-                    initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
-                    runDialogForPad(&D_801D8278, PLAYER(OPP)->controller & 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
+                    runDialogForPad(&DUEL_DIALOG, PLAYER(OPP)->controller & 1);
                     DUEL->step = 0x1D;
                 } else {
                     func_801EC4CC(OPP);
@@ -891,11 +891,11 @@ void runDuelTurnLoop(void) {
                     DUEL->playedFromSlot = func_801ECB40(CUR_CARD, OPP);
                 }
                 playSoundEffect(0xA0);
-                initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                initDialog((u8 *)&DUEL_DIALOG, "Do you want to use this Support Card?", 1);
                 DUEL->step++;
             } else if (PAD_STATES[OPP]->pressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
+                initDialog((u8 *)&DUEL_DIALOG, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->step++;
             }
             if (DUEL->step != 0x1B) {
@@ -905,13 +905,13 @@ void runDuelTurnLoop(void) {
         case 28:
             DUEL->awaitingInput = 0;
             D_801D83D7 = 0;
-            runDialogForPad(&D_801D8278, PLAYER(OPP)->controller & 1);
+            runDialogForPad(&DUEL_DIALOG, PLAYER(OPP)->controller & 1);
             switch (CHOICE) {
             case 0:
             case 2:
                 if (DUEL->tutorial != 0) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
-                    initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "Do you want to use this Support Card?", 1);
                 } else {
                     if (DUEL->playedFromSlot >= 0) {
                         func_801EC8E0(OPP, DUEL->playedFromSlot);
@@ -950,8 +950,8 @@ void runDuelTurnLoop(void) {
             } else {
                 DUEL->playedFromSlot = -1;
                 if (countEmptyHandSlots(ME) == 4 && countOnlineDeckCards(ME) == 0) {
-                    initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
-                    runDialogForPad(&D_801D8278, PLAYER(ME)->controller & 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
+                    runDialogForPad(&DUEL_DIALOG, PLAYER(ME)->controller & 1);
                     DUEL->step = 0x20;
                 } else {
                     func_801EC4CC(ME);
@@ -975,11 +975,11 @@ void runDuelTurnLoop(void) {
                     DUEL->playedFromSlot = func_801ECB40(CUR_CARD, ME);
                 }
                 playSoundEffect(0xA0);
-                initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                initDialog((u8 *)&DUEL_DIALOG, "Do you want to use this Support Card?", 1);
                 DUEL->step++;
             } else if (PAD_STATES[ME]->pressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                initDialog((u8 *)&D_801D8278, "You're not using any Support Card.\nIs this OK?", 1);
+                initDialog((u8 *)&DUEL_DIALOG, "You're not using any Support Card.\nIs this OK?", 1);
                 DUEL->step++;
             }
             if (DUEL->step != 0x1E) {
@@ -995,7 +995,7 @@ void runDuelTurnLoop(void) {
             case 2:
                 if (DUEL->tutorial != 0) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
-                    initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
+                    initDialog((u8 *)&DUEL_DIALOG, "Do you want to use this Support Card?", 1);
                 } else {
                     if (DUEL->playedFromSlot >= 0) {
                         func_801EC8E0(ME, DUEL->playedFromSlot);
@@ -1197,12 +1197,12 @@ void runDuelTurnLoop(void) {
                     PLAYER(DUEL->winner ^ 1)->bonusFlags |= 0x40000;
                 }
                 sprintf(message, "%d Wins, %d Losses-%s WINS!", PLAYER(DUEL->winner)->wins, PLAYER(DUEL->winner ^ 1)->wins, PLAYER(DUEL->winner)->name);
-                initDialog((u8 *)&D_801D8278, message, 0);
+                initDialog((u8 *)&DUEL_DIALOG, message, 0);
                 runDuelMessageWindow();
                 DUEL->step = 0x26;
             } else if (getActiveDigimonCard(DUEL->winner ^ 1) == -1 && checkHandHasDigimonCard(DUEL->winner ^ 1) != 0 && countOnlineDeckCards(DUEL->winner ^ 1) == 0) {
                 sprintf(message, "Since %s has no more Digimon,\nthe winner is %s!", PLAYER(DUEL->winner ^ 1)->name, PLAYER(DUEL->winner)->name);
-                initDialog((u8 *)&D_801D8278, message, 0);
+                initDialog((u8 *)&DUEL_DIALOG, message, 0);
                 runDuelMessageWindow();
                 DUEL->step = 0x26;
             }

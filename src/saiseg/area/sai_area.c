@@ -178,8 +178,8 @@ void SAI_runArea(s32 resume) {
     SAI_SCRIPT[0]->regs = SAI_allocScriptRegisters(0x174);
     SAI_loadScriptFlags();
     SAI_SCRIPT[0]->regs[0] = 1;
-    ((SessionData *)D_8006E054)->unk1010[0x13] = ((SessionData *)D_8006E054)->unk1010[0x14] = ((SessionData *)D_8006E054)->unk1010[0x15] = 0;
-    ((SessionData *)D_8006E054)->unk1010[0x12] = 0;
+    ((SessionData *)SESSION_DATA)->unk1010[0x13] = ((SessionData *)SESSION_DATA)->unk1010[0x14] = ((SessionData *)SESSION_DATA)->unk1010[0x15] = 0;
+    ((SessionData *)SESSION_DATA)->unk1010[0x12] = 0;
     SAI_clearTextLines(SAI_TEXT_LINES);
     SAI_toggleMessageWindow(0);
     SAI_AREA.choiceCount = 0;
@@ -187,7 +187,7 @@ void SAI_runArea(s32 resume) {
     SAI_AREA.exitAction = AREA_EXIT_MAP;
     SAI_AREA.closePanel = 0;
     SAI_AREA.mode = AREA_MODE_SCRIPT;
-    ((SessionData *)D_8006E054)->npcDeckIndex[0] = -1;
+    ((SessionData *)SESSION_DATA)->npcDeckIndex[0] = -1;
     SAI_createAreaName();
     SAI_createLocationLabel();
     addFrameCallback((s32)SAI_drawAreaHud);

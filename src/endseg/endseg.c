@@ -330,7 +330,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
     DUEL_VRAM_READY = 0;
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     deckFile = (u8 *)waitFrames(0x7FFFFFFF);
-    *(u8 **)D_8006E054 = deckFile;
+    *(u8 **)SESSION_DATA = deckFile;
     decks = deckFile + 8;
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
     D_801E0D64 = (u8 *)waitFrames(0x7FFFFFFF);
@@ -667,7 +667,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
     PROFILE->unk28_12 = 1;
     waitFrames(10);
     freeHeapBlock(D_801E0D64);
-    freeHeapBlock(*(void **)D_8006E054);
+    freeHeapBlock(*(void **)SESSION_DATA);
     stopMusic();
     resumeTask(arg0);
 }

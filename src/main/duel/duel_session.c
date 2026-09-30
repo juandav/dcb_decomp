@@ -31,8 +31,8 @@
 void initDuelState(s32 isCpuDuel) {
     void *block;
 
-    D_801D833C = block = allocTaskHeapBlock(0x870);
-    D_801D8340 = block = allocTaskHeapBlock(0x86C);
+    CARD_ANIMS = block = allocTaskHeapBlock(0x870);
+    DUEL_STATE = block = allocTaskHeapBlock(0x86C);
     DUEL->sprites = (void *)func_801F8854();
     DUEL->turnPlayer = rand() % 2;
     DUEL->step = 0;
@@ -84,8 +84,8 @@ void spawnDuelTasks(s32 isCpuDuel) {
     }
     spawnTask(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
     if (isCpuDuel != 0) {
-        stageId = ((SessionData *)D_8006E054)->opponentDeck.stageId;
-        stageArg = ((SessionData *)D_8006E054)->opponentDeck.unk68[1];
+        stageId = ((SessionData *)SESSION_DATA)->opponentDeck.stageId;
+        stageArg = ((SessionData *)SESSION_DATA)->opponentDeck.unk68[1];
     } else {
         stageId = -1;
         stageArg = -1;
@@ -156,8 +156,8 @@ void runDuel(s32 mode, s32 parent) {
         i = 7;
     }
     changeScrollingBackground(i, 0x280, 0, 0x280, 0x80);
-    func_801F003C(mode, ((SessionData *)D_8006E054)->opponentDeckIndex);
-    func_801F1AA8(mode, ((SessionData *)D_8006E054)->opponentDeckIndex);
+    func_801F003C(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
+    func_801F1AA8(mode, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
     spawnDuelTasks(mode);
     for (i = 0; i < 2; i++) {
         func_801F9EAC(i);
@@ -324,7 +324,7 @@ void runDuel(s32 mode, s32 parent) {
         waitFrames(FRAME_INTERVAL);
     }
     loadScrollingBackground();
-    spawnTask(0, -1, 0, 0x800, D_801F2A40, mode, winner, ((SessionData *)D_8006E054)->opponentDeckIndex, 0);
+    spawnTask(0, -1, 0, 0x800, D_801F2A40, mode, winner, ((SessionData *)SESSION_DATA)->opponentDeckIndex, 0);
     waitFrames(FRAME_INTERVAL);
     while (D_801FC734 != 0) {
         waitFrames(FRAME_INTERVAL);
@@ -340,7 +340,7 @@ void runDuel(s32 mode, s32 parent) {
         while (DUEL->stopCpuTask != 0) {
             waitFrames(FRAME_INTERVAL);
         }
-        if (((SessionData *)D_8006E054)->npcDeckIndex[0] != -1) {
+        if (((SessionData *)SESSION_DATA)->npcDeckIndex[0] != -1) {
             restorePartners(0);
         }
         /* j: the player's deck holds one of the partner cards (or their armor) */
@@ -368,7 +368,7 @@ void runDuel(s32 mode, s32 parent) {
         fadeOutScrollingBackground();
     } else if (mode == 0) {
         for (i = 0; i < 2; i++) {
-            if (((SessionData *)D_8006E054)->npcDeckIndex[i] != -1) {
+            if (((SessionData *)SESSION_DATA)->npcDeckIndex[i] != -1) {
                 restorePartners(i);
             }
         }
@@ -378,7 +378,7 @@ void runDuel(s32 mode, s32 parent) {
         PLAYER_DATA(0).opponentDeckFlags[0x9E] |= 0x8000;
     } else {
         for (i = 0; i < 2; i++) {
-            k = func_800471F4(((SessionData *)D_8006E054)->npcDeckIndex[i]);
+            k = getBaseDeckId(((SessionData *)SESSION_DATA)->npcDeckIndex[i]);
             if (k != -1) {
                 /* bit 15: deck met; low 14 bits: wins, capped at 999 */
                 if (winner == i) {
@@ -406,7 +406,7 @@ void runDuel(s32 mode, s32 parent) {
             }
         }
         if (mode != 0) {
-            k = func_800471F4(((SessionData *)D_8006E054)->opponentDeckIndex);
+            k = getBaseDeckId(((SessionData *)SESSION_DATA)->opponentDeckIndex);
             PLAYER_DATA(0).opponentDeckFlags[k] |= 0x8000;
             if (winner == 0) {
                 if (++PLAYER_DATA(0).unk888[k] >= 1000) {

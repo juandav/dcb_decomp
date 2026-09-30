@@ -5,7 +5,7 @@
 #include "dcb/scroll_bg.h"
 
 void waitDuelFrames(s32 frames);
-s32 func_80033D9C(void);
+s32 isCrossPressedByTurnPlayer(void);
 void waitForCpuDecision(void);
 void renderAttackChoiceIcons(void);
 void runDuelMessageWindow(void);

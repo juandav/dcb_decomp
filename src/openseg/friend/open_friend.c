@@ -53,7 +53,7 @@ void OPEN_drawFriendMenu(void) {
         same = 1;
     }
     for (i = 0; i < 7; i++) {
-        if (*((s8 *)D_8006E054 + 0x1028) == i) {
+        if (*((s8 *)SESSION_DATA + 0x1028) == i) {
             clutY = 0x98;
             if (i == 1 && same) {
                 clutY = 0x99;
@@ -241,7 +241,7 @@ void OPEN_runBattleWithFriend(void) {
         waitFrames(FRAME_INTERVAL);
         OPEN_TRADE_ENABLED = PLAYER_DATA(0).unk28_10 | (PLAYER_DATA(1).unk28_10 << 1);
         if (PAD_STATES[0]->pressed & 0x40) {
-            switch (((SessionView *)D_8006E054)->menuRow) {
+            switch (((SessionView *)SESSION_DATA)->menuRow) {
             case 1:
                 message = NULL;
                 if ((u16)PLAYER_DATA(0).unk10 == (u16)PLAYER_DATA(1).unk10) {
@@ -316,20 +316,20 @@ void OPEN_runBattleWithFriend(void) {
             }
         } else if (PAD_STATES[0]->pressed & 0x10) {
             playMenuSound(4);
-            ((SessionView *)D_8006E054)->menuRow = 6;
+            ((SessionView *)SESSION_DATA)->menuRow = 6;
             OPEN_FRIEND_MENU_DONE = 1;
         } else if (PAD_STATES[0]->repeat & 0x1000) {
             playMenuSound(2);
-            ((SessionView *)D_8006E054)->menuRow--;
+            ((SessionView *)SESSION_DATA)->menuRow--;
         } else if (PAD_STATES[0]->repeat & 0x4000) {
             playMenuSound(2);
-            ((SessionView *)D_8006E054)->menuRow++;
+            ((SessionView *)SESSION_DATA)->menuRow++;
         }
-        ((SessionView *)D_8006E054)->menuRow = (((SessionView *)D_8006E054)->menuRow + 7) % 7;
+        ((SessionView *)SESSION_DATA)->menuRow = (((SessionView *)SESSION_DATA)->menuRow + 7) % 7;
         if (OPEN_FRIEND_MENU_DONE != 0) {
             OPEN_FRIEND_MENU_SHOWN = 2;
             OPEN_closePlayerRecordWindows();
-            if (((SessionView *)D_8006E054)->menuRow == 6) {
+            if (((SessionView *)SESSION_DATA)->menuRow == 6) {
                 initDialog((u8 *)&OPEN_DIALOG, "Save \"Battle with Friend\" game?", 1);
                 runDialog(&OPEN_DIALOG);
                 ok = 1;
@@ -366,7 +366,7 @@ void OPEN_runBattleWithFriend(void) {
     removeFrameCallback((s32)OPEN_drawFriendScreen);
     hideScrollingBackground();
     stopScreenFade();
-    switch (((SessionView *)D_8006E054)->menuRow) {
+    switch (((SessionView *)SESSION_DATA)->menuRow) {
     case 0:
         spawnTask(0, -1, 0, 0x200, startVersusDuel, 0, 0, 0, 0);
         break;

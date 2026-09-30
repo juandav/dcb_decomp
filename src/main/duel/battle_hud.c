@@ -111,7 +111,7 @@ void renderStatPopups(void) {
                 }
                 sprintf(text, "%s%d", sign, PLAYER(player)->statPopups[stat].value);
                 drawBigDigits(PLAYER(player)->statPopups[stat].x + (0x30 - age),
-                              PLAYER(player)->statPopups[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&D_8006E298,
+                              PLAYER(player)->statPopups[stat].y - (0x30 - age) * 2, (u8 *)text, (u8 *)&STAT_POPUP_RGB,
                               PLAYER(player)->statPopups[stat].type, 0);
             }
         }
@@ -120,7 +120,7 @@ void renderStatPopups(void) {
 
 void drawHudPanelContents(s32 panelIndex, s32 z) {
     s32 player = panelIndex / 6;
-    HudPanel *panel = (HudPanel *)D_801D83EC + panelIndex;
+    HudPanel *panel = (HudPanel *)HUD_PANELS + panelIndex;
     char text[72];
     u8 shades[2][4] = { { 0x80, 0x80, 0x80, 0 }, { 0x40, 0x40, 0x40, 0 } };
     char deckText[40];
@@ -363,8 +363,8 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
                 drawIcon(panel->x + 0xC3, panel->y + 1, 0, card->attr >> 4, z);
             }
             drawSmallTextColored(panel->x + 0x44, panel->y + 0x40, CROSS_EFFECT_SHORT_NAMES[card->crossEffect], 7, lineColors[6], z);
-            if (D_8006E4FC[card->crossEffect] != 0) {
-                drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
+            if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
+                drawIcon(panel->x + 0x75, panel->y + 0x3B, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
             }
             drawText(panel->x + 0x44, panel->y + 1, (s32)card->name, 7, z);
             drawIcon(panel->x + 0xD4, panel->y + 1, 0, (card->attr & 0xF) + 0x10, z);
@@ -418,8 +418,8 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             drawText(panel->x + 0xA2, panel->y + 13 + k * 12, (s32)text, valueColor, z);
         }
         drawText(panel->x + 0x47, panel->y + 0x32, (s32)CROSS_EFFECT_NAMES[card->crossEffect], 7, z);
-        if (D_8006E4FC[card->crossEffect] != 0) {
-            drawIcon(panel->x + 0x95, panel->y + 0x32, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
+        if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
+            drawIcon(panel->x + 0x95, panel->y + 0x32, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
         }
         if (PLAYER(player)->attackChoice != 3) {
             if (PLAYER(player)->shownAttack != PLAYER(player)->attackChoice) {

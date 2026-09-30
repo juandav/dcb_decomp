@@ -610,8 +610,8 @@ void SUB_drawCardData(UiWindow *window) {
                     drawText(x + 0x6F, y + (i + 3) * 12, (s32)buf, 7, z);
                 }
                 drawSmallText(x + 0x57, y + 0x48, (s32)CROSS_EFFECT_SHORT_NAMES[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect], 7, z);
-                if (D_8006E4FC[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect] != 0) {
-                    drawIcon(x + 0x91, y + 0x4E, 0, D_8006E4FC[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect] + 0x14, z);
+                if (CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect] != 0) {
+                    drawIcon(x + 0x91, y + 0x4E, 0, CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect] + 0x14, z);
                 }
                 drawIcon(x + 0x4B, y + 0x18, 0, 0x18, z);
                 sprintf(buf, SUB_FMT_2_DIGITS, ((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->dpCost);
@@ -1610,8 +1610,8 @@ void SUB_drawSlotCardInfo(UiWindow *window) {
                 drawText(x + 0x5D, y + (i + 2) * 12, (s32)buf, 7, z);
             }
             drawSmallText(x + 0x45, y + 0x3F, (s32)CROSS_EFFECT_SHORT_NAMES[((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->crossEffect], 7, z);
-            if (D_8006E4FC[((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->crossEffect] != 0) {
-                drawIcon(x + 0x51, y + 0x48, 0, D_8006E4FC[((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->crossEffect] + 0x14, z);
+            if (CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->crossEffect] != 0) {
+                drawIcon(x + 0x51, y + 0x48, 0, CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->crossEffect] + 0x14, z);
             }
             drawText(x + 0x85, y + 0x18, (s32)SUB_STR_SUPPORT_EFFECT, 6, z);
             if (((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->supportIcon != 0) {
@@ -1772,8 +1772,8 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
                 drawText(x + 0x69, y + (i + 2) * 12, (s32)buf, 7, z);
             }
             drawSmallText(x + 0x57, y + 0x3E, (s32)CROSS_EFFECT_SHORT_NAMES[((DigimonCardData *)SUB_DECK_EDIT.card)->crossEffect], 7, z);
-            if (D_8006E4FC[((DigimonCardData *)SUB_DECK_EDIT.card)->crossEffect] != 0) {
-                drawIcon(x + 0x91, y + 0x45, 0, D_8006E4FC[((DigimonCardData *)SUB_DECK_EDIT.card)->crossEffect] + 0x14, z);
+            if (CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_DECK_EDIT.card)->crossEffect] != 0) {
+                drawIcon(x + 0x91, y + 0x45, 0, CROSS_EFFECT_ICONS[((DigimonCardData *)SUB_DECK_EDIT.card)->crossEffect] + 0x14, z);
             }
             drawIcon(x + 0x91, y + 12, 0, 0x18, z);
             sprintf(buf, SUB_FMT_2_DIGITS, ((DigimonCardData *)SUB_DECK_EDIT.card)->dpCost);

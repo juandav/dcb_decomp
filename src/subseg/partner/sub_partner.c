@@ -421,8 +421,8 @@ void SUB_drawPartnerTab(TabWindow *window) {
         }
         sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[crossEffect]);
         drawSmallTextColored(x + 0x56, y + 0x33, buf, palette, rgb, z);
-        if (D_8006E4FC[crossEffect] != 0) {
-            drawIconColored(x + 0x95, y + 0x31, 0, D_8006E4FC[crossEffect] + 0x14, rgb, z);
+        if (CROSS_EFFECT_ICONS[crossEffect] != 0) {
+            drawIconColored(x + 0x95, y + 0x31, 0, CROSS_EFFECT_ICONS[crossEffect] + 0x14, rgb, z);
         }
         sprintf(buf, "RANK \f\a%3d", (s8)PLAYER_DATA(player).partners[slot].level);
         drawLargeTextColored(x + 0x5C, y + 14, buf, 6, rgb, z);
@@ -562,8 +562,8 @@ void SUB_drawPartnerDetails(UiWindow *window) {
     }
     sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
     drawSmallText(x + 0x74, y + 0x30, (s32)buf, palette, z);
-    if (D_8006E4FC[card->crossEffect] != 0) {
-        drawIcon(x + 0xB2, y + 0x2E, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
+    if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
+        drawIcon(x + 0xB2, y + 0x2E, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
     }
     if (canEquip) {
         diff = SUB_PREVIEW_PARTNER.card[0].hp - card->hp;
@@ -696,8 +696,8 @@ void SUB_drawArmorDetails(UiWindow *window) {
         }
         sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
         drawSmallText(x - 2, y + 0x6E, (s32)buf, palette, z);
-        if (D_8006E4FC[card->crossEffect] != 0) {
-            drawIcon(x + 0x3C, y + 0x6C, 0, D_8006E4FC[card->crossEffect] + 0x14, z);
+        if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
+            drawIcon(x + 0x3C, y + 0x6C, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
         }
         if (canEquip) {
             diff = SUB_PREVIEW_PARTNER.card[1].hp - card->hp;

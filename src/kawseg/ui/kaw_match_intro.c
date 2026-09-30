@@ -167,7 +167,7 @@ void KAW_drawDeckList(ListWindow *w) {
     player = w->player;
     y++;
     if (KAW_MATCH_SCREEN->unk504[player] != 0) {
-        decks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+        decks = (PresetDeck *)(((SessionData *)SESSION_DATA)->npcDeckFile + 8);
         for (i = 0; i < KAW_DECK_LIST_MENUS[player].nrows; i++) {
             if (i < w->window.view.y / KAW_DECK_LIST_MENUS[player].rowH) {
                 continue;
@@ -220,7 +220,7 @@ void KAW_drawDeckChart(s32 x, s32 y, s32 player, s32 z) {
     s32 cx;
     s32 cy;
 
-    decks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+    decks = (PresetDeck *)(((SessionData *)SESSION_DATA)->npcDeckFile + 8);
     cx = 0x22;
     cy = 0x1F;
     for (i = 0; i < 6; i++) {
@@ -421,9 +421,9 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     KAW_MATCH_SCREEN->unk504[0] = 0;
     KAW_MATCH_SCREEN->unk504[1] = 0;
     KAW_MATCH_SCREEN->unk770 = isVersus;
-    if ((DUEL->tutorial == 0 && ((SessionData *)D_8006E054)->npcDeckIndex[0] == -1) || isVersus == 0) {
-        ((SessionData *)D_8006E054)->npcDeckIndex[0] = -1;
-        ((SessionData *)D_8006E054)->npcDeckIndex[1] = -1;
+    if ((DUEL->tutorial == 0 && ((SessionData *)SESSION_DATA)->npcDeckIndex[0] == -1) || isVersus == 0) {
+        ((SessionData *)SESSION_DATA)->npcDeckIndex[0] = -1;
+        ((SessionData *)SESSION_DATA)->npcDeckIndex[1] = -1;
         if (isVersus != 0) {
             openMenu(&KAW_DECK_LIST_MENUS[0], &KAW_MATCH_SCREEN->lists[0].window, &KAW_MATCH_SCREEN->highlights[0], (Bytes4 *)-1);
             KAW_MATCH_SCREEN->lists[0].player = 0;
@@ -462,9 +462,9 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                 if (KAW_MATCH_SCREEN->unk504[0] != 0) {
                     if (PAD_STATES[0]->pressed & PAD_CROSS) {
                         i = KAW_MATCH_SCREEN->deckIds[0][KAW_DECK_LIST_MENUS[0].row];
-                        if (((SessionData *)D_8006E054)->unk1010[0x12] != 0) {
+                        if (((SessionData *)SESSION_DATA)->unk1010[0x12] != 0) {
                             if (i < 3) {
-                                if (((SessionData *)((u8 *)D_8006E054 + i))->unk1010[0x13] == 0) {
+                                if (((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] == 0) {
                                     playSoundEffect(0xA0);
                                     initDialog(KAW_MATCH_SCREEN->dialog, "This Deck can't be used in this Arena.", 0);
                                     runDialog(KAW_MATCH_SCREEN->dialog);
@@ -481,7 +481,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                             if (i < 3) {
                                 DECK_CHOICE(0) = i;
                             } else {
-                                ((SessionData *)D_8006E054)->npcDeckIndex[0] = i - 3;
+                                ((SessionData *)SESSION_DATA)->npcDeckIndex[0] = i - 3;
                                 DECK_CHOICE(0) = -1;
                             }
                             done |= 1;
@@ -502,8 +502,8 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                             i = 3;
                         }
                         if (i < 3) {
-                            if (((SessionData *)D_8006E054)->unk1010[0x12] != 0 &&
-                                ((SessionData *)((u8 *)D_8006E054 + i))->unk1010[0x13] == 0) {
+                            if (((SessionData *)SESSION_DATA)->unk1010[0x12] != 0 &&
+                                ((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] == 0) {
                                 playSoundEffect(0xA0);
                                 initDialog(KAW_MATCH_SCREEN->dialog, "This Deck can't be used in this Arena.", 0);
                                 runDialog(KAW_MATCH_SCREEN->dialog);
@@ -532,7 +532,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                         if (i < 3) {
                             DECK_CHOICE(1) = i;
                         } else {
-                            ((SessionData *)D_8006E054)->npcDeckIndex[1] = i - 3;
+                            ((SessionData *)SESSION_DATA)->npcDeckIndex[1] = i - 3;
                             DECK_CHOICE(1) = -1;
                         }
                         done |= 2;
@@ -570,14 +570,14 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
             }
         } while (done != 3);
         waitFrames(0x10);
-        if (((SessionData *)D_8006E054)->npcDeckIndex[0] == -1) {
+        if (((SessionData *)SESSION_DATA)->npcDeckIndex[0] == -1) {
             *(PlayerDeck *)DUEL_PLAYERS[0] = PLAYER_DATA(0).savedDecks[DECK_CHOICE(0)];
             linkDeckCardData(0, (PlayerDeck *)DUEL_PLAYERS[0]);
         } else {
             loadPresetDeckForPlayer(0);
         }
         if (isVersus == 0) {
-            if (((SessionData *)D_8006E054)->npcDeckIndex[1] == -1) {
+            if (((SessionData *)SESSION_DATA)->npcDeckIndex[1] == -1) {
                 *(PlayerDeck *)DUEL_PLAYERS[1] = PLAYER_DATA(1).savedDecks[DECK_CHOICE(1)];
                 linkDeckCardData(1, (PlayerDeck *)DUEL_PLAYERS[1]);
             } else {
@@ -591,7 +591,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     }
     removeFrameCallback((s32)KAW_renderDeckSelect);
     markDeckCardsSeen(0);
-    freeHeapBlock(((SessionData *)D_8006E054)->npcDeckFile);
+    freeHeapBlock(((SessionData *)SESSION_DATA)->npcDeckFile);
     waitFrames(0x1E);
     while (KAW_MATCH_LOADING != 0) {
         waitFrames(FRAME_INTERVAL);
@@ -724,8 +724,8 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     KAW_MATCH_SCREEN = allocTaskHeapBlock(sizeof(DeckScreen));
     waitForMusicChange();
     if (mode != 0) {
-        loadMusicTrack(0, ((u8 *)D_8006E054)[0x70], 0x7F);
-        loadMusicTrack(1, ((u8 *)D_8006E054)[0x71], 0x64);
+        loadMusicTrack(0, ((u8 *)SESSION_DATA)[0x70], 0x7F);
+        loadMusicTrack(1, ((u8 *)SESSION_DATA)[0x71], 0x64);
     } else {
         loadMusicTrack(0, rand() % 2 + 0x8F, 0x7F);
         loadMusicTrack(1, rand() % 2 + 0x93, 0x64);
@@ -734,7 +734,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     frame = 0;
     spawnTask(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
     if (mode != 0) {
-        k = func_800471F4(deckId);
+        k = getBaseDeckId(deckId);
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[k];
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->unk888[k];
     }

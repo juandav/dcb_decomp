@@ -140,8 +140,8 @@ void OPEN_runMemcardAccess(void) {
     do {
         waitFrames(FRAME_INTERVAL);
         player = OPEN_MEMCARD.card;
-        port = ((SessionView *)D_8006E054)->saves[player].slot;
-        slot = ((SessionView *)D_8006E054)->saves[player].file;
+        port = ((SessionView *)SESSION_DATA)->saves[player].slot;
+        slot = ((SessionView *)SESSION_DATA)->saves[player].file;
         status = 0;
         switch (OPEN_MEMCARD.state) {
         case 1:
@@ -239,7 +239,7 @@ void OPEN_runMemcardAccess(void) {
         case 23:
             if (OPEN_MEMCARD_MODE == 6 && port == 0) {
                 for (slot = 0; slot < 2; slot++) {
-                    status = OPEN_checkSaveIsCurrent(slot, slot, ((SessionView *)D_8006E054)->saves[slot].file);
+                    status = OPEN_checkSaveIsCurrent(slot, slot, ((SessionView *)SESSION_DATA)->saves[slot].file);
                     if (status != 3) {
                         break;
                     }
@@ -383,7 +383,7 @@ void OPEN_applyLoadedSave(s32 port, s32 slot, s32 file) {
     case 0xFF:
         src = OPEN_MEMCARD_BUFFER;
         ((PlayerProfile *)PLAYER_PROFILES)[port] = *src;
-        ((SessionView *)D_8006E054)->saves[port].playTime = src->playTime;
+        ((SessionView *)SESSION_DATA)->saves[port].playTime = src->playTime;
         break;
     }
 }
@@ -401,7 +401,7 @@ void OPEN_prepareSaveData(s32 port) {
     case 0:
         PLAYER_DATA(port).unkF = 1;
         PLAYER_DATA(port).unk28_13 = D_801F80C0;
-        ((SessionView *)D_8006E054)->saves[port].playTime = PLAYER_DATA(port).playTime;
+        ((SessionView *)SESSION_DATA)->saves[port].playTime = PLAYER_DATA(port).playTime;
         *buffer = PLAYER_DATA(port);
         return;
     case 2:
@@ -412,7 +412,7 @@ void OPEN_prepareSaveData(s32 port) {
             PLAYER_DATA(port).unkD++;
         }
     case 6:
-        ((SessionView *)D_8006E054)->saves[port].playTime = PLAYER_DATA(port).playTime;
+        ((SessionView *)SESSION_DATA)->saves[port].playTime = PLAYER_DATA(port).playTime;
         *buffer = PLAYER_DATA(port);
         break;
     }
@@ -528,7 +528,7 @@ void OPEN_buildSaveHeader(s32 port, s32 slot) {
     StoreImage(&clutRect, &clut);
     DrawSync(0);
     bzero((Scene3D *)title, 0x42);
-    time = ((SessionView *)D_8006E054)->saves[port].playTime;
+    time = ((SessionView *)SESSION_DATA)->saves[port].playTime;
     hour = time / 216000;
     minute = (time - hour * 216000) / 3600;
     if (hour >= 1000) {

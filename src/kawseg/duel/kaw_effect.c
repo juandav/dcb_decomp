@@ -185,7 +185,7 @@ void KAW_getCardPosition(s32 index, u8 *fx) {
     s32 base;
 
     if (index >= 0) {
-        base = (s32)D_801D833C;
+        base = (s32)CARD_ANIMS;
         anim = (CardAnim *)(index * 36 + base);
         EFFECT_PARAMS(fx)->px = anim->spr->pos.vx;
         EFFECT_PARAMS(fx)->py = anim->spr->pos.vy;

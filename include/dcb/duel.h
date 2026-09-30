@@ -4,7 +4,7 @@
 #include "game.h"
 
 #define CUR_CARD (((CardCursor *)DUEL->cursor)->id)
-#define CHOICE (((Window *)&D_801D8278)->choice)
+#define CHOICE (((Window *)&DUEL_DIALOG)->choice)
 #define ME DUEL->turnPlayer
 #define OPP ((s8)(DUEL->turnPlayer ^ 1))
 

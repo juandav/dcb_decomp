@@ -97,10 +97,10 @@ void SAI_unlockArmorsFromFlags(s32 *regs) {
     s32 slot;
     s32 first;
 
-    ((SaisegSessionData *)D_8006E054)->armorFlags = 0;
+    ((SaisegSessionData *)SESSION_DATA)->armorFlags = 0;
     for (slot = 0; slot < 13; slot++) {
         if (regs[ids[slot]] != 0) {
-            ((SaisegSessionData *)D_8006E054)->armorFlags |= 1 << slot;
+            ((SaisegSessionData *)SESSION_DATA)->armorFlags |= 1 << slot;
         }
     }
     for (slot = 0; slot < 3; slot++) {
