@@ -11,6 +11,7 @@
 #include "dcb/scroll_bg.h"
 #include "dcb/loader.h"
 #include "dcb/duel_launch.h"
+#include "dcb/pad.h"
 
 extern char *STR_TAMER_RANKS[8];
 extern char *STR_COLLECTOR_RANKS[8];
@@ -59,7 +60,7 @@ char *END_EPITHETS[36] = {
     "*c6Jamming King",
 };
 
-/*  */
+/* the specialty icons, by specialty ("Rank 1ST *a0 Card") */
 char *END_SPECIALTY_ICONS[5] = {
     "*a0",
     "*a1",
@@ -68,7 +69,7 @@ char *END_SPECIALTY_ICONS[5] = {
     "*a4",
 };
 
-/*  */
+/* the ranks of the specialty table */
 char *END_RANK_ORDINALS[5] = {
     "1ST",
     "2ND",
@@ -77,7 +78,7 @@ char *END_RANK_ORDINALS[5] = {
     "5TH",
 };
 
-/*  */
+/* the end-of-duel bonuses, as PlayerProfile.bonusCounts counts them */
 char *END_BONUS_NAMES[32] = {
     "All *b0 Attack Win",
     "All *b1 Attack Win",
@@ -113,12 +114,14 @@ char *END_BONUS_NAMES[32] = {
     "Super Bonus",
 };
 
+/* per specialty, [5] for all the cards: filled by END_computeEpithet */
 s32 END_SPECIALTY_WINS[8] = { 0 };
 s32 END_SPECIALTY_LOSSES[8] = { 0 };
 s32 END_SPECIALTY_CARDS[8] = { 0 };
 s32 END_SPECIALTY_ORDER[6] = { 0 };
 u8 *END_CARD_ART = 0;
 s32 D_801E0D68 = 0;
+/* where each section of the records starts, in the list the screen scrolls */
 s32 END_SECTION_OFFSETS[12] = { 0 };
 
 s32 END_computeEpithet(void) {
@@ -303,7 +306,14 @@ void END_drawScrollHelp(UiWindow *window) {
 
 #define PROFILE ((PlayerProfile *)PLAYER_PROFILES)
 
-void END_runPlayerRecords(s32 arg0, s32 arg1) {
+/*
+ * The player records screen: the cards owned, the wins and losses per event
+ * deck and per Com, the bonuses, trades, fusions, attack rates, specialties,
+ * results and titles, and the epithet END_computeEpithet picks. mode 1 is
+ * the ending's (it scrolls by itself until Cross), 2 the one browsed by hand
+ * (Start quits). parentTask is woken at the end.
+ */
+void END_runPlayerRecords(s32 parentTask, s32 mode) {
     char buf[0x48];
     u16 comList[0x8E];
     u16 deckList[0x9F];
@@ -344,7 +354,7 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
     playMusic(0, 0x32, 0x7F);
     scroll = 40;
     epithet = END_computeEpithet();
-    if (arg1 == 1) {
+    if (mode == 1) {
         scroll = 240;
     }
     for (i = 0; i < 0x8E; i++) {
@@ -386,24 +396,24 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
     rect.w = 0x12C;
     rect.h = 0x1C;
     openWindow(&window, &rect, -1, (s16 *)-1, 0, 0x31, 0x80, 0xC);
-    if (arg1 == 2) {
+    if (mode == 2) {
         playMenuSound(3);
     }
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (arg1 == 1) {
+        if (mode == 1) {
             scroll--;
         } else {
             drawWindow(&window, END_drawScrollHelp, 0);
-            if (PAD_STATES[0]->held & 4) {
+            if (PAD_STATES[0]->held & PAD_L1) {
                 scroll += 40;
-            } else if (PAD_STATES[0]->held & 8) {
+            } else if (PAD_STATES[0]->held & PAD_R1) {
                 scroll -= 40;
-            } else if (PAD_STATES[0]->held & 0x1000) {
+            } else if (PAD_STATES[0]->held & PAD_UP) {
                 scroll += 5;
-            } else if (PAD_STATES[0]->held & 0x4000) {
+            } else if (PAD_STATES[0]->held & PAD_DOWN) {
                 scroll -= 4;
-            } else if (PAD_STATES[0]->repeat & 1) {
+            } else if (PAD_STATES[0]->repeat & PAD_L2) {
                 for (i = 1; i < 11; i++) {
                     if (-END_SECTION_OFFSETS[i] < scroll) {
                         if (scroll != 40) {
@@ -413,7 +423,7 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
                         break;
                     }
                 }
-            } else if (PAD_STATES[0]->repeat & 2) {
+            } else if (PAD_STATES[0]->repeat & PAD_R2) {
                 for (i = 1; i < 11; i++) {
                     if (-END_SECTION_OFFSETS[i] + 40 < scroll) {
                         if (scroll != 200 - END_SECTION_OFFSETS[11]) {
@@ -424,7 +434,7 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
                     }
                 }
             }
-            if (PAD_STATES[0]->pressed & 0x800) {
+            if (PAD_STATES[0]->pressed & PAD_START) {
                 playMenuSound(4);
                 break;
             }
@@ -646,18 +656,18 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
             drawText((0x140 - measureText(buf)) / 2, scroll + base, (s32)buf, 7, 0);
         }
 
-        if (arg1 == 1) {
+        if (mode == 1) {
             base = END_SECTION_OFFSETS[11];
             if (scroll + base > -0x3C && scroll + base < 0xF0) {
                 sprintf(buf, "Push *b2 Button to Quit", END_EPITHETS[epithet]);
                 drawText((0x140 - measureText(buf)) / 2, scroll + base, (s32)buf, 7, 0);
-                if (PAD_STATES[0]->pressed & 0x40) {
+                if (PAD_STATES[0]->pressed & PAD_CROSS) {
                     break;
                 }
             }
         }
     }
-    if (arg1 == 2) {
+    if (mode == 2) {
         animateWindowTo(&window, (Rect16 *)-1);
         for (i = 0; i < 16; i++) {
             waitFrames(FRAME_INTERVAL);
@@ -669,6 +679,6 @@ void END_runPlayerRecords(s32 arg0, s32 arg1) {
     freeHeapBlock(END_CARD_ART);
     freeHeapBlock(*(void **)SESSION_DATA);
     stopMusic();
-    resumeTask(arg0);
+    resumeTask(parentTask);
 }
 
