@@ -6168,6 +6168,36 @@ void func_801F329C(void) {
     drawWindow(&D_801F5410, func_801F2F04, 0);
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F32CC);
+extern u8 D_801DFA58[];
+
+void func_801F32CC(s32 ability, s32 task) {
+    Rect16 unused;
+    Rect16 rect;
+    s32 savedAbility;
+
+    savedAbility = ability;
+    rect.x = 0x28;
+    rect.y = 0x2C;
+    rect.w = 0xF0;
+    rect.h = 0xA8;
+    openWindow(&D_801F5410, &rect, -1, (s16 *)-1, 10, 0x16, 0x80, 12);
+    D_801F5410.label = (s32)D_801DFA58;
+    for (ability = 0; ability < 16; ability++) {
+    }
+    D_801F5458[savedAbility / 8] |= 1 << (savedAbility % 8);
+    grantPartnerAbility(0, savedAbility);
+    playSoundEffect(3);
+    addFrameCallback((s32)func_801F329C);
+    do {
+        func_80014C08(1);
+    } while (!(PAD_STATES[0]->pressed & 0x40));
+    playSoundEffect(4);
+    animateWindowTo(&D_801F5410, (Rect16 *)-1);
+    func_80014C08(20);
+    removeFrameCallback((s32)func_801F329C);
+    func_80014C08(1);
+    D_801F4696 = 0;
+    func_80014A48(task);
+}
 
 INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DFA58);
