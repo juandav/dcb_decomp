@@ -878,12 +878,13 @@ typedef struct {
 typedef struct {
     /* 0x0 */ s16 unk0;
     /* 0x2 */ s16 id;
+    /* 0x4 */ struct CardSprite *sprite;
 } CardCursor;
 typedef struct {
     /* 0x00 */ u8 unk0[0xA5];
     /* 0xA5 */ s8 choice;
 } Window;
-typedef struct {
+typedef struct CardSprite {
     /* 0x00 */ u8 rgbc[4];
     /* 0x04 */ u8 fade[4];
     /* 0x08 */ u8 from[3];
@@ -917,7 +918,9 @@ typedef struct {
     /* 0xB4 */ u8 unkB4[0x24];
 } Board;
 typedef struct {
-    /* 0x00 */ u8 unk0[0x28];
+    /* 0x00 */ u8 unk0[0x10];
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ u8 unk12[0x16];
     /* 0x28 */ s16 rx;
     /* 0x2A */ s16 ry;
     /* 0x2C */ s16 rz;

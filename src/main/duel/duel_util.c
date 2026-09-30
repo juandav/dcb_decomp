@@ -29,11 +29,11 @@
 void waitDuelFrames(s32 frames) {
     while (frames > 0) {
         func_80014C08(FRAME_INTERVAL);
-        if (((s8 *)D_801D8340)[0x823] == 0) {
+        if (DUEL->unk823 == 0) {
             frames--;
         }
-        if (((s8 *)D_801D8340)[0x815] != 0) {
-            ((s8 *)D_801D8340)[0x815] = 0;
+        if (DUEL->stopTurnLoop != 0) {
+            DUEL->stopTurnLoop = 0;
             func_80014A90();
             return;
         }
@@ -41,19 +41,19 @@ void waitDuelFrames(s32 frames) {
 }
 
 s32 func_80033D9C(void) {
-    void *pad;
+    PadState *pad;
 
-    if ((*(s8 *)((s8 *)D_801D8340 + 0x815)) != 0) {
-        (*(s8 *)((s8 *)D_801D8340 + 0x815)) = 0;
+    if (DUEL->stopTurnLoop != 0) {
+        DUEL->stopTurnLoop = 0;
         func_80014A90();
         return -1;
     }
-    if ((((u32) (*(u32 *)((s8 *)(DUEL_PLAYERS[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178)) >> 0x11) & 3) == 1) {
-        pad = *PAD_STATES;
+    if (PLAYER(DUEL->turnPlayer)->controller == 1) {
+        pad = PAD_STATES[0];
     } else {
-        pad = PAD_STATES[(*(s8 *)((s8 *)D_801D8340 + 0x817))];
+        pad = PAD_STATES[DUEL->turnPlayer];
     }
-    if (!((*(u16 *)((s8 *)pad + 0xA)) & 0x40)) {
+    if (!(pad->pressed & 0x40)) {
         return 0;
     }
     playSoundEffect(0xA0);
@@ -63,22 +63,23 @@ s32 func_80033D9C(void) {
 void waitForCpuDecision(void) {
     s32 waited;
 
-    (*(s32 *)((s8 *)D_801D8340 + 0x7FC)) = 0;
+    DUEL->cpuWaitFrames = 0;
     while (1) {
-        if ((*(s8 *)((s8 *)D_801D8340 + 0x815)) != 0) {
-            (*(s8 *)((s8 *)D_801D8340 + 0x815)) = 0;
+        if (DUEL->stopTurnLoop != 0) {
+            DUEL->stopTurnLoop = 0;
             func_80014A90();
             return;
         }
         func_80014C08(FRAME_INTERVAL);
-        if ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) != 0) {
-            (*(s8 *)((s8 *)D_801D8340 + 0x816)) = 0;
+        if (DUEL->tutorial != 0) {
+            DUEL->cpuRequest = 0;
             return;
         }
-        if ((*(s8 *)((s8 *)D_801D8340 + 0x816)) == 0) {
+        if (DUEL->cpuRequest == 0) {
             return;
         }
-        waited = (*(s32 *)((s8 *)D_801D8340 + 0x7FC))++;
+        /* give up once cpuWaitFrames passes 240 */
+        waited = DUEL->cpuWaitFrames++;
         if (waited >= 0xF1) {
             return;
         }
@@ -94,6 +95,8 @@ void renderAttackChoiceIcons(void) {
     if (ATTACK_ICON_TIMER != 0) {
         ATTACK_ICON_TIMER--;
     }
+    /* each player's three attack icons move in from their origins; once the
+       timer runs out only the chosen attack is left */
     for (i = 0; i < 2; i++) {
         x = 0x80;
         y = i * -125 + 0x99;
@@ -101,7 +104,7 @@ void renderAttackChoiceIcons(void) {
             if (isSpritePoolFull() != 0) {
                 return;
             }
-            if (ATTACK_ICON_TIMER == 0 && ((*(u32 *)(DUEL_PLAYERS[i] + 0x178) >> 2) & 3) != j) {
+            if (ATTACK_ICON_TIMER == 0 && PLAYER(i)->attackChoice != j) {
                 continue;
             }
             CUR_SPRT->sp.x0 = x + (x - ATTACK_ICON_ORIGIN_X[j]) * ATTACK_ICON_TIMER / 32;
@@ -125,11 +128,11 @@ void renderAttackChoiceIcons(void) {
 
 void runDuelMessageWindow(void) {
     s32 padIndex;
-    u32 playerFlags;
+    Player *player;
 
-    playerFlags = (*(u32 *)((s8 *)(DUEL_PLAYERS[(*(s8 *)((s8 *)D_801D8340 + 0x817))]) + 0x178));
-    padIndex = (playerFlags >> 0x11) & 1;
-    if (((playerFlags >> 0x11) & 3) == 1) {
+    player = PLAYER(DUEL->turnPlayer);
+    padIndex = player->controller & 1;
+    if (player->controller == 1) {
         padIndex = 0;
     }
     runDialogForPad(&D_801D8278, padIndex);

@@ -3,7 +3,14 @@
 
 #include "game.h"
 
-void initVramSprite(void *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode);
+/* a draw mode (with a texture window) and a sprite, merged into one packet */
+typedef struct {
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u32 code[2];
+    /* 0x0C */ SPRT sp;
+} VramSprite;
+
+void initVramSprite(VramSprite *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode);
 void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color);
 void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blendMode);
 void initPolyFT4Pair(POLY_FT4 *poly, POLY_FT4 *otherPoly, u8 *color, s32 tpage, s32 clut, Rect16 *uvRect, Rect16 *xyRect,

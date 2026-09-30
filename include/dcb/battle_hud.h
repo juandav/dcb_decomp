@@ -4,6 +4,7 @@
 #include "game.h"
 
 #define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
+#define CARD_ANIM(c) ((CardAnim *)(D_801D833C + (c) * 36))
 #define ANIM_SAVE(a)                   \
     (a)->x = (a)->spr->pos.vx;         \
     (a)->y = (a)->spr->pos.vy;         \

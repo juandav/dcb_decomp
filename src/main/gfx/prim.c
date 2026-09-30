@@ -9,35 +9,37 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
-void initVramSprite(void *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode) {
+void initVramSprite(VramSprite *packet, s16 x, s16 y, s16 clut, s32 colorMode, s32 vramX, s32 vramY, s32 width, s32 height, s32 blendMode) {
     s32 u;
     s32 blend;
 
-    (*(s8 *)((s8 *)packet + 0xF)) = 4;
-    (*(u8 *)((s8 *)packet + 0x13)) = 0x64;
-    (*(s16 *)((s8 *)packet + 0x1A)) = clut;
-    (*(s16 *)((s8 *)packet + 0x1C)) = width;
-    (*(s16 *)((s8 *)packet + 0x1E)) = height;
-    (*(s16 *)((s8 *)packet + 0x14)) = x;
-    (*(s16 *)((s8 *)packet + 0x16)) = y;
+    setlen(&packet->sp, 4);
+    packet->sp.code = 0x64; /* SPRT */
+    packet->sp.clut = clut;
+    packet->sp.w = width;
+    packet->sp.h = height;
+    packet->sp.x0 = x;
+    packet->sp.y0 = y;
+    /* u in texels: a texture page is 64 VRAM pixels wide, 128 texels at 8 bits and 256 at 4 */
     if (colorMode != 0) {
         u = (vramX % 64) * 2;
     } else {
         u = (vramX % 64) * 4;
     }
-    (*(u8 *)((s8 *)packet + 0x18)) = u;
-    (*(u8 *)((s8 *)packet + 0x19)) = vramY;
-    (*(u8 *)((s8 *)packet + 0x10)) = 0x80;
-    (*(u8 *)((s8 *)packet + 0x11)) = 0x80;
-    (*(u8 *)((s8 *)packet + 0x12)) = 0x80;
+    packet->sp.u0 = u;
+    packet->sp.v0 = vramY;
+    packet->sp.r0 = 0x80;
+    packet->sp.g0 = 0x80;
+    packet->sp.b0 = 0x80;
     if (blendMode >= 0) {
-        (*(u8 *)((s8 *)packet + 0x13)) |= 2;
+        packet->sp.code |= 2; /* semi-transparent */
         blend = blendMode;
     } else {
         blend = 0;
     }
+    /* the texture page, as getTPage(colorMode, blend, vramX, vramY) */
     SetDrawMode(packet, 0, 0, ((colorMode & 3) << 7) | ((blend & 3) << 5) | ((vramY & 0x100) >> 4) | ((vramX & 0x3C0) >> 6) | ((vramY & 0x200) * 4), &GRAPHICS);
-    MargePrim(packet, (s8 *)packet + 0xC);
+    MargePrim(packet, &packet->sp);
 }
 
 void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
@@ -70,6 +72,7 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
     for (x -= 4; x >= 0; x -= 4) {
         *cursor++ = color;
     }
+    /* upload the rect in bands of as many rows as the buffer holds */
     rect.y = y;
     for (i = 0; i < h; i += rect.h, rect.y += rect.h) {
         rect.h = (h - i < rect.h) ? h - i : rect.h;
