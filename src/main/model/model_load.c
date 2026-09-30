@@ -193,7 +193,7 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
         }
         model->dataSize = LOADED_FILE_SIZE;
     } else {
-        model->dataSize = ((s32 *)data)[-1];
+        model->dataSize = ((Chunk *)data)[-1].size; /* the header before the chunk */
     }
     model->data = data;
     if (vramSlot != 0) {
@@ -227,6 +227,8 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     }
 skip:
     StoreImage2(&model->crect, (u32 *)model->clut);
+    /* the OMD header: the TIM's name, the bone count, each bone's parent and
+       position, then the objects */
     data += 0x10;
     model->nobj = *(u16 *)data;
     data += 4;
