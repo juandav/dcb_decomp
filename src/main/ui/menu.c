@@ -207,7 +207,3 @@ s32 updateMenuCursor(Menu *menu) {
     drawCursorHighlight(highlight, win->z);
     return menu->col + menu->row * menu->ncols;
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", PATH_DRV_SUFFIX);
-
-INCLUDE_RODATA("asm/main/nonmatchings/ui/menu", STR_TOO_MANY_WINDOWS);

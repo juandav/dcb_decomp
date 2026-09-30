@@ -638,7 +638,8 @@ void drawHorizontalScrollbar(UiWindow *w, s32 z) {
 
 int isWindowPrimPoolFull(void) {
     if (WINDOW_PRIM_CURSOR == CURRENT_FRAME_BUFFER->windowPrimPool + WINDOW_PRIM_POOL_SIZE * 0x294) {
-        printf(STR_TOO_MANY_WINDOWS);
+        /* "ウインドウ表示数が多すぎます" (too many windows on screen) */
+        printf("\x83" "E\x83" "C\x83\x93\x83h\x83" "E\x95\\\x8E\xA6\x90\x94\x82\xAA\x91\xBD\x82\xB7\x82\xAC\x82\xDC\x82\xB7\n");
         return -1;
     }
     return 0;
