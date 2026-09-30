@@ -6,189 +6,172 @@
 #include "dcb/task.h"
 #include "dcb/sound_play.h"
 
-void applyRootMotion(u8 *model) {
-    u8 *bones;
+/* Moves the model by the root's z translation, turned by the model's rotation */
+void applyRootMotion(Model *model) {
+    BoneKeys *root;
     SVECTOR offset;
     MATRIX mat;
     VECTOR worldOffset;
     s32 flag;
 
-    bones = model + 0xD80;
-    if (*(s16 *)(bones + 0x52) == 0) {
+    root = model->keys;
+    if (ANIM_CHAN_INT(root->pos[2]) == 0) {
         return;
     }
     offset.vy = 0;
     offset.vx = 0;
-    offset.vz = *(s16 *)(bones + 0x52);
+    offset.vz = ANIM_CHAN_INT(root->pos[2]);
     PushMatrix();
     mat.t[2] = 0;
     mat.t[1] = 0;
     mat.t[0] = 0;
     gte_SetTransMatrix(&mat);
-    RotMatrix(model + 0xA78, &mat);
+    RotMatrix(&model->rot, &mat);
     gte_SetRotMatrix(&mat);
     gte_ldv0(&offset);
     gte_rtv0tr();
     gte_stlvnl(&worldOffset);
     gte_stflg(&flag);
-    *(s16 *)(bones + 0x52) = 0;
-    *(s32 *)(model + 8) += worldOffset.vx;
-    *(s32 *)(model + 0xC) += worldOffset.vy;
-    *(s32 *)(model + 0x10) += worldOffset.vz;
+    ANIM_CHAN_INT(root->pos[2]) = 0;
+    model->pos.vx += worldOffset.vx;
+    model->pos.vy += worldOffset.vy;
+    model->pos.vz += worldOffset.vz;
     PopMatrix();
 }
 
-void setupRotationCurve(s32 *chan, s32 span, s32 nextSpan, s32 halfSpan, s32 key, s32 nextKey, s32 afterKey) {
+/*
+ * Eases a channel from `from` to `to` over `length` frames: it arrives with
+ * the mean of this key's slope and the next one's (towards `next`), and the
+ * velocity changes at a constant rate in each half of the key.
+ */
+void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next) {
     s32 start;
     s32 end;
     s32 slope;
     s32 endVelocity;
     s32 midVelocity;
 
-    start = key << 0x14;
-    chan[0] = start;
-    end = nextKey << 0x14;
+    start = from << 20;
+    chan->value = start;
+    end = to << 20;
     midVelocity = end - start;
-    slope = midVelocity / span;
-    endVelocity = (((afterKey - nextKey) << 0x14) / nextSpan + slope) / 2;
-    midVelocity = slope * 2 - (endVelocity + chan[1]) / 2;
-    chan[2] = (midVelocity - chan[1]) / halfSpan;
-    chan[3] = (endVelocity - midVelocity) / halfSpan;
+    slope = midVelocity / length;
+    endVelocity = (((next - to) << 20) / nextLength + slope) / 2;
+    midVelocity = slope * 2 - (endVelocity + chan->velocity) / 2;
+    chan->accel0 = (midVelocity - chan->velocity) / halfLength;
+    chan->accel1 = (endVelocity - midVelocity) / halfLength;
 }
 
-void setupTranslationCurve(s32 *chan, s32 span, s32 nextSpan, s32 halfSpan, s32 key, s32 nextKey, s32 afterKey) {
+/* setupRotationCurve for the channels kept << 16 */
+void setupTranslationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next) {
     s32 endVelocity;
     s32 velocity;
 
-    velocity = key << 0x10;
-    chan[0] = velocity;
-    velocity = ((nextKey << 0x10) - velocity) / span;
-    endVelocity = (((afterKey - nextKey) << 0x10) / nextSpan + velocity) / 2;
-    velocity = velocity * 2 - (endVelocity + chan[1]) / 2;
-    chan[2] = (velocity - chan[1]) / halfSpan;
-    chan[3] = (endVelocity - velocity) / halfSpan;
+    velocity = from << 16;
+    chan->value = velocity;
+    velocity = ((to << 16) - velocity) / length;
+    endVelocity = (((next - to) << 16) / nextLength + velocity) / 2;
+    velocity = velocity * 2 - (endVelocity + chan->velocity) / 2;
+    chan->accel0 = (velocity - chan->velocity) / halfLength;
+    chan->accel1 = (endVelocity - velocity) / halfLength;
 }
 
-void accelerateModelBones(u8 *model) {
-    BoneAnim *bone;
+/* Steps every bone's velocities: accel0 in the first half of the key, accel1 after */
+void accelerateModelBones(Model *model) {
+    BoneKeys *bone;
     s32 i;
-    s32 *animState;
+    ModelAnimState *anim;
 
-    bone = (BoneAnim *)(model + 0xD80);
-    animState = (s32 *)(model + 0x2200);
-    animState[4]--;
+    bone = model->keys;
+    anim = &model->anim;
+    anim->halfTimer--;
     i = 0;
-    if (*(s32 *)(model + 0x26D8) != 0) {
-        i = *(s16 *)(model + 4);
+    if (model->rootOnly != 0) {
+        /* only the entry after the last bone */
+        i = model->nobj;
         bone += i;
     }
-    for (; i < *(s16 *)(model + 4) + 1; bone++, i++) {
-        if (animState[4] >= 0) {
-                bone->ch[0].val += bone->ch[0].d0;
-                bone->ch[1].val += bone->ch[1].d0;
-                bone->ch[2].val += bone->ch[2].d0;
-                bone->ch[3].val += bone->ch[3].d0;
-                bone->ch[4].val += bone->ch[4].d0;
-                bone->ch[5].val += bone->ch[5].d0;
-                bone->ch[6].val += bone->ch[6].d0;
-                bone->ch[7].val += bone->ch[7].d0;
-                bone->ch[8].val += bone->ch[8].d0;
+    for (; i < model->nobj + 1; bone++, i++) {
+        if (anim->halfTimer >= 0) {
+            bone->rot[0].velocity += bone->rot[0].accel0;
+            bone->rot[1].velocity += bone->rot[1].accel0;
+            bone->rot[2].velocity += bone->rot[2].accel0;
+            bone->pos[0].velocity += bone->pos[0].accel0;
+            bone->pos[1].velocity += bone->pos[1].accel0;
+            bone->pos[2].velocity += bone->pos[2].accel0;
+            bone->scale[0].velocity += bone->scale[0].accel0;
+            bone->scale[1].velocity += bone->scale[1].accel0;
+            bone->scale[2].velocity += bone->scale[2].accel0;
         } else {
-                bone->ch[0].val += bone->ch[0].d1;
-                bone->ch[1].val += bone->ch[1].d1;
-                bone->ch[2].val += bone->ch[2].d1;
-                bone->ch[3].val += bone->ch[3].d1;
-                bone->ch[4].val += bone->ch[4].d1;
-                bone->ch[5].val += bone->ch[5].d1;
-                bone->ch[6].val += bone->ch[6].d1;
-                bone->ch[7].val += bone->ch[7].d1;
-                bone->ch[8].val += bone->ch[8].d1;
+            bone->rot[0].velocity += bone->rot[0].accel1;
+            bone->rot[1].velocity += bone->rot[1].accel1;
+            bone->rot[2].velocity += bone->rot[2].accel1;
+            bone->pos[0].velocity += bone->pos[0].accel1;
+            bone->pos[1].velocity += bone->pos[1].accel1;
+            bone->pos[2].velocity += bone->pos[2].accel1;
+            bone->scale[0].velocity += bone->scale[0].accel1;
+            bone->scale[1].velocity += bone->scale[1].accel1;
+            bone->scale[2].velocity += bone->scale[2].accel1;
         }
     }
 }
 
-s32 updateModelBoneMatrices(void *model) {
-    s32 scaleOffset;
-    s32 lastValue;
-    s32 boneIndex;
-    s32 angleX;
-    s32 angleY;
-    s32 angleZ;
-    void *matrix;
-    void *scaleEntry;
-    void *bone;
-    void *coord;
-    void *rot;
+/* Builds each bone's local matrix from its channels, then moves the channels on a frame */
+s32 updateModelBoneMatrices(Model *model) {
+    s32 i;
+    MATRIX *matrix;
+    BoneKeys *bone;
+    GsCOORDINATE2 *coord;
+    SVECTOR *rot;
 
-    bone = model + 0xD80;
-    coord = model + 0x78;
-    rot = model + 0xA80;
-    boneIndex = 0;
-    if ((*(s16 *)((s8 *)model + 4)) > 0) {
-        do {
-            angleX = (*(s32 *)((s8 *)bone + 0));
-            if (angleX < 0) {
-                angleX += 0xFFFFF;
-            }
-            (*(s16 *)((s8 *)rot + 0)) = (s16) (angleX >> 0x14);
-            angleY = (*(s32 *)((s8 *)bone + 0x10));
-            if (angleY < 0) {
-                angleY += 0xFFFFF;
-            }
-            (*(s16 *)((s8 *)rot + 2)) = (s16) (angleY >> 0x14);
-            angleZ = (*(s32 *)((s8 *)bone + 0x20));
-            if (angleZ < 0) {
-                angleZ += 0xFFFFF;
-            }
-            (*(s16 *)((s8 *)rot + 4)) = (s16) (angleZ >> 0x14);
-            (*(s32 *)((s8 *)coord + 0x18)) = (s32) ((*(s16 *)((s8 *)bone + 0x32)) + (*(s16 *)((s8 *)((Unk1F80 *)model)->unk1F80[boneIndex] + 0)));
-            (*(s32 *)((s8 *)coord + 0x1C)) = (s32) ((*(s16 *)((s8 *)bone + 0x42)) + (*(s16 *)((s8 *)((Unk1F80 *)model)->unk1F80[boneIndex] + 2)));
-            (*(s32 *)((s8 *)coord + 0x20)) = (s32) ((*(s16 *)((s8 *)bone + 0x52)) + (*(s16 *)((s8 *)((Unk1F80 *)model)->unk1F80[boneIndex] + 4)));
-            scaleOffset = boneIndex * 0x10;
-            scaleEntry = model + scaleOffset;
-            (*(s32 *)((s8 *)scaleEntry + 0x2000)) = (s32) (*(s16 *)((s8 *)bone + 0x62));
-            (*(s32 *)((s8 *)scaleEntry + 0x2004)) = (s32) (*(s16 *)((s8 *)bone + 0x72));
-            (*(s32 *)((s8 *)scaleEntry + 0x2008)) = (s32) (*(s16 *)((s8 *)bone + 0x82));
-            matrix = coord + 4;
-            RotMatrixYXZ(rot, matrix);
-            (*(s32 *)((s8 *)coord + 0)) = 0;
-            ScaleMatrix(matrix, model + (scaleOffset + 0x2000));
-            (*(s32 *)((s8 *)bone + 0)) = (s32) ((*(s32 *)((s8 *)bone + 0)) + (*(s32 *)((s8 *)bone + 4)));
-            (*(s32 *)((s8 *)bone + 0x10)) = (s32) ((*(s32 *)((s8 *)bone + 0x10)) + (*(s32 *)((s8 *)bone + 0x14)));
-            (*(s32 *)((s8 *)bone + 0x20)) = (s32) ((*(s32 *)((s8 *)bone + 0x20)) + (*(s32 *)((s8 *)bone + 0x24)));
-            (*(s32 *)((s8 *)bone + 0x30)) = (s32) ((*(s32 *)((s8 *)bone + 0x30)) + (*(s32 *)((s8 *)bone + 0x34)));
-            (*(s32 *)((s8 *)bone + 0x40)) = (s32) ((*(s32 *)((s8 *)bone + 0x40)) + (*(s32 *)((s8 *)bone + 0x44)));
-            (*(s32 *)((s8 *)bone + 0x50)) = (s32) ((*(s32 *)((s8 *)bone + 0x50)) + (*(s32 *)((s8 *)bone + 0x54)));
-            (*(s32 *)((s8 *)bone + 0x60)) = (s32) ((*(s32 *)((s8 *)bone + 0x60)) + (*(s32 *)((s8 *)bone + 0x64)));
-            (*(s32 *)((s8 *)bone + 0x70)) = (s32) ((*(s32 *)((s8 *)bone + 0x70)) + (*(s32 *)((s8 *)bone + 0x74)));
-            (*(s32 *)((s8 *)bone + 0x80)) = (s32) ((*(s32 *)((s8 *)bone + 0x80)) + (*(s32 *)((s8 *)bone + 0x84)));
-            boneIndex += 1;
-            bone += 0x90;
-            coord += 0x50;
-            rot += 8;
-        } while (boneIndex < (*(s16 *)((s8 *)model + 4)));
+    bone = model->keys;
+    coord = model->coord;
+    rot = model->rots;
+    for (i = 0; i < model->nobj; i++, bone++, coord++, rot++) {
+        rot->vx = bone->rot[0].value / 0x100000;
+        rot->vy = bone->rot[1].value / 0x100000;
+        rot->vz = bone->rot[2].value / 0x100000;
+        coord->coord.t[0] = ANIM_CHAN_INT(bone->pos[0]) + model->bonepos[i][0];
+        coord->coord.t[1] = ANIM_CHAN_INT(bone->pos[1]) + model->bonepos[i][1];
+        coord->coord.t[2] = ANIM_CHAN_INT(bone->pos[2]) + model->bonepos[i][2];
+        model->boneScale[i].vx = ANIM_CHAN_INT(bone->scale[0]);
+        model->boneScale[i].vy = ANIM_CHAN_INT(bone->scale[1]);
+        model->boneScale[i].vz = ANIM_CHAN_INT(bone->scale[2]);
+        matrix = &coord->coord;
+        RotMatrixYXZ(rot, matrix);
+        coord->flg = 0;
+        ScaleMatrix(matrix, &model->boneScale[i]);
+        bone->rot[0].value += bone->rot[0].velocity;
+        bone->rot[1].value += bone->rot[1].velocity;
+        bone->rot[2].value += bone->rot[2].velocity;
+        bone->pos[0].value += bone->pos[0].velocity;
+        bone->pos[1].value += bone->pos[1].velocity;
+        bone->pos[2].value += bone->pos[2].velocity;
+        bone->scale[0].value += bone->scale[0].velocity;
+        bone->scale[1].value += bone->scale[1].velocity;
+        bone->scale[2].value += bone->scale[2].velocity;
     }
-    (*(s32 *)((s8 *)bone + 0)) = (s32) ((*(s32 *)((s8 *)bone + 0)) + (*(s32 *)((s8 *)bone + 4)));
-    (*(s32 *)((s8 *)bone + 0x10)) = (s32) ((*(s32 *)((s8 *)bone + 0x10)) + (*(s32 *)((s8 *)bone + 0x14)));
-    (*(s32 *)((s8 *)bone + 0x20)) = (s32) ((*(s32 *)((s8 *)bone + 0x20)) + (*(s32 *)((s8 *)bone + 0x24)));
-    (*(s32 *)((s8 *)bone + 0x30)) = (s32) ((*(s32 *)((s8 *)bone + 0x30)) + (*(s32 *)((s8 *)bone + 0x34)));
-    (*(s32 *)((s8 *)bone + 0x40)) = (s32) ((*(s32 *)((s8 *)bone + 0x40)) + (*(s32 *)((s8 *)bone + 0x44)));
-    (*(s32 *)((s8 *)bone + 0x50)) = (s32) ((*(s32 *)((s8 *)bone + 0x50)) + (*(s32 *)((s8 *)bone + 0x54)));
-    (*(s32 *)((s8 *)bone + 0x60)) = (s32) ((*(s32 *)((s8 *)bone + 0x60)) + (*(s32 *)((s8 *)bone + 0x64)));
-    (*(s32 *)((s8 *)bone + 0x70)) = (s32) ((*(s32 *)((s8 *)bone + 0x70)) + (*(s32 *)((s8 *)bone + 0x74)));
-    lastValue = (*(s32 *)((s8 *)bone + 0x80)) + (*(s32 *)((s8 *)bone + 0x84));
-    (*(s32 *)((s8 *)bone + 0x80)) = lastValue;
-    return lastValue;
+    /* the entry after the last bone has no matrix */
+    bone->rot[0].value += bone->rot[0].velocity;
+    bone->rot[1].value += bone->rot[1].velocity;
+    bone->rot[2].value += bone->rot[2].velocity;
+    bone->pos[0].value += bone->pos[0].velocity;
+    bone->pos[1].value += bone->pos[1].velocity;
+    bone->pos[2].value += bone->pos[2].velocity;
+    bone->scale[0].value += bone->scale[0].velocity;
+    bone->scale[1].value += bone->scale[1].velocity;
+    return bone->scale[2].value += bone->scale[2].velocity;
 }
 
+/* A bone in a key of an animation clip */
 typedef struct {
-    /* 0x00 */ s16 px;
-    /* 0x02 */ s16 py;
-    /* 0x04 */ s16 pz;
-    /* 0x06 */ s16 state;
-    /* 0x08 */ s16 rx;
-    /* 0x0A */ s16 ry;
-    /* 0x0C */ s16 rz;
+    /* 0x00 */ s16 rx;
+    /* 0x02 */ s16 ry;
+    /* 0x04 */ s16 rz;
+    /* 0x06 */ s16 attribute; /* copied to the bone's GsDOBJ4 */
+    /* 0x08 */ s16 tx;
+    /* 0x0A */ s16 ty;
+    /* 0x0C */ s16 tz;
     /* 0x0E */ s16 padE;
     /* 0x10 */ s16 sx;
     /* 0x12 */ s16 sy;
@@ -196,156 +179,138 @@ typedef struct {
     /* 0x16 */ s16 pad16;
 } KeyBone;
 
+/* A key of an animation clip: AnimClip.data is an array of them */
 typedef struct {
-    /* 0x00 */ s16 duration;
-    /* 0x02 */ s16 sound;
+    /* 0x00 */ s16 duration; /* in frames, halved */
+    /* 0x02 */ s16 sound;    /* sound effect + 1, or 0 */
     /* 0x04 */ KeyBone bone[32];
 } KeyFrame;
 
-typedef struct {
-    /* 0x00 */ s32 clip;
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ s32 len;
-    /* 0x0C */ s32 cur;
-    /* 0x10 */ s32 dur;
-    /* 0x14 */ s32 count;
-    /* 0x18 */ s32 unk18;
-    /* 0x1C */ float scale;
-} AnimState;
-
-typedef struct {
-    /* 0x0 */ s32 state;
-    /* 0x4 */ s32 unk4;
-    /* 0x8 */ s32 active;
-    /* 0xC */ s32 unkC;
-} BoneCtl;
-
-s32 loadNextAnimationKeyframe(Model2220 *m, s32 next, s32 mode) {
-    AnimState *st;
-    KeyBone *kf;
-    KeyBone *kn;
-    BoneCtl *ctl;
-    BoneAnim *b;
-    s32 len;
-    s32 len2;
-    s32 dur;
+/*
+ * Starts easing every bone towards the next key of the clip (mode 0), or
+ * towards loopKey (otherwise, or after the last key). With rootOnly set the
+ * bones instead move linearly to the key in half the time.
+ */
+s32 loadNextAnimationKeyframe(Model *m, s32 loopKey, s32 mode) {
+    ModelAnimState *anim;
+    KeyBone *key;
+    KeyBone *nextKey;
+    GsDOBJ4 *obj;
+    BoneKeys *b;
+    s32 length;
+    s32 nextLength;
+    s32 halfLength;
     s32 to;
     s32 i;
 
-    st = (AnimState *)((u8 *)m + 0x2200);
-    if (st->cur < 0) {
-        return st->len = -1;
+    anim = &m->anim;
+    if (anim->key < 0) {
+        return anim->keyTimer = -1;
     }
-    if (((KeyFrame *)m->anims[st->clip].data)[st->cur].sound != 0) {
-        playSoundEffect(((KeyFrame *)m->anims[st->clip].data)[st->cur].sound - 1);
+    if (((KeyFrame *)m->anims[anim->clip].data)[anim->key].sound != 0) {
+        playSoundEffect(((KeyFrame *)m->anims[anim->clip].data)[anim->key].sound - 1);
     }
-    kf = ((KeyFrame *)m->anims[st->clip].data)[st->cur].bone;
-    kn = kf;
-    dur = ((KeyFrame *)m->anims[st->clip].data)[st->cur].duration * st->scale;
-    st->dur = dur;
-    len = dur * 2;
-    st->len = len;
-    len2 = 1;
-    if (mode == 0 && st->cur + 1 < st->count) {
-        to = st->cur + 1;
+    key = ((KeyFrame *)m->anims[anim->clip].data)[anim->key].bone;
+    nextKey = key;
+    halfLength = ((KeyFrame *)m->anims[anim->clip].data)[anim->key].duration * anim->timeScale;
+    anim->halfTimer = halfLength;
+    length = halfLength * 2;
+    anim->keyTimer = length;
+    nextLength = 1;
+    if (mode == 0 && anim->key + 1 < anim->keyCount) {
+        to = anim->key + 1;
     } else {
-        to = next;
+        to = loopKey;
     }
     if (to >= 0) {
-        st->cur = to;
-        len2 = ((KeyFrame *)m->anims[st->clip].data)[to].duration * 2 * st->scale;
-        kn = ((KeyFrame *)m->anims[st->clip].data)[to].bone;
+        anim->key = to;
+        nextLength = ((KeyFrame *)m->anims[anim->clip].data)[to].duration * 2 * anim->timeScale;
+        nextKey = ((KeyFrame *)m->anims[anim->clip].data)[to].bone;
     } else {
-        st->cur = -1;
+        anim->key = -1;
     }
-    b = (BoneAnim *)((u8 *)m + 0xD80);
-    ctl = (BoneCtl *)((u8 *)m + 0xB80);
+    b = m->keys;
+    obj = m->obj;
     if (m->rootOnly == 0) {
-        for (i = 0; i < *(s16 *)((u8 *)m + 4); i++, kf++, kn++, ctl++, b++) {
-            if (ctl->active != 0) {
-                if (ctl->state != 2) {
-                    ctl->state = kf->state;
+        for (i = 0; i < m->nobj; i++, key++, nextKey++, obj++, b++) {
+            if (obj->tmd != 0) {
+                if (obj->attribute != 2) {
+                    obj->attribute = key->attribute;
                 }
-                setupRotationCurve(&b->ch[0].unk0, len, len2, dur, b->ch[0].unk0 / 0x100000, kf->px, kn->px);
-                setupRotationCurve(&b->ch[1].unk0, len, len2, dur, b->ch[1].unk0 / 0x100000, kf->py, kn->py);
-                setupRotationCurve(&b->ch[2].unk0, len, len2, dur, b->ch[2].unk0 / 0x100000, kf->pz, kn->pz);
-                setupTranslationCurve(&b->ch[3].unk0, len, len2, dur, (s16)(b->ch[3].unk0 >> 16), kf->rx, kn->rx);
-                setupTranslationCurve(&b->ch[4].unk0, len, len2, dur, (s16)(b->ch[4].unk0 >> 16), kf->ry, kn->ry);
-                setupTranslationCurve(&b->ch[5].unk0, len, len2, dur, (s16)(b->ch[5].unk0 >> 16), kf->rz, kn->rz);
-                setupTranslationCurve(&b->ch[6].unk0, len, len2, dur, (s16)(b->ch[6].unk0 >> 16), kf->sx, kn->sx);
-                setupTranslationCurve(&b->ch[7].unk0, len, len2, dur, (s16)(b->ch[7].unk0 >> 16), kf->sy, kn->sy);
-                setupTranslationCurve(&b->ch[8].unk0, len, len2, dur, (s16)(b->ch[8].unk0 >> 16), kf->sz, kn->sz);
+                setupRotationCurve(&b->rot[0], length, nextLength, halfLength, b->rot[0].value / 0x100000, key->rx, nextKey->rx);
+                setupRotationCurve(&b->rot[1], length, nextLength, halfLength, b->rot[1].value / 0x100000, key->ry, nextKey->ry);
+                setupRotationCurve(&b->rot[2], length, nextLength, halfLength, b->rot[2].value / 0x100000, key->rz, nextKey->rz);
+                setupTranslationCurve(&b->pos[0], length, nextLength, halfLength, (s16)(b->pos[0].value >> 16), key->tx, nextKey->tx);
+                setupTranslationCurve(&b->pos[1], length, nextLength, halfLength, (s16)(b->pos[1].value >> 16), key->ty, nextKey->ty);
+                setupTranslationCurve(&b->pos[2], length, nextLength, halfLength, (s16)(b->pos[2].value >> 16), key->tz, nextKey->tz);
+                setupTranslationCurve(&b->scale[0], length, nextLength, halfLength, (s16)(b->scale[0].value >> 16), key->sx, nextKey->sx);
+                setupTranslationCurve(&b->scale[1], length, nextLength, halfLength, (s16)(b->scale[1].value >> 16), key->sy, nextKey->sy);
+                setupTranslationCurve(&b->scale[2], length, nextLength, halfLength, (s16)(b->scale[2].value >> 16), key->sz, nextKey->sz);
             }
         }
-        setupRotationCurve(&b->ch[0].unk0, len, len2, dur, b->ch[0].unk0 / 0x100000, kf->px, kn->px);
-        setupRotationCurve(&b->ch[1].unk0, len, len2, dur, b->ch[1].unk0 / 0x100000, kf->py, kn->py);
-        setupRotationCurve(&b->ch[2].unk0, len, len2, dur, b->ch[2].unk0 / 0x100000, kf->pz, kn->pz);
-        setupTranslationCurve(&b->ch[3].unk0, len, len2, dur, (s16)(b->ch[3].unk0 >> 16), kf->rx, kn->rx);
-        setupTranslationCurve(&b->ch[4].unk0, len, len2, dur, (s16)(b->ch[4].unk0 >> 16), kf->ry, kn->ry);
-        setupTranslationCurve(&b->ch[5].unk0, len, len2, dur, (s16)(b->ch[5].unk0 >> 16), kf->rz, kn->rz);
-        setupTranslationCurve(&b->ch[6].unk0, len, len2, dur, (s16)(b->ch[6].unk0 >> 16), kf->sx, kn->sx);
-        setupTranslationCurve(&b->ch[7].unk0, len, len2, dur, (s16)(b->ch[7].unk0 >> 16), kf->sy, kn->sy);
-        setupTranslationCurve(&b->ch[8].unk0, len, len2, dur, (s16)(b->ch[8].unk0 >> 16), kf->sz, kn->sz);
+        setupRotationCurve(&b->rot[0], length, nextLength, halfLength, b->rot[0].value / 0x100000, key->rx, nextKey->rx);
+        setupRotationCurve(&b->rot[1], length, nextLength, halfLength, b->rot[1].value / 0x100000, key->ry, nextKey->ry);
+        setupRotationCurve(&b->rot[2], length, nextLength, halfLength, b->rot[2].value / 0x100000, key->rz, nextKey->rz);
+        setupTranslationCurve(&b->pos[0], length, nextLength, halfLength, (s16)(b->pos[0].value >> 16), key->tx, nextKey->tx);
+        setupTranslationCurve(&b->pos[1], length, nextLength, halfLength, (s16)(b->pos[1].value >> 16), key->ty, nextKey->ty);
+        setupTranslationCurve(&b->pos[2], length, nextLength, halfLength, (s16)(b->pos[2].value >> 16), key->tz, nextKey->tz);
+        setupTranslationCurve(&b->scale[0], length, nextLength, halfLength, (s16)(b->scale[0].value >> 16), key->sx, nextKey->sx);
+        setupTranslationCurve(&b->scale[1], length, nextLength, halfLength, (s16)(b->scale[1].value >> 16), key->sy, nextKey->sy);
+        setupTranslationCurve(&b->scale[2], length, nextLength, halfLength, (s16)(b->scale[2].value >> 16), key->sz, nextKey->sz);
     } else {
-        len /= 2;
-        st->len = len;
-        st->dur /= 2;
-        for (i = 0; i < *(s16 *)((u8 *)m + 4); i++, kf++, ctl++, b++) {
-            if (ctl->active != 0) {
-                if (ctl->state != 2) {
-                    ctl->state = kf->state;
+        length /= 2;
+        anim->keyTimer = length;
+        anim->halfTimer /= 2;
+        for (i = 0; i < m->nobj; i++, key++, obj++, b++) {
+            if (obj->tmd != 0) {
+                if (obj->attribute != 2) {
+                    obj->attribute = key->attribute;
                 }
-                b->ch[0].val = ((kf->px << 20) - b->ch[0].unk0) / len;
-                b->ch[1].val = ((kf->py << 20) - b->ch[1].unk0) / len;
-                b->ch[2].val = ((kf->pz << 20) - b->ch[2].unk0) / len;
-                b->ch[3].val = ((kf->rx << 16) - b->ch[3].unk0) / len;
-                b->ch[4].val = ((kf->ry << 16) - b->ch[4].unk0) / len;
-                b->ch[5].val = ((kf->rz << 16) - b->ch[5].unk0) / len;
-                b->ch[6].val = ((kf->sx << 16) - b->ch[6].unk0) / len;
-                b->ch[7].val = ((kf->sy << 16) - b->ch[7].unk0) / len;
-                b->ch[8].val = ((kf->sz << 16) - b->ch[8].unk0) / len;
+                b->rot[0].velocity = ((key->rx << 20) - b->rot[0].value) / length;
+                b->rot[1].velocity = ((key->ry << 20) - b->rot[1].value) / length;
+                b->rot[2].velocity = ((key->rz << 20) - b->rot[2].value) / length;
+                b->pos[0].velocity = ((key->tx << 16) - b->pos[0].value) / length;
+                b->pos[1].velocity = ((key->ty << 16) - b->pos[1].value) / length;
+                b->pos[2].velocity = ((key->tz << 16) - b->pos[2].value) / length;
+                b->scale[0].velocity = ((key->sx << 16) - b->scale[0].value) / length;
+                b->scale[1].velocity = ((key->sy << 16) - b->scale[1].value) / length;
+                b->scale[2].velocity = ((key->sz << 16) - b->scale[2].value) / length;
             }
         }
-        b->ch[0].val = ((kf->px << 20) - b->ch[0].unk0) / len;
-        b->ch[1].val = ((kf->py << 20) - b->ch[1].unk0) / len;
-        b->ch[2].val = ((kf->pz << 20) - b->ch[2].unk0) / len;
-        b->ch[3].val = ((kf->rx << 16) - b->ch[3].unk0) / len;
-        b->ch[4].val = ((kf->ry << 16) - b->ch[4].unk0) / len;
-        b->ch[5].val = ((kf->rz << 16) - b->ch[5].unk0) / len;
-        b->ch[6].val = ((kf->sx << 16) - b->ch[6].unk0) / len;
-        b->ch[7].val = ((kf->sy << 16) - b->ch[7].unk0) / len;
-        b->ch[8].val = ((kf->sz << 16) - b->ch[8].unk0) / len;
+        b->rot[0].velocity = ((key->rx << 20) - b->rot[0].value) / length;
+        b->rot[1].velocity = ((key->ry << 20) - b->rot[1].value) / length;
+        b->rot[2].velocity = ((key->rz << 20) - b->rot[2].value) / length;
+        b->pos[0].velocity = ((key->tx << 16) - b->pos[0].value) / length;
+        b->pos[1].velocity = ((key->ty << 16) - b->pos[1].value) / length;
+        b->pos[2].velocity = ((key->tz << 16) - b->pos[2].value) / length;
+        b->scale[0].velocity = ((key->sx << 16) - b->scale[0].value) / length;
+        b->scale[1].velocity = ((key->sy << 16) - b->scale[1].value) / length;
+        b->scale[2].velocity = ((key->sz << 16) - b->scale[2].value) / length;
     }
 }
 
 
+/* The task that plays the animations of the 24 scene models, once per frame */
 void runModelAnimationTask(void) {
-    s32 timer;
     s32 slot;
-    void *model;
-    void *animState;
+    Model *model;
+    ModelAnimState *anim;
 
     SCENE_3D_ENABLED = 1;
-    slot = 0;
-loop_1:
-    model = SCENE_3D->models[slot];
-    if (SCENE_3D->modelState[slot] > 0) {
-        animState = model + 0x2200;
-        if ((*(s32 *)((s8 *)model + 0x2208)) >= 0) {
-            timer = (*(s32 *)((s8 *)animState + 8)) - 1;
-            (*(s32 *)((s8 *)animState + 8)) = timer;
-            if (timer <= 0) {
-                loadNextAnimationKeyframe(model, (*(s32 *)((s8 *)animState + 0x18)), 0);
+    for (;;) {
+        for (slot = 0; slot < 24; slot++) {
+            model = SCENE_3D->models[slot];
+            if (SCENE_3D->modelState[slot] > 0) {
+                anim = &model->anim;
+                if (model->anim.keyTimer >= 0) {
+                    if (--anim->keyTimer <= 0) {
+                        loadNextAnimationKeyframe(model, anim->loopKey, 0);
+                    }
+                    updateModelBoneMatrices(model);
+                    accelerateModelBones(model);
+                }
             }
-            updateModelBoneMatrices(model);
-            accelerateModelBones(model);
         }
+        func_80014C08(FRAME_INTERVAL);
     }
-    slot += 1;
-    if (slot < 0x18) {
-        goto loop_1;
-    }
-    slot = 0;
-    func_80014C08(FRAME_INTERVAL);
-    goto loop_1;
 }

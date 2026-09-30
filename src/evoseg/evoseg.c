@@ -1698,7 +1698,7 @@ void func_801E2AA8(s32 part, MATRIX *m) {
     root = ((Model *)SCENE_3D->models[0])->coord[0];
     node = ((Model *)SCENE_3D->models[0])->coord[part];
     RotMatrix(&((Model *)SCENE_3D->models[0])->rots[0], &root.coord);
-    ScaleMatrix(&root.coord, (VECTOR *)((Model *)SCENE_3D->models[0])->unk2000);
+    ScaleMatrix(&root.coord, ((Model *)SCENE_3D->models[0])->boneScale);
     TransMatrix(&root.coord, &trans);
     func_801E29AC(&node, m);
 }

@@ -186,28 +186,28 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     rot = (SVECTOR *)(model + 0xA80);
     keyframe = (s16 *)((u8 *)((Model2220 *)model)->anims[anim].data + 4);
     for (i = 0; i < *(s16 *)(model + 4) + 1; i++, keyframe += 12, bone++, coord += 0x50, rot++) {
-        for (j = 0, rotChan = &bone->ch[0].val, posChan = &bone->ch[3].val, scaleChan = &bone->ch[6].val; j < 3; j++) {
+        for (j = 0, rotChan = &bone->ch[0].velocity, posChan = &bone->ch[3].velocity, scaleChan = &bone->ch[6].velocity; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }
-        bone->ch[0].unk0 = keyframe[0] << 20;
-        bone->ch[1].unk0 = keyframe[1] << 20;
-        bone->ch[2].unk0 = keyframe[2] << 20;
-        bone->ch[3].unk0 = keyframe[4] << 16;
-        bone->ch[4].unk0 = keyframe[5] << 16;
-        bone->ch[5].unk0 = keyframe[6] << 16;
-        bone->ch[6].unk0 = keyframe[8] << 16;
-        bone->ch[7].unk0 = keyframe[9] << 16;
-        bone->ch[8].unk0 = keyframe[10] << 16;
+        bone->ch[0].value = keyframe[0] << 20;
+        bone->ch[1].value = keyframe[1] << 20;
+        bone->ch[2].value = keyframe[2] << 20;
+        bone->ch[3].value = keyframe[4] << 16;
+        bone->ch[4].value = keyframe[5] << 16;
+        bone->ch[5].value = keyframe[6] << 16;
+        bone->ch[6].value = keyframe[8] << 16;
+        bone->ch[7].value = keyframe[9] << 16;
+        bone->ch[8].value = keyframe[10] << 16;
         if (i < *(s16 *)(model + 4)) {
-            rot->vx = bone->ch[0].unk0 / 0x100000;
-            rot->vy = bone->ch[1].unk0 / 0x100000;
-            rot->vz = bone->ch[2].unk0 / 0x100000;
-            *(s32 *)(coord + 0x18) = (s16)(bone->ch[3].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][0];
-            *(s32 *)(coord + 0x1C) = (s16)(bone->ch[4].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][1];
-            *(s32 *)(coord + 0x20) = (s16)(bone->ch[5].unk0 >> 16) + ((Model2220 *)model)->bonepos[i][2];
-            ((Model2220 *)model)->scale[i][0] = (s16)(bone->ch[6].unk0 >> 16);
-            ((Model2220 *)model)->scale[i][1] = (s16)(bone->ch[7].unk0 >> 16);
-            ((Model2220 *)model)->scale[i][2] = (s16)(bone->ch[8].unk0 >> 16);
+            rot->vx = bone->ch[0].value / 0x100000;
+            rot->vy = bone->ch[1].value / 0x100000;
+            rot->vz = bone->ch[2].value / 0x100000;
+            *(s32 *)(coord + 0x18) = (s16)(bone->ch[3].value >> 16) + ((Model2220 *)model)->bonepos[i][0];
+            *(s32 *)(coord + 0x1C) = (s16)(bone->ch[4].value >> 16) + ((Model2220 *)model)->bonepos[i][1];
+            *(s32 *)(coord + 0x20) = (s16)(bone->ch[5].value >> 16) + ((Model2220 *)model)->bonepos[i][2];
+            ((Model2220 *)model)->scale[i][0] = (s16)(bone->ch[6].value >> 16);
+            ((Model2220 *)model)->scale[i][1] = (s16)(bone->ch[7].value >> 16);
+            ((Model2220 *)model)->scale[i][2] = (s16)(bone->ch[8].value >> 16);
             RotMatrixYXZ(rot, coord + 4);
             *(s32 *)coord = 0;
             ScaleMatrix(coord + 4, ((Model2220 *)model)->scale[i]);

@@ -432,12 +432,15 @@ typedef struct {
     /* 0x26DC */ u8 unk26DC[0x18];
     /* 0x26F4 */ void *pak;
 } Model2220;
+/* One animated channel of a bone, eased between two keys (model_anim.c) */
 typedef struct {
-    /* 0x0 */ s32 unk0;
-    /* 0x4 */ s32 val;
-    /* 0x8 */ s32 d0;
-    /* 0xC */ s32 d1;
+    /* 0x0 */ s32 value;    /* fixed point: angle << 20, position/scale << 16 */
+    /* 0x4 */ s32 velocity; /* added to value every frame */
+    /* 0x8 */ s32 accel0;   /* added to velocity in the first half of the key */
+    /* 0xC */ s32 accel1;   /* ... and this one in the second half */
 } AnimChan;
+/* The integer part of a position or scale channel: the high half of value */
+#define ANIM_CHAN_INT(chan) (((s16 *)&(chan).value)[1])
 typedef struct {
     /* 0x00 */ AnimChan ch[9];
 } BoneAnim;
@@ -701,10 +704,21 @@ typedef struct {
     /* 0xC */ u32 id;
 } GsDOBJ4;
 typedef struct {
-    /* 0x00 */ AnimChan pos[3];
-    /* 0x30 */ AnimChan rot[3];
+    /* 0x00 */ AnimChan rot[3];
+    /* 0x30 */ AnimChan pos[3];
     /* 0x60 */ AnimChan scale[3];
 } BoneKeys;
+/* The playback state of a model's animation */
+typedef struct {
+    /* 0x00 */ s32 clip;       /* index in Model.anims */
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 keyTimer;   /* frames left in the current key; negative when paused or stopped */
+    /* 0x0C */ s32 key;        /* the key being eased to, -1 after the last one */
+    /* 0x10 */ s32 halfTimer;  /* frames left in the first half of the key */
+    /* 0x14 */ s32 keyCount;
+    /* 0x18 */ s32 loopKey;    /* key that follows the last one (negative: stop) */
+    /* 0x1C */ float timeScale; /* key durations are multiplied by it */
+} ModelAnimState;
 typedef struct {
     /* 0x0000 */ s32 dataSize;
     /* 0x0004 */ s16 nobj;
@@ -718,7 +732,10 @@ typedef struct {
     /* 0x0B80 */ GsDOBJ4 obj[32];
     /* 0x0D80 */ BoneKeys keys[32];
     /* 0x1F80 */ s16 *bonepos[32];
-    /* 0x2000 */ u8 unk2000[0x2B0];
+    /* 0x2000 */ VECTOR boneScale[32];
+    /* 0x2200 */ ModelAnimState anim;
+    /* 0x2220 */ AnimClip anims[16];
+    /* 0x22A0 */ u8 unk22A0[0x10];
     /* 0x22B0 */ MATRIX lw[32];
     /* 0x26B0 */ s8 parent[32];
     /* 0x26D0 */ s32 clutOffset;

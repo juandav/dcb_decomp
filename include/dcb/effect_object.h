@@ -5,13 +5,13 @@
 #include "dcb/scroll_bg.h"
 
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag);
-void updateEffectLinearMotion(void *fx);
-void updateEffectArcMotion(void *fx);
-void updateEffectWaveXMotion(void *fx);
-void updateEffectWaveYMotion(void *fx);
-void updateEffectTiltedArcMotion(u8 *fx);
-void func_80030440(u8 *fx);
-void updateEffectShakeMotion(u8 *fx);
+void updateEffectLinearMotion(EffectObject *fx);
+void updateEffectArcMotion(EffectObject *fx);
+void updateEffectWaveXMotion(EffectObject *fx);
+void updateEffectWaveYMotion(EffectObject *fx);
+void updateEffectTiltedArcMotion(EffectObject *fx);
+void func_80030440(EffectObject *fx);
+void updateEffectShakeMotion(EffectObject *fx);
 s32 getVectorDistance(SVECTOR *from, SVECTOR *to);
 s32 isPointAlongSegment(SVECTOR *start, SVECTOR *end, SVECTOR *point);
 s32 isWithinDistance(SVECTOR *a, SVECTOR *b, s32 radius);
@@ -22,7 +22,7 @@ EffectTemplate *cloneEffectObject(EffectTemplate *template);
 void updateEffectObject(s32 fx);
 void freeEffectObject(void *fx);
 s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir);
-void restartEffectMotion(u8 *fx);
+void restartEffectMotion(void *fx);
 void tickEffectStartDelay(void *fx);
 s16 updateEffectBrightness(void *fxObj, s16 brightness);
 

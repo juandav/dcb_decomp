@@ -13,14 +13,15 @@ void setBackgroundScrollMode(s8 scrollMode);
 void freeScrollingBackground(void);
 
 typedef struct {
-    /* 0x000 */ u8 unk0[0x10C];
-    /* 0x10C */ s32 done[3];
-} Unk80030CA8;
-typedef struct {
     s32 data[0x4F];
 } EffectTemplate;
+/*
+ * An effect that moves in the scene: its own transform (0x00-0x4C), the
+ * transform of the point it flies at (0x4C-0x98), and how it moves
+ * (tickEffectMotion)
+ */
 typedef struct {
-    /* 0x000 */ u8 unk0[0x20];
+    /* 0x000 */ MATRIX matrix;
     /* 0x020 */ s32 posX;
     /* 0x024 */ s32 posY;
     /* 0x028 */ s32 posZ;
@@ -33,7 +34,14 @@ typedef struct {
     /* 0x03C */ s32 sy;
     /* 0x040 */ s32 sz;
     /* 0x044 */ s32 sw;
-    /* 0x048 */ u8 unk48[0x64];
+    /* 0x048 */ s32 unk48;
+    /* 0x04C */ MATRIX targetMatrix; /* the start of the target's transform */
+    /* 0x06C */ s32 targetX;
+    /* 0x070 */ s32 targetY;
+    /* 0x074 */ s32 targetZ;
+    /* 0x078 */ u8 unk78[0x20];
+    /* 0x098 */ s32 parent;
+    /* 0x09C */ VECTOR dir; /* unit vector from the start to the target, 0x1000 = 1.0 */
     /* 0x0AC */ s32 sx0;
     /* 0x0B0 */ s32 sy0;
     /* 0x0B4 */ s32 sz0;
@@ -65,22 +73,25 @@ typedef struct {
     /* 0x0F4 */ s16 ddrx;
     /* 0x0F6 */ s16 ddry;
     /* 0x0F8 */ s16 ddrz;
-    /* 0x0FA */ u8 unkFA[6];
+    /* 0x0FA */ u8 unkFA[2];
+    /* 0x0FC */ s32 unkFC;
     /* 0x100 */ s32 t;
     /* 0x104 */ s32 t2;
     /* 0x108 */ s32 cnt;
-    /* 0x10C */ s32 doneX;
-    /* 0x110 */ s32 doneY;
-    /* 0x114 */ s32 doneZ;
+    /* 0x10C */ s32 done[3]; /* the scale reached its target, per axis */
     /* 0x118 */ s32 state;
     /* 0x11C */ s32 flag;
-    /* 0x120 */ u8 unk120[4];
+    /* 0x120 */ s16 moveSpeed; /* also the shake range */
+    /* 0x122 */ s16 moveAccel;
     /* 0x124 */ s16 period;
-    /* 0x126 */ u8 unk126[6];
+    /* 0x126 */ s16 waveFreq;
+    /* 0x128 */ s16 wavePhase; /* also the start delay of modes >= 91 */
+    /* 0x12A */ s16 waveAmplitude;
     /* 0x12C */ s16 hitRadius;
     /* 0x12E */ s16 mode;
-    /* 0x130 */ s16 speed;
-    /* 0x132 */ u8 unk132[5];
+    /* 0x130 */ s16 speed; /* the fade step */
+    /* 0x132 */ s16 brightness;
+    /* 0x134 */ u8 unk134[3];
     /* 0x137 */ u8 fadeMode;
     /* 0x138 */ u8 fadeState;
     /* 0x139 */ u8 suspended;
