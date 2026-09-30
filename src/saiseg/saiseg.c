@@ -259,7 +259,7 @@ typedef struct {
     u8 loading;
 } Unk801F4804;
 extern Unk801F4804 *D_801F4804;
-extern char D_801DE6B0[];
+extern const char D_801DE6B0[];
 extern UiWindow D_801F46B0[5];
 extern void (*D_801F3670[5])();
 extern u8 D_801F4834;
@@ -610,14 +610,14 @@ void func_801E09F4(void);
 void func_801F0ECC(u8 value);
 void func_801F32CC(s32 ability, s32 task);
 void func_801E9E10(s32 mode, s32 task);
-extern u8 D_801DE804[];
+extern const char D_801DE804[];
 extern char *D_801F36E0[10];
 int strcmp(char *a, char *b);
 void func_801EB198(void);
 void func_801EE038(void);
 void func_801EBD28(Sprite3D *arg0, s16 dx, s16 dy);
 void func_801F082C(void);
-extern u8 D_801DEA14[];
+extern const u8 D_801DEA14[];
 void func_801F2A8C(void);
 void func_801E0988(s32 index);
 
@@ -3608,7 +3608,7 @@ void func_801E9864(s32 index, s32 task) {
 }
 
 void func_801E9988(UiWindow *window, WindowDef *def) {
-    measureText(D_801DE6B0);
+    measureText((u8 *)D_801DE6B0);
     def->rect.w = (TEXT_WIDTH + 1) / 2 * 2;
     def->rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
     openWindow(window, def, -1, (s16 *)-1, def->flags, def->style, def->brightness, 6);
@@ -3721,7 +3721,7 @@ void func_801E9F18(void) {
     D_801F4808 = 2;
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE6B0);
+const char D_801DE6B0[] = "               *c6SYSTEM ERROR\n*c2 Illegal Sharing: \n*c7 Unauthorized command was used.";
 
 void func_801E9F28(void) {
     Rect16 uv = { 0, 0, 0x80, 0x80 };
@@ -4179,7 +4179,8 @@ void func_801EB5C0(u8 *pack) {
     } while (1);
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE804);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char D_801DE804[36] = "A Key Word has not been entered!\0" "333";
 
 void func_801EB628(void) {
     char path[0x48];
@@ -5963,7 +5964,7 @@ void func_801F208C(s32 x, s32 y, s32 vramX, s32 vramY, s32 frame, u8 *rgb, s32 z
     }
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DEA14);
+const u8 D_801DEA14[6] = { 0xAF, 0xB6, 0xBE, 0xB8, 0xB7, 0xBB };
 
 void func_801F23D8(UiWindow *win) {
     /* not literals: GCC would share func_801F1294's identical strings */
@@ -6522,7 +6523,7 @@ void func_801F329C(void) {
     drawWindow(&D_801F5410, func_801F2F04, 0);
 }
 
-extern char D_801DFA58[]; /* "GET DIGIPARTS LIST" */
+extern const char D_801DFA58[];
 
 /*
  * Task that grants a partner ability (a Digi-Part) and shows the parts list
@@ -6568,4 +6569,5 @@ void func_801F32CC(s32 ability, s32 task) {
     func_80014A48(task);
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DFA58);
+/* the last byte is a leftover in the original, not zero padding */
+const char D_801DFA58[20] = "GET DIGIPARTS LIST\0\x99";
