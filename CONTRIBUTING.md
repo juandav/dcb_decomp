@@ -28,9 +28,9 @@ so that the Digimon decomps read the same way.
   `model/`, `ui/`, `duel/`, `card/`, `script/`); the SDK is in `psyq/`.
 - One header per module in `include/dcb/<module>.h` with its own types, data
   and prototypes. `include/game.h` keeps only what several modules share.
-- An overlay's modules carry its prefix (`src/openseg/open_title.c`,
-  `include/dcb/open_title.h`), and `include/dcb/<overlay>.h` holds what
-  several of them share. The data an overlay starts with zeroed is in
+- An overlay's modules are grouped by subsystem too and carry its prefix
+  (`src/openseg/title/open_title.c`, `include/dcb/open_title.h`);
+  `include/dcb/<overlay>.h` holds what several of them share. The data an overlay starts with zeroed is in
   `<prefix>_bss.c`, a C file with no code; data that sits apart from its
   module's, such as SAISEG's leading tables, goes in one too
   (`sai_data.c`).
