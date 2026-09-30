@@ -60,12 +60,12 @@ void GsSetLsMatrix(MATRIX *mp) {
 
 OBJECT_END(1);
 
-extern MATRIX D_801DBE40;
+extern MATRIX GsLIGHTWSMATRIX;
 
 void GsSetLightMatrix(MATRIX *mp) {
     MATRIX m;
 
-    m = D_801DBE40;
+    m = GsLIGHTWSMATRIX;
     PushMatrix();
     MulMatrix(&m, mp);
     PopMatrix();

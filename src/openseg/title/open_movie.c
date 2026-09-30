@@ -71,8 +71,8 @@ extern s8 OPEN_MOVIE_ENDED;
 extern s32 OPEN_MOVIE_END_FRAME;
 extern s32 OPEN_RING_FREE_SECTORS;
 extern s32 OPEN_RING_OVER_SECTORS;
-extern s8 D_801F0850;
-extern s32 D_801D98BC;
+extern s8 OPEN_MOVIE_BUFFER_INDEX;
+extern s32 StCdIntrFlag;
 
 void StUnSetRing(void);
 s32 DecDCTvlc2(u32 *bs, u32 *buf, u16 *table);
@@ -209,7 +209,8 @@ void OPEN_startMovie(s32 sector, s32 endFrame, s32 volume, s32 frames, s32 heigh
     OPEN_MOVIE_STARTED = 0;
 }
 
-void OPEN_showMovieFrame(FrameBuffer *fb, s32 start) {
+/* a frame callback: called with the frame buffer and its index */
+void OPEN_showMovieFrame(FrameBuffer *fb, s32 bufferIndex) {
     DISPENV disp;
     Rect16 copy;
     Rect16 rect;
@@ -222,9 +223,9 @@ void OPEN_showMovieFrame(FrameBuffer *fb, s32 start) {
     rect.h = OPEN_MOVIE_HEIGHT;
     copy = rect;
     StRingStatus(&OPEN_RING_FREE_SECTORS, &OPEN_RING_OVER_SECTORS);
-    if (OPEN_MOVIE_STARTED != 0 || start != 0) {
+    if (OPEN_MOVIE_STARTED != 0 || bufferIndex != 0) {
         OPEN_MOVIE_STARTED = 1;
-        D_801F0850 = start;
+        OPEN_MOVIE_BUFFER_INDEX = bufferIndex;
         if (OPEN_MOVIE_ENDED != 0) {
             GetDispEnv(&disp);
             y = disp.disp[1];
@@ -305,9 +306,10 @@ void OPEN_uploadMovieSlice(void) {
     Rect16 snap;
     s32 id;
 
-    if (D_801D98BC != 0) {
+    /* StCdInterrupt raises it when DMA was busy and it left a sector for later */
+    if (StCdIntrFlag != 0) {
         StCdInterrupt();
-        D_801D98BC = 0;
+        StCdIntrFlag = 0;
     }
     id = OPEN_DEC_ENV.imgid;
     snap = OPEN_DEC_ENV.slice;

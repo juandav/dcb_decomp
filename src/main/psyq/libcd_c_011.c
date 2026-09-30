@@ -17,7 +17,7 @@ extern long D_80070C30;
 extern long D_801D98B0;
 extern short D_801D98B4;
 extern long D_801D98B8;
-extern long D_801D98BC;
+extern long StCdIntrFlag;
 extern long D_801D98C0;
 extern long D_801D98C4;
 extern long D_801D98C8;
@@ -51,7 +51,7 @@ void StCdInterrupt(void) {
         return;
     }
     if (D_801D98B8 != 0 && (*D_80070C08 & 0x01000000)) {
-        D_801D98BC = 1;
+        StCdIntrFlag = 1;
         if (D_801D98E0 != 0) {
             D_801D98D0++;
         }

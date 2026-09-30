@@ -4,6 +4,11 @@
 // addresses, and another overlay may be loaded there. OPEN_MEMCARD_CANCELLED is
 // OPENSEG's OPEN_MEMCARD.cancelled.
 
+// Where every overlay is loaded, the end of the executable's .bss; the
+// executable only takes its address (OVERLAY_LOAD_ADDR). Each overlay has its
+// own data there.
+OVERLAY_AREA = 0x801DDF38;
+
 // ENDSEG
 END_runPlayerRecords = 0x801DF47C; // type:func
 

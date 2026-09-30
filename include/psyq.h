@@ -351,7 +351,7 @@ extern short D_80080A66;
 extern char D_80080998[];
 extern long D_801D98B0;
 extern short D_801D98B4;
-extern long D_801D98BC;
+extern long StCdIntrFlag;
 extern long D_801D98CC;
 extern long D_801D98D4;
 extern long D_801D98D8;
