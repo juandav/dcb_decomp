@@ -55,6 +55,6 @@ segments:
     subsegments:
       - [0x0, .rodata, sugseg]
       - [0x188, c, sugseg]
-      - [0x11324, data, sugseg]
+      - [0x11324, .data, sugseg]
 
   - [0x11A70]

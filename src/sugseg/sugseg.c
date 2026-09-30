@@ -3,6 +3,7 @@
 #include "dcb/heap.h"
 #include "dcb/model_load.h"
 #include "dcb/effect_object.h"
+#include "dcb/effect_prims.h"
 #include "dcb/archive.h"
 #include "dcb/loader.h"
 #include "dcb/task.h"
@@ -5744,3 +5745,110 @@ void func_801EEE90(s32 arg, s32 parentTask) {
 }
 
 INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DE0B0);
+
+/* the light matrix and colours func_801E7880 sets */
+MATRIX D_801EF25C = { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
+MATRIX D_801EF27C = { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } };
+s32 D_801EF29C = 0;
+s16 D_801EF2A0 = 0;
+
+/* per effect slot kind: the functions that update, create and free it */
+typedef void (*SlotUpdate)(u8 *value);
+typedef s32 (*SlotCreate)(s32 arg, Slots *slots);
+typedef void (*SlotFree)(s32 value);
+
+SlotUpdate D_801EF2A4[18] = {
+    (SlotUpdate)func_801E651C,
+    (SlotUpdate)func_801E6814,
+    NULL,
+    (SlotUpdate)func_801E7880,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    (SlotUpdate)func_801DF598,
+    NULL,
+    (SlotUpdate)func_801E4728,
+    (SlotUpdate)renderRingEffect,
+    (SlotUpdate)updateEffectObject,
+    (SlotUpdate)func_801E3C2C,
+    (SlotUpdate)func_801E42F4,
+    (SlotUpdate)renderStreakParticles,
+};
+
+SlotCreate D_801EF2EC[18] = {
+    (SlotCreate)func_801E9598,
+    (SlotCreate)func_801E9654,
+    NULL,
+    (SlotCreate)func_801E9FE0,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    (SlotCreate)func_801E96C4,
+    NULL,
+    (SlotCreate)func_801E9890,
+    (SlotCreate)func_801E9ADC,
+    (SlotCreate)func_801E9D14,
+    (SlotCreate)func_801E9D48,
+    (SlotCreate)func_801E9E04,
+    (SlotCreate)func_801E9EAC,
+};
+
+SlotFree D_801EF334[18] = {
+    (SlotFree)func_801EA0C0,
+    (SlotFree)func_801E6AF8,
+    NULL,
+    (SlotFree)func_801E7AF4,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    (SlotFree)func_801E1D80,
+    NULL,
+    (SlotFree)func_801E5144,
+    (SlotFree)freeRingEffect,
+    (SlotFree)freeEffectObject,
+    (SlotFree)func_801E3D2C,
+    (SlotFree)func_801E43A4,
+    (SlotFree)freeStreakParticles,
+};
+
+/* the u8 arrays among these are not referenced by any code */
+s16 D_801EF37C = 0;
+s16 D_801EF37E = 0;
+s32 D_801EF380 = 1;
+s32 D_801EF384 = 1;
+s32 D_801EF388 = 1;
+u16 D_801EF38C = 10;
+ClutFade D_801EF390 = { { 0 } };
+u8 D_801EF79C[4] = { 0 };
+CacheEntry D_801EF7A0[8] = { { 0 } };
+s32 D_801EF7E0 = 0;
+s32 D_801EF7E4 = 0;
+float D_801EF7E8 = 0;
+float D_801EF7EC = 0;
+s32 D_801EF7F0 = 0;
+s32 D_801EF7F4 = 0;
+s32 D_801EF7F8 = 0;
+s32 D_801EF7FC = 0;
+u8 D_801EF800[3] = { 0 };
+u8 D_801EF804[3] = { 0 };
+CameraEffect D_801EF808 = { { 0 } };
+u8 D_801EF944[12] = { 0 };
+Entry *D_801EF950 = NULL;
+u8 D_801EF954[4] = { 0 };
+DuelState *D_801EF958 = NULL;
+u8 D_801EF95C[12] = { 0 };
+void *D_801EF968[4] = { NULL };
+s32 D_801EF978[2] = { 0 };
+u8 D_801EF980[4] = { 0 };
+s32 D_801EF984 = 0;
+DuelState D_801EF988 = { { { 0 } } };
+s16 D_801EF9A4[2] = { 0 };
