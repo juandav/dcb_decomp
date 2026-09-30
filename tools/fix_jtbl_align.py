@@ -29,6 +29,9 @@ import sys
 import tempfile
 
 _tables = None
+# the binary whose unit is being filtered: the overlays share their
+# addresses, so the same function name can be in several of them
+_binary = None
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -44,10 +47,13 @@ def rodata_start(unit):
     return int(code.group(2), 16) + int(m.group(1), 16) - int(code.group(1), 16)
 
 
-def unit_asm():
-    """splat's full disassembly of each C segment (asm/<binary>/<unit>.s)."""
+def unit_asm(only=None):
+    """splat's full disassembly of each C segment (asm/<binary>/<unit>.s),
+    or only of those of the binary ONLY."""
     for config in glob.glob(os.path.join(ROOT, "config", "*.yaml")):
         binary = os.path.basename(config)[:-5]
+        if only is not None and binary != only:
+            continue
         for unit in re.findall(r"\[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", open(config).read()):
             path = os.path.join(ROOT, "asm", binary, unit + ".s")
             if os.path.exists(path):
@@ -57,7 +63,7 @@ def unit_asm():
 def load_tables():
     """Map each function to the (address, size in words) of its jump tables."""
     by_func = {}
-    for path in unit_asm():
+    for path in unit_asm(_binary):
         text = open(path).read()
         sizes = {
             m.group(1): m.group(2).count(".word")
@@ -136,7 +142,10 @@ def misplaced(text):
 
 
 def main():
+    global _binary
     start = rodata_start(sys.argv[1]) if len(sys.argv) > 1 else 0
+    if len(sys.argv) > 1:
+        _binary = sys.argv[1].partition("/")[0]
     lines = sys.stdin.readlines()
     pad_before = set()
     out, moved = layout(lines, start, pad_before)
