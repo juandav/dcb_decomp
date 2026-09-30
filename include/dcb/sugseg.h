@@ -324,16 +324,16 @@ typedef struct {
     u8 unk8[8];
     s32 x;
     u8 unk14[0xA64];
-    s16 unkA78;
+    s16 rotX; /* Model.rot */
     s16 rotY;
     u8 unkA7C[0x1784];
-    s32 unk2200;
+    s32 animClip; /* Model.anim.clip */
     u8 unk2204[4];
-    s32 unk2208;
+    s32 animKeyTimer; /* Model.anim.keyTimer: negative once stopped */
     u8 unk220C[0xA4];
-    u8 unk22B0[0x20][0x20];
+    u8 boneMatrices[0x20][0x20]; /* Model.lw: a MATRIX per bone */
     u8 unk26B0[0x24];
-    s32 unk26D4;
+    s32 tpageOffset;
     u8 unk26D8[8];
     void *owner;
     u8 unk26E4[8];
@@ -359,10 +359,10 @@ typedef struct {
     ClutFade fade;
     s16 lastBrightness;
     s8 modelSlot;
-    u8 unk56F;
+    u8 flags;
     s8 texAnimActive;
     s8 active;
-    s32 unk574;
+    s32 clutBank; /* 0 takes the model's CLUT (and .tam texture) from the lower row */
 } ModelEffect;
 
 typedef struct {

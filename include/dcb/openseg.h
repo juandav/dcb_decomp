@@ -83,20 +83,20 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ char name[0xD];
-    /* 0x0D */ u8 unkD;
+    /* 0x0D */ u8 saveCount;
     /* 0x0E */ u8 location;
     /* 0x0F */ u8 arena;
-    /* 0x10 */ u16 unk10;
+    /* 0x10 */ u16 profileId;
     /* 0x12 */ u16 seenCardCount;
     /* 0x14 */ u16 progress;
     /* 0x16 */ u16 size;
     /* 0x18 */ u8 unk18[0xC];
     /* 0x24 */ s32 playTime;
     /* 0x28 */ u32 unk28_0 : 10;
-    /* 0x29 */ u32 unk28_10 : 1;
+    /* 0x29 */ u32 tradeUnlocked : 1;
     /* 0x29 */ u32 unk28_11 : 21;
     /* 0x2C */ u8 unk2C[0x2A];
-    /* 0x56 */ u16 unk56;
+    /* 0x56 */ u16 activePartner;
     /* 0x58 */ u8 unk58[0x28];
 } SaveSlot;
 
@@ -124,9 +124,9 @@ typedef struct {
     /* 0x53D */ u8 messagePort;
     /* 0x53E */ u8 loading;
     /* 0x53F */ u8 progress;
-    /* 0x540 */ u8 unk540;
+    /* 0x540 */ u8 previewsRead;
     /* 0x541 */ u8 again;
-    /* 0x542 */ u8 unk542;
+    /* 0x542 */ u8 exitAction; /* 1: ask "Quit the game?" once the screen closes */
 } MemcardScreen;
 
 typedef struct {
@@ -140,7 +140,7 @@ typedef struct {
     /* 0x0000 */ u8 unk0[0x1010];
     /* 0x1010 */ SaveInfo saves[2];
     /* 0x1020 */ u8 unk1020[7];
-    /* 0x1027 */ u8 unk1027;
+    /* 0x1027 */ u8 playWithoutSaving;
     /* 0x1028 */ s8 menuRow;
 } SessionView;
 

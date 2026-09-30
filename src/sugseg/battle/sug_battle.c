@@ -190,7 +190,7 @@ void SUG_playBattleExchange(void) {
     DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
     DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
     SUG_showWireGrid();
-    ((ModelData *)SCENE_3D->models[23])->unkA78 = 0;
+    ((ModelData *)SCENE_3D->models[23])->rotX = 0;
     setScreenFadeParams(1, 1, 6);
     SUG_playAttackTurn(SUG_BATTLE->flags.bits.turn ^ 1, 1, BATTLE_START_SKILL, SUG_showHpBanner, 0);
     SUG_playAttackTurn(other, 0, SUG_SKILL_SCRIPTS[other * 2], SUG_showHpBanner, 0);
@@ -215,7 +215,7 @@ void SUG_playBattleExchange(void) {
         playModelAnimation(first, 0);
         do {
             waitFrames(FRAME_INTERVAL);
-        } while (((ModelData *)SCENE_3D->models[second])->unk2208 >= 0);
+        } while (((ModelData *)SCENE_3D->models[second])->animKeyTimer >= 0);
         if (SUG_BATTLE->players[first].eatUpHp) {
             SUG_applyEatUpHp(first, hp);
         }
@@ -237,7 +237,7 @@ void SUG_playBattleExchange(void) {
         playModelAnimation(second, 0);
         do {
             waitFrames(FRAME_INTERVAL);
-        } while (((ModelData *)SCENE_3D->models[first])->unk2208 >= 0);
+        } while (((ModelData *)SCENE_3D->models[first])->animKeyTimer >= 0);
         if (SUG_BATTLE->players[second].eatUpHp) {
             SUG_applyEatUpHp(second, hp);
         } else {

@@ -78,11 +78,11 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
     case 0:
         model = (ModelData *)owner;
         if (model != NULL) {
-            slot = model->unk26D4 / 0x10000 + 5;
+            slot = model->tpageOffset / 0x10000 + 5;
             if (model->id > 1000) {
                 n = model->id / 10;
                 sprintf(path, "M:\\HDF%d\\%d_%d.tam", n, n, id);
-                if (((ModelEffect *)model->owner)->unk574 == 0) {
+                if (((ModelEffect *)model->owner)->clutBank == 0) {
                     y = 0x80;
                 }
                 sub = model->id;

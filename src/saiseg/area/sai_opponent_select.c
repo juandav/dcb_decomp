@@ -132,7 +132,7 @@ void SAI_initOpponentSelect(void) {
     SAI_setSpriteDepth(SAI_SPRITES[45], 0x21);
     SAI_SPRITES[45]->pos.vx = SAI_SPRITES[44]->pos.vx = -0xC8;
     SAI_SPRITES[45]->pos.vy = SAI_SPRITES[44]->pos.vy = 0x15;
-    if (SESSION->unk1A7 == 0) {
+    if (SESSION->selectImage == 0) {
         rect.x = 0x200;
         rect.y = 0x100;
         rect.w = 0xFF;

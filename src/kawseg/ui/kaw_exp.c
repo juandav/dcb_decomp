@@ -351,7 +351,7 @@ void KAW_drawRankUp(RankUpWindow *w) {
 void KAW_renderExpScreen(void) {
     s32 i;
 
-    drawWindow(&KAW_EXP_SCREEN->unk88, KAW_drawEarnedParts, 0);
+    drawWindow(&KAW_EXP_SCREEN->partsWindow, KAW_drawEarnedParts, 0);
     drawWindow(&KAW_EXP_SCREEN->window, KAW_drawBonusList, 0);
     drawWindow(&KAW_EXP_SCREEN->titleWindow, KAW_drawExpTitle, 0);
     for (i = 0; i < 3; i++) {
@@ -418,9 +418,9 @@ void KAW_runExpScreen(void) {
     rect.y = 0x2C;
     rect.w = 0x120;
     rect.h = 0xA8;
-    openWindow(&KAW_EXP_SCREEN->unk88, &rect, -1, (s16 *)-1, 10, 0x16, 0x80, 12);
-    KAW_EXP_SCREEN->unk88.label = (s32)"DIGI-PARTS RECEIVED";
-    animateWindowTo(&KAW_EXP_SCREEN->unk88, (Rect16 *)-1);
+    openWindow(&KAW_EXP_SCREEN->partsWindow, &rect, -1, (s16 *)-1, 10, 0x16, 0x80, 12);
+    KAW_EXP_SCREEN->partsWindow.label = (s32)"DIGI-PARTS RECEIVED";
+    animateWindowTo(&KAW_EXP_SCREEN->partsWindow, (Rect16 *)-1);
     rect.x = 0x10;
     rect.y = 0x14;
     rect.w = 0x120;
@@ -533,10 +533,10 @@ void KAW_runExpScreen(void) {
     rect.y = 0x2C;
     rect.w = 0x120;
     rect.h = 0xA8;
-    animateWindowTo(&KAW_EXP_SCREEN->unk88, &rect);
+    animateWindowTo(&KAW_EXP_SCREEN->partsWindow, &rect);
     KAW_waitForCross();
     playSoundEffect(0xA4);
-    animateWindowTo(&KAW_EXP_SCREEN->unk88, (Rect16 *)-1);
+    animateWindowTo(&KAW_EXP_SCREEN->partsWindow, (Rect16 *)-1);
     animateWindowTo(&KAW_EXP_SCREEN->titleWindow, (Rect16 *)-1);
     for (i = 0; i < 3; i++) {
         animateWindowTo(&KAW_EXP_SCREEN->rankWindows[i].window, (Rect16 *)-1);

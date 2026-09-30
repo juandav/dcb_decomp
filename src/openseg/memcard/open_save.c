@@ -155,7 +155,7 @@ void OPEN_runMemcardAccess(void) {
             } else {
                 status = OPEN_checkMemoryCard(port);
             }
-            OPEN_MEMCARD.unk540 = 0;
+            OPEN_MEMCARD.previewsRead = 0;
             if (status == 1) {
                 if (OPEN_MEMCARD.mode == 0) {
                     OPEN_MEMCARD.message = 4;
@@ -424,7 +424,7 @@ s32 OPEN_readSavePreview(s32 port, s32 slot) {
     OPEN_MEMCARD.empty[port][slot] = 1;
     for (i = 0; i < 5; i++) {
         if ((OPEN_MEMCARD.empty[port][slot] = readMemoryCardSavePreview(port, &OPEN_MEMCARD.slots[port][slot], OPEN_SAVE_FILE_NAMES[slot])) == 0) {
-            OPEN_MEMCARD.unk540++;
+            OPEN_MEMCARD.previewsRead++;
             return 0;
         }
     }
@@ -565,7 +565,7 @@ u8 OPEN_checkSaveIsCurrent(s32 player, s32 port, s32 slot) {
         scanMemoryCardFiles(port);
         OPEN_readSavePreview(port, slot);
         if (OPEN_MEMCARD.empty[port][slot] == 0) {
-            if ((u16)((PlayerProfile *)PLAYER_PROFILES)[player].profileId != save->unk10) {
+            if ((u16)((PlayerProfile *)PLAYER_PROFILES)[player].profileId != save->profileId) {
                 return 0;
             }
             return 3;

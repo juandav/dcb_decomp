@@ -44,7 +44,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
     for (i = 0; i < 2; i++) {
         ((Graphics *)&GRAPHICS)->buffers[i].primSlots[15] = (s32)&KAW_MATCH_SCREEN->prims[i];
     }
-    KAW_MATCH_SCREEN->unk770 = mode;
+    KAW_MATCH_SCREEN->mode = mode;
     KAW_MATCH_SCREEN->deckId = deckId;
     if (mode != 0) {
         i = getBaseDeckId(deckId);

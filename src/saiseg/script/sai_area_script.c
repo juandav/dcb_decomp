@@ -227,7 +227,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SAI_EXIT_ACTION = AREA_EXIT_SAVE;
                     return;
                 case 7:
-                    SESSION->unk1A7 = runner->script->params[0];
+                    SESSION->selectImage = runner->script->params[0];
                     break;
                 case 8:
                     SAI_LOCATION = SESSION->location = runner->script->params[0];
