@@ -103,7 +103,41 @@ void *findLoadedModelById(s32 id) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model/model_load", reuseLoadedModelTexture);
+s32 reuseLoadedModelTexture(u8 *model) {
+    Model *m;
+    Model *o;
+    s32 pos;
+    s32 px;
+    s32 py;
+    s32 cx;
+    s32 cy;
+
+    m = (Model *)model;
+    o = findLoadedModelById(m->id);
+    if (o != 0) {
+        if (o->tpageOffset != m->tpageOffset) {
+            pos = m->tpageOffset / 0x10000 + 5;
+            px = ((pos & 0xF) << 6) + (o->prect.x & 0x3F);
+            py = ((pos & 0x10) << 4) + (o->prect.y & 0xFF);
+            cx = ((pos & 0xF) << 6) + (o->crect.x & 0x3F);
+            cy = ((pos & 0x10) << 4) + (o->crect.y & 0xFF);
+            MoveImage(&o->prect, px, py);
+            MoveImage(&o->crect, cx, cy);
+            DrawSync(0);
+            m->prect.x = px;
+            m->prect.y = py;
+            m->prect.h = o->prect.h;
+            m->prect.w = o->prect.w;
+            m->crect.x = cx;
+            m->crect.y = cy;
+            m->crect.h = o->crect.h;
+            m->crect.w = o->crect.w;
+        }
+        return 0;
+    }
+    return 1;
+}
+
 
 s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     char path[16];
