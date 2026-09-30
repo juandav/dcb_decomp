@@ -3,8 +3,16 @@
 
 #include "game.h"
 
+/* One entry of the heap's block table. The table lists the arena's blocks in
+   address order and ends at the first entry whose addr is 0. */
+typedef struct {
+    /* 0x0 */ s32 addr; /* the block's address; bit 31 set while it's in use */
+    /* 0x4 */ s32 size;
+    /* 0x8 */ s32 tag;  /* -1 free, -2 permanent, else the owning task's id */
+} HeapBlock;
+
 extern s32 HEAP_ARENA;
-extern s32 HEAP_BLOCKS;
+extern HeapBlock HEAP_BLOCKS[0x400];
 
 void resetHeap(s32 initialize);
 s32 freeHeapBlock(void *ptr);
