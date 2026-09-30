@@ -1,0 +1,36 @@
+/* addresses SUBSEG uses that none of its objects defines: fields of its
+   data that its code reads and writes by their own name */
+
+/* the last byte of the menus D_801F1FE4, D_801F20D8 and D_801F219C */
+D_801F200C = 0x801F200C;
+D_801F2100 = 0x801F2100;
+D_801F21C4 = 0x801F21C4;
+
+/* D_801F20D8's rect */
+D_801F20E0 = 0x801F20E0;
+
+/* D_801F3250[1] to [6], and the labels of [1] and [2] */
+D_801F3294 = 0x801F3294;
+D_801F32C0 = 0x801F32C0;
+D_801F32D8 = 0x801F32D8;
+D_801F3304 = 0x801F3304;
+D_801F331C = 0x801F331C;
+D_801F3360 = 0x801F3360;
+D_801F33A4 = 0x801F33A4;
+D_801F33E8 = 0x801F33E8;
+
+/* D_801F3F48's card and cardId */
+D_801F404C = 0x801F404C;
+D_801F4050 = 0x801F4050;
+
+/* D_801F4070[4] */
+D_801F4074 = 0x801F4074;
+
+/* D_801F41A8's hidden and blink */
+D_801F41BC = 0x801F41BC;
+D_801F41C0 = 0x801F41C0;
+
+/* D_801F4330's lists[8], counts and selectedCard */
+D_801F4350 = 0x801F4350;
+D_801F4360 = 0x801F4360;
+D_801F44A0 = 0x801F44A0;
