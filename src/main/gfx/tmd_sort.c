@@ -818,14 +818,18 @@ void sortEnvMappedPrimitives(SortWork *w) {
     u32 *packet;
     u32 *cursor;
     u32 header;
-    s32 texInfo;
+    /*
+     * The group's texture word and each primitive's nclip result share one
+     * variable, as in the original: both are tested by their sign, and the
+     * shared lifetime is what puts the nclip result in a0.
+     */
+    s32 value;
     u32 code;
     s32 gouraud;
     u32 idx;
     u32 stripCount;
     u32 stripLength;
     u32 k;
-    register s32 nclip asm("$4");
     u8 *base;
     u8 *p0;
     u8 *p1;
@@ -846,15 +850,15 @@ void sortEnvMappedPrimitives(SortWork *w) {
         SORT_WORK->quad = code & 0x08000000;
         SORT_WORK->textured = code & 0x04000000;
         gouraud = code & 0x10000000;
-        texInfo = *cursor++;
-        if (texInfo >= 0) {
+        value = *cursor++;
+        if (value >= 0) {
             SORT_WORK->inlineTexture = 0;
-            SORT_WORK->envRgbCode = (texInfo & 0xFFFFFF) | 0x26000000;
-            SORT_WORK->clut = MODEL_TEXTURE_SLOTS[texInfo >> 24].clut;
-            SORT_WORK->tpage = MODEL_TEXTURE_SLOTS[texInfo >> 24].tpage;
+            SORT_WORK->envRgbCode = (value & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->clut = MODEL_TEXTURE_SLOTS[value >> 24].clut;
+            SORT_WORK->tpage = MODEL_TEXTURE_SLOTS[value >> 24].tpage;
         } else {
             SORT_WORK->inlineTexture = 1;
-            SORT_WORK->envRgbCode = (texInfo & 0xFFFFFF) | 0x26000000;
+            SORT_WORK->envRgbCode = (value & 0xFFFFFF) | 0x26000000;
             SORT_WORK->clut = *cursor++;
             SORT_WORK->tpage = *cursor++;
         }
@@ -887,12 +891,12 @@ void sortEnvMappedPrimitives(SortWork *w) {
                     gte_lwc2(25, 4, q0);
                     gte_lwc2(26, 4, q1);
                     gte_lwc2(27, 4, q2);
-                    gte_mfc2(24, nclip);
+                    gte_stopz_reg(value);
                     if (SORT_WORK->textured) {
                         gte_lwc2(2, 12, cursor);
                         gte_lwc2(4, 16, cursor);
                         idx = cursor[6];
-                        if (nclip > 0) {
+                        if (value > 0) {
                             gte_avsz3();
                             gte_lwc2(3, 20, cursor);
                             packet = emitTexturedTriangle(emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code),
@@ -903,8 +907,8 @@ void sortEnvMappedPrimitives(SortWork *w) {
                             loadEnvGteVertex2(gouraud, idx, (u8 *)SORT_WORK->work);
                             gte_lwc2(3, 4, cursor);
                             idx = cursor[2];
-                            gte_mfc2(24, nclip);
-                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                            gte_stopz_reg(value);
+                            if ((k & 1) ? value < 0 : value > 0) {
                                 STRIP_DRAW(emitTexturedTriangle);
                             }
                             cursor += 2;
@@ -914,9 +918,9 @@ void sortEnvMappedPrimitives(SortWork *w) {
                             if (SORT_WORK->pass != 0) {
                                 loadEnvGteVertex0(gouraud, idx, (u8 *)SORT_WORK->work);
                                 gte_lwc2(2, 4, cursor);
-                                gte_mfc2(24, nclip);
+                                gte_stopz_reg(value);
                                 idx = cursor[2];
-                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                if ((k & 1) ? value < 0 : value > 0) {
                                     STRIP_DRAW(emitTexturedTriangle);
                                 }
                                 cursor += 2;
@@ -926,9 +930,9 @@ void sortEnvMappedPrimitives(SortWork *w) {
                             }
                             loadEnvGteVertex1(gouraud, idx, (u8 *)SORT_WORK->work);
                             gte_lwc2(4, 4, cursor);
-                            gte_mfc2(24, nclip);
+                            gte_stopz_reg(value);
                             idx = cursor[2];
-                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                            if ((k & 1) ? value < 0 : value > 0) {
                                 STRIP_DRAW(emitTexturedTriangle);
                             }
                             cursor += 2;
@@ -936,15 +940,15 @@ void sortEnvMappedPrimitives(SortWork *w) {
                         }
                     } else {
                         idx = cursor[3];
-                        if (nclip > 0) {
+                        if (value > 0) {
                             STRIP_DRAW(emitUntexturedTriangle);
                         }
                         cursor += 3;
                         for (k = 1; k != stripLength;) {
                             loadEnvGteVertex2(gouraud, idx, (u8 *)SORT_WORK->work);
                             idx = *++cursor;
-                            gte_mfc2(24, nclip);
-                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                            gte_stopz_reg(value);
+                            if ((k & 1) ? value < 0 : value > 0) {
                                 STRIP_DRAW(emitUntexturedTriangle);
                             }
                             if (++k == stripLength) {
@@ -953,8 +957,8 @@ void sortEnvMappedPrimitives(SortWork *w) {
                             if (SORT_WORK->pass != 0) {
                                 loadEnvGteVertex0(gouraud, idx, (u8 *)SORT_WORK->work);
                                 idx = *++cursor;
-                                gte_mfc2(24, nclip);
-                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                gte_stopz_reg(value);
+                                if ((k & 1) ? value < 0 : value > 0) {
                                     STRIP_DRAW(emitUntexturedTriangle);
                                 }
                                 if (++k == stripLength) {
@@ -963,8 +967,8 @@ void sortEnvMappedPrimitives(SortWork *w) {
                             }
                             loadEnvGteVertex1(gouraud, idx, (u8 *)SORT_WORK->work);
                             idx = *++cursor;
-                            gte_mfc2(24, nclip);
-                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                            gte_stopz_reg(value);
+                            if ((k & 1) ? value < 0 : value > 0) {
                                 STRIP_DRAW(emitUntexturedTriangle);
                             }
                             k++;
