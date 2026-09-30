@@ -120,9 +120,16 @@ typedef struct {
 } CardIdList;
 
 extern s16 SUB_EDITOR_PLAYER;
+extern PlayerDeck *SUB_EDITED_DECK;
+extern CardImageCache SUB_CARD_IMAGE_CACHE;
 extern UiWindow SUB_WINDOWS[7];
+extern void *SUB_CARD_LIST[301];
+extern s8 *SUB_CARDS_BY_ID[301];
 extern EditorState SUB_EDITOR;
+extern DeckEditState SUB_DECK_EDIT;
+extern CollectionStats SUB_COLLECTION_STATS;
 extern DeckMenuState SUB_DECK_MENU;
+extern u8 *SUB_CARD_ARCHIVE;
 extern u8 SUB_AUTO_DECK_ENABLED;
 
 #endif /* DCB_SUBSEG_H */

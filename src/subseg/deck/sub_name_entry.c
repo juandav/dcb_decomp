@@ -8,7 +8,7 @@
 #include "dcb/frame_callback.h"
 #include "dcb/dialog.h"
 #include "dcb/subseg.h"
-#include "dcb/sub_deck_editor.h"
+#include "dcb/sub_deck_screens.h"
 #include "dcb/sub_auto_deck.h"
 
 extern NameEntry SUB_NAME_ENTRY;

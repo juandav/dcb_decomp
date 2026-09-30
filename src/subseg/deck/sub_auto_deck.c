@@ -12,7 +12,9 @@
 #include "dcb/subseg.h"
 #include "dcb/sub_name_entry.h"
 #include "dcb/sub_base_deck.h"
+#include "dcb/sub_sort.h"
 #include "dcb/sub_deck_editor.h"
+#include "dcb/sub_deck_screens.h"
 
 typedef struct {
     s16 x;
