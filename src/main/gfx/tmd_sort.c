@@ -392,7 +392,71 @@ u32 sortEnvMappedModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
     return SORT_WORK->packet;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", transformVerticesWithEnvMap);
+/*
+ * transformAndLightVertices for environment-mapped models: the same pass puts
+ * the vertices on screen, then each group's normals are rotated by the
+ * environment matrix, whose x and y pick the texel (u, v) of the reflection
+ * texture, and lit with nccs.
+ */
+u32 *transformVerticesWithEnvMap(u32 *vertices, u32 *out) {
+    s32 count;
+    s32 groups;
+    u32 word;
+    u32 nextXY;
+    u32 nextZ;
+    s32 x;
+    s32 y;
+    s32 z;
+
+    gte_SetRotMatrix_c(&SORT_WORK->screenMatrix);
+    gte_SetTransMatrix_c(&SORT_WORK->screenMatrix);
+    count = *vertices++;
+    gte_ldv3c(vertices);
+    vertices += 6;
+    do {
+        count -= 3;
+        gte_rtpt();
+        gte_prefetchv3c(vertices);
+        gte_stsxysz3c(out);
+        out += 6;
+        gte_ldv3_prefetched();
+        vertices += 6;
+    } while (count > 0);
+    /* the loop read up to two vectors past the end */
+    vertices -= 6;
+    vertices += count * 2;
+    out += count * 2;
+    gte_SetRotMatrix_c(&SORT_WORK->envMatrix);
+    gte_SetTransMatrix_c(&SORT_WORK->envMatrix);
+    for (groups = *vertices++; groups > 0; groups--) {
+        word = *vertices++;
+        count = word & 0xFF;
+        word >>= 8;
+        gte_ldrgbc(word);
+        gte_ldv0c(vertices);
+        /* give the GTE time to take the colour */
+        gte_nop();
+        gte_nop();
+        do {
+            gte_rtv0();
+            nextXY = vertices[2];
+            nextZ = vertices[3];
+            gte_stmac123(x, y, z);
+            vertices += 2;
+            count--;
+            gte_nccs();
+            x >>= 7;
+            y >>= 7;
+            ((EnvMapVertex *)out)->z = z;
+            ((EnvMapVertex *)out)->u = (x + 32) & 0x3F;
+            ((EnvMapVertex *)out)->v = (y + 32) & 0x3F;
+            gte_strgb(out);
+            gte_ldv0_reg(nextXY, nextZ);
+            out += 2;
+        } while (count > 0);
+    }
+    return vertices;
+}
 
 void loadEnvGteVertex0(s32 gouraud, u32 index, u8 *workBuf) {
     u8 *vertex;

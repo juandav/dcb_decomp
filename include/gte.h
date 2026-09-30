@@ -63,12 +63,23 @@
 /* Set the colour and code (RGBC) the lighting commands start from */
 #define gte_ldrgbc(v) __asm__ volatile("mtc2 %0, $6" : : "r"(v))
 
+/* Load V0 from the SVECTOR at `p` (the inline_c.h form: `p` is an operand) */
+#define gte_ldv0c(p) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(p))
+
+/* Read the three results of the last mvmva (MAC1-MAC3) */
+#define gte_stmac123(x, y, z) __asm__ volatile("mfc2 %0, $25; mfc2 %1, $26; mfc2 %2, $27" : "=r"(x), "=r"(y), "=r"(z))
+
+/* Store the last lit colour (RGB2) as a word at `p` */
+#define gte_strgb(p) __asm__ volatile("swc2 $22, 0(%0)" : : "r"(p))
+
 /* GTE commands without the nops in front (the caller keeps the pipeline safe) */
 #define gte_nop() __asm__ volatile("nop")
 #define gte_rtpt() __asm__ volatile("rtpt")
 #define gte_ncct() __asm__ volatile("ncct")
 #define gte_nccs() __asm__ volatile("nccs")
 #define gte_mvmva(sf, mx, v, cv, lm) __asm__ volatile("mvmva " #sf ", " #mx ", " #v ", " #cv ", " #lm)
+/* V0 times the rotation matrix, without the translation (MAC1-3 = R * V0) */
+#define gte_rtv0() gte_mvmva(1, 0, 0, 3, 0)
 
 /* The inline_c.h forms: the pointer is an operand and $12-$14 are scratch */
 #define gte_SetRotMatrix_c(r)                                                                                        \
