@@ -3522,7 +3522,132 @@ s32 func_801E9C1C(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *effects
     return 0;
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E9F5C);
+s32 func_801E9F5C(s32 card, s32 player) {
+    s32 specialty;
+    u8 level;
+    s32 dp;
+    s32 cardSpecialty;
+    s32 cardLevel;
+    s32 cost;
+    s8 *data;
+    u8 *p;
+    CardSlot *played;
+
+    if (card == -1) {
+        return -1;
+    }
+    if (getActiveDigimonCard(player) == -1) {
+        return -1;
+    }
+    if (PLAYER(player)->cards[card % 30].type != 0) {
+        return -1;
+    }
+    specialty = PLAYER(player)->specialty;
+    level = PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF;
+    dp = sumDigivolvePoints(player);
+    data = PLAYER(player)->cards[card % 30].card;
+    cardSpecialty = (u8)data[0x1A] >> 4;
+    cardLevel = data[0x1A] & 0xF;
+    cost = data[0x1B];
+    if (getPlayedCard(player) != -1) {
+        p = DUEL_PLAYERS[player];
+        p += (getPlayedCard(player) % 30) * sizeof(CardSlot);
+        played = ((Player *)p)->cards;
+        if (played->card[2] == 2) {
+            p = DUEL_PLAYERS[player];
+            p += (getPlayedCard(player) % 30) * sizeof(CardSlot);
+            played = ((Player *)p)->cards;
+            switch (played->card[0x1A]) {
+            case 0:
+                if (level == 1) {
+                    return -1;
+                }
+                if (level == 0) {
+                    level = 1;
+                }
+                if (cardLevel == level + 1) {
+                    if (dp + 20 >= cost) {
+                        return 0;
+                    }
+                }
+                break;
+            case 1:
+                if (level != 0) {
+                    return -1;
+                }
+                if (cardSpecialty != specialty) {
+                    return -1;
+                }
+                if (cardLevel == 3 && dp >= cost) {
+                    return 0;
+                }
+                break;
+            case 2:
+                if (level == 1) {
+                    return -1;
+                }
+                if (level == 0) {
+                    level = 1;
+                }
+                if (PLAYER(player)->statPenalty == 0 && cardSpecialty == specialty && cardLevel == level + 1) {
+                    return 0;
+                }
+                break;
+            case 5:
+                return 0;
+            case 3:
+                if (cardLevel != level) {
+                    return -1;
+                }
+                if (dp >= cost) {
+                    return 0;
+                }
+                break;
+            case 4:
+                if (level == 1) {
+                    return -1;
+                }
+                if (countEmptyDigimonStackSlots(player) < 2) {
+                    return 0;
+                }
+                break;
+            case 6:
+                if (level != 1) {
+                    return -1;
+                }
+                if (cardLevel < 2) {
+                    return -1;
+                }
+                if (cardSpecialty != specialty) {
+                    return -1;
+                }
+                if (dp >= cost) {
+                    return 0;
+                }
+                break;
+            case 7:
+                if (level == 1) {
+                    return 0;
+                }
+                break;
+            }
+        }
+    } else if (level != 1) {
+        if (level == 0) {
+            level = 1;
+        }
+        if (cardSpecialty != specialty) {
+            return -1;
+        }
+        if (cardLevel != level + 1) {
+            return -1;
+        }
+        if (dp >= cost) {
+            return 0;
+        }
+    }
+    return -1;
+}
 
 s32 func_801EA374(s32 player) {
     s32 i;
