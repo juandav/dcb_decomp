@@ -3579,7 +3579,7 @@ void func_801E9790(void) {
     rects[6].h = 0x56;
     D_801F1FE4.rect.h = 0x60;
     D_801F1FE4.ox = 0x85;
-    openMenu(&D_801F1FE4, &D_801F3294, &D_801F3200, (Bytes4 *)-1);
+    openMenu(&D_801F1FE4, D_801F3294, &D_801F3200, (Bytes4 *)-1);
     D_801F32C0 = (s32)D_801DF320;
     D_801F1FE4.active = running;
     D_801F1FE4.row = 0;

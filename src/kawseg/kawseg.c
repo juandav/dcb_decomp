@@ -4925,7 +4925,7 @@ void func_801F003C(s32 isVersus, s32 match) {
         ((SessionData *)D_8006E054)->npcDeckIndex[0] = -1;
         ((SessionData *)D_8006E054)->npcDeckIndex[1] = -1;
         if (isVersus != 0) {
-            openMenu(&D_801FBAB0[0], &D_801FC454->lists[0], &D_801FC454->highlights[0], (Bytes4 *)-1);
+            openMenu(&D_801FBAB0[0], &D_801FC454->lists[0].window, &D_801FC454->highlights[0], (Bytes4 *)-1);
             D_801FC454->lists[0].player = 0;
             D_801FC454->lists[0].window.labelPalette = 7;
             D_801FC454->lists[0].window.label = (s32) "PLAYER DECK LIST";
@@ -4937,7 +4937,7 @@ void func_801F003C(s32 isVersus, s32 match) {
             done = 2;
         } else {
             for (i = 0, done = 0; i < 2; i++) {
-                openMenu(&D_801FBAB0[i], &D_801FC454->lists[i], &D_801FC454->highlights[i], (Bytes4 *)-1);
+                openMenu(&D_801FBAB0[i], &D_801FC454->lists[i].window, &D_801FC454->highlights[i], (Bytes4 *)-1);
                 D_801FC454->lists[i].player = i;
                 openWindow(&D_801FC454->frames[i], &D_801FBB08[i], -1, (s16 *)-1, 8, 0x55, 0x80, 8);
                 animateWindowTo(&D_801FC454->frames[i].window, (Rect16 *)-1);

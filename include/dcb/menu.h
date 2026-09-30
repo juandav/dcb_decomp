@@ -39,9 +39,9 @@ typedef struct {
 void setCursorHighlight(CursorHighlight *highlight, Rect16 *rect, Bytes4 *color);
 void initCursorHighlight(CursorHighlight *highlight, Rect16 *rect, Bytes4 *color);
 void moveCursorHighlight(CursorHighlight *highlight, Rect16 *target);
-void setCursorHighlightColor(void *highlight, Bytes4 *color);
-void openMenu(void *menu, void *win, CursorHighlight *highlight, Bytes4 *color);
-void centerMenuOnCursor(void *menu);
+void setCursorHighlightColor(CursorHighlight *highlight, Bytes4 *color);
+void openMenu(Menu *menu, UiWindow *win, CursorHighlight *highlight, Bytes4 *color);
+void centerMenuOnCursor(Menu *menu);
 void drawCursorHighlight(CursorHighlight *highlight, s32 z);
 s32 updateMenuCursor(Menu *menu);
 
