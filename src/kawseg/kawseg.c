@@ -6004,7 +6004,7 @@ void func_801F4A24(void) {
     for (i = 0; i < 3; i++) {
         D_801FC738->pendingExp[i] = 0;
         if (D_801FC738->partnerShown[i] && (s8)((PlayerProfile *)PLAYER_PROFILES)->partners[i].level < 99) {
-            D_801FC738->pendingExp[i] = D_801FCA2C + ((PlayerProfile *)PLAYER_PROFILES)->partners[i].unk292[1] * D_801FCA2C / 100;
+            D_801FC738->pendingExp[i] = D_801FCA2C + ((PlayerProfile *)PLAYER_PROFILES)->partners[i].expBonus * D_801FCA2C / 100;
         }
     }
     gained = 0;

@@ -926,7 +926,7 @@ void SUB_drawPartnerPortrait(s32 player, s32 slot, s32 x, s32 y, s32 brightness,
 void SUB_drawArmorPortrait(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
     s32 specialty;
 
-    if (PLAYER_DATA(player).partners[slot].unk292[0] == 0) {
+    if (PLAYER_DATA(player).partners[slot].armorCardId == 0) {
         if (isSpritePoolFull() == 0) {
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
@@ -945,7 +945,7 @@ void SUB_drawArmorPortrait(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
             SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         }
     } else {
-        specialty = ((DigimonCardData *)DIGIMON_CARDS)[PLAYER_DATA(player).partners[slot].unk292[0]].attr >> 4;
+        specialty = ((DigimonCardData *)DIGIMON_CARDS)[PLAYER_DATA(player).partners[slot].armorCardId].attr >> 4;
         if (isSpritePoolFull() == 0) {
             CUR_SPRT->sp.x0 = x;
             CUR_SPRT->sp.y0 = y;
@@ -1239,7 +1239,7 @@ void SUB_drawArmorChange(UiWindow *window) {
     s32 prevArmor;
     s32 i;
 
-    if (PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].unk292[0] != 0) {
+    if (PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].armorCardId != 0) {
         drawText(x + 6, y + 1, (s32)"Armor Change with L1 & R1", 7, z);
         prevArmor = SUB_ARMOR_INDEX;
         for (i = 0; i < 3; i++) {
@@ -1428,7 +1428,7 @@ void SUB_drawArmorDetails(UiWindow *window) {
     s32 i;
 
     SUB_drawArmorPortrait(player, SUB_PARTNER_SLOT, x + 0x14, y + 0xA, z);
-    if (PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].unk292[0] != 0) {
+    if (PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].armorCardId != 0) {
         SUB_SAVED_PARTNER = PLAYER_DATA(player).partners[SUB_PARTNER_SLOT];
         for (i = 0; i < 3; i++) {
             PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].equippedAbilities[i] = -1;
@@ -2328,8 +2328,8 @@ void SUB_initCardList(void) {
     for (i = 0; i < 3; i++) {
         if (PLAYER_DATA(SUB_EDITOR.player).partners[i].cardId != 0) {
             SUB_CARD_LIST[PLAYER_DATA(SUB_EDITOR.player).partners[i].cardId] = &PLAYER_DATA(SUB_EDITOR.player).partners[i].card[0];
-            if (PLAYER_DATA(SUB_EDITOR.player).partners[i].unk292[0] != 0) {
-                SUB_CARD_LIST[PLAYER_DATA(SUB_EDITOR.player).partners[i].unk292[0]] = &PLAYER_DATA(SUB_EDITOR.player).partners[i].card[1];
+            if (PLAYER_DATA(SUB_EDITOR.player).partners[i].armorCardId != 0) {
+                SUB_CARD_LIST[PLAYER_DATA(SUB_EDITOR.player).partners[i].armorCardId] = &PLAYER_DATA(SUB_EDITOR.player).partners[i].card[1];
             }
         }
     }
