@@ -143,8 +143,11 @@ def name_rodata(base: str, target: str) -> None:
     args = []
     for name in sorted(asm):
         args += ["--strip-symbol", name + ".NON_MATCHING"]
+    # a name the base already uses (defined elsewhere, or referenced) stays out
+    with open(ROOT / base, "rb") as f:
+        used = {s.name for s in ELFFile(f).get_section_by_name(".symtab").iter_symbols() if s.name}
     for name, offset in rodata_symbols(target):
-        if name not in have and re.fullmatch(r"(D|jtbl)_[0-9A-F]{8}", name):
+        if name not in used and not name.endswith(".NON_MATCHING"):
             args += ["--add-symbol", f"{name}=.rodata:{offset:#x},object,global"]
     if args:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
