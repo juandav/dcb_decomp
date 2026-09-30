@@ -3977,12 +3977,12 @@ void func_801E8678(Runner *runner) {
                             src = (BoneChannels *)(prev + 0xD80) + *(s16 *)(prev + 4);
                             dst = (BoneChannels *)(next + 0xD80) + *(s16 *)(next + 4);
                             for (i = 0; i < 3; i++) {
-                                dst->ch[0][i].unk0 = src->ch[0][i].unk0;
-                                dst->ch[1][i].unk0 = src->ch[1][i].unk0;
-                                dst->ch[2][i].unk0 = src->ch[2][i].unk0;
-                                dst->ch[0][i].d0 = dst->ch[1][i].d0 = dst->ch[2][i].d0 =
-                                    dst->ch[0][i].d1 = dst->ch[1][i].d1 = dst->ch[2][i].d1 =
-                                    dst->ch[0][i].val = dst->ch[1][i].val = dst->ch[2][i].val = 0;
+                                dst->ch[0][i].value = src->ch[0][i].value;
+                                dst->ch[1][i].value = src->ch[1][i].value;
+                                dst->ch[2][i].value = src->ch[2][i].value;
+                                dst->ch[0][i].accel0 = dst->ch[1][i].accel0 = dst->ch[2][i].accel0 =
+                                    dst->ch[0][i].accel1 = dst->ch[1][i].accel1 = dst->ch[2][i].accel1 =
+                                    dst->ch[0][i].velocity = dst->ch[1][i].velocity = dst->ch[2][i].velocity = 0;
                             }
                             *(s16 *)((u8 *)dst + 0x42) += *(s16 *)(prev + 0xC);
                             *(s16 *)((u8 *)dst + 0x52) += *(s16 *)(prev + 0x10);

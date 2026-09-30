@@ -3,12 +3,12 @@
 
 #include "game.h"
 
-void applyRootMotion(u8 *model);
-void setupRotationCurve(s32 *chan, s32 span, s32 nextSpan, s32 halfSpan, s32 key, s32 nextKey, s32 afterKey);
-void setupTranslationCurve(s32 *chan, s32 span, s32 nextSpan, s32 halfSpan, s32 key, s32 nextKey, s32 afterKey);
-void accelerateModelBones(u8 *model);
-s32 updateModelBoneMatrices(void *model);
-s32 loadNextAnimationKeyframe(Model2220 *, s32, s32);
+void applyRootMotion(Model *model);
+void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next);
+void setupTranslationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next);
+void accelerateModelBones(Model *model);
+s32 updateModelBoneMatrices(Model *model);
+s32 loadNextAnimationKeyframe(Model *model, s32 loopKey, s32 mode);
 void runModelAnimationTask(void);
 
 #endif /* DCB_MODEL_ANIM_H */

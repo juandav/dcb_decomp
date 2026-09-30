@@ -169,9 +169,9 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     *(s32 *)(model + 0x18) = 0x1000;
     for (i = 0; i < 32; i++) {
         for (j = 0; j < 3; j++) {
-            ((Model *)model)->keys[i].rot[j].unk0 = 0;
-            ((Model *)model)->keys[i].pos[j].unk0 = 0;
-            ((Model *)model)->keys[i].scale[j].unk0 = 0x10000000;
+            ((Model *)model)->keys[i].pos[j].value = 0;
+            ((Model *)model)->keys[i].rot[j].value = 0;
+            ((Model *)model)->keys[i].scale[j].value = 0x10000000;
         }
     }
     if (vramSlot < 0) {

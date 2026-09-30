@@ -24,84 +24,86 @@
 #include "dcb/str_util.h"
 #include "dcb/transform.h"
 
-void updateEffectLinearMotion(void *fx) {
+/* Moves the effect from its start along dir: distance = speed * t + accel * t^2 */
+void updateEffectLinearMotion(EffectObject *fx) {
     s32 accelTerm;
     s32 distance;
 
-    accelTerm = (*(s16 *)((s8 *)fx + 0x122)) * (*(s32 *)((s8 *)fx + 0x104)) * (*(s32 *)((s8 *)fx + 0x104));
-    distance = (*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)) + accelTerm;
-    (*(s32 *)((s8 *)fx + 0x20)) = (*(s16 *)((s8 *)fx + 0xD4)) + ((distance * (*(s32 *)((s8 *)fx + 0x9C))) >> 12);
-    (*(s32 *)((s8 *)fx + 0x24)) = (*(s16 *)((s8 *)fx + 0xD6)) + ((distance * (*(s32 *)((s8 *)fx + 0xA0))) >> 12);
-    (*(s32 *)((s8 *)fx + 0x28)) = (*(s16 *)((s8 *)fx + 0xD8)) + ((distance * (*(s32 *)((s8 *)fx + 0xA4))) >> 12);
+    accelTerm = fx->moveAccel * fx->t2 * fx->t2;
+    distance = fx->moveSpeed * fx->t + accelTerm;
+    fx->posX = fx->px + ((distance * fx->dir.vx) >> 12);
+    fx->posY = fx->py + ((distance * fx->dir.vy) >> 12);
+    fx->posZ = fx->pz + ((distance * fx->dir.vz) >> 12);
 }
 
-void updateEffectArcMotion(void *fx) {
+/* The linear motion plus a hop on y */
+void updateEffectArcMotion(EffectObject *fx) {
     updateEffectLinearMotion(fx);
-    *(s32 *)((s8 *)fx + 0x24) +=
-        -*(s16 *)((s8 *)fx + 0x120) * *(s32 *)((s8 *)fx + 0x100) +
-        *(s16 *)((s8 *)fx + 0x120) * *(s32 *)((s8 *)fx + 0x100) *
-            *(s32 *)((s8 *)fx + 0x100) / 56;
+    fx->posY += -fx->moveSpeed * fx->t + fx->moveSpeed * fx->t * fx->t / 56;
 }
 
-void updateEffectWaveXMotion(void *fx) {
+/* The linear motion plus a sine wave on x */
+void updateEffectWaveXMotion(EffectObject *fx) {
     s32 phase;
 
     updateEffectLinearMotion(fx);
-    phase = (*(s16 *)((s8 *)fx + 0x128)) + ((*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)));
-    (*(s32 *)((s8 *)fx + 0x20)) = (s32) (((s32) ((*(s16 *)((s8 *)fx + 0x12A)) * rsin(phase * (*(s16 *)((s8 *)fx + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)fx + 0x20)));
+    phase = fx->wavePhase + fx->moveSpeed * fx->t;
+    fx->posX = ((s32)(fx->waveAmplitude * rsin(phase * fx->waveFreq)) >> 10) + fx->posX;
 }
 
-void updateEffectWaveYMotion(void *fx) {
+/* The linear motion plus a sine wave on y */
+void updateEffectWaveYMotion(EffectObject *fx) {
     s32 phase;
 
     updateEffectLinearMotion(fx);
-    phase = (*(s16 *)((s8 *)fx + 0x128)) + ((*(s16 *)((s8 *)fx + 0x120)) * (*(s32 *)((s8 *)fx + 0x100)));
-    (*(s32 *)((s8 *)fx + 0x24)) = (s32) (((s32) ((*(s16 *)((s8 *)fx + 0x12A)) * rsin(phase * (*(s16 *)((s8 *)fx + 0x126)))) >> 0xA) + (*(s32 *)((s8 *)fx + 0x24)));
+    phase = fx->wavePhase + fx->moveSpeed * fx->t;
+    fx->posY = ((s32)(fx->waveAmplitude * rsin(phase * fx->waveFreq)) >> 10) + fx->posY;
 }
 
-void updateEffectTiltedArcMotion(u8 *fx) {
+/* The arc motion, with the hop turned by the start rotation on z */
+void updateEffectTiltedArcMotion(EffectObject *fx) {
     s32 height;
     s32 offsetX;
     s32 offsetY;
 
     updateEffectLinearMotion(fx);
-    height = -*(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) +
-        *(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) * *(s32 *)(fx + 0x100) / 56;
-    offsetX = height * rsin(*(s16 *)(fx + 0xE8)) >> 12;
-    offsetY = height * rcos(*(s16 *)(fx + 0xE8)) >> 12;
-    *(s32 *)(fx + 0x20) -= offsetX;
-    *(s32 *)(fx + 0x24) += offsetY;
+    height = -fx->moveSpeed * fx->t + fx->moveSpeed * fx->t * fx->t / 56;
+    offsetX = height * rsin((s16)fx->rz0) >> 12;
+    offsetY = height * rcos((s16)fx->rz0) >> 12;
+    fx->posX -= offsetX;
+    fx->posY += offsetY;
 }
 
-void func_80030440(u8 *fx) {
+/* Like updateEffectTiltedArcMotion, with moveAccel for the height of the hop */
+void func_80030440(EffectObject *fx) {
     s32 distance;
     s32 height;
     s32 offsetX;
     s32 offsetY;
 
-    distance = *(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100);
-    *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4) + (distance * *(s32 *)(fx + 0x9C) >> 12);
-    *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6) + (distance * *(s32 *)(fx + 0xA0) >> 12);
-    *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8) + (distance * *(s32 *)(fx + 0xA4) >> 12);
-    height = -*(s16 *)(fx + 0x120) * *(s32 *)(fx + 0x100) +
-        *(s16 *)(fx + 0x122) * *(s32 *)(fx + 0x100) * *(s32 *)(fx + 0x100) / 56;
-    offsetX = height * rsin(*(s16 *)(fx + 0xE8)) >> 12;
-    offsetY = height * rcos(*(s16 *)(fx + 0xE8)) >> 12;
-    *(s32 *)(fx + 0x20) -= offsetX;
-    *(s32 *)(fx + 0x24) += offsetY;
+    distance = fx->moveSpeed * fx->t;
+    fx->posX = fx->px + (distance * fx->dir.vx >> 12);
+    fx->posY = fx->py + (distance * fx->dir.vy >> 12);
+    fx->posZ = fx->pz + (distance * fx->dir.vz >> 12);
+    height = -fx->moveSpeed * fx->t + fx->moveAccel * fx->t * fx->t / 56;
+    offsetX = height * rsin((s16)fx->rz0) >> 12;
+    offsetY = height * rcos((s16)fx->rz0) >> 12;
+    fx->posX -= offsetX;
+    fx->posY += offsetY;
 }
 
-void updateEffectShakeMotion(u8 *fx) {
+/* Puts the effect at a random offset from its start, up to moveSpeed / 2 per axis */
+void updateEffectShakeMotion(EffectObject *fx) {
     s32 x;
     s32 y;
     s32 z;
 
-    x = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
-    y = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
-    z = *(s16 *)(fx + 0x120) / 2 - rand() % *(s16 *)(fx + 0x120);
-    *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4) + x;
-    *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6) + y;
-    *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8) + z;
+    x = fx->moveSpeed / 2 - rand() % fx->moveSpeed;
+    y = fx->moveSpeed / 2 - rand() % fx->moveSpeed;
+    z = fx->moveSpeed / 2 - rand() % fx->moveSpeed;
+    fx->posX = fx->px + x;
+    fx->posY = fx->py + y;
+    fx->posZ = fx->pz + z;
 }
 
 s32 getVectorDistance(SVECTOR *from, SVECTOR *to) {
@@ -197,7 +199,7 @@ s32 checkEffectHitTarget(SVECTOR *prevPos, SVECTOR *curPos, SVECTOR *target, s16
 EffectTemplate *cloneEffectObject(EffectTemplate *template) {
     EffectTemplate *fx;
 
-    fx = allocTaskHeapBlock(0x13C);
+    fx = allocTaskHeapBlock(sizeof(EffectTemplate));
     *fx = *template;
     initEffectObject(fx);
     return fx;
@@ -230,68 +232,77 @@ s32 getDirectionVector(SVECTOR *from, SVECTOR *to, VECTOR *dir) {
     return -1;
 }
 
-void restartEffectMotion(u8 *fx) {
+/*
+ * Starts the motion again: from the start position (and rotation and scale)
+ * for a moving mode, or from where the effect is now for modes 0 and 90
+ */
+void restartEffectMotion(void *obj) {
+    EffectObject *fx;
     s32 i;
 
-    fx[0x139] = *(s16 *)(fx + 0x12E) >= 0x5B;
-    *(s32 *)(fx + 0x118) = -1;
+    fx = obj;
+    fx->suspended = fx->mode >= 91;
+    fx->state = -1;
     for (i = 0; i < 3; i++) {
-        ((Unk80030CA8 *)fx)->done[i] = 0;
+        fx->done[i] = 0;
     }
-    *(s32 *)(fx + 0x108) = 0;
-    *(s32 *)(fx + 0x11C) = 0;
-    *(s32 *)(fx + 0x100) = 0;
-    *(s32 *)(fx + 0x104) = 0;
-    if (*(s16 *)(fx + 0x12E) != 0 && *(s16 *)(fx + 0x12E) != 0x5A) {
-        *(s32 *)(fx + 0x38) = *(s32 *)(fx + 0xAC);
-        *(s32 *)(fx + 0x3C) = *(s32 *)(fx + 0xB0);
-        *(s32 *)(fx + 0x40) = *(s32 *)(fx + 0xB4);
-        *(s16 *)(fx + 0x30) = *(s16 *)(fx + 0xE4);
-        *(s16 *)(fx + 0x32) = *(s16 *)(fx + 0xE6);
-        *(s16 *)(fx + 0x34) = *(s16 *)(fx + 0xE8);
-        *(s32 *)(fx + 0x20) = *(s16 *)(fx + 0xD4);
-        *(s32 *)(fx + 0x24) = *(s16 *)(fx + 0xD6);
-        *(s32 *)(fx + 0x28) = *(s16 *)(fx + 0xD8);
-        *(s32 *)(fx + 0x6C) = *(s16 *)(fx + 0xDC);
-        *(s32 *)(fx + 0x70) = *(s16 *)(fx + 0xDE);
-        *(s32 *)(fx + 0x74) = *(s16 *)(fx + 0xE0);
-        getDirectionVector((SVECTOR *)(fx + 0xD4), (SVECTOR *)(fx + 0xDC), (VECTOR *)(fx + 0x9C));
+    fx->cnt = 0;
+    fx->flag = 0;
+    fx->t = 0;
+    fx->t2 = 0;
+    if (fx->mode != 0 && fx->mode != 90) {
+        fx->sx = fx->sx0;
+        fx->sy = fx->sy0;
+        fx->sz = fx->sz0;
+        fx->rotX = fx->rx0;
+        fx->rotY = fx->ry0;
+        fx->rotZ = fx->rz0;
+        fx->posX = fx->px;
+        fx->posY = fx->py;
+        fx->posZ = fx->pz;
+        fx->targetX = fx->px2;
+        fx->targetY = fx->py2;
+        fx->targetZ = fx->pz2;
+        getDirectionVector((SVECTOR *)&fx->px, (SVECTOR *)&fx->px2, &fx->dir);
     } else {
-        *(s32 *)(fx + 0xAC) = *(s32 *)(fx + 0x38);
-        *(s32 *)(fx + 0xB0) = *(s32 *)(fx + 0x3C);
-        *(s32 *)(fx + 0xB4) = *(s32 *)(fx + 0x40);
-        *(s16 *)(fx + 0xE4) = *(s16 *)(fx + 0x30);
-        *(s16 *)(fx + 0xE6) = *(s16 *)(fx + 0x32);
-        *(s16 *)(fx + 0xE8) = *(s16 *)(fx + 0x34);
-        *(s16 *)(fx + 0xD4) = *(s32 *)(fx + 0x20);
-        *(s16 *)(fx + 0xD6) = *(s32 *)(fx + 0x24);
-        *(s16 *)(fx + 0xD8) = *(s32 *)(fx + 0x28);
+        fx->sx0 = fx->sx;
+        fx->sy0 = fx->sy;
+        fx->sz0 = fx->sz;
+        fx->rx0 = fx->rotX;
+        fx->ry0 = fx->rotY;
+        fx->rz0 = fx->rotZ;
+        fx->px = fx->posX;
+        fx->py = fx->posY;
+        fx->pz = fx->posZ;
     }
 }
 
-void *initEffectObject(void *fx) {
-    initTransform(fx, (*(s32 *)((s8 *)fx + 0x98)), (s32) (*(s16 *)((s8 *)fx + 0xD4)), (s32) (*(s16 *)((s8 *)fx + 0xD6)), (s32) (*(s16 *)((s8 *)fx + 0xD8)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE4)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE6)), (s16) (s32) (*(s16 *)((s8 *)fx + 0xE8)));
-    initTransform(fx + 0x4C, (*(s32 *)((s8 *)fx + 0x98)), (s32) (*(s16 *)((s8 *)fx + 0xDC)), (s32) (*(s16 *)((s8 *)fx + 0xDE)), (s32) (*(s16 *)((s8 *)fx + 0xE0)), 0, 0, 0);
-    (*(s32 *)((s8 *)fx + 0x14)) = 0;
-    (*(s32 *)((s8 *)fx + 0x18)) = 0;
-    (*(s32 *)((s8 *)fx + 0x1C)) = 0;
-    (*(s32 *)((s8 *)fx + 0x38)) = (s32) (*(s32 *)((s8 *)fx + 0xAC));
-    (*(s32 *)((s8 *)fx + 0x3C)) = (s32) (*(s32 *)((s8 *)fx + 0xB0));
-    (*(s32 *)((s8 *)fx + 0x40)) = (s32) (*(s32 *)((s8 *)fx + 0xB4));
-    (*(u16 *)((s8 *)fx + 0x30)) = (u16) (*(s16 *)((s8 *)fx + 0xE4));
-    (*(u16 *)((s8 *)fx + 0x32)) = (u16) (*(s16 *)((s8 *)fx + 0xE6));
-    (*(u16 *)((s8 *)fx + 0x34)) = (u16) (*(s16 *)((s8 *)fx + 0xE8));
-    (*(s32 *)((s8 *)fx + 0x20)) = (s32) (*(s16 *)((s8 *)fx + 0xD4));
-    (*(s32 *)((s8 *)fx + 0x24)) = (s32) (*(s16 *)((s8 *)fx + 0xD6));
-    (*(s32 *)((s8 *)fx + 0x28)) = (s32) (*(s16 *)((s8 *)fx + 0xD8));
+void *initEffectObject(void *obj) {
+    EffectObject *fx;
+
+    fx = obj;
+    initTransform(fx, fx->parent, fx->px, fx->py, fx->pz, fx->rx0, fx->ry0, fx->rz0);
+    initTransform(&fx->targetMatrix, fx->parent, fx->px2, fx->py2, fx->pz2, 0, 0, 0);
+    fx->matrix.t[0] = 0;
+    fx->matrix.t[1] = 0;
+    fx->matrix.t[2] = 0;
+    fx->sx = fx->sx0;
+    fx->sy = fx->sy0;
+    fx->sz = fx->sz0;
+    fx->rotX = fx->rx0;
+    fx->rotY = fx->ry0;
+    fx->rotZ = fx->rz0;
+    fx->posX = fx->px;
+    fx->posY = fx->py;
+    fx->posZ = fx->pz;
     restartEffectMotion(fx);
-    (*(s32 *)((s8 *)fx + 0x6C)) = (s32) (*(s16 *)((s8 *)fx + 0xDC));
-    (*(s32 *)((s8 *)fx + 0x70)) = (s32) (*(s16 *)((s8 *)fx + 0xDE));
-    (*(s32 *)((s8 *)fx + 0x74)) = (s32) (*(s16 *)((s8 *)fx + 0xE0));
-    getDirectionVector(fx + 0xD4, fx + 0xDC, fx + 0x9C);
-    (*(s32 *)((s8 *)fx + 0xFC)) = 0;
-    (*(s16 *)((s8 *)fx + 0x132)) = 0;
-    (*(s8 *)((s8 *)fx + 0x138)) = 0;
+    fx->targetX = fx->px2;
+    fx->targetY = fx->py2;
+    fx->targetZ = fx->pz2;
+    getDirectionVector((SVECTOR *)&fx->px, (SVECTOR *)&fx->px2, &fx->dir);
+    fx->unkFC = 0;
+    fx->brightness = 0;
+    fx->fadeState = 0;
     return fx;
 }
 
@@ -305,6 +316,14 @@ INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_SUBSEG);
 
 INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_BG_ARC);
 
+/*
+ * Moves an effect one frame. mode picks the path (the case lists below: 1
+ * linear, 2 arc, 3/4 wave on x/y, 5 tilted arc, 7 func_80030440, 8 shake;
+ * the modes of the first list stay at the start) and what happens when the
+ * effect hits its target or its period runs out: stop, stop at the target,
+ * restart, suspend or fade out. Modes 10 and >= 90 keep their scale and
+ * rotation.
+ */
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     EffectObject *fx = (EffectObject *)fxAddr;
     u8 applyMode = applyFlag;
@@ -319,42 +338,42 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             if (fx->dsx >= 0) {
                 if (fx->sx >= fx->sxT) {
                     fx->sx = fx->sxT;
-                    fx->doneX = 1;
+                    fx->done[0] = 1;
                 }
             } else if (fx->sx <= fx->sxT) {
                 fx->sx = fx->sxT;
-                fx->doneX = 1;
+                fx->done[0] = 1;
             }
         } else {
-            fx->doneX = 1;
+            fx->done[0] = 1;
         }
         if (fx->sy != fx->syT) {
             fx->sy = fx->dsy * fx->t + fx->sy0;
             if (fx->dsy >= 0) {
                 if (fx->sy >= fx->syT) {
                     fx->sy = fx->syT;
-                    fx->doneY = 1;
+                    fx->done[1] = 1;
                 }
             } else if (fx->sy <= fx->syT) {
                 fx->sy = fx->syT;
-                fx->doneY = 1;
+                fx->done[1] = 1;
             }
         } else {
-            fx->doneY = 1;
+            fx->done[1] = 1;
         }
         if (fx->sz != fx->szT) {
             fx->sz = fx->dsz * fx->t + fx->sz0;
             if (fx->dsz >= 0) {
                 if (fx->sz >= fx->szT) {
                     fx->sz = fx->szT;
-                    fx->doneZ = 1;
+                    fx->done[2] = 1;
                 }
             } else if (fx->sz <= fx->szT) {
                 fx->sz = fx->szT;
-                fx->doneZ = 1;
+                fx->done[2] = 1;
             }
         } else {
-            fx->doneZ = 1;
+            fx->done[2] = 1;
         }
         fx->rotX = fx->rx0 + fx->drx * fx->t + fx->ddrx * fx->t2 * fx->t2 / 64;
         fx->rotY = fx->ry0 + fx->dry * fx->t + fx->ddry * fx->t2 * fx->t2 / 64;
@@ -449,7 +468,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 74:
     case 80:
     case 87:
-        updateEffectTiltedArcMotion((u8 *)fx);
+        updateEffectTiltedArcMotion(fx);
         break;
     case 7:
     case 26:
@@ -464,18 +483,18 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 75:
     case 81:
     case 88:
-        func_80030440((u8 *)fx);
+        func_80030440(fx);
         break;
     case 8:
     case 89:
-        updateEffectShakeMotion((u8 *)fx);
+        updateEffectShakeMotion(fx);
         break;
     }
     if (fx->state != -1 && fx->mode != 0 && fx->mode < 90) {
         updateTransformMatrix(fx, applyMode);
-        updateTransformMatrix((u8 *)fx + 0x4C, 0);
+        updateTransformMatrix(&fx->targetMatrix, 0);
         getTransformWorldPos(fx, &curPos);
-        getTransformWorldPos((u8 *)fx + 0x4C, &targetPos);
+        getTransformWorldPos(&fx->targetMatrix, &targetPos);
         hit = checkEffectHitTarget(&prevPos, &curPos, &targetPos, fx->hitRadius);
         if (hit == 1) {
             switch (fx->mode) {
@@ -486,7 +505,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 23:
             case 26:
                 fx->mode = 0;
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 break;
             case 12:
             case 15:
@@ -501,7 +520,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
                 fx->px = fx->px2;
                 fx->py = fx->py2;
                 fx->pz = fx->pz2;
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 fx->sxT = fx->sx;
                 fx->syT = fx->sy;
                 fx->szT = fx->sz;
@@ -519,7 +538,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 22:
             case 25:
             case 28:
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 break;
             case 50:
             case 51:
@@ -562,14 +581,14 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     }
     if (fx->flag != 0) {
         switch (fx->mode) {
-    case 31:
-    case 34:
-    case 37:
-    case 40:
-    case 43:
-    case 46:
-    case 49:
-            restartEffectMotion((u8 *)fx);
+        case 31:
+        case 34:
+        case 37:
+        case 40:
+        case 43:
+        case 46:
+        case 49:
+            restartEffectMotion(fx);
             break;
         }
     }
@@ -587,7 +606,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 44:
             case 47:
                 fx->mode = 0;
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 break;
             case 30:
             case 33:
@@ -597,7 +616,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 45:
             case 48:
                 fx->mode = 0;
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 fx->sxT = fx->sx;
                 fx->syT = fx->sy;
                 fx->szT = fx->sz;
@@ -616,7 +635,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 43:
             case 46:
             case 49:
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 break;
             case 56:
             case 57:
@@ -636,7 +655,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 88:
             case 89:
                 fx->mode = 0;
-                restartEffectMotion((u8 *)fx);
+                restartEffectMotion(fx);
                 fx->sxT = fx->sx;
                 fx->syT = fx->sy;
                 fx->szT = fx->sz;
@@ -664,71 +683,80 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     updateTransformMatrix(fx, applyMode);
 }
 
-void tickEffectStartDelay(void *fx) {
-    if ((*(s16 *)((s8 *)fx + 0x12E)) >= 0x5B) {
-        if ((*(s16 *)((s8 *)fx + 0x128)) > (*(s32 *)((s8 *)fx + 0x100))) {
-            (*(s32 *)((s8 *)fx + 0x100)) += 1;
+/* Modes >= 91 wait wavePhase frames, then run as mode - 100 */
+void tickEffectStartDelay(void *obj) {
+    EffectObject *fx;
+
+    fx = obj;
+    if (fx->mode >= 91) {
+        if (fx->wavePhase > fx->t) {
+            fx->t++;
             return;
         }
-        (*(s32 *)((s8 *)fx + 0x100)) = 0;
-        (*(s8 *)((s8 *)fx + 0x139)) = 0;
-        (*(s16 *)((s8 *)fx + 0x12E)) = (s16) ((u16) (*(s16 *)((s8 *)fx + 0x12E)) - 0x64);
+        fx->t = 0;
+        fx->suspended = 0;
+        fx->mode -= 100;
     }
 }
 
-s16 updateEffectBrightness(void *fxObj, s16 brightness) {
-    u8 *fx;
+/*
+ * The brightness (0-0x100) of the effect this frame. fadeMode 1: from the
+ * x scale; 2: rises by speed; 3: rises then falls once; 4: pulses; 5: a
+ * byte counter mapped to 0x80-0xFF. Mode 10 keeps the saved brightness.
+ */
+s16 updateEffectBrightness(void *obj, s16 brightness) {
+    EffectObject *fx;
 
-    fx = fxObj;
-    switch (fx[0x137]) {
+    fx = obj;
+    switch (fx->fadeMode) {
     case 1:
-        brightness = (*(s32 *)(fx + 0x38)) / 16;
-        if ((*(s32 *)(fx + 0x38)) > 0x1000) {
-            brightness = 0x100 - ((*(s32 *)(fx + 0x38)) - 0x1000) / 16;
+        brightness = fx->sx / 16;
+        if (fx->sx > 0x1000) {
+            brightness = 0x100 - (fx->sx - 0x1000) / 16;
         }
         break;
     case 2:
-        brightness += (*(u16 *)(fx + 0x130));
+        brightness += fx->speed;
         break;
     case 3:
-        if (fx[0x138] == 2) {
+        if (fx->fadeState == 2) {
             break;
         }
-        if (fx[0x138] == 0) {
-            brightness += (*(u16 *)(fx + 0x130));
+        if (fx->fadeState == 0) {
+            brightness += fx->speed;
             if (brightness > 0x100) {
                 brightness = 0x100;
-                fx[0x138] = 1;
+                fx->fadeState = 1;
             }
         } else {
-            brightness -= (*(u16 *)(fx + 0x130));
+            brightness -= fx->speed;
             if (brightness < 0) {
                 brightness = 0;
-                fx[0x138] = 2;
+                fx->fadeState = 2;
             }
         }
         break;
     case 4:
-        if (fx[0x138] == 0) {
-            brightness += (*(u16 *)(fx + 0x130));
+        if (fx->fadeState == 0) {
+            brightness += fx->speed;
             if (brightness > 0x100) {
                 brightness = 0x100;
-                fx[0x138] = 1;
+                fx->fadeState = 1;
             }
         } else {
-            brightness -= (*(u16 *)(fx + 0x130));
+            brightness -= fx->speed;
             if (brightness < 0) {
                 brightness = 0;
-                fx[0x138] = 0;
+                fx->fadeState = 0;
             }
         }
         break;
     case 5:
-        fx[0x138] += (*(u16 *)(fx + 0x130));
-        if ((s8)fx[0x138] >= 0) {
-            brightness = fx[0x138] + 0x80;
+        fx->fadeState += fx->speed;
+        if ((s8)fx->fadeState >= 0) {
+            brightness = fx->fadeState + 0x80;
         } else {
-            brightness = 0xFF - (fx[0x138] & 0x7F);
+            brightness = 0xFF - (fx->fadeState & 0x7F);
         }
         break;
     }
@@ -738,10 +766,10 @@ s16 updateEffectBrightness(void *fxObj, s16 brightness) {
     if (brightness > 0x100) {
         brightness = 0x100;
     }
-    if ((*(s16 *)(fx + 0x12E)) == 0xA) {
-        brightness = (*(s16 *)(fx + 0x132));
+    if (fx->mode == 10) {
+        brightness = fx->brightness;
     } else {
-        (*(s16 *)(fx + 0x132)) = brightness;
+        fx->brightness = brightness;
     }
     return brightness;
 }
