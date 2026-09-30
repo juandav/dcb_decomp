@@ -2220,25 +2220,289 @@ void func_801E6424(void) {
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE164);
 
-INCLUDE_ASM("asm/openseg/nonmatchings/openseg", func_801E6454);
+typedef struct {
+    /* 0x00 */ u8 unk0[0x98];
+    /* 0x98 */ char *options[2];
+    /* 0xA0 */ u8 unkA0[5];
+    /* 0xA5 */ s8 choice;
+    /* 0xA6 */ u8 unkA6[0xF];
+    /* 0xB5 */ s8 unkB5;
+    /* 0xB6 */ u8 unkB6[2];
+} ChoiceDialog;
+extern u16 D_801F4D00[256];
+extern s16 D_80079584;
+s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims);
+void func_80055730(void);
+void func_801E7EC4(char *name, s32 parentTask);
+void func_801E8E9C(s32 parentTask);
+void func_801EBE80(void);
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9BC);
+void func_801E6454(s32 parentTask) {
+    /* their own copies: the MESSAGE and PLAYER NAME literals would be merged
+     * with later functions'; the first two keep the original order */
+    static const char arcPath[] = "B:\\OPENING.ARC";
+    static const char imageLabel[] = "IMAGE";
+    static const char messageLabel[] = "MESSAGE";
+    static const char nameLabel[] = "PLAYER NAME";
+    Rect16 rect;
+    ChoiceDialog dialog;
+    u32 *arc;
+    s32 i;
+    s32 start;
+    s32 model;
+    s32 done;
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9C4);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9CC);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9D4);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9DC);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9EC);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9F0);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE9F4);
-
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", jtbl_801DEA04);
+    loadMusicTrack(0, 0x6E, 0x7F);
+    playLoadedMusic(0);
+    i = 0;
+    func_800149B8(0, -1, 0, 0x800, loadFile, arcPath, getCurrentTaskId());
+    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    for (; i < (s32)(arc[0] / 4); i++) {
+        uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
+        func_80014C08(FRAME_INTERVAL);
+        DrawSync(0);
+    }
+    freeHeapBlock(arc);
+    for (i = 0; i < 256; i++) {
+        D_801F4D00[i] = 0xFFFF;
+    }
+    rect.x = 0;
+    rect.y = 0x1FF;
+    rect.w = 0x100;
+    rect.h = 1;
+    LoadImage((s16 *)&rect, (s32)D_801F4D00);
+    rect.x = 0x32;
+    rect.y = 0x48;
+    rect.w = 0xDC;
+    rect.h = 0x52;
+    openWindow(&D_801F1BB0, &rect, -1, (s16 *)-1, 8, 0x81, 0x80, 0xC);
+    D_801F1BB0.label = (s32)imageLabel;
+    D_801F1BB0.labelPalette = 7;
+    animateWindowTo(&D_801F1BB0, (Rect16 *)-1);
+    rect.x = 0xC;
+    rect.y = 0xBC;
+    rect.w = 0x128;
+    rect.h = 0x2A;
+    openWindow(&D_801F1B10, &rect, -1, (s16 *)-1, 8, 0x51, 0x80, 0xC);
+    D_801F1B10.labelPalette = 8;
+    D_801F1B10.label = (s32)messageLabel;
+    rect.x = 0x18;
+    rect.y = 0x18;
+    rect.w = 0x48;
+    rect.h = 0xC;
+    openWindow(&D_801F1B60, &rect, -1, (s16 *)-1, 8, 0x11, 0x80, 0xC);
+    D_801F1B60.label = (s32)nameLabel;
+    animateWindowTo(&D_801F1B60, (Rect16 *)-1);
+    D_801F4888 = -1;
+    D_801F488C = -1;
+    D_801F4890 = 0;
+    D_801F4F08 = 0xC;
+    D_801F4F0C = 0xF0;
+    D_801F4F10 = -0x60;
+    D_801F4F14 = 0;
+    D_801F4F00 = 0x90;
+    D_801F4F04 = -0x14;
+    D_801F4880 = 0x140;
+    D_801F4884 = 0x32;
+    D_801F4F18 = 0xE;
+    D_801F4F1C = 0xF0;
+    D_801F4F28.unk0 = 0;
+    D_801F4F28.page = 0;
+    D_801F4F28.shownPage = 0;
+    D_801F4F28.length = 0;
+    D_801F4F28.waitInput = 1;
+    D_801F4F28.unk18 = 0;
+    done = 0;
+    func_801E62D8();
+    loadDigimonModelPak(0, 0xEB, 0, 1);
+    D_80079584 = 0;
+    addFrameCallback((s32)func_801E5EAC);
+    playMenuSound(3);
+    model = 0;
+    while (!done) {
+        func_80014C08(FRAME_INTERVAL);
+        D_801F4888 = D_801F0038[D_801F4F28.page].image;
+        if ((PAD_STATES[0]->pressed & 0x40) && D_801F4F28.done != 0) {
+            switch (D_801F0038[D_801F4F28.page].kind) {
+            /* the dialog pages: the switch below handles them */
+            case 4:
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            case 8:
+                break;
+            case 9:
+                break;
+            case 1:
+                animateWindowTo(&D_801F1B10, (Rect16 *)-1);
+                D_801F4F28.unk0 = 1;
+                func_800149B8(0, -1, 0, 0x400, func_801E7EC4, PLAYER_PROFILES, getCurrentTaskId(), 0, 0);
+                func_80014C08(0x7FFFFFFF);
+                rect.x = 0xC;
+                rect.y = 0xBC;
+                rect.w = 0x128;
+                rect.h = 0x2A;
+                animateWindowTo(&D_801F1B10, &rect);
+                rect.x = 0x18;
+                rect.y = 0x18;
+                rect.w = 0x48;
+                rect.h = 0xC;
+                animateWindowTo(&D_801F1B60, &rect);
+                D_801F4F28.unk0 = 2;
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                break;
+            case 2:
+                D_801F4F28.unk0 = 3;
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                D_801F4888 = -1;
+                D_801F4F28.waitInput = 0;
+                func_800149B8(0, -1, 0, 0x300, func_801E8E9C, getCurrentTaskId(), 0, 0, 0);
+                func_80014C08(0x7FFFFFFF);
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                func_801E639C();
+                model = 1;
+                D_801F4F28.unk0 = 4;
+                start = ((PlayerProfile *)PLAYER_PROFILES)->playTime;
+                do {
+                    func_80014C08(FRAME_INTERVAL);
+                } while (((PlayerProfile *)PLAYER_PROFILES)->playTime - start < 400);
+                D_801F4F28.waitInput = 1;
+                break;
+            case 0:
+            case 3:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                playMenuSound(1);
+                break;
+            case 10:
+                animateWindowTo(&D_801F1B10, (Rect16 *)-1);
+                playMenuSound(4);
+                func_80014C08(16);
+                func_801EBE80();
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                rect.x = 0xC;
+                rect.y = 0xBC;
+                rect.w = 0x128;
+                rect.h = 0x2A;
+                animateWindowTo(&D_801F1B10, &rect);
+                playMenuSound(3);
+                break;
+            case 11:
+                done = 1;
+                break;
+            }
+        }
+        switch (D_801F0038[D_801F4F28.page].kind) {
+        case 4:
+            dialog.options[0] = "Yes";
+            dialog.options[1] = "No";
+            initDialog((u8 *)&dialog, NULL, 2);
+            dialog.choice = 1;
+            D_801F4F28.waitInput = 0;
+            dialog.unkB5 = 1;
+            runDialog(&dialog);
+            D_801F4F28.waitInput = 1;
+            if (model) {
+                startModelAnimation(0, 1, -2, 0);
+                D_801F4F28.waitInput = 0;
+                func_80014C08(0x98);
+                D_801F4F28.waitInput = 1;
+                func_801E6424();
+                func_801E6358();
+                model = 0;
+            }
+            switch (dialog.choice) {
+            case 0:
+            case 2:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].alt;
+                break;
+            case 1:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                break;
+            }
+            break;
+        case 5:
+            dialog.options[0] = "\x82\xa0\x82\xe9";
+            dialog.options[1] = "\x82\xc8\x82\xa2";
+            initDialog((u8 *)&dialog, NULL, 2);
+            dialog.choice = 1;
+            D_801F4F28.waitInput = 0;
+            dialog.unkB5 = 1;
+            runDialog(&dialog);
+            D_801F4F28.waitInput = 1;
+            switch (dialog.choice) {
+            case 0:
+            case 2:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].alt;
+                break;
+            case 1:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].alt;
+                break;
+            }
+            break;
+        case 8:
+            dialog.options[0] = "Stereo";
+            dialog.options[1] = "Mono";
+            initDialog((u8 *)&dialog, "Sound Settings", 2);
+            dialog.choice = 1;
+            D_801F4F28.waitInput = 0;
+            dialog.unkB5 = 1;
+            runDialog(&dialog);
+            D_801F4F28.waitInput = 1;
+            switch (dialog.choice) {
+            case 2:
+                PLAYER_DATA(0).unk20_0 = 1;
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                func_80055730();
+                break;
+            case 1:
+                PLAYER_DATA(0).unk20_0 = 0;
+                func_80055740();
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                break;
+            case 0:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].alt;
+                break;
+            }
+            break;
+        case 9:
+            dialog.options[0] = "On";
+            dialog.options[1] = "Off";
+            initDialog((u8 *)&dialog, "Polygon Battle", 2);
+            dialog.choice = 1;
+            D_801F4F28.waitInput = 0;
+            dialog.unkB5 = 1;
+            runDialog(&dialog);
+            D_801F4F28.waitInput = 1;
+            switch (dialog.choice) {
+            case 2:
+                PLAYER_DATA(0).skipBattleAnimation = 1;
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                break;
+            case 1:
+                PLAYER_DATA(0).skipBattleAnimation = 0;
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].next;
+                break;
+            case 0:
+                D_801F4F28.page = D_801F0038[D_801F4F28.page].alt;
+                break;
+            }
+            break;
+        }
+    }
+    animateWindowTo(&D_801F1B10, (Rect16 *)-1);
+    playMenuSound(4);
+    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
+    func_80014C08(20);
+    removeFrameCallback((s32)func_801E5EAC);
+    hideScrollingBackground();
+    stopScreenFade();
+    func_80014C08(10);
+    func_80014A48(parentTask, -1);
+}
 
 /* moves a keyboard row by d, wrapping inside its page of 9 rows */
 #define WRAP_ROW(row, d) (((s16)((row) + (d)) - (d)) / 9 * 9 + ((s16)((row) + (d)) + 9) % 9)
