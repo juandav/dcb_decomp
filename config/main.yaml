@@ -40,6 +40,9 @@ options:
   create_data_pads: False
   # the C files already exist; psyq is split under src/main/psyq/
   create_c_files: False
+  # hand-written assembly (hasm segments) is source too: src/main/<name>.s,
+  # which splat writes only when it doesn't exist yet
+  hasm_in_src_path: True
 
 segments:
   - name: header
