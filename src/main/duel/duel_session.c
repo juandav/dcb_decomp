@@ -33,21 +33,21 @@ void initDuelState(s32 isCpuDuel) {
 
     D_801D833C = block = allocTaskHeapBlock(0x870);
     D_801D8340 = block = allocTaskHeapBlock(0x86C);
-    (*(s32 *)((s8 *)D_801D8340 + 0x7F8)) = func_801F8854();
-    (*(s8 *)((s8 *)D_801D8340 + 0x817)) = (s8) (rand() % 2);
-    (*(s8 *)((s8 *)D_801D8340 + 0x818)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x81B)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x81C)) = -1;
-    (*(s8 *)((s8 *)D_801D8340 + 0x810)) = -1;
-    (*(s8 *)((s8 *)D_801D8340 + 0x81F)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x825)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x823)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x822)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x824)) = 0;
-    (*(s8 *)((s8 *)D_801D8340 + 0x820)) = 0;
+    DUEL->sprites = (void *)func_801F8854();
+    DUEL->turnPlayer = rand() % 2;
+    DUEL->step = 0;
+    DUEL->cursorPlayer = 0;
+    DUEL->cursorSlot = -1;
+    DUEL->state = -1;
+    DUEL->tutorial = 0;
+    DUEL->unk825 = 0;
+    DUEL->unk823 = 0;
+    DUEL->awaitingInput = 0;
+    DUEL->unk824 = 0;
+    DUEL->unk820[0] = 0;
     func_801F8200();
     initDuelPlayers(isCpuDuel);
-    (*(s8 *)((s8 *)D_801D8340 + 0x81D)) = -1;
+    DUEL->unk81D = -1;
 }
 
 void startDuelScene(void) {
@@ -69,7 +69,7 @@ void startDuelScene(void) {
     camera->unk94 = 0;
     camera->targetModel = -1;
     camera->snapCamera = 1;
-    (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
+    DUEL->loadBusy = 0;
     func_80014C08(2);
 }
 
@@ -77,15 +77,15 @@ void spawnDuelTasks(s32 isCpuDuel) {
     s32 stageId;
     s32 stageArg;
 
-    (*(s32 *)((s8 *)D_801D8340 + 0x58)) = func_801F8998(0, 0x26, 0x2E, 0xA, 1);
+    DUEL->cursor = (u8 *)func_801F8998(0, 0x26, 0x2E, 0xA, 1);
     func_800149B8(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
-    if ((isCpuDuel != 0) && ((*(s8 *)((s8 *)D_801D8340 + 0x81F)) == 0)) {
+    if ((isCpuDuel != 0) && (DUEL->tutorial == 0)) {
         func_800149B8(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
     }
     func_800149B8(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
     if (isCpuDuel != 0) {
-        stageId = (*(u8 *)((s8 *)D_8006E054 + 0x72));
-        stageArg = (*(u8 *)((s8 *)D_8006E054 + 0x71));
+        stageId = ((SessionData *)D_8006E054)->opponentDeck.stageId;
+        stageArg = ((SessionData *)D_8006E054)->opponentDeck.unk68[1];
     } else {
         stageId = -1;
         stageArg = -1;
@@ -103,17 +103,18 @@ void teardownDuelScene(void) {
 void renderDuelFrame(void) {
     s16 fadeLevel;
 
-    fadeLevel = (*(s16 *)((s8 *)D_801D8340 + 0x808));
+    fadeLevel = DUEL->fade;
     if (fadeLevel != 0) {
         renderDuelBackground(fadeLevel);
-        renderStatusMessage((*(s16 *)((s8 *)D_801D8340 + 0x808)));
-        renderHelpBar((*(s16 *)((s8 *)D_801D8340 + 0x808)));
+        renderStatusMessage(DUEL->fade);
+        renderHelpBar(DUEL->fade);
     }
     renderPhaseBanner();
     tickBattleHud();
     renderBoardCards();
-    if ((*(s32 *)((s8 *)D_801D8340 + 0x83C)) == 0) {
-        if ((*(s32 *)((s8 *)D_801D8340 + 0x828)) != -1) {
+    if (DUEL->inPolygonBattle == 0) {
+        /* the expanding/shrinking ring, drawn by KAWSEG */
+        if (DUEL->ringMode != -1) {
             func_801F97F4();
         }
         func_801EB53C(D_801D83D1);
@@ -140,7 +141,7 @@ void runDuel(s32 mode, s32 parent) {
     Rect16 r = { 320, 0, 640, 512 };
     s32 i;
     s32 j;
-    s32 n;
+    s32 timer;
     s32 winner;
     s32 k;
 
@@ -161,7 +162,7 @@ void runDuel(s32 mode, s32 parent) {
     for (i = 0; i < 2; i++) {
         func_801F9EAC(i);
     }
-    n = 0;
+    timer = 0;
     func_801F6170();
     fadeOutScrollingBackground();
     freeScrollingBackground();
@@ -180,10 +181,10 @@ void runDuel(s32 mode, s32 parent) {
             func_801F7B2C();
             break;
         case 1:
-            D_801D83EC[0x9D] = 11;
-            D_801D83EC[0x175] = 11;
-            D_801D83EC[0x55] = 4;
-            D_801D83EC[0x12D] = 4;
+            PLAYER_PANEL(0, HUD_DECK)->state = 11;
+            PLAYER_PANEL(1, HUD_DECK)->state = 11;
+            PLAYER_PANEL(0, HUD_STATUS)->state = 4;
+            PLAYER_PANEL(1, HUD_STATUS)->state = 4;
             for (i = 0; i < 2; i++) {
                 for (j = 0; j < 3; j++) {
                     s8 c = PLAYER(i)->digimonStack[j];
@@ -197,8 +198,8 @@ void runDuel(s32 mode, s32 parent) {
             DUEL->state++;
             break;
         case 2:
-            if (D_801D83EC[0x9D] == 0) {
-                n = 0;
+            if (PLAYER_PANEL(0, HUD_DECK)->state == 0) {
+                timer = 0;
                 DUEL->fade = 0x80;
                 DUEL->state = 20;
             }
@@ -208,10 +209,10 @@ void runDuel(s32 mode, s32 parent) {
             if (DUEL->fade < 0) {
                 DUEL->fade = 0;
             }
-            if (n++ >= 10) {
+            if (timer++ >= 10) {
                 createWireGrid(400, 600, 9, 13, 0, 1);
                 addFrameCallback((s32)renderWireGrid);
-                n = 0;
+                timer = 0;
                 DUEL->state++;
             }
             break;
@@ -226,7 +227,7 @@ void runDuel(s32 mode, s32 parent) {
                 showArenaStage(0x400);
                 addFrameCallback((s32)renderSceneModels);
                 SCENE_3D->modelState[0x17] = 1;
-                n = 0;
+                timer = 0;
                 DUEL->state++;
             }
             break;
@@ -238,7 +239,7 @@ void runDuel(s32 mode, s32 parent) {
             ((Graphics *)&GRAPHICS)->unk90 += 4;
             ((Graphics *)&GRAPHICS)->unk8E -= 10;
             ((Graphics *)&GRAPHICS)->rotZ += 6;
-            if (n++ >= 60) {
+            if (timer++ >= 60) {
                 for (i = 0; i < 2; i++) {
                     for (j = 0; j < 3; j++) {
                         s8 c = PLAYER(i)->digimonStack[j];
@@ -249,21 +250,21 @@ void runDuel(s32 mode, s32 parent) {
                         }
                     }
                 }
-                n = 0;
+                timer = 0;
                 DUEL->state++;
             }
             break;
         case 23:
             ((Graphics *)&GRAPHICS)->rotZ += 8;
-            if (++n == 60) {
+            if (++timer == 60) {
                 func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
             }
-            if (n == 120) {
+            if (timer == 120) {
                 removeFrameCallback((s32)renderWireGrid);
                 removeFrameCallback((s32)renderDuelFrame);
             }
-            if (n >= 122) {
-                n = 0;
+            if (timer >= 122) {
+                timer = 0;
                 DUEL->state = 3;
                 freeWireGrid();
                 ((Graphics *)&GRAPHICS)->unk90 = 0x1C0;
@@ -286,8 +287,8 @@ void runDuel(s32 mode, s32 parent) {
                     }
                 }
             }
-            D_801D83EC[0x9D] = 7;
-            D_801D83EC[0x175] = 7;
+            PLAYER_PANEL(0, HUD_DECK)->state = 7;
+            PLAYER_PANEL(1, HUD_DECK)->state = 7;
             addFrameCallback((s32)renderDuelFrame);
             DUEL->state++;
             break;
@@ -297,7 +298,7 @@ void runDuel(s32 mode, s32 parent) {
                 if (DUEL->fade > 0x80) {
                     DUEL->fade = 0x80;
                 }
-            } else if (D_801D83EC[0x9D] == 4) {
+            } else if (PLAYER_PANEL(0, HUD_DECK)->state == 4) {
                 DUEL->state = -1;
             }
             break;
@@ -342,6 +343,7 @@ void runDuel(s32 mode, s32 parent) {
         if (((SessionData *)D_8006E054)->npcDeckIndex[0] != -1) {
             restorePartners(0);
         }
+        /* j: the player's deck holds one of the partner cards (or their armor) */
         i = 0;
         j = 0;
         for (; i < 30; i++) {
@@ -378,6 +380,7 @@ void runDuel(s32 mode, s32 parent) {
         for (i = 0; i < 2; i++) {
             k = func_800471F4(((SessionData *)D_8006E054)->npcDeckIndex[i]);
             if (k != -1) {
+                /* bit 15: deck met; low 14 bits: wins, capped at 999 */
                 if (winner == i) {
                     PLAYER_DATA(winner).opponentDeckFlags[k] = (PLAYER_DATA(winner).opponentDeckFlags[k] | 0x8000) + 1;
                     if ((PLAYER_DATA(winner).opponentDeckFlags[k] & 0x3FFF) >= 1000) {
