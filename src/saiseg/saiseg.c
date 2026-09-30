@@ -2591,7 +2591,67 @@ void func_801E602C(void) {
     func_801E0D54();
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801E612C);
+void func_801E612C(void) {
+    Rect16 rect;
+    s32 i;
+    s8 *cards;
+    s8 page;
+    s8 card;
+    s16 w;
+    s16 h;
+
+    for (i = 0; i < 6; i++) {
+        page = D_801F4588.saved.page;
+        cards = D_801F4A15;
+        card = cards[page * 6 + i];
+        if (card != -1) {
+            if (D_801F4628[i] > 0) {
+                if (D_801F4628[i] & 4) {
+                    rect.x = 0x318;
+                } else {
+                    rect.x = 0x323;
+                }
+                rect.y = 0xA4;
+                rect.w = 0x2C;
+                rect.h = 0x24;
+                func_801EE5A8(D_801F5260[i + 37], &rect);
+                D_801F5260[i + 37]->quads[0].clut = getClut(0x200, 0xEB);
+                D_801F5260[i + 37]->quads[1].clut = getClut(0x200, 0xEB);
+            } else if (card == 16) {
+                rect.x = 0x2EB;
+                rect.y = 0x90;
+                rect.w = 0x2A;
+                rect.h = 0x24;
+                func_801EE5A8(D_801F5260[i + 37], &rect);
+                D_801F5260[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
+                D_801F5260[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
+            } else if (card == 17) {
+                rect.x = 0x2E0;
+                rect.y = 0x90;
+                rect.w = 0x2A;
+                rect.h = 0x24;
+                func_801EE5A8(D_801F5260[i + 37], &rect);
+                D_801F5260[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
+                D_801F5260[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
+            } else {
+                rect.x = card % 4 * 32 + 0x280;
+                rect.y = card / 4 * 56 + 0x100;
+                rect.w = 0x3F;
+                rect.h = 0x38;
+                func_801EE40C(D_801F5260[i + 37], &rect, 0);
+                D_801F4628[i] = 0;
+                D_801F5260[i + 37]->quads[0].clut = getClut(0x280, 0x1FB);
+                D_801F5260[i + 37]->quads[1].clut = getClut(0x280, 0x1FB);
+            }
+        }
+        w = (D_801F4588.saved.progress[i] * 44 + (20 - D_801F4588.saved.progress[i]) * 18) / 20;
+        h = (D_801F4588.saved.progress[i] * 38 + (20 - D_801F4588.saved.progress[i]) * 16) / 20;
+        func_801EBDD0(D_801F5260[i + 37], w, h);
+        D_801F5260[i + 37]->pos.vx = D_801F5260[i + 31]->pos.vx;
+        D_801F5260[i + 37]->pos.vy = D_801F5260[i + 31]->pos.vy - 1;
+    }
+}
+
 
 void func_801E6464(void) {
     Rect16 rect;
