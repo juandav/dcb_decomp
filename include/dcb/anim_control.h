@@ -25,10 +25,10 @@ void unloadModelAnimations(s32 slot);
 void func_80022E58(void);
 s32 findAnimationCacheEntry(s32 key, s32 count, KeyValue **freeEntry);
 s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak);
-void setModelAnimationData(Model2220 *model, s32 *data, s32 anim);
+void setModelAnimationData(Model *model, s32 *data, s32 anim);
 s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak);
 void loadModelAnimationFile(s32 slot, s32 anim, s32 index);
-s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly);
+s32 startModelAnimation(s32 slot, s32 anim, s32 loopKey, s32 rootOnly);
 void applyAnimationFirstFrame(s32 slot, s32 anim);
 
 #endif /* DCB_ANIM_CONTROL_H */

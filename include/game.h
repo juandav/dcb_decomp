@@ -116,7 +116,13 @@ typedef struct {
     /* 0x078 */ u8 unk78[0x4C];
     /* 0x0C4 */ GsRVIEW2 view;
     /* 0x0E4 */ u8 unkE4[0x30];
-    /* 0x114 */ s8 modelState[0x28];
+    /* 0x114 */ s8 modelState[24];
+    /* 0x12C */ s8 texAnimFrame;  /* the arena stage's texture animation */
+    /* 0x12D */ s8 texAnimTimer;
+    /* 0x12E */ s8 texAnimFrames;
+    /* 0x12F */ s8 texAnimDelay;
+    /* 0x130 */ u8 unk130[8];
+    /* 0x138 */ s32 stageFlags;
     /* 0x13C */ void *models[24];
     /* 0x19C */ struct {
         s32 key;
@@ -584,7 +590,7 @@ typedef struct {
 } SupportAction;
 typedef struct {
     /* 0x00 */ s16 power;
-    /* 0x02 */ u8 unk2[4];
+    /* 0x02 */ s16 skills[2];
     /* 0x06 */ char name[0x16];
 } CardAttack;
 typedef struct {
