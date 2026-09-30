@@ -484,7 +484,11 @@ typedef struct {
     /* 0x18D */ Bytes4 outerColor;
     /* 0x194 */ s32 fixedOtz;
     /* 0x198 */ s32 texDepth;
-    /* 0x19C */ s16 shape[5];
+    /* 0x19C */ s16 innerRadius;
+    /* 0x19E */ s16 outerRadius;
+    /* 0x1A0 */ s16 midPercent; /* where the middle ring sits, in percent from inner to outer */
+    /* 0x1A2 */ s16 innerZ;
+    /* 0x1A4 */ s16 outerZ;
     /* 0x1A6 */ s16 brightness;
     /* 0x1A8 */ s16 prevBrightness;
     /* 0x1AA */ u8 axisMode;

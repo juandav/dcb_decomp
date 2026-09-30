@@ -25,6 +25,8 @@
 #include "dcb/str_util.h"
 #include "dcb/transform.h"
 
+/* per segment, the vertices at its two edge angles on the inner ring, the
+   middle ring (midPercent of the way out, in radius and z) and the outer ring */
 void buildRingEffectMesh(RingEffect *ring) {
     SVECTOR *vertex;
     s32 i;
@@ -33,41 +35,41 @@ void buildRingEffectMesh(RingEffect *ring) {
 
     vertex = ring->vertices;
     for (i = 0; i < ring->n; i++) {
-        x = rsin((i << 12) / ring->n) * ring->shape[0] / 4096;
-        y = rcos((i << 12) / ring->n) * ring->shape[0] / 4096;
+        x = rsin((i << 12) / ring->n) * ring->innerRadius / 4096;
+        y = rcos((i << 12) / ring->n) * ring->innerRadius / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[3];
+        vertex->vz = ring->innerZ;
         vertex++;
-        x = rsin(((i + 1) << 12) / ring->n) * ring->shape[0] / 4096;
-        y = rcos(((i + 1) << 12) / ring->n) * ring->shape[0] / 4096;
+        x = rsin(((i + 1) << 12) / ring->n) * ring->innerRadius / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * ring->innerRadius / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[3];
+        vertex->vz = ring->innerZ;
         vertex++;
-        x = rsin((i << 12) / ring->n) * (ring->shape[0] + (ring->shape[1] - ring->shape[0]) * ring->shape[2] / 100) / 4096;
-        y = rcos((i << 12) / ring->n) * (ring->shape[0] + (ring->shape[1] - ring->shape[0]) * ring->shape[2] / 100) / 4096;
+        x = rsin((i << 12) / ring->n) * (ring->innerRadius + (ring->outerRadius - ring->innerRadius) * ring->midPercent / 100) / 4096;
+        y = rcos((i << 12) / ring->n) * (ring->innerRadius + (ring->outerRadius - ring->innerRadius) * ring->midPercent / 100) / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[3] + (ring->shape[4] - ring->shape[3]) * ring->shape[2] / 100;
+        vertex->vz = ring->innerZ + (ring->outerZ - ring->innerZ) * ring->midPercent / 100;
         vertex++;
-        x = rsin(((i + 1) << 12) / ring->n) * (ring->shape[0] + (ring->shape[1] - ring->shape[0]) * ring->shape[2] / 100) / 4096;
-        y = rcos(((i + 1) << 12) / ring->n) * (ring->shape[0] + (ring->shape[1] - ring->shape[0]) * ring->shape[2] / 100) / 4096;
+        x = rsin(((i + 1) << 12) / ring->n) * (ring->innerRadius + (ring->outerRadius - ring->innerRadius) * ring->midPercent / 100) / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * (ring->innerRadius + (ring->outerRadius - ring->innerRadius) * ring->midPercent / 100) / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[3] + (ring->shape[4] - ring->shape[3]) * ring->shape[2] / 100;
+        vertex->vz = ring->innerZ + (ring->outerZ - ring->innerZ) * ring->midPercent / 100;
         vertex++;
-        x = rsin((i << 12) / ring->n) * ring->shape[1] / 4096;
-        y = rcos((i << 12) / ring->n) * ring->shape[1] / 4096;
+        x = rsin((i << 12) / ring->n) * ring->outerRadius / 4096;
+        y = rcos((i << 12) / ring->n) * ring->outerRadius / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[4];
+        vertex->vz = ring->outerZ;
         vertex++;
-        x = rsin(((i + 1) << 12) / ring->n) * ring->shape[1] / 4096;
-        y = rcos(((i + 1) << 12) / ring->n) * ring->shape[1] / 4096;
+        x = rsin(((i + 1) << 12) / ring->n) * ring->outerRadius / 4096;
+        y = rcos(((i + 1) << 12) / ring->n) * ring->outerRadius / 4096;
         vertex->vx = x;
         vertex->vy = y;
-        vertex->vz = ring->shape[4];
+        vertex->vz = ring->outerZ;
         vertex++;
     }
 }
@@ -80,14 +82,15 @@ RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColo
     s32 i;
     s32 j;
 
-    ring = allocTaskHeapBlock(0x1B0);
+    ring = allocTaskHeapBlock(sizeof(RingEffect));
     ring->type = primType;
     ring->n = segments;
-    ring->shape[0] = innerRadius;
-    ring->shape[1] = outerRadius;
-    ring->shape[2] = midPercent;
-    ring->shape[3] = innerZ;
-    ring->shape[4] = outerZ;
+    ring->innerRadius = innerRadius;
+    ring->outerRadius = outerRadius;
+    ring->midPercent = midPercent;
+    ring->innerZ = innerZ;
+    ring->outerZ = outerZ;
+    /* 6 vertices per segment: inner, middle and outer ring, at both edges */
     ring->vertices = allocTaskHeapBlock(segments * 48);
     buildRingEffectMesh(ring);
     if (primType == 13) {
@@ -132,6 +135,9 @@ RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColo
     return ring;
 }
 
+/* each segment draws two quads, inner-middle and middle-outer: POLY_G4 for
+   type 9, POLY_GT4 for type 13; the colours of both frame buffers' prims are
+   only rewritten when the brightness changed */
 void renderRingEffect(RingEffect *ring) {
     u8 innerRgb[8];
     u8 midRgb[8];
@@ -139,7 +145,7 @@ void renderRingEffect(RingEffect *ring) {
     SVECTOR *vertex;
     s32 i;
 
-    if (ring->unk0[0x139] != 0) {
+    if (((EffectObject *)ring)->suspended != 0) {
         tickEffectStartDelay(ring);
         return;
     }
@@ -183,8 +189,8 @@ void renderRingEffect(RingEffect *ring) {
                 setPrimRgb3(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
             }
             transformAndAddPolyG4((s32)prim, (s32)tpagePrim, (s32)&vertex[0], (s32)&vertex[1], (s32)&vertex[2], (s32)&vertex[3], ring->abr, ring->cullBackface, ring->fixedOtz);
-            prim += 0x24;
-            otherPrim += 0x24;
+            prim += sizeof(POLY_G4);
+            otherPrim += sizeof(POLY_G4);
             tpagePrim += 8;
             if (ring->brightness != ring->prevBrightness) {
                 setPrimRgb0(prim, midRgb[0], midRgb[1], midRgb[2]);
@@ -197,8 +203,8 @@ void renderRingEffect(RingEffect *ring) {
                 setPrimRgb3(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
             }
             transformAndAddPolyG4((s32)prim, (s32)tpagePrim, (s32)&vertex[2], (s32)&vertex[3], (s32)&vertex[4], (s32)&vertex[5], ring->abr, ring->cullBackface, ring->fixedOtz);
-            prim += 0x24;
-            otherPrim += 0x24;
+            prim += sizeof(POLY_G4);
+            otherPrim += sizeof(POLY_G4);
             tpagePrim += 8;
             vertex += 6;
         }
@@ -215,8 +221,8 @@ void renderRingEffect(RingEffect *ring) {
         otherPrim = ring->prims[FRAME_BUFFER_INDEX ^ 1];
         for (i = 0; i < ring->n; i++) {
             setPrimQuadUvRect(prim, ring->texCoords.b[0], ring->texCoords.b[2], ring->texCoords.b[4], ring->texCoords.b[6]);
-            *(u16 *)(prim + 0x1A) = ring->tpage;
-            *(u16 *)(prim + 0xE) = ring->clut;
+            ((POLY_GT4 *)prim)->tpage = ring->tpage;
+            ((POLY_GT4 *)prim)->clut = ring->clut;
             if (ring->brightness != ring->prevBrightness) {
                 setPrimRgb0(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
                 setPrimRgb1(prim, innerRgb[0], innerRgb[1], innerRgb[2]);
@@ -228,11 +234,11 @@ void renderRingEffect(RingEffect *ring) {
                 setPrimRgb3(otherPrim, midRgb[0], midRgb[1], midRgb[2]);
             }
             transformAndAddPolyGT4((s32)prim, (s32)&vertex[0], (s32)&vertex[1], (s32)&vertex[2], (s32)&vertex[3], ring->cullBackface, ring->fixedOtz);
-            prim += 0x34;
-            otherPrim += 0x34;
+            prim += sizeof(POLY_GT4);
+            otherPrim += sizeof(POLY_GT4);
             setPrimQuadUvRect(prim, ring->texCoords.b[0], ring->texCoords.b[2], ring->texCoords.b[4], ring->texCoords.b[6]);
-            *(u16 *)(prim + 0x1A) = ring->tpage;
-            *(u16 *)(prim + 0xE) = ring->clut;
+            ((POLY_GT4 *)prim)->tpage = ring->tpage;
+            ((POLY_GT4 *)prim)->clut = ring->clut;
             if (ring->brightness != ring->prevBrightness) {
                 setPrimRgb0(prim, midRgb[0], midRgb[1], midRgb[2]);
                 setPrimRgb1(prim, midRgb[0], midRgb[1], midRgb[2]);
@@ -244,8 +250,8 @@ void renderRingEffect(RingEffect *ring) {
                 setPrimRgb3(otherPrim, outerRgb[0], outerRgb[1], outerRgb[2]);
             }
             transformAndAddPolyGT4((s32)prim, (s32)&vertex[2], (s32)&vertex[3], (s32)&vertex[4], (s32)&vertex[5], ring->cullBackface, ring->fixedOtz);
-            prim += 0x34;
-            otherPrim += 0x34;
+            prim += sizeof(POLY_GT4);
+            otherPrim += sizeof(POLY_GT4);
             vertex += 6;
         }
         break;
@@ -278,11 +284,11 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     s32 spinAngle;
     s32 angle;
 
-    fx = allocTaskHeapBlock(0x15C);
-    fx->p = particle = allocTaskHeapBlock(count * 0x88);
+    fx = allocTaskHeapBlock(sizeof(StreakParticles));
+    fx->p = particle = allocTaskHeapBlock(count * sizeof(Particle));
     spinAngle = 0;
     if (template == 0) {
-        fx->parent = (u8 *)SCENE_3D + 0x78;
+        fx->parent = SCENE_3D->unk78;
         fx->own = 0;
     } else {
         fx->base = *template;
@@ -409,14 +415,15 @@ void renderStreakParticles(StreakParticles *fx) {
     particle = fx->p;
     limit = 10000;
     if (fx->own != 0) {
-        if (((u8 *)fx)[0x139] != 0) {
+        if (((EffectObject *)fx)->suspended != 0) {
             tickEffectStartDelay(fx);
             return;
         }
         PushMatrix();
         tickEffectMotion((s32)fx, fx->axisMode);
         PopMatrix();
-        limit = (*(s16 *)((u8 *)fx + 0x124) + fx->frames - 1) / fx->frames * fx->frames;
+        /* the effect's period rounded up to whole particle cycles */
+        limit = (((EffectObject *)fx)->period + fx->frames - 1) / fx->frames * fx->frames;
     }
     PushMatrix();
     if (fx->kind == 0) {
@@ -560,7 +567,7 @@ void renderStreakParticles(StreakParticles *fx) {
     PopMatrix();
 }
 
-void freeStreakParticles(void *fx) {
-    freeHeapBlock((*(void **)((s8 *)fx + 0x140)));
+void freeStreakParticles(StreakParticles *fx) {
+    freeHeapBlock(fx->p);
     freeHeapBlock(fx);
 }
