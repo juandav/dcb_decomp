@@ -301,15 +301,12 @@ u32 *emitUntexturedTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
 }
 
 u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
-    register u32 rgb asm("$8");
     u32 *next;
     u32 len;
     u32 otz;
     u32 tag;
 
-    gte_mfc2(20, rgb);
-    gte_swc2(12, 8, packet);
-    packet[1] = rgb | code;
+    gte_stsxy0_rgbcode(packet, code);
     next = packet;
     if (gouraud) {
         gte_swc2(21, 12, packet);
