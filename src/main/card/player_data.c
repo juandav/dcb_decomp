@@ -20,9 +20,9 @@ void initPlayerData(void) {
     void *session;
 
     loadCardDatabase();
-    PLAYER_PROFILES = allocPermanentHeapBlock(0x4EE8);
+    PLAYER_PROFILES = allocPermanentHeapBlock(sizeof(PlayerProfile) * 2);
     D_8006E054 = session = allocPermanentHeapBlock(0x102C);
-    (*(void **)((s8 *)D_8006E054 + 0x100C)) = allocPermanentHeapBlock(0x1AC);
+    ((SessionData *)D_8006E054)->unk100C = allocPermanentHeapBlock(0x1AC);
     resetPlayerData();
 }
 
@@ -71,7 +71,7 @@ void resetPlayerData(void) {
         profile->tamerRank = 0;
         profile->collectorRank = 0;
         profile->battleRank = 0;
-        profile->profileSize = 0x2774;
+        profile->profileSize = sizeof(PlayerProfile);
         profile->unk4C = 0;
         profile->unk4E = 0;
         profile->unk50 = 0;
@@ -167,9 +167,10 @@ void playModelAnimation(s32 modelSlot, s32 animId) {
     void *model;
 
     model = SCENE_3D->models[modelSlot];
+    /* reload the animation data (heap tag 0x84 + slot) only for a new clip */
     if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
         freeHeapBlocksByTag(modelSlot + 0x84);
-        setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), modelSlot + 0x84), animId);
+        setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(((Model *)model)->pak, 1, animId), modelSlot + 0x84), animId);
     }
     startModelAnimation(modelSlot, animId, -2, 0);
 }
@@ -181,24 +182,25 @@ void setModelAnimationPose(s32 modelSlot, s32 animId) {
     model = SCENE_3D->models[modelSlot];
     heapTag = modelSlot + 0x84;
     freeHeapBlocksByTag(heapTag);
-    setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(*(Chunk **)((s8 *)model + 0x26F4), 1, animId), heapTag), animId);
+    setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(((Model *)model)->pak, 1, animId), heapTag), animId);
     applyAnimationFirstFrame(modelSlot, animId);
 }
 
+/* the first of the 0xBF Digimon cards that uses modelId (the last one if none does) */
 void *findDigimonCardByModelId(s32 modelId) {
-    u8 *card;
+    DigimonCardData *card;
     s32 i;
 
-    card = DIGIMON_CARDS;
-    if (card[0xE5] != modelId) {
+    card = (DigimonCardData *)DIGIMON_CARDS;
+    if (card->modelId != modelId) {
         i = 0;
         do {
             i++;
-            card += 0x13C;
+            card++;
             if (i >= 0xBF) {
                 break;
             }
-        } while (card[0xE5] != modelId);
+        } while (card->modelId != modelId);
     }
     return card;
 }
@@ -209,7 +211,7 @@ s32 loadSkill(s32 skillId, s32 pak) {
 
     skill = (s32)findPakChunk((Chunk *)pak, 2, skillId);
     if (skill == 0) {
-        sprintf(path, &FMT_SKILL_PATH, skillId);
+        sprintf(path, FMT_SKILL_PATH, skillId);
         skill = loadFileTagged(path, getCurrentTaskId(), 0x81);
     }
     return skill;
