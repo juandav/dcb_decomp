@@ -720,7 +720,117 @@ s32 drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z) {
     return TEXT_WIDTH;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/ui/text", measureText);
+s32 measureText(u8 *text) {
+    s32 charSpacing;
+    s32 lineSpacing;
+    s32 proportional;
+    const s32 startX = 0;
+    const s32 startY = 0;
+    s32 x;
+    s32 y;
+    s32 ch;
+
+    charSpacing = 0;
+    lineSpacing = 0;
+    proportional = 1;
+    TEXT_WIDTH = 0;
+    TEXT_HEIGHT = 0;
+    x = startX;
+    y = startY;
+    while (*text != 0) {
+        if (*text == '*') {
+            text++;
+            switch (*text) {
+            case 'a':
+            case 'b':
+            case 'd':
+            case 'e':
+                text += 2;
+                x += 12 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
+                }
+                continue;
+            case 'g':
+                text += 2;
+                x += 25 + charSpacing;
+                if (TEXT_WIDTH < x) {
+                    TEXT_WIDTH = x;
+                }
+                continue;
+            case 'c':
+                text++;
+                continue;
+            case 'h':
+                text++;
+                if (*text == '-') {
+                    text++;
+                    lineSpacing = '0' - *text++;
+                } else {
+                    lineSpacing = *text++ - '0';
+                }
+                continue;
+            case 's':
+                text++;
+                proportional = *text++ - '0';
+                continue;
+            case 'w':
+                text++;
+                if (*text == '-') {
+                    text++;
+                    charSpacing = '0' - *text++;
+                } else {
+                    charSpacing = *text++ - '0';
+                }
+                continue;
+            }
+        }
+        switch (*text) {
+        case '\\':
+            text++;
+            if (*text != 'n') {
+                text++;
+                break;
+            }
+            text++;
+            x = startX;
+            y += 13 + lineSpacing;
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
+            }
+            if (TEXT_HEIGHT < y) {
+                TEXT_HEIGHT = y;
+            }
+            break;
+        case '\n':
+            text++;
+            x = startX;
+            y += 13 + lineSpacing;
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
+            }
+            if (TEXT_HEIGHT < y) {
+                TEXT_HEIGHT = y;
+            }
+            break;
+        default:
+            ch = *text++ - 0x20;
+            x += charSpacing;
+            if (proportional != 0) {
+                x += FONT_GLYPH_METRICS[ch] & 0xF;
+            } else {
+                x += 6;
+            }
+            if (TEXT_WIDTH < x) {
+                TEXT_WIDTH = x;
+            }
+            break;
+        }
+    }
+    TEXT_WIDTH -= startX;
+    TEXT_HEIGHT = TEXT_HEIGHT - startY + 12;
+    return TEXT_WIDTH;
+}
 
 void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z) {
     s16 clut;
