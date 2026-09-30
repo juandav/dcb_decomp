@@ -61,7 +61,7 @@ void continueSavedGame(void) {
     func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    if (*(u8 *)(PLAYER_PROFILES + 0xF) == 0) {
+    if (PLAYER_DATA(0).unkF == 0) {
         loadMusicTrack(0, 0x6F, 0x7F);
         playLoadedMusic(0);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 0, getCurrentTaskId(), 0);
@@ -194,7 +194,7 @@ void runTitleMenu(void) {
             break;
         case 2:
             changeScrollingBackground(7, 0x380, 0, 0x380, 0x80);
-            *((u8 *)D_8006E054 + 0x1028) = 0;
+            ((SessionData *)D_8006E054)->menuRow = 0;
             again = func_801EBD34();
             if (again == 0) {
                 func_800149B8(0, -1, 0, 0x800, D_801EB2E8, stack, 0, 0, 0);

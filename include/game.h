@@ -723,6 +723,8 @@ typedef struct {
     /* 0x100C */ Unk8006E054Sub *unk100C;
     /* 0x1010 */ u8 unk1010[0x17];
     /* 0x1027 */ u8 unk1027;
+    /* 0x1028 */ s8 menuRow; /* the row picked in an OPENSEG menu */
+    /* 0x1029 */ u8 unk1029[3];
 } SessionData;
 typedef struct {
     /* 0x0 */ u32 attribute;
