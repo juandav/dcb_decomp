@@ -4,6 +4,7 @@
 #include "dcb/model_anim.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
+#include "dcb/sound_play.h"
 
 void applyRootMotion(u8 *model) {
     u8 *bones;
@@ -180,7 +181,143 @@ s32 updateModelBoneMatrices(void *model) {
     return lastValue;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model/model_anim", loadNextAnimationKeyframe);
+typedef struct {
+    /* 0x00 */ s16 px;
+    /* 0x02 */ s16 py;
+    /* 0x04 */ s16 pz;
+    /* 0x06 */ s16 state;
+    /* 0x08 */ s16 rx;
+    /* 0x0A */ s16 ry;
+    /* 0x0C */ s16 rz;
+    /* 0x0E */ s16 padE;
+    /* 0x10 */ s16 sx;
+    /* 0x12 */ s16 sy;
+    /* 0x14 */ s16 sz;
+    /* 0x16 */ s16 pad16;
+} KeyBone;
+
+typedef struct {
+    /* 0x00 */ s16 duration;
+    /* 0x02 */ s16 sound;
+    /* 0x04 */ KeyBone bone[32];
+} KeyFrame;
+
+typedef struct {
+    /* 0x00 */ s32 clip;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 len;
+    /* 0x0C */ s32 cur;
+    /* 0x10 */ s32 dur;
+    /* 0x14 */ s32 count;
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ float scale;
+} AnimState;
+
+typedef struct {
+    /* 0x0 */ s32 state;
+    /* 0x4 */ s32 unk4;
+    /* 0x8 */ s32 active;
+    /* 0xC */ s32 unkC;
+} BoneCtl;
+
+s32 loadNextAnimationKeyframe(Model2220 *m, s32 next, s32 mode) {
+    AnimState *st;
+    KeyBone *kf;
+    KeyBone *kn;
+    BoneCtl *ctl;
+    BoneAnim *b;
+    s32 len;
+    s32 len2;
+    s32 dur;
+    s32 to;
+    s32 i;
+
+    st = (AnimState *)((u8 *)m + 0x2200);
+    if (st->cur < 0) {
+        return st->len = -1;
+    }
+    if (((KeyFrame *)m->anims[st->clip].data)[st->cur].sound != 0) {
+        playSoundEffect(((KeyFrame *)m->anims[st->clip].data)[st->cur].sound - 1);
+    }
+    kf = ((KeyFrame *)m->anims[st->clip].data)[st->cur].bone;
+    kn = kf;
+    dur = ((KeyFrame *)m->anims[st->clip].data)[st->cur].duration * st->scale;
+    st->dur = dur;
+    len = dur * 2;
+    st->len = len;
+    len2 = 1;
+    if (mode == 0 && st->cur + 1 < st->count) {
+        to = st->cur + 1;
+    } else {
+        to = next;
+    }
+    if (to >= 0) {
+        st->cur = to;
+        len2 = ((KeyFrame *)m->anims[st->clip].data)[to].duration * 2 * st->scale;
+        kn = ((KeyFrame *)m->anims[st->clip].data)[to].bone;
+    } else {
+        st->cur = -1;
+    }
+    b = (BoneAnim *)((u8 *)m + 0xD80);
+    ctl = (BoneCtl *)((u8 *)m + 0xB80);
+    if (m->rootOnly == 0) {
+        for (i = 0; i < *(s16 *)((u8 *)m + 4); i++, kf++, kn++, ctl++, b++) {
+            if (ctl->active != 0) {
+                if (ctl->state != 2) {
+                    ctl->state = kf->state;
+                }
+                setupRotationCurve(&b->ch[0].unk0, len, len2, dur, b->ch[0].unk0 / 0x100000, kf->px, kn->px);
+                setupRotationCurve(&b->ch[1].unk0, len, len2, dur, b->ch[1].unk0 / 0x100000, kf->py, kn->py);
+                setupRotationCurve(&b->ch[2].unk0, len, len2, dur, b->ch[2].unk0 / 0x100000, kf->pz, kn->pz);
+                setupTranslationCurve(&b->ch[3].unk0, len, len2, dur, (s16)(b->ch[3].unk0 >> 16), kf->rx, kn->rx);
+                setupTranslationCurve(&b->ch[4].unk0, len, len2, dur, (s16)(b->ch[4].unk0 >> 16), kf->ry, kn->ry);
+                setupTranslationCurve(&b->ch[5].unk0, len, len2, dur, (s16)(b->ch[5].unk0 >> 16), kf->rz, kn->rz);
+                setupTranslationCurve(&b->ch[6].unk0, len, len2, dur, (s16)(b->ch[6].unk0 >> 16), kf->sx, kn->sx);
+                setupTranslationCurve(&b->ch[7].unk0, len, len2, dur, (s16)(b->ch[7].unk0 >> 16), kf->sy, kn->sy);
+                setupTranslationCurve(&b->ch[8].unk0, len, len2, dur, (s16)(b->ch[8].unk0 >> 16), kf->sz, kn->sz);
+            }
+        }
+        setupRotationCurve(&b->ch[0].unk0, len, len2, dur, b->ch[0].unk0 / 0x100000, kf->px, kn->px);
+        setupRotationCurve(&b->ch[1].unk0, len, len2, dur, b->ch[1].unk0 / 0x100000, kf->py, kn->py);
+        setupRotationCurve(&b->ch[2].unk0, len, len2, dur, b->ch[2].unk0 / 0x100000, kf->pz, kn->pz);
+        setupTranslationCurve(&b->ch[3].unk0, len, len2, dur, (s16)(b->ch[3].unk0 >> 16), kf->rx, kn->rx);
+        setupTranslationCurve(&b->ch[4].unk0, len, len2, dur, (s16)(b->ch[4].unk0 >> 16), kf->ry, kn->ry);
+        setupTranslationCurve(&b->ch[5].unk0, len, len2, dur, (s16)(b->ch[5].unk0 >> 16), kf->rz, kn->rz);
+        setupTranslationCurve(&b->ch[6].unk0, len, len2, dur, (s16)(b->ch[6].unk0 >> 16), kf->sx, kn->sx);
+        setupTranslationCurve(&b->ch[7].unk0, len, len2, dur, (s16)(b->ch[7].unk0 >> 16), kf->sy, kn->sy);
+        setupTranslationCurve(&b->ch[8].unk0, len, len2, dur, (s16)(b->ch[8].unk0 >> 16), kf->sz, kn->sz);
+    } else {
+        len /= 2;
+        st->len = len;
+        st->dur /= 2;
+        for (i = 0; i < *(s16 *)((u8 *)m + 4); i++, kf++, ctl++, b++) {
+            if (ctl->active != 0) {
+                if (ctl->state != 2) {
+                    ctl->state = kf->state;
+                }
+                b->ch[0].val = ((kf->px << 20) - b->ch[0].unk0) / len;
+                b->ch[1].val = ((kf->py << 20) - b->ch[1].unk0) / len;
+                b->ch[2].val = ((kf->pz << 20) - b->ch[2].unk0) / len;
+                b->ch[3].val = ((kf->rx << 16) - b->ch[3].unk0) / len;
+                b->ch[4].val = ((kf->ry << 16) - b->ch[4].unk0) / len;
+                b->ch[5].val = ((kf->rz << 16) - b->ch[5].unk0) / len;
+                b->ch[6].val = ((kf->sx << 16) - b->ch[6].unk0) / len;
+                b->ch[7].val = ((kf->sy << 16) - b->ch[7].unk0) / len;
+                b->ch[8].val = ((kf->sz << 16) - b->ch[8].unk0) / len;
+            }
+        }
+        b->ch[0].val = ((kf->px << 20) - b->ch[0].unk0) / len;
+        b->ch[1].val = ((kf->py << 20) - b->ch[1].unk0) / len;
+        b->ch[2].val = ((kf->pz << 20) - b->ch[2].unk0) / len;
+        b->ch[3].val = ((kf->rx << 16) - b->ch[3].unk0) / len;
+        b->ch[4].val = ((kf->ry << 16) - b->ch[4].unk0) / len;
+        b->ch[5].val = ((kf->rz << 16) - b->ch[5].unk0) / len;
+        b->ch[6].val = ((kf->sx << 16) - b->ch[6].unk0) / len;
+        b->ch[7].val = ((kf->sy << 16) - b->ch[7].unk0) / len;
+        b->ch[8].val = ((kf->sz << 16) - b->ch[8].unk0) / len;
+    }
+}
+
 
 void runModelAnimationTask(void) {
     s32 timer;
