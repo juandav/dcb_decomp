@@ -26,7 +26,7 @@
 void openSaveScreenFromMap(s32 saveMode) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801EBAFC, saveMode, getCurrentTaskId(), 0, 0);
@@ -34,14 +34,14 @@ void openSaveScreenFromMap(s32 saveMode) {
     switch (saveMode) {
     case 2:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 1, 1, getCurrentTaskId(), 0);
         break;
     case 4:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
@@ -58,7 +58,7 @@ void continueSavedGame(void) {
         return;
     }
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     if (*(u8 *)(PLAYER_PROFILES + 0xF) == 0) {
@@ -73,7 +73,7 @@ void continueSavedGame(void) {
 void openPartnerFusion(s8 mode) {
     func_80014C08(2);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_EVOSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\evoseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1600, D_801E8E88, (s32 *) mode, 0, 0, 0);
@@ -81,7 +81,7 @@ void openPartnerFusion(s8 mode) {
 
 void returnToWorldMap(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
@@ -89,7 +89,7 @@ void returnToWorldMap(void) {
 
 void openDeckEditor(s32 returnTo) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801E8C04, 0, getCurrentTaskId(), 0, 0);
@@ -97,14 +97,14 @@ void openDeckEditor(s32 returnTo) {
     switch (returnTo) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
@@ -114,7 +114,7 @@ void openDeckEditor(s32 returnTo) {
 
 void openPartnerEquipment(s32 returnTo) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, D_801E4B34, 0, getCurrentTaskId(), 0, 0);
@@ -122,14 +122,14 @@ void openPartnerEquipment(s32 returnTo) {
     switch (returnTo) {
     case 0:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
@@ -139,26 +139,26 @@ void openPartnerEquipment(s32 returnTo) {
 
 void func_8002F298(s32 *param) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x600, D_801E8C04, param, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
 
 void func_8002F3C4(s32 *param) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SUBSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, D_801E4B34, param, getCurrentTaskId(), 1, 0);
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
 }
@@ -170,7 +170,7 @@ void runTitleMenu(void) {
 
     stack = getCurrentTaskId();
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_OPENSEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     do {
@@ -183,7 +183,7 @@ void runTitleMenu(void) {
             func_800149B8(0, -1, 0, 0x800, D_801E6454, stack, 0, 0, 0);
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
-            func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_SAISEG, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+            func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
             func_80014C08(0x7FFFFFFF);
             func_80014C08(2);
             func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);

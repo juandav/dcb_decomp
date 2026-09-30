@@ -306,16 +306,6 @@ void *initEffectObject(void *obj) {
     return fx;
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_OPENSEG);
-
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_SAISEG);
-
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_EVOSEG);
-
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_SUBSEG);
-
-INCLUDE_RODATA("asm/main/nonmatchings/model/effect_object", PATH_BG_ARC);
-
 /*
  * Moves an effect one frame. mode picks the path (the case lists below: 1
  * linear, 2 arc, 3/4 wave on x/y, 5 tilted arc, 7 func_80030440, 8 shake;
