@@ -347,7 +347,287 @@ u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     return next;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", sortModelPrimitives);
+/*
+ * Sorts the primitives of one model part into the ordering table. The data
+ * is a list of groups, each a header word followed by runs of strips:
+ * header bits 31-20 are the number of runs drawn as fans (pass 0, V0 stays
+ * put), bits 19-8 the number of runs drawn as strips (pass 1), and the low
+ * byte is the GPU code (gouraud, quad and textured flags). A run starts with
+ * a word holding the length of its strips in the top half and their number in
+ * the bottom half; then each strip is a whole first primitive followed by the
+ * vertex words (each with its UV word when textured) that every further
+ * primitive adds. A vertex word holds the vertex offset in its top half and
+ * the colour offset in its bottom half, both into the transformed vertex
+ * buffer. A primitive is only drawn if it faces the camera, and consecutive
+ * primitives of a strip are wound in opposite directions.
+ */
+void sortModelPrimitives(SortWork *w) {
+    u32 *packet;
+    u32 *cursor;
+    u32 header;
+    u32 code;
+    s32 gouraud;
+    u32 word;
+    u32 stripCount;
+    u32 stripLength;
+    u32 k;
+    s32 nclip;
+
+    packet = (u32 *)SORT_WORK->packet;
+    cursor = SORT_WORK->data;
+    while ((header = *cursor++) != 0) {
+        SORT_WORK->count[0] = header >> 20;
+        SORT_WORK->count[1] = (header >> 8) & 0xFFF;
+        code = header << 24;
+        SORT_WORK->code = code;
+        SORT_WORK->quad = code & 0x08000000;
+        SORT_WORK->textured = code & 0x04000000;
+        gouraud = code & 0x10000000;
+        word = *cursor;
+        for (SORT_WORK->pass = 0; SORT_WORK->pass != 2; SORT_WORK->pass++) {
+            while (SORT_WORK->count[SORT_WORK->pass] != 0) {
+                stripCount = word;
+                stripLength = word >> 16;
+                word = *++cursor;
+                for (stripCount &= 0xFFFF; stripCount != 0; stripCount--) {
+                    loadTriangleToGte(word, cursor, (u8 *)SORT_WORK->work);
+                    gte_stopz_reg(nclip);
+                    if (SORT_WORK->textured) {
+                        if (SORT_WORK->quad) {
+                            u32 tpage = SORT_WORK->tpage;
+                            u32 clut = SORT_WORK->clut;
+
+                            gte_lduv01(cursor, 4, clut, tpage);
+                            word = cursor[8];
+                            if (nclip > 0) {
+                                loadGteQuadVertex3(1, cursor[3], (u8 *)SORT_WORK->work);
+                                gte_avsz4();
+                                gte_lduv2(cursor, 6);
+                                gte_lduv3(cursor, 7);
+                                packet = emitTexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            }
+                            k = stripLength;
+                            cursor += 8;
+                            if (SORT_WORK->pass != 0) {
+                                /* a strip: two new vertices per quad */
+                                for (; --k != 0;) {
+                                    loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                    loadGteQuadVertex3(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                    gte_lduv2(cursor, 2);
+                                    gte_lduv3(cursor, 3);
+                                    gte_stopz_reg(nclip);
+                                    word = cursor[4];
+                                    if (nclip < 0) {
+                                        gte_avsz4();
+                                        packet = emitTexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                    }
+                                    cursor += 4;
+                                    if (--k == 0) {
+                                        break;
+                                    }
+                                    loadGteVertex0(gouraud, word, (u8 *)SORT_WORK->work);
+                                    loadGteVertex1Nclip(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                    tpage = SORT_WORK->tpage;
+                                    clut = SORT_WORK->clut;
+                                    gte_lduv01(cursor, 2, clut, tpage);
+                                    gte_stopz_reg(nclip);
+                                    word = cursor[4];
+                                    if (nclip > 0) {
+                                        gte_avsz4();
+                                        packet = emitTexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                    }
+                                    cursor += 4;
+                                }
+                            } else {
+                                /* a fan: V0 stays, one new vertex per quad */
+                                for (; --k != 0;) {
+                                    loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                    gte_lduv2(cursor, 2);
+                                    gte_stopz_reg(nclip);
+                                    word = cursor[4];
+                                    if (nclip < 0) {
+                                        loadGteQuadVertex3(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                        gte_avsz4();
+                                        gte_lduv3(cursor, 3);
+                                        packet = emitTexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                    }
+                                    cursor += 4;
+                                    if (--k == 0) {
+                                        break;
+                                    }
+                                    loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                    gte_lduv1(cursor, 2, SORT_WORK->tpage);
+                                    gte_stopz_reg(nclip);
+                                    word = cursor[4];
+                                    if (nclip > 0) {
+                                        loadGteQuadVertex3(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                        gte_avsz4();
+                                        gte_lduv3(cursor, 3);
+                                        packet = emitTexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                    }
+                                    cursor += 4;
+                                }
+                            }
+                        } else {
+                            u32 tpage = SORT_WORK->tpage;
+                            u32 clut = SORT_WORK->clut;
+
+                            gte_lduv01(cursor, 3, clut, tpage);
+                            word = cursor[6];
+                            if (nclip > 0) {
+                                gte_avsz3();
+                                gte_lduv2(cursor, 5);
+                                packet = emitTexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            }
+                            cursor += 6;
+                            for (k = 0; ++k != stripLength;) {
+                                loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                gte_lduv2(cursor, 1);
+                                word = cursor[2];
+                                gte_stopz_reg(nclip);
+                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                    gte_avsz3();
+                                    packet = emitTexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                                cursor += 2;
+                                if (++k == stripLength) {
+                                    break;
+                                }
+                                /* strips replace V0 too, fans keep it */
+                                if (SORT_WORK->pass != 0) {
+                                    loadGteVertex0Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                    gte_lduv0(cursor, 1, SORT_WORK->clut);
+                                    gte_stopz_reg(nclip);
+                                    word = cursor[2];
+                                    if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                        gte_avsz3();
+                                        packet = emitTexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                    }
+                                    cursor += 2;
+                                    if (++k == stripLength) {
+                                        break;
+                                    }
+                                }
+                                loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                gte_lduv1(cursor, 1, SORT_WORK->tpage);
+                                gte_stopz_reg(nclip);
+                                word = cursor[2];
+                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                    gte_avsz3();
+                                    packet = emitTexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                                cursor += 2;
+                            }
+                        }
+                    } else if (SORT_WORK->quad) {
+                        word = cursor[4];
+                        if (nclip > 0) {
+                            loadGteQuadVertex3(1, cursor[3], (u8 *)SORT_WORK->work);
+                            gte_avsz4();
+                            packet = emitUntexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                        }
+                        k = stripLength;
+                        cursor += 4;
+                        if (SORT_WORK->pass != 0) {
+                            for (; --k != 0;) {
+                                loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                loadGteQuadVertex3(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                gte_stopz_reg(nclip);
+                                word = cursor[2];
+                                if (nclip < 0) {
+                                    gte_avsz4();
+                                    packet = emitUntexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                                cursor += 2;
+                                if (--k == 0) {
+                                    break;
+                                }
+                                loadGteVertex0(gouraud, word, (u8 *)SORT_WORK->work);
+                                loadGteVertex1Nclip(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                word = cursor[2];
+                                gte_stopz_reg(nclip);
+                                /* the mfc2 result is one instruction late */
+                                gte_nop();
+                                cursor += 2;
+                                if (nclip > 0) {
+                                    gte_avsz4();
+                                    packet = emitUntexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                            }
+                        } else {
+                            for (; --k != 0;) {
+                                loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                word = cursor[2];
+                                gte_stopz_reg(nclip);
+                                gte_nop();
+                                if (nclip < 0) {
+                                    loadGteQuadVertex3(gouraud, cursor[1], (u8 *)SORT_WORK->work);
+                                    gte_avsz4();
+                                    packet = emitUntexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                                cursor += 2;
+                                if (--k == 0) {
+                                    break;
+                                }
+                                loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                word = cursor[2];
+                                gte_stopz_reg(nclip);
+                                gte_nop();
+                                cursor += 2;
+                                if (nclip > 0) {
+                                    loadGteQuadVertex3(gouraud, cursor[-1], (u8 *)SORT_WORK->work);
+                                    gte_avsz4();
+                                    packet = emitUntexturedQuad(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                            }
+                        }
+                    } else {
+                        word = cursor[3];
+                        if (nclip > 0) {
+                            gte_avsz3();
+                            packet = emitUntexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                        }
+                        cursor += 3;
+                        for (k = 0; ++k != stripLength;) {
+                            loadGteVertex2Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                            word = *++cursor;
+                            gte_stopz_reg(nclip);
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                gte_avsz3();
+                                packet = emitUntexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            }
+                            if (++k == stripLength) {
+                                break;
+                            }
+                            if (SORT_WORK->pass != 0) {
+                                loadGteVertex0Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                                word = *++cursor;
+                                gte_stopz_reg(nclip);
+                                if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                    gte_avsz3();
+                                    packet = emitUntexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                                }
+                                if (++k == stripLength) {
+                                    break;
+                                }
+                            }
+                            loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
+                            word = *++cursor;
+                            gte_stopz_reg(nclip);
+                            if ((k & 1) ? nclip < 0 : nclip > 0) {
+                                gte_avsz3();
+                                packet = emitUntexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            }
+                        }
+                    }
+                }
+                SORT_WORK->count[SORT_WORK->pass]--;
+            }
+        }
+    }
+    SORT_WORK->packet = (u32)packet;
+    SORT_WORK->data = cursor;
+}
 
 u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
     SortWork *work;

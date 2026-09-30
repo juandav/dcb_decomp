@@ -63,6 +63,28 @@
 /* Set the colour and code (RGBC) the lighting commands start from */
 #define gte_ldrgbc(v) __asm__ volatile("mtc2 %0, $6" : : "r"(v))
 
+/* Read the result of the last nclip (MAC0, what gte_stopz stores) into `v` */
+#define gte_stopz_reg(v) __asm__ volatile("mfc2 %0, $24" : "=r"(v))
+
+/*
+ * A textured packet's UV words wait in V0-V2 until emitTextured* stores them:
+ * VXY1 = UV0 + CLUT, VXY2 = UV1 + TPAGE, VZ1 = UV2 and VZ2 = UV3 (quads).
+ * The CLUT and TPAGE words are added to the word p[i] in a scratch register,
+ * %0, that comes from the "r"(0) input (hence the `move $n, $0` in front).
+ */
+#define gte_lduv0(p, i, clut)                                                                                        \
+    __asm__ volatile("lw %0, %c3(%1)\n\taddu %0, %0, %2\n\tmtc2 %0, $2" : : "r"(0), "r"(p), "r"(clut), "i"((i) * 4))
+#define gte_lduv1(p, i, tpage)                                                                                       \
+    __asm__ volatile("lw %0, %c3(%1)\n\taddu %0, %0, %2\n\tmtc2 %0, $4" : : "r"(0), "r"(p), "r"(tpage), "i"((i) * 4))
+/* gte_lduv0 from p[i] and gte_lduv1 from p[i + 1] */
+#define gte_lduv01(p, i, clut, tpage)                                                                                \
+    __asm__ volatile("lw %0, %c4(%1)\n\taddu %0, %0, %2\n\tmtc2 %0, $2\n\t"                                          \
+                     "lw %0, %c5(%1)\n\taddu %0, %0, %3\n\tmtc2 %0, $4"                                              \
+                     :                                                                                               \
+                     : "r"(0), "r"(p), "r"(clut), "r"(tpage), "i"((i) * 4), "i"((i) * 4 + 4))
+#define gte_lduv2(p, i) __asm__ volatile("lwc2 $3, %c1(%0)" : : "r"(p), "i"((i) * 4))
+#define gte_lduv3(p, i) __asm__ volatile("lwc2 $5, %c1(%0)" : : "r"(p), "i"((i) * 4))
+
 /* Load V0 from the SVECTOR at `p` (the inline_c.h form: `p` is an operand) */
 #define gte_ldv0c(p) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(p))
 
