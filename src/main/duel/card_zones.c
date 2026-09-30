@@ -354,7 +354,7 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
         return -1;
     }
     cardIndex = getActiveDigimonCard(player);
-    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].unk292[0]);
+    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].armorCardId);
     armorCard = &PLAYER_DATA(player).partners[partnerSlot].card[1];
     PLAYER(player)->cards[cardIndex % 30].card = (s8 *)armorCard;
     /* copy the armor's art over the card's art in VRAM */

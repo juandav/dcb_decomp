@@ -596,7 +596,8 @@ typedef struct {
 typedef struct {
     /* 0x000 */ s16 id;
     /* 0x002 */ u8 type;
-    /* 0x003 */ char name[0x17];
+    /* 0x003 */ char name[0x16];
+    /* 0x019 */ u8 rewardRank; /* 0: never a reward; else matched against REWARD_CARD_RANGES */
     /* 0x01A */ u8 attr;
     /* 0x01B */ s8 dpCost;
     /* 0x01C */ s8 dpBonus;
@@ -622,7 +623,10 @@ typedef struct {
     /* 0x28A */ s16 exp;
     /* 0x28C */ s8 equippedAbilities[3];
     /* 0x28F */ u8 unlockedArmors[3];
-    /* 0x292 */ u8 unk292[6];
+    /* 0x292 */ u8 armorCardId; /* the armor selected, 0 for none */
+    /* 0x293 */ u8 expBonus; /* percent more EXP after a duel */
+    /* 0x294 */ u8 rewardBonus; /* percent chance of a rarer reward card */
+    /* 0x295 */ u8 unk295[3];
 } Partner;
 typedef struct {
     /* 0x0000 */ char name[0xD];
@@ -672,6 +676,8 @@ typedef struct {
     /* 0x0D3C */ s16 unkD3C[0xBF][3];
     /* 0x11B6 */ u16 unk11B6[0xBF];
     /* 0x1334 */ u16 unk1334[0xBF];
+    /* per card id: bits 0-2 copies owned (up to 6), 0x10 no more to win,
+       0x20 first copy just obtained, 0x40 seen, 0x80 new */
     /* 0x14B2 */ u8 cardCollection[0x12D];
     /* 0x15DF */ u8 unk15DF;
     /* 0x15E0 */ u16 cardCopySerials[301][6];
@@ -932,7 +938,7 @@ typedef struct {
     /* 0x2 */ u8 actionStart;
     /* 0x3 */ u8 actionCount;
     /* 0x4 */ s16 value;
-    /* 0x6 */ s16 unk6;
+    /* 0x6 */ s16 supportIcon;
 } PartnerAbility;
 
 extern s32 SPRITE_POOL_CURSOR;

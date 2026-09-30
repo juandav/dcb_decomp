@@ -214,16 +214,24 @@ PartnerAbility PARTNER_ABILITIES[128] = {
     { 8, 1, 0, 0, 0x14, 0 },
 };
 
+/* CARD2.CDD: this header, then the Digimon, Option and Digivolve cards */
+typedef struct {
+    /* 0x0 */ u8 unk0[4];
+    /* 0x4 */ u16 digimonCount;
+    /* 0x6 */ u8 optionCount;
+    /* 0x7 */ u8 unk7;
+} CardDbHeader;
+
 void loadCardDatabase(void) {
-    u8 *file;
+    CardDbHeader *file;
     s32 i;
     s32 cardId;
 
     func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", getCurrentTaskId(), -2);
-    CARD_DB_FILE = file = (u8 *)func_80014C08(0x7FFFFFFF);
-    DIGIMON_CARDS = file + 8;
-    OPTION_CARDS = DIGIMON_CARDS + *(u16 *)(file + 4) * 0x13C;
-    DIGIVOLVE_CARDS = OPTION_CARDS + file[6] * 0xE2;
+    CARD_DB_FILE = (u8 *)(file = (CardDbHeader *)func_80014C08(0x7FFFFFFF));
+    DIGIMON_CARDS = (u8 *)(file + 1);
+    OPTION_CARDS = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[file->digimonCount];
+    DIGIVOLVE_CARDS = (u8 *)&((OptionCardData *)OPTION_CARDS)[file->optionCount];
     cardId = 0;
     for (i = 0; i < 0xBF; i++) {
         ((DigimonCardData *)DIGIMON_CARDS)[i].id = cardId++;
@@ -251,37 +259,23 @@ retry:
 }
 
 void clearCollectionNewFlags(s32 player) {
-    s32 collection;
     s32 i;
-    s32 *base;
-    u8 *entry;
 
-    i = 0;
-    do {
-        base = &PLAYER_PROFILES;
-        collection = player * 0x2774 + *base + 0x14B2;
-        entry = (u8 *)(collection + i);
-        *entry &= 0x7F;
-        i++;
-    } while (i < 0x12D);
+    for (i = 0; i < 0x12D; i++) {
+        PLAYER_DATA(player).cardCollection[i] &= 0x7F;
+    }
 }
 
 void clearCollectionFirstObtainedFlags(s32 player) {
-    s32 collection;
     s32 i;
-    s32 *base;
-    u8 *entry;
 
-    i = 0;
-    do {
-        base = &PLAYER_PROFILES;
-        collection = player * 0x2774 + *base + 0x14B2;
-        entry = (u8 *)(collection + i);
-        *entry &= 0xDF;
-        i++;
-    } while (i < 0x12D);
+    for (i = 0; i < 0x12D; i++) {
+        PLAYER_DATA(player).cardCollection[i] &= 0xDF;
+    }
 }
 
+/* returns the copies now owned, or -3 for a partner or armor card, -2 when 6
+   copies were already owned, -1 when the count overflowed to 6 */
 s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
     s32 copy;
 
@@ -307,7 +301,7 @@ s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
     if ((PLAYER_DATA(player).cardCollection[cardId] & 7) == 6) {
         PLAYER_DATA(player).cardCollection[cardId] |= 0x10;
     }
-    if (((u8 *)getCardData(cardId))[0x19] == 0) {
+    if (((DigimonCardData *)getCardData(cardId))->rewardRank == 0) {
         PLAYER_DATA(player).cardCollection[cardId] |= 0x10;
     }
     PLAYER_DATA(player).cardCollection[cardId] |= 0xC0;
@@ -332,7 +326,7 @@ s8 removeCardFromCollection(s32 player, s32 cardId, s32 count) {
 }
 
 s32 getOwnedCardCount(s32 player, s32 cardId) {
-    return (*(u8 *)((s8 *)(((player * 0x2774) + PLAYER_PROFILES + cardId)) + 0x14B2)) & 7;
+    return PLAYER_DATA(player).cardCollection[cardId] & 7;
 }
 
 s32 getCardId(s32 type, s32 index) {
@@ -349,7 +343,7 @@ s32 getCardId(s32 type, s32 index) {
 
 s32 getCardSpecialty(s32 cardId) {
     if (cardId < 0xBF) {
-        return DIGIMON_CARDS[cardId * 0x13C + 0x1A] >> 4;
+        return ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr >> 4;
     }
     if (cardId < 0x125) {
         return 5;
@@ -359,7 +353,7 @@ s32 getCardSpecialty(s32 cardId) {
 
 s32 getCardLevel(s32 cardId) {
     if (cardId < 0xBF) {
-        return DIGIMON_CARDS[cardId * 0x13C + 0x1A] & 0xF;
+        return ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr & 0xF;
     }
     if (cardId < 0x125) {
         return 4;
@@ -369,12 +363,12 @@ s32 getCardLevel(s32 cardId) {
 
 void *getCardData(s32 cardId) {
     if (cardId < 0xBF) {
-        return DIGIMON_CARDS + cardId * 0x13C;
+        return &((DigimonCardData *)DIGIMON_CARDS)[cardId];
     }
     if (cardId < 0x125) {
-        return OPTION_CARDS + (cardId * 0xE2 - 0xA89E);
+        return &((OptionCardData *)OPTION_CARDS)[cardId - 0xBF];
     }
-    return DIGIVOLVE_CARDS + (cardId * 0x70 - 0x8030);
+    return &((DigivolveCardData *)DIGIVOLVE_CARDS)[cardId - 0x125];
 }
 
 void markDeckCardsSeen(s32 player) {
@@ -416,12 +410,15 @@ void markBuildableOpponentDecks(s32 player) {
     }
 }
 
+/* picks the 3 reward cards: cards whose rewardRank falls in the pack's range
+   for their specialty and level, and with the partners' rewardBonus as percent
+   chance, one of them from just above that range */
 void rollRewardCards(s32 player, s32 pack) {
-    u8 **cards;
+    DigimonCardData **cards;
     s16 *inRange;
     s16 *nearRange;
-    u8 **card;
-    u8 **data;
+    DigimonCardData **card;
+    DigimonCardData **data;
     s16 *in;
     s16 *near;
     s32 bonusChance;
@@ -438,7 +435,7 @@ void rollRewardCards(s32 player, s32 pack) {
     bonusChance = 0;
     for (i = 0; i < 3; i++) {
         if (PLAYER_DATA(player).partners[i].cardId != 0) {
-            bonusChance += PLAYER_DATA(player).partners[i].unk292[2];
+            bonusChance += PLAYER_DATA(player).partners[i].rewardBonus;
         }
     }
     inCount = 0;
@@ -451,11 +448,11 @@ void rollRewardCards(s32 player, s32 pack) {
         *in = upper;
         *near = upper;
         if (i < 0xBF) {
-            *card = DIGIMON_CARDS + i * 0x13C;
+            *card = &((DigimonCardData *)DIGIMON_CARDS)[i];
         } else if (i < 0x125) {
-            *card = OPTION_CARDS + (i * 0xE2 - 0xA89E);
+            *card = (DigimonCardData *)&((OptionCardData *)OPTION_CARDS)[i - 0xBF];
         } else {
-            *card = DIGIVOLVE_CARDS + (i * 0x70 - 0x8030);
+            *card = (DigimonCardData *)&((DigivolveCardData *)DIGIVOLVE_CARDS)[i - 0x125];
         }
         card++;
         in++;
@@ -467,10 +464,10 @@ void rollRewardCards(s32 player, s32 pack) {
     for (i = 0; i < 0x12D; i++, data++) {
         upper = 0;
         lower = 0;
-        switch ((s8)(*data)[2]) {
+        switch ((s8)(*data)->type) {
         case 0:
             upper = 0;
-            switch ((*data)[0x1A] & 0xF) {
+            switch ((*data)->attr & 0xF) {
             case 0:
                 upper = 2;
                 break;
@@ -481,7 +478,7 @@ void rollRewardCards(s32 player, s32 pack) {
                 upper = 0;
                 break;
             }
-            upper = REWARD_CARD_RANGES[pack][(*data)[0x1A] >> 4][upper];
+            upper = REWARD_CARD_RANGES[pack][(*data)->attr >> 4][upper];
             lower = 0;
             if (upper < 0) {
                 lower = abs(upper);
@@ -494,11 +491,11 @@ void rollRewardCards(s32 player, s32 pack) {
             lower = REWARD_CARD_RANGES[pack][5][1];
             break;
         }
-        if ((*data)[0x19] != 0) {
-            if ((*data)[0x19] <= upper && (*data)[0x19] >= lower) {
+        if ((*data)->rewardRank != 0) {
+            if ((*data)->rewardRank <= upper && (*data)->rewardRank >= lower) {
                 *in++ = i;
                 inCount++;
-            } else if (upper != 0 && (*data)[0x19] <= upper + REWARD_CARD_RANGES[pack][5][2] && (*data)[0x19] >= lower) {
+            } else if (upper != 0 && (*data)->rewardRank <= upper + REWARD_CARD_RANGES[pack][5][2] && (*data)->rewardRank >= lower) {
                 *near++ = i;
                 nearCount++;
             }
@@ -556,7 +553,7 @@ void linkDeckCardData(s32 player, PlayerDeck *deck) {
         for (i = 0; i < 30; i++) {
             switch (cardSlot->type) {
             case 0:
-                cardSlot->card = (s8 *)(DIGIMON_CARDS + cardSlot->index * 0x13C);
+                cardSlot->card = (s8 *)&((DigimonCardData *)DIGIMON_CARDS)[cardSlot->index];
                 for (slot = 0; slot < 3; slot++) {
                     if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId != 0 &&
                         ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId == cardSlot->id) {
@@ -566,10 +563,10 @@ void linkDeckCardData(s32 player, PlayerDeck *deck) {
                 }
                 break;
             case 1:
-                cardSlot->card = (s8 *)(OPTION_CARDS + cardSlot->index * 0xE2);
+                cardSlot->card = (s8 *)&((OptionCardData *)OPTION_CARDS)[cardSlot->index];
                 break;
             case 2:
-                cardSlot->card = (s8 *)(DIGIVOLVE_CARDS + cardSlot->index * 0x70);
+                cardSlot->card = (s8 *)&((DigivolveCardData *)DIGIVOLVE_CARDS)[cardSlot->index];
                 break;
             }
             cardSlot++;
@@ -591,9 +588,9 @@ void setCardSlotFromId(u8 *out, s32 id) {
             id -= 0x66;
         }
     }
-    out[0] = type;
-    out[1] = id;
-    *(s16 *)(out + 2) = getCardId(type, id);
+    ((CardSlot *)out)->type = type;
+    ((CardSlot *)out)->index = id;
+    ((CardSlot *)out)->id = getCardId(type, id);
 }
 
 s32 countDeckCardsByFilter(s32 unused, PlayerDeck *deck, s32 mask) {
@@ -607,7 +604,7 @@ s32 countDeckCardsByFilter(s32 unused, PlayerDeck *deck, s32 mask) {
     for (i = 0; i < 30; i++) {
         switch (deck->cards[i].type) {
         case 0:
-            card = (DigimonCardData *)(DIGIMON_CARDS + deck->cards[i].index * 0x13C);
+            card = &((DigimonCardData *)DIGIMON_CARDS)[deck->cards[i].index];
             level = card->attr & 0xF;
             specialty = card->attr >> 4;
             if (mask & 0x1E00) {
@@ -670,15 +667,15 @@ s32 storeSavedDeck(s32 player, PlayerDeck *src, s32 slot) {
     for (i = 0; i < 30; i++) {
         switch (deck->cards[i].type) {
         case 0:
-            deck->cards[i].card = (s8 *)(DIGIMON_CARDS + deck->cards[i].index * 0x13C);
+            deck->cards[i].card = (s8 *)&((DigimonCardData *)DIGIMON_CARDS)[deck->cards[i].index];
             deck->cards[i].id = deck->cards[i].index;
             break;
         case 1:
-            deck->cards[i].card = (s8 *)(OPTION_CARDS + deck->cards[i].index * 0xE2);
+            deck->cards[i].card = (s8 *)&((OptionCardData *)OPTION_CARDS)[deck->cards[i].index];
             deck->cards[i].id = deck->cards[i].index + 0xBF;
             break;
         case 2:
-            deck->cards[i].card = (s8 *)(DIGIVOLVE_CARDS + deck->cards[i].index * 0x70);
+            deck->cards[i].card = (s8 *)&((DigivolveCardData *)DIGIVOLVE_CARDS)[deck->cards[i].index];
             deck->cards[i].id = deck->cards[i].index + 0x125;
             break;
         }
@@ -710,6 +707,8 @@ s32 deleteSavedDeck(s32 player, s32 slot) {
     return 0;
 }
 
+/* the opponent deck whose win record a duel against deckId counts for:
+   variant decks count for their base deck */
 s32 func_800471F4(s32 deckId) {
     s32 baseDeckId;
 
@@ -776,12 +775,12 @@ void refreshPartners(s32 player) {
                 ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level = 0x63;
                 ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].exp = getExpForNextLevel(0x62);
             }
-            ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].baseCard = DIGIMON_CARDS + cardId * 0x13C;
-            armorCardId = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0];
+            ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].baseCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[cardId];
+            armorCardId = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId;
             if (armorCardId == 0) {
-                ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = DIGIMON_CARDS + cardId * 0x13C;
+                ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[cardId];
             } else {
-                ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = DIGIMON_CARDS + armorCardId * 0x13C;
+                ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[armorCardId];
             }
             updatePartnerStats(player, slot);
         }
@@ -798,8 +797,8 @@ void addPartner(s32 player, s32 partner, s32 obtain) {
             return;
         }
         if (PLAYER_DATA(player).partners[slot].cardId == 0) {
-            PLAYER_DATA(player).partners[slot].baseCard = DIGIMON_CARDS + PARTNER_CARD_IDS[partner] * 0x13C;
-            PLAYER_DATA(player).partners[slot].armorCard = DIGIMON_CARDS + PARTNER_CARD_IDS[partner] * 0x13C;
+            PLAYER_DATA(player).partners[slot].baseCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[PARTNER_CARD_IDS[partner]];
+            PLAYER_DATA(player).partners[slot].armorCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[PARTNER_CARD_IDS[partner]];
             PLAYER_DATA(player).partners[slot].cardId = PARTNER_CARD_IDS[partner];
             PLAYER_DATA(player).partners[slot].level = 1;
             PLAYER_DATA(player).partners[slot].exp = 0;
@@ -809,9 +808,9 @@ void addPartner(s32 player, s32 partner, s32 obtain) {
             for (j = 0; j < 3; j++) {
                 PLAYER_DATA(player).partners[slot].unlockedArmors[j] = 0;
             }
-            PLAYER_DATA(player).partners[slot].unk292[0] = 0;
-            PLAYER_DATA(player).partners[slot].unk292[1] = 0;
-            PLAYER_DATA(player).partners[slot].unk292[2] = 0;
+            PLAYER_DATA(player).partners[slot].armorCardId = 0;
+            PLAYER_DATA(player).partners[slot].expBonus = 0;
+            PLAYER_DATA(player).partners[slot].rewardBonus = 0;
             PLAYER_DATA(player).partners[slot].hpBonus = 0;
             for (j = 0; j < 3; j++) {
                 PLAYER_DATA(player).partners[slot].attackBonus[j] = 0;
@@ -861,6 +860,8 @@ s32 getSlotPartnerIndex(s32 player, s32 slot) {
     return -1;
 }
 
+/* the partner slot holding cardId, 3 for a partner not obtained yet, -1 for
+   a card that isn't a partner */
 s32 findPartnerSlot(s32 player, s32 cardId) {
     s32 i;
     s32 slot;
@@ -886,7 +887,7 @@ void unlockPartnerArmor(s32 player, s32 partner, s32 armor) {
             if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unlockedArmors[armor] != PARTNER_ARMOR_CARD_IDS[partner][armor]) {
                 ((PlayerProfile *)PLAYER_PROFILES)[player].cardCollection[PARTNER_ARMOR_CARD_IDS[partner][armor]] |= 0x50;
                 ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unlockedArmors[armor] = PARTNER_ARMOR_CARD_IDS[partner][armor];
-                if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0] == 0) {
+                if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId == 0) {
                     selectPartnerArmor(player, partner, armor);
                 }
             }
@@ -924,8 +925,8 @@ void selectPartnerArmor(s32 player, s32 partner, s32 armor) {
             if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId == PARTNER_CARD_IDS[partner]) {
                 for (k = 0; k < 3; k++) {
                     if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unlockedArmors[k] == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
-                        ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0] = PARTNER_ARMOR_CARD_IDS[partner][armor];
-                        ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = DIGIMON_CARDS + PARTNER_ARMOR_CARD_IDS[partner][armor] * 0x13C;
+                        ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId = PARTNER_ARMOR_CARD_IDS[partner][armor];
+                        ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCard = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[PARTNER_ARMOR_CARD_IDS[partner][armor]];
                         updatePartnerStats(player, slot);
                         return;
                     }
@@ -944,11 +945,11 @@ s32 getSelectedArmorIndex(s32 player, s32 partner) {
     }
     for (slot = 0; slot < 3; slot++) {
         if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId == PARTNER_CARD_IDS[partner]) {
-            if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0] == 0) {
+            if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId == 0) {
                 return -1;
             }
             for (armor = 0; armor < 3; armor++) {
-                if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0] == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
+                if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
                     return armor;
                 }
             }
@@ -966,7 +967,7 @@ s32 findArmorPartnerSlot(s32 player, s32 cardId) {
         for (armor = 0; armor < 3; armor++) {
             if (PARTNER_ARMOR_CARD_IDS[partner][armor] != 0 && cardId == PARTNER_ARMOR_CARD_IDS[partner][armor]) {
                 for (slot = 0; slot < 3; slot++) {
-                    if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].unk292[0] == cardId) {
+                    if (((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].armorCardId == cardId) {
                         return slot;
                     }
                 }
@@ -1217,8 +1218,8 @@ s32 updatePartnerStats(s32 player, s32 slot) {
     s32 ret;
     u8 *supportText;
 
-    PLAYER_DATA(player).partners[slot].unk292[1] = 0;
-    PLAYER_DATA(player).partners[slot].unk292[2] = 0;
+    PLAYER_DATA(player).partners[slot].expBonus = 0;
+    PLAYER_DATA(player).partners[slot].rewardBonus = 0;
     ret = 0;
     PLAYER_DATA(player).partners[slot].card[0] = *(DigimonCardData *)PLAYER_DATA(player).partners[slot].baseCard;
     PLAYER_DATA(player).partners[slot].card[1] = *(DigimonCardData *)PLAYER_DATA(player).partners[slot].armorCard;
@@ -1317,17 +1318,17 @@ s32 updatePartnerStats(s32 player, s32 slot) {
                 }
                 supportText++;
             }
-            PLAYER_DATA(player).partners[slot].card[0].supportIcon = PARTNER_ABILITIES[ability].unk6;
-            PLAYER_DATA(player).partners[slot].card[1].supportIcon = PARTNER_ABILITIES[ability].unk6;
+            PLAYER_DATA(player).partners[slot].card[0].supportIcon = PARTNER_ABILITIES[ability].supportIcon;
+            PLAYER_DATA(player).partners[slot].card[1].supportIcon = PARTNER_ABILITIES[ability].supportIcon;
             ret = 1;
             break;
         case 8:
             switch (PARTNER_ABILITIES[ability].param) {
             case 0:
-                PLAYER_DATA(player).partners[slot].unk292[1] += PARTNER_ABILITIES[ability].value;
+                PLAYER_DATA(player).partners[slot].expBonus += PARTNER_ABILITIES[ability].value;
                 break;
             case 1:
-                PLAYER_DATA(player).partners[slot].unk292[2] += PARTNER_ABILITIES[ability].value;
+                PLAYER_DATA(player).partners[slot].rewardBonus += PARTNER_ABILITIES[ability].value;
                 break;
             }
             break;
@@ -1397,6 +1398,7 @@ s32 canEquipPartnerAbility(s32 player, s32 slot, s32 skipSlot, s32 ability) {
     return ok;
 }
 
+/* 0: not owned, 1: owned, 2: equipped on a partner */
 s32 getPartnerAbilityState(s32 player, s32 ability) {
     s32 slot;
     s32 abilitySlot;

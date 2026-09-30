@@ -10,7 +10,8 @@ typedef struct {
 typedef struct {
     /* 0x00 */ s16 id;
     /* 0x02 */ u8 type;
-    /* 0x03 */ char name[0x17];
+    /* 0x03 */ char name[0x16];
+    /* 0x19 */ u8 rewardRank;
     /* 0x1A */ s8 effect; /* what the Digivolve Option does (runDuelTurnLoop) */
     /* 0x1B */ u8 text[4][0x15];
     /* 0x6F */ u8 unk6F;
