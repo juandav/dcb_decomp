@@ -2,6 +2,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/sound.h"
+#include "dcb/sound_play.h"
 #include "dcb/archive.h"
 #include "dcb/decompress.h"
 #include "dcb/sort.h"
@@ -29,22 +30,20 @@ s32 SFX_BASE_NOTE = 0x24;
 u16 D_8006E04C = 0x3C;
 
 void initSound(void) {
-    s8 *state;
-
     SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
     SsSetMVol(0, 0);
     SsSetTickMode(1);
     SsStart();
     setReverbType(1);
     func_80055740();
-    state = (s8 *)&SOUND_STATE;
-    *(void **)(state + 0x1C) = allocHeapBlock(0x2100, -2);
-    *(void **)(state + 0x28) = allocHeapBlock(0x9300, -2);
-    *(void **)(state + 0x34) = allocHeapBlock(0x9300, -2);
-    *(s16 *)(state + 0x2C) = 0xFF;
-    *(s16 *)(state + 0x20) = 0xFF;
-    *(s16 *)(state + 0x14) = 0xFF;
-    *(s16 *)(state + 2) = -1;
+    SOUND_STATE.seBank.buf = allocHeapBlock(0x2100, -2);
+    SOUND_STATE.slot[0].buf = allocHeapBlock(0x9300, -2);
+    SOUND_STATE.slot[1].buf = allocHeapBlock(0x9300, -2);
+    /* nothing loaded, nothing playing */
+    SOUND_STATE.slot[1].id = 0xFF;
+    SOUND_STATE.slot[0].id = 0xFF;
+    SOUND_STATE.seBank.id = 0xFF;
+    SOUND_STATE.cur = -1;
     loadSoundEffectBank(1);
     SsSetMVol(0x7F, 0x7F);
 }
@@ -54,7 +53,7 @@ void loadSoundEffectBank(s32 bankId) {
     u8 *pak;
     SndSlot *bank;
 
-    bank = &((SndState *)&SOUND_STATE)->seBank;
+    bank = &SOUND_STATE.seBank;
     if (bank->id != bankId) {
         while (SOUND_LOAD_BUSY != 0) {
             func_80014C08(FRAME_INTERVAL);
@@ -89,7 +88,7 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
     u8 *pak;
     SndSlot *slot;
 
-    slot = &((SndState *)&SOUND_STATE)->slot[slotIndex];
+    slot = &SOUND_STATE.slot[slotIndex];
     if (slot->id == trackId) {
         return;
     }
@@ -99,28 +98,29 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
     SOUND_LOAD_BUSY = 1;
     setInstantVoiceRelease();
     if (slot->id != 0xFF) {
-        if (((SndState *)&SOUND_STATE)->cur == slotIndex) {
+        if (SOUND_STATE.cur == slotIndex) {
             stopMusic();
         }
-        SsSeqClose(((SndState *)&SOUND_STATE)->seq[slotIndex]);
+        SsSeqClose(SOUND_STATE.seq[slotIndex]);
         SsVabClose(slot->vab);
         func_80014C08(FRAME_INTERVAL);
     }
     slot->id = trackId;
-    ((SndState *)&SOUND_STATE)->vol[slotIndex] = volume;
+    SOUND_STATE.vol[slotIndex] = volume;
     sprintf(name, "A:\\BGM\\BGM%02d.PAK", trackId);
     pak = (u8 *)loadFileTagged((s32 *)name, getCurrentTaskId(), -2);
     if (pak == 0) {
         slot->id = 0xFF;
     } else {
         bcopy(pak, slot->buf, 0x9210);
+        /* each track's VAB gets its own area of sound RAM */
         if (openSlotVabHeader(slot, slotIndex + 1, slotIndex * 0x1A300 + 0x49E90) == 0) {
             freeHeapBlock(pak);
             slot->id = 0xFF;
         } else {
             transferSlotVabBody(slot, (s32)findPakChunk((Chunk *)pak, 8, slot->id), slot->vab);
-            ((SndState *)&SOUND_STATE)->data[slotIndex] = findPakChunk((Chunk *)slot->buf, 6, slot->id);
-            ((SndState *)&SOUND_STATE)->seq[slotIndex] = SsSeqOpen(((SndState *)&SOUND_STATE)->data[slotIndex], slot->vab);
+            SOUND_STATE.data[slotIndex] = findPakChunk((Chunk *)slot->buf, 6, slot->id);
+            SOUND_STATE.seq[slotIndex] = SsSeqOpen(SOUND_STATE.data[slotIndex], slot->vab);
             freeHeapBlock(pak);
         }
     }
@@ -150,21 +150,22 @@ void setInstantVoiceRelease(void) {
     VSync(0);
 }
 
-s32 openSlotVabHeader(void *slot, s16 vabId, s32 spuAddr) {
+/* The PAK's chunks: 6 is the SEQ, 7 the VAB header, 8 the VAB body. */
+s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr) {
     u8 *vabHeader;
 
-    vabHeader = findPakChunk(*(Chunk **)((s8 *)slot + 8), 7, (*(s16 *)((s8 *)slot + 0)));
+    vabHeader = findPakChunk((Chunk *)slot->buf, 7, slot->id);
     if (vabHeader != 0) {
-        (*(s32 *)((s8 *)slot + 4)) = (*(s32 *)(vabHeader - 4));
-        if (((*(s16 *)((s8 *)slot + 2)) = SsVabOpenHeadSticky(vabHeader, vabId, spuAddr)) != -1) {
+        slot->vabHeaderSize = ((Chunk *)vabHeader - 1)->size;
+        if ((slot->vab = SsVabOpenHeadSticky(vabHeader, vabId, spuAddr)) != -1) {
             return 1;
         }
     }
     return 0;
 }
 
-void transferSlotVabBody(void *slot, s32 vabBody, s32 vab) {
-    if ((vabBody == 0) || (SsVabTransBody(vabBody, (*(s16 *)((s8 *)slot + 2))) == (*(s16 *)((s8 *)slot + 2)))) {
+void transferSlotVabBody(SndSlot *slot, s32 vabBody, s32 vab) {
+    if (vabBody == 0 || SsVabTransBody(vabBody, slot->vab) == slot->vab) {
         SsVabTransCompleted(1);
     }
 }

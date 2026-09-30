@@ -5,30 +5,28 @@
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 
-void *createScriptContext(void *scriptData) {
-    s32 codeStart;
-    void *script;
+Script *createScriptContext(void *scriptData) {
+    ScriptData *data = scriptData;
+    Script *script;
 
-    script = allocTaskHeapBlock(0x28);
-    (*(void **)((s8 *)script + 0)) = scriptData;
-    codeStart = scriptData + 0x10;
-    (*(s32 *)((s8 *)script + 4)) = codeStart;
-    (*(s32 *)((s8 *)script + 8)) = codeStart;
-    (*(s32 *)((s8 *)script + 0xC)) = 0;
-    (*(s32 *)((s8 *)script + 0x10)) = (s32) (*(s32 *)((s8 *)scriptData + 8));
+    script = allocTaskHeapBlock(sizeof(Script));
+    script->base = scriptData;
+    script->start = data->code;
+    script->pc = data->code;
+    script->offset = 0;
+    script->size = data->size;
     clearScriptBusy(script);
     return script;
 }
 
-void initScriptContext(void *scriptData, void *script) {
-    s32 codeStart;
+void initScriptContext(void *scriptData, Script *script) {
+    ScriptData *data = scriptData;
 
-    (*(void **)((s8 *)script + 0)) = scriptData;
-    codeStart = scriptData + 0x10;
-    (*(s32 *)((s8 *)script + 4)) = codeStart;
-    (*(s32 *)((s8 *)script + 8)) = codeStart;
-    (*(s32 *)((s8 *)script + 0xC)) = 0;
-    (*(s32 *)((s8 *)script + 0x10)) = (s32) (*(s32 *)((s8 *)scriptData + 8));
+    script->base = scriptData;
+    script->start = data->code;
+    script->pc = data->code;
+    script->offset = 0;
+    script->size = data->size;
     clearScriptBusy(script);
 }
 
@@ -43,7 +41,7 @@ s32 *allocScriptRegisters(s32 count) {
     return regs;
 }
 
-void freeScriptContext(void *script, void *regs) {
+void freeScriptContext(Script *script, s32 *regs) {
     freeHeapBlock(regs);
     freeHeapBlock(script);
 }
@@ -64,11 +62,13 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
     pc = script->pc;
     script->event = 0;
     cond = 0;
+    /* Instructions are a u16 opcode and operands, padded to 4 bytes. Runs
+       until one of them is an event for the caller to handle. */
     if (script->size > script->offset) {
         do {
             op = *(u16 *)pc;
             switch (op) {
-            case 6: {
+            case 6: { /* event with an inline block of OP_A bytes */
                 u8 *cur = pc;
 
                 if (!skip) {
@@ -79,7 +79,7 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
                 pc += OP_A(cur) + 4;
                 break;
             }
-            case 5: {
+            case 5: { /* jump to an offset from the start of the code */
                 u8 *cur = pc;
 
                 if (!skip) {
@@ -90,7 +90,7 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
                 pc += 8;
                 break;
             }
-            case 8: {
+            case 8: { /* register OP_A = address of the inline block of OP_B bytes */
                 u8 *cur = pc;
 
                 if (!skip) {
@@ -99,7 +99,7 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
                 pc += OP_B(cur) + 6;
                 break;
             }
-            case 7:
+            case 7: /* arithmetic on register OP_A, with a constant or a register */
                 if (!skip) {
                     u8 *cur = pc;
 
@@ -157,7 +157,7 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
                 }
                 pc += 12;
                 break;
-            case 9:
+            case 9: /* comparison: when it holds, the next instruction is skipped */
                 if (!skip) {
                     u8 *cur = pc;
 
@@ -234,6 +234,7 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
                 }
                 pc += 12;
                 break;
+            /* 10-14: events with 0 to 4 parameters, each a constant or a register */
             case 10: {
                 u8 *cur = pc;
 
@@ -340,10 +341,10 @@ s32 runScriptToNextEvent(Script *script, s32 *regs) {
     return script->event != 0;
 }
 
-void clearScriptBusy(void *script) {
-    (*(s16 *)((s8 *)script + 0x24)) = 0;
+void clearScriptBusy(Script *script) {
+    script->busy = 0;
 }
 
-void setScriptBusy(void *script, s16 busyValue) {
-    (*(s16 *)((s8 *)script + 0x24)) = busyValue;
+void setScriptBusy(Script *script, s16 busy) {
+    script->busy = busy;
 }
