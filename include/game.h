@@ -831,7 +831,7 @@ typedef struct {
     /* 0x058 */ u8 *cursor;
     /* 0x05C */ u8 unk5C[0x784];
     /* 0x7E0 */ CardCache cache[6];
-    /* 0x7F8 */ void *sprites;
+    /* 0x7F8 */ struct CardSprite *sprites; /* the sprite of each of the 60 cards */
     /* 0x7FC */ s32 cpuWaitFrames;
     /* 0x800 */ s32 unk800;
     /* 0x804 */ s32 cpuResult;
@@ -921,15 +921,6 @@ typedef struct {
     /* 0x48 */ HudAnchor slot[3];
     /* 0xB4 */ u8 unkB4[0x24];
 } Board;
-typedef struct {
-    /* 0x00 */ u8 unk0[0x10];
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ u8 unk12[0x16];
-    /* 0x28 */ s16 rx;
-    /* 0x2A */ s16 ry;
-    /* 0x2C */ s16 rz;
-    /* 0x2E */ u8 unk2E[0xE];
-} Unk7F8;
 typedef struct {
     /* 0x0 */ u8 type;
     /* 0x1 */ u8 param;
