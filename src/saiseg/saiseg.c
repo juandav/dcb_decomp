@@ -25,6 +25,42 @@
 #include "dcb/game_exit.h"
 #include "dcb/sound.h"
 #include "dcb/dialog.h"
+#include "dcb/pad.h"
+
+/* what the area does each frame (AreaState.mode) */
+enum AreaMode {
+    AREA_MODE_SCRIPT,          /* run the script */
+    AREA_MODE_CHOICES,         /* the choice menu */
+    AREA_MODE_SELECT_OPPONENT, /* the opponent select input */
+    AREA_MODE_TEXT_FULL,       /* the text lines are full: Cross clears them and adds the rest */
+    AREA_MODE_WAIT_CROSS,      /* wait for Cross */
+    AREA_MODE_BUSY = 10        /* a task started by the script is running */
+};
+
+/* where runArea goes when the script ends (AreaState.exitAction) */
+enum AreaExit {
+    AREA_EXIT_MAP,
+    AREA_EXIT_DUEL,
+    AREA_EXIT_DECK_EDITOR,
+    AREA_EXIT_SAVE,
+    AREA_EXIT_FUSION,
+    AREA_EXIT_EQUIPMENT,
+    AREA_EXIT_TITLE_OR_ENDING
+};
+
+/* the world map's states, SAI_MAP_STATE_FUNCS' index (WorldMap.state) */
+enum MapState {
+    MAP_OPENING,
+    MAP_IDLE,
+    MAP_WALKING,
+    MAP_FADE_IN,
+    MAP_CHANGE_REGION,
+    MAP_SWITCH_REGION,
+    MAP_ENTER_AREA,
+    MAP_CLOSING,
+    MAP_DONE,
+    MAP_MENU
+};
 
 typedef struct {
     POLY_FT4 quads[2];
@@ -57,7 +93,7 @@ typedef struct {
     s8 length;
 } TextLine;
 s32 SAI_typeTextLine(s32 x, s32 y, TextLine *line, s32 z);
-s32 SAI_typeTextLines(s16 x, s16 y, s32 arg2);
+s32 SAI_typeTextLines(s16 x, s16 y, s32 z);
 typedef struct {
     /* 0x00 */ u8 pad[0x8];
     /* 0x08 */ s32 playTime;
@@ -220,9 +256,9 @@ extern s8 SAI_OPPONENT_IDS[24];
 extern Sprite3D *SAI_SPRITES[];
 void SAI_drawSprite(Sprite3D *sprite);
 Sprite3D *SAI_createSprite(s32 id);
-void SAI_setSpriteSize(Sprite3D *arg0, s16 width, s16 height);
+void SAI_setSpriteSize(Sprite3D *sprite, s16 width, s16 height);
 void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr);
-void SAI_setSpriteDepth(Sprite3D *arg0, s32 arg1);
+void SAI_setSpriteDepth(Sprite3D *sprite, s32 otz);
 extern UiWindow SAI_PLAYER_DATA_WINDOW;
 extern UiWindow SAI_STATS_HINT_WINDOW;
 void SAI_drawPlayerData(UiWindow *win);
@@ -404,7 +440,7 @@ typedef struct {
     u8 pad[0x1020];
     u16 armorFlags;
 } SaisegSessionData;
-void SAI_setSpriteImage4Bit(Sprite3D *arg0, Rect16 *rect);
+void SAI_setSpriteImage4Bit(Sprite3D *sprite, Rect16 *rect);
 extern s8 SAI_MAP_NODE;
 extern u8 SAI_MAP_NAME_SLIDE_DIR;
 extern s8 SAI_MAP_PORTRAIT_STATE;
@@ -469,11 +505,11 @@ int MoveImage2(Rect16 *rect, int x, int y);
 s32 SAI_stepAreaScript(ScriptRunner *runner);
 void SAI_tickChoiceMenu(void);
 void SAI_tickOpponentSelectInput(void);
-void SAI_clearTextLines(TextLine *arg0);
+void SAI_clearTextLines(TextLine *lines);
 s32 SAI_addTextLine(u8 *src);
 void SAI_drawOpponentStats(void);
 void SAI_stepBrightness(s8 index);
-void SAI_setSpriteBrightness(Unk801EBD94 *arg0, u8 value);
+void SAI_setSpriteBrightness(Unk801EBD94 *quads, u8 value);
 extern s8 SAI_SELECT_SELECTED;
 extern u8 SAI_SELECT_EMPTY_BLINK[6];
 s32 SAI_moveOpponentPortraits(void);
@@ -507,7 +543,7 @@ void SAI_loadAreaPak(void);
 extern void (*SAI_ICON_MOTION_FUNCS[])(void);
 extern Rect16 SAI_PLAYER_DATA_CURSOR_RECTS[15];
 extern char *SAI_PLAYER_DATA_LABELS[];
-TextLine *SAI_allocTextLine(TextLine *arg0);
+TextLine *SAI_allocTextLine(TextLine *lines);
 void rollRewardCards(s32 player, s32 pack);
 void SAI_addScriptRewardCards(void);
 void SAI_drawRewardWindows(void);
@@ -549,7 +585,7 @@ void SAI_runCornerIcon(s32 state);
 void SAI_initCamera(void);
 void SAI_initPathPolys(void);
 void SAI_unlockMapNodes(void);
-void SAI_createMapMenuTab(s8 arg0);
+void SAI_createMapMenuTab(s8 keepTabState);
 void SAI_createMapFrame(void);
 void SAI_createMapFrameShadow(void);
 void SAI_createRegionLabel(void);
@@ -581,7 +617,7 @@ void SAI_reopenPlayerData(void);
 void SAI_tickArea(void);
 void SAI_flickerHackOverlay(void);
 void SAI_saveScriptFlags(void);
-void SAI_runWorldMap(s32 resume, s32 arg1);
+void SAI_runWorldMap(s32 resume, s32 openMenu);
 typedef struct {
     char *name;
     u8 unk4[8];
@@ -605,7 +641,7 @@ void SAI_runHackOverlay(void);
 void SAI_closeHackOverlay(void);
 void SAI_openChoiceMenu(s8 mode);
 void SAI_addChoice(s8 id);
-void SAI_addOpponent(s32 ch);
+void SAI_addOpponent(s32 opponent);
 void func_801E09F4(void);
 void SAI_runRewardTask(u8 value);
 void SAI_grantDigiPart(s32 ability, s32 task);
@@ -615,7 +651,7 @@ extern char *SAI_KEYWORDS[10];
 int strcmp(char *a, char *b);
 void SAI_drawWordInputWindows(void);
 void SAI_selectMapNode(void);
-void SAI_moveSpriteCorners(Sprite3D *arg0, s16 dx, s16 dy);
+void SAI_moveSpriteCorners(Sprite3D *sprite, s16 dx, s16 dy);
 void SAI_initMapPaths(void);
 extern const u8 SAI_PARTNER_CARD_IDS[];
 void SAI_drawPartnerGetWindow(void);
@@ -647,28 +683,30 @@ void SAI_drawMessageWindow(UiWindow *window) {
     SAI_TEXT_TYPING = found;
 }
 
-void SAI_clearTextLines(TextLine *arg0) {
+void SAI_clearTextLines(TextLine *lines) {
     s32 i;
 
-    for (i = 0; i < 3; i++, arg0++) {
-        arg0->active = -1;
-        bzero(arg0, 0x3C);
+    for (i = 0; i < 3; i++, lines++) {
+        lines->active = -1;
+        bzero(lines, 0x3C);
     }
 }
 
-TextLine *SAI_allocTextLine(TextLine *arg0) {
+TextLine *SAI_allocTextLine(TextLine *line) {
     s32 i;
 
-    for (i = 0; i < 3; i++, arg0++) {
-        if (arg0->active == -1) {
-            arg0->active = 0;
-            arg0->shown = 0;
-            return arg0;
+    for (i = 0; i < 3; i++, line++) {
+        if (line->active == -1) {
+            line->active = 0;
+            line->shown = 0;
+            return line;
         }
     }
     return NULL;
 }
 
+/* Copies a script text into a free line, expanding "*h0" to the player's name
+   and "\0x22" to a quote; returns the line's index or -1 when all are used. */
 s32 SAI_addTextLine(u8 *src) {
     u8 *name = (u8 *)((PlayerProfile *)PLAYER_PROFILES)->name;
     TextLine *slot = SAI_allocTextLine(SAI_TEXT_LINES);
@@ -817,14 +855,14 @@ s32 SAI_typeTextLine(s32 x, s32 y, TextLine *line, s32 z) {
     return 1;
 }
 
-s32 SAI_typeTextLines(s16 x, s16 y, s32 arg2) {
+s32 SAI_typeTextLines(s16 x, s16 y, s32 z) {
     TextLine *entry = SAI_TEXT_LINES;
     s32 found = 0;
     s32 i;
 
     for (i = 0; i < 3; i++, entry++) {
         if (entry->active != -1) {
-            if (SAI_typeTextLine(x + 4, y + i * 13, entry, arg2) == 1) {
+            if (SAI_typeTextLine(x + 4, y + i * 13, entry, z) == 1) {
                 found = 1;
                 break;
             }
@@ -844,11 +882,11 @@ void SAI_finishTextLines(void) {
     }
 }
 
-void SAI_releaseTextLines(TextLine *arg0) {
+void SAI_releaseTextLines(TextLine *lines) {
     s32 i;
 
-    for (i = 0; i < 3; i++, arg0++) {
-        arg0->active = -1;
+    for (i = 0; i < 3; i++, lines++) {
+        lines->active = -1;
     }
 }
 
@@ -923,17 +961,17 @@ void SAI_slideInChoiceMenu(void) {
 }
 
 void SAI_tickChoiceInput(void) {
-    if (PAD_STATES[0]->repeat & 0x4000) {
+    if (PAD_STATES[0]->repeat & PAD_DOWN) {
         SAI_AREA.choiceCursor++;
         playSoundEffect(2);
-    } else if (PAD_STATES[0]->repeat & 0x1000) {
+    } else if (PAD_STATES[0]->repeat & PAD_UP) {
         SAI_AREA.choiceCursor--;
         playSoundEffect(2);
-    } else if (PAD_STATES[0]->pressed & 0x10) {
+    } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
         playSoundEffect(1);
         SAI_CHOICE_PHASE = 2;
         SAI_SCRIPT[0]->regs[1] = -1;
-    } else if (PAD_STATES[0]->pressed & 0x40) {
+    } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
         if (SAI_AREA.choiceStates[SAI_AREA.choiceCursor] != 2) {
             playSoundEffect(0);
             SAI_AREA.choicePhase = 2;
@@ -968,7 +1006,7 @@ void SAI_freeChoiceMenu(void) {
             SAI_freeSprite(SAI_SPRITES[i + 25]);
         }
     }
-    SAI_AREA_MODE = 0;
+    SAI_AREA_MODE = AREA_MODE_SCRIPT;
 }
 
 void SAI_tickChoiceMenu(void) {
@@ -1070,7 +1108,9 @@ void SAI_loadScriptFlags(void) {
     }
 }
 
-void SAI_addOpponent(s32 ch) {
+/* Appends an opponent to the select list; every six entries the last one
+   moves to the next page behind the page arrows 0x11 (next) and 0x10 (back). */
+void SAI_addOpponent(s32 opponent) {
     s8 last;
 
     if (SAI_OPPONENTS.count % 6 == 0 && SAI_OPPONENTS.count != 0) {
@@ -1078,9 +1118,9 @@ void SAI_addOpponent(s32 ch) {
         SAI_OPPONENTS.ids[SAI_OPPONENTS.count - 1] = 0x11;
         SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = 0x10;
         SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = last;
-        SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = ch;
+        SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = opponent;
     } else {
-        SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = ch;
+        SAI_OPPONENTS.ids[SAI_OPPONENTS.count++] = opponent;
     }
 }
 
@@ -1360,15 +1400,15 @@ void SAI_runPlayerData(void) {
     addFrameCallback((s32)SAI_drawPlayerDataWindows);
     while (1) {
         func_80014C08(1);
-        if (PAD_STATES[0]->pressed & 0x10) {
+        if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
             break;
         }
-        if ((PAD_STATES[0]->pressed & 0x20) && SAI_SCRIPT[0]->regs[15] != 0) {
+        if ((PAD_STATES[0]->pressed & PAD_CIRCLE) && SAI_SCRIPT[0]->regs[15] != 0) {
             SAI_SCRIPT[0]->regs[0] = 0;
             SESSION->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
             SESSION->resumeMode = 2;
             SAI_AREA.exitArg = 2;
-            SAI_AREA.exitAction = 6;
+            SAI_AREA.exitAction = AREA_EXIT_TITLE_OR_ENDING;
             break;
         }
     }
@@ -1379,7 +1419,7 @@ void SAI_runPlayerData(void) {
     }
     func_80014C08(15);
     removeFrameCallback((s32)SAI_drawPlayerDataWindows);
-    SAI_AREA.mode = 0;
+    SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_AREA.rewardBusy = 0;
     SAI_PLAYER_STATS_STATE = 0;
 }
@@ -1402,10 +1442,10 @@ s32 SAI_tickPlayerDataMenu(Menu *menu) {
     if (menu->active != 0) {
         highlight->brightness = 0x80;
         if (menu->nrows | menu->rowH) {
-            if (PAD_STATES[menu->pad]->repeat & 0x5003) {
+            if (PAD_STATES[menu->pad]->repeat & (PAD_UP | PAD_DOWN | PAD_L2 | PAD_R2)) {
                 playMenuSound(2);
             }
-            if (PAD_STATES[menu->pad]->repeat & 0x1000) {
+            if (PAD_STATES[menu->pad]->repeat & PAD_UP) {
                 menu->moved = 1;
                 if (--menu->row < 0) {
                     scrollWindowTo(&win->originX, 0, win->view.h - win->rect.h);
@@ -1418,7 +1458,7 @@ s32 SAI_tickPlayerDataMenu(Menu *menu) {
                         scrollWindowTo(&win->originX, 0, menu->row * menu->rowH);
                     }
                 }
-            } else if (PAD_STATES[menu->pad]->repeat & 0x4000) {
+            } else if (PAD_STATES[menu->pad]->repeat & PAD_DOWN) {
                 menu->moved = 1;
                 if (++menu->row >= 12) {
                     scrollWindowTo(&win->originX, 0, 0);
@@ -1429,7 +1469,7 @@ s32 SAI_tickPlayerDataMenu(Menu *menu) {
                 } else if (menu->row * menu->rowH >= win->scroll[3] + win->rect.h) {
                     scrollWindowTo(&win->originX, 0, (menu->row + 1) * menu->rowH - win->rect.h);
                 }
-            } else if (PAD_STATES[menu->pad]->repeat & 0x1) {
+            } else if (PAD_STATES[menu->pad]->repeat & PAD_L2) {
                 menu->moved = 1;
                 menu->row -= (win->rect.h + menu->rowH - 1) / menu->rowH;
                 if (menu->row < 0) {
@@ -1442,7 +1482,7 @@ s32 SAI_tickPlayerDataMenu(Menu *menu) {
                     }
                     scrollWindowTo(&win->originX, 0, win->scroll[3] - (win->rect.h + menu->rowH - 1) / menu->rowH * menu->rowH);
                 }
-            } else if (PAD_STATES[menu->pad]->repeat & 0x2) {
+            } else if (PAD_STATES[menu->pad]->repeat & PAD_R2) {
                 menu->moved = 1;
                 menu->row += (win->rect.h + menu->rowH - 1) / menu->rowH;
                 if (menu->row >= menu->nrows) {
@@ -1841,6 +1881,9 @@ s32 SAI_spinPanel(void) {
     return done;
 }
 
+/* Runs the area script and carries out the events it stops on: op 10 starts
+   panels and tasks, op 11 sets up choices, opponents, music and exits, op 13
+   fades the portraits and gives cards. */
 void SAI_runAreaScript(ScriptRunner *runner) {
     s32 result;
     s32 i;
@@ -1854,7 +1897,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 switch (runner->script->eventArg) {
                 case 0:
                     if (SAI_AREA.openPanel == 0) {
-                        SAI_AREA.mode = 10;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                         SAI_clearOpponents();
                         func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
                         return;
@@ -1866,7 +1909,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     do {
                         func_80014C08(1);
                     } while (SAI_AREA.openPanel != 0);
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     SAI_clearOpponents();
                     func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
                     return;
@@ -1880,11 +1923,11 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_loadScriptFlags();
                     }
                     runner->regs[1] = 0;
-                    SAI_AREA_MODE = 1;
+                    SAI_AREA_MODE = AREA_MODE_CHOICES;
                     return;
                 case 2:
                     if (SAI_AREA.openPanel == 0) {
-                        SAI_AREA.mode = 10;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                         SAI_OPPONENTS.current[0] = 0x80;
                         SAI_OPPONENTS.target[0] = 0x80;
                         SAI_OPPONENTS.current[1] = 0x80;
@@ -1899,7 +1942,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     do {
                         func_80014C08(1);
                     } while (SAI_AREA.openPanel != 0);
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     SAI_OPPONENTS.current[0] = 0x80;
                     SAI_OPPONENTS.target[0] = 0x80;
                     SAI_OPPONENTS.current[1] = 0x80;
@@ -1909,20 +1952,20 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 case 3:
                     if (SAI_AREA.opponentPicked != 0) {
                         SAI_AREA.opponentPicked = 0;
-                        SAI_AREA.mode = 10;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                         SAI_AREA.selectState = 7;
                         return;
                     }
-                    SAI_AREA_MODE = 2;
+                    SAI_AREA_MODE = AREA_MODE_SELECT_OPPONENT;
                     return;
                 case 4:
                     if (SAI_addTextLine((u8 *)runner->regs[4]) == -1) {
-                        SAI_AREA_MODE = 3;
+                        SAI_AREA_MODE = AREA_MODE_TEXT_FULL;
                         return;
                     }
                     break;
                 case 5:
-                    SAI_AREA.mode = 4;
+                    SAI_AREA.mode = AREA_MODE_WAIT_CROSS;
                     SAI_AREA.waitingForCross = 1;
                     return;
                 case 6:
@@ -1933,15 +1976,15 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
                         SAI_PLAYER_STATS.state = 1;
                         func_800149B8(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
-                        SAI_AREA_MODE = 10;
+                        SAI_AREA_MODE = AREA_MODE_BUSY;
                     }
                     return;
                 case 9:
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = 2;
+                    SAI_EXIT_ACTION = AREA_EXIT_DECK_EDITOR;
                     return;
                 case 10:
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     func_800149B8(0, -1, 0, 0x400, SAI_runPartnerGet, getCurrentTaskId(), 0, 0, 0);
                     return;
                 case 11:
@@ -1952,7 +1995,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     break;
                 case 12:
                     if (SAI_AREA.openPanel == 0) {
-                        SAI_AREA.mode = 10;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                         func_800149B8(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
                         return;
                     }
@@ -1963,7 +2006,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     do {
                         func_80014C08(1);
                     } while (SAI_AREA.openPanel != 0);
-                    SAI_AREA.mode = 10;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     func_800149B8(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
                     return;
                 case 13:
@@ -1974,7 +2017,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 case 15:
                     animateWindowTo(&SAI_MESSAGE_WINDOW, (Rect16 *)-1);
                     playSoundEffect(4);
-                    SAI_AREA.mode = 10;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     bzero((Scene3D *)SAI_AREA.keyword, 0xD);
                     func_800149B8(0, -1, 0, 0x800, SAI_runWordInput, SAI_AREA.keyword, getCurrentTaskId(), 0, 0);
                     return;
@@ -1983,7 +2026,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     break;
                 case 17:
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = 5;
+                    SAI_EXIT_ACTION = AREA_EXIT_EQUIPMENT;
                     return;
                 case 18:
                     ((PlayerProfile *)PLAYER_PROFILES)->unk28_10 = 1;
@@ -2018,7 +2061,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SESSION->resumeMode = 1;
                     SAI_AREA.exitArg = (s16)runner->script->params[0];
                     runner->regs[0] = 0;
-                    SAI_AREA.exitAction = 1;
+                    SAI_AREA.exitAction = AREA_EXIT_DUEL;
                     SESSION->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
                     return;
                 case 3:
@@ -2027,7 +2070,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 case 4:
                     func_801E09F4();
                     runner->regs[0] = 0;
-                    SAI_AREA.exitAction = 4;
+                    SAI_AREA.exitAction = AREA_EXIT_FUSION;
                     SAI_AREA.exitArg = (s16)runner->script->params[0];
                     return;
                 case 6:
@@ -2035,7 +2078,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     ((ProfileSave *)PLAYER_PROFILES)->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
                     ((PlayerProfile *)PLAYER_PROFILES)->unkF = runner->script->params[0];
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = 3;
+                    SAI_EXIT_ACTION = AREA_EXIT_SAVE;
                     return;
                 case 7:
                     SESSION->unk1A7 = runner->script->params[0];
@@ -2047,7 +2090,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SAI_AREA.prizePack = runner->script->params[0];
                     if (SAI_AREA.rewardBusy == 0) {
                         SAI_AREA.rewardBusy = 1;
-                        SAI_AREA.mode = 10;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                         func_800149B8(0, -1, 0, 0x400, SAI_runRewardTask, 0, getCurrentTaskId(), 0, 0);
                         return;
                     }
@@ -2075,7 +2118,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     break;
                 case 16:
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     func_800149B8(0, -1, 0, 0x400, SAI_grantDigiPart, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 17:
@@ -2088,11 +2131,11 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SESSION->resumeMode = 1;
                     SAI_AREA.exitArg = (s16)runner->script->params[0];
                     runner->regs[0] = 0;
-                    SAI_AREA.exitAction = 6;
+                    SAI_AREA.exitAction = AREA_EXIT_TITLE_OR_ENDING;
                     SESSION->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
                     return;
                 case 20:
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     func_800149B8(0, -1, 0, 0x400, SAI_runHackingEvent, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 21:
@@ -2131,7 +2174,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     break;
                 case 1:
-                    SAI_AREA_MODE = 10;
+                    SAI_AREA_MODE = AREA_MODE_BUSY;
                     SAI_SCRIPT_REWARD_CARDS[0] = runner->script->params[0];
                     SAI_SCRIPT_REWARD_CARDS[1] = runner->script->params[1];
                     SAI_SCRIPT_REWARD_CARDS[2] = runner->script->params[2];
@@ -2216,28 +2259,28 @@ void SAI_tickArea(void) {
     char buf[0x20];
 
     switch (SAI_AREA_MODE) {
-    case 0:
+    case AREA_MODE_SCRIPT:
         SAI_stepAreaScript(SAI_SCRIPT[0]);
         break;
-    case 1:
+    case AREA_MODE_CHOICES:
         SAI_tickChoiceMenu();
         break;
-    case 2:
+    case AREA_MODE_SELECT_OPPONENT:
         SAI_tickOpponentSelectInput();
         break;
-    case 3:
-    case 4:
-        if (SAI_AREA.typing == 0 && (PAD_STATES[0]->pressed & 0x40)) {
+    case AREA_MODE_TEXT_FULL:
+    case AREA_MODE_WAIT_CROSS:
+        if (SAI_AREA.typing == 0 && (PAD_STATES[0]->pressed & PAD_CROSS)) {
             playSoundEffect(0);
             SAI_clearTextLines(SAI_TEXT_LINES);
-            if (SAI_AREA.mode == 3) {
+            if (SAI_AREA.mode == AREA_MODE_TEXT_FULL) {
                 SAI_addTextLine((u8 *)SAI_SCRIPT[0]->regs[4]);
             }
-            SAI_AREA.mode = 0;
+            SAI_AREA.mode = AREA_MODE_SCRIPT;
             SAI_AREA.waitingForCross = 0;
         }
         break;
-    case 10:
+    case AREA_MODE_BUSY:
         break;
     default:
         sprintf(buf, "(No = %d)", SAI_AREA_MODE);
@@ -2251,19 +2294,21 @@ void SAI_reopenPlayerData(void) {
     SESSION->resumeMode = 0;
     SAI_SCRIPT[0]->script->pc = SAI_SCRIPT[0]->script->start + SESSION->scriptOffset;
     playMusic(0, SESSION->music, 100);
-    SAI_AREA_MODE = 10;
+    SAI_AREA_MODE = AREA_MODE_BUSY;
     SAI_clearOpponents();
     func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
     do {
         func_80014C08(1);
-    } while (SAI_AREA.mode == 10);
+    } while (SAI_AREA.mode == AREA_MODE_BUSY);
     SAI_AREA.location = 0;
     SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
     SAI_PLAYER_STATS_STATE = 1;
     func_800149B8(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
-    SAI_AREA.mode = 10;
+    SAI_AREA.mode = AREA_MODE_BUSY;
 }
 
+/* The hacking glitch: moves blocks of VRAM around, with a random pause and a
+   sound between steps when animate is 1. */
 void SAI_glitchVram(s8 animate) {
     Rect16 rect = { 0x220, 0xE1, 0x20, 1 };
     Rect16 unused[3];
@@ -2310,6 +2355,12 @@ void SAI_glitchVram(s8 animate) {
 
 const char D_801DE5D0[] = "";
 
+/*
+ * The area task: loads the area's pak (unless resuming), runs its script with
+ * the message window and panels until the script stops, then leaves for what
+ * exitAction says. resumeMode brings it back into a panel after a duel or the
+ * complete stats.
+ */
 void SAI_runArea(s32 resume) {
     s32 timer = 0;
 
@@ -2332,9 +2383,9 @@ void SAI_runArea(s32 resume) {
     SAI_toggleMessageWindow(0);
     SAI_AREA.choiceCount = 0;
     SAI_AREA.openPanel = 0;
-    SAI_AREA.exitAction = 0;
+    SAI_AREA.exitAction = AREA_EXIT_MAP;
     SAI_AREA.closePanel = 0;
-    SAI_AREA.mode = 0;
+    SAI_AREA.mode = AREA_MODE_SCRIPT;
     ((SessionData *)D_8006E054)->npcDeckIndex[0] = -1;
     SAI_createAreaName();
     SAI_createLocationLabel();
@@ -2352,7 +2403,7 @@ void SAI_runArea(s32 resume) {
     }
     SAI_ICON_MOTION = 2;
     if (SESSION->resumeMode == 1) {
-        SAI_AREA_MODE = 10;
+        SAI_AREA_MODE = AREA_MODE_BUSY;
         if ((s8)SESSION->location == 1) {
             func_800149B8(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
         } else {
@@ -2384,7 +2435,7 @@ void SAI_runArea(s32 resume) {
     removeFrameCallback((s32)SAI_drawAreaHud);
     SAI_saveScriptFlags();
     SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
-    if (SAI_SCRIPT[0]->regs[0xB8] != 0 && (SAI_EXIT_ACTION == 5 || SAI_EXIT_ACTION == 2)) {
+    if (SAI_SCRIPT[0]->regs[0xB8] != 0 && (SAI_EXIT_ACTION == AREA_EXIT_EQUIPMENT || SAI_EXIT_ACTION == AREA_EXIT_DECK_EDITOR)) {
         fadeOutScrollingBackground();
         do {
             func_80014C08(1);
@@ -2406,23 +2457,23 @@ void SAI_runArea(s32 resume) {
         playMusic(0, 0x6F, 0x64);
         func_800149B8(0, -1, 0, 0x400, SAI_runWorldMap, 1, 0, getCurrentTaskId(), 0);
         break;
-    case 1:
+    case AREA_EXIT_DUEL:
         SAI_ICON_RUNNING = 0;
         fadeOutScrollingBackground();
         func_80014C08(10);
         func_800149B8(0, -1, 0, 0x200, startCpuDuel, SAI_EXIT_ARG, 0, 0, 0);
         break;
-    case 2:
+    case AREA_EXIT_DECK_EDITOR:
         SAI_ICON_RUNNING = 0;
         func_80014C08(1);
         openDeckEditor(1);
         break;
-    case 3:
+    case AREA_EXIT_SAVE:
         SAI_ICON_RUNNING = 0;
         func_80014C08(1);
         func_800149B8(0, -1, 0, 0x400, openSaveScreenFromMap, 4, getCurrentTaskId(), 0, 0);
         break;
-    case 4:
+    case AREA_EXIT_FUSION:
         SAI_ICON_RUNNING = 0;
         func_80014C08(1);
         if (SAI_AREA.exitArg >= 3) {
@@ -2430,12 +2481,12 @@ void SAI_runArea(s32 resume) {
         }
         func_800149B8(0, -1, 0, 0x400, openPartnerFusion, SAI_EXIT_ARG, 0, 0, 0);
         break;
-    case 5:
+    case AREA_EXIT_EQUIPMENT:
         SAI_ICON_RUNNING = 0;
         func_80014C08(1);
         openPartnerEquipment(1);
         break;
-    case 6:
+    case AREA_EXIT_TITLE_OR_ENDING:
         SAI_ICON_RUNNING = 0;
         func_80014C08(10);
         func_800149B8(0, -1, 0, 0x800, quitToTitleOrPlayEnding, SAI_EXIT_ARG, 0, 0, 0);
@@ -2494,7 +2545,7 @@ void SAI_runTalkPanel(void) {
     do {
         func_80014C08(1);
     } while (SAI_uncoverPanel() == 0);
-    SAI_AREA_MODE = 0;
+    SAI_AREA_MODE = AREA_MODE_SCRIPT;
     do {
         func_80014C08(1);
     } while (SAI_AREA.closePanel == 0);
@@ -2532,31 +2583,31 @@ void SAI_tickOpponentSelectInput(void) {
     s32 i;
     s32 *timers;
 
-    if (PAD_STATES[0]->pressed & 0x5000) {
+    if (PAD_STATES[0]->pressed & (PAD_UP | PAD_DOWN)) {
         SAI_AREA.select.selected += 3;
         if (SAI_AREA.select.selected >= 6) {
             SAI_AREA.select.selected -= 6;
         }
-    } else if ((u16)PAD_STATES[0]->pressed & 0x8000) {
+    } else if ((u16)PAD_STATES[0]->pressed & PAD_LEFT) {
         SAI_AREA.select.selected--;
         if (SAI_AREA.select.selected < 0) {
             SAI_AREA.select.selected = 5;
         }
-    } else if (PAD_STATES[0]->pressed & 0x2000) {
+    } else if (PAD_STATES[0]->pressed & PAD_RIGHT) {
         SAI_AREA.select.selected++;
         if (SAI_AREA.select.selected >= 6) {
             SAI_AREA.select.selected = 0;
         }
-    } else if (PAD_STATES[0]->pressed & 0x10) {
+    } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
         playSoundEffect(1);
-        SAI_AREA.mode = 0;
+        SAI_AREA.mode = AREA_MODE_SCRIPT;
         SAI_AREA.select.unk5E = 0;
         SAI_SCRIPT[0]->regs[2] = -1;
-    } else if (PAD_STATES[0]->pressed & 0x40) {
+    } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
         card = SAI_OPPONENTS.ids[SAI_AREA.select.page * 6 + SAI_AREA.select.selected];
         if (SAI_SCRIPT[0]->regs[SAI_AREA.select.selected + 268] == 0) {
             if (card == 16 || card == 17) {
-                SAI_AREA.mode = 10;
+                SAI_AREA.mode = AREA_MODE_BUSY;
                 SAI_AREA.selectState = 20;
                 if (card == 16) {
                     SAI_AREA.select.page--;
@@ -2575,7 +2626,7 @@ void SAI_tickOpponentSelectInput(void) {
             } else if (card >= 0 && card < 16) {
                 SAI_AREA.select.zoom = 0;
                 SAI_AREA.selectState = 6;
-                SAI_AREA.mode = 10;
+                SAI_AREA.mode = AREA_MODE_BUSY;
                 SAI_SCRIPT[0]->regs[2] = card;
                 SAI_AREA.opponentPicked = 1;
                 playSoundEffect(0);
@@ -2751,7 +2802,7 @@ void SAI_zoomOpponentPortrait(void) {
 
     if (SAI_AREA.selectState == 6) {
         if (SAI_AREA.select.zoom == 20) {
-            SAI_AREA.mode = 0;
+            SAI_AREA.mode = AREA_MODE_SCRIPT;
             SAI_AREA.selectState = 2;
         }
         SAI_AREA.select.zoom++;
@@ -2760,7 +2811,7 @@ void SAI_zoomOpponentPortrait(void) {
         }
     } else {
         if (SAI_AREA.select.zoom == 0) {
-            SAI_AREA.mode = 2;
+            SAI_AREA.mode = AREA_MODE_SELECT_OPPONENT;
             SAI_AREA.selectState = 2;
         }
         if (--SAI_AREA.select.zoom < 0) {
@@ -2848,10 +2899,10 @@ s8 SAI_slideOpponentPortraits(void) {
         if (busy == 0) {
             if (SAI_AREA.selectState == 20) {
                 SAI_AREA.selectState = 2;
-                SAI_AREA.mode = 2;
+                SAI_AREA.mode = AREA_MODE_SELECT_OPPONENT;
             } else {
                 SAI_AREA.selectState = 2;
-                SAI_AREA.mode = 0;
+                SAI_AREA.mode = AREA_MODE_SCRIPT;
             }
         }
     } else if (SAI_SELECT_STATE == 5) {
@@ -2861,7 +2912,7 @@ s8 SAI_slideOpponentPortraits(void) {
             }
         }
         if (busy == 0) {
-            SAI_AREA.mode = 0;
+            SAI_AREA.mode = AREA_MODE_SCRIPT;
             SAI_AREA.selectState = 2;
         }
     }
@@ -2878,7 +2929,7 @@ s32 SAI_slideChosenOpponentBack(void) {
         if (SAI_AREA.select.timer > 20) {
             SAI_AREA.select.timer = 20;
             result = 0;
-            SAI_AREA.mode = 0;
+            SAI_AREA.mode = AREA_MODE_SCRIPT;
             SAI_AREA.selectState = 2;
         }
     } else {
@@ -2896,7 +2947,7 @@ s32 SAI_slideChosenOpponentBack(void) {
         if (SAI_AREA.select.timer < 0) {
             SAI_AREA.select.timer = 0;
             result = 0;
-            SAI_AREA.mode = 0;
+            SAI_AREA.mode = AREA_MODE_SCRIPT;
             SAI_AREA.selectState = 2;
         }
     }
@@ -2929,7 +2980,7 @@ void func_801E7240(void) {
         SAI_AREA.select.timer = 30;
         SAI_AREA.unk116 = 3;
         SAI_AREA.selectState = 3;
-        SAI_AREA.mode = 0;
+        SAI_AREA.mode = AREA_MODE_SCRIPT;
     }
     card = SAI_SPRITES[SAI_AREA.select.selected + 31];
     w = (SAI_AREA.select.timer * 24 + (30 - SAI_AREA.select.timer) * 80) / 30;
@@ -2955,7 +3006,7 @@ void SAI_drawOpponentSelect(void) {
     for (i = 0; i < 2; i++) {
         SAI_stepBrightness(i);
     }
-    if (SAI_AREA_MODE == 2) {
+    if (SAI_AREA_MODE == AREA_MODE_SELECT_OPPONENT) {
         SAI_OPPONENTS.target[0] = SAI_OPPONENTS.target[1] = 0x80;
     }
     SAI_setSpriteBrightness(SAI_SPRITES[45], SAI_OPPONENTS.current[0]);
@@ -3192,7 +3243,7 @@ void SAI_showOpponentInfo(void) {
     s32 i;
 
     if (SESSION->shownOpponent != (s8)SAI_SCRIPT[0]->regs[10]) {
-        SAI_AREA_MODE = 10;
+        SAI_AREA_MODE = AREA_MODE_BUSY;
         if (SAI_OPPONENT_INFO->statsShown == 1) {
             do {
                 func_80014C08(1);
@@ -3223,7 +3274,7 @@ void SAI_showOpponentInfo(void) {
         SAI_SPRITES[43]->quads[1].clut = getClut(0x280, 0x1FB);
     } else {
         SAI_OPPONENT_INFO->state = 0;
-        SAI_AREA_MODE = 0;
+        SAI_AREA_MODE = AREA_MODE_SCRIPT;
     }
 }
 
@@ -3306,7 +3357,7 @@ s32 SAI_moveOpponentPortraits(void) {
             SAI_OPPONENT_INFO->statsShown = 1;
             SAI_OPPONENT_INFO->timer = 20;
             SAI_OPPONENT_INFO->state = 0;
-            SAI_AREA_MODE = 0;
+            SAI_AREA_MODE = AREA_MODE_SCRIPT;
             result = 0;
         }
     }
@@ -3358,7 +3409,7 @@ void SAI_tickOpponentBanner(void) {
             }
         }
         SAI_OPPONENT_INFO->alpha = alpha;
-    } else if (PAD_STATES[0]->pressed & 0x40) {
+    } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
         SAI_OPPONENT_INFO->delay = 0;
     } else if (SAI_OPPONENT_INFO->delay != 0) {
         SAI_OPPONENT_INFO->delay--;
@@ -3386,7 +3437,7 @@ void SAI_runOpponentInfoPanel(s32 index) {
         SAI_OPPONENT_INFO->timer = 0;
         SAI_OPPONENT_INFO->unkC5 = 0;
         SAI_OPPONENT_INFO->state = 3;
-        SAI_AREA_MODE = 10;
+        SAI_AREA_MODE = AREA_MODE_BUSY;
         SAI_OPPONENT_INFO->showWipe = 0;
     } else {
         SESSION->shownOpponent = -1;
@@ -3413,7 +3464,7 @@ void SAI_runOpponentInfoPanel(s32 index) {
         func_80014C08(1);
     } while (SAI_uncoverPanel() == 0);
     if (SESSION->resumeMode == 0) {
-        SAI_AREA_MODE = 0;
+        SAI_AREA_MODE = AREA_MODE_SCRIPT;
     } else {
         SESSION->resumeMode = 0;
     }
@@ -3709,7 +3760,7 @@ void SAI_runHackingEvent(s32 mode, s32 task) {
         SAI_runHackingScene3();
         break;
     }
-    SAI_AREA_MODE = 0;
+    SAI_AREA_MODE = AREA_MODE_SCRIPT;
     func_80014A48(task);
 }
 
@@ -3812,21 +3863,21 @@ s32 SAI_moveWordInputCursor(void) {
 
     if (SAI_WORD_INPUT.active != 0) {
         if (SAI_WORD_INPUT.mode == 0) {
-            if ((u16)PAD_STATES[0]->repeat & 0xF000) {
+            if ((u16)PAD_STATES[0]->repeat & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT)) {
                 playSoundEffect(2);
             }
             do {
-                if (PAD_STATES[0]->repeat & 0x1000) {
+                if (PAD_STATES[0]->repeat & PAD_UP) {
                     SAI_WORD_INPUT.row = ((s16)(SAI_WORD_INPUT.row - 1) + 1) / 9 * 9 + ((s16)(SAI_WORD_INPUT.row - 1) + 9) % 9;
                     if (SAI_WORD_INPUT.row % 9 == 0) {
                         PAD_STATES[0]->repeatEnabled = 0;
                     }
-                } else if (PAD_STATES[0]->repeat & 0x4000) {
+                } else if (PAD_STATES[0]->repeat & PAD_DOWN) {
                     SAI_WORD_INPUT.row = ((s16)(SAI_WORD_INPUT.row + 1) - 1) / 9 * 9 + ((s16)(SAI_WORD_INPUT.row + 1) + 9) % 9;
                     if (SAI_WORD_INPUT.row % 9 == 8) {
                         PAD_STATES[0]->repeatEnabled = 0;
                     }
-                } else if ((u16)PAD_STATES[0]->repeat & 0x8000) {
+                } else if ((u16)PAD_STATES[0]->repeat & PAD_LEFT) {
                     if (--SAI_WORD_INPUT.col < 0) {
                         SAI_WORD_INPUT.col = 9;
                         SAI_WORD_INPUT.mode = 1;
@@ -3834,7 +3885,7 @@ s32 SAI_moveWordInputCursor(void) {
                     } else if (SAI_WORD_INPUT.col == 0) {
                         PAD_STATES[0]->repeatEnabled = 0;
                     }
-                } else if (PAD_STATES[0]->repeat & 0x2000) {
+                } else if (PAD_STATES[0]->repeat & PAD_RIGHT) {
                     if (++SAI_WORD_INPUT.col >= 10) {
                         SAI_WORD_INPUT.col = 0;
                         SAI_WORD_INPUT.mode = 1;
@@ -3845,25 +3896,25 @@ s32 SAI_moveWordInputCursor(void) {
                 }
             } while (SAI_WORD_INPUT_CHARS[SAI_WORD_INPUT.row * 10 + SAI_WORD_INPUT.col] == ' ');
         } else {
-            if ((u16)PAD_STATES[0]->repeat & 0xF000) {
+            if ((u16)PAD_STATES[0]->repeat & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT)) {
                 playSoundEffect(2);
             }
-            if ((u16)PAD_STATES[0]->pressed & 0xA000) {
+            if ((u16)PAD_STATES[0]->pressed & (PAD_LEFT | PAD_RIGHT)) {
                 playSoundEffect(2);
             }
-            if (PAD_STATES[0]->repeat & 0x1000) {
+            if (PAD_STATES[0]->repeat & PAD_UP) {
                 if (--SAI_WORD_INPUT.sel < 7) {
                     SAI_WORD_INPUT.sel = 8;
                 } else if (SAI_WORD_INPUT.sel == 7) {
                     PAD_STATES[0]->repeatEnabled = 0;
                 }
-            } else if (PAD_STATES[0]->repeat & 0x4000) {
+            } else if (PAD_STATES[0]->repeat & PAD_DOWN) {
                 if (++SAI_WORD_INPUT.sel >= 9) {
                     SAI_WORD_INPUT.sel = 7;
                 } else if (SAI_WORD_INPUT.sel == 8) {
                     PAD_STATES[0]->repeatEnabled = 0;
                 }
-            } else if ((u16)PAD_STATES[0]->pressed & 0x8000) {
+            } else if ((u16)PAD_STATES[0]->pressed & PAD_LEFT) {
                 SAI_WORD_INPUT.mode = 0;
                 SAI_WORD_INPUT.prevSel = -1;
                 SAI_WORD_INPUT.prevRow = SAI_WORD_INPUT.prevCol = -1;
@@ -3871,7 +3922,7 @@ s32 SAI_moveWordInputCursor(void) {
                 while (SAI_WORD_INPUT_CHARS[SAI_WORD_INPUT.row * 10 + SAI_WORD_INPUT.col] == ' ') {
                     SAI_WORD_INPUT.col--;
                 }
-            } else if (PAD_STATES[0]->pressed & 0x2000) {
+            } else if (PAD_STATES[0]->pressed & PAD_RIGHT) {
                 SAI_WORD_INPUT.mode = 0;
                 SAI_WORD_INPUT.prevSel = -1;
                 SAI_WORD_INPUT.prevRow = SAI_WORD_INPUT.prevCol = -1;
@@ -3960,7 +4011,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
     drawText(window->rect.x + 0xCC, window->rect.y + 0x71, (s32)"Cancel", 6, z);
     SAI_moveWordInputCursor();
     if (SAI_WORD_INPUT.mode == 0) {
-        if (PAD_STATES[0]->repeat & 0x40) {
+        if (PAD_STATES[0]->repeat & PAD_CROSS) {
             SAI_WORD_INPUT.text[SAI_WORD_INPUT.cursor] = SAI_WORD_INPUT_CHARS[SAI_WORD_INPUT.row * 10 + SAI_WORD_INPUT.col];
             playSoundEffect(0);
             if (SAI_WORD_INPUT.cursor < 11) {
@@ -3969,7 +4020,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
                 SAI_WORD_INPUT.mode = 1;
                 SAI_WORD_INPUT.sel = 7;
             }
-        } else if (PAD_STATES[0]->repeat & 0x20) {
+        } else if (PAD_STATES[0]->repeat & PAD_CIRCLE) {
             for (i = 11; i >= SAI_WORD_INPUT.cursor + 1; i--) {
                 SAI_WORD_INPUT.text[i] = SAI_WORD_INPUT.text[i - 1];
             }
@@ -3981,7 +4032,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
                 SAI_WORD_INPUT.mode = 1;
                 SAI_WORD_INPUT.sel = 7;
             }
-        } else if (PAD_STATES[0]->repeat & 0x10) {
+        } else if (PAD_STATES[0]->repeat & PAD_TRIANGLE) {
             if (SAI_WORD_INPUT.text[0] != 0) {
                 playSoundEffect(0);
             }
@@ -3993,7 +4044,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
             }
             SAI_WORD_INPUT.cursor--;
         }
-    } else if (PAD_STATES[0]->pressed & 0x40) {
+    } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
         playSoundEffect(0);
         sel = SAI_WORD_INPUT.sel;
         if (sel >= 0) {
@@ -4005,7 +4056,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
                 SAI_WORD_INPUT.result = SAI_WORD_INPUT.sel;
             }
         }
-    } else if (PAD_STATES[0]->repeat & 0x10) {
+    } else if (PAD_STATES[0]->repeat & PAD_TRIANGLE) {
         if (SAI_WORD_INPUT.text[0] != 0) {
             playSoundEffect(0);
         }
@@ -4017,7 +4068,7 @@ void SAI_drawWordInputGrid(UiWindow *window) {
         }
         SAI_WORD_INPUT.cursor--;
     }
-    if (PAD_STATES[0]->pressed & 0x800) {
+    if (PAD_STATES[0]->pressed & PAD_START) {
         if (SAI_WORD_INPUT.mode != 1 || SAI_WORD_INPUT.sel != 7) {
             playSoundEffect(0);
             SAI_WORD_INPUT.mode = 1;
@@ -4036,12 +4087,12 @@ void SAI_drawKeywordField(UiWindow *window) {
 
     sprintf(text, "*s0%s", SAI_WORD_INPUT.text);
     drawText(x, y, (s32)text, 7, z);
-    if (PAD_STATES[0]->repeat & 4) {
+    if (PAD_STATES[0]->repeat & PAD_L1) {
         if (SAI_WORD_INPUT.cursor != 0) {
             playSoundEffect(2);
             SAI_WORD_INPUT.cursor--;
         }
-    } else if (PAD_STATES[0]->repeat & 8) {
+    } else if (PAD_STATES[0]->repeat & PAD_R1) {
         if (SAI_WORD_INPUT.cursor != 11 && SAI_WORD_INPUT.text[SAI_WORD_INPUT.cursor] != 0) {
             playSoundEffect(2);
             SAI_WORD_INPUT.cursor++;
@@ -4156,7 +4207,7 @@ void SAI_runWordInput(char *word) {
             break;
         }
     }
-    SAI_AREA_MODE = 0;
+    SAI_AREA_MODE = AREA_MODE_SCRIPT;
     SAI_toggleMessageWindow(1);
 }
 
@@ -4268,45 +4319,45 @@ void SAI_drawSprite(Sprite3D *sprite) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[sprite->otz], &sprite->quads[FRAME_BUFFER_INDEX]);
 }
 
-void SAI_moveSpriteCorners(Sprite3D *arg0, s16 dx, s16 dy) {
-    arg0->corners[2].vx += dx;
-    arg0->corners[0].vx = arg0->corners[2].vx;
-    arg0->corners[3].vx += dx;
-    arg0->corners[1].vx = arg0->corners[3].vx;
-    arg0->corners[1].vy += dy;
-    arg0->corners[0].vy = arg0->corners[1].vy;
-    arg0->corners[3].vy += dy;
-    arg0->corners[2].vy = arg0->corners[3].vy;
+void SAI_moveSpriteCorners(Sprite3D *sprite, s16 dx, s16 dy) {
+    sprite->corners[2].vx += dx;
+    sprite->corners[0].vx = sprite->corners[2].vx;
+    sprite->corners[3].vx += dx;
+    sprite->corners[1].vx = sprite->corners[3].vx;
+    sprite->corners[1].vy += dy;
+    sprite->corners[0].vy = sprite->corners[1].vy;
+    sprite->corners[3].vy += dy;
+    sprite->corners[2].vy = sprite->corners[3].vy;
 }
 
-void SAI_setSpriteDepth(Sprite3D *arg0, s32 arg1) {
-    arg0->otz = arg1;
+void SAI_setSpriteDepth(Sprite3D *sprite, s32 otz) {
+    sprite->otz = otz;
 }
 
-void SAI_setSpriteBrightness(Unk801EBD94 *arg0, u8 value) {
+void SAI_setSpriteBrightness(Unk801EBD94 *quads, u8 value) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        arg0[i].r = value;
-        arg0[i].g = value;
-        arg0[i].b = value;
+        quads[i].r = value;
+        quads[i].g = value;
+        quads[i].b = value;
     }
 }
 
-void SAI_setSpriteSize(Sprite3D *arg0, s16 width, s16 height) {
+void SAI_setSpriteSize(Sprite3D *sprite, s16 width, s16 height) {
     s32 halfWidth;
     s32 halfHeight;
 
     halfWidth = width >> 1;
-    arg0->corners[2].vx = -halfWidth;
-    arg0->corners[0].vx = -halfWidth;
-    arg0->corners[3].vx = halfWidth;
-    arg0->corners[1].vx = halfWidth;
+    sprite->corners[2].vx = -halfWidth;
+    sprite->corners[0].vx = -halfWidth;
+    sprite->corners[3].vx = halfWidth;
+    sprite->corners[1].vx = halfWidth;
     halfHeight = height >> 1;
-    arg0->corners[1].vy = -halfHeight;
-    arg0->corners[0].vy = -halfHeight;
-    arg0->corners[3].vy = halfHeight;
-    arg0->corners[2].vy = halfHeight;
+    sprite->corners[1].vy = -halfHeight;
+    sprite->corners[0].vy = -halfHeight;
+    sprite->corners[3].vy = halfHeight;
+    sprite->corners[2].vy = halfHeight;
 }
 
 void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
@@ -4525,23 +4576,23 @@ void SAI_tickMapMenu(void) {
             SAI_WORLD_MAP.menuCursor = 0;
         }
     } else if (SAI_WORLD_MAP.menuPhase == 1) {
-        if (PAD_STATES[0]->repeat & 0x4000) {
+        if (PAD_STATES[0]->repeat & PAD_DOWN) {
             playSoundEffect(2);
             SAI_WORLD_MAP.menuCursor++;
             if (SAI_WORLD_MAP.menuCursor >= 3) {
                 SAI_WORLD_MAP.menuCursor = 0;
             }
-        } else if (PAD_STATES[0]->repeat & 0x1000) {
+        } else if (PAD_STATES[0]->repeat & PAD_UP) {
             playSoundEffect(2);
             SAI_WORLD_MAP.menuCursor--;
             if (SAI_WORLD_MAP.menuCursor < 0) {
                 SAI_WORLD_MAP.menuCursor = 2;
             }
-        } else if (PAD_STATES[0]->pressed & 0x30) {
+        } else if (PAD_STATES[0]->pressed & (PAD_TRIANGLE | PAD_CIRCLE)) {
             playSoundEffect(1);
             SAI_WORLD_MAP.menuPhase = 2;
             SAI_WORLD_MAP.menuChosen = 0;
-        } else if (PAD_STATES[0]->pressed & 0x40) {
+        } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
             if (((SessionData *)D_8006E054)->unk1027 != 1 || SAI_MAP_MENU_CURSOR != 2) {
                 playSoundEffect(0);
                 SAI_WORLD_MAP.menuPhase = 2;
@@ -4557,9 +4608,9 @@ void SAI_tickMapMenu(void) {
         }
     } else if (SAI_WORLD_MAP.menuPhase == 3) {
         if (SAI_WORLD_MAP.menuChosen == 0) {
-            SAI_WORLD_MAP.state = 1;
+            SAI_WORLD_MAP.state = MAP_IDLE;
         } else {
-            SAI_MAP_STATE = 6;
+            SAI_MAP_STATE = MAP_ENTER_AREA;
         }
         SAI_MAP_MENU_PHASE = 4;
     }
@@ -4771,7 +4822,7 @@ void SAI_openMap(void) {
             if (SAI_MAP_FRAME_BRIGHTNESS < 0x80) {
                 SAI_MAP_FRAME_BRIGHTNESS += 8;
             } else {
-                SAI_WORLD_MAP.state = 3;
+                SAI_WORLD_MAP.state = MAP_FADE_IN;
                 SAI_initRegion();
                 SAI_WORLD_MAP.portraitState = 2;
                 SAI_WORLD_MAP.nameSlideDir = 1;
@@ -4807,7 +4858,7 @@ void SAI_openMap(void) {
 }
 
 void SAI_drawRegionFade(void) {
-    if (SAI_MAP_STATE == 3 || SAI_MAP_STATE == 0) {
+    if (SAI_MAP_STATE == MAP_FADE_IN || SAI_MAP_STATE == MAP_OPENING) {
         SAI_WORLD_MAP.fades[FRAME_BUFFER_INDEX].r0 = SAI_WORLD_MAP.fades[FRAME_BUFFER_INDEX].g0 = SAI_WORLD_MAP.fades[FRAME_BUFFER_INDEX].b0 = SAI_WORLD_MAP.alpha;
         SAI_WORLD_MAP.fades[FRAME_BUFFER_INDEX].x0 = SAI_SPRITES[2]->quads[FRAME_BUFFER_INDEX].x0;
         SAI_WORLD_MAP.fades[FRAME_BUFFER_INDEX].y0 = SAI_SPRITES[2]->quads[FRAME_BUFFER_INDEX].y0;
@@ -4826,7 +4877,7 @@ void SAI_openMapMenu(void) {
     s32 i;
 
     SAI_MAP_MENU_TAB_STATE = 2;
-    SAI_WORLD_MAP.state = 9;
+    SAI_WORLD_MAP.state = MAP_MENU;
     SAI_WORLD_MAP.menuPhase = 0;
     SAI_WORLD_MAP.menuSlide = 0;
     SAI_WORLD_MAP.menuCursor = 100;
@@ -4855,12 +4906,12 @@ void SAI_openMapMenu(void) {
 void SAI_fadeInRegion(void) {
     s32 value;
 
-    if (SAI_WORLD_MAP.state == 3) {
+    if (SAI_WORLD_MAP.state == MAP_FADE_IN) {
         value = SAI_WORLD_MAP.alpha - 8;
         if (value < 0) {
             value = 0;
             if (SAI_WORLD_MAP.openMenu == 0) {
-                SAI_WORLD_MAP.state = 1;
+                SAI_WORLD_MAP.state = MAP_IDLE;
                 SAI_MAP_MENU_TAB_STATE = 1;
             } else {
                 SAI_MAP_OPEN_MENU = 0;
@@ -4873,26 +4924,26 @@ void SAI_fadeInRegion(void) {
 
 void SAI_selectMapNode(void) {
     if (SAI_WORLD_MAP.nodeIndex >= 0 && SAI_WORLD_MAP.nodeIndex < 12) {
-        SAI_WORLD_MAP.state = 6;
+        SAI_WORLD_MAP.state = MAP_ENTER_AREA;
     } else if (SAI_WORLD_MAP.nodeIndex == 12) {
         SAI_WORLD_MAP.nodeIndex = 13;
         SAI_WORLD_MAP.region = 1;
-        SAI_WORLD_MAP.state = 4;
+        SAI_WORLD_MAP.state = MAP_CHANGE_REGION;
         playSoundEffect(5);
     } else if (SAI_WORLD_MAP.nodeIndex == 13) {
         SAI_WORLD_MAP.nodeIndex = 12;
         SAI_WORLD_MAP.region = 0;
-        SAI_WORLD_MAP.state = 4;
+        SAI_WORLD_MAP.state = MAP_CHANGE_REGION;
         playSoundEffect(5);
     } else if (SAI_WORLD_MAP.nodeIndex == 14) {
         SAI_WORLD_MAP.nodeIndex = 15;
         SAI_WORLD_MAP.region = 2;
-        SAI_WORLD_MAP.state = 4;
+        SAI_WORLD_MAP.state = MAP_CHANGE_REGION;
         playSoundEffect(5);
     } else if (SAI_WORLD_MAP.nodeIndex == 15) {
         SAI_WORLD_MAP.nodeIndex = 14;
         SAI_WORLD_MAP.region = 1;
-        SAI_WORLD_MAP.state = 4;
+        SAI_WORLD_MAP.state = MAP_CHANGE_REGION;
         playSoundEffect(5);
     }
     SAI_MAP_LABEL_REGION = -1;
@@ -4905,17 +4956,17 @@ void SAI_tickMapInput(void) {
 
     if (SAI_WORLD_MAP.moving == 0) {
         stopSoundVoice(0x17);
-        if (PAD_STATES[0]->held & 0x1000) {
+        if (PAD_STATES[0]->held & PAD_UP) {
             dir = 0;
-        } else if (PAD_STATES[0]->held & 0x2000) {
+        } else if (PAD_STATES[0]->held & PAD_RIGHT) {
             dir = 1;
-        } else if (PAD_STATES[0]->held & 0x4000) {
+        } else if (PAD_STATES[0]->held & PAD_DOWN) {
             dir = 2;
-        } else if ((u16)PAD_STATES[0]->held & 0x8000) {
+        } else if ((u16)PAD_STATES[0]->held & PAD_LEFT) {
             dir = 3;
-        } else if (PAD_STATES[0]->pressed & 0x40) {
+        } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
             dir = 4;
-        } else if (PAD_STATES[0]->pressed & 0x10) {
+        } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
             dir = 5;
         }
         if (dir == -1) {
@@ -4930,18 +4981,18 @@ void SAI_tickMapInput(void) {
             if (SAI_WORLD_MAP.node->next[dir] != -1) {
                 SAI_WORLD_MAP.target = &SAI_MAP_NODES[SAI_WORLD_MAP.node->next[dir]];
             } else {
-                if (PAD_STATES[0]->pressed & 0x40) {
+                if (PAD_STATES[0]->pressed & PAD_CROSS) {
                     SAI_selectMapNode();
-                } else if (PAD_STATES[0]->pressed & 0x10) {
+                } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
                     playSoundEffect(1);
                     SAI_openMapMenu();
                 }
                 return;
             }
             if (SAI_WORLD_MAP.target->unlocked != 1) {
-                if (PAD_STATES[0]->pressed & 0x40) {
+                if (PAD_STATES[0]->pressed & PAD_CROSS) {
                     SAI_selectMapNode();
-                } else if (PAD_STATES[0]->pressed & 0x10) {
+                } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
                     playSoundEffect(1);
                     SAI_openMapMenu();
                 }
@@ -4955,7 +5006,7 @@ void SAI_tickMapInput(void) {
             SAI_WORLD_MAP.angle = ratan2(dy, dx);
             SAI_WORLD_MAP.distance = csqrt(dx * dx + dy * dy);
             SAI_WORLD_MAP.distance /= 64;
-            SAI_MAP_STATE = 2;
+            SAI_MAP_STATE = MAP_WALKING;
         }
     }
 }
@@ -5000,7 +5051,7 @@ void SAI_walkMapMarker(void) {
         SAI_SPRITES[0]->pos.vx = SAI_WORLD_MAP.target->x;
         SAI_SPRITES[0]->pos.vy = SAI_WORLD_MAP.target->y - 15;
         SAI_WORLD_MAP.node = SAI_WORLD_MAP.target;
-        SAI_WORLD_MAP.state = 1;
+        SAI_WORLD_MAP.state = MAP_IDLE;
     } else {
         SAI_SPRITES[0]->pos.vx = rcos(SAI_WORLD_MAP.angle) * SAI_WORLD_MAP.moving / 4096;
         SAI_SPRITES[0]->pos.vy = rsin(SAI_WORLD_MAP.angle) * SAI_WORLD_MAP.moving / 4096;
@@ -5036,8 +5087,8 @@ void SAI_fadeOutRegion(void) {
         alpha = 0xFF;
         SAI_WORLD_MAP.oldMarkerCount = SAI_WORLD_MAP.markerCount;
         SAI_WORLD_MAP.markerCount = 0;
-        if (SAI_WORLD_MAP.state == 4) {
-            SAI_WORLD_MAP.state = 5;
+        if (SAI_WORLD_MAP.state == MAP_CHANGE_REGION) {
+            SAI_WORLD_MAP.state = MAP_SWITCH_REGION;
             SAI_setRegionMapImage();
         } else {
             if (SAI_WORLD_MAP.menuChosen != 1) {
@@ -5048,7 +5099,7 @@ void SAI_fadeOutRegion(void) {
             SAI_WORLD_MAP.labelRegion = -1;
             SAI_WORLD_MAP.nameSlideDir = 2;
             SAI_WORLD_MAP.portraitState = 4;
-            SAI_WORLD_MAP.state = 7;
+            SAI_WORLD_MAP.state = MAP_CLOSING;
             playSoundEffect(11);
         }
         removeFrameCallback((s32)SAI_drawMapPaths);
@@ -5071,7 +5122,7 @@ void SAI_switchRegion(void) {
     }
     SAI_freeSprite(SAI_SPRITES[0]);
     SAI_freeSprite(SAI_SPRITES[1]);
-    SAI_MAP_STATE = 3;
+    SAI_MAP_STATE = MAP_FADE_IN;
     SAI_initRegion();
 }
 
@@ -5117,7 +5168,7 @@ void SAI_closeMap(void) {
         SAI_MAP_FRAME_BRIGHTNESS = 0x40;
     }
     if (SAI_WORLD_MAP.zoomAngle == 0 && SAI_WORLD_MAP.zoom == 0) {
-        SAI_WORLD_MAP.state = 8;
+        SAI_WORLD_MAP.state = MAP_DONE;
     }
 }
 
@@ -5395,7 +5446,12 @@ void SAI_setRegionMapImage(void) {
     SAI_SPRITES[2]->quads[0].clut = SAI_SPRITES[2]->quads[1].clut = getClut(0x180, SAI_WORLD_MAP.region + 0x1A8);
 }
 
-void SAI_runWorldMap(s32 resume, s32 arg1) {
+/*
+ * The world map task: the player's marker walks between the unlocked nodes of
+ * the three regions; entering a node loads its area, and the menu leads to the
+ * deck editor, the partner equipment or the save screen.
+ */
+void SAI_runWorldMap(s32 resume, s32 openMenu) {
     s32 i;
     s32 j;
     s8 node;
@@ -5430,14 +5486,14 @@ void SAI_runWorldMap(s32 resume, s32 arg1) {
     SAI_WORLD_MAP.active = 1;
     SAI_WORLD_MAP.iconSlide = 0;
     SAI_WORLD_MAP.zoom = 0;
-    SAI_WORLD_MAP.state = 0;
+    SAI_WORLD_MAP.state = MAP_OPENING;
     SAI_WORLD_MAP.portraitState = 0;
     SAI_WORLD_MAP.alpha = 0xFF;
     SAI_WORLD_MAP.menuChosen = 0;
     SAI_WORLD_MAP.markerCount = 0;
     SAI_WORLD_MAP.animating = 0;
     SAI_WORLD_MAP.lastRegion = SAI_WORLD_MAP.region;
-    SAI_WORLD_MAP.openMenu = arg1;
+    SAI_WORLD_MAP.openMenu = openMenu;
     SAI_createRegionLabel();
     SAI_createAreaPortrait();
     SAI_createMapAreaName();
@@ -5487,7 +5543,7 @@ void SAI_runWorldMap(s32 resume, s32 arg1) {
         if (SAI_WORLD_MAP.portraitState >= 2) {
             SAI_drawAreaPortrait();
         }
-    } while (SAI_WORLD_MAP.state != 8);
+    } while (SAI_WORLD_MAP.state != MAP_DONE);
     func_80014C08(1);
     freeHeapBlocksByTag(0x2E);
     SAI_WORLD_MAP.active = -1;
@@ -5603,8 +5659,8 @@ void SAI_drawMapPaths(FrameBuffer *fb) {
     }
 }
 
-void SAI_createMapMenuTab(s8 arg0) {
-    if (arg0 == 0) {
+void SAI_createMapMenuTab(s8 keepTabState) {
+    if (keepTabState == 0) {
         SAI_MAP_MENU_TAB_STATE = 0;
     }
     SAI_MAP_MENU_TAB.offset = 0;
@@ -5653,14 +5709,14 @@ void SAI_runRewardTask(u8 value) {
     SAI_REWARD_FROM_SCRIPT = value;
     SAI_showRewardCards();
     func_80014C08(5);
-    SAI_AREA.mode = 0;
+    SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_AREA.rewardBusy = 0;
 }
 
 void SAI_waitForCross(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (!(PAD_STATES[0]->pressed & 0x40));
+    } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
 }
 
 void SAI_drawRewardCardArt(s32 x, s32 y, s32 vramX, s32 vramY, s32 frame, u16 clut, u8 *rgb) {
@@ -5794,12 +5850,12 @@ void SAI_drawRewardCard(CardWindow *win) {
     }
 }
 
-void SAI_drawRewardResult(RewardWindow *arg0) {
-    s32 x = arg0->window.originX;
-    s32 y = arg0->window.originY;
-    s32 z = arg0->window.z;
+void SAI_drawRewardResult(RewardWindow *win) {
+    s32 x = win->window.originX;
+    s32 y = win->window.originY;
+    s32 z = win->window.z;
 
-    if (((PlayerProfile *)PLAYER_PROFILES)->rewardResults[arg0->slot] < 0) {
+    if (((PlayerProfile *)PLAYER_PROFILES)->rewardResults[win->slot] < 0) {
         drawLargeText(x + 1, y + 1, (s32)"FULL SET!", 7, z);
     } else {
         drawLargeText(x + 1, y + 1, (s32)"RECEIVED!", 7, z);
@@ -6031,19 +6087,19 @@ void SAI_drawPartnerChoices(UiWindow *win) {
         y += 0x48;
     }
     if (SAI_PARTNER_LIST.state != 5) {
-        if (PAD_STATES[0]->repeat & 0x1000) {
+        if (PAD_STATES[0]->repeat & PAD_UP) {
             if (SAI_PARTNER_CURSOR.cursor != 0) {
                 playSoundEffect(2);
                 SAI_PARTNER_CURSOR.cursor--;
                 scrollWindowTo(&win->originX, 0, SAI_PARTNER_CURSOR.cursor * 72);
             }
-        } else if (PAD_STATES[0]->repeat & 0x4000) {
+        } else if (PAD_STATES[0]->repeat & PAD_DOWN) {
             if (SAI_PARTNER_CURSOR.cursor < SAI_PARTNER_LIST.count - 1) {
                 playSoundEffect(2);
                 SAI_PARTNER_CURSOR.cursor++;
                 scrollWindowTo(&win->originX, 0, SAI_PARTNER_CURSOR.cursor * 72);
             }
-        } else if (PAD_STATES[0]->pressed & 0x40) {
+        } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
             playSoundEffect(0);
             SAI_PARTNER_CURSOR.done = 1;
         }
@@ -6111,7 +6167,7 @@ void SAI_runPartnerGet(s32 task) {
     do {
     wait:
         func_80014C08(FRAME_INTERVAL);
-        if (SAI_PARTNER_LIST.state == 5 && (PAD_STATES[0]->pressed & 0x40)) {
+        if (SAI_PARTNER_LIST.state == 5 && (PAD_STATES[0]->pressed & PAD_CROSS)) {
             SAI_PARTNER_LIST.state = 6;
         }
         if (SAI_PARTNER_CURSOR.done == 0) {
@@ -6134,7 +6190,7 @@ void SAI_runPartnerGet(s32 task) {
     func_80014C08(20);
     removeFrameCallback((s32)SAI_drawPartnerGetWindow);
     obtainPartner(0, SAI_AREA.partners[SAI_PARTNER_CURSOR.cursor]);
-    SAI_AREA.mode = 0;
+    SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_setPartnerObtainedFlag(SAI_AREA.partners[SAI_PARTNER_CURSOR.cursor]);
     func_80014A48(task);
 }
@@ -6501,16 +6557,16 @@ void SAI_drawDigiPartsList(UiWindow *window) {
     }
     window->view.h = count * 13 + 15;
     if (window->view.h - window->rect.h >= 0) {
-        if (PAD_STATES[0]->repeat & 1) {
+        if (PAD_STATES[0]->repeat & PAD_L2) {
             scrollWindowTo(&window->originX, 0, window->view.y - window->rect.h);
         }
-        if (PAD_STATES[0]->repeat & 2) {
+        if (PAD_STATES[0]->repeat & PAD_R2) {
             scrollWindowTo(&window->originX, 0, window->view.y + window->rect.h);
         }
-        if (PAD_STATES[0]->repeat & 0x1000) {
+        if (PAD_STATES[0]->repeat & PAD_UP) {
             scrollWindowTo(&window->originX, 0, window->view.y - 13);
         }
-        if (PAD_STATES[0]->repeat & 0x4000) {
+        if (PAD_STATES[0]->repeat & PAD_DOWN) {
             scrollWindowTo(&window->originX, 0, window->view.y + 13);
         }
     }
@@ -6558,14 +6614,14 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
     addFrameCallback((s32)SAI_drawDigiPartsWindow);
     do {
         func_80014C08(1);
-    } while (!(PAD_STATES[0]->pressed & 0x40)); /* Cross */
+    } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
     playSoundEffect(4);
     win = &SAI_DIGI_PARTS_WINDOW;
     animateWindowTo(win, (Rect16 *)-1);
     func_80014C08(20);
     removeFrameCallback((s32)SAI_drawDigiPartsWindow);
     func_80014C08(1);
-    SAI_AREA_MODE = 0;
+    SAI_AREA_MODE = AREA_MODE_SCRIPT;
     func_80014A48(task);
 }
 
