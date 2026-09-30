@@ -241,7 +241,7 @@ s32 KAW_decideRedraw(s32 player) {
             }
         }
         if (KAW_countDeckDigimonOfLevel(player, 0) != 0) {
-            switch (PLAYER(player)->unk178_26) {
+            switch (PLAYER(player)->cpuRedrawStyle) {
             case 0:
                 return cards >= (3 - PLAYER(player)->wins) * 3;
             case 1:
@@ -315,7 +315,7 @@ s32 KAW_decideRedraw(s32 player) {
             if (KAW_planDigivolves(player) == 1) {
                 return 0;
             }
-            switch (PLAYER(player)->unk178_26) {
+            switch (PLAYER(player)->cpuRedrawStyle) {
             case 0:
                 return cards >= (3 - PLAYER(player)->wins) * 3;
             case 1:

@@ -177,7 +177,7 @@ void runDuelStageTask(s32 stageId) {
     if (pak != 0) {
         uploadTimList(findPakChunk((Chunk *)pak, 5, 0x68));
         D_801D81AC = (void *)loadSkill(999, pak);
-        D_801D81B0 = (void *)loadSkill(998, pak);
+        EAT_UP_HP_SKILL = (void *)loadSkill(998, pak);
         truncatePakTextures((Chunk *)pak);
     }
     loadArenaStage(stageId);

@@ -19,7 +19,7 @@ void playSoundEffect(s32 sound) {
     s32 tone = sound & 0xF;
 
     SsUtKeyOnV(NEXT_SFX_VOICE, SOUND_STATE.seBank.vab, sound >> 4, tone, SFX_BASE_NOTE,
-               D_8006E04C + tone, 0x6E, 0x6E);
+               SFX_BASE_FINE + tone, 0x6E, 0x6E);
     if (++NEXT_SFX_VOICE >= 0x16) {
         NEXT_SFX_VOICE = 0x12;
     }
@@ -29,7 +29,7 @@ void playSoundEffectAtVolume(s32 sound, s32 volume) {
     s32 tone = sound & 0xF;
 
     SsUtKeyOnV(NEXT_SFX_VOICE, SOUND_STATE.seBank.vab, sound >> 4, tone, SFX_BASE_NOTE,
-               D_8006E04C + tone, volume, volume);
+               SFX_BASE_FINE + tone, volume, volume);
     if (++NEXT_SFX_VOICE >= 0x16) {
         NEXT_SFX_VOICE = 0x12;
     }
@@ -39,7 +39,7 @@ void playSoundEffectOnVoice(s32 voice, s32 sound) {
     s32 tone = sound & 0xF;
 
     SsUtKeyOnV(voice, SOUND_STATE.seBank.vab, sound >> 4, tone, SFX_BASE_NOTE,
-               D_8006E04C + tone, 0x6E, 0x6E);
+               SFX_BASE_FINE + tone, 0x6E, 0x6E);
 }
 
 void stopSoundVoice(s16 voice) {

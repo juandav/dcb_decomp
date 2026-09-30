@@ -90,11 +90,11 @@ void runDuelTurnLoop(void) {
         case 1:
             DUEL->awaitingInput = 0;
             if (ME == 0) {
-                PLAYER_PANEL(0, HUD_PANEL_5)->state = 1;
-                PLAYER_PANEL(1, HUD_PANEL_5)->state = 6;
+                PLAYER_PANEL(0, HUD_TURN_MARKER)->state = 1;
+                PLAYER_PANEL(1, HUD_TURN_MARKER)->state = 6;
             } else {
-                PLAYER_PANEL(0, HUD_PANEL_5)->state = 6;
-                PLAYER_PANEL(1, HUD_PANEL_5)->state = 1;
+                PLAYER_PANEL(0, HUD_TURN_MARKER)->state = 6;
+                PLAYER_PANEL(1, HUD_TURN_MARKER)->state = 1;
             }
             PLAYER_PANEL(0, HUD_DECK)->state = 1;
             PLAYER_PANEL(1, HUD_DECK)->state = 1;

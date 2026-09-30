@@ -22,7 +22,7 @@ void initModelScene(void);
 void pauseModelAnimation(s32 slot);
 void resumeModelAnimation(s32 slot);
 void unloadModelAnimations(s32 slot);
-void func_80022E58(void);
+void unloadEffectAnimations(void);
 s32 findAnimationCacheEntry(s32 key, s32 count, KeyValue **freeEntry);
 s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak);
 void setModelAnimationData(Model *model, s32 *data, s32 anim);

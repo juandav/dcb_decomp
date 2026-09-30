@@ -87,10 +87,10 @@ void initDuelPlayers(s32 isCpuDuel) {
             for (i = 0; i < 3; i++) {
                 PLAYER_DATA(1).partners[i].cardId = 0;
             }
-            PLAYER(1)->unk178_22 = ((SessionData *)SESSION_DATA)->opponentDeck.unk64[0];
-            PLAYER(1)->unk178_24 = ((SessionData *)SESSION_DATA)->opponentDeck.unk64[1];
-            PLAYER(1)->unk178_26 = ((SessionData *)SESSION_DATA)->opponentDeck.unk64[2];
-            PLAYER(1)->unk178_28 = ((SessionData *)SESSION_DATA)->opponentDeck.unk64[3];
+            PLAYER(1)->cpuPlaceStyle = ((SessionData *)SESSION_DATA)->opponentDeck.cpuStyle[0];
+            PLAYER(1)->cpuAttackStyle = ((SessionData *)SESSION_DATA)->opponentDeck.cpuStyle[1];
+            PLAYER(1)->cpuRedrawStyle = ((SessionData *)SESSION_DATA)->opponentDeck.cpuStyle[2];
+            PLAYER(1)->cpuSupportStyle = ((SessionData *)SESSION_DATA)->opponentDeck.cpuStyle[3];
             strcpy(PLAYER(1)->deckName, ((SessionData *)SESSION_DATA)->opponentDeck.name);
             for (i = 0; i < 30; i++) {
                 cardId = ((SessionData *)SESSION_DATA)->opponentDeck.cards[i];

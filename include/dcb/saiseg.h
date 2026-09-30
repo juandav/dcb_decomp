@@ -47,7 +47,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ u8 pad[0x8];
-    /* 0x08 */ s32 playTime;
+    /* 0x08 */ s32 completionRate; /* "Game Completion", in tenths of a percent */
     /* 0x0C */ s32 cardRate;
     /* 0x10 */ s32 abilityRate;
     /* 0x14 */ PlayerProfile *profile;

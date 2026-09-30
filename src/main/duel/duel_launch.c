@@ -65,7 +65,7 @@ void startVersusDuel(void) {
     waitFrames(2);
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     ((SessionData *)SESSION_DATA)->npcDeckFile = (u8 *)waitFrames(0x7FFFFFFF);
-    ((SessionData *)SESSION_DATA)->unk1010[0x12] = 0;
+    ((SessionData *)SESSION_DATA)->deckRuleActive = 0;
     spawnTask(0, -1, 0, 0x800, runDuel, 0, getCurrentTaskId(), 0, 0);
     if (waitFrames(0x7FFFFFFF) != 0) {
         if (++PLAYER_DATA(0).versusLosses >= 1000) {

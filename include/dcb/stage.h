@@ -12,7 +12,7 @@ typedef struct {
 
 extern DuelDigimonModels DUEL_DIGIMON_MODELS[2];
 extern void *D_801D81AC;
-extern void *D_801D81B0;
+extern void *EAT_UP_HP_SKILL;
 extern u8 D_801EEE90[];
 extern ArenaStage ARENA_STAGES[];
 extern s32 STAGE_FADE_LEVEL;

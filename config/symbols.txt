@@ -266,7 +266,7 @@ setScriptBusy = 0x8002195C; // type:func
 applyRootMotion = 0x80021964; // type:func
 runModelAnimationTask = 0x80022B98; // type:func
 resumeModelAnimation = 0x80022D00; // type:func
-func_80022E58 = 0x80022E58; // type:func
+unloadEffectAnimations = 0x80022E58; // type:func
 loadModelAnimationFile = 0x80023128; // type:func
 unloadAllModels = 0x8002360C; // type:func
 loadOmdModelFromDisc = 0x80023DA4; // type:func
@@ -1168,6 +1168,7 @@ SE0_BANK_INFO = 0x8006E00C;
 SE1_BANK_INFO = 0x8006E01C;
 SE2_BANK_INFO = 0x8006E02C;
 MEMORY_CARD_WAIT_COUNTER = 0x801D8198;
+SFX_BASE_FINE = 0x8006E04C;
 
 // UI
 addFrameCallback = 0x8001683C; // type:func
@@ -1354,6 +1355,7 @@ CAMERA_PRESETS = 0x80010190;
 CAMERA_LOOK_AT = 0x801D6A68;
 STAGE_FADE_LEVEL = 0x8006DF80;
 updateEffectTiltedAccelArcMotion = 0x80030440; // type:func
+EAT_UP_HP_SKILL = 0x801D81B0;
 
 // Duel
 loadPresetDeckForPlayer = 0x8003F9EC; // type:func
@@ -1403,6 +1405,10 @@ HUD_PANELS = 0x801D83EC;
 CARD_ANIMS = 0x801D833C;
 STAT_POPUP_RGB = 0x8006E298;
 CROSS_EFFECT_ICONS = 0x8006E4FC;
+CURSOR_PACKETS = 0x801D83F4;
+CARD_POLY_PACKETS = 0x801D83F8;
+tickPlayedCardPanel = 0x8003E11C; // type:func
+tickTurnMarkerPanel = 0x8003DD9C; // type:func
 
 // Script
 clearScriptBusy = 0x80021954; // type:func

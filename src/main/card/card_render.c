@@ -188,7 +188,7 @@ void loadDuelCardGraphics(s32 withExtras) {
                 if (id != 0) {
                     uploadTim((u32 *)((u8 *)arc + arc[id]), (((i << 8) + (j + 3) * 40) >> 1) + 0x2C0, 0xC8, -1,
                               -1);
-                    PLAYER(i)->unk170[j + 1] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
+                    PLAYER(i)->armorCluts[j + 1] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
                 }
             }
         }

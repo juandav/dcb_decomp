@@ -121,11 +121,11 @@ void tickDeckPanel(s32 player) {
     }
 }
 
-void func_8003DD9C(s32 player) {
+void tickTurnMarkerPanel(s32 player) {
     Panel *panel;
     s32 y;
 
-    panel = PLAYER_PANEL(player, HUD_PANEL_5);
+    panel = PLAYER_PANEL(player, HUD_TURN_MARKER);
     switch (panel->state) {
     case 0:
         panel->flags &= 0x7F;
@@ -176,7 +176,7 @@ void tickStatusPanel(s32 player) {
         break;
     case 1:
         startPanelMove(panel, player * 0x7C + 0x28, 0x5C, 0x10);
-        PLAYER_PANEL(player, HUD_PANEL_3)->state = 4;
+        PLAYER_PANEL(player, HUD_PLAYED_CARD)->state = 4;
         break;
     case 2:
         stepPanelMove(panel);
@@ -197,7 +197,7 @@ void tickStatusPanel(s32 player) {
         break;
     case 7:
         if (stepPanelMove(panel) == 0) {
-            PLAYER_PANEL(player, HUD_PANEL_3)->state = 1;
+            PLAYER_PANEL(player, HUD_PLAYED_CARD)->state = 1;
         }
         break;
     case 8:
@@ -206,12 +206,12 @@ void tickStatusPanel(s32 player) {
     }
 }
 
-void func_8003E11C(s32 player) {
+void tickPlayedCardPanel(s32 player) {
     Panel *panel;
     s32 x;
     s32 y;
 
-    panel = PLAYER_PANEL(player, HUD_PANEL_3);
+    panel = PLAYER_PANEL(player, HUD_PLAYED_CARD);
     switch (panel->state) {
     case 0:
         panel->flags &= 0x7F;
@@ -319,10 +319,10 @@ void tickBattleHud(void) {
 
     for (i = 0; i < 2; i++) {
         tickDeckPanel(i);
-        func_8003DD9C(i);
+        tickTurnMarkerPanel(i);
         tickAttackPanel(i);
         tickStatusPanel(i);
-        func_8003E11C(i);
+        tickPlayedCardPanel(i);
         tickCardInfoPanel(i);
     }
     for (player = 0; player < 2; player++) {

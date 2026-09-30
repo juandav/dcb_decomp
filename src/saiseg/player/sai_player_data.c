@@ -84,7 +84,7 @@ void SAI_computePlayerStats(void) {
     SAI_PLAYER_STATS.cardRate = 0;
     SAI_PLAYER_STATS.abilityRate = 0;
     SAI_PLAYER_STATS.state = 2;
-    SAI_PLAYER_STATS.playTime = (u16)SAI_PLAYER_STATS.profile->unk14 * 1000 / 166;
+    SAI_PLAYER_STATS.completionRate = (u16)SAI_PLAYER_STATS.profile->completionPoints * 1000 / 166;
     for (i = 0; i < 301; i++) {
         if (((PlayerProfile *)PLAYER_PROFILES)->cardCollection[i] & 0x40) {
             SAI_PLAYER_STATS.cardRate += 1000;
@@ -253,7 +253,7 @@ void SAI_drawPlayerData(UiWindow *win) {
     drawText(x + 0x62, y + 0x1C, (s32)SAI_PLAYER_DATA_LABELS[2], 6, z);
     drawText(x + 0x132 - measureText(SAI_PLAYER_STATS.collectorRank), y + 0x1C, (s32)SAI_PLAYER_STATS.collectorRank, 7, z);
     drawText(x + 0x62, y + 0x2A, (s32)SAI_PLAYER_DATA_LABELS[3], 6, z);
-    sprintf(buf, rateFormat, SAI_PLAYER_STATS.playTime / 10, SAI_PLAYER_STATS.playTime % 10);
+    sprintf(buf, rateFormat, SAI_PLAYER_STATS.completionRate / 10, SAI_PLAYER_STATS.completionRate % 10);
     drawText(x + 0x105, y + 0x2A, (s32)buf, 7, z);
     drawText(x + 0x62, y + 0x38, (s32)SAI_PLAYER_DATA_LABELS[4], 6, z);
     sprintf(buf, rateFormat, SAI_PLAYER_STATS.cardRate / 10, SAI_PLAYER_STATS.cardRate % 10);

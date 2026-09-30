@@ -462,9 +462,9 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                 if (KAW_MATCH_SCREEN->unk504[0] != 0) {
                     if (PAD_STATES[0]->pressed & PAD_CROSS) {
                         i = KAW_MATCH_SCREEN->deckIds[0][KAW_DECK_LIST_MENUS[0].row];
-                        if (((SessionData *)SESSION_DATA)->unk1010[0x12] != 0) {
+                        if (((SessionData *)SESSION_DATA)->deckRuleActive != 0) {
                             if (i < 3) {
-                                if (((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] == 0) {
+                                if (((SessionData *)SESSION_DATA)->deckAllowed[i] == 0) {
                                     playSoundEffect(0xA0);
                                     initDialog(KAW_MATCH_SCREEN->dialog, "This Deck can't be used in this Arena.", 0);
                                     runDialog(KAW_MATCH_SCREEN->dialog);
@@ -502,8 +502,8 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                             i = 3;
                         }
                         if (i < 3) {
-                            if (((SessionData *)SESSION_DATA)->unk1010[0x12] != 0 &&
-                                ((SessionData *)((u8 *)SESSION_DATA + i))->unk1010[0x13] == 0) {
+                            if (((SessionData *)SESSION_DATA)->deckRuleActive != 0 &&
+                                ((SessionData *)SESSION_DATA)->deckAllowed[i] == 0) {
                                 playSoundEffect(0xA0);
                                 initDialog(KAW_MATCH_SCREEN->dialog, "This Deck can't be used in this Arena.", 0);
                                 runDialog(KAW_MATCH_SCREEN->dialog);

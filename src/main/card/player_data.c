@@ -29,7 +29,7 @@ void initPlayerData(void) {
 void resetScriptProgress(void) {
     s32 i;
 
-    ((SessionData *)SESSION_DATA)->unk1027 = 0;
+    ((SessionData *)SESSION_DATA)->playWithoutSaving = 0;
     ((SessionData *)SESSION_DATA)->areaSession->area = 0;
     ((SessionData *)SESSION_DATA)->areaSession->unk1A2 = 0;
     ((SessionData *)SESSION_DATA)->areaSession->resumeMode = 0;
@@ -41,7 +41,7 @@ void resetScriptProgress(void) {
         PLAYER_DATA(0).areaScriptValues[i] = 0;
     }
     PLAYER_DATA(0).scriptFlags = 0;
-    PLAYER_DATA(0).unk14 = 0;
+    PLAYER_DATA(0).completionPoints = 0;
 }
 
 void resetPlayerData(void) {

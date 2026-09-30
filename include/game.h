@@ -510,7 +510,7 @@ typedef struct {
     /* 0x00 */ u16 cards[30];
     /* 0x3C */ char name[0x13];
     /* 0x4F */ char ownerName[0x15]; /* the duelist who plays it */
-    /* 0x64 */ u8 unk64[4];
+    /* 0x64 */ u8 cpuStyle[4]; /* the CPU's styles, copied to Player.cpuPlaceStyle .. cpuSupportStyle */
     /* 0x68 */ u8 unk68[2];
     /* 0x6A */ u8 stageId;
     /* 0x6B */ u8 unk6B[2];
@@ -566,7 +566,7 @@ typedef struct {
     /* 0x166 */ s16 reviveHp; /* the HP support effect 48 brings the Digimon back with */
     /* 0x168 */ u8 unk168[6];
     /* 0x16E */ s16 attackHighlightTimer;
-    /* 0x170 */ s16 unk170[4];
+    /* 0x170 */ s16 armorCluts[4]; /* [1..3]: each partner's armor card CLUT; [0]: the base card's while armored */
     /* 0x178 */ u32 usedAttack : 2;
     /* 0x178 */ u32 attackChoice : 2;
     /* 0x178 */ u32 shownAttack : 2;
@@ -580,10 +580,10 @@ typedef struct {
     /* 0x178 */ u32 statPenalty : 2;
     /* 0x178 */ u32 controller : 2;
     /* 0x178 */ u32 specialty : 3;
-    /* 0x178 */ u32 unk178_22 : 2;
-    /* 0x178 */ u32 unk178_24 : 2;
-    /* 0x178 */ u32 unk178_26 : 2;
-    /* 0x178 */ u32 unk178_28 : 2;
+    /* 0x178 */ u32 cpuPlaceStyle : 2; /* the CPU's style in KAW_chooseDigimonToPlace and KAW_chooseDpCard */
+    /* 0x178 */ u32 cpuAttackStyle : 2; /* in KAW_chooseAttack */
+    /* 0x178 */ u32 cpuRedrawStyle : 2; /* in KAW_decideRedraw */
+    /* 0x178 */ u32 cpuSupportStyle : 2; /* in KAW_chooseSupportCard */
     /* 0x178 */ u32 hasBattled : 1; /* set at the Battle Phase, cleared by a new Digimon */
     /* 0x178 */ u32 unk178_31 : 1;
     /* 0x17C */ u8 wins;
@@ -655,7 +655,7 @@ typedef struct {
     /* 0x000F */ u8 resumeInArea; /* 0: the game goes on from the world map, else from areaId */
     /* 0x0010 */ s16 profileId; /* random; two profiles with the same id are the same save */
     /* 0x0012 */ u16 seenCardCount;
-    /* 0x0014 */ s16 unk14;
+    /* 0x0014 */ s16 completionPoints; /* added by SAISEG scripts; "Game Completion" is this out of 166 */
     /* 0x0016 */ s16 profileSize;
     /* 0x0018 */ u16 battleWins;
     /* 0x001A */ u16 battleLosses;
@@ -732,8 +732,12 @@ typedef struct {
     /* 0x0078 */ Partner partnerBackup[2][3];
     /* 0x1008 */ s16 npcDeckIndex[2];
     /* 0x100C */ AreaSession *areaSession;
-    /* 0x1010 */ u8 unk1010[0x17];
-    /* 0x1027 */ u8 unk1027;
+    /* 0x1010 */ u8 saveSlots[2][8]; /* per memory card, [0]: the save slot (OPENSEG's SaveInfo) */
+    /* 0x1020 */ u8 unk1020[2];
+    /* 0x1022 */ u8 deckRuleActive; /* a SAISEG script limits the decks the next duel takes */
+    /* 0x1023 */ u8 deckAllowed[3]; /* per saved deck, whether that rule lets it in */
+    /* 0x1026 */ u8 unk1026;
+    /* 0x1027 */ u8 playWithoutSaving; /* chosen at OPENSEG's memory card prompt; greys out saving */
     /* 0x1028 */ s8 menuRow; /* the row picked in an OPENSEG menu */
     /* 0x1029 */ u8 unk1029[3];
 } SessionData;
