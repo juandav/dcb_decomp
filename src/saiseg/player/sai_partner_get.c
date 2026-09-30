@@ -173,14 +173,14 @@ void SAI_runPartnerGet(s32 task) {
             SAI_PARTNER_LIST.count++;
         }
     }
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\CARD_F.TIM", getCurrentTaskId());
-    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\CARD_F.TIM", getCurrentTaskId());
+    file = (u8 *)waitFrames(0x7FFFFFFF);
     uploadTim((u32 *)file, 0x200, 0x1A8, 0x290, 0x1F2);
     DrawSync(0);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     freeHeapBlock(file);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\P_CARD.ARC", getCurrentTaskId());
-    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\P_CARD.ARC", getCurrentTaskId());
+    file = (u8 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < SAI_PARTNER_LIST.count; i++) {
         uploadTim((u32 *)(file + ((s32 *)file)[getPartnerIndex(SAI_PARTNER_CHOICE_CARDS[i])]), i * 20 + 0x200, 0x180, 0x280, i + 0x1EE);
     }
@@ -202,12 +202,12 @@ void SAI_runPartnerGet(s32 task) {
     cursorRect.w = 12;
     cursorRect.h = 12;
     initCursorHighlight(&SAI_PARTNER_GET_CURSOR, &cursorRect, (Bytes4 *)-1);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     playSoundEffect(3);
     addFrameCallback((s32)SAI_drawPartnerGetWindow);
     do {
     wait:
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (SAI_PARTNER_LIST.state == 5 && (PAD_STATES[0]->pressed & PAD_CROSS)) {
             SAI_PARTNER_LIST.state = 6;
         }
@@ -228,10 +228,10 @@ void SAI_runPartnerGet(s32 task) {
     animateWindowTo(&SAI_PARTNER_GET_WINDOW, (Rect16 *)-1);
     playSoundEffect(4);
     freeHeapBlock(file);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SAI_drawPartnerGetWindow);
     obtainPartner(0, SAI_AREA.partners[SAI_PARTNER_CURSOR.cursor]);
     SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_setPartnerObtainedFlag(SAI_AREA.partners[SAI_PARTNER_CURSOR.cursor]);
-    func_80014A48(task);
+    resumeTask(task);
 }

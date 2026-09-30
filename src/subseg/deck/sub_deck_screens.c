@@ -344,7 +344,7 @@ void SUB_runCardList(void) {
     playMenuSound(3);
     addFrameCallback((s32)SUB_drawCardListScreen);
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x100) {
             action = 1;
         } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x40) {
@@ -421,16 +421,16 @@ void SUB_runCardList(void) {
         }
     } while (running);
     SUB_EDITOR_HIDDEN = -1;
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SUB_drawCardListScreen);
     if (action == 3) {
-        func_800149B8(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
     } else if (action == 4) {
-        func_800149B8(0, -1, 0, 0x1000, SUB_runPartnerEquipment, SUB_EDITOR_PLAYER, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_runPartnerEquipment, SUB_EDITOR_PLAYER, 0, 0, 0);
     } else if (action == 5) {
         SUB_EDITOR_RUNNING = 0;
     }
-    func_80014A90();
+    exitTask();
 }
 
 void SUB_drawCardCountPage(UiWindow *window) {
@@ -605,7 +605,7 @@ void SUB_drawCardData(UiWindow *window) {
                 drawText(x + 0x69, y + 12, (s32)buf, 7, z);
                 for (i = 0; i < 3; i++) {
                     sprintf(buf, "b%d", i);
-                    func_80029EC4(x + 0x4B, y + (i + 3) * 12, 7, 1, z, (s32)buf);
+                    drawIconText(x + 0x4B, y + (i + 3) * 12, 7, 1, z, (s32)buf);
                     sprintf(buf, "*s0%4d/%4d", (u16)PLAYER_DATA(SUB_EDITOR.player).unkD3C[*(s16 *)SUB_COLLECTION_STATS.selectedCard][i], ((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->attack[i].power);
                     drawText(x + 0x6F, y + (i + 3) * 12, (s32)buf, 7, z);
                 }
@@ -900,7 +900,7 @@ void SUB_runDeckMenu(void) {
     playMenuSound(3);
     addFrameCallback((s32)SUB_drawDeckMenu);
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x10) {
             action = 1;
         } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x40) {
@@ -1007,23 +1007,23 @@ void SUB_runDeckMenu(void) {
         }
     } while (running);
     SUB_EDITOR_HIDDEN = -1;
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SUB_drawDeckMenu);
-    func_80014C08(1);
+    waitFrames(1);
     switch (action) {
     case 1:
-        func_800149B8(0, -1, 0, 0x1000, SUB_EDITOR.task, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_EDITOR.task, 0, 0, 0, 0);
         break;
     case 2:
         if (created == 1) {
             sprintf(PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, "NEW ");
-            func_800149B8(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
+            spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
         } else {
-            func_800149B8(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT], 0, 0, 0);
+            spawnTask(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT], 0, 0, 0);
         }
         break;
     case 3:
-        func_800149B8(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].unk1, SUB_EDITOR_PLAYER, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].unk1, SUB_EDITOR_PLAYER, 0);
         break;
     }
 }
@@ -1522,7 +1522,7 @@ void SUB_editDeck(PlayerDeck *deck) {
     SUB_EDITOR.hidden = 0;
     SUB_EDITOR.listShown = 0;
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (SUB_DECK_EDIT.mode == 1) {
             SUB_tickDeckSlots(deck);
         } else {
@@ -1534,10 +1534,10 @@ void SUB_editDeck(PlayerDeck *deck) {
         animateWindowTo(&SUB_WINDOWS[i], (Rect16 *)-1);
     }
     animateWindowTo(&SUB_CARD_SORT_WINDOW, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SUB_drawDeckEdit);
-    func_80014C08(1);
-    func_800149B8(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
+    waitFrames(1);
+    spawnTask(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
 }
 
 void SUB_drawSortHint(UiWindow *window) {
@@ -1605,7 +1605,7 @@ void SUB_drawSlotCardInfo(UiWindow *window) {
             y += 12;
             for (i = 0; i < 3; i++) {
                 sprintf(buf, "b%d", i);
-                func_80029EC4(x + 0x4B, y + (i + 2) * 12, 7, 1, z, (s32)buf);
+                drawIconText(x + 0x4B, y + (i + 2) * 12, 7, 1, z, (s32)buf);
                 sprintf(buf, SUB_FMT_4_DIGITS, ((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->attack[i].power);
                 drawText(x + 0x5D, y + (i + 2) * 12, (s32)buf, 7, z);
             }

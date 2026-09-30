@@ -15,7 +15,7 @@ extern DialogK KAW_MENU_DIALOG;
 extern UiWindow KAW_HELP_WINDOW;
 extern const char KAW_STR_GIVE_UP[];
 
-void func_80055730(void);
+void SsSetMono(void);
 void KAW_drawDuelMenu(UiWindow *window);
 
 /* the lines of the special effect descriptions */
@@ -159,7 +159,7 @@ void KAW_tickDuelMenu(void) {
     openMenu(&KAW_DUEL_MENU, &KAW_DUEL_MENU_WINDOW, &KAW_DUEL_MENU_CURSOR, (Bytes4 *)-1);
     KAW_DUEL_MENU_WINDOW.label = (s32)"MENU";
     for (;;) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
         if (PAD_STATES[KAW_DUEL->menuPlayer]->pressed & PAD_CROSS) {
             playSoundEffect(0xA0);
@@ -177,11 +177,11 @@ void KAW_tickDuelMenu(void) {
                 switch (KAW_MENU_DIALOG.result) {
                 case 2:
                     ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 = 1;
-                    func_80055730();
+                    SsSetMono();
                     break;
                 case 1:
                     ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 = 0;
-                    func_80055740();
+                    SsSetStereo();
                     break;
                 case 0:
                     break;
@@ -221,7 +221,7 @@ void KAW_tickDuelMenu(void) {
                 KAW_HELP_WINDOW.label = (s32)"HELP";
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
                 do {
-                    func_80014C08(FRAME_INTERVAL);
+                    waitFrames(FRAME_INTERVAL);
                     drawWindow(&KAW_HELP_WINDOW, KAW_drawEffectHelp, 0);
                     drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
                 } while (!(PAD_STATES[KAW_DUEL->menuPlayer]->pressed & PAD_TRIANGLE));
@@ -229,7 +229,7 @@ void KAW_tickDuelMenu(void) {
                 animateWindowTo(&KAW_HELP_WINDOW, (Rect16 *)-1);
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, &KAW_DUEL_MENU.rect);
                 for (i = 0; i < 16; i++) {
-                    func_80014C08(FRAME_INTERVAL);
+                    waitFrames(FRAME_INTERVAL);
                     drawWindow(&KAW_HELP_WINDOW, KAW_drawEffectHelp, 0);
                     drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
                 }
@@ -265,7 +265,7 @@ void KAW_tickDuelMenu(void) {
             playSoundEffect(0xA4);
             animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
             for (i = 0; i < 16; i++) {
-                func_80014C08(FRAME_INTERVAL);
+                waitFrames(FRAME_INTERVAL);
                 drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
             }
         }

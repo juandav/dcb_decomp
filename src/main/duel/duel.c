@@ -42,7 +42,7 @@ void runDuelTurnLoop(void) {
     Player *secondAttacker;
 
     while (DUEL->state < 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     DUEL->stopTurnLoop = 0;
     for (;;) {
@@ -58,7 +58,7 @@ void runDuelTurnLoop(void) {
             PLAYER_PANEL(1, HUD_DECK)->state = 1;
             DUEL_MSG_BAR.next = -1;
             DUEL_MSG_BAR.next2 = -1;
-            func_80014C08(0x1E);
+            waitFrames(0x1E);
             /* against opponent 0x8C, partner cards in the player's deck move to
                the bottom of the Online Deck and the hacking sequence plays */
             if (PLAYER(1)->controller == 1 && ((SessionData *)D_8006E054)->opponentDeckIndex == 0x8C) {
@@ -81,8 +81,8 @@ void runDuelTurnLoop(void) {
                         }
                         PLAYER(0)->onlineDeck[29] = cardId;
                     }
-                    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 2, getCurrentTaskId(), 0, 0);
-                    func_80014C08(0x7FFFFFFF);
+                    spawnTask(0, -1, 0, 0x800, runHackingSequence, 2, getCurrentTaskId(), 0, 0);
+                    waitFrames(0x7FFFFFFF);
                 }
             }
             DUEL->step++;
@@ -120,7 +120,7 @@ void runDuelTurnLoop(void) {
                 if (func_801EC570(ME) == -1) {
                     break;
                 }
-                func_80014C08(0x14);
+                waitFrames(0x14);
                 func_801FA780(ME);
             }
             DUEL->step++;
@@ -791,7 +791,7 @@ void runDuelTurnLoop(void) {
             }
             PLAYER_PANEL(0, HUD_ATTACK)->state = 1;
             PLAYER_PANEL(1, HUD_ATTACK)->state = 1;
-            func_80014C08(0x1E);
+            waitFrames(0x1E);
             DUEL->step++;
             break;
         case 25:
@@ -1017,9 +1017,9 @@ void runDuelTurnLoop(void) {
                 ATTACK_ICON_TIMER = 0x20;
                 addFrameCallback((s32)renderAttackChoiceIcons);
                 while (ATTACK_ICON_TIMER != 0) {
-                    func_80014C08(FRAME_INTERVAL);
+                    waitFrames(FRAME_INTERVAL);
                 }
-                func_80014C08(0x14);
+                waitFrames(0x14);
             }
             func_801E6AA4(0);
             DUEL->step++;
@@ -1033,13 +1033,13 @@ void runDuelTurnLoop(void) {
             DUEL->awaitingInput = 0;
             DUEL->cursorSlot = -1;
             if (!((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation) {
-                func_80014C08(0x3C);
+                waitFrames(0x3C);
                 DUEL->state = 1;
-                func_80014C08(2);
+                waitFrames(2);
                 DUEL->inPolygonBattle = 1;
                 playPolygonBattle();
                 DUEL->inPolygonBattle = 0;
-                func_80014C08(2);
+                waitFrames(2);
                 ((Graphics *)&GRAPHICS)->rotX = 0;
                 ((Graphics *)&GRAPHICS)->rotY = 0;
                 ((Graphics *)&GRAPHICS)->rotZ = 0;
@@ -1052,7 +1052,7 @@ void runDuelTurnLoop(void) {
                 ((Graphics *)&GRAPHICS)->unk94 = 0;
                 ((Graphics *)&GRAPHICS)->targetModel = -1;
                 ((Graphics *)&GRAPHICS)->snapCamera = 1;
-                func_80014C08(2);
+                waitFrames(2);
                 DUEL->state = 6;
             }
             DUEL->step++;
@@ -1064,7 +1064,7 @@ void runDuelTurnLoop(void) {
                 firstAttacker = DUEL->firstAttacker;
                 secondAttacker = DUEL->secondAttacker;
                 j = firstAttacker->controller & 1;
-                func_80014C08(0x14);
+                waitFrames(0x14);
                 if (firstAttacker->crash && !secondAttacker->counter) {
                     func_801F6268(0x1B, j);
                     firstAttacker->stats[0] = 10;
@@ -1107,7 +1107,7 @@ void runDuelTurnLoop(void) {
                 if (func_801ECF0C(j ^ 1) != 0) {
                     knockedOut = 1;
                 }
-                func_80014C08(0x14);
+                waitFrames(0x14);
                 if (secondAttacker->hpAfterBattle != 0) {
                     if (secondAttacker->crash && firstAttacker->damageTaken != 0) {
                         func_801F6268(0x1B, j ^ 1);
@@ -1163,7 +1163,7 @@ void runDuelTurnLoop(void) {
                     DUEL->step = 0x25;
                 }
             } else {
-                func_80014C08(0x3C);
+                waitFrames(0x3C);
                 PLAYER(0)->stats[0] = PLAYER(0)->hpAfterBattle;
                 PLAYER(1)->stats[0] = PLAYER(1)->hpAfterBattle;
                 if (PLAYER(ME)->stats[0] == PLAYER(ME)->displayedStats[0] && PLAYER(OPP)->stats[0] == PLAYER(OPP)->displayedStats[0]) {

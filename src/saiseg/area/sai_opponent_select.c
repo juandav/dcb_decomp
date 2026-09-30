@@ -495,16 +495,16 @@ void SAI_runOpponentSelectPanel(void) {
     SAI_spinPanel();
     playSoundEffect(10);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = 0;
     SAI_toggleMessageWindow(1);
     addFrameCallback((s32)SAI_drawOpponentSelect);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_uncoverPanel() == 0);
     do {
-        func_80014C08(1);
+        waitFrames(1);
         switch (SAI_SELECT_STATE) {
         case 2:
             break;
@@ -525,22 +525,22 @@ void SAI_runOpponentSelectPanel(void) {
     SAI_SELECT_STATE = 5;
     if (SESSION->resumeMode == 1) {
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SAI_slideChosenOpponentBack() != 0);
     } else {
         SAI_randomizeOpponentDelays();
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SAI_slideOpponentPortraits() != 0);
     }
     removeFrameCallback((s32)SAI_drawOpponentSelect);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_coverPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = -1;
     playSoundEffect(11);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_freeOpponentSelect();
     SAI_freePanel();

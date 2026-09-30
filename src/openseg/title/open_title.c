@@ -220,7 +220,7 @@ void OPEN_drawTitleScreen(void) {
             OPEN_TITLE_SPIN_RADIUS -= 2;
             if (OPEN_TITLE_SPIN_RADIUS < 0) {
                 OPEN_TITLE_SPIN_RADIUS = 0;
-                func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 4, 0);
+                spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 4, 0);
                 OPEN_TITLE_TIMER = 0;
                 OPEN_TITLE_STATE = 1;
             }
@@ -248,11 +248,11 @@ void OPEN_runTitleScreen(s32 parentTask) {
     i = 0;
     hideScrollingBackground();
     loadScrollingBackground();
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\TITLE.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\TITLE.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -288,7 +288,7 @@ void OPEN_runTitleScreen(s32 parentTask) {
     idle = 0;
     D_801F52A8 = 0;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         switch (OPEN_TITLE_STATE) {
         case 0:
         case 1:
@@ -360,15 +360,15 @@ void OPEN_runTitleScreen(s32 parentTask) {
             break;
         }
     } while (idle < 0xE11 && !done);
-    func_800149B8(0, -1, 0, 0x200, screenFadeTask, NULL, 2, 8, 0);
-    func_80014C08(20);
+    spawnTask(0, -1, 0, 0x200, screenFadeTask, NULL, 2, 8, 0);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawTitleScreen);
     stopScreenFade();
-    func_80014C08(10);
+    waitFrames(10);
     if (idle >= 0xE11) {
         stopMusic();
-        func_80014A48(0);
-        func_80014A90();
+        resumeTask(0);
+        exitTask();
     }
-    func_80014A48(parentTask, choice);
+    resumeTask(parentTask, choice);
 }

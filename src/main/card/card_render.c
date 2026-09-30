@@ -33,21 +33,21 @@ void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
 
     D_8006E294 = 1;
     DUEL_VRAM_READY = 0;
-    func_800149B8(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", getCurrentTaskId());
-    fontArchive = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", getCurrentTaskId());
+    fontArchive = (u8 *)waitFrames(0x7FFFFFFF);
     for (i = 0; *string != 0;) {
         uploadTim((u32 *)(fontArchive + ((s32 *)fontArchive)[*string - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
                       row + 0x1D7);
         DrawSync(0);
         string++;
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (++i >= 12) {
             break;
         }
     }
     freeHeapBlock(fontArchive);
     D_8006E294 = 0;
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 void runCardArtLoader(void) {
@@ -68,7 +68,7 @@ void runCardArtLoader(void) {
     for (;;) {
         s32 slot;
 
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         slot = DUEL->artSlot % 6;
         DUEL->cache[slot].used = 0;
         if (DUEL->stopArtLoader != 0) {
@@ -95,8 +95,8 @@ void runCardArtLoader(void) {
                 DUEL->loadBusy = 1;
                 DUEL->cache[slot].id = cardId;
                 sprintf(path, "B:\\CARD\\LC%3.3d.TIM", cardId);
-                func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-                tim = (u32 *)func_80014C08(0x7FFFFFFF);
+                spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+                tim = (u32 *)waitFrames(0x7FFFFFFF);
                 uploadTim(tim, slot % 2 * 32 + 0x280, slot / 2 * 64 + 0x140, 0, 0x1FF - slot);
                 DrawSync(0);
                 freeHeapBlock(tim);
@@ -133,20 +133,20 @@ void loadDuelCardGraphics(s32 withExtras) {
     Partner *partners;
 
     DUEL_VRAM_READY = 0;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\CBTL_SYS.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\CBTL_SYS.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     /* the archive starts with its offset table: its size / 4 - 1 images */
     for (i = 0; i < (s32)(arc[0] >> 2) - 1; i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
         DrawSync(0);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     freeHeapBlock(arc);
 
     sprite = DUEL->sprites;
     nextAnim[0] = (CardAnim *)D_801D833C;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < 2; i++) {
         /* the card art, in a 6x5 grid of 40x40 cells per player */
         for (j = 0; j < 30; j++) {
@@ -198,9 +198,9 @@ void loadDuelCardGraphics(s32 withExtras) {
         func_801F48E0((u8 *)arc);
     }
     DrawSync(0);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     freeHeapBlock(arc);
-    func_80014C08(10);
+    waitFrames(10);
     DUEL_VRAM_READY = 1;
 }
 
@@ -808,7 +808,7 @@ void projectCardSprite(CardSprite *sprite, s32 spriteIndex) {
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
     CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
-    func_8005C444(&matrix);
+    SetTransMatrix(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;
     vertices[0].vy = -(sprite->scale * 48) / 8192;
     vertices[0].vz = 0;
@@ -859,7 +859,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
     CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
-    func_8005C444(&matrix);
+    SetTransMatrix(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;
     vertices[0].vy = -(sprite->scale * 48) / 8192;
     vertices[0].vz = 0;

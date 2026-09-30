@@ -8,7 +8,7 @@ extern void (*D_8006F59C[])();
 
 extern short D_801D96C0;
 
-void func_80055740(void) {
+void SsSetStereo(void) {
     D_801D96C0 = 0;
 }
 

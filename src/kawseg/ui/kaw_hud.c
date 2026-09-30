@@ -377,7 +377,7 @@ void KAW_drawCursor(void *cursor) {
         buildRotTransMatrix(&(sprite)->pos, &(sprite)->rot, m);       \
         CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), m, m);          \
         SetRotMatrix((s32)(m));                                       \
-        func_8005C444(m);                                             \
+        SetTransMatrix(m);                                             \
     } while (0)
 
 void KAW_renderCursor(void *cursor, s32 otz) {

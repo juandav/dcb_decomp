@@ -138,7 +138,7 @@ void OPEN_runMemcardAccess(void) {
 
     OPEN_MEMCARD_MESSAGE = -1;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         player = OPEN_MEMCARD.card;
         port = ((SessionView *)D_8006E054)->saves[player].slot;
         slot = ((SessionView *)D_8006E054)->saves[player].file;
@@ -343,9 +343,9 @@ void OPEN_runMemcardAccess(void) {
                 OPEN_MEMCARD.state = 25;
                 if (player == 0) {
                     if ((((PlayerProfile *)OPEN_MEMCARD.buffer)->unk20_0) == 1) {
-                        func_80055730();
+                        SsSetMono();
                     } else {
-                        func_80055740();
+                        SsSetStereo();
                     }
                 }
             }
@@ -370,7 +370,7 @@ void OPEN_runMemcardAccess(void) {
             break;
         }
     } while (OPEN_MEMCARD_READY != 1);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
 }
 
 void OPEN_applyLoadedSave(s32 port, s32 slot, s32 file) {
@@ -454,7 +454,7 @@ s32 OPEN_waitMemoryCardSave(s32 part, s32 port) {
     s32 result;
 
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (OPEN_ensureMemoryCardReady(port) != 0) {
             OPEN_MEMCARD.progress = 0;
             return -1;
@@ -479,7 +479,7 @@ s32 OPEN_waitMemoryCardLoad(s32 unused, s32 port) {
     s32 result;
 
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (OPEN_ensureMemoryCardReady(port) != 0) {
             OPEN_MEMCARD.progress = 0;
             return -1;

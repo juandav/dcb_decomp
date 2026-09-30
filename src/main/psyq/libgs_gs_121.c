@@ -13,7 +13,7 @@ extern short D_801DBE14;
 void gte_init(void) {
     InitGeom();
     func_80062B44(0, 0, 0);
-    func_8005C484(0, 0);
+    SetGeomOffset(0, 0);
     D_801DBE16 = 0;
     D_801DBE14 = 0;
 }

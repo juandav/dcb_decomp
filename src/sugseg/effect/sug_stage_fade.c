@@ -31,7 +31,7 @@ void SUG_setStageBrightness(u8 level) {
 
 void SUG_runStageFadeTask(void) {
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (FADE_LEVEL > FADE_TARGET) {
             if (FADE_LEVEL < 3) {
                 FADE_LEVEL = 0;

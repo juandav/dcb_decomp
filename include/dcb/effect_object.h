@@ -10,7 +10,7 @@ void updateEffectArcMotion(EffectObject *fx);
 void updateEffectWaveXMotion(EffectObject *fx);
 void updateEffectWaveYMotion(EffectObject *fx);
 void updateEffectTiltedArcMotion(EffectObject *fx);
-void func_80030440(EffectObject *fx);
+void updateEffectTiltedAccelArcMotion(EffectObject *fx);
 void updateEffectShakeMotion(EffectObject *fx);
 s32 getVectorDistance(SVECTOR *from, SVECTOR *to);
 s32 isPointAlongSegment(SVECTOR *start, SVECTOR *end, SVECTOR *point);

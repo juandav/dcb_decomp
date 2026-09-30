@@ -66,11 +66,11 @@ extern IntrEnv D_8006FA20;
 void func_80056860(void);
 void func_80056C90(long *p, int n);
 int setjmp(u_long *buf);
-int func_8006A7F4(u_long *);
+int HookEntryInt(u_long *);
 void *startIntrVSync(void);
 void *startIntrDMA(void);
 void func_8006A76C();
-void func_8006A814(void);
+void ExitCriticalSection(void);
 extern volatile u_long *D_80070AB4;
 extern volatile u_short *D_80070AAC;
 
@@ -85,17 +85,16 @@ void *func_80056788(void) {
         func_80056860();
     }
     D_8006FA20.buf[1] = (u_long)&D_8006FA20.stack[1004];
-    func_8006A7F4(D_8006FA20.buf);
+    HookEntryInt(D_8006FA20.buf);
     D_8006FA20.inited = 1;
     D_80070AA8->vsyncCallbacks = startIntrVSync();
     D_80070AA8->dmaCallback = startIntrDMA();
     func_8006A76C(D_80070AA8);
-    func_8006A814();
+    ExitCriticalSection();
     return &D_8006FA20;
 }
 
 extern long D_80070AB8;
-void func_8006A7D4(void);
 
 void func_80056860(void) {
     int i;
@@ -104,7 +103,7 @@ void func_80056860(void) {
 
     if (D_8006FA20.inited == 0) {
         printf("unexpected interrupt(%04x)\n", *D_80070AAC);
-        func_8006A7D4();
+        ReturnFromException();
     }
     D_8006FA20.unk2 = 1;
     while ((mask = D_8006FA20.enabled & *D_80070AAC & *D_80070AB0) != 0) {
@@ -128,13 +127,13 @@ void func_80056860(void) {
         D_80070AB8 = 0;
     }
     D_8006FA20.unk2 = 0;
-    func_8006A7D4();
+    ReturnFromException();
 }
 
 __asm__(".section .rodata\n\t.space 4\n\t.section .text\n");
 
-void func_8006A884(int);
-void func_8006A894(int, int);
+void ChangeClearPad(int);
+void ChangeClearRCnt(int, int);
 
 void *func_80056A30(int irq, void (*func)()) {
     void (*old)() = D_8006FA20.handlers[irq];
@@ -153,36 +152,35 @@ void *func_80056A30(int irq, void (*func)()) {
             D_8006FA20.enabled &= ~(1 << irq);
         }
         if (irq == 0) {
-            func_8006A884(func == NULL);
-            func_8006A894(3, func == NULL);
+            ChangeClearPad(func == NULL);
+            ChangeClearRCnt(3, func == NULL);
         }
         if (irq == 4) {
-            func_8006A894(0, func == NULL);
+            ChangeClearRCnt(0, func == NULL);
         }
         if (irq == 5) {
-            func_8006A894(1, func == NULL);
+            ChangeClearRCnt(1, func == NULL);
         }
         if (irq == 6) {
-            func_8006A894(2, func == NULL);
+            ChangeClearRCnt(2, func == NULL);
         }
         *D_80070AB0 = mask;
     }
     return old;
 }
 
-void func_8006A804(void);
-void func_8006A7E4(void);
+void ResetEntryInt(void);
 
 void *func_80056B78(void) {
     if (D_8006FA20.inited == 0) {
         return NULL;
     }
-    func_8006A804();
+    EnterCriticalSection();
     D_8006FA20.mask = *D_80070AB0;
     D_8006FA20.dpcr = *D_80070AB4;
     *D_80070AAC = *D_80070AB0 = 0;
     *D_80070AB4 &= 0x77777777;
-    func_8006A7E4();
+    ResetEntryInt();
     D_8006FA20.inited = 0;
     return &D_8006FA20;
 }
@@ -191,11 +189,11 @@ void *func_80056C18(void) {
     if (D_8006FA20.inited != 0) {
         return NULL;
     }
-    func_8006A7F4(D_8006FA20.buf);
+    HookEntryInt(D_8006FA20.buf);
     D_8006FA20.inited = 1;
     *D_80070AB0 = D_8006FA20.mask;
     *D_80070AB4 = D_8006FA20.dpcr;
-    func_8006A814();
+    ExitCriticalSection();
     return &D_8006FA20;
 }
 

@@ -447,7 +447,7 @@ void KAW_runExpScreen(void) {
     }
     playSoundEffect(0xA3);
     addFrameCallback((s32)KAW_renderExpScreen);
-    func_80014C08(20);
+    waitFrames(20);
     playSoundEffect(0xA3);
     rect.x = 0x30;
     rect.y = 0x2C;
@@ -455,11 +455,11 @@ void KAW_runExpScreen(void) {
     rect.h = 0xA8;
     animateWindowTo(&KAW_EXP_SCREEN->window, &rect);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (KAW_EXP_SCREEN->done == 0 || !(PAD_STATES[0]->pressed & PAD_CROSS));
     playSoundEffect(0xA4);
     animateWindowTo(&KAW_EXP_SCREEN->window, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     for (i = 0; i < 3; i++) {
         KAW_EXP_SCREEN->pendingExp[i] = 0;
         if (KAW_EXP_SCREEN->partnerShown[i] && (s8)((PlayerProfile *)PLAYER_PROFILES)->partners[i].level < 99) {
@@ -469,7 +469,7 @@ void KAW_runExpScreen(void) {
     gained = 0;
     if (KAW_EXP_SCREEN->pendingExp[0] + KAW_EXP_SCREEN->pendingExp[1] + KAW_EXP_SCREEN->pendingExp[2] != 0) {
         do {
-            func_80014C08(3);
+            waitFrames(3);
             for (i = 0; i < 3; i++) {
                 if (KAW_EXP_SCREEN->partnerShown[i] && KAW_EXP_SCREEN->pendingExp[i] != 0) {
                     if ((s8)((PlayerProfile *)PLAYER_PROFILES)->partners[i].level < 99) {
@@ -505,7 +505,7 @@ void KAW_runExpScreen(void) {
     KAW_waitForCross();
     if (gained) {
         do {
-            func_80014C08(3);
+            waitFrames(3);
             n = 0;
             for (i = 0; i < 3; i++) {
                 if (KAW_EXP_SCREEN->partnerShown[i]
@@ -542,10 +542,10 @@ void KAW_runExpScreen(void) {
         animateWindowTo(&KAW_EXP_SCREEN->rankWindows[i].window, (Rect16 *)-1);
         animateWindowTo(&KAW_EXP_SCREEN->expWindows[i].window, (Rect16 *)-1);
     }
-    func_80014C08(30);
+    waitFrames(30);
     KAW_countEarnedBonuses();
     removeFrameCallback((s32)KAW_renderExpScreen);
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(KAW_EXP_SCREEN);
-    func_80014C08(2);
+    waitFrames(2);
 }

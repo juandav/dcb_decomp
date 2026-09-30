@@ -156,7 +156,7 @@ void _spu_FiDMA(void) {
     if (D_8006EF5C) {
         D_8006EF5C();
     } else {
-        func_8006A784(0xF0000009, 0x20);
+        DeliverEvent(0xF0000009, 0x20);
     }
 }
 

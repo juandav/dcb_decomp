@@ -26,8 +26,8 @@ extern PlayerWindow OPEN_PLAYER_RECORD_WINDOWS[2];
 extern s32 OPEN_FRIEND_MENU_DONE;
 
 char *strcat(char *dst, const char *src);
-void func_8002F298(s32 player);
-void func_8002F3C4(s32 player);
+void runDeckEditorFromFriendMenu(s32 player);
+void runPartnerEquipmentFromFriendMenu(s32 player);
 void startVersusDuel(void);
 void runTitleMenu(void);
 
@@ -226,11 +226,11 @@ void OPEN_runBattleWithFriend(void) {
     loadMusicTrack(0, 0x6D, 0x7F);
     playLoadedMusic(0);
     i = 0;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\FRIEND.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\FRIEND.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -238,7 +238,7 @@ void OPEN_runBattleWithFriend(void) {
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawFriendScreen);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         OPEN_TRADE_ENABLED = PLAYER_DATA(0).unk28_10 | (PLAYER_DATA(1).unk28_10 << 1);
         if (PAD_STATES[0]->pressed & 0x40) {
             switch (((SessionView *)D_8006E054)->menuRow) {
@@ -257,10 +257,10 @@ void OPEN_runBattleWithFriend(void) {
                     playMenuSound(4);
                     OPEN_FRIEND_MENU_SHOWN = 0;
                     OPEN_closePlayerRecordWindows();
-                    func_80014C08(20);
+                    waitFrames(20);
                     removeFrameCallback((s32)OPEN_drawFriendScreen);
-                    func_800149B8(0, -1, 0, 0x800, OPEN_runCardTrade, getCurrentTaskId(), 0, 0, 0);
-                    func_80014C08(0x7FFFFFFF);
+                    spawnTask(0, -1, 0, 0x800, OPEN_runCardTrade, getCurrentTaskId(), 0, 0, 0);
+                    waitFrames(0x7FFFFFFF);
                     OPEN_openPlayerRecordWindows();
                     addFrameCallback((s32)OPEN_drawFriendScreen);
                 } else {
@@ -273,9 +273,9 @@ void OPEN_runBattleWithFriend(void) {
                 playMenuSound(4);
                 OPEN_FRIEND_MENU_SHOWN = 0;
                 OPEN_closePlayerRecordWindows();
-                func_80014C08(20);
+                waitFrames(20);
                 removeFrameCallback((s32)OPEN_drawFriendScreen);
-                func_8002F298(0);
+                runDeckEditorFromFriendMenu(0);
                 OPEN_openPlayerRecordWindows();
                 addFrameCallback((s32)OPEN_drawFriendScreen);
                 break;
@@ -283,9 +283,9 @@ void OPEN_runBattleWithFriend(void) {
                 playMenuSound(4);
                 OPEN_FRIEND_MENU_SHOWN = 0;
                 OPEN_closePlayerRecordWindows();
-                func_80014C08(20);
+                waitFrames(20);
                 removeFrameCallback((s32)OPEN_drawFriendScreen);
-                func_8002F298(1);
+                runDeckEditorFromFriendMenu(1);
                 OPEN_openPlayerRecordWindows();
                 addFrameCallback((s32)OPEN_drawFriendScreen);
                 break;
@@ -293,9 +293,9 @@ void OPEN_runBattleWithFriend(void) {
                 playMenuSound(4);
                 OPEN_FRIEND_MENU_SHOWN = 0;
                 OPEN_closePlayerRecordWindows();
-                func_80014C08(20);
+                waitFrames(20);
                 removeFrameCallback((s32)OPEN_drawFriendScreen);
-                func_8002F3C4(0);
+                runPartnerEquipmentFromFriendMenu(0);
                 OPEN_openPlayerRecordWindows();
                 addFrameCallback((s32)OPEN_drawFriendScreen);
                 break;
@@ -303,9 +303,9 @@ void OPEN_runBattleWithFriend(void) {
                 playMenuSound(4);
                 OPEN_FRIEND_MENU_SHOWN = 0;
                 OPEN_closePlayerRecordWindows();
-                func_80014C08(20);
+                waitFrames(20);
                 removeFrameCallback((s32)OPEN_drawFriendScreen);
-                func_8002F3C4(1);
+                runPartnerEquipmentFromFriendMenu(1);
                 OPEN_openPlayerRecordWindows();
                 addFrameCallback((s32)OPEN_drawFriendScreen);
                 break;
@@ -361,17 +361,17 @@ void OPEN_runBattleWithFriend(void) {
             }
         }
     } while (OPEN_FRIEND_MENU_DONE == 0);
-    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
-    func_80014C08(20);
+    spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawFriendScreen);
     hideScrollingBackground();
     stopScreenFade();
     switch (((SessionView *)D_8006E054)->menuRow) {
     case 0:
-        func_800149B8(0, -1, 0, 0x200, startVersusDuel, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x200, startVersusDuel, 0, 0, 0, 0);
         break;
     case 6:
-        func_800149B8(0, -1, 0, 0x100, runTitleMenu, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x100, runTitleMenu, 0, 0, 0, 0);
         break;
     }
 }

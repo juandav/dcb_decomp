@@ -31,7 +31,7 @@ void waitForStatCountersToSettle(void) {
     s32 i;
 
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         unsettled = 0;
         for (player = 0; player < 2; player++) {
             for (i = 0; i < 5; i++) {

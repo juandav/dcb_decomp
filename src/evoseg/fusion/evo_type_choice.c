@@ -95,7 +95,7 @@ void EVO_openFusionTypeChoice(void) {
                 animateWindowTo(&EVO_WINDOWS[i].win, &EVO_WINDOW_DEFS[i - 3].rect);
             }
         }
-        func_80014C08(30);
+        waitFrames(30);
     }
 }
 

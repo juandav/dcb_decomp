@@ -63,7 +63,7 @@ void runRenderLoop(void) {
     VBLANK_COUNTER = 0;
     for (; gfx->unk48 <= 0; gfx->unk48++) {
         pollPads();
-        func_80014C08(1);
+        waitFrames(1);
         gfx->vblanksPerFrame = VBLANK_COUNTER;
         if (VBLANK_COUNTER == 0) {
             gfx->vblanksPerFrame = 1;
@@ -78,7 +78,7 @@ void runRenderLoop(void) {
         framesToWait = FRAME_INTERVAL;
         pollPads();
         while (framesToWait >= 2 || gfx->unk48 == 0) {
-            func_80014AC8();
+            yieldTask();
             framesToWait--;
         }
         FRAME_BUFFER_INDEX ^= 1;
@@ -97,7 +97,7 @@ void runRenderLoop(void) {
             }
         }
         renderScreenCopyEffect();
-        func_80014AC8();
+        yieldTask();
         DrawSync(0);
         if (gfx->scene3dEnabled != 0) {
             GsSwapDispBuff();

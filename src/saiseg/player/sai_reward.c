@@ -25,14 +25,14 @@ void SAI_showRewardCards();
 void SAI_runRewardTask(u8 value) {
     SAI_REWARD_FROM_SCRIPT = value;
     SAI_showRewardCards();
-    func_80014C08(5);
+    waitFrames(5);
     SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_AREA.rewardBusy = 0;
 }
 
 void SAI_waitForCross(void) {
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
 }
 
@@ -240,8 +240,8 @@ void SAI_showRewardCards(s32 fromScript) {
     } else {
         SAI_addScriptRewardCards();
     }
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    tims = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    tims = (u8 *)waitFrames(0x7FFFFFFF);
     playSoundEffect(3);
     rect.x = 0x10;
     rect.y = 0x10;
@@ -263,10 +263,10 @@ void SAI_showRewardCards(s32 fromScript) {
         openWindow(&SAI_REWARD_SCREEN->cards[i].window, &rect, -1, (s16 *)-1, 0, 0x36, 0x80, 12);
     }
     DrawSync(0);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     freeHeapBlock(tims);
     addFrameCallback((s32)SAI_drawRewardWindows);
-    func_80014C08(20);
+    waitFrames(20);
     SAI_waitForCross();
     playSoundEffect(0);
     SAI_REWARD_SCREEN->showRewards = 1;
@@ -294,8 +294,8 @@ void SAI_showRewardCards(s32 fromScript) {
             animateWindowTo(&SAI_REWARD_SCREEN->rewards[i].window, (Rect16 *)-1);
         }
     }
-    func_80014C08(20);
+    waitFrames(20);
     freeHeapBlock(SAI_REWARD_SCREEN);
-    func_80014C08(10);
+    waitFrames(10);
     removeFrameCallback((s32)SAI_drawRewardWindows);
 }

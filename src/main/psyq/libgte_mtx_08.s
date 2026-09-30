@@ -1,6 +1,6 @@
 /*
- * libgte MTX_08: ScaleMatrix, SetRotMatrix, SetLightMatrix, func_8005C444
- * (SetTransMatrix) and func_8005C464 (SetBackColor).
+ * libgte MTX_08: ScaleMatrix, SetRotMatrix, SetLightMatrix, SetTransMatrix
+ * and SetBackColor.
  *
  * Hand-written assembly, not compiler output:
  * - The four GTE setters are lw/ctc2 (or sll/ctc2) sequences into $t0-$t4
@@ -133,7 +133,7 @@ glabel SetLightMatrix
      nop
 endlabel SetLightMatrix
 
-glabel func_8005C444
+glabel SetTransMatrix
     lw         $t0, 0x14($a0)
     lw         $t1, 0x18($a0)
     lw         $t2, 0x1C($a0)
@@ -142,9 +142,9 @@ glabel func_8005C444
     ctc2       $t2, $7
     jr         $ra
      nop
-endlabel func_8005C444
+endlabel SetTransMatrix
 
-glabel func_8005C464
+glabel SetBackColor
     sll        $a0, $a0, 4
     sll        $a1, $a1, 4
     sll        $a2, $a2, 4
@@ -153,4 +153,4 @@ glabel func_8005C464
     ctc2       $a2, $15
     jr         $ra
      nop
-endlabel func_8005C464
+endlabel SetBackColor

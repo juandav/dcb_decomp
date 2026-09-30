@@ -235,7 +235,7 @@ void EVO_tickCardList(void) {
                     EVO_CARD_LIST_MENU.active = 0;
                     EVO_loadCardImage(cardId, 1);
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (EVO_FUSION.busy[0] != 0);
                     EVO_FUSION.secondCard = cardId;
                     EVO_findFusionResult();
@@ -246,7 +246,7 @@ void EVO_tickCardList(void) {
                     EVO_FUSION.busy[2] = 1;
                     EVO_loadCardImage(EVO_FUSION.result, 2);
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (EVO_FUSION.busy[0] != 0);
                 } else if (EVO_FUSION.fusionType == 1) {
                     EVO_CARD_LIST_MENU.active = 0;

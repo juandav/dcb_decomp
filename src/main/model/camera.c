@@ -106,9 +106,9 @@ typedef struct {
     /* 0xA */ s16 facedModel; /* the model that a big (id >= 2000) model faces */
 } CameraPreset;
 
-extern VECTOR D_801D6A68;
+extern VECTOR CAMERA_LOOK_AT;
 /* The presets runSceneCameraTask(preset) starts from (preset 0 keeps the camera as it is) */
-const CameraPreset D_80010190[] = {
+const CameraPreset CAMERA_PRESETS[] = {
     { -1, 1024, 2560, 336, 0, 0 },
     { -1, 400, 512, 0, 0, 0 },
     { -1, 400, 3000, 0, 0, 0 },
@@ -149,11 +149,11 @@ void runSceneCameraTask(s32 preset) {
     scene->unkA8.vx = scene->unkA8.vy = scene->unkA8.vz = 0;
     scene->unkB0.vx = scene->unkB0.vy = scene->unkB0.vz = 0;
     camera = (Graphics *)&GRAPHICS;
-    lookAt = &D_801D6A68;
+    lookAt = &CAMERA_LOOK_AT;
     if (preset != 0) {
         lookAt->vx = lookAt->vy = lookAt->vz = 0;
         camera->posX = camera->posY = camera->posZ = 0;
-        *target = D_80010190[preset];
+        *target = CAMERA_PRESETS[preset];
         camera->height = target->height << 12;
         camera->distance = target->distance << 12;
         camera->pitch = target->pitch << 12;
@@ -163,7 +163,7 @@ void runSceneCameraTask(s32 preset) {
     }
     target->model = -1;
     target->facedModel = 0;
-    lookAtCoords = (s32 *)&D_801D6A68;
+    lookAtCoords = (s32 *)&CAMERA_LOOK_AT;
     while (1) {
         /* GTE work area in the scratchpad */
         viewTrans = (VECTOR *)0x1F800004;
@@ -229,6 +229,6 @@ void runSceneCameraTask(s32 preset) {
         }
         /* Publish the view matrix to the scene */
         *(MATRIX *)SCENE_3D->unk78 = *view;
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
 }

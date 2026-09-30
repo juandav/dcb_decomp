@@ -32,7 +32,7 @@ glabel _patch_card_info
     lw         $v0, 0x16C($v0)
     nop
     addi       $v1, $v0, 0x1988
-    jal        func_8006A744
+    jal        FlushCache
      sw        $zero, 0x0($v1)
     lui        $ra, %hi(D_801DD940)
     lw         $ra, %lo(D_801DD940)($ra)
@@ -94,7 +94,7 @@ endlabel func_80068A78
 glabel _patch_card
     lui        $at, %hi(D_801DD940)
     sw         $ra, %lo(D_801DD940)($at)
-    jal        func_8006A804
+    jal        EnterCriticalSection
      nop
     addiu      $t1, $zero, 0x56
     addiu      $t2, $zero, 0xB0
@@ -123,7 +123,7 @@ glabel _patch_card
     bne        $t2, $t1, .L80068AFC
      addiu     $v0, $v0, 0x4
     lui        $at, (0x10000 >> 16)
-    jal        func_8006A744
+    jal        FlushCache
      sw        $v0, -0x2004($at)
     lui        $ra, %hi(D_801DD940)
     lw         $ra, %lo(D_801DD940)($ra)
@@ -135,7 +135,7 @@ endlabel _patch_card
 glabel _patch_card2
     lui        $at, %hi(D_801DD940)
     sw         $ra, %lo(D_801DD940)($at)
-    jal        func_8006A804
+    jal        EnterCriticalSection
      nop
     addiu      $t1, $zero, 0x57
     addiu      $t2, $zero, 0xB0
@@ -155,7 +155,7 @@ glabel _patch_card2
     addiu      $t2, $t2, 0x4
     bne        $t2, $t1, .L80068B70
      addiu     $v0, $v0, 0x4
-    jal        func_8006A744
+    jal        FlushCache
      nop
     lui        $ra, %hi(D_801DD940)
     lw         $ra, %lo(D_801DD940)($ra)

@@ -24,7 +24,7 @@ void initDiscDrive(void) {
         VSync(0);
     }
     VSync(4);
-    func_8005A344(0);
+    CdSetDebug(0);
     file = DISC_FILES;
     for (i = 3; i >= 0; i--, file++) {
         file->openMode = 0;
@@ -66,7 +66,7 @@ FileEntry *findDirectoryEntryOnDisc(CdFile *file, char *name, s32 key) {
             while (CdRead(2, (u8 *)entry, 0x80) == 0) {
             }
             while ((readStatus = CdReadSync(1, 0)) > 0) {
-                func_80014C08(1);
+                waitFrames(1);
             }
         } while (readStatus != 0);
         file->sector += 2;
@@ -253,7 +253,7 @@ end:
 
 s32 closeDiscFile(CdFile *file) {
     file->openMode = 0;
-    return func_8005A364(0, 0) == 5;
+    return CdSync(0, 0) == 5;
 }
 
 int closeAllDiscFiles(void) {
@@ -265,7 +265,7 @@ int closeAllDiscFiles(void) {
             file->openMode = 0;
         }
     }
-    return func_8005A364(0, 0) == 5;
+    return CdSync(0, 0) == 5;
 }
 
 s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
@@ -309,7 +309,7 @@ s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
             while (CdRead(sectors, dst, 0x80) == 0) {
             }
             while ((readStatus = CdReadSync(1, 0)) > 0) {
-                func_80014C08(1);
+                waitFrames(1);
             }
         } while (readStatus != 0);
         file->sector += sectors;
@@ -330,7 +330,7 @@ s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
             file->cur = file->buf;
         } while (CdRead(2, file->buf, 0x80) == 0);
         while ((readStatus = CdReadSync(1, 0)) > 0) {
-            func_80014C08(1);
+            waitFrames(1);
         }
     } while (readStatus != 0);
     file->sector += 2;
@@ -373,7 +373,7 @@ s32 readDiscFileByte(CdFile *file) {
                 file->cur = file->buf;
             } while (CdRead(2, file->buf, 0x80) == 0);
             while ((readStatus = CdReadSync(1, 0)) > 0) {
-                func_80014C08(1);
+                waitFrames(1);
             }
         } while (readStatus != 0);
         file->sector += 2;
@@ -413,7 +413,7 @@ s32 readDiscFileU16(CdFile *file) {
                 file->cur = file->buf;
             } while (CdRead(2, file->buf, 0x80) == 0);
             while ((readStatus = CdReadSync(1, 0)) > 0) {
-                func_80014C08(1);
+                waitFrames(1);
             }
         } while (readStatus != 0);
         file->sector += 2;
@@ -460,7 +460,7 @@ s32 readDiscFileU32(CdFile *file) {
                 file->cur = file->buf;
             } while (CdRead(2, file->buf, 0x80) == 0);
             while ((readStatus = CdReadSync(1, 0)) > 0) {
-                func_80014C08(1);
+                waitFrames(1);
             }
         } while (readStatus != 0);
         file->sector += 2;

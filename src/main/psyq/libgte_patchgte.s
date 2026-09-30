@@ -32,7 +32,7 @@
 glabel _patch_gte
     lui        $at, %hi(D_801DBD58)
     sw         $ra, %lo(D_801DBD58)($at)
-    jal        func_8006A804
+    jal        EnterCriticalSection
      nop
     addiu      $t1, $zero, 0x56
     addiu      $t2, $zero, 0xB0
@@ -67,9 +67,9 @@ glabel _patch_gte
     bne        $t2, $t1, .L8005FB74
      addiu     $v0, $v0, 0x4
   .L8005FB8C:
-    jal        func_8006A744
+    jal        FlushCache
      nop
-    jal        func_8006A814
+    jal        ExitCriticalSection
      nop
     lui        $ra, %hi(D_801DBD58)
     lw         $ra, %lo(D_801DBD58)($ra)

@@ -328,14 +328,14 @@ void func_801DF47C(s32 arg0, s32 arg1) {
 
     changeScrollingBackground(7, 0x380, 0, 0x380, 0x80);
     DUEL_VRAM_READY = 0;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
-    deckFile = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
+    deckFile = (u8 *)waitFrames(0x7FFFFFFF);
     *(u8 **)D_8006E054 = deckFile;
     decks = deckFile + 8;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    D_801E0D64 = (u8 *)func_80014C08(0x7FFFFFFF);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\BCARD.ARC", getCurrentTaskId());
-    tims = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    D_801E0D64 = (u8 *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\BCARD.ARC", getCurrentTaskId());
+    tims = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(tims[0] >> 2); i++) {
         uploadTim((u32 *)((u8 *)tims + tims[i]), -1, -1, -1, -1);
         DrawSync(0);
@@ -390,7 +390,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
         playMenuSound(3);
     }
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (arg1 == 1) {
             scroll--;
         } else {
@@ -660,15 +660,15 @@ void func_801DF47C(s32 arg0, s32 arg1) {
     if (arg1 == 2) {
         animateWindowTo(&window, (Rect16 *)-1);
         for (i = 0; i < 16; i++) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
             drawWindow(&window, func_801DF408, 0);
         }
     }
     PROFILE->unk28_12 = 1;
-    func_80014C08(10);
+    waitFrames(10);
     freeHeapBlock(D_801E0D64);
     freeHeapBlock(*(void **)D_8006E054);
     stopMusic();
-    func_80014A48(arg0);
+    resumeTask(arg0);
 }
 

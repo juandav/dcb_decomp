@@ -37,7 +37,7 @@ void SUG_tickSpriteEffect(SpriteEffect *fx) {
         tickEffectMotion((s32)fx, fx->sprite.unk8A);
     } else {
         SetRotMatrix((s32)&D_801DBEC0);
-        func_8005C444(&D_801DBEC0);
+        SetTransMatrix(&D_801DBEC0);
     }
     SUG_drawSprite(&fx->sprite, fx->brightness);
     PopMatrix();

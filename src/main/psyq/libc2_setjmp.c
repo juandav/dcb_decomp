@@ -15,26 +15,26 @@ char toupper(char c) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A734);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", InitHeap);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A744);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", FlushCache);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A754);
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A76C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A784);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", DeliverEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A794);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", OpenEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7A4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", WaitEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7B4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", TestEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7C4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", EnableEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7D4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", ReturnFromException);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7E4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetEntryInt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A7F4);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", HookEntryInt);

@@ -45,13 +45,13 @@ void SAI_loadAreaTextures(void) {
     } else {
         sprintf(path, "C:\\DEBUG\\area%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->unkE);
     }
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
     sprintf(path, "C:\\OBJECT\\world.TIS");
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
 }
@@ -97,14 +97,14 @@ void SAI_reopenPlayerData(void) {
     playMusic(0, SESSION->music, 100);
     SAI_AREA_MODE = AREA_MODE_BUSY;
     SAI_clearOpponents();
-    func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_AREA.mode == AREA_MODE_BUSY);
     SAI_AREA.location = 0;
     SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
     SAI_PLAYER_STATS_STATE = 1;
-    func_800149B8(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
     SAI_AREA.mode = AREA_MODE_BUSY;
 }
 
@@ -121,7 +121,7 @@ void SAI_glitchVram(s8 animate) {
         delay = abs(rand() % 30);
         if (animate == 1) {
             while (delay > 0) {
-                func_80014C08(1);
+                waitFrames(1);
                 delay--;
             }
             playSoundEffect(0x18);
@@ -135,7 +135,7 @@ void SAI_glitchVram(s8 animate) {
     delay = abs(rand() % 30);
     if (animate == 1) {
         while (delay > 0) {
-            func_80014C08(1);
+            waitFrames(1);
             delay--;
         }
         playSoundEffect(0x18);
@@ -146,7 +146,7 @@ void SAI_glitchVram(s8 animate) {
     delay = abs(rand() % 30);
     if (animate == 1) {
         while (delay > 0) {
-            func_80014C08(1);
+            waitFrames(1);
             delay--;
         }
         playSoundEffect(0x18);
@@ -166,9 +166,9 @@ void SAI_runArea(s32 resume) {
     s32 timer = 0;
 
     if (resume == 0) {
-        func_800149B8(0, -1, 0, 0x400, SAI_loadAreaPak, 0, getCurrentTaskId, 0, 0);
+        spawnTask(0, -1, 0, 0x400, SAI_loadAreaPak, 0, getCurrentTaskId, 0, 0);
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SESSION->loading != 0);
     }
     loadSoundEffectBank(1);
@@ -194,21 +194,21 @@ void SAI_runArea(s32 resume) {
     if (SAI_ICON_RUNNING != 1) {
         if (SAI_SCRIPT[0]->regs[0xB8] != 0) {
             if (SESSION->resumeMode == 1) {
-                func_800149B8(0, -1, 0, 0x400, SAI_runCornerIcon, 4, getCurrentTaskId(), 0, 0);
+                spawnTask(0, -1, 0, 0x400, SAI_runCornerIcon, 4, getCurrentTaskId(), 0, 0);
             } else {
-                func_800149B8(0, -1, 0, 0x400, SAI_runCornerIcon, 3, getCurrentTaskId(), 0, 0);
+                spawnTask(0, -1, 0, 0x400, SAI_runCornerIcon, 3, getCurrentTaskId(), 0, 0);
             }
         } else {
-            func_800149B8(0, -1, 0, 0x400, SAI_runCornerIcon, 2, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x400, SAI_runCornerIcon, 2, getCurrentTaskId(), 0, 0);
         }
     }
     SAI_ICON_MOTION = 2;
     if (SESSION->resumeMode == 1) {
         SAI_AREA_MODE = AREA_MODE_BUSY;
         if ((s8)SESSION->location == 1) {
-            func_800149B8(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
         } else {
-            func_800149B8(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, 0, getCurrentTaskId(), 0, 0);
         }
     } else if (SESSION->resumeMode == 2) {
         SAI_reopenPlayerData();
@@ -218,7 +218,7 @@ void SAI_runArea(s32 resume) {
         setBackgroundScrollMode(1);
     }
     do {
-        func_80014C08(1);
+        waitFrames(1);
         timer++;
         SAI_tickArea();
         if (SAI_SCRIPT[0]->regs[0xB8] != 0 && timer >= 150) {
@@ -231,7 +231,7 @@ void SAI_runArea(s32 resume) {
     animateWindowTo(&SAI_MESSAGE_WINDOW, (Rect16 *)-1);
     SAI_CLOSE_PANEL = 1;
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_AREA.openPanel != 0);
     removeFrameCallback((s32)SAI_drawAreaHud);
     SAI_saveScriptFlags();
@@ -239,58 +239,58 @@ void SAI_runArea(s32 resume) {
     if (SAI_SCRIPT[0]->regs[0xB8] != 0 && (SAI_EXIT_ACTION == AREA_EXIT_EQUIPMENT || SAI_EXIT_ACTION == AREA_EXIT_DECK_EDITOR)) {
         fadeOutScrollingBackground();
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SCROLL_BACKGROUND.shownImage != -1);
         changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
     }
-    func_80014C08(1);
-    func_80014A00(0x19);
+    waitFrames(1);
+    endTask(0x19);
     freeHeapBlocksByTag(0x7F);
     freeHeapBlocksByTag(0x2E);
     freeHeapBlocksByTag(0x31);
-    func_80014C08(1);
+    waitFrames(1);
     switch (SAI_EXIT_ACTION) {
     default:
-        func_800149B8(0, -1, 0, 0x400, SAI_loadMapTextures, 1, getCurrentTaskId, 0, 0);
+        spawnTask(0, -1, 0, 0x400, SAI_loadMapTextures, 1, getCurrentTaskId, 0, 0);
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SESSION->loading != 0);
         playMusic(0, 0x6F, 0x64);
-        func_800149B8(0, -1, 0, 0x400, SAI_runWorldMap, 1, 0, getCurrentTaskId(), 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runWorldMap, 1, 0, getCurrentTaskId(), 0);
         break;
     case AREA_EXIT_DUEL:
         SAI_ICON_RUNNING = 0;
         fadeOutScrollingBackground();
-        func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x200, startCpuDuel, SAI_EXIT_ARG, 0, 0, 0);
+        waitFrames(10);
+        spawnTask(0, -1, 0, 0x200, startCpuDuel, SAI_EXIT_ARG, 0, 0, 0);
         break;
     case AREA_EXIT_DECK_EDITOR:
         SAI_ICON_RUNNING = 0;
-        func_80014C08(1);
+        waitFrames(1);
         openDeckEditor(1);
         break;
     case AREA_EXIT_SAVE:
         SAI_ICON_RUNNING = 0;
-        func_80014C08(1);
-        func_800149B8(0, -1, 0, 0x400, openSaveScreenFromMap, 4, getCurrentTaskId(), 0, 0);
+        waitFrames(1);
+        spawnTask(0, -1, 0, 0x400, openSaveScreenFromMap, 4, getCurrentTaskId(), 0, 0);
         break;
     case AREA_EXIT_FUSION:
         SAI_ICON_RUNNING = 0;
-        func_80014C08(1);
+        waitFrames(1);
         if (SAI_AREA.exitArg >= 3) {
             SAI_AREA.exitArg = 0;
         }
-        func_800149B8(0, -1, 0, 0x400, openPartnerFusion, SAI_EXIT_ARG, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x400, openPartnerFusion, SAI_EXIT_ARG, 0, 0, 0);
         break;
     case AREA_EXIT_EQUIPMENT:
         SAI_ICON_RUNNING = 0;
-        func_80014C08(1);
+        waitFrames(1);
         openPartnerEquipment(1);
         break;
     case AREA_EXIT_TITLE_OR_ENDING:
         SAI_ICON_RUNNING = 0;
-        func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x800, quitToTitleOrPlayEnding, SAI_EXIT_ARG, 0, 0, 0);
+        waitFrames(10);
+        spawnTask(0, -1, 0, 0x800, quitToTitleOrPlayEnding, SAI_EXIT_ARG, 0, 0, 0);
         break;
     }
 }
@@ -322,7 +322,7 @@ void SAI_drawPanel(void) {
 
 void SAI_freePanel(void) {
     removeFrameCallback(SAI_drawPanel);
-    func_80014C08(1);
+    waitFrames(1);
     SAI_freeSprite(SAI_SPRITES[0]);
     SAI_freePanelFrame();
     SAI_freePanelFrameShadow();
@@ -339,24 +339,24 @@ void SAI_runTalkPanel(void) {
     SAI_spinPanel();
     playSoundEffect(10);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = 0;
     SAI_toggleMessageWindow(1);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_uncoverPanel() == 0);
     SAI_AREA_MODE = AREA_MODE_SCRIPT;
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_AREA.closePanel == 0);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_coverPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = -1;
     playSoundEffect(11);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_freePanel();
     SAI_OPEN_PANEL = 0;

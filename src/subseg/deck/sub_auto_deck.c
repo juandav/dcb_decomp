@@ -238,10 +238,10 @@ void SUB_runAutoDeckMenu(void) {
     SUB_openAutoDeckMenu();
     addFrameCallback((s32)SUB_drawAutoDeckMenu);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SUB_AUTO_DECK_OPTIONS[5] == 0);
     animateWindowTo(SUB_WINDOWS, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SUB_drawAutoDeckMenu);
     switch (SUB_AUTO_DECK_OPTIONS[5]) {
     case 1:
@@ -257,11 +257,11 @@ void SUB_runAutoDeckMenu(void) {
                 PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse = result;
             }
         }
-        func_800149B8(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot], 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot], 0, 0, 0);
         break;
     case 3:
         PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse = 0;
-        func_800149B8(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
         break;
     }
 }

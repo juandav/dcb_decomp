@@ -21,8 +21,8 @@ s32 KAW_tickTutorial();
 void KAW_startTutorial(void) {
     DUEL->tutorial = 1;
     KAW_DUEL->tutorialScript = allocTaskHeapBlock(sizeof(ScriptRunner));
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\BETA.MSD", getCurrentTaskId());
-    KAW_DUEL->tutorialScript->data = (void *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\BETA.MSD", getCurrentTaskId());
+    KAW_DUEL->tutorialScript->data = (void *)waitFrames(0x7FFFFFFF);
     KAW_DUEL->tutorialScript->script = createScriptContext(KAW_DUEL->tutorialScript->data);
     KAW_DUEL->tutorialScript->regs = allocScriptRegisters(10);
     KAW_DUEL->tutorialScript->delay = 0;
@@ -82,12 +82,12 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     playSoundEffect(0xA3);
     PAD_INPUT_ENABLED = 0;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (drawWindow(&KAW_TUTORIAL_WINDOW, KAW_drawTutorialText, 0) == 0 || ((PAD_STATES[0]->rawPressed & PAD_CROSS) >> 6) == 0);
     playSoundEffect(0xA4);
     animateWindowTo(&KAW_TUTORIAL_WINDOW, (Rect16 *)-1);
     for (i = 0; i < 16; i++) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawWindow(&KAW_TUTORIAL_WINDOW, KAW_drawTutorialText, 0);
     }
     PAD_INPUT_ENABLED = 0;
@@ -173,7 +173,7 @@ s32 KAW_tickTutorial(void) {
             case 11:
                 switch (KAW_DUEL->tutorialScript->script->eventArg) {
                 case 0:
-                    func_80014C08((s16)KAW_DUEL->tutorialScript->script->params[0]);
+                    waitFrames((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 1:
                     DUEL->cpuResult = (s16)KAW_DUEL->tutorialScript->script->params[0];
@@ -203,7 +203,7 @@ s32 KAW_tickTutorial(void) {
                 case 0:
                     DUEL_MSG_BAR.playerLabel = KAW_DUEL->tutorialScript->script->params[0];
                     DUEL_MSG_BAR.phase = KAW_DUEL->tutorialScript->script->params[1];
-                    func_80014C08(60);
+                    waitFrames(60);
                     break;
                 case 1:
                     player = vars[1];

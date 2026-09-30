@@ -4,7 +4,6 @@ extern long D_8006F534[];
 extern volatile long D_8006EF5C;
 extern long D_8006EF8C;
 extern u_char D_8006F014[];
-void func_8006A7A4(long event);
 long _SpuIsInAllocateArea_(u_long addr);
 
 long SpuClearReverbWorkArea(long rev_mode) {
@@ -45,7 +44,7 @@ long SpuClearReverbWorkArea(long rev_mode) {
         _spu_t(2, addr);
         _spu_t(1);
         _spu_t(3, D_8006F014, chunk);
-        func_8006A7A4(D_8006EF8C);
+        WaitEvent(D_8006EF8C);
         size -= 0x400;
         addr += 0x400;
     } while (more);

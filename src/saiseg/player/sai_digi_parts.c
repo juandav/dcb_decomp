@@ -257,14 +257,14 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
     playSoundEffect(3);
     addFrameCallback((s32)SAI_drawDigiPartsWindow);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
     playSoundEffect(4);
     win = &SAI_DIGI_PARTS_WINDOW;
     animateWindowTo(win, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SAI_drawDigiPartsWindow);
-    func_80014C08(1);
+    waitFrames(1);
     SAI_AREA_MODE = AREA_MODE_SCRIPT;
-    func_80014A48(task);
+    resumeTask(task);
 }

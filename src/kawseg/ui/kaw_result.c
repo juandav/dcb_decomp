@@ -32,11 +32,11 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
     }
     sprintf(path, KAW_FMT_WIN_ARC_PATH, deckId);
     i = 0;
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -120,7 +120,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         }
     }
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         frame++;
         prims = (VersusPrims *)CURRENT_FRAME_BUFFER->primSlots[15];
         if (!KAW_DUEL->tutorial && frame >= 56) {
@@ -212,7 +212,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         }
     } while (frame < 100 || !(PAD_STATES[0]->pressed & PAD_CROSS));
     KAW_RESULT_SCREEN_STATE = 0;
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(KAW_MATCH_SCREEN);
-    func_80014C08(2);
+    waitFrames(2);
 }

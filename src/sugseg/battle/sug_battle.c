@@ -68,8 +68,8 @@ void SUG_freeBattleScene(void) {
     SCENE_3D->modelState[0] = -1;
     SCENE_3D->modelState[1] = -1;
     SCENE_3D->modelState[23] = -1;
-    func_80014A00(0x1B);
-    func_80014A00(0x1A);
+    endTask(0x1B);
+    endTask(0x1A);
     removeFrameCallback((s32)renderSceneModels);
     removeFrameCallback((s32)renderWireGrid);
     freeHeapBlock(DB(0).scenePackets);
@@ -97,7 +97,7 @@ void SUG_runCameraOrbit(s32 frames, s32 resetCamera) {
     do {
         frames--;
         SUG_orbitCamera();
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (frames >= 0);
 }
 
@@ -115,29 +115,29 @@ void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 sw
         D_80079584 = SUG_ACTIVE_MODEL;
     }
     while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     if (script != NULL) {
         if (SUG_SCRIPT_STATES[other] != 0) {
             if (SUG_SCRIPT_STATES[other] < 0) {
                 while (SUG_SCRIPT_STATES[other] != 1) {
-                    func_80014C08(FRAME_INTERVAL);
+                    waitFrames(FRAME_INTERVAL);
                 }
             }
             SUG_SCRIPT_STATES[other] = 3;
             while (SUG_SCRIPT_STATES[other] != 0) {
-                func_80014C08(FRAME_INTERVAL);
+                waitFrames(FRAME_INTERVAL);
             }
         }
         SUG_SCRIPT_STATES[other] = -1;
-        func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, script, model, a1, &SUG_SCRIPT_STATES[other]);
+        spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, script, model, a1, &SUG_SCRIPT_STATES[other]);
     }
     SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = 2;
     if (fn != NULL) {
         fn(SUG_ACTIVE_MODEL);
     }
     if (fn == SUG_showAttackBanner && SUG_BATTLE->players[SUG_ACTIVE_MODEL].crash) {
-        func_80014C08(30);
+        waitFrames(30);
         SUG_TARGET_HP[SUG_ACTIVE_MODEL] = 10;
         SUG_animateHpCounter(~SUG_ACTIVE_MODEL);
         if (!SUG_BATTLE->flags.bits.counter) {
@@ -148,7 +148,7 @@ void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 sw
         SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = 2;
     }
     while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     SUG_CURRENT_SCRIPT = other;
     SUG_PREV_MODEL = SUG_ACTIVE_MODEL;
@@ -173,19 +173,19 @@ void SUG_playBattleExchange(void) {
     }
     SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = -1;
     SUG_ACTIVE_MODEL = SUG_BATTLE->flags.bits.turn;
-    func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81AC, SUG_BATTLE->flags.bits.turn, 1, &SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT]);
+    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81AC, SUG_BATTLE->flags.bits.turn, 1, &SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT]);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (DUEL->state != 3);
     SUG_saveStageClut(SCENE_3D->models[23], SCENE_3D->texAnimFrames);
-    func_800149B8(0x1A, 0x1F, 0, 0x400, SUG_runStageFadeTask);
+    spawnTask(0x1A, 0x1F, 0, 0x400, SUG_runStageFadeTask);
     while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
-    func_80014A00(0x19);
-    func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 1);
-    func_80014A00(0x1B);
-    func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
+    endTask(0x19);
+    spawnTask(0x19, -1, 0, 0x800, &runSceneCameraTask, 1);
+    endTask(0x1B);
+    spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
     DB(0).draw.r0 = DB(1).draw.r0 = STAGE_CLEAR_COLOR[0];
     DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
     DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
@@ -198,7 +198,7 @@ void SUG_playBattleExchange(void) {
     SCENE_3D->modelState[first ^ 1] = -1;
     CAMERA->targetModel = first;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (SUG_SCRIPT_STATES[0] != 1);
     if (SUG_BATTLE->flags.bits.counter) {
         SUG_playSoloAnimation(first, SUG_BATTLE->players[first].attack + 1);
@@ -206,7 +206,7 @@ void SUG_playBattleExchange(void) {
     } else if (SUG_BATTLE->players[first].damage == 0) {
         SUG_playNoDamageTurn(first);
     } else {
-        FADE_TARGET = D_8006DF80;
+        FADE_TARGET = STAGE_FADE_LEVEL;
         SUG_playAttackTurn(second, 1, SUG_SKILL_SCRIPTS[first * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
         hp = SUG_BATTLE->players[second].hp;
@@ -214,7 +214,7 @@ void SUG_playBattleExchange(void) {
         applyAnimationFirstFrame(first, 0);
         playModelAnimation(first, 0);
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[second])->unk2208 >= 0);
         if (SUG_BATTLE->players[first].eatUpHp) {
             SUG_applyEatUpHp(first, hp);
@@ -223,12 +223,12 @@ void SUG_playBattleExchange(void) {
             goto firstWins;
         }
         playModelAnimation(second, 0);
-        func_80014C08(20);
+        waitFrames(20);
     }
     if (SUG_BATTLE->players[second].damage == 0) {
         SUG_playNoDamageTurn(second);
     } else {
-        FADE_TARGET = D_8006DF80;
+        FADE_TARGET = STAGE_FADE_LEVEL;
         SUG_playAttackTurn(first, 1, SUG_SKILL_SCRIPTS[second * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
         hp = SUG_BATTLE->players[first].hp;
@@ -236,7 +236,7 @@ void SUG_playBattleExchange(void) {
         applyAnimationFirstFrame(second, 0);
         playModelAnimation(second, 0);
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[first])->unk2208 >= 0);
         if (SUG_BATTLE->players[second].eatUpHp) {
             SUG_applyEatUpHp(second, hp);
@@ -245,7 +245,7 @@ void SUG_playBattleExchange(void) {
                 goto secondWins;
             }
             playModelAnimation(first, 0);
-            func_80014C08(30);
+            waitFrames(30);
         }
     }
     if (SUG_TARGET_HP[first] > 0) {
@@ -263,18 +263,18 @@ done:
         SCENE_3D->modelState[winner] = 1;
         playModelAnimation(winner, 6);
         D_80079584 = winner;
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         SCENE_3D->modelState[winner ^ 1] = -1;
         SUG_showWinnerBanner(winner);
-        func_80014C08(8);
+        waitFrames(8);
     } else {
         SCENE_3D->modelState[0] = 1;
         SCENE_3D->modelState[1] = 1;
     }
-    func_800149B8(0, 0x1F, 0, 0x800, SUG_runCameraOrbit, 0xA0, 0);
-    func_80014C08(0x82);
+    spawnTask(0, 0x1F, 0, 0x800, SUG_runCameraOrbit, 0xA0, 0);
+    waitFrames(0x82);
     DUEL->state = 4;
-    func_80014C08(30);
+    waitFrames(30);
 }
 
 void SUG_playSoloAnimation(s32 model, s32 anim) {
@@ -290,10 +290,10 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
     state = -1;
     SCENE_3D->modelState[side] = 1;
     D_80079584 = side;
-    func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81B0, side, 0, &state);
-    func_800149B8(0, -1, 0, 0x800, SUG_showEatUpHpBanner);
+    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81B0, side, 0, &state);
+    spawnTask(0, -1, 0, 0x800, SUG_showEatUpHpBanner);
     while (state != 1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     state = 2;
     if (SUG_BATTLE->players[side].damage < amount) {
@@ -306,7 +306,7 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
     SUG_animateHpCounter(~side);
     SUG_TARGET_HP[side] -= SUG_BATTLE->players[side ^ 1].damage;
     while (state != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
 }
 
@@ -354,5 +354,5 @@ void SUG_runPolygonBattle(s32 arg, s32 parentTask) {
     DB(0).draw.b0 = DB(1).draw.b0 = 0;
     DB(0).draw.g0 = DB(1).draw.g0 = 0;
     DB(0).draw.r0 = DB(1).draw.r0 = 0;
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }

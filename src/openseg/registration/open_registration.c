@@ -420,15 +420,15 @@ void OPEN_drawIntroScreen(void) {
 
 void OPEN_startSceneTasks(void) {
     initScene3D(1);
-    func_80014A00(0x19);
-    func_800149B8(0x19, 0x1F, 0, 0x800, &runSceneCameraTask, 1);
-    func_80014A00(0x1B);
-    func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
+    endTask(0x19);
+    spawnTask(0x19, 0x1F, 0, 0x800, &runSceneCameraTask, 1);
+    endTask(0x1B);
+    spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
 }
 
 void OPEN_stopSceneTasks(void) {
-    func_80014A00(0x1B);
-    func_80014A00(0x19);
+    endTask(0x1B);
+    endTask(0x19);
     removeFrameCallback((s32)renderSceneModels);
     unloadAllModels();
     freeHeapBlocksByTag(0x7F);
@@ -467,11 +467,11 @@ void OPEN_runUserRegistration(s32 parentTask) {
     loadMusicTrack(0, 0x6E, 0x7F);
     playLoadedMusic(0);
     i = 0;
-    func_800149B8(0, -1, 0, 0x800, loadFile, arcPath, getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, arcPath, getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -532,7 +532,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
     playMenuSound(3);
     model = 0;
     while (!done) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         OPEN_INTRO_IMAGE = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].image;
         if ((PAD_STATES[0]->pressed & 0x40) && OPEN_INTRO_TEXT.done != 0) {
             switch (OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].kind) {
@@ -552,8 +552,8 @@ void OPEN_runUserRegistration(s32 parentTask) {
             case 1:
                 animateWindowTo(&OPEN_MESSAGE_WINDOW, (Rect16 *)-1);
                 OPEN_INTRO_TEXT.step = 1;
-                func_800149B8(0, -1, 0, 0x400, OPEN_runNameEntry, PLAYER_PROFILES, getCurrentTaskId(), 0, 0);
-                func_80014C08(0x7FFFFFFF);
+                spawnTask(0, -1, 0, 0x400, OPEN_runNameEntry, PLAYER_PROFILES, getCurrentTaskId(), 0, 0);
+                waitFrames(0x7FFFFFFF);
                 rect.x = 0xC;
                 rect.y = 0xBC;
                 rect.w = 0x128;
@@ -572,15 +572,15 @@ void OPEN_runUserRegistration(s32 parentTask) {
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 OPEN_INTRO_IMAGE = -1;
                 OPEN_INTRO_TEXT.waitInput = 0;
-                func_800149B8(0, -1, 0, 0x300, OPEN_runStarterSelect, getCurrentTaskId(), 0, 0, 0);
-                func_80014C08(0x7FFFFFFF);
+                spawnTask(0, -1, 0, 0x300, OPEN_runStarterSelect, getCurrentTaskId(), 0, 0, 0);
+                waitFrames(0x7FFFFFFF);
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 OPEN_showSceneModel();
                 model = 1;
                 OPEN_INTRO_TEXT.step = 4;
                 start = ((PlayerProfile *)PLAYER_PROFILES)->playTime;
                 do {
-                    func_80014C08(FRAME_INTERVAL);
+                    waitFrames(FRAME_INTERVAL);
                 } while (((PlayerProfile *)PLAYER_PROFILES)->playTime - start < 400);
                 OPEN_INTRO_TEXT.waitInput = 1;
                 break;
@@ -592,7 +592,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             case 10:
                 animateWindowTo(&OPEN_MESSAGE_WINDOW, (Rect16 *)-1);
                 playMenuSound(4);
-                func_80014C08(16);
+                waitFrames(16);
                 OPEN_createNewSave();
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 rect.x = 0xC;
@@ -620,7 +620,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             if (model) {
                 startModelAnimation(0, 1, -2, 0);
                 OPEN_INTRO_TEXT.waitInput = 0;
-                func_80014C08(0x98);
+                waitFrames(0x98);
                 OPEN_INTRO_TEXT.waitInput = 1;
                 OPEN_unloadSceneModel();
                 OPEN_stopSceneTasks();
@@ -668,11 +668,11 @@ void OPEN_runUserRegistration(s32 parentTask) {
             case 2:
                 PLAYER_DATA(0).unk20_0 = 1;
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
-                func_80055730();
+                SsSetMono();
                 break;
             case 1:
                 PLAYER_DATA(0).unk20_0 = 0;
-                func_80055740();
+                SsSetStereo();
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 break;
             case 0:
@@ -707,11 +707,11 @@ void OPEN_runUserRegistration(s32 parentTask) {
     }
     animateWindowTo(&OPEN_MESSAGE_WINDOW, (Rect16 *)-1);
     playMenuSound(4);
-    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
-    func_80014C08(20);
+    spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawIntroScreen);
     hideScrollingBackground();
     stopScreenFade();
-    func_80014C08(10);
-    func_80014A48(parentTask, -1);
+    waitFrames(10);
+    resumeTask(parentTask, -1);
 }

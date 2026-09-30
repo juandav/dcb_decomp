@@ -55,7 +55,7 @@ void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base) {
 
 void GsSetLsMatrix(MATRIX *mp) {
     SetRotMatrix(mp);
-    func_8005C444(mp);
+    SetTransMatrix(mp);
 }
 
 OBJECT_END(1);

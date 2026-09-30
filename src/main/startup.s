@@ -14,7 +14,7 @@
 
 .section .text, "ax"
 
-glabel func_80014970
+glabel disableInterrupts
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -27,21 +27,21 @@ glabel func_80014970
     nop
     jr         $ra
      nop
-endlabel func_80014970
+endlabel disableInterrupts
 
-glabel func_800149A0
+glabel restoreInterrupts
     jr         $ra
      rfe
-endlabel func_800149A0
+endlabel restoreInterrupts
 
-glabel func_800149A8
+glabel launchTaskScheduler
     lui        $at, %hi(TASK_GP)
     sw         $gp, %lo(TASK_GP)($at)
     j          startTaskScheduler
      nop
-endlabel func_800149A8
+endlabel launchTaskScheduler
 
-glabel func_800149B8
+glabel spawnTask
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -60,9 +60,9 @@ glabel func_800149B8
     addiu      $sp, $sp, 0x4
     jr         $ra
      rfe
-endlabel func_800149B8
+endlabel spawnTask
 
-glabel func_80014A00
+glabel endTask
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -81,9 +81,9 @@ glabel func_80014A00
     addiu      $sp, $sp, 0x4
     jr         $ra
      rfe
-endlabel func_80014A00
+endlabel endTask
 
-glabel func_80014A48
+glabel resumeTask
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -102,9 +102,9 @@ glabel func_80014A48
     addiu      $sp, $sp, 0x4
     jr         $ra
      rfe
-endlabel func_80014A48
+endlabel resumeTask
 
-glabel func_80014A90
+glabel exitTask
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -119,7 +119,7 @@ glabel func_80014A90
      nop
     j          .L80014B3C
      nop
-  alabel func_80014AC8
+  alabel yieldTask
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -202,7 +202,7 @@ glabel func_80014A90
     lw         $v0, 0x28($v0)
     jr         $k1
      rfe
-  alabel func_80014C08
+  alabel waitFrames
     mfc0       $t0, $12
     nop
     addu       $t1, $t0, $zero
@@ -265,4 +265,4 @@ glabel func_80014A90
      addu      $a0, $k1, $zero
     j          .L80014B3C
      nop
-endlabel func_80014A90
+endlabel exitTask

@@ -45,7 +45,7 @@ void initScreenCopyEffect(void) {
             SCREEN_COPY_EFFECT.sprt[i][j].w = 256 - j * 192;
             SCREEN_COPY_EFFECT.sprt[i][j].h = 240;
             poly = &SCREEN_COPY_EFFECT.poly[i][j];
-            func_800677A4(poly);
+            SetPolyFT4(poly);
             poly->u0 = j * 32;
             poly->v0 = 0;
             poly->u1 = j * 32 - 96;
@@ -73,10 +73,10 @@ void renderScreenCopyEffect(void) {
     POLY_FT4 *poly;
     s32 unused[4];
 
-    if (D_800794E7 == 0) {
+    if (SCREEN_COPY_MODE == 0) {
         return;
     }
-    if (D_800794E7 != 1) {
+    if (SCREEN_COPY_MODE != 1) {
         func_801EAD04();
     }
     for (i = 1; i >= 0; i--) {

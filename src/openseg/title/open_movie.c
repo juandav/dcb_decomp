@@ -121,7 +121,7 @@ void OPEN_searchCdFile(void *file, char *name) {
     s32 found;
 
     while (1) {
-        func_8005A364(0, 0);
+        CdSync(0, 0);
         found = CdSearchFile(file, name);
         if (found == 0) continue;
         if (found != -1) break;
@@ -193,7 +193,7 @@ void OPEN_startMovie(s32 sector, s32 endFrame, s32 volume, s32 frames, s32 heigh
     OPEN_MOVIE_END_FRAME = endFrame;
     OPEN_muteCdAudio();
     OPEN_clearScreen(0, 0, 0);
-    func_80014C08(2);
+    waitFrames(2);
     CdIntToPos(sector + OPEN_MOVIE_FILE_SECTOR, (u8 *)&OPEN_MOVIE_START_LOC);
     OPEN_initMovieStream(&OPEN_MOVIE_START_LOC, OPEN_uploadMovieSlice);
     y = (240 - OPEN_MOVIE_HEIGHT) / 2;
@@ -291,7 +291,7 @@ void OPEN_stopMovie(void) {
     VSync(0);
     OPEN_MOVIE_ENDED = 1;
     OPEN_muteCdAudio();
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(OPEN_MOVIE_IMAGE_BUFFER);
     freeHeapBlock(OPEN_MOVIE_VLC_BUFFER);
     freeHeapBlock(OPEN_STREAM_RING);
@@ -383,10 +383,10 @@ void OPEN_startCdStream(CdLocation *loc) {
     param[0] = 0x80;
     do {
         while (CdControlB(2, (u8 *)loc, 0) == 0) {
-            func_8005A364(0, 0);
+            CdSync(0, 0);
         }
         while (CdControlB(0xE, param, 0) == 0) {
-            func_8005A364(0, 0);
+            CdSync(0, 0);
         }
         VSync(3);
     } while (CdRead2(0x1E0) == 0);
@@ -397,34 +397,34 @@ s32 OPEN_playMovie(s32 index) {
     MovieHeights movie = OPEN_MOVIE_HEIGHTS;
     s32 wait;
 
-    func_80014A00(0x1F);
-    func_80014A00(0x19);
-    func_80014C08(0x10);
+    endTask(0x1F);
+    endTask(0x19);
+    waitFrames(0x10);
     OPEN_clearScreen(0, 0, 0);
     resetDisplay(320, 240, 1);
     ((Graphics *)&GRAPHICS)->unk48 = -30;
     ((Graphics *)&GRAPHICS)->vblanksPerFrame = 2;
-    func_800149B8(0x1F, 0, 0, 0x1000, OPEN_runMovieRenderLoop);
-    func_80014C08(0x1E);
+    spawnTask(0x1F, 0, 0, 0x1000, OPEN_runMovieRenderLoop);
+    waitFrames(0x1E);
     setTaskVsyncMode(0);
     OPEN_startMovie(OPEN_MOVIES[index].sector, OPEN_MOVIES[index].endFrame, 0x3FFF, 1, movie.heights[index]);
     while (!(PAD_STATES[0]->repeat & 0x800) && OPEN_MOVIE_ENDED == 0) {
-        func_80014AC8();
+        yieldTask();
     }
     if (!(PAD_STATES[0]->repeat & 0x860)) {
         wait = 29;
         do {
-            func_80014AC8();
+            yieldTask();
             if (PAD_STATES[0]->repeat & 0x860) {
                 break;
             }
         } while (--wait != -1);
     }
-    func_80014A00(0x1F);
+    endTask(0x1F);
     OPEN_clearScreen(0, 0, 0);
     OPEN_stopMovie();
     resetDisplay(320, 240, 0);
-    func_80014C08(0x3C);
+    waitFrames(0x3C);
 }
 
 void OPEN_runMovieRenderLoop(void) {
@@ -436,7 +436,7 @@ void OPEN_runMovieRenderLoop(void) {
     SetDispMask(0);
     for (; gfx->unk48 <= 0; gfx->unk48++) {
         pollPads();
-        func_80014C08(1);
+        waitFrames(1);
         gfx->vblanksPerFrame = VBLANK_COUNTER;
         if (VBLANK_COUNTER == 0) {
             gfx->vblanksPerFrame = 1;
@@ -456,7 +456,7 @@ void OPEN_runMovieRenderLoop(void) {
         VSync(0);
         PutDispEnv(&CURRENT_FRAME_BUFFER->disp);
         PutDrawEnv(&CURRENT_FRAME_BUFFER->draw);
-        func_80014AC8();
+        yieldTask();
         gfx->vblanksPerFrame = VBLANK_COUNTER;
         if (VBLANK_COUNTER == 0) {
             gfx->vblanksPerFrame = 1;

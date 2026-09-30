@@ -26,7 +26,7 @@ void setScreenFadeParams(s32 fadeIn, s32 blendMode, s32 speed) {
 
 void screenFadeTask(s32 fadeIn, s32 blendMode, s32 speed) {
     while (SCREEN_FADE_ACTIVE != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     SCREEN_FADE_DIRECTION = fadeIn;
     SCREEN_FADE_BLEND_MODE = blendMode;
@@ -34,7 +34,7 @@ void screenFadeTask(s32 fadeIn, s32 blendMode, s32 speed) {
     SCREEN_FADE_ACTIVE = 1;
     SCREEN_FADE_LEVEL = fadeIn * 0xFF;
     while (SCREEN_FADE_ACTIVE != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (SCREEN_FADE_DIRECTION != 0) {
             if ((SCREEN_FADE_LEVEL -= SCREEN_FADE_SPEED) < 0) {
                 SCREEN_FADE_LEVEL = 0;

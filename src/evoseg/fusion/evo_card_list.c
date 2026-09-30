@@ -25,8 +25,8 @@ void EVO_loadUnitTextures(void) {
     u32 *pack;
 
     sprintf(path, "C:\\OBJECT\\unit.TIS", (s8)((SessionData *)D_8006E054)->unk100C->unk1A4);
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
 }
@@ -56,10 +56,10 @@ void EVO_initFusionScene(void) {
     Graphics *camera;
 
     initScene3D(1);
-    func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
-    func_80014A00(0x1B);
-    func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
-    func_80014C08(2);
+    spawnTask(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
+    endTask(0x1B);
+    spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
+    waitFrames(2);
     camera = (Graphics *)&GRAPHICS;
     camera->rotX = 0;
     camera->rotY = 0;
@@ -73,7 +73,7 @@ void EVO_initFusionScene(void) {
     camera->unk94 = 0;
     camera->targetModel = -1;
     camera->snapCamera = 1;
-    func_80014C08(2);
+    waitFrames(2);
 }
 
 void EVO_countSpareCards(void) {

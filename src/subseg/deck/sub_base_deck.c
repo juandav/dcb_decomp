@@ -71,8 +71,8 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
     u16 flags;
     DeckRecord *record;
 
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
-    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
+    file = (u8 *)waitFrames(0x7FFFFFFF);
     *(u8 **)D_8006E054 = file;
     records = (DeckRecord *)(file + 8);
     markBuildableOpponentDecks(player);
@@ -96,7 +96,7 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
     done = 0;
     selected = -1;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawWindow(&SUB_BASE_DECK_WINDOW, SUB_drawBaseDeckList, 0);
         if ((PAD_STATES[player]->pressed & 0x40) && (SUB_BASE_DECK_ENTRIES[SUB_BASE_DECK_MENU.row] & 0x4000)) {
             playMenuSound(1);

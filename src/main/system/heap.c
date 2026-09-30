@@ -78,7 +78,7 @@ void *allocHeapBlock(s32 size, s32 ownerTag) {
     if (size == 0) {
         return 0;
     }
-    func_80014970();
+    disableInterrupts();
     block = HEAP_BLOCKS;
     i = 0x3FF;
     if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
@@ -103,7 +103,7 @@ void *allocHeapBlock(s32 size, s32 ownerTag) {
                         shiftBlock->size = freeSize;
                         shiftBlock->tag = -1;
                     }
-                    func_800149A0();
+                    restoreInterrupts();
                     return (void *)ptr;
                 }
             }
@@ -111,7 +111,7 @@ void *allocHeapBlock(s32 size, s32 ownerTag) {
             block++;
         } while (i >= 0 && (blockAddr = block->addr) != 0);
     }
-    func_800149A0();
+    restoreInterrupts();
     return 0;
 }
 
@@ -132,7 +132,7 @@ void *shrinkHeapBlock(void *ptr, s32 size) {
     s32 leftover;
 
     size = (size + 3) & ~3;
-    func_80014970();
+    disableInterrupts();
     block = HEAP_BLOCKS;
     i = 0x3FF;
     if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
@@ -140,7 +140,7 @@ void *shrinkHeapBlock(void *ptr, s32 size) {
             if (blockAddr == (s32)ptr) {
                 leftover = block->size - size;
                 if (leftover < 0) {
-                    func_800149A0();
+                    restoreInterrupts();
                     return 0;
                 }
                 if (leftover != 0 && i != 0) {
@@ -160,14 +160,14 @@ void *shrinkHeapBlock(void *ptr, s32 size) {
                     block->size = leftover;
                     block->tag = -1;
                 }
-                func_800149A0();
+                restoreInterrupts();
                 return ptr;
             }
             i--;
             block++;
         } while (i >= 0 && (blockAddr = block->addr) != 0);
     }
-    func_800149A0();
+    restoreInterrupts();
     return 0;
 }
 
@@ -187,7 +187,7 @@ s32 freeHeapBlock(void *ptr) {
     if (ptr == 0) {
         return 0;
     }
-    func_80014970();
+    disableInterrupts();
     block = HEAP_BLOCKS;
     i = 0x3FF;
     if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
@@ -224,14 +224,14 @@ s32 freeHeapBlock(void *ptr) {
                         block->tag = 0;
                     }
                 }
-                func_800149A0();
+                restoreInterrupts();
                 return 0;
             }
             i--;
             block++;
         } while (i >= 0 && (blockAddr = block->addr) != 0);
     }
-    func_800149A0();
+    restoreInterrupts();
     return 0;
 }
 

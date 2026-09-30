@@ -18,8 +18,8 @@ void SAI_loadSplashImage(u8 index) {
         index = 0;
     }
     sprintf(path, "C:\\OBJECT\\a_%d.TIM", index);
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    tim = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    tim = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTim(tim, 0x140, 0, 0x140, 0x81);
     freeHeapBlock(tim);
     SAI_SPLASH->loading = 0;
@@ -139,12 +139,12 @@ void SAI_runSplash(s32 index, s32 task) {
     SAI_SPLASH->loading = 1;
     SAI_loadSplashImage(index);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_SPLASH->loading != 0);
     SAI_resetSplash();
     SAI_initSplashQuads();
     do {
-        func_80014C08(1);
+        waitFrames(1);
         switch (SAI_SPLASH->state) {
         case 0:
             SAI_unfoldSplash();
@@ -158,6 +158,6 @@ void SAI_runSplash(s32 index, s32 task) {
         }
         SAI_drawSplash();
     } while (SAI_SPLASH->state != 3);
-    func_80014C08(30);
-    func_80014A48(task);
+    waitFrames(30);
+    resumeTask(task);
 }

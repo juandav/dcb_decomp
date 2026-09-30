@@ -119,7 +119,7 @@ void SAI_initOpponentInfo(void) {
 
     for (k = 0; k < 2; k++, fade++) {
         for (i = 0; i < 2; i++) {
-            func_80067784(&fade->polys[i]);
+            SetPolyF4(&fade->polys[i]);
             SetSemiTrans(&fade->polys[i], 1);
             if (k == 0) {
                 SetDrawTPage(&fade->tpages[i], 0, 0, 0x40);
@@ -166,7 +166,7 @@ void SAI_showOpponentInfo(void) {
         SAI_AREA_MODE = AREA_MODE_BUSY;
         if (SAI_OPPONENT_INFO->statsShown == 1) {
             do {
-                func_80014C08(1);
+                waitFrames(1);
                 SAI_OPPONENT_INFO->state = 4;
             } while (SAI_moveOpponentPortraits() != 0);
         }
@@ -372,16 +372,16 @@ void SAI_runOpponentInfoPanel(s32 index) {
     SAI_spinPanel();
     playSoundEffect(10);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = 0;
     SAI_toggleMessageWindow(1);
     if (SESSION->resumeMode == 0) {
-        func_800149B8(0, -1, 0, 0x800, SAI_runSplash, index - 1, getCurrentTaskId(), 0, 0);
-        func_80014C08(0x7FFFFFFF);
+        spawnTask(0, -1, 0, 0x800, SAI_runSplash, index - 1, getCurrentTaskId(), 0, 0);
+        waitFrames(0x7FFFFFFF);
     }
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_uncoverPanel() == 0);
     if (SESSION->resumeMode == 0) {
         SAI_AREA_MODE = AREA_MODE_SCRIPT;
@@ -389,7 +389,7 @@ void SAI_runOpponentInfoPanel(s32 index) {
         SESSION->resumeMode = 0;
     }
     do {
-        func_80014C08(1);
+        waitFrames(1);
         switch (SAI_OPPONENT_INFO->state) {
         case 0:
             break;
@@ -409,17 +409,17 @@ void SAI_runOpponentInfoPanel(s32 index) {
         }
     } while (SAI_CLOSE_PANEL == 0);
     do {
-        func_80014C08(1);
+        waitFrames(1);
         SAI_OPPONENT_INFO->state = 4;
     } while (SAI_moveOpponentPortraits() != 0);
     removeFrameCallback((s32)SAI_drawOpponentInfo);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_coverPanel() == 0);
     SAI_PANEL_IMAGE_HIDDEN = -1;
     playSoundEffect(11);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_freePanel();
     SAI_freeOpponentInfo();

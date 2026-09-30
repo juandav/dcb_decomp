@@ -260,8 +260,8 @@ s32 EVO_loadEffectPak(s32 index) {
 }
 
 void EVO_loadEffectArchive(void) {
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "C:\\Unit_eff.arc", getCurrentTaskId(), -2);
-    EVO_EFFECT_ARCHIVE = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFileTagged, "C:\\Unit_eff.arc", getCurrentTaskId(), -2);
+    EVO_EFFECT_ARCHIVE = (u8 *)waitFrames(0x7FFFFFFF);
 }
 
 void EVO_freeEffectArchive(void) {
@@ -283,8 +283,8 @@ void EVO_playEffectScript(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     EVO_EFFECT_SPRITE_1 = 0;
     EVO_EFFECT_SPRITE_2 = 0;
     data = decompressArchiveEntry((s32)EVO_EFFECT_ARCHIVE, index);
-    func_800149B8(0, 0x1F, 0, 0x800, EVO_runEffectScriptTask, data, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, 0x1F, 0, 0x800, EVO_runEffectScriptTask, data, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
     freeHeapBlock((void *)data);
 }
 
@@ -311,13 +311,13 @@ s32 EVO_tickEffectScript(EvoEffectScript *loader) {
 void EVO_freeEffectEntries(EvoEffectScript *loader) {
     s32 i;
 
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     for (i = 0; i < 16; i++) {
         if (loader->entries[i].kind != -1) {
             EVO_EFFECT_FREE_FUNCS[loader->entries[i].kind](loader->entries[i].handle);
         }
     }
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     if (loader->buffer != NULL) {
         freeHeapBlock(loader->buffer);
     }
@@ -393,10 +393,10 @@ void EVO_runEffectScript(EvoEffectScript *loader) {
                     restartEffectMotion((u8 *)&EVO_EFFECT_ROOT);
                     break;
                 case 2:
-                    D_800794E7 = 1;
+                    SCREEN_COPY_MODE = 1;
                     break;
                 case 3:
-                    D_800794E7 = 0;
+                    SCREEN_COPY_MODE = 0;
                     break;
                 case 4:
                     D_800795A8 = 0;
@@ -749,7 +749,7 @@ void EVO_createEffectEntry(s32 index, s32 kind, s32 *vars, EvoEffectScript *load
         loader->entries[index].handle = EVO_EFFECT_CREATE_FUNCS[kind](vars, loader);
         loader->counter++;
         if ((loader->counter & 0xF) == 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
     }
 }
@@ -810,10 +810,10 @@ void EVO_runEffectScriptTask(EvoMsd *data, s32 parentTask) {
 
     loader = EVO_createEffectScript(data);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (EVO_tickEffectScript(loader) != 0);
     EVO_freeEffectEntries(loader);
     freeScriptContext(loader->script, loader->vars);
     freeHeapBlock(loader);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }

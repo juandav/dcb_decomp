@@ -39,7 +39,7 @@ void runMainTask(void) {
     mainTaskId = getCurrentTaskId();
     initMemoryCard();
     initPads();
-    func_8006A884(0);
+    ChangeClearPad(0);
     initDiscDrive();
     initGraphics();
     killOtherTasks();
@@ -55,20 +55,20 @@ void runMainTask(void) {
         killOtherTasks();
         closeAllDiscFiles();
         resetHeap(0);
-        func_80014C08(0xA);
+        waitFrames(0xA);
         clearFramePrimSlots();
         initScreenFade();
         PAD_INPUT_ENABLED = 1;
-        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 2, mainTaskId);
-        func_80014C08(0x7FFFFFFF);
+        spawnTask(0, -1, 0, 0x800, playOpeningMovie, 2, mainTaskId);
+        waitFrames(0x7FFFFFFF);
         func_801E055C(0);
         loadSoundEffectBank(1);
         stopMusic();
         resetDisplay(0x140, 0xF0, 0);
-        func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
-        func_80014C08(0xA);
-        func_800149B8(0, -1, 0, 0x400, runTitleMenu, 0, 0, 0, 0);
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(0xA);
+        spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
+        waitFrames(0xA);
+        spawnTask(0, -1, 0, 0x400, runTitleMenu, 0, 0, 0, 0);
+        waitFrames(0x7FFFFFFF);
+        waitFrames(0xA);
     }
 }

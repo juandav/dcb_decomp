@@ -76,98 +76,98 @@ void startMemoryCardEvents(void) {
     s32 i;
 
     VSync(2);
-    MEMORY_CARD_EVENT_DONE = func_8006A794(0xF4000001, 4, 0x2000, 0);
-    MEMORY_CARD_EVENT_ERROR = func_8006A794(0xF4000001, 0x8000, 0x2000, 0);
-    MEMORY_CARD_EVENT_TIMEOUT = func_8006A794(0xF4000001, 0x100, 0x2000, 0);
-    MEMORY_CARD_EVENT_NEW_CARD = func_8006A794(0xF4000001, 0x2000, 0x2000, 0);
-    MEMORY_CARD_HW_EVENT_DONE = func_8006A794(0xF0000011, 4, 0x2000, 0);
-    MEMORY_CARD_HW_EVENT_ERROR = func_8006A794(0xF0000011, 0x8000, 0x2000, 0);
-    MEMORY_CARD_HW_EVENT_TIMEOUT = func_8006A794(0xF0000011, 0x100, 0x2000, 0);
-    MEMORY_CARD_HW_EVENT_NEW_CARD = func_8006A794(0xF0000011, 0x2000, 0x2000, 0);
+    MEMORY_CARD_EVENT_DONE = OpenEvent(0xF4000001, 4, 0x2000, 0);
+    MEMORY_CARD_EVENT_ERROR = OpenEvent(0xF4000001, 0x8000, 0x2000, 0);
+    MEMORY_CARD_EVENT_TIMEOUT = OpenEvent(0xF4000001, 0x100, 0x2000, 0);
+    MEMORY_CARD_EVENT_NEW_CARD = OpenEvent(0xF4000001, 0x2000, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_DONE = OpenEvent(0xF0000011, 4, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_ERROR = OpenEvent(0xF0000011, 0x8000, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_TIMEOUT = OpenEvent(0xF0000011, 0x100, 0x2000, 0);
+    MEMORY_CARD_HW_EVENT_NEW_CARD = OpenEvent(0xF0000011, 0x2000, 0x2000, 0);
     StartCARD();
-    func_80068804();
-    func_8006A7C4(MEMORY_CARD_EVENT_DONE);
-    func_8006A7C4(MEMORY_CARD_EVENT_ERROR);
-    func_8006A7C4(MEMORY_CARD_EVENT_TIMEOUT);
-    func_8006A7C4(MEMORY_CARD_EVENT_NEW_CARD);
-    func_8006A7C4(MEMORY_CARD_HW_EVENT_DONE);
-    func_8006A7C4(MEMORY_CARD_HW_EVENT_ERROR);
-    func_8006A7C4(MEMORY_CARD_HW_EVENT_TIMEOUT);
-    func_8006A7C4(MEMORY_CARD_HW_EVENT_NEW_CARD);
+    _bu_init();
+    EnableEvent(MEMORY_CARD_EVENT_DONE);
+    EnableEvent(MEMORY_CARD_EVENT_ERROR);
+    EnableEvent(MEMORY_CARD_EVENT_TIMEOUT);
+    EnableEvent(MEMORY_CARD_EVENT_NEW_CARD);
+    EnableEvent(MEMORY_CARD_HW_EVENT_DONE);
+    EnableEvent(MEMORY_CARD_HW_EVENT_ERROR);
+    EnableEvent(MEMORY_CARD_HW_EVENT_TIMEOUT);
+    EnableEvent(MEMORY_CARD_HW_EVENT_NEW_CARD);
     for (i = 0; i < 2; i++) {
         MEMORY_CARD_DIRECTORIES[i] = allocPermanentHeapBlock(0x260);
     }
     MEMORY_CARD_SAVE_HEADER = allocPermanentHeapBlock(0x200);
 }
 
-s32 waitForMemoryCardEvent(s32 waitFrames) {
+s32 waitForMemoryCardEvent(s32 pollInterval) {
     s32 tries;
 
     tries = 0;
-    D_801D8198 = 0;
+    MEMORY_CARD_WAIT_COUNTER = 0;
     do {
-        if (func_8006A7B4(MEMORY_CARD_EVENT_DONE) == 1) {
+        if (TestEvent(MEMORY_CARD_EVENT_DONE) == 1) {
             return 0;
         }
-        if (func_8006A7B4(MEMORY_CARD_EVENT_ERROR) == 1) {
+        if (TestEvent(MEMORY_CARD_EVENT_ERROR) == 1) {
             return 1;
         }
-        if (func_8006A7B4(MEMORY_CARD_EVENT_TIMEOUT) == 1) {
+        if (TestEvent(MEMORY_CARD_EVENT_TIMEOUT) == 1) {
             return 2;
         }
-        if (func_8006A7B4(MEMORY_CARD_EVENT_NEW_CARD) == 1) {
+        if (TestEvent(MEMORY_CARD_EVENT_NEW_CARD) == 1) {
             return 3;
         }
-        if (waitFrames != 0) {
+        if (pollInterval != 0) {
             if (tries++ >= 0x1F) {
                 break;
             }
-            func_80014C08(waitFrames);
+            waitFrames(pollInterval);
         }
-    } while (D_801D8198 < 0x259);
+    } while (MEMORY_CARD_WAIT_COUNTER < 0x259);
     return 2;
 }
 
 void clearMemoryCardEvents(void) {
-    func_8006A7B4(MEMORY_CARD_EVENT_DONE);
-    func_8006A7B4(MEMORY_CARD_EVENT_ERROR);
-    func_8006A7B4(MEMORY_CARD_EVENT_TIMEOUT);
-    func_8006A7B4(MEMORY_CARD_EVENT_NEW_CARD);
+    TestEvent(MEMORY_CARD_EVENT_DONE);
+    TestEvent(MEMORY_CARD_EVENT_ERROR);
+    TestEvent(MEMORY_CARD_EVENT_TIMEOUT);
+    TestEvent(MEMORY_CARD_EVENT_NEW_CARD);
 }
 
-s32 waitForMemoryCardHwEvent(s32 waitFrames) {
+s32 waitForMemoryCardHwEvent(s32 pollInterval) {
     s32 tries;
 
     tries = 0;
-    D_801D8198 = 0;
+    MEMORY_CARD_WAIT_COUNTER = 0;
     do {
-        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_DONE) == 1) {
+        if (TestEvent(MEMORY_CARD_HW_EVENT_DONE) == 1) {
             return 0;
         }
-        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_ERROR) == 1) {
+        if (TestEvent(MEMORY_CARD_HW_EVENT_ERROR) == 1) {
             return 1;
         }
-        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_TIMEOUT) == 1) {
+        if (TestEvent(MEMORY_CARD_HW_EVENT_TIMEOUT) == 1) {
             return 2;
         }
-        if (func_8006A7B4(MEMORY_CARD_HW_EVENT_NEW_CARD) == 1) {
+        if (TestEvent(MEMORY_CARD_HW_EVENT_NEW_CARD) == 1) {
             return 3;
         }
-        if (waitFrames != 0) {
+        if (pollInterval != 0) {
             if (tries++ >= 0x1F) {
                 break;
             }
-            func_80014C08(waitFrames);
+            waitFrames(pollInterval);
         }
-    } while (D_801D8198 < 0x259);
+    } while (MEMORY_CARD_WAIT_COUNTER < 0x259);
     return 2;
 }
 
 void clearMemoryCardHwEvents(void) {
-    func_8006A7B4(MEMORY_CARD_HW_EVENT_DONE);
-    func_8006A7B4(MEMORY_CARD_HW_EVENT_ERROR);
-    func_8006A7B4(MEMORY_CARD_HW_EVENT_TIMEOUT);
-    func_8006A7B4(MEMORY_CARD_HW_EVENT_NEW_CARD);
+    TestEvent(MEMORY_CARD_HW_EVENT_DONE);
+    TestEvent(MEMORY_CARD_HW_EVENT_ERROR);
+    TestEvent(MEMORY_CARD_HW_EVENT_TIMEOUT);
+    TestEvent(MEMORY_CARD_HW_EVENT_NEW_CARD);
 }
 
 s32 ensureMemoryCardReady(s32 port) {
@@ -178,7 +178,7 @@ s32 ensureMemoryCardReady(s32 port) {
     retries = 0;
 loop_1:
     clearMemoryCardEvents();
-    func_80068814(port * 0x10);
+    _card_info(port * 0x10);
     event = waitForMemoryCardEvent(0);
     if ((u32) (event - 1) < 2U) {
         if (retries >= 5) {
@@ -190,7 +190,7 @@ loop_1:
         if (retries < 3) {
 block_6:
             retries += 1;
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
             goto loop_1;
         }
         if (event == 3) {
@@ -199,7 +199,7 @@ block_6:
             _card_clear(channel);
             waitForMemoryCardHwEvent(1);
             clearMemoryCardEvents();
-            func_80068824(channel);
+            _card_load(channel);
             waitForMemoryCardEvent(0);
         }
         /* Duplicate return node #9. Try simplifying control flow for better match */
@@ -217,7 +217,7 @@ s32 getMemoryCardStatus(s32 port) {
     retry = 0;
 loop:
     clearMemoryCardEvents();
-    func_80068814(port * 16);
+    _card_info(port * 16);
     event = waitForMemoryCardEvent(1);
     if (event == 1 || event == 2) {
         if (retry >= 5) {
@@ -246,7 +246,7 @@ loop:
             }
         }
         clearMemoryCardEvents();
-        func_80068824(port * 16);
+        _card_load(port * 16);
         event = waitForMemoryCardEvent(0);
         if (event == 0) {
             goto done;
@@ -261,7 +261,7 @@ loop:
         tries++;
     }
 wait:
-    func_80014C08(4);
+    waitFrames(4);
     goto loop;
 done:
     return 0;
@@ -277,9 +277,9 @@ s32 startMemoryCardSave(s32 port, u8 blocks, s32 data, s32 fileName, McHeader *h
 
     ((u8 *)header)[3] = blocks;
     sprintf(name, "bu%1d0:%s", port, fileName);
-    func_8006A864(func_8006A824(name, (((u8 *)header)[3] << 16) | 0x200));
+    close(open(name, (((u8 *)header)[3] << 16) | 0x200));
     *(McHeader *)MEMORY_CARD_SAVE_HEADER = *header;
-    MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8002);
+    MEMORY_CARD_FILE = fd = open(name, 0x8002);
     if (fd == -1) {
         return -1;
     }
@@ -301,15 +301,15 @@ s32 stepMemoryCardSave(void) {
     switch (MEMORY_CARD_TRANSFER_STEP) {
     case 0:
         dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
-        func_8006A834(MEMORY_CARD_FILE, 0, 0);
-        if (func_8006A854(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, dataOffset) == -1) {
+        lseek(MEMORY_CARD_FILE, 0, 0);
+        if (write(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, dataOffset) == -1) {
             return -1;
         }
         MEMORY_CARD_TRANSFER_STEP++;
     case 1:
         event = waitForMemoryCardEvent(1);
         if (event == 1 || event == 2) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
             return -1;
         }
         dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
@@ -319,21 +319,21 @@ s32 stepMemoryCardSave(void) {
         MEMORY_CARD_TRANSFER_STEP++;
         return 0;
     case 2:
-        func_8006A834(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
-        if (func_8006A854(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
+        lseek(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
+        if (write(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
             return -1;
         }
         MEMORY_CARD_TRANSFER_STEP++;
     case 3:
         event = waitForMemoryCardEvent(1);
         if (event == 1 || event == 2) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
             return -1;
         }
         MEMORY_CARD_SECTORS_DONE++;
         MEMORY_CARD_TRANSFER_STEP = 2;
         if (MEMORY_CARD_SECTORS_DONE == MEMORY_CARD_SECTORS_TOTAL) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
         }
         break;
     }
@@ -345,7 +345,7 @@ s32 startMemoryCardLoad(s32 port, s32 data, s32 fileName) {
     s32 fd;
 
     sprintf(name, "bu%1d0:%s", port, fileName);
-    MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8001);
+    MEMORY_CARD_FILE = fd = open(name, 0x8001);
     if (fd == -1) {
         return -1;
     }
@@ -366,15 +366,15 @@ s32 stepMemoryCardLoad(void) {
     clearMemoryCardEvents();
     switch (MEMORY_CARD_TRANSFER_STEP) {
     case 0:
-        func_8006A834(MEMORY_CARD_FILE, 0, 0);
-        if (func_8006A844(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
+        lseek(MEMORY_CARD_FILE, 0, 0);
+        if (read(MEMORY_CARD_FILE, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
             return -1;
         }
         MEMORY_CARD_TRANSFER_STEP++;
     case 1:
         event = waitForMemoryCardEvent(1);
         if (event == 1 || event == 2) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
             return -1;
         }
         dataOffset = MEMORY_CARD_SAVE_HEADER[2] * 128 - 0x780;
@@ -384,21 +384,21 @@ s32 stepMemoryCardLoad(void) {
         MEMORY_CARD_TRANSFER_STEP++;
         return 0;
     case 2:
-        func_8006A834(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
-        if (func_8006A844(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
+        lseek(MEMORY_CARD_FILE, ((MEMORY_CARD_SAVE_HEADER[2] - 0x10) << 7) + 0x80 + (MEMORY_CARD_SECTORS_DONE << 7), 0);
+        if (read(MEMORY_CARD_FILE, (void *)(MEMORY_CARD_TRANSFER_DATA + (MEMORY_CARD_SECTORS_DONE << 7)), 0x80) == -1) {
             return -1;
         }
         MEMORY_CARD_TRANSFER_STEP++;
     case 3:
         event = waitForMemoryCardEvent(1);
         if (event == 1 || event == 2) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
             return -1;
         }
         MEMORY_CARD_SECTORS_DONE++;
         MEMORY_CARD_TRANSFER_STEP = 2;
         if (MEMORY_CARD_SECTORS_DONE == MEMORY_CARD_SECTORS_TOTAL) {
-            func_8006A864(MEMORY_CARD_FILE);
+            close(MEMORY_CARD_FILE);
         }
         break;
     }
@@ -410,23 +410,23 @@ s32 readMemoryCardSavePreview(s32 port, void *dst, s32 fileName) {
     s32 fd;
 
     sprintf(name, "bu%1d0:%s", port, fileName);
-    fd = func_8006A824(name, 1);
+    fd = open(name, 1);
     if (fd == -1) {
         return 1;
     }
-    if (func_8006A844(fd, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
-        func_8006A864(fd);
+    if (read(fd, MEMORY_CARD_SAVE_HEADER, 0x80) == -1) {
+        close(fd);
         return 1;
     }
-    if (func_8006A834(fd, ((*(u8 *)((s8 *)MEMORY_CARD_SAVE_HEADER + 2)) - 0x10) << 7, 1) == -1) {
-        func_8006A864(fd);
+    if (lseek(fd, ((*(u8 *)((s8 *)MEMORY_CARD_SAVE_HEADER + 2)) - 0x10) << 7, 1) == -1) {
+        close(fd);
         return 1;
     }
-    if (func_8006A844(fd, dst, 0x80) == -1) {
-        func_8006A864(fd);
+    if (read(fd, dst, 0x80) == -1) {
+        close(fd);
         return 1;
     }
-    func_8006A864(fd);
+    close(fd);
     return 0;
 }
 
@@ -445,7 +445,7 @@ void scanMemoryCardFiles(s32 port) {
             total += entry->size;
             count++;
             entry++;
-        } while (func_8006A874(entry) == entry);
+        } while (nextfile(entry) == entry);
     }
     MEMORY_CARD_DIRECTORIES[port]->count = count;
     MEMORY_CARD_DIRECTORIES[port]->blocks = total /= 8192;

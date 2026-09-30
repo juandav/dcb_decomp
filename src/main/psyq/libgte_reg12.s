@@ -1,5 +1,5 @@
 /*
- * libgte REG12: func_8005C484 (SetGeomOffset: the screen offset, shifted
+ * libgte REG12: SetGeomOffset (SetGeomOffset: the screen offset, shifted
  * left 16, into GTE control registers OFX and OFY).
  *
  * Hand-written assembly, not compiler output: the body is two ctc2 moves
@@ -16,13 +16,13 @@
 
 .section .text
 
-glabel func_8005C484
+glabel SetGeomOffset
     sll        $a0, $a0, 16
     sll        $a1, $a1, 16
     ctc2       $a0, $24
     ctc2       $a1, $25
     jr         $ra
      nop
-endlabel func_8005C484
+endlabel SetGeomOffset
     nop
     nop

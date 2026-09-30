@@ -11,7 +11,7 @@
 s32 FILE_LOADER_BUSY = 0;
 
 void mountDriveTask(s32 path, s32 parentTask) {
-    func_80014A48(parentTask, mountDrive(path) == 0 ? 1 : -1);
+    resumeTask(parentTask, mountDrive(path) == 0 ? 1 : -1);
 }
 
 s32 loadFile(s32 path, s32 parentTask) {
@@ -21,7 +21,7 @@ s32 loadFile(s32 path, s32 parentTask) {
 
     size = 0;
     while (FILE_LOADER_BUSY != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     FILE_LOADER_BUSY = 1;
     file = openDiscFile((s8 *)path, 1);
@@ -37,7 +37,7 @@ s32 loadFile(s32 path, s32 parentTask) {
         }
     }
     LOADED_FILE_SIZE = size;
-    func_80014A48(parentTask, buf);
+    resumeTask(parentTask, buf);
     FILE_LOADER_BUSY = 0;
     return buf;
 }
@@ -49,7 +49,7 @@ s32 loadFileTagged(s32 *path, s32 parentTask, s32 heapTag) {
 
     size = 0;
     while (FILE_LOADER_BUSY != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     FILE_LOADER_BUSY = 1;
     file = openDiscFile((s8 *)path, 1);
@@ -65,7 +65,7 @@ s32 loadFileTagged(s32 *path, s32 parentTask, s32 heapTag) {
         }
     }
     LOADED_FILE_SIZE = size;
-    func_80014A48(parentTask, buf);
+    resumeTask(parentTask, buf);
     FILE_LOADER_BUSY = 0;
     return buf;
 }
@@ -77,7 +77,7 @@ void loadFileToAddress(s32 path, s32 *dst, s32 parentTask) {
     size = 0;
     if (FILE_LOADER_BUSY != 0) {
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (FILE_LOADER_BUSY != 0);
     }
     FILE_LOADER_BUSY = 1;
@@ -88,6 +88,6 @@ void loadFileToAddress(s32 path, s32 *dst, s32 parentTask) {
         closeDiscFile((s32 *) file);
     }
     LOADED_FILE_SIZE = size;
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
     FILE_LOADER_BUSY = 0;
 }

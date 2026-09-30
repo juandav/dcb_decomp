@@ -365,7 +365,7 @@ void SUB_enterDeckName(s32 mode, char *name, s32 pad) {
     playMenuSound(3);
     addFrameCallback((s32)SUB_drawNameEntry);
     for (;;) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (SUB_NAME_ENTRY.state == 0) {
             continue;
         }
@@ -385,12 +385,12 @@ void SUB_enterDeckName(s32 mode, char *name, s32 pad) {
     animateWindowTo(&SUB_NAME_ENTRY_HELP_WINDOW, (Rect16 *)-1);
     animateWindowTo(&SUB_NAME_ENTRY_WINDOW, (Rect16 *)-1);
     animateWindowTo(&SUB_DECK_NAME_WINDOW, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SUB_drawNameEntry);
     if (SUB_NAME_ENTRY.state == 7) {
-        func_800149B8(0, -1, 0, 0x1000, mode == 1 ? SUB_runDeckMenu : SUB_runAutoDeckMenu, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, mode == 1 ? SUB_runDeckMenu : SUB_runAutoDeckMenu, 0, 0, 0, 0);
     } else {
-        func_800149B8(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
     }
 }
 

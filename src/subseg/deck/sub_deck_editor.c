@@ -20,8 +20,8 @@ void SUB_loadCardMapTim(void) {
     u32 *tim;
 
     sprintf(path, "C:\\OBJECT\\c_map.tim");
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    tim = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    tim = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTim(tim, 0x140, 0, 0, 0x1F4);
     freeHeapBlock(tim);
     printf("aaa\n");
@@ -42,7 +42,7 @@ void SUB_runCardImageCache(void) {
     SUB_CARD_IMAGE_CACHE.request = -1;
     SUB_CARD_IMAGE_CACHE.busy = 0;
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (SUB_CARD_IMAGE_CACHE.busy == 0) {
             found = -1;
             for (i = 0; i < 8; i++) {
@@ -72,8 +72,8 @@ void SUB_runCardImageCache(void) {
                     }
                 }
                 sprintf(path, "B:\\Card\\LC%3.3d.TIM", SUB_CARD_IMAGE_CACHE.ids[slot]);
-                func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-                tim = (u32 *)func_80014C08(0x7FFFFFFF);
+                spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+                tim = (u32 *)waitFrames(0x7FFFFFFF);
                 uploadTim(tim, (slot / 4) * 32 + 0x140, (slot % 4) * 64 + 0x100, 0, slot + 0x1F4);
                 freeHeapBlock(tim);
                 SUB_CARD_IMAGE_CACHE.ages[slot] = 100;
@@ -100,12 +100,12 @@ void SUB_loadEditorAssets(void) {
     u32 *pack;
 
     sprintf(path, "C:\\OBJECT\\deck.TIS");
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    SUB_CARD_ARCHIVE = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    SUB_CARD_ARCHIVE = (u8 *)waitFrames(0x7FFFFFFF);
 }
 
 void SUB_initPrimBuffers(s8 keepBuffers) {
@@ -202,21 +202,21 @@ void SUB_runDeckEditor(s32 player, s32 parentTask) {
     SUB_CARD_LIST_MENU_PAD = SUB_EDITOR.player;
     SUB_CARD_SORT_MENU_PAD = SUB_EDITOR.player;
     SUB_DECK_SORT_MENU_PAD = SUB_EDITOR.player;
-    func_800149B8(0, -1, 0, 0x1000, SUB_EDITOR.task = SUB_runCardList, 0, 0, 0, 0);
-    func_800149B8(0, -1, 0, 0x1000, SUB_runCardImageCache, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1000, SUB_EDITOR.task = SUB_runCardList, 0, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x1000, SUB_runCardImageCache, 0, getCurrentTaskId(), 0, 0);
     do {
-        func_80014C08(1);
+        waitFrames(1);
         SUB_SPRITE_CURSOR = SUB_EDITOR.primBuffers[FRAME_BUFFER_INDEX];
     } while (SUB_EDITOR.running == 1);
     SUB_CARD_IMAGE_CACHE.running = 0;
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (SUB_CARD_IMAGE_CACHE.busy != -1);
     clearCollectionNewFlags(player);
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlocksByTag(0x3C);
     freeHeapBlock(SUB_CARD_ARCHIVE);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 void SUB_openCenteredWindow(UiWindow *window, Rect16 area, s32 label, s32 flags, s32 style) {

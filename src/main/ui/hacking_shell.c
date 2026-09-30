@@ -312,7 +312,7 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     animateWindowTo(&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     addFrameCallback((s32)drawHackingWindows);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (HACK_SCRIPT_DONE != 0) {
             done = 1;
         }
@@ -322,7 +322,7 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     animateWindowTo(&HACK_ERROR_WINDOW, (Rect16 *)-1);
     animateWindowTo(&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
     animateWindowTo(&HACK_TAUNT_WINDOW, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)drawHackingWindows);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }

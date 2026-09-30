@@ -21,7 +21,7 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-s32 D_8006DF80 = 0xFF;
+s32 STAGE_FADE_LEVEL = 0xFF;
 
 void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     MATRIX localScreen;
@@ -122,9 +122,9 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
 }
 
 void setupSceneProjection(s32 projection) {
-    func_8005C484(0xA0, 0x78);
-    func_8005C4A4(projection);
-    func_80062484(projection);
+    SetGeomOffset(0xA0, 0x78);
+    SetGeomScreen(projection);
+    GsSetProjection(projection);
     SCENE_3D->view.vpx = 0;
     SCENE_3D->view.vpy = 0;
     SCENE_3D->view.vpz = 0;
@@ -138,7 +138,7 @@ void setupSceneProjection(s32 projection) {
 
 void setupSceneLighting(void) {
     GsSetAmbient(0x40, 0x40, 0x40);
-    func_8005C464(0x30, 0x30, 0x40);
+    SetBackColor(0x30, 0x30, 0x40);
     GsSetLightMode(0);
 }
 
@@ -146,7 +146,7 @@ void initScene3D(s32 allocBuffers) {
     s32 i;
 
     initModelScene();
-    func_8006A804();
+    EnterCriticalSection();
     for (i = 0; i < 2; i++) {
         if (allocBuffers) {
             DB(i).scenePackets = allocHeapBlock(0xBB80, 0x7F);
@@ -160,7 +160,7 @@ void initScene3D(s32 allocBuffers) {
     GsInit3D();
     setupSceneProjection(0x1C0);
     setupSceneLighting();
-    func_8006A814();
+    ExitCriticalSection();
     {
         MATRIX lightMatrices[2] = {
             { { { 0, 0x1800, -0x1800 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } },

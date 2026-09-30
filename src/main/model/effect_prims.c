@@ -313,14 +313,14 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     for (i = 0; i < fx->count; i++, particle++) {
         if (fx->kind == 0) {
             line = &particle->line[0];
-            func_800678E4(line);
+            SetLineF2(line);
             setSemiTrans(line, semi);
             line = &particle->line[1];
-            func_800678E4(line);
+            SetLineF2(line);
             setSemiTrans(line, semi);
         } else {
             line = &particle->line[0];
-            func_80067904(line);
+            SetLineG2(line);
             setSemiTrans(line, semi);
             line->r0 = startColor[0];
             line->g0 = startColor[1];
@@ -329,7 +329,7 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
             line->g1 = endColor[1];
             line->b1 = endColor[2];
             line++;
-            func_80067904(line);
+            SetLineG2(line);
             setSemiTrans(line, semi);
             line->r0 = startColor[0];
             line->g0 = startColor[1];

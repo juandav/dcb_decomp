@@ -60,6 +60,6 @@ void GsMapModelingData(u_long *p) {
     }
 }
 
-void func_80062484(void) {
-    func_8005C4A4();
+void GsSetProjection(long h) {
+    SetGeomScreen(h);
 }

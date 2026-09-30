@@ -371,7 +371,7 @@ void SAI_runWordInput(char *word) {
     playSoundEffect(3);
     addFrameCallback((s32)SAI_drawWordInputWindows);
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (SAI_WORD_INPUT.result == 0) {
             continue;
         }
@@ -392,7 +392,7 @@ void SAI_runWordInput(char *word) {
     animateWindowTo(&SAI_WORD_HELP_WINDOW, (Rect16 *)-1);
     animateWindowTo(&SAI_WORD_GRID_WINDOW, (Rect16 *)-1);
     animateWindowTo(&SAI_KEYWORD_WINDOW, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)SAI_drawWordInputWindows);
     for (i = 0; i < 10; i++) {
         if (strcmp(word, SAI_KEYWORDS[i]) == 0) {

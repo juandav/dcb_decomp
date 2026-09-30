@@ -105,15 +105,15 @@ void KAW_loadMatchGraphics(s32 isVersus, s32 match, s32 task) {
         count = 1;
     }
     for (i = 0; i < count; i++) {
-        func_800149B8(0, -1, 0, 0x800, uploadStringGlyphs, PLAYER_DATA(i).name, i, getCurrentTaskId(), 0);
-        func_80014C08(0x7FFFFFFF);
+        spawnTask(0, -1, 0, 0x800, uploadStringGlyphs, PLAYER_DATA(i).name, i, getCurrentTaskId(), 0);
+        waitFrames(0x7FFFFFFF);
     }
     sprintf(path, "B:\\MATCH\\%3.3d.ARC", match);
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -146,9 +146,9 @@ void KAW_loadMatchGraphics(s32 isVersus, s32 match, s32 task) {
     KAW_VS_OUTER_LINE_POS[0][1] = 0xB1;
     KAW_VS_OUTER_LINE_POS[1][0] = -0xC0;
     KAW_VS_OUTER_LINE_POS[1][1] = 0x30;
-    func_80014C08(10);
+    waitFrames(10);
     KAW_MATCH_LOADING = 0;
-    func_80014A48(task);
+    resumeTask(task);
 }
 
 void KAW_drawDeckList(ListWindow *w) {
@@ -327,7 +327,7 @@ void KAW_drawDeckChart(s32 x, s32 y, s32 player, s32 z) {
     setRGB0(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][2], 0, 0, 0xFF);
     setRGB0(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][3], 0xFF, 0xFF, 0xFF);
     for (i = 0; i < 4; i++) {
-        func_800678C4(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][i]);
+        SetTile(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][i]);
         setXY0(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][i], x + 0x44 + i * 12, y - (bars[i] - 0x32));
         setWH(&KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][i], 8, bars[i]);
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], &KAW_DECK_LEVEL_BARS[player][FRAME_BUFFER_INDEX][i]);
@@ -417,7 +417,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     u16 pressed;
 
     KAW_MATCH_SCREEN = allocTaskHeapBlock(0x778);
-    func_800149B8(0, -1, 0, 0x800, KAW_loadMatchGraphics, isVersus, match, getCurrentTaskId(), 0);
+    spawnTask(0, -1, 0, 0x800, KAW_loadMatchGraphics, isVersus, match, getCurrentTaskId(), 0);
     KAW_MATCH_SCREEN->unk504[0] = 0;
     KAW_MATCH_SCREEN->unk504[1] = 0;
     KAW_MATCH_SCREEN->unk770 = isVersus;
@@ -455,9 +455,9 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
         }
         playSoundEffect(0xA3);
         addFrameCallback((s32)KAW_renderDeckSelect);
-        func_80014C08(0x10);
+        waitFrames(0x10);
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
             if (!(done & 1)) {
                 if (KAW_MATCH_SCREEN->unk504[0] != 0) {
                     if (PAD_STATES[0]->pressed & PAD_CROSS) {
@@ -569,7 +569,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                 }
             }
         } while (done != 3);
-        func_80014C08(0x10);
+        waitFrames(0x10);
         if (((SessionData *)D_8006E054)->npcDeckIndex[0] == -1) {
             *(PlayerDeck *)DUEL_PLAYERS[0] = PLAYER_DATA(0).savedDecks[DECK_CHOICE(0)];
             linkDeckCardData(0, (PlayerDeck *)DUEL_PLAYERS[0]);
@@ -592,13 +592,13 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     removeFrameCallback((s32)KAW_renderDeckSelect);
     markDeckCardsSeen(0);
     freeHeapBlock(((SessionData *)D_8006E054)->npcDeckFile);
-    func_80014C08(0x1E);
+    waitFrames(0x1E);
     while (KAW_MATCH_LOADING != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(KAW_MATCH_SCREEN);
-    func_80014C08(2);
+    waitFrames(2);
 }
 
 #define setUVWH(p, _u0, _v0, _w, _h)                                                            \
@@ -732,7 +732,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     }
     playLoadedMusic(0);
     frame = 0;
-    func_800149B8(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
     if (mode != 0) {
         k = func_800471F4(deckId);
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[k];
@@ -787,7 +787,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     addFrameCallback((s32)KAW_renderVersusScreen);
     step = KAW_DUEL->tutorial;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         frame++;
         for (i = 0; i < 2; i++) {
             if (frame > 0) {
@@ -935,8 +935,8 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
             KAW_MATCH_SCREEN->timer++;
         }
     } while (!DUEL_VRAM_READY || KAW_MATCH_SCREEN->timer < 181);
-    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
-    func_80014C08(40);
+    spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
+    waitFrames(40);
     if (!KAW_DUEL->tutorial) {
         for (i = 0; i < 2; i++) {
             PLAYER(i)->shufflePasses += 600;
@@ -955,7 +955,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     }
     removeFrameCallback((s32)KAW_renderVersusScreen);
     KAW_freeCursor(KAW_MATCH_SCREEN->cursor);
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(KAW_MATCH_SCREEN);
-    func_80014C08(2);
+    waitFrames(2);
 }

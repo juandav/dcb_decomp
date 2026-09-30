@@ -49,7 +49,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     if (SAI_AREA.openPanel == 0) {
                         SAI_AREA.mode = AREA_MODE_BUSY;
                         SAI_clearOpponents();
-                        func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
                         return;
                     }
                     if (SAI_AREA.openPanel == 1) {
@@ -57,11 +57,11 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     SAI_AREA.closePanel = 1;
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (SAI_AREA.openPanel != 0);
                     SAI_AREA_MODE = AREA_MODE_BUSY;
                     SAI_clearOpponents();
-                    func_800149B8(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
                     return;
                 case 1:
                     offset = runner->script->pc - runner->script->start;
@@ -82,7 +82,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_OPPONENTS.target[0] = 0x80;
                         SAI_OPPONENTS.current[1] = 0x80;
                         SAI_OPPONENTS.target[1] = 0x80;
-                        func_800149B8(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
                         return;
                     }
                     if (SAI_AREA.openPanel == 2) {
@@ -90,14 +90,14 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     SAI_AREA.closePanel = 1;
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (SAI_AREA.openPanel != 0);
                     SAI_AREA_MODE = AREA_MODE_BUSY;
                     SAI_OPPONENTS.current[0] = 0x80;
                     SAI_OPPONENTS.target[0] = 0x80;
                     SAI_OPPONENTS.current[1] = 0x80;
                     SAI_OPPONENTS.target[1] = 0x80;
-                    func_800149B8(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x800, SAI_runOpponentSelectPanel, 0, getCurrentTaskId(), 0, 0);
                     return;
                 case 3:
                     if (SAI_AREA.opponentPicked != 0) {
@@ -125,7 +125,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     if (SAI_PLAYER_STATS.state == 0) {
                         SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
                         SAI_PLAYER_STATS.state = 1;
-                        func_800149B8(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
                         SAI_AREA_MODE = AREA_MODE_BUSY;
                     }
                     return;
@@ -135,7 +135,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     return;
                 case 10:
                     SAI_AREA_MODE = AREA_MODE_BUSY;
-                    func_800149B8(0, -1, 0, 0x400, SAI_runPartnerGet, getCurrentTaskId(), 0, 0, 0);
+                    spawnTask(0, -1, 0, 0x400, SAI_runPartnerGet, getCurrentTaskId(), 0, 0, 0);
                     return;
                 case 11:
                     SAI_PARTNER_COUNT = 0;
@@ -146,7 +146,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                 case 12:
                     if (SAI_AREA.openPanel == 0) {
                         SAI_AREA.mode = AREA_MODE_BUSY;
-                        func_800149B8(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
                         return;
                     }
                     if (SAI_AREA.openPanel == SAI_AREA.location + 1) {
@@ -154,10 +154,10 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     SAI_AREA.closePanel = 1;
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (SAI_AREA.openPanel != 0);
                     SAI_AREA.mode = AREA_MODE_BUSY;
-                    func_800149B8(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x800, SAI_runOpponentInfoPanel, SAI_AREA.location, getCurrentTaskId(), 0, 0);
                     return;
                 case 13:
                     SAI_showOpponentInfo();
@@ -169,7 +169,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     playSoundEffect(4);
                     SAI_AREA.mode = AREA_MODE_BUSY;
                     bzero((Scene3D *)SAI_AREA.keyword, 0xD);
-                    func_800149B8(0, -1, 0, 0x800, SAI_runWordInput, SAI_AREA.keyword, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x800, SAI_runWordInput, SAI_AREA.keyword, getCurrentTaskId(), 0, 0);
                     return;
                 case 16:
                     runner->regs[1] = ((PlayerProfile *)PLAYER_PROFILES)->battleWins;
@@ -185,7 +185,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     ((PlayerProfile *)PLAYER_PROFILES)->unk14 = 0;
                     break;
                 case 20:
-                    func_800149B8(0, -1, 0, 0x400, SAI_runHackOverlay, 0, 0, 0, 0);
+                    spawnTask(0, -1, 0, 0x400, SAI_runHackOverlay, 0, 0, 0, 0);
                     break;
                 case 21:
                     SAI_closeHackOverlay();
@@ -241,7 +241,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     if (SAI_AREA.rewardBusy == 0) {
                         SAI_AREA.rewardBusy = 1;
                         SAI_AREA.mode = AREA_MODE_BUSY;
-                        func_800149B8(0, -1, 0, 0x400, SAI_runRewardTask, 0, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x400, SAI_runRewardTask, 0, getCurrentTaskId(), 0, 0);
                         return;
                     }
                     break;
@@ -256,11 +256,11 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     playSoundEffect((s16)runner->script->params[0]);
                     break;
                 case 14:
-                    func_80014C08((s16)runner->script->params[0]);
+                    waitFrames((s16)runner->script->params[0]);
                     break;
                 case 15:
                     do {
-                        func_80014C08(1);
+                        waitFrames(1);
                     } while (isMusicIdle() != 1);
                     if (SAI_SCRIPT[0]->regs[0xB8] == 0 && (s16)runner->script->params[0] != 0x6F) {
                         SESSION->music = (s16)runner->script->params[0];
@@ -269,7 +269,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     break;
                 case 16:
                     SAI_AREA_MODE = AREA_MODE_BUSY;
-                    func_800149B8(0, -1, 0, 0x400, SAI_grantDigiPart, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x400, SAI_grantDigiPart, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 17:
                     ((SessionData *)D_8006E054)->npcDeckIndex[0] = runner->script->params[0];
@@ -286,7 +286,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     return;
                 case 20:
                     SAI_AREA_MODE = AREA_MODE_BUSY;
-                    func_800149B8(0, -1, 0, 0x400, SAI_runHackingEvent, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x400, SAI_runHackingEvent, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 21:
                     for (i = 0; i < 3; i++) {
@@ -328,7 +328,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SAI_SCRIPT_REWARD_CARDS[0] = runner->script->params[0];
                     SAI_SCRIPT_REWARD_CARDS[1] = runner->script->params[1];
                     SAI_SCRIPT_REWARD_CARDS[2] = runner->script->params[2];
-                    func_800149B8(0, -1, 0, 0x400, SAI_runRewardTask, 1, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x400, SAI_runRewardTask, 1, getCurrentTaskId(), 0, 0);
                     return;
                 default:
                     runner->regs[0] = 0;
