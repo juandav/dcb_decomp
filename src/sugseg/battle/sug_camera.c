@@ -11,7 +11,7 @@ extern u16 D_80079586;
 void SUG_resetCameraPos(void) {
     CAMERA->posZ = 0;
     CAMERA->posX = 0;
-    CAMERA->unk92 = 0;
+    CAMERA->targetHeight = 0;
     CAMERA->posY = -150;
 }
 
@@ -39,9 +39,9 @@ void SUG_orbitCamera(void) {
     }
     angle = D_80079586 & 0xFFF;
     if (max < angle || angle < min) {
-        CAMERA->unk8E += outStep * speed;
+        CAMERA->targetPitch += outStep * speed;
     } else {
-        CAMERA->unk8E += inStep * speed;
+        CAMERA->targetPitch += inStep * speed;
     }
-    CAMERA->unk94 += 4 / speed * D_801EF388;
+    CAMERA->targetYaw += 4 / speed * D_801EF388;
 }

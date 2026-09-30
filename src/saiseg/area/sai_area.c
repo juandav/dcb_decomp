@@ -40,10 +40,10 @@ void SAI_loadAreaTextures(void) {
     char path[0x18];
     u32 *pack;
 
-    if (((PlayerProfile *)PLAYER_PROFILES)->unkE < 10) {
-        sprintf(path, "C:\\DEBUG\\area0%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->unkE);
+    if (((PlayerProfile *)PLAYER_PROFILES)->areaId < 10) {
+        sprintf(path, "C:\\DEBUG\\area0%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->areaId);
     } else {
-        sprintf(path, "C:\\DEBUG\\area%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->unkE);
+        sprintf(path, "C:\\DEBUG\\area%d.TIS", ((PlayerProfile *)PLAYER_PROFILES)->areaId);
     }
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
     pack = (u32 *)waitFrames(0x7FFFFFFF);

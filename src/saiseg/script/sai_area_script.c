@@ -23,10 +23,6 @@
 #include "dcb/sai_partner_get.h"
 #include "dcb/sai_digi_parts.h"
 
-typedef struct {
-    u8 pad[0x30];
-    s32 scriptOffset;
-} ProfileSave;
 
 extern u8 SAI_DIALOG[];
 extern s8 SAI_PARTNER_COUNT;
@@ -179,7 +175,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SAI_EXIT_ACTION = AREA_EXIT_EQUIPMENT;
                     return;
                 case 18:
-                    ((PlayerProfile *)PLAYER_PROFILES)->unk28_10 = 1;
+                    ((PlayerProfile *)PLAYER_PROFILES)->tradeUnlocked = 1;
                     break;
                 case 19:
                     ((PlayerProfile *)PLAYER_PROFILES)->unk14 = 0;
@@ -225,8 +221,8 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     return;
                 case 6:
                     SAI_saveScriptFlags();
-                    ((ProfileSave *)PLAYER_PROFILES)->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
-                    ((PlayerProfile *)PLAYER_PROFILES)->unkF = runner->script->params[0];
+                    ((PlayerProfile *)PLAYER_PROFILES)->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
+                    ((PlayerProfile *)PLAYER_PROFILES)->resumeInArea = runner->script->params[0];
                     runner->regs[0] = 0;
                     SAI_EXIT_ACTION = AREA_EXIT_SAVE;
                     return;

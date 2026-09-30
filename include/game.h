@@ -113,13 +113,13 @@ typedef struct GsCOORDINATE2 {
 typedef struct {
     /* 0x000 */ GsOT ot[2];
     /* 0x028 */ GsCOORDINATE2 root;
-    /* 0x078 */ u8 unk78[0x20]; /* the camera view matrix (MATRIX) */
+    /* 0x078 */ u8 viewMatrix[0x20]; /* the camera's view MATRIX, also the parent of effects placed in view space */
     /* 0x098 */ VECTOR unk98;
     /* 0x0A8 */ SVECTOR unkA8;
     /* 0x0B0 */ VECTOR unkB0;
     /* 0x0C0 */ s32 unkC0;
     /* 0x0C4 */ GsRVIEW2 view;
-    /* 0x0E4 */ u8 unkE4[0x30];
+    /* 0x0E4 */ u8 flatLights[0x30]; /* three GsF_LIGHTs for GsSetFlatLight */
     /* 0x114 */ s8 modelState[24];
     /* 0x12C */ s8 texAnimFrame;  /* the arena stage's texture animation */
     /* 0x12D */ s8 texAnimTimer;
@@ -134,9 +134,9 @@ typedef struct {
     } animCache[32];
 } Scene3D;
 typedef struct {
-    /* 0x00 */ s16 unk0[4];
+    /* 0x00 */ s16 texWindow[4]; /* the RECT prims' SetDrawMode takes as texture window */
     /* 0x08 */ void (*frameCallbacks[16])(FrameBuffer *, s32); /* = FRAME_CALLBACKS, 0-terminated */
-    /* 0x48 */ s32 unk48; /* counts up to 1 before the display is turned on; 0 holds the render loop */
+    /* 0x48 */ s32 displayStartCounter; /* counts up to 1 before the display is turned on; 0 holds the render loop */
     /* 0x4C */ s32 scene3dEnabled;
     /* 0x50 */ s32 vblanksPerFrame;
     s16 rotX;
@@ -155,12 +155,12 @@ typedef struct {
     s32 posY;
     s32 posZ;
     u8 pad88[0x4];
-    s16 targetModel;
-    s16 unk8E;
-    s16 unk90;
-    s16 unk92;
-    s16 unk94;
-    u8 pad96[0x2];
+    /* 0x8C */ s16 targetModel; /* the camera's current CameraPreset, from here to targetFacedModel */
+    /* 0x8E */ s16 targetPitch;
+    /* 0x90 */ s16 targetDistance;
+    /* 0x92 */ s16 targetHeight;
+    /* 0x94 */ s16 targetYaw;
+    /* 0x96 */ s16 targetFacedModel;
     FrameBuffer buffers[2];
 } Graphics;
 typedef struct {
@@ -538,11 +538,12 @@ typedef struct {
 } CardSlot;
 typedef struct {
     /* 0x000 */ u8 inUse;
-    /* 0x001 */ u8 unk1[3];
-    /* 0x004 */ s32 unk4[4];
+    /* 0x001 */ char name[0x13];
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ s32 unk104;
-    /* 0x108 */ u16 unk108[3];
+    /* 0x108 */ u16 saveCount; /* times the deck was saved in this slot */
+    /* 0x10A */ u16 wins;
+    /* 0x10C */ u16 losses;
     /* 0x10E */ u8 unk10E[2];
 } PlayerDeck;
 typedef struct {
@@ -552,7 +553,7 @@ typedef struct {
     /* 0x104 */ u8 unk104[0xC];
     /* 0x110 */ s32 bonusFlags; /* one bit per end-of-duel bonus earned (kawseg) */
     /* 0x114 */ s8 *battleCard;
-    /* 0x118 */ u8 unk118[2];
+    /* 0x118 */ s16 nameWidth; /* of the name's glyphs on the VS screen (KAWSEG) */
     /* 0x11A */ s16 shufflePasses;
     /* 0x11C */ s16 stats[5];
     /* 0x126 */ s16 displayedStats[5];
@@ -562,7 +563,8 @@ typedef struct {
     /* 0x15C */ s16 baseAttackPowers[3];
     /* 0x162 */ s16 damageTaken;
     /* 0x164 */ s16 hpGain;
-    /* 0x166 */ u8 unk166[8];
+    /* 0x166 */ s16 reviveHp; /* the HP support effect 48 brings the Digimon back with */
+    /* 0x168 */ u8 unk168[6];
     /* 0x16E */ s16 attackHighlightTimer;
     /* 0x170 */ s16 unk170[4];
     /* 0x178 */ u32 usedAttack : 2;
@@ -588,7 +590,9 @@ typedef struct {
     /* 0x17D */ s8 onlineDeck[30];
     /* 0x19B */ s8 offlineDeck[30];
     /* 0x1B9 */ s8 hand[4];
-    /* 0x1BD */ u8 unk1BD[5];
+    /* the top card of the Online Deck, the Offline Deck, the active Digimon,
+       the played card and the DP slots, as KAWSEG last took them */
+    /* 0x1BD */ u8 topCards[5];
     /* 0x1C2 */ s8 dpSlots[8];
     /* 0x1CA */ s8 digimonStack[3];
     /* 0x1CD */ s8 playedCard;
@@ -646,10 +650,10 @@ typedef struct {
 } Partner;
 typedef struct {
     /* 0x0000 */ char name[0xD];
-    /* 0x000D */ u8 unkD;
-    /* 0x000E */ u8 unkE;
-    /* 0x000F */ u8 unkF;
-    /* 0x0010 */ s16 unk10;
+    /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */
+    /* 0x000E */ u8 areaId; /* the SAISEG area the player is in */
+    /* 0x000F */ u8 resumeInArea; /* 0: the game goes on from the world map, else from areaId */
+    /* 0x0010 */ s16 profileId; /* random; two profiles with the same id are the same save */
     /* 0x0012 */ u16 seenCardCount;
     /* 0x0014 */ s16 unk14;
     /* 0x0016 */ s16 profileSize;
@@ -657,7 +661,7 @@ typedef struct {
     /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
     /* 0x001E */ u16 versusLosses;
-    /* 0x0020 */ u32 unk20_0 : 1;
+    /* 0x0020 */ u32 monoSound : 1; /* "Sound Settings": 0 stereo, 1 mono */
     /* 0x0020 */ u32 unk20_1 : 1;
     /* 0x0020 */ u32 unk20_2 : 1;
     /* 0x0020 */ u32 skipBattleAnimation : 1;
@@ -667,13 +671,15 @@ typedef struct {
     /* 0x0028 */ u32 collectorRank : 3;
     /* 0x0028 */ u32 battleRank : 3;
     /* 0x0029 */ u32 unk28_9 : 1;
-    /* 0x0029 */ u32 unk28_10 : 1;
-    /* 0x0029 */ u32 unk28_11 : 1;
+    /* 0x0029 */ u32 tradeUnlocked : 1; /* set by a SAISEG script; opens card trades */
+    /* 0x0029 */ u32 hasTraded : 1; /* keeps the collector rank below its top title */
     /* 0x0029 */ u32 unk28_12 : 1;
     /* 0x0029 */ u32 unk28_13 : 1;
     /* 0x0029 */ u32 unk28_14 : 18;
     /* 0x002C */ s32 scriptFlags; /* bit n: EVOSEG script variable 20 + n */
-    /* 0x0030 */ u8 unk30[6];
+    /* 0x0030 */ s32 scriptOffset; /* where SAISEG's area script resumes */
+    /* 0x0034 */ s8 deckChoice; /* the saved deck the player duels with, -1 for none */
+    /* 0x0035 */ u8 unk35;
     /* 0x0036 */ u16 attackCounts[3];
     /* 0x003C */ u8 ownedAbilities[0x10];
     /* 0x004C */ s16 cardsReceived;   /* by trade; this and the next four stop at 9999 */
@@ -685,20 +691,20 @@ typedef struct {
     /* 0x0058 */ u8 unk58[0x28];
     /* 0x0080 */ Partner partners[3];
     /* 0x0848 */ s16 bonusCounts[0x20]; /* times each end-of-duel bonus was earned */
-    /* 0x0888 */ u16 unk888[0x8E];
-    /* 0x09A4 */ u16 unk9A4[0x8E];
+    /* 0x0888 */ u16 comWins[0x8E]; /* "Wins & Losses per Com" */
+    /* 0x09A4 */ u16 comLosses[0x8E];
     /* 0x0AC0 */ u16 opponentDeckFlags[0x9F];
-    /* 0x0BFE */ u16 unkBFE[0x9F];
-    /* 0x0D3C */ s16 unkD3C[0xBF][3];
-    /* 0x11B6 */ u16 unk11B6[0xBF];
-    /* 0x1334 */ u16 unk1334[0xBF];
+    /* 0x0BFE */ u16 opponentDeckLosses[0x9F]; /* the wins are in opponentDeckFlags */
+    /* 0x0D3C */ s16 maxAttackPowers[0xBF][3]; /* per Digimon card: "Max Attack Power" */
+    /* 0x11B6 */ u16 cardWins[0xBF]; /* per Digimon card */
+    /* 0x1334 */ u16 cardLosses[0xBF];
     /* per card id: bits 0-2 copies owned (up to 6), 0x10 no more to win,
        0x20 first copy just obtained, 0x40 seen, 0x80 new */
     /* 0x14B2 */ u8 cardCollection[0x12D];
     /* 0x15DF */ u8 unk15DF;
     /* 0x15E0 */ u16 cardCopySerials[301][6];
-    /* 0x23FC */ s32 unk23FC[12];
-    /* 0x242C */ u8 unk242C[9];
+    /* 0x23FC */ s32 areaScriptFlags[12]; /* bit n: SAISEG script register 12 + n */
+    /* 0x242C */ u8 areaScriptValues[9]; /* SAISEG script registers 0x16B.. */
     /* 0x2435 */ u8 unk2435[3];
     /* 0x2438 */ PlayerDeck savedDecks[3];
     /* 0x2768 */ s16 rewardCards[3];
@@ -874,13 +880,14 @@ typedef struct {
     /* 0x81A */ s8 viewPlayer;
     /* 0x81B */ u8 cursorPlayer;
     /* 0x81C */ s8 cursorSlot;
-    /* 0x81D */ s8 unk81D;
+    /* 0x81D */ s8 cursorMode; /* which cards the card cursor offers, -1: none */
     /* 0x81E */ u8 winner;
     /* 0x81F */ s8 tutorial;
-    /* 0x820 */ u8 unk820[2];
+    /* 0x820 */ s8 tutorialBusy; /* set while the tutorial script runs */
+    /* 0x821 */ s8 menuPlayer;
     /* 0x822 */ s8 awaitingInput;
-    /* 0x823 */ s8 unk823;
-    /* 0x824 */ s8 unk824;
+    /* 0x823 */ s8 menuOpen; /* waitDuelFrames doesn't count the frames while it is set */
+    /* 0x824 */ s8 quit; /* 2 + the winner when the duel ends early (tutorial, Give Up) */
     /* 0x825 */ u8 unk825;
     /* 0x826 */ u8 artSlot;
     /* 0x827 */ u8 cpuPlayer;

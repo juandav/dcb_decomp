@@ -35,10 +35,10 @@ void func_8002D458(void) {
     ((SessionData *)SESSION_DATA)->unk100C->unk1A9 = 0;
     ((SessionData *)SESSION_DATA)->unk100C->unk1A8 = 0;
     for (i = 0; i < 12; i++) {
-        PLAYER_DATA(0).unk23FC[i] = 0;
+        PLAYER_DATA(0).areaScriptFlags[i] = 0;
     }
     for (i = 0; i < 9; i++) {
-        PLAYER_DATA(0).unk242C[i] = 0;
+        PLAYER_DATA(0).areaScriptValues[i] = 0;
     }
     PLAYER_DATA(0).scriptFlags = 0;
     PLAYER_DATA(0).unk14 = 0;
@@ -52,7 +52,7 @@ void resetPlayerData(void) {
 
     profile = (PlayerProfile *)PLAYER_PROFILES;
     for (i = 0; i < 12; i++) {
-        PLAYER_DATA(0).unk23FC[i] = 0;
+        PLAYER_DATA(0).areaScriptFlags[i] = 0;
     }
     PLAYER_DATA(0).unk28_9 = 0;
     for (player = 0; player < 2; player++, profile++) {
@@ -61,12 +61,12 @@ void resetPlayerData(void) {
         profile->battleLosses = 0;
         profile->versusWins = 0;
         profile->versusLosses = 0;
-        profile->unkE = 0;
-        profile->unk10 = rand();
-        profile->unk28_10 = 0;
+        profile->areaId = 0;
+        profile->profileId = rand();
+        profile->tradeUnlocked = 0;
         profile->unk28_13 = 0;
-        profile->unkD = 0;
-        profile->unk28_11 = 0;
+        profile->saveCount = 0;
+        profile->hasTraded = 0;
         profile->unk28_12 = 0;
         profile->tamerRank = 0;
         profile->collectorRank = 0;
@@ -92,10 +92,10 @@ void resetPlayerData(void) {
         }
         for (i = 0; i < 0xBF; i++) {
             for (j = 0; j < 3; j++) {
-                profile->unkD3C[i][j] = 0;
+                profile->maxAttackPowers[i][j] = 0;
             }
-            profile->unk11B6[i] = 0;
-            profile->unk1334[i] = 0;
+            profile->cardWins[i] = 0;
+            profile->cardLosses[i] = 0;
         }
         for (i = 0; i < 3; i++) {
             profile->partners[i].cardId = 0;
@@ -105,22 +105,22 @@ void resetPlayerData(void) {
         }
         for (i = 0; i < 3; i++) {
             profile->savedDecks[i].inUse = 0;
-            profile->savedDecks[i].unk108[0] = 0;
-            profile->savedDecks[i].unk108[1] = 0;
-            profile->savedDecks[i].unk108[2] = 0;
+            profile->savedDecks[i].saveCount = 0;
+            profile->savedDecks[i].wins = 0;
+            profile->savedDecks[i].losses = 0;
         }
         for (i = 0; i < 0x9F; i++) {
             profile->opponentDeckFlags[i] = 0;
-            profile->unkBFE[i] = 0;
+            profile->opponentDeckLosses[i] = 0;
         }
         for (i = 0; i < 0x8E; i++) {
-            profile->unk888[i] = 0;
-            profile->unk9A4[i] = 0;
+            profile->comWins[i] = 0;
+            profile->comLosses[i] = 0;
         }
         for (j = 0; j < 0x20; j++) {
             profile->bonusCounts[j] = 0;
         }
-        profile->unk20_0 = 0;
+        profile->monoSound = 0;
         profile->unk20_1 = 0;
         profile->unk20_2 = 0;
         profile->skipBattleAnimation = 0;

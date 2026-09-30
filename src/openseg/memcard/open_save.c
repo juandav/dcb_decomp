@@ -342,7 +342,7 @@ void OPEN_runMemcardAccess(void) {
                 OPEN_MEMCARD.message = 20;
                 OPEN_MEMCARD.state = 25;
                 if (player == 0) {
-                    if ((((PlayerProfile *)OPEN_MEMCARD.buffer)->unk20_0) == 1) {
+                    if ((((PlayerProfile *)OPEN_MEMCARD.buffer)->monoSound) == 1) {
                         SsSetMono();
                     } else {
                         SsSetStereo();
@@ -399,7 +399,7 @@ void OPEN_prepareSaveData(s32 port) {
     }
     switch (OPEN_MEMCARD_MODE) {
     case 0:
-        PLAYER_DATA(port).unkF = 1;
+        PLAYER_DATA(port).resumeInArea = 1;
         PLAYER_DATA(port).unk28_13 = D_801F80C0;
         ((SessionView *)SESSION_DATA)->saves[port].playTime = PLAYER_DATA(port).playTime;
         *buffer = PLAYER_DATA(port);
@@ -408,8 +408,8 @@ void OPEN_prepareSaveData(s32 port) {
     case 4:
     case 5:
     case 8:
-        if (PLAYER_DATA(port).unkD < 255) {
-            PLAYER_DATA(port).unkD++;
+        if (PLAYER_DATA(port).saveCount < 255) {
+            PLAYER_DATA(port).saveCount++;
         }
     case 6:
         ((SessionView *)SESSION_DATA)->saves[port].playTime = PLAYER_DATA(port).playTime;
@@ -565,7 +565,7 @@ u8 OPEN_checkSaveIsCurrent(s32 player, s32 port, s32 slot) {
         scanMemoryCardFiles(port);
         OPEN_readSavePreview(port, slot);
         if (OPEN_MEMCARD.empty[port][slot] == 0) {
-            if ((u16)((PlayerProfile *)PLAYER_PROFILES)[player].unk10 != save->unk10) {
+            if ((u16)((PlayerProfile *)PLAYER_PROFILES)[player].profileId != save->unk10) {
                 return 0;
             }
             return 3;

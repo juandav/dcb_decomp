@@ -657,12 +657,12 @@ s32 storeSavedDeck(s32 player, PlayerDeck *src, s32 slot) {
     deck = &PLAYER_DATA(player).savedDecks[slot];
     *deck = *src;
     deck->inUse = 1;
-    deck->unk108[0]++;
-    if (deck->unk108[1] >= 10000) {
-        deck->unk108[1] = 9999;
+    deck->saveCount++;
+    if (deck->wins >= 10000) {
+        deck->wins = 9999;
     }
-    if (deck->unk108[2] >= 10000) {
-        deck->unk108[2] = 9999;
+    if (deck->losses >= 10000) {
+        deck->losses = 9999;
     }
     for (i = 0; i < 30; i++) {
         switch (deck->cards[i].type) {

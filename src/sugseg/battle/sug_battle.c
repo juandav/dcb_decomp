@@ -86,9 +86,9 @@ void SUG_runCameraOrbit(s32 frames, s32 resetCamera) {
     if (resetCamera) {
         camera = (Graphics *)&GRAPHICS;
         *(s32 *)&camera->pad5A[0xE] = 0x9C4000;
-        camera->unk90 = 4000;
+        camera->targetDistance = 4000;
         camera->snapCamera = 1;
-        camera->unk8E = 400;
+        camera->targetPitch = 400;
         *(s32 *)&camera->pad5A[0x16] = 0x190000;
     }
     D_80079584 = -1;

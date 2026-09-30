@@ -806,7 +806,7 @@ void projectCardSprite(CardSprite *sprite, s32 spriteIndex) {
     }
     PushMatrix();
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
-    CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
+    CompMatrix((MATRIX *)SCENE_3D->viewMatrix, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     SetTransMatrix(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;
@@ -857,7 +857,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     }
     PushMatrix();
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
-    CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
+    CompMatrix((MATRIX *)SCENE_3D->viewMatrix, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     SetTransMatrix(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;

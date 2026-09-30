@@ -436,8 +436,8 @@ void OPEN_stopSceneTasks(void) {
 
 void OPEN_showSceneModel(void) {
     ((Graphics *)&GRAPHICS)->snapCamera = 0;
-    ((Graphics *)&GRAPHICS)->unk90 = 3000;
-    ((Graphics *)&GRAPHICS)->unk92 = -((Model2220 *)SCENE_3D->models[0])->bonepos[0][1] * 3;
+    ((Graphics *)&GRAPHICS)->targetDistance = 3000;
+    ((Graphics *)&GRAPHICS)->targetHeight = -((Model2220 *)SCENE_3D->models[0])->bonepos[0][1] * 3;
     SCENE_3D->modelState[0] = 1;
     applyAnimationFirstFrame(0, 0);
     startModelAnimation(0, 0, -2, 0);
@@ -666,12 +666,12 @@ void OPEN_runUserRegistration(s32 parentTask) {
             OPEN_INTRO_TEXT.waitInput = 1;
             switch (dialog.choice) {
             case 2:
-                PLAYER_DATA(0).unk20_0 = 1;
+                PLAYER_DATA(0).monoSound = 1;
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 SsSetMono();
                 break;
             case 1:
-                PLAYER_DATA(0).unk20_0 = 0;
+                PLAYER_DATA(0).monoSound = 0;
                 SsSetStereo();
                 OPEN_INTRO_TEXT.page = OPEN_INTRO_PAGES[OPEN_INTRO_TEXT.page].next;
                 break;

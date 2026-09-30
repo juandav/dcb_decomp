@@ -123,8 +123,8 @@ void KAW_loadMatchGraphics(s32 isVersus, s32 match, s32 task) {
     } else {
         width1 = strlen(PLAYER(1)->name) * 16;
     }
-    *(s16 *)PLAYER(0)->unk118 = width0;
-    *(s16 *)PLAYER(1)->unk118 = width1;
+    PLAYER(0)->nameWidth = width0;
+    PLAYER(1)->nameWidth = width1;
     KAW_VS_PANEL_POS[0][0] = 100;
     KAW_VS_PANEL_POS[0][1] = 0xF1;
     KAW_VS_PANEL_POS[0][2] = 0xB8;
@@ -179,7 +179,7 @@ void KAW_drawDeckList(ListWindow *w) {
             y++;
             deck = KAW_MATCH_SCREEN->deckIds[player][i];
             if (deck < 3) {
-                strcpy(buf, (char *)PLAYER_DATA(player).savedDecks[deck].unk1);
+                strcpy(buf, (char *)PLAYER_DATA(player).savedDecks[deck].name);
                 strcat(buf, " Deck");
                 drawText(x + 2, y, (s32)buf, 7, z);
             } else {
@@ -193,7 +193,7 @@ void KAW_drawDeckList(ListWindow *w) {
         for (i = 0; i < 3; i++) {
             drawIcon(x, y + i * 14, 0, i + 7, z);
             if (PLAYER_DATA(player).savedDecks[i].inUse) {
-                strcpy(buf, (char *)PLAYER_DATA(player).savedDecks[i].unk1);
+                strcpy(buf, (char *)PLAYER_DATA(player).savedDecks[i].name);
                 strcat(buf, " Deck");
             } else {
                 strcpy(buf, "Unused Deck");
@@ -353,11 +353,11 @@ void KAW_drawDeckInfo(ListWindow *w) {
     KAW_drawDeckChart(x, y, player, z);
     deck = KAW_MATCH_SCREEN->deckIds[player][KAW_DECK_LIST_MENUS[player].row];
     if (deck < 3) {
-        wins = ((PlayerProfile *)PLAYER_PROFILES)[player].savedDecks[deck].unk108[1];
-        losses = ((PlayerProfile *)PLAYER_PROFILES)[player].savedDecks[deck].unk108[2];
+        wins = ((PlayerProfile *)PLAYER_PROFILES)[player].savedDecks[deck].wins;
+        losses = ((PlayerProfile *)PLAYER_PROFILES)[player].savedDecks[deck].losses;
     } else {
         wins = ((PlayerProfile *)PLAYER_PROFILES)[player].opponentDeckFlags[deck - 3] & 0x3FFF;
-        losses = ((PlayerProfile *)PLAYER_PROFILES)[player].unkBFE[deck - 3];
+        losses = ((PlayerProfile *)PLAYER_PROFILES)[player].opponentDeckLosses[deck - 3];
     }
     sprintf(buf, "*s0%3d *c6Wins *c7%3d *c6Losses", wins, losses);
     drawText(x + 6, y + 0x3E, (s32)buf, 7, z);
@@ -409,7 +409,7 @@ void KAW_renderDeckSelect(void) {
     }
 }
 
-#define DECK_CHOICE(p) (*(s8 *)&PLAYER_DATA(p).unk30[4])
+#define DECK_CHOICE(p) (PLAYER_DATA(p).deckChoice)
 
 void KAW_runDeckSelect(s32 isVersus, s32 match) {
     s32 i;
@@ -682,7 +682,7 @@ void KAW_renderVersusScreen(void) {
         KAW_MATCH_SCREEN->pulse = i + 0x80;
     }
     i = 0;
-    KAW_drawSprite(KAW_VS_NAME_POS[0][0], KAW_VS_NAME_POS[0][1], 0x2C0, 0x1C0, *(s16 *)PLAYER(i)->unk118, 0x20, 0x2F0, 0x1D7, 0, 1, 0, 0x80, 1);
+    KAW_drawSprite(KAW_VS_NAME_POS[0][0], KAW_VS_NAME_POS[0][1], 0x2C0, 0x1C0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D7, 0, 1, 0, 0x80, 1);
     KAW_drawSprite(KAW_VS_PANEL_POS[0][0] - 8, KAW_VS_PANEL_POS[0][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
     KAW_drawSprite(KAW_VS_PANEL_POS[0][0] + 0x78, KAW_VS_PANEL_POS[0][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
     KAW_drawSprite(KAW_VS_PANEL_POS[0][0] - 0x20, KAW_VS_PANEL_POS[0][1], 0x180, 0, 0x20, 0x70, 0x180, 0xFB, 0, 0, 0, 0x80, 3);
@@ -691,7 +691,7 @@ void KAW_renderVersusScreen(void) {
     KAW_drawBattleRecord(KAW_VS_OUTER_LINE_POS[0][0], KAW_VS_OUTER_LINE_POS[0][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
     KAW_drawSprite(KAW_VS_PANEL_POS[0][0], KAW_VS_PANEL_POS[0][1], 0x140, 0, 0x80, 0x70, 0x140, 0xFE, 1, 0, 0, 0x80, 4);
     i = 1;
-    KAW_drawSprite(KAW_VS_NAME_POS[1][0], KAW_VS_NAME_POS[1][1], 0x2C0, 0x1E0, *(s16 *)PLAYER(i)->unk118, 0x20, 0x2F0, 0x1D8, 0, 1, 0, 0x80, 1);
+    KAW_drawSprite(KAW_VS_NAME_POS[1][0], KAW_VS_NAME_POS[1][1], 0x2C0, 0x1E0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D8, 0, 1, 0, 0x80, 1);
     KAW_drawSprite(KAW_VS_PANEL_POS[1][0] - 6, KAW_VS_PANEL_POS[1][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
     KAW_drawSprite(KAW_VS_PANEL_POS[1][0] + 0x7A, KAW_VS_PANEL_POS[1][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
     KAW_drawSprite(KAW_VS_PANEL_POS[1][0] - 8, KAW_VS_PANEL_POS[1][1], 0x18A, 0, 8, 0x70, 0x180, 0xFC, 0, 0, 0, 0x80, 3);
@@ -735,8 +735,8 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     spawnTask(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
     if (mode != 0) {
         k = getBaseDeckId(deckId);
-        ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[k];
-        ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->unk888[k];
+        ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->comLosses[k];
+        ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->comWins[k];
     }
     for (i = 0; i < 2; i++) {
         if (mode != 0) {

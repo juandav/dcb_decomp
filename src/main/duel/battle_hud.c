@@ -246,7 +246,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             break;
         }
         if (DUEL->cursorSlot == 4) {
-            if (DUEL->unk81D == 4) {
+            if (DUEL->cursorMode == 4) {
                 sprintf(deckText, "*h-1All-or-Nothing\nGamble!\nCards left in the\nOnline Deck are %d.",
                         countOnlineDeckCards(DUEL->cursorPlayer));
             } else {
@@ -258,7 +258,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         for (i = 0; i < 10; i++) {
             lineColors[i] = shades[0];
         }
-        switch (DUEL->unk81D) {
+        switch (DUEL->cursorMode) {
         case 1:
             lineColors[0] = shades[1];
             lineColors[1] = shades[1];
@@ -300,9 +300,9 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             drawTextColored(panel->x + 0x7A, panel->y + 0x17, (s32)text, (s32 *)lineColors[0], 7, z);
             sprintf(text, "*s0%2d", card->dpBonus);
             drawTextColored(panel->x + 0x7C, panel->y + 0x2D, (s32)text, (s32 *)lineColors[1], 7, z);
-            if (DUEL->unk81D == 1 || DUEL->unk81D == 3) {
+            if (DUEL->cursorMode == 1 || DUEL->cursorMode == 3) {
                 if (DUEL->cursorSlot < 4 && DUEL->cursorPlayer == DUEL->turnPlayer) {
-                    if (DUEL->unk81D == 1) {
+                    if (DUEL->cursorMode == 1) {
                         powerShift = card->attr & 0xF;
                     } else {
                         powerShift = PLAYER(player)->statPenalty;

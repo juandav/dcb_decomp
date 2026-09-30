@@ -35,9 +35,9 @@ void SAI_saveScriptFlags(void) {
     for (i = 0; i < 12; i++) {
         for (bit = 0; bit < 32; bit++) {
             if (SAI_SCRIPT[0]->regs[flag++] != 0) {
-                ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] |= 1 << bit;
+                ((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[i] |= 1 << bit;
             } else {
-                ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] &= ~(1 << bit);
+                ((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[i] &= ~(1 << bit);
             }
             if (flag >= 0x16B) {
                 break;
@@ -45,7 +45,7 @@ void SAI_saveScriptFlags(void) {
         }
     }
     for (flag = 0x16B, bit = 0; bit < 9 && flag < 0x175; bit++, flag++) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk242C[bit] = SAI_SCRIPT[0]->regs[flag];
+        ((PlayerProfile *)PLAYER_PROFILES)->areaScriptValues[bit] = SAI_SCRIPT[0]->regs[flag];
     }
 }
 
@@ -57,11 +57,11 @@ void SAI_loadScriptFlags(void) {
     flag = 12;
     for (i = 0; i < 12; i++) {
         for (bit = 0; bit < 32 && flag < 0x16B; bit++, flag++) {
-            SAI_SCRIPT[0]->regs[flag] = ((u32)((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] >> bit) & 1;
+            SAI_SCRIPT[0]->regs[flag] = ((u32)((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[i] >> bit) & 1;
         }
     }
     for (flag = 0x16B, bit = 0; bit < 9 && flag < 0x174; bit++, flag++) {
-        SAI_SCRIPT[0]->regs[flag] = ((PlayerProfile *)PLAYER_PROFILES)->unk242C[bit];
+        SAI_SCRIPT[0]->regs[flag] = ((PlayerProfile *)PLAYER_PROFILES)->areaScriptValues[bit];
     }
 }
 

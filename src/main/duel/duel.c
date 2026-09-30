@@ -102,7 +102,7 @@ void runDuelTurnLoop(void) {
             PLAYER(1)->attackChoice = 3;
             DUEL->playedFromSlot = -1;
             DUEL->dpFromSlot = -1;
-            DUEL->unk81D = -1;
+            DUEL->cursorMode = -1;
             DUEL->step++;
             break;
         case 2:
@@ -1046,10 +1046,10 @@ void runDuelTurnLoop(void) {
                 ((Graphics *)&GRAPHICS)->posX = 0;
                 ((Graphics *)&GRAPHICS)->posY = 0;
                 ((Graphics *)&GRAPHICS)->posZ = 0;
-                ((Graphics *)&GRAPHICS)->unk8E = 0;
-                ((Graphics *)&GRAPHICS)->unk90 = 0x1C0;
-                ((Graphics *)&GRAPHICS)->unk92 = 0;
-                ((Graphics *)&GRAPHICS)->unk94 = 0;
+                ((Graphics *)&GRAPHICS)->targetPitch = 0;
+                ((Graphics *)&GRAPHICS)->targetDistance = 0x1C0;
+                ((Graphics *)&GRAPHICS)->targetHeight = 0;
+                ((Graphics *)&GRAPHICS)->targetYaw = 0;
                 ((Graphics *)&GRAPHICS)->targetModel = -1;
                 ((Graphics *)&GRAPHICS)->snapCamera = 1;
                 waitFrames(2);

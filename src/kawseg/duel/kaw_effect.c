@@ -623,7 +623,7 @@ EffectTable *KAW_createEffectScript(void *data) {
     fx.fadeMode = 0;
     fx.speed = 0;
     fx.hitRadius = 0x80;
-    *(GsCOORDINATE2 **)((u8 *)&fx + 0x98) = (GsCOORDINATE2 *)SCENE_3D->unk78;
+    *(GsCOORDINATE2 **)((u8 *)&fx + 0x98) = (GsCOORDINATE2 *)SCENE_3D->viewMatrix;
     fx.mode = 0;
     KAW_EFFECT_ROOT = fx;
     initEffectObject(&KAW_EFFECT_ROOT);

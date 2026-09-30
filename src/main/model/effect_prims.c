@@ -288,7 +288,7 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     fx->p = particle = allocTaskHeapBlock(count * sizeof(Particle));
     spinAngle = 0;
     if (template == 0) {
-        fx->parent = SCENE_3D->unk78;
+        fx->parent = SCENE_3D->viewMatrix;
         fx->own = 0;
     } else {
         fx->base = *template;

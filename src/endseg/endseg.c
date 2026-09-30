@@ -140,11 +140,11 @@ s32 func_801DE80C(void) {
     }
     for (i = 0; i < 0xBF; i++) {
         specialty = ((DigimonCardData *)DIGIMON_CARDS)[i].attr >> 4;
-        D_801E0CEC[specialty] += ((PlayerProfile *)PLAYER_PROFILES)->unk11B6[i];
-        D_801E0D0C[specialty] += ((PlayerProfile *)PLAYER_PROFILES)->unk1334[i];
+        D_801E0CEC[specialty] += ((PlayerProfile *)PLAYER_PROFILES)->cardWins[i];
+        D_801E0D0C[specialty] += ((PlayerProfile *)PLAYER_PROFILES)->cardLosses[i];
         D_801E0D2C[specialty] += getOwnedCardCount(0, i);
-        D_801E0CEC[5] += ((PlayerProfile *)PLAYER_PROFILES)->unk11B6[i];
-        D_801E0D0C[5] += ((PlayerProfile *)PLAYER_PROFILES)->unk1334[i];
+        D_801E0CEC[5] += ((PlayerProfile *)PLAYER_PROFILES)->cardWins[i];
+        D_801E0D0C[5] += ((PlayerProfile *)PLAYER_PROFILES)->cardLosses[i];
         D_801E0D2C[5] += getOwnedCardCount(0, i);
     }
     for (k = 0; k < 4; k++) {
@@ -355,7 +355,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
     }
     comCount = 0;
     for (i = 0; i < 0x8E; i++) {
-        if (PROFILE->unk888[i] != 0) {
+        if (PROFILE->comWins[i] != 0) {
             comList[comCount] = i;
             comCount++;
         }
@@ -455,10 +455,10 @@ void func_801DF47C(s32 arg0, s32 arg1) {
                         break;
                     default:
                         if (PROFILE->cardCollection[cardId] & 0x40) {
-                            sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->unk11B6[cardId], PROFILE->unk1334[cardId]);
+                            sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->cardWins[cardId], PROFILE->cardLosses[cardId]);
                             drawText(0xD8, scroll + base + cardId * 80, (s32)buf, 7, 0);
                             for (i = 0; i < 3; i++) {
-                                sprintf(buf, "Max *b%d Attack Power *s0%5d", i, (u16)PROFILE->unkD3C[cardId][i]);
+                                sprintf(buf, "Max *b%d Attack Power *s0%5d", i, (u16)PROFILE->maxAttackPowers[cardId][i]);
                                 drawText(0x42, scroll + base + cardId * 80 + 14 + i * 14, (s32)buf, 7, 0);
                             }
                         }
@@ -495,7 +495,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
                     idx = deckList[i];
                     sprintf(buf, "%s Deck", decks + idx * 0x6E + 0x3C);
                     drawText(0x3C, scroll + base + i * 14, (s32)buf, 7, 0);
-                    sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->opponentDeckFlags[idx] & 0x3FFF, PROFILE->unkBFE[idx]);
+                    sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->opponentDeckFlags[idx] & 0x3FFF, PROFILE->opponentDeckLosses[idx]);
                     drawText(0xC2, scroll + base + i * 14, (s32)buf, 7, 0);
                 }
             }
@@ -511,7 +511,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
                 if (scroll + base + i * 14 <= 240) {
                     idx = comList[i];
                     drawText(0x3C, scroll + base + i * 14, (s32)(decks + idx * 0x6E + 0x4F), 7, 0);
-                    sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->unk888[idx], PROFILE->unk9A4[idx]);
+                    sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->comWins[idx], PROFILE->comLosses[idx]);
                     drawText(0xC2, scroll + base + i * 14, (s32)buf, 7, 0);
                 }
             }
@@ -622,7 +622,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
         }
         if (scroll + base + 0x28 > -0x50 && scroll + base + 0x28 < 0xF0) {
             drawText(0x3C, scroll + base + 0x28, (s32)"Number of Saves", 6, 0);
-            sprintf(buf, "*s0%3d*s1 *c6Times", PROFILE->unkD);
+            sprintf(buf, "*s0%3d*s1 *c6Times", PROFILE->saveCount);
             drawText(0xB6, scroll + base + 0x28, (s32)buf, 7, 0);
         }
 

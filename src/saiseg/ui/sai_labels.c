@@ -69,8 +69,8 @@ void SAI_createAreaName(void) {
     SAI_SPRITES[22]->pos.vx = 0x34;
     SAI_SPRITES[22]->pos.vy = -0xBB;
     SAI_setSpriteDepth(SAI_SPRITES[22], 0x21);
-    rect.x = ((PlayerProfile *)PLAYER_PROFILES)->unkE / 6 * 24 + 0x340;
-    rect.y = ((PlayerProfile *)PLAYER_PROFILES)->unkE % 6 * 20;
+    rect.x = ((PlayerProfile *)PLAYER_PROFILES)->areaId / 6 * 24 + 0x340;
+    rect.y = ((PlayerProfile *)PLAYER_PROFILES)->areaId % 6 * 20;
     rect.w = 0x60;
     rect.h = 0x14;
     SAI_setSpriteImage4Bit(SAI_SPRITES[22], &rect);

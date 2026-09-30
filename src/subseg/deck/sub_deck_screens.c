@@ -606,7 +606,7 @@ void SUB_drawCardData(UiWindow *window) {
                 for (i = 0; i < 3; i++) {
                     sprintf(buf, "b%d", i);
                     drawIconText(x + 0x4B, y + (i + 3) * 12, 7, 1, z, (s32)buf);
-                    sprintf(buf, "*s0%4d/%4d", (u16)PLAYER_DATA(SUB_EDITOR.player).unkD3C[*(s16 *)SUB_COLLECTION_STATS.selectedCard][i], ((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->attack[i].power);
+                    sprintf(buf, "*s0%4d/%4d", (u16)PLAYER_DATA(SUB_EDITOR.player).maxAttackPowers[*(s16 *)SUB_COLLECTION_STATS.selectedCard][i], ((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->attack[i].power);
                     drawText(x + 0x6F, y + (i + 3) * 12, (s32)buf, 7, z);
                 }
                 drawSmallText(x + 0x57, y + 0x48, (s32)CROSS_EFFECT_SHORT_NAMES[((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->crossEffect], 7, z);
@@ -619,10 +619,10 @@ void SUB_drawCardData(UiWindow *window) {
                 drawIcon(x + 0x81, y + 0x18, 0, 0x19, z);
                 sprintf(buf, SUB_FMT_2_DIGITS, ((DigimonCardData *)SUB_COLLECTION_STATS.selectedCard)->dpBonus);
                 drawText(x + 0x93, y + 0x18, (s32)buf, 7, z);
-                sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).unk11B6[*(s16 *)SUB_COLLECTION_STATS.selectedCard]);
+                sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).cardWins[*(s16 *)SUB_COLLECTION_STATS.selectedCard]);
                 drawText(x + 0xBD, y + 12, (s32)buf, 7, z);
                 drawText(x + 0xD5, y + 12, (s32)SUB_STR_WINS, 6, z);
-                sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).unk1334[*(s16 *)SUB_COLLECTION_STATS.selectedCard]);
+                sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).cardLosses[*(s16 *)SUB_COLLECTION_STATS.selectedCard]);
                 drawText(x + 0xEE, y + 12, (s32)buf, 7, z);
                 drawText(x + 0x106, y + 12, (s32)SUB_STR_LOSSES, 6, z);
                 drawText(x + 0xB9, y + 0x18, (s32)SUB_STR_SUPPORT_EFFECT, 6, z);
@@ -723,19 +723,19 @@ void SUB_drawDeckSummary(UiWindow *window) {
         palette = 8;
     }
     deck = &PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.current];
-    sprintf(buf, "%s Deck", deck->unk1);
+    sprintf(buf, "%s Deck", deck->name);
     drawText(x, y, (s32)buf, palette, z);
-    battles = deck->unk108[1] + deck->unk108[2];
+    battles = deck->wins + deck->losses;
     if (battles >= 1000) {
         battles = 999;
     }
     sprintf(buf, SUB_FMT_3_DIGITS, battles);
     drawText(x + 0x62, y, (s32)buf, palette, z);
     drawTinyText(x + 0x76, y + 7, (s32)"Battles", palette, z);
-    sprintf(buf, SUB_FMT_3_DIGITS, deck->unk108[1]);
+    sprintf(buf, SUB_FMT_3_DIGITS, deck->wins);
     drawText(x + 0x95, y, (s32)buf, palette, z);
     drawTinyText(x + 0xA9, y + 7, (s32)SUB_STR_WINS, palette, z);
-    sprintf(buf, SUB_FMT_3_DIGITS, deck->unk108[2]);
+    sprintf(buf, SUB_FMT_3_DIGITS, deck->losses);
     drawText(x + 0xBD, y, (s32)buf, palette, z);
     drawTinyText(x + 0xD1, y + 7, (s32)SUB_STR_LOSSES, palette, z);
     y += 13;
@@ -939,7 +939,7 @@ void SUB_runDeckMenu(void) {
                 if (result != 1) {
                     break;
                 }
-                PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk108[1] = PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk108[2] = 0;
+                PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].wins = PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].losses = 0;
                 SUB_DECK_IS_NEW = result;
                 SUB_AUTO_DECK_ENABLED = 0;
                 created = 1;
@@ -986,7 +986,7 @@ void SUB_runDeckMenu(void) {
                     SUB_DECK_MENU.count--;
                     for (i = 0; i < 3; i++) {
                         if (PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].inUse == 0) {
-                            PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].unk108[1] = PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].unk108[2] = 0;
+                            PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].wins = PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].losses = 0;
                         }
                     }
                 }
@@ -1016,14 +1016,14 @@ void SUB_runDeckMenu(void) {
         break;
     case 2:
         if (created == 1) {
-            sprintf(PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, "NEW ");
-            spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
+            sprintf(PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, "NEW ");
+            spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, SUB_EDITOR.player, 0);
         } else {
             spawnTask(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT], 0, 0, 0);
         }
         break;
     case 3:
-        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].unk1, SUB_EDITOR_PLAYER, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].name, SUB_EDITOR_PLAYER, 0);
         break;
     }
 }
@@ -1587,10 +1587,10 @@ void SUB_drawSlotCardInfo(UiWindow *window) {
             drawIcon(x + 0x27, y, 0, (((DigimonCardData *)SUB_CARDS_BY_ID[cardId])->attr & 0xF) + 0x10, z);
             drawText(x + 0x1B, y, (s32)SUB_STR_LV, 7, z);
             drawText(x + 0x39, y, (s32)SUB_STR_TYPE, 7, z);
-            sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).unk11B6[*(s16 *)SUB_CARDS_BY_ID[cardId]]);
+            sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).cardWins[*(s16 *)SUB_CARDS_BY_ID[cardId]]);
             drawText(x + 0x1B, y + 12, (s32)buf, 7, z);
             drawText(x + 0x33, y + 12, (s32)SUB_STR_WINS, 6, z);
-            sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).unk1334[*(s16 *)SUB_CARDS_BY_ID[cardId]]);
+            sprintf(buf, SUB_FMT_3_DIGITS, PLAYER_DATA(SUB_EDITOR.player).cardLosses[*(s16 *)SUB_CARDS_BY_ID[cardId]]);
             drawText(x + 0x53, y + 12, (s32)buf, 7, z);
             drawText(x + 0x6B, y + 12, (s32)SUB_STR_LOSSES, 6, z);
             drawIcon(x + 0x4B, y + 0x18, 0, 0x1A, z);
@@ -1826,7 +1826,7 @@ void SUB_drawDeckEditTitle(UiWindow *window) {
     s32 width;
 
     if (SUB_DECK_EDIT.mode == 1) {
-        sprintf(buf, "%s Deck", SUB_EDITED_DECK->unk1);
+        sprintf(buf, "%s Deck", SUB_EDITED_DECK->name);
         width = measureText(buf) - 0xA0;
         drawText(x - width, y + 1, (s32)buf, 7, z);
     } else {

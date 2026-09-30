@@ -60,7 +60,7 @@ void OPEN_giveStarterDeck(s32 deck) {
             addCardToCollection(0, card, 1);
         }
     }
-    strcpy((char *)PLAYER_DATA(0).savedDecks[0].unk1, decks->starters[deck].name);
+    strcpy((char *)PLAYER_DATA(0).savedDecks[0].name, decks->starters[deck].name);
     storeSavedDeck(0, &PLAYER_DATA(0).savedDecks[0], 0);
     PLAYER_DATA(0).opponentDeckFlags[deck + 0x8E] |= 0x8000;
     for (i = 0; i < 5; i++) {

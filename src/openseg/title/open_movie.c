@@ -402,7 +402,7 @@ s32 OPEN_playMovie(s32 index) {
     waitFrames(0x10);
     OPEN_clearScreen(0, 0, 0);
     resetDisplay(320, 240, 1);
-    ((Graphics *)&GRAPHICS)->unk48 = -30;
+    ((Graphics *)&GRAPHICS)->displayStartCounter = -30;
     ((Graphics *)&GRAPHICS)->vblanksPerFrame = 2;
     spawnTask(0x1F, 0, 0, 0x1000, OPEN_runMovieRenderLoop);
     waitFrames(0x1E);
@@ -434,7 +434,7 @@ void OPEN_runMovieRenderLoop(void) {
     gfx->frameCallbacks[0] = 0;
     VBLANK_COUNTER = 0;
     SetDispMask(0);
-    for (; gfx->unk48 <= 0; gfx->unk48++) {
+    for (; gfx->displayStartCounter <= 0; gfx->displayStartCounter++) {
         pollPads();
         waitFrames(1);
         gfx->vblanksPerFrame = VBLANK_COUNTER;

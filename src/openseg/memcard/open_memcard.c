@@ -329,8 +329,8 @@ void OPEN_resetMemcardScreen(s32 port) {
         OPEN_MEMCARD.loading = 0;
         OPEN_MEMCARD.state = 0x11;
         OPEN_MEMCARD.unk542 = 2;
-        PLAYER_DATA(0).unkE = 0;
-        PLAYER_DATA(0).unkF = 1;
+        PLAYER_DATA(0).areaId = 0;
+        PLAYER_DATA(0).resumeInArea = 1;
         break;
     case 7:
         OPEN_MEMCARD.loading = 1;

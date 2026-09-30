@@ -296,8 +296,8 @@ void EVO_placeFusionModels(void) {
 
     camera = (Graphics *)&GRAPHICS;
     camera->snapCamera = 1;
-    camera->unk90 = 3000;
-    camera->unk92 = -((EvoModel *)SCENE_3D->models[0])->pose->y * 3;
+    camera->targetDistance = 3000;
+    camera->targetHeight = -((EvoModel *)SCENE_3D->models[0])->pose->y * 3;
     camera->targetModel = 0;
     SCENE_3D->modelState[0] = 1;
     SCENE_3D->modelState[1] = -1;
@@ -584,27 +584,27 @@ void EVO_initView(s32 projection) {
 }
 
 void EVO_initLights(void) {
-    ((FlatLight *)SCENE_3D->unkE4)[0].vx = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[0].vy = -100;
-    ((FlatLight *)SCENE_3D->unkE4)[0].vz = 100;
-    ((FlatLight *)SCENE_3D->unkE4)[0].r = 0xFF;
-    ((FlatLight *)SCENE_3D->unkE4)[0].g = 0xFF;
-    ((FlatLight *)SCENE_3D->unkE4)[0].b = 0xFF;
-    GsSetFlatLight(0, &((FlatLight *)SCENE_3D->unkE4)[0]);
-    ((FlatLight *)SCENE_3D->unkE4)[1].vx = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[1].vy = 100;
-    ((FlatLight *)SCENE_3D->unkE4)[1].vz = 100;
-    ((FlatLight *)SCENE_3D->unkE4)[1].r = 0x80;
-    ((FlatLight *)SCENE_3D->unkE4)[1].g = 0x80;
-    ((FlatLight *)SCENE_3D->unkE4)[1].b = 0x80;
-    GsSetFlatLight(1, &((FlatLight *)SCENE_3D->unkE4)[1]);
-    ((FlatLight *)SCENE_3D->unkE4)[2].vx = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[2].vy = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[2].vz = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[2].r = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[2].g = 0;
-    ((FlatLight *)SCENE_3D->unkE4)[2].b = 0;
-    GsSetFlatLight(2, &((FlatLight *)SCENE_3D->unkE4)[2]);
+    ((FlatLight *)SCENE_3D->flatLights)[0].vx = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[0].vy = -100;
+    ((FlatLight *)SCENE_3D->flatLights)[0].vz = 100;
+    ((FlatLight *)SCENE_3D->flatLights)[0].r = 0xFF;
+    ((FlatLight *)SCENE_3D->flatLights)[0].g = 0xFF;
+    ((FlatLight *)SCENE_3D->flatLights)[0].b = 0xFF;
+    GsSetFlatLight(0, &((FlatLight *)SCENE_3D->flatLights)[0]);
+    ((FlatLight *)SCENE_3D->flatLights)[1].vx = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[1].vy = 100;
+    ((FlatLight *)SCENE_3D->flatLights)[1].vz = 100;
+    ((FlatLight *)SCENE_3D->flatLights)[1].r = 0x80;
+    ((FlatLight *)SCENE_3D->flatLights)[1].g = 0x80;
+    ((FlatLight *)SCENE_3D->flatLights)[1].b = 0x80;
+    GsSetFlatLight(1, &((FlatLight *)SCENE_3D->flatLights)[1]);
+    ((FlatLight *)SCENE_3D->flatLights)[2].vx = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[2].vy = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[2].vz = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[2].r = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[2].g = 0;
+    ((FlatLight *)SCENE_3D->flatLights)[2].b = 0;
+    GsSetFlatLight(2, &((FlatLight *)SCENE_3D->flatLights)[2]);
     GsSetAmbient(0x40, 0x40, 0x40);
     SetBackColor(0x30, 0x30, 0x40);
     GsSetLightMode(0);

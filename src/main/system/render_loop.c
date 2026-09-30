@@ -43,12 +43,12 @@ void initGraphics(void) {
     for (i = 0; i < 0x100; i++) {
         *scratchpad++ = 0;
     }
-    ((Graphics *)&GRAPHICS)->unk0[0] = 0;
-    ((Graphics *)&GRAPHICS)->unk0[1] = 0;
-    ((Graphics *)&GRAPHICS)->unk0[2] = 0x100;
-    ((Graphics *)&GRAPHICS)->unk0[3] = 0x100;
+    ((Graphics *)&GRAPHICS)->texWindow[0] = 0;
+    ((Graphics *)&GRAPHICS)->texWindow[1] = 0;
+    ((Graphics *)&GRAPHICS)->texWindow[2] = 0x100;
+    ((Graphics *)&GRAPHICS)->texWindow[3] = 0x100;
     ((Graphics *)&GRAPHICS)->vblanksPerFrame = 2;
-    ((Graphics *)&GRAPHICS)->unk48 = 0;
+    ((Graphics *)&GRAPHICS)->displayStartCounter = 0;
     FRAME_INTERVAL = 1;
     initScreenCopyEffect();
 }
@@ -61,7 +61,7 @@ void runRenderLoop(void) {
     gfx = (Graphics *)&GRAPHICS;
     gfx->frameCallbacks[0] = 0;
     VBLANK_COUNTER = 0;
-    for (; gfx->unk48 <= 0; gfx->unk48++) {
+    for (; gfx->displayStartCounter <= 0; gfx->displayStartCounter++) {
         pollPads();
         waitFrames(1);
         gfx->vblanksPerFrame = VBLANK_COUNTER;
@@ -77,7 +77,7 @@ void runRenderLoop(void) {
     for (;;) {
         framesToWait = FRAME_INTERVAL;
         pollPads();
-        while (framesToWait >= 2 || gfx->unk48 == 0) {
+        while (framesToWait >= 2 || gfx->displayStartCounter == 0) {
             yieldTask();
             framesToWait--;
         }
