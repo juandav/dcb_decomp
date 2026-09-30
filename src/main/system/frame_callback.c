@@ -9,6 +9,8 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
+/* FRAME_CALLBACKS is a 0-terminated list of functions called every frame;
+   addFrameCallback appends one unless it's already in the list */
 void addFrameCallback(s32 callback) {
     s32 *slot;
     s32 entry;
@@ -16,14 +18,14 @@ void addFrameCallback(s32 callback) {
     slot = &FRAME_CALLBACKS;
     if (callback != 0) {
 loop_1:
-        entry = (*(s32 *)((s8 *)slot + 0));
+        entry = slot[0];
         if (entry != callback) {
             if (entry != 0) {
                 slot += 1;
                 goto loop_1;
             }
-            (*(s32 *)((s8 *)slot + 0)) = callback;
-            (*(s32 *)((s8 *)slot + 4)) = 0;
+            slot[0] = callback;
+            slot[1] = 0;
         }
     }
 }
@@ -47,6 +49,7 @@ loop:
     }
     goto loop;
 found:
+    /* move the rest of the list down over it */
     if ((*slot = slot[1]) == 0) {
         return;
     }
