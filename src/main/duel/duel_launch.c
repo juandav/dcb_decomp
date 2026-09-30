@@ -27,10 +27,10 @@ void startCpuDuel(s32 deckIndex) {
     s32 result;
 
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     deckFile = (u8 *)func_80014C08(0x7FFFFFFF);
     ((SessionData *)D_8006E054)->npcDeckFile = deckFile;
     decks = (PresetDeck *)(deckFile + 8);
@@ -60,10 +60,10 @@ void startCpuDuel(s32 deckIndex) {
 
 void startVersusDuel(void) {
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, &PATH_KAWSEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x800, loadFile, &PATH_DECK2_DEK, getCurrentTaskId());
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     ((SessionData *)D_8006E054)->npcDeckFile = (u8 *)func_80014C08(0x7FFFFFFF);
     ((SessionData *)D_8006E054)->unk1010[0x12] = 0;
     func_800149B8(0, -1, 0, 0x800, runDuel, 0, getCurrentTaskId(), 0, 0);

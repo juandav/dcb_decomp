@@ -597,7 +597,3 @@ void shuffleOfflineDeck(s32 player) {
         PLAYER(player)->shufflePasses = 0;
     }
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/duel/card_zones", PATH_KAWSEG_BIN);
-
-INCLUDE_RODATA("asm/main/nonmatchings/duel/card_zones", PATH_DECK2_DEK);

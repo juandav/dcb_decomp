@@ -978,8 +978,6 @@ extern u8 *D_801D833C;
 extern MsgBar DUEL_MSG_BAR;
 extern u8 D_801D83D1;
 void runSceneCameraTask(s32 preset);
-extern s32 PATH_KAWSEG_BIN;
-extern s32 PATH_DECK2_DEK;
 
 s32 VSync(s32);
 void SetSemiTrans(void *, s32);
