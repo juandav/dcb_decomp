@@ -26,6 +26,8 @@ typedef struct {
     /* 0x30 */ u32 tpage;
     /* 0x34 */ u32 clut;
     /* 0x38 */ u32 inlineTexture;
+    /* 0x3C */ MATRIX screenMatrix;
+    /* 0x5C */ MATRIX envMatrix;
 } SortWork;
 
 extern ModelTextureSlot MODEL_TEXTURE_SLOTS[];

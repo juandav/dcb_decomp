@@ -20,6 +20,53 @@
 #define gte_avsz3() __asm__ volatile("avsz3")
 #define gte_avsz4() __asm__ volatile("avsz4")
 
+/* Write general register `v` to GTE data register `reg` */
+#define gte_mtc2(reg, v) __asm__ volatile("mtc2 %0, $" #reg : : "r"(v))
+
+/* Load V0-V2 from the three SVECTORs at `p` */
+#define gte_ldv3c(p)                                                                                                 \
+    __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 8(%0); lwc2 $3, 12(%0); lwc2 $4, 16(%0); lwc2 $5, 20(%0)" \
+                     :                                                                                               \
+                     : "r"(p))
+
+/* Load V0 from two registers: vx/vy packed in `xy`, vz in `z` */
+#define gte_ldv0_reg(xy, z) __asm__ volatile("mtc2 %0, $0; mtc2 %1, $1" : : "r"(xy), "r"(z))
+
+/*
+ * Software pipelining for a GTE loop: read the next three SVECTORs at `p`
+ * into $8-$13 while the GTE works, then hand them to V0-V2.
+ */
+#define gte_prefetchv3c(p)                                                                                           \
+    __asm__ volatile("lw $8, 0(%0); lw $9, 4(%0); lw $10, 8(%0); lw $11, 12(%0); lw $12, 16(%0); lw $13, 20(%0)"     \
+                     :                                                                                               \
+                     : "r"(p)                                                                                        \
+                     : "$8", "$9", "$10", "$11", "$12", "$13")
+#define gte_ldv3_prefetched()                                                                                        \
+    __asm__ volatile("mtc2 $8, $0; mtc2 $9, $1; mtc2 $10, $2; mtc2 $11, $3; mtc2 $12, $4; mtc2 $13, $5"               \
+                     :                                                                                               \
+                     :                                                                                               \
+                     : "$8", "$9", "$10", "$11", "$12", "$13")
+
+/* GTE commands without the nops in front (the caller keeps the pipeline safe) */
+#define gte_nop() __asm__ volatile("nop")
+#define gte_rtpt() __asm__ volatile("rtpt")
+#define gte_ncct() __asm__ volatile("ncct")
+#define gte_nccs() __asm__ volatile("nccs")
+#define gte_mvmva(sf, mx, v, cv, lm) __asm__ volatile("mvmva " #sf ", " #mx ", " #v ", " #cv ", " #lm)
+
+/* The inline_c.h forms: the pointer is an operand and $12-$14 are scratch */
+#define gte_SetRotMatrix_c(r)                                                                                        \
+    __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); "      \
+                     "lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4"                                      \
+                     :                                                                                               \
+                     : "r"(r)                                                                                        \
+                     : "$12", "$13", "$14")
+#define gte_SetTransMatrix_c(r)                                                                                      \
+    __asm__ volatile("lw $12, 20(%0); lw $13, 24(%0); ctc2 $12, $5; lw $14, 28(%0); ctc2 $13, $6; ctc2 $14, $7"      \
+                     :                                                                                               \
+                     : "r"(r)                                                                                        \
+                     : "$12", "$13", "$14")
+
 /*
  * The inline_o.h forms of DMPSX 3: the pointer goes to $12 first, every
  * instruction is its own volatile asm, $12-$15 are scratch, and a GTE command

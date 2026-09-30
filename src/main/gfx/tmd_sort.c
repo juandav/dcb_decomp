@@ -12,7 +12,59 @@ ModelTextureSlot MODEL_TEXTURE_SLOTS[4] = {
     { 0x002F00C0, 0x103F00C0 },
 };
 
-INCLUDE_ASM("asm/main/nonmatchings/gfx/tmd_sort", transformAndLightVertices);
+u32 *transformAndLightVertices(u32 *vertices, u32 *out) {
+    s32 count;
+    s32 groups;
+    u32 word;
+
+    count = *vertices++;
+    gte_ldv3c(vertices);
+    vertices += 6;
+    do {
+        count -= 3;
+        gte_rtpt();
+        gte_prefetchv3c(vertices);
+        gte_swc2(12, 0, out);
+        gte_swc2(17, 4, out);
+        gte_swc2(13, 8, out);
+        gte_swc2(18, 12, out);
+        gte_swc2(14, 16, out);
+        gte_swc2(19, 20, out);
+        out += 6;
+        gte_ldv3_prefetched();
+        vertices += 6;
+    } while (count > 0);
+    vertices -= 6;
+    vertices += count * 2;
+    out += count * 2;
+    for (groups = *vertices++; groups > 0; groups--) {
+        word = *vertices++;
+        count = word & 0xFF;
+        word >>= 8;
+        if (count == 0) {
+            *out++ = word;
+        } else {
+            gte_mtc2(6, word);
+            gte_ldv3c(vertices);
+            gte_nop();
+            gte_nop();
+            do {
+                gte_ncct();
+                vertices += 6;
+                count -= 3;
+                gte_prefetchv3c(vertices);
+                gte_swc2(20, 0, out);
+                gte_swc2(21, 4, out);
+                gte_swc2(22, 8, out);
+                gte_ldv3_prefetched();
+                out += 3;
+            } while (count > 0);
+            vertices += count * 2;
+            out += count;
+        }
+    }
+    return vertices;
+}
 
 void loadTriangleToGte(u32 index0, u32 *indices, u8 *workBuf) {
     u8 *vert0;
