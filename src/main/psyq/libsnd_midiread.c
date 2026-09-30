@@ -76,4 +76,4 @@ void _SsSeqGetEof(short seq, short sep, char type) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsGetSeqData);
+INCLUDE_ASM("main/nonmatchings/psyq", _SsGetSeqData);

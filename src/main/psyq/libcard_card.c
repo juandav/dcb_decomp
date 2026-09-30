@@ -7,6 +7,6 @@ long _card_clear(long chan) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068874);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80068874);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068884);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80068884);

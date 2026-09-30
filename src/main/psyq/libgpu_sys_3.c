@@ -26,9 +26,9 @@ __asm__(".section .rodata\n\t.space 4\n");
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTvlcSize2);
+INCLUDE_ASM("main/nonmatchings/psyq", DecDCTvlcSize2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DecDCTvlc2);
+INCLUDE_ASM("main/nonmatchings/psyq", DecDCTvlc2);
 
 extern u_char D_80076A28[];
 
@@ -71,8 +71,8 @@ void DecDCTvlcBuild(u_short *table) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _bu_init);
+INCLUDE_ASM("main/nonmatchings/psyq", _bu_init);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _card_info);
+INCLUDE_ASM("main/nonmatchings/psyq", _card_info);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _card_load);
+INCLUDE_ASM("main/nonmatchings/psyq", _card_load);

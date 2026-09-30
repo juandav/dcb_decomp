@@ -1,8 +1,8 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", __fixsfsi);
+INCLUDE_ASM("main/nonmatchings/psyq", __fixsfsi);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", __floatsisf);
+INCLUDE_ASM("main/nonmatchings/psyq", __floatsisf);
 
 extern int D_8006EF1C;
 extern int D_8006EF20;

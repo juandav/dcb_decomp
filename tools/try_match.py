@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Compile a C file with the project toolchain and compare every function in it
-byte-wise against SLUS_013.28, with relocated fields masked.
+byte-wise against the original (SLUS_013.28 or an overlay), with relocated
+fields masked.
 
-usage: tools/try_match.py [--psyq|--gcc28|--nocse] draft.c [func ...]
+usage: tools/try_match.py [--version us] [--psyq|--gcc28|--nocse] draft.c [func ...]
+
+--version picks the game version, as VERSION does for make (the VERSION
+environment variable works too; us by default): its disc, its splat output
+in asm/<version>/ and its build in build/<version>/, and -DVERSION_<VERSION>.
 
 --psyq builds like src/main/psyq.c: GCC 2.7.2 -O2 and tools/aspsx_reorder.py.
 --gcc28 builds like the PsyQ objects that came from GCC 2.8.1
@@ -16,12 +21,16 @@ differing instructions marked with **.
 """
 import sys,subprocess,struct,re,os,tempfile,glob
 from elftools.elf.elffile import ELFFile
+for i,a in enumerate(sys.argv):
+    if a=='--version' and i+1<len(sys.argv): os.environ['VERSION']=sys.argv[i+1]; del sys.argv[i:i+2]; break
+    if a.startswith('--version='): os.environ['VERSION']=a.split('=',1)[1]; del sys.argv[i]; break
+from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, VERSION
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-exe=open(f'{D}/disks/us/SLUS_013.28','rb').read()[0x800:]
+exe=open(f'{DISK_DIR}/{EXE_NAME}','rb').read()[0x800:]
 def original(binary):
-    """(bytes, vram) of a binary: the executable or an overlay (config/<binary>.yaml)."""
+    """(bytes, vram) of a binary: the executable or an overlay (config/<version>/<binary>.yaml)."""
     if binary=='main': return exe,0x80010000
-    y=open(f'{D}/config/{binary}.yaml').read()
+    y=open(f'{CONFIG_DIR}/{binary}.yaml').read()
     path=re.search(r'target_path: (\S+)',y).group(1)
     vram=int(re.search(r'vram: (0x[0-9A-Fa-f]+)',y).group(1),16)
     return open(f'{D}/{path}','rb').read(),vram
@@ -35,7 +44,7 @@ w=os.path.join(tempfile.mkdtemp(prefix='try_match_'),'draft')
 pre=""
 if gcc28:
     # the cc1 without `return` insns that the Makefile uses (tools/sn_cc1.py)
-    sn=f"{D}/build/cc1-2.8.1-sn"
+    sn=f"{D}/build/tools/cc1-2.8.1-sn"
     if not os.path.exists(sn) or os.path.getmtime(sn)<max(os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"),os.path.getmtime(f"{D}/tools/sn_cc1.py")):
         subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{D}/bin/gcc-2.8.1-psx/cc1",sn],check=True)
     cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
@@ -50,7 +59,7 @@ elif psyq:
 else:
     cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
-cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
+cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
 if r.returncode: print(r.stderr); sys.exit(1)
 if r.stderr.strip(): print(r.stderr.strip())
@@ -66,7 +75,7 @@ syms=sorted([(s['st_value'],s.name) for s in symtab.iter_symbols() if s['st_info
 # D_801D9638 from D_801D9680)
 symaddr={}
 try:
-    for l in open(f'{D}/build/SLUS_013.28.map'):
+    for l in open(f'{BUILD_DIR}/{EXE_NAME}.map'):
         m=re.match(r'\s+0x([0-9a-f]{8})\s+([A-Za-z_]\w*)\s*$',l)
         if m: symaddr.setdefault(m.group(2),int(m.group(1),16))
 except OSError: pass
@@ -93,10 +102,10 @@ for i,(off,name) in enumerate(syms):
     m=re.match(r'func_([0-9A-F]{8})',name)
     # overlays share addresses, so a name can exist in several: OVERLAY picks one
     binary=os.environ.get('OVERLAY','*')
-    found=glob.glob(f'{D}/asm/{binary}/*matchings/**/{name}.s',recursive=True)
+    found=glob.glob(f'{ASM_DIR}/{binary}/*matchings/**/{name}.s',recursive=True)
     if not found: print(name,'?'); continue
     asm=found[0]
-    ob,ovram=original(asm[len(D)+5:].split('/')[0])
+    ob,ovram=original(os.path.relpath(asm,ASM_DIR).split('/')[0])
     t=open(asm).read()
     size=int(re.search(r'nonmatching \w+, 0x([0-9A-F]+)',t).group(1),16)
     addr=int(re.search(r'glabel '+name+r'\n\s+/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)

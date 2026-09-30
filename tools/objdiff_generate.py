@@ -4,9 +4,14 @@
 Each C file of the game (src/main/<subsystem>/<module>.c, and each overlay's
 src/<overlay>/<module>.c) is a unit, like
 jype0/dw_decomp does: its target object is splat's full disassembly of that
-segment (asm/main/<path>.s), which holds its .rodata and .data too. The
-game's data that no module owns (asm/main/data/game.*.s, the .bss) is
-reported with main.
+segment (asm/<version>/main/<path>.s), which holds its .rodata and .data
+too. The game's data that no module owns (asm/<version>/main/data/game.*.s,
+the .bss) is reported with main.
+
+It works on one version, VERSION as for make (tools/version.py): its
+configs in config/<version>/, its objects in build/<version>/ and
+expected/<version>/. The unit names don't carry the version, so every
+version reports the same units.
 
 objdiff counts a data section as matched only when all of it matches, so
 units per module let each module's data count as soon as it is done.
@@ -33,7 +38,7 @@ from pathlib import Path
 
 from elftools.elf.elffile import ELFFile
 
-ROOT = Path(__file__).resolve().parent.parent
+from version import BUILD_DIR, CONFIG_DIR, EXPECTED_DIR, ROOT
 
 CATEGORIES = [
     {"id": "game", "name": "Game"},
@@ -47,14 +52,20 @@ LIBRARIES = {"psyq", "libmath"}
 # the game's data that no module owns (its .bss), reported with main
 UNOWNED_DATA = "game"
 
+# the version's build and target objects, as objdiff.json names them
+# (relative to the root)
+BUILD = BUILD_DIR.relative_to(ROOT).as_posix()
+EXPECTED = EXPECTED_DIR.relative_to(ROOT).as_posix()
+
 
 def game_modules() -> list:
     """The game's C modules, as binary/path: the executable's in ROM order
-    (config/main.yaml), then each overlay's (config/<overlay>.yaml)."""
-    configs = ["main"] + sorted(p.stem for p in (ROOT / "config").glob("*.yaml") if p.stem != "main")
+    (config/<version>/main.yaml), then each overlay's
+    (config/<version>/<overlay>.yaml)."""
+    configs = ["main"] + sorted(p.stem for p in CONFIG_DIR.glob("*.yaml") if p.stem != "main")
     modules = []
     for binary in configs:
-        yaml = (ROOT / "config" / f"{binary}.yaml").read_text()
+        yaml = (CONFIG_DIR / f"{binary}.yaml").read_text()
         modules += [f"{binary}/{m}" for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", yaml, re.M)
                     if m not in LIBRARIES]
     return modules
@@ -224,13 +235,13 @@ def relocate_by_section(path: str, section: str) -> None:
 
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
-    target = f"expected/asm/{module}.s.o"
-    target_all = f"expected/report/{module}.s.o"
+    target = f"{EXPECTED}/asm/{module}.s.o"
+    target_all = f"{EXPECTED}/report/{module}.s.o"
     link(target_all, [target] + data)
     target = target_all
-    base = f"build/report/{module}.c.o"
+    base = f"{BUILD}/report/{module}.c.o"
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
-    (ROOT / base).write_bytes((ROOT / f"build/src/{module}.c.o").read_bytes())
+    (ROOT / base).write_bytes((ROOT / f"{BUILD}/src/{module}.c.o").read_bytes())
     pad_sections(base, target)
     asm = asm_rodata(base)
     name_rodata(base, target)
@@ -250,7 +261,7 @@ def unit(module: str, data: list) -> dict:
 
 def data_objects(name: str) -> list:
     """splat's data objects for the data segment NAME."""
-    paths = [f"expected/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
+    paths = [f"{EXPECTED}/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
     return [p for p in paths if (ROOT / p).exists()]
 
 

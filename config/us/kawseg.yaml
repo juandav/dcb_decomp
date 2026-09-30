@@ -3,16 +3,16 @@ sha1: 30006b91f812d6d3163749c5ed846391f7f41b56
 options:
   basename: kawseg
   # extracted from disks/us/P.DRV by tools/extract_drv.py
-  target_path: build/disks/KAWSEG.BIN
-  base_path: ..
+  target_path: build/us/disks/KAWSEG.BIN
+  base_path: ../..
   platform: psx
   compiler: GCC
 
-  asm_path: asm/kawseg
+  asm_path: asm/us/kawseg
   src_path: src/kawseg
-  build_path: build
+  build_path: build/us
 
-  ld_script_path: build/generated/kawseg.ld
+  ld_script_path: build/us/generated/kawseg.ld
 
   global_vram_start: 0x80000000
   global_vram_end: 0x80200000
@@ -26,11 +26,11 @@ options:
 
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
-    - config/symbols.txt
-    - config/symbols_kawseg.txt
+    - config/us/symbols.txt
+    - config/us/symbols_kawseg.txt
 
-  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_kawseg.txt
-  undefined_syms_auto_path: build/generated/undefined_syms_auto_kawseg.txt
+  undefined_funcs_auto_path: build/us/generated/undefined_funcs_auto_kawseg.txt
+  undefined_syms_auto_path: build/us/generated/undefined_syms_auto_kawseg.txt
 
   string_encoding: ASCII
   data_string_encoding: ASCII

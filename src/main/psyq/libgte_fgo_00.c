@@ -1,10 +1,10 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", TransposeMatrix);
+INCLUDE_ASM("main/nonmatchings/psyq", TransposeMatrix);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RotMatrix);
+INCLUDE_ASM("main/nonmatchings/psyq", RotMatrix);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RotMatrixYXZ);
+INCLUDE_ASM("main/nonmatchings/psyq", RotMatrixYXZ);
 
 extern u_char D_801DBFA4;
 void func_8005D104(u_long *sz0, u_long *sz1, u_long *sz2);
@@ -68,9 +68,9 @@ u_long *GsTMDdivTF3NL(TMD_P_TF3 *op, SVECTOR *vp, SVECTOR *np, POLY_FT3 *pk, u_l
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005D104);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005D104);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RotAverage3);
+INCLUDE_ASM("main/nonmatchings/psyq", RotAverage3);
 
 u_long *GsTMDdivTNF3(TMD_P_TNF3 *op, SVECTOR *vp, POLY_FT3 *pk, u_long n, u_long shift, GsOT *ot, DIVPOLYGON3 *divp) {
     RVECTOR *r0;
@@ -271,7 +271,7 @@ u_long *GsTMDdivTF4L(TMD_P_TF4 *op, SVECTOR *vp, SVECTOR *np, POLY_FT4 *pk, u_lo
 
 OBJECT_END(2);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005DB44);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005DB44);
 
 u_long *GsTMDdivTF4NL(TMD_P_TF4 *op, SVECTOR *vp, SVECTOR *np, POLY_FT4 *pk, u_long n, u_long shift, GsOT *ot,
                       DIVPOLYGON4 *divp) {
@@ -469,26 +469,26 @@ u_long *GsTMDdivTNG4(TMD_P_TNG4 *op, SVECTOR *vp, POLY_GT4 *pk, u_long n, u_long
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyFT3);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyFT3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyFT3A);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyFT3A);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005E920);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005E920);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT3);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyGT3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT3A);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyGT3A);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005EDB0);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005EDB0);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyFT4);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyFT4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyFT4A);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyFT4A);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005F2D4);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005F2D4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT4);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyGT4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", RCpolyGT4A);
+INCLUDE_ASM("main/nonmatchings/psyq", RCpolyGT4A);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005F8D0);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005F8D0);

@@ -3,16 +3,16 @@ sha1: 011e8a883cac992cef1d77da9d06e01a71342eca
 options:
   basename: evoseg
   # extracted from disks/us/P.DRV by tools/extract_drv.py
-  target_path: build/disks/EVOSEG.BIN
-  base_path: ..
+  target_path: build/us/disks/EVOSEG.BIN
+  base_path: ../..
   platform: psx
   compiler: GCC
 
-  asm_path: asm/evoseg
+  asm_path: asm/us/evoseg
   src_path: src/evoseg
-  build_path: build
+  build_path: build/us
 
-  ld_script_path: build/generated/evoseg.ld
+  ld_script_path: build/us/generated/evoseg.ld
 
   global_vram_start: 0x80000000
   global_vram_end: 0x80200000
@@ -26,11 +26,11 @@ options:
 
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
-    - config/symbols.txt
-    - config/symbols_evoseg.txt
+    - config/us/symbols.txt
+    - config/us/symbols_evoseg.txt
 
-  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_evoseg.txt
-  undefined_syms_auto_path: build/generated/undefined_syms_auto_evoseg.txt
+  undefined_funcs_auto_path: build/us/generated/undefined_funcs_auto_evoseg.txt
+  undefined_syms_auto_path: build/us/generated/undefined_syms_auto_evoseg.txt
 
   string_encoding: ASCII
   data_string_encoding: ASCII

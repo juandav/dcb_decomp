@@ -6,7 +6,7 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _ExitCard);
+INCLUDE_ASM("main/nonmatchings/psyq", _ExitCard);
 
 void func_80068884(void);
 int func_80068874(long chan, long block, u_char *buf);
@@ -133,9 +133,9 @@ long _card_format(long chan) {
 /* the BIOS call stubs after it are another object */
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80069024);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80069024);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80069034);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80069034);
 
 void *bcopy(u_char *src, u_char *dst, int n) {
     u_char *ret = NULL;

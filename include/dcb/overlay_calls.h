@@ -6,9 +6,9 @@
 /*
  * Overlay functions the executable calls, or hands to spawnTask, by address
  * while that overlay is loaded at OVERLAY_LOAD_ADDR. They carry the overlay's
- * own names: config/symbols_overlay_calls.txt gives those names to the
- * addresses for the executable alone (its splat config reads that file, the
- * overlays' configs don't), so another overlay loaded at the same address
+ * own names: config/<version>/symbols_overlay_calls.txt gives those names to
+ * the addresses for the executable alone (its splat config reads that file,
+ * the overlays' configs don't), so another overlay loaded at the same address
  * keeps its own names. The overlays don't include this header; their own
  * headers hold the real prototypes.
  */

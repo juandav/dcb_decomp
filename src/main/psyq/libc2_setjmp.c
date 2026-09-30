@@ -1,8 +1,8 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", setjmp);
+INCLUDE_ASM("main/nonmatchings/psyq", setjmp);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", longjmp);
+INCLUDE_ASM("main/nonmatchings/psyq", longjmp);
 
 extern u_char D_80077879[];
 
@@ -15,26 +15,26 @@ char toupper(char c) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", InitHeap);
+INCLUDE_ASM("main/nonmatchings/psyq", InitHeap);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", FlushCache);
+INCLUDE_ASM("main/nonmatchings/psyq", FlushCache);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A754);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006A754);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006A76C);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006A76C);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", DeliverEvent);
+INCLUDE_ASM("main/nonmatchings/psyq", DeliverEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", OpenEvent);
+INCLUDE_ASM("main/nonmatchings/psyq", OpenEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", WaitEvent);
+INCLUDE_ASM("main/nonmatchings/psyq", WaitEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", TestEvent);
+INCLUDE_ASM("main/nonmatchings/psyq", TestEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", EnableEvent);
+INCLUDE_ASM("main/nonmatchings/psyq", EnableEvent);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ReturnFromException);
+INCLUDE_ASM("main/nonmatchings/psyq", ReturnFromException);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", ResetEntryInt);
+INCLUDE_ASM("main/nonmatchings/psyq", ResetEntryInt);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", HookEntryInt);
+INCLUDE_ASM("main/nonmatchings/psyq", HookEntryInt);

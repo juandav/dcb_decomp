@@ -20,4 +20,4 @@ void gte_init(void) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80062B44);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80062B44);

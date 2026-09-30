@@ -8,7 +8,8 @@ file under src/ instead of INCLUDE_ASMs in a .c file:
       tidy the file splat wrote for a hasm segment, in place
   asm_source.py src/main/psyq/<object>.c
       write src/main/psyq/<object>.s from the INCLUDE_ASMs and
-      INCLUDE_RODATAs of that PsyQ object (asm/ has to be generated), for
+      INCLUDE_RODATAs of that PsyQ object (asm/<version>/ has to be
+      generated, VERSION as for make, us by default), for
       the build to take in place of the .c; delete the .c afterwards
 
 Tidying drops splat's ROM/VRAM/bytes comments, its `nonmatching` markers
@@ -21,7 +22,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from version import ASM_DIR
 
 ADDRESS = re.compile(r"/\* [0-9A-F]+ [0-9A-F]+(?: [0-9A-F]+)? \*/  ?")
 DROP = re.compile(
@@ -65,7 +66,8 @@ def from_c(path: Path) -> Path:
             if want != section:
                 body += ["", want]
                 section = want
-            asm = (ROOT / folder / f"{name}.s").read_text().splitlines()
+            # the folder is relative to the version's asm, as in include_asm.h
+            asm = (ASM_DIR / folder / f"{name}.s").read_text().splitlines()
             body += [""] + tidy([l for l in asm if not l.startswith(".set ")])
             continue
         m = OBJECT_END.match(line)

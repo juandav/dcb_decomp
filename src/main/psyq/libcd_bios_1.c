@@ -148,11 +148,11 @@ static inline void func_8005A088(void) {
 }
 
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_sync);
+INCLUDE_ASM("main/nonmatchings/psyq", CD_sync);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_ready);
+INCLUDE_ASM("main/nonmatchings/psyq", CD_ready);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_cw);
+INCLUDE_ASM("main/nonmatchings/psyq", CD_cw);
 
 int CD_vol(CdlATV *vol) {
     *D_80070F04 = 2;
@@ -258,7 +258,7 @@ int CD_init(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", CD_datasync);
+INCLUDE_ASM("main/nonmatchings/psyq", CD_datasync);
 
 extern int D_80070EE8;
 

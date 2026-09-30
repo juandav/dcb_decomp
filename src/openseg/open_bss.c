@@ -4,7 +4,7 @@
 #include "dcb/openseg.h"
 
 /* The data the overlay starts with zeroed. The names that code uses inside
-   OPEN_MEMCARD are in config/undefined_syms_openseg.txt. */
+   OPEN_MEMCARD are in config/<version>/undefined_syms_openseg.txt. */
 DecEnv OPEN_DEC_ENV = { { 0 } };
 u8 *OPEN_MOVIE_IMAGE_BUFFER = NULL;
 u8 *OPEN_MOVIE_VLC_BUFFER = NULL;
