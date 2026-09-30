@@ -20,9 +20,10 @@ object gets the target's names at the same offsets. objdiff compares a data
 section's bytes and relocations up to its last symbol, so the names only
 set that range; whatever the base holds there must still be identical.
 
-The PsyQ SDK (src/main/psyq/) and the soft-float library (libmath.c) are
-Sony's and the compiler's code, not the game's: like other PSX decomps
-(jype0/dw_decomp), progress doesn't count them.
+The PsyQ SDK (src/main/psyq/) and the soft-float library (libmath.s and
+libmath.c) are Sony's and the compiler's code, not the game's: like other
+PSX decomps (jype0/dw_decomp), progress doesn't count them. Hand-written
+assembly (hasm segments) isn't a C unit, so it isn't in the report either.
 """
 
 import json
