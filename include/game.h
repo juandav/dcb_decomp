@@ -134,9 +134,9 @@ typedef struct {
     } animCache[32];
 } Scene3D;
 typedef struct {
-    /* 0x00 */ u8 pad0[8];
-    /* 0x08 */ void (*unk8[16])(FrameBuffer *, s32);
-    /* 0x48 */ s32 unk48;
+    /* 0x00 */ s16 unk0[4];
+    /* 0x08 */ void (*frameCallbacks[16])(FrameBuffer *, s32); /* = FRAME_CALLBACKS, 0-terminated */
+    /* 0x48 */ s32 unk48; /* counts up to 1 before the display is turned on; 0 holds the render loop */
     /* 0x4C */ s32 scene3dEnabled;
     /* 0x50 */ s32 vblanksPerFrame;
     s16 rotX;
