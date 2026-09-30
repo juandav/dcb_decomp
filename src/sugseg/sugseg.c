@@ -5646,6 +5646,71 @@ void func_801EEE24(s32 model) {
     func_801ECF20(~model);
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EEE90);
+typedef struct {
+    u8 unk0[0x158];
+    s16 unk158;
+    u8 unk15A[8];
+    s16 damageTaken;
+    u8 unk164[0x14];
+    u32 usedAttack : 2;
+    u32 attackChoice : 2;
+    u32 shownAttack : 2;
+    u32 unk178_6 : 1;
+    u32 unk178_7 : 1;
+    u32 unk178_8 : 1;
+    u32 unk178_9 : 2;
+    u32 unk178_11 : 1;
+    u32 unk178_12 : 1;
+    u32 unk178_13 : 2;
+    u32 statPenalty : 2;
+    u32 controller : 2;
+    u32 unk178_19 : 13;
+} DuelPlayerFlags;
+typedef struct {
+    s32 unk0[2];
+    s32 attackModels[3];
+    s32 unk14[3];
+} DuelDigimonModels;
+extern DuelState D_801EF988;
+extern s32 D_801D81CC[2][8];
+
+void func_801EEE90(s32 arg, s32 parentTask) {
+    s32 i;
+
+    D_801EF958 = &D_801EF988;
+    D_801EF988.flags.bits.flag1 = ((DuelPlayerFlags *)DUEL_PLAYERS[(s8)(DUEL->turnPlayer ^ 1)])->unk178_8;
+    D_801EF988.flags.bits.flag2 = ((DuelPlayerFlags *)DUEL_PLAYERS[0])->unk178_6 | ((DuelPlayerFlags *)DUEL_PLAYERS[1])->unk178_6;
+    D_801EF988.flags.bits.flag3 = ((DuelPlayerFlags *)DUEL_PLAYERS[DUEL->turnPlayer])->unk178_7;
+    D_801EF988.flags.bits.turn = DUEL->turnPlayer;
+    for (i = 0; i < 2; i++) {
+        D_801EF958->players[i].unk0 = ((DuelPlayerFlags *)DUEL_PLAYERS[i])->unk158;
+        D_801EF958->players[i].value = ((DuelPlayerFlags *)DUEL_PLAYERS[i ^ 1])->damageTaken;
+        switch (((DuelPlayerFlags *)DUEL_PLAYERS[i])->controller) {
+        case 0:
+        case 2:
+            D_801EF958->players[i].element = 0;
+            break;
+        case 1:
+            D_801EF958->players[i].element = 2;
+            break;
+        case 3:
+            D_801EF958->players[i].element = 1;
+            break;
+        }
+        D_801EF958->players[i].unk8 = ((DuelPlayerFlags *)DUEL_PLAYERS[i])->usedAttack;
+        D_801EF958->players[i].unk8_4 = ((DuelPlayerFlags *)DUEL_PLAYERS[i])->unk178_12;
+        D_801EF958->players[i].unk8_5 = ((DuelPlayerFlags *)DUEL_PLAYERS[i])->unk178_11;
+        D_801EF958->players[i].unk8_6 = ((DuelPlayerFlags *)DUEL_PLAYERS[i])->unk178_13;
+        D_801EF968[i * 2] = (void *)((DuelDigimonModels *)((u8 *)&DUEL_DIGIMON_MODELS + (i * 32 + D_801EF958->players[i].unk8 * 4)))->attackModels[0];
+        D_801EF968[i * 2 + 1] = (void *)D_801D81CC[i][D_801EF958->players[i].unk8];
+    }
+    func_801EDD9C();
+    func_801EE3D4();
+    func_801EDE4C();
+    DB(0).draw.b0 = DB(1).draw.b0 = 0;
+    DB(0).draw.g0 = DB(1).draw.g0 = 0;
+    DB(0).draw.r0 = DB(1).draw.r0 = 0;
+    func_80014A48(parentTask);
+}
 
 INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DE0B0);
