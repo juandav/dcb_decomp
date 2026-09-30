@@ -126,6 +126,34 @@ def name_rodata(base: str, target: str) -> None:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
 
 
+def type_rodata_objects(path: str) -> None:
+    """Give the names GCC defines in PATH's .rodata the object type.
+
+    GCC declares no type for its data, so a const array's symbol is
+    untyped, while the target's names added above are objects. objdiff
+    sizes an object up to the next object, over the untyped symbols in
+    between, which are then left without a size and can't be paired; as
+    objects, every symbol ends where the next one starts."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        names = [s.name for s in elf.iter_sections()]
+        if ".rodata" not in names:
+            return
+        rodata = names.index(".rodata")
+        symtab = elf.get_section_by_name(".symtab")
+        entries = [symtab["sh_offset"] + i * symtab["sh_entsize"]
+                   for i, s in enumerate(symtab.iter_symbols())
+                   if s["st_shndx"] == rodata and s.name
+                   and s["st_info"]["type"] == "STT_NOTYPE" and s["st_info"]["bind"] == "STB_GLOBAL"]
+    if not entries:
+        return
+    blob = bytearray((ROOT / path).read_bytes())
+    for entry in entries:
+        # st_info: binding in the high nibble, type in the low one (1 = object)
+        blob[entry + 12] = (blob[entry + 12] & 0xF0) | 1
+    (ROOT / path).write_bytes(blob)
+
+
 def relocate_by_section(path: str, section: str) -> None:
     """Make PATH's SECTION relocations into its own .rodata section-relative.
 
@@ -177,6 +205,7 @@ def unit(module: str, data: list) -> dict:
     (ROOT / base).write_bytes((ROOT / f"build/src/{module}.c.o").read_bytes())
     pad_sections(base, target)
     name_rodata(base, target)
+    type_rodata_objects(base)
     for path in (target, base):
         for section in (".data", ".rodata"):
             relocate_by_section(path, section)

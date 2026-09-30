@@ -17,6 +17,7 @@
 #include "dcb/fade.h"
 #include "dcb/decompress.h"
 #include "dcb/effect_object.h"
+#include "dcb/effect_prims.h"
 #include "dcb/battle_hud.h"
 #include "dcb/transform.h"
 #include "dcb/loader.h"
@@ -42,8 +43,6 @@ void GsSetLsMatrix(MATRIX *m);
 void GsSetLightMatrix(MATRIX *m);
 void GsSortObject4(GsDOBJ4 *obj, GsOT *ot, s32 shift, u32 *scratch);
 
-extern s32 D_801F5518;
-
 typedef struct {
     s32 unk0;
     s32 unk4;
@@ -64,7 +63,6 @@ extern Menu D_801F005C;
 void func_801EE2DC(s32 index, s32 arg);
 void func_801EE330(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_801EB2A0(void);
-extern UiWindow D_801F51B8;
 
 typedef struct {
     u8 olen;
@@ -259,11 +257,6 @@ typedef struct {
 } EvoScene;
 extern EvoMenu D_801F5478;
 extern EvoScene D_801F5548[2];
-extern u8 D_801F0056;
-extern UiWindow D_801F5008;
-extern UiWindow D_801F5050;
-extern Rect16 D_801F0168;
-extern Rect16 D_801F0184;
 typedef struct {
     u32 tag;
     u32 code[1];
@@ -295,12 +288,8 @@ typedef struct {
     s8 active;
     s8 len;
 } EvoText;
-extern UiWindow D_801F5128;
-extern Rect16 D_801F01D8;
 extern UiWindow D_801F43D0;
-extern Rect16 D_801F0038;
 void func_801ECC6C(void);
-extern u8 D_801F553F;
 extern s8 D_801F59A4;
 extern s8 D_801F59A5;
 extern s8 D_801F59A6;
@@ -395,10 +384,7 @@ typedef struct {
 } EvoWindowDef;
 extern EvoWindowDef D_801F00C0[];
 
-extern EvoWindowDef D_801F006C[];
-extern EvoWindowDef D_801F0114[];
 extern u8 D_801F5358;
-extern s8 D_801F53B3;
 
 extern SVECTOR *D_801F2BBC;
 extern s8 D_801F05F8;
@@ -468,7 +454,6 @@ typedef struct {
 } EvoFxParams;
 
 extern s16 D_801F2BFC[3];
-extern s8 D_801F540A;
 void func_801DFD14(s32 parentTask);
 extern EvoText D_801F5258[4];
 s32 func_801E943C(u8 *src);
@@ -478,8 +463,6 @@ typedef struct {
 } EvoAbilityReward;
 extern u8 D_801EFED4[6];
 extern EvoAbilityReward D_801EFF1C[][5];
-extern UiWindow D_801F5200;
-extern Rect16 D_801F022C;
 
 extern u8 D_801F5360;
 
@@ -526,7 +509,6 @@ extern SVECTOR *D_801F2BB8;
 SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 
 extern s8 D_801EFEDC[][6];
-extern u8 D_801DF03C[20][4];
 void func_801ED5F4(u8 type, u8 level, s16 *out, s16 excludeA, s16 excludeB);
 
 void func_801E335C(SVECTOR *pos, s32 unused, s16 div, s16 mul);
@@ -673,8 +655,6 @@ void func_801E7D2C(s32 active);
 void func_801E8E1C(void);
 
 extern s16 D_801F5458;
-extern Rect16 D_801F0064;
-extern Rect16 D_801F0210;
 void func_801E8CD8(s32 id, s32 slot);
 s16 func_801ECCA0(void);
 void func_801EAAE8(s16 cardId);
@@ -686,7 +666,6 @@ extern char D_801DF15C[];
 extern char D_801DF168[];
 extern char D_801DF16C[];
 
-extern char D_801DF13C[];
 extern char D_801DF548[];
 
 void func_801DF658(s8 evolved) {
@@ -858,7 +837,7 @@ void func_801DFC18(s32 parentTask) {
             D_801F05F4 = 6;
         }
     } while (D_801F05F4 != 6);
-    D_801F540A = 1;
+    D_801F53C8.unk42 = 1;
     func_80014C08(10);
     func_80014A48(parentTask);
 }
@@ -903,7 +882,7 @@ void func_801DFEC0(s32 unused) {
     func_801DF830();
     D_80079584 = 0;
     func_80014C08(20);
-    D_801F540A = 0;
+    D_801F53C8.unk42 = 0;
     playSoundEffect(0x8D);
     func_800149B8(0, -1, 0, 0x400, func_801DFD14, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
@@ -2665,9 +2644,222 @@ void func_801E5F54(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DE084);
+u32 D_801EF85C = 0x13CC25;
+s16 D_801EF860 = 0x37;
+s16 D_801EF862 = 0xFF;
+s8 D_801EF864[16] = { 6, 3, 11, 8, 10, 13, 1, 4, 14, 7, 12, 15, 5, 2, 9, 0 };
+s16 D_801EF874[40] = {
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+};
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF03C);
+/* not referenced by any code */
+u8 D_801EF8C4[16] = { 0x40, 0x48, 0x4C, 0x50, 0x58, 0x5C, 0x20, 0x28, 0x24, 0x2C, 0x30, 0x38, 0x34, 0x3C, 0xF6, 0x57 };
+
+/* not referenced by any code */
+EvoAbilityInfo D_801EF8D4[128] = {
+    { "HP+50.", { 3, 5, 1, 99, 3, 7 } },
+    { "HP+100.", { 17, 16, 8, 12, 14, 19 } },
+    { "HP+150.", { 29, 32, 19, 25, 32, 33 } },
+    { "HP+200.", { 45, 48, 31, 40, 52, 59 } },
+    { "HP+300.", { 61, 67, 51, 57, 68, 78 } },
+    { "HP+400.", { 96, 89, 71, 81, 91, 88 } },
+    { "HP+500.", { 99, -1, 75, 91, -1, 95 } },
+    { "All Attack Powers +50.", { 18, 39, 54, 30, 57, 28 } },
+    { "All Attack Powers +100.", { 39, 86, 72, 50, 89, 51 } },
+    { "All Attack Powers +200.", { 75, -1, 90, 93, -1, 84 } },
+    { "*b0 Attack Power +100.", { 1, 9, 15, 5, 4, 2 } },
+    { "*b0 Attack Power +150.", { 10, 21, 38, 22, 16, 15 } },
+    { "*b0 Attack Power +200.", { 27, 54, 62, 41, 39, 30 } },
+    { "*b0 Attack Power +250.", { 48, -1, 78, 61, 62, 61 } },
+    { "*b0 Attack Power +300.", { 67, -1, -1, 85, 82, 79 } },
+    { "*b1 Attack Power +50.", { 4, 1, 12, 2, 6, 13 } },
+    { "*b1 Attack Power +100.", { 12, 7, 22, 16, 18, 29 } },
+    { "*b1 Attack Power +150.", { 32, 28, 45, 36, 45, 43 } },
+    { "*b1 Attack Power +200.", { 51, 44, -1, 56, 67, 66 } },
+    { "*b1 Attack Power +250.", { 77, -1, -1, 76, 86, 96 } },
+    { "*b2 Attack Power +50.", { 6, 6, 2, 4, 10, 1 } },
+    { "*b2 Attack Power +100.", { 19, 36, 20, 19, 27, 9 } },
+    { "*b2 Attack Power +150.", { 35, 69, 42, 38, 53, 24 } },
+    { "*b2 Attack Power +200.", { 82, -1, 63, 67, -1, 48 } },
+    { "*b0 to 0, *b2 Attack Power -100.", { 24, 12, 4, 14, -1, 34 } },
+    { "*b1 to 0, *b2 Attack Power -100.", { 46, 23, 9, 35, -1, 17 } },
+    { "*b2 to 0, *b2 Attack Power -100.", { 58, 71, 36, 10, -1, 71 } },
+    { "Counter *b0,*b2 Attack Power to 0.", { 11, 26, -1, -1, 40, 62 } },
+    { "Counter *b1,*b2 Attack Power to 0.", { 36, 14, -1, -1, 24, 49 } },
+    { "Counter *b2,*b2 Attack Power to 0.", { 40, 57, -1, -1, 11, 21 } },
+    { "Opponent *a0 X3, *b2 Attack Power -200.", { 87, 92, 39, 69, 31, 50 } },
+    { "Opponent *a1 X3, *b2 Attack Power -200.", { 25, 97, -1, 42, 77, 73 } },
+    { "Opponent *a2 X3, *b2 Attack Power -200.", { 37, -1, 66, -1, 83, 4 } },
+    { "Opponent *a3 X3, *b2 Attack Power -200.", { 68, 33, 46, 21, 5, 97 } },
+    { "Opponent *a4 X3, *b2 Attack Power -200.", { 52, 41, 6, -1, -1, 25 } },
+    { "1st Attack, *b2 Attack Power -200.", { 76, 50, 95, 62, -1, -1 } },
+    { "Jamming Support, *b2 Attack Power -100.", { -1, 74, 27, -1, 54, 10 } },
+    { "Eat-up HP, *b2 Attack Power -200.", { -1, 87, 50, -1, 73, -1 } },
+    { "Add + 10 DP.", { 42, 4, 61, 1, 9, -1 } },
+    { "Add + 20 DP.", { 91, 29, 79, 27, 21, -1 } },
+    { "Add + 30 DP.", { -1, 98, 97, 60, 78, 85 } },
+    { "Boost Attack Power +50.", { 2, 10, 13, 3, 7, 11 } },
+    { "Boost Attack Power +100.", { 21, 42, 56, 33, 36, 35 } },
+    { "Boost Attack Power +200.", { 26, 81, 73, 46, 84, 44 } },
+    { "Boost Attack Power +300.", { 69, -1, 84, 82, -1, 80 } },
+    { "Attack Power is Doubled.", { -1, -1, -1, -1, -1, -1 } },
+    { "Boost *b0 Attack Power +300.", { 8, 30, 47, 17, 26, 12 } },
+    { "Boost *b0 Attack Power +400.", { 34, 77, 74, 47, 46, 39 } },
+    { "Boost *b0 Attack Power +500.", { 55, -1, 88, 88, 66, 74 } },
+    { "*b0 Attack Power is Doubled.", { 13, 64, 67, 58, 33, 63 } },
+    { "*b0 Attack Power is Tripled.", { 59, -1, 94, 74, -1, 86 } },
+    { "Boost *b1 Attack Power +200.", { 15, 2, -1, 7, 22, 18 } },
+    { "Boost *b1 Attack Power +300.", { 28, 19, -1, 23, 41, 36 } },
+    { "Boost *b1 Attack Power +400.", { 43, 70, -1, 92, 59, 53 } },
+    { "*b1 Attack Power is Doubled.", { 22, 13, 59, 34, -1, 67 } },
+    { "*b1 Attack Power is Tripled.", { 83, -1, 91, 94, -1, 89 } },
+    { "Boost *b2 Attack Power +100.", { 23, 40, 10, 18, -1, 8 } },
+    { "Boost *b2 Attack Power +200.", { 38, 58, 40, 43, -1, 20 } },
+    { "Boost *b2 Attack Power +300.", { 71, -1, 60, 63, -1, 90 } },
+    { "*b2 Attack Power is Doubled.", { 44, 72, 48, 51, -1, 40 } },
+    { "*b2 Attack Power is Tripled.", { 88, -1, 85, 95, -1, 65 } },
+    { "Attack Power becomes same as HP.", { -1, -1, -1, -1, -1, -1 } },
+    { "Get 1st Attack.", { 53, 55, 98, 71, 85, -1 } },
+    { "Attack becomes Eat-up HP.", { -1, 93, 80, -1, 61, 55 } },
+    { "Lower Opponent's *b0 Attack Power to 0.", { 54, -1, 17, -1, 28, 75 } },
+    { "Lower Opponent's *b1 Attack Power to 0.", { 84, 24, 28, -1, 15, -1 } },
+    { "Lower Opponent's *b2 Attack Power to 0.", { -1, 66, 24, -1, 13, 45 } },
+    { "*b0 Counterattack (Attack 2nd).", { 7, -1, 33, -1, 47, 14 } },
+    { "*b1 Counterattack (Attack 2nd).", { 33, 17, -1, -1, 37, 26 } },
+    { "*b2 Counterattack (Attack 2nd).", { 47, 43, 5, -1, -1, 37 } },
+    { "If *a0 Opponent, X2 own Attack Power.", { 74, 79, -1, 77, 25, 38 } },
+    { "If *a0 Opponent, X3 own Attack Power.", { -1, 91, -1, 65, 74, 82 } },
+    { "If *a1 Opponent, X2 own Attack Power.", { 5, 47, 64, 26, 80, 76 } },
+    { "If *a1 Opponent, X3 own Attack Power.", { 60, -1, 89, 83, 98, 91 } },
+    { "If *a2 Opponent, X2 own Attack Power.", { 50, 27, 58, 59, 42, 6 } },
+    { "If *a2 Opponent, X3 own Attack Power.", { 79, -1, 93, -1, 93, 70 } },
+    { "If *a3 Opponent, X2 own Attack Power.", { 56, 37, 44, 6, 19, 93 } },
+    { "If *a3 Opponent, X3 own Attack Power.", { 92, 60, 87, 79, 63, -1 } },
+    { "If *a4 Opponent, X2 own Attack Power.", { 78, 76, 26, 72, 69, 46 } },
+    { "If *a4 Opponent, X3 own Attack Power.", { 89, 96, 55, -1, -1, 68 } },
+    { "Change own Specialty to *a0.", { 9, 35, -1, 48, 96, -1 } },
+    { "Change own Specialty to *a1.", { -1, 99, 30, 87, 58, -1 } },
+    { "Change own Specialty to *a2.", { 97, 3, 41, 8, 12, 94 } },
+    { "Change own Specialty to *a3.", { 30, -1, 68, 98, 81, 3 } },
+    { "Change own Specialty to *a4.", { 95, 82, 14, 52, 76, 99 } },
+    { "Switch Opponent's Specialty to own.", { -1, -1, -1, -1, -1, -1 } },
+    { "Swap Specialty with Opponent's.", { -1, -1, -1, -1, -1, -1 } },
+    { "If *a0 Opponent, lower its AP to 0.", { 66, 52, -1, 97, 43, -1 } },
+    { "If *a1 Opponent, lower its AP to 0.", { 41, 61, 34, 84, 8, -1 } },
+    { "If *a2 Opponent, lower its AP to 0.", { -1, 11, 52, -1, 64, 22 } },
+    { "If *a3 Opponent, lower its AP to 0.", { -1, 25, 37, 13, 2, 72 } },
+    { "If *a4 Opponent, lower its AP to 0.", { -1, 75, 16, -1, 34, 52 } },
+    { "Reduce both Players' Atk Pwr to 0.", { -1, -1, -1, -1, -1, -1 } },
+    { "If *e3, boost Attack Power +200.", { 14, 31, -1, 9, 48, 23 } },
+    { "If *e4, boost Attack Power +300.", { 31, 53, -1, 20, 38, 57 } },
+    { "If *e5, boost Attack Power +400.", { 57, -1, 81, 70, 95, 77 } },
+    { "Opponent uses *b0 Attack.", { 16, 62, -1, 28, 97, 31 } },
+    { "Opponent uses *b1 Attack.", { 62, 18, 11, 39, -1, 47 } },
+    { "Opponent uses *b2 Attack.", { 94, 8, 21, -1, 44, 58 } },
+    { "Opponent uses same Attack.", { -1, -1, -1, -1, -1, -1 } },
+    { "Recover HP +200.", { 72, 15, 32, 11, 1, 81 } },
+    { "Recover HP +300.", { 90, 38, 53, 31, 17, -1 } },
+    { "Recover HP +400.", { -1, 68, 92, 73, 55, -1 } },
+    { "Halve Attack Power, recover HP +400.", { 93, 20, 43, 15, 23, -1 } },
+    { "Halve Attack Power, recover HP +600.", { -1, 46, 86, 44, 60, -1 } },
+    { "If HP < Opponent's HP, add HP +500.", { 98, 59, 23, 37, 29, -1 } },
+    { "If HP < Opponent's HP, add HP +700.", { -1, 83, 69, 53, 56, -1 } },
+    { "If KO'd in battle, revive w/ HP 300.", { 49, 34, -1, 24, 30, 42 } },
+    { "If KO'd in battle, revive w/ HP 600.", { -1, 63, -1, 49, 49, 64 } },
+    { "If KO'd in battle, revive w/ HP 1000.", { -1, 94, -1, 64, 65, 98 } },
+    { "Drop 1 Card in Opponent's Hand.", { 63, 22, 3, 45, 75, 27 } },
+    { "Drop 2 Cards in Opponent's Hand.", { -1, 78, 25, -1, 92, 56 } },
+    { "Drop Opponent's Top 2 DP Cards shown.", { -1, 56, 18, 86, 35, 5 } },
+    { "Drop Opponent's Top 3 DP Cards shown.", { -1, 88, 49, -1, 90, 32 } },
+    { "Drop Opponent's Top 4 DP Cards shown.", { -1, -1, -1, -1, -1, -1 } },
+    { "Drop 2 Cards in Opponent's Online Deck.", { -1, 51, 7, 29, -1, 16 } },
+    { "Drop 3 Cards in Opponent's Online Deck.", { -1, 95, 35, 89, -1, 54 } },
+    { "Move Offline Top Card to Online Deck.", { 86, -1, 70, 78, 50, -1 } },
+    { "Void Opponent's Support Effect.", { -1, 84, 65, -1, 87, 69 } },
+    { "Draw until there are 4 Cards.", { 64, 45, 29, 54, 20, -1 } },
+    { "Draw Online Partner Card, then Shuffle.", { 65, 80, 82, 68, 72, -1 } },
+    { "If *e3, HP + 200 & all Attack Powers +100.", { 73, 73, -1, 55, 94, 83 } },
+    { "If *ea, HP + 200 & all Attack Powers +100.", { 81, -1, 76, 66, 79, 87 } },
+    { "Boost Battle Experience by 10%.", { 20, 49, 57, 32, 71, 41 } },
+    { "Boost Battle Experience by 20%.", { 85, 65, 77, 75, 88, 92 } },
+    { "Boost Battle Experience by 30%.", { 80, -1, 96, 90, 99, 60 } },
+    { "Rare Card might appear after battle.", { 70, 85, 83, 80, 51, -1 } },
+    { "Rare Card even more likely to appear.", { -1, 90, 99, 96, 70, -1 } },
+};
+
+u8 D_801EFED4[6] = { 0xAF, 0xB6, 0xBE, 0xB7, 0xB8, 0xBB };
+s8 D_801EFEDC[6][6] = {
+    { 5, 2, 3, 4, 1, 0 },
+    { 2, 5, 4, 0, 2, 1 },
+    { 3, 4, 5, 1, 3, 2 },
+    { 4, 0, 1, 5, 0, 3 },
+    { 1, 2, 3, 0, 5, 4 },
+    { 0, 1, 2, 3, 4, 5 },
+};
+EvoRange D_801EFF00[7] = {
+    { 0, 33 }, { 34, 68 }, { 69, 102 }, { 103, 138 }, { 139, 171 }, { 191, 272 }, { 294, 300 },
+};
+EvoAbilityReward D_801EFF1C[6][5] = {
+    { { 0x00, 0x09 }, { 0x04, 0x49 }, { 0x0C, 0x78 }, { 0x08, 0x30 }, { 0x02, 0x7E } },
+    { { 0x45, 0x7A }, { 0x4C, 0x4D }, { 0x0D, 0x3E }, { 0x03, 0x35 }, { 0x07, 0x7C } },
+    { { 0x22, 0x06 }, { 0x8E, 0x76 }, { 0x97, 0x4F }, { 0x8C, 0x3A }, { 0x28, 0x75 } },
+    { { 0x46, 0x28 }, { 0x4B, 0x5F }, { 0x52, 0x79 }, { 0x48, 0x32 }, { 0x25, 0x47 } },
+    { { 0x47, 0x7F }, { 0x4D, 0x66 }, { 0x49, 0x6D }, { 0x76, 0x37 }, { 0x4E, 0x68 } },
+    { { 0x68, 0x7D }, { 0x69, 0x4B }, { 0x75, 0x3F }, { 0x6B, 0x3C }, { 0x4F, 0x23 } },
+};
+Bytes4 D_801EFF58[2] = { { { 0x80, 0x80, 0x80, 0 } }, { { 0x40, 0x40, 0x40, 0 } } };
+Bytes4 D_801EFF60 = { { 0x60, 0x60, 0x60, 0 } };
+Bytes4 D_801EFF64 = { { 0xC0, 0x60, 0x60, 0 } };
+
+/* not referenced by any code */
+Rect16 D_801EFF68[14] = {
+    { 0x10, 0x24, 0x40, 0x40 },
+    { 0x5C, 0x2A, 0xD2, 0xC },
+    { 0x62, 0x3E, 0xCC, 0x24 },
+    { 0x10, 0x6E, 0x40, 0x40 },
+    { 0x5C, 0x74, 0xD2, 0xC },
+    { 0x62, 0x88, 0xCC, 0x24 },
+    { 0x10, 0xAC, 0x3E, 0x38 },
+    { 0x5A, 0xB4, 0xE0, 0x30 },
+    { 0x10, 0x96, 0x3E, 0x38 },
+    { 0x5A, 0x9C, 0xDE, 0x30 },
+    { 0x76, 0x26, 0xC4, 0x7E },
+    { 0xA, 0x32, 0x58, 0x72 },
+    { 0x78, 0x51, 0x88, 0x34 },
+    { 0x0, 0x0, 0x0, 0x0 },
+};
+
+/* not referenced by any code */
+s16 D_801EFFD8[2][10] = {
+    { -0x78, 0x29, 0xE, 0x29, 0x50, 0x74, -0x1, 0x0, 0xC, 0x0 },
+    { -0x78, 0x29, 0xE, 0x29, 0x50, 0x74, -0x1, 0x0, 0xC, 0x1 },
+};
+
+const u8 D_801DF03C[20][4] = {
+    { 0x01, 0x04, 0x00, 0xEC },
+    { 0x04, 0x23, 0x00, 0xEC },
+    { 0x02, 0x25, 0x01, 0xED },
+    { 0x06, 0x27, 0x23, 0xFE },
+    { 0x8E, 0x28, 0x22, 0xEE },
+    { 0x2A, 0x2B, 0x24, 0xEF },
+    { 0x4C, 0x07, 0x45, 0xF0 },
+    { 0x4D, 0x4B, 0x47, 0xF1 },
+    { 0x4B, 0x8F, 0x46, 0xF2 },
+    { 0x51, 0x03, 0x48, 0xF3 },
+    { 0x70, 0x4A, 0x68, 0xF4 },
+    { 0x4E, 0x6F, 0x49, 0xF5 },
+    { 0x6E, 0x6F, 0x6A, 0xF6 },
+    { 0x6D, 0x90, 0x69, 0xF7 },
+    { 0x93, 0x73, 0x8B, 0xF8 },
+    { 0x96, 0x74, 0x8D, 0xF9 },
+    { 0x91, 0x26, 0x8C, 0xFA },
+    { 0x0C, 0x75, 0x04, 0xFB },
+    { 0x53, 0x0D, 0x4C, 0xFC },
+    { 0x52, 0x97, 0x8E, 0xFD },
+};
 
 void func_801E623C(void) {
     char path[24];
@@ -2680,17 +2872,20 @@ void func_801E623C(void) {
     freeHeapBlock(pack);
 }
 
-const char D_801DF0A0[] = "Number of Cards that can be Fused.";
-const char D_801DF0C4[] = "Level *e5";
-const char D_801DF0D0[] = "Level *e4";
-const char D_801DF0DC[] = "Level *e3";
-const char D_801DF0E8[] = "*a6 Option";
-const char D_801DF0F4[] = "*a5 Option";
-const char D_801DF100[] = "*a4 Rare";
-const char D_801DF10C[] = "*a3 Darkness";
-const char D_801DF11C[] = "*a2 Nature";
-const char D_801DF128[] = "*a1 Ice";
-const char D_801DF130[] = "*a0 Fire";
+char *D_801F0000[12] = {
+    "Number",
+    "*a0 Fire",
+    "*a1 Ice",
+    "*a2 Nature",
+    "*a3 Darkness",
+    "*a4 Rare",
+    "*a5 Option",
+    "*a6 Option",
+    "Level *e3",
+    "Level *e4",
+    "Level *e5",
+    "Number of Cards that can be Fused.",
+};
 
 void func_801E62D0(void) {
     Graphics *camera;
@@ -2747,8 +2942,6 @@ void func_801E6398(void) {
         D_801F4E34[i] -= D_801F4E40[0][i];
     }
 }
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF13C);
 
 void func_801E65A8(void) {
     s32 i;
@@ -3077,6 +3270,28 @@ s32 func_801E6F34(EvoCardInfo **a, EvoCardInfo **b) {
     return kb - ka;
 }
 
+Menu D_801F0030 = { 0, 0, { 0x6A, 0x2C, 0xD0, 0x6C }, 0, -1, 0, -1, 0xA, 0x61, 0x74, 0xC, 0, 301, 0x36, 1, 0, 0xC };
+Menu D_801F005C = { 0, 0, { 0x28, 0x3C, 0xCA, 0x70 }, 0, -1, 0, -1, 0xA, 0x56, 0xC0, 0xC, 0, 12, 0, 1, 0, 0xE };
+
+typedef s32 (*EvoCardCompare)(s8 *, s8 *);
+
+s32 (*D_801F0088[12])(s8 *, s8 *) = {
+    0,
+    (EvoCardCompare)func_801E6718,
+    (EvoCardCompare)func_801E67F4,
+    (EvoCardCompare)func_801E68D0,
+    (EvoCardCompare)func_801E69B0,
+    (EvoCardCompare)func_801E6A90,
+    (EvoCardCompare)func_801E6B70,
+    (EvoCardCompare)func_801E6C04,
+    (EvoCardCompare)func_801E6C98,
+    (EvoCardCompare)func_801E6D74,
+    (EvoCardCompare)func_801E6E54,
+    (EvoCardCompare)func_801E6F34,
+};
+
+Rect16 D_801F00B8 = { 0xD, 0x4A, 0x48, 0x9 };
+
 void func_801E6FCC(UiWindow *w) {
     s32 x = w->originX;
     s32 z = w->z;
@@ -3188,9 +3403,9 @@ void func_801E75B0(EvoWindow *w) {
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
     if (w->unk44 == 0) {
-        drawTextColored(x + 0x4B, y, "Card Fusion", D_801EFF58[D_801F53B3].b, 6, z);
+        drawTextColored(x + 0x4B, y, "Card Fusion", D_801EFF58[D_801F5380.side].b, 6, z);
     } else {
-        drawTextColored(x + 0x41, y, "Partner Fusion", D_801EFF58[(s8)(D_801F53B3 ^ 1)].b, 6, z);
+        drawTextColored(x + 0x41, y, "Partner Fusion", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 6, z);
     }
 }
 
@@ -3299,7 +3514,22 @@ void func_801E780C(EvoScene *scene) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[28], poly);
 }
 
-const char D_801DF258[] = "MESSAGE";
+EvoWindowDef D_801F00C0[14] = {
+    { { 0x10, 0x24, 0x40, 0x40 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x5C, 0x2A, 0xDE, 0xC }, 0x80, 0x56, 8, 0, 8 },
+    { { 0x62, 0x3E, 0xD8, 0x24 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x10, 0x4C, 0x40, 0x40 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x5C, 0x52, 0xDE, 0xC }, 0x80, 0x56, 8, 0, 8 },
+    { { 0x62, 0x66, 0xD8, 0x24 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x10, 0xAC, 0x3E, 0x38 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x5A, 0xB4, 0xE0, 0x30 }, 0x80, 0x56, 8, (s32)"MESSAGE", 8 },
+    { { 0x10, 0x96, 0x3E, 0x38 }, 0x80, 0x66, 8, 0, 8 },
+    { { 0x5A, 0x9C, 0xDE, 0x30 }, 0x80, 0x56, 8, 0, 8 },
+    { { 0x76, 0x26, 0xC4, 0x7E }, 0x80, 0x66, 8, 0, 8 },
+    { { 0xA, 0x2C, 0x52, 0x78 }, 0x80, 0x56, 8, 0, 8 },
+    { { 0x78, 0x51, 0x88, 0x34 }, 0x80, 0x56, 8, 0, 8 },
+    { { 0x42, 0x78, 0x48, 0x9 }, 0x80, 0x36, 0, 0, 8 },
+};
 const char D_801DF260[] = "";
 
 void func_801E7B8C(void) {
@@ -3307,7 +3537,7 @@ void func_801E7B8C(void) {
     if (D_801F5548[0].unk124 >= 15) {
         D_801F5548[0].unk124 = 14;
         D_801F5478.unkC1 = 3;
-        D_801F0056 = 1;
+        D_801F0030.active = 1;
         D_801F5478.unkBB = 0;
     }
 }
@@ -3329,7 +3559,7 @@ void func_801E7C3C(void) {
         if (D_801F5548[1].unk124 >= 15) {
             D_801F5548[1].unk124 = 14;
             D_801F5478.unkC1 = 3;
-            D_801F0056 = 1;
+            D_801F0030.active = 1;
         }
     }
 }
@@ -3342,7 +3572,7 @@ void func_801E7CB4(void) {
         if (D_801F5548[0].unk124 >= 15) {
             D_801F5548[0].unk124 = 14;
             D_801F5478.unkC1 = 3;
-            D_801F0056 = 1;
+            D_801F0030.active = 1;
         }
     }
 }
@@ -3369,11 +3599,11 @@ void func_801E7D2C(s32 active) {
 
 void func_801E7E10(s8 mode) {
     if (mode == 0) {
-        animateWindowTo(&D_801F5008, &D_801F0168);
-        animateWindowTo(&D_801F5050, &D_801F0184);
+        animateWindowTo(&D_801F4E58[6].win, &D_801F00C0[6].rect);
+        animateWindowTo(&D_801F4E58[7].win, &D_801F00C0[7].rect);
     } else if (mode == 1) {
-        animateWindowTo(&D_801F5008, (Rect16 *)-1);
-        animateWindowTo(&D_801F5050, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[6].win, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[7].win, (Rect16 *)-1);
     }
 }
 
@@ -3519,8 +3749,8 @@ void func_801E81C4(EvoProgram *data) {
                 case 22:
                     D_801F5478.unkBB = 4;
                     D_801F5478.unkC1 = 5;
-                    animateWindowTo(&D_801F43D0, &D_801F0038);
-                    D_801F0056 = 1;
+                    animateWindowTo(&D_801F43D0, &D_801F0030.rect);
+                    D_801F0030.active = 1;
                     return;
                 default:
                     D_801F4E4C = 0;
@@ -3543,8 +3773,8 @@ void func_801E81C4(EvoProgram *data) {
                 case 3:
                     animateWindowTo(&D_801F4E58[(s16)data->script->params[0]].win, (Rect16 *)-1);
                     if ((s16)data->script->params[0] == -1) {
-                        animateWindowTo(&D_801F43D0, &D_801F0038);
-                        D_801F0056 = 1;
+                        animateWindowTo(&D_801F43D0, &D_801F0030.rect);
+                        D_801F0030.active = 1;
                     }
                     break;
                 case 4:
@@ -3700,7 +3930,7 @@ void func_801E8BD8(void) {
 
 void func_801E8C74(void) {
     func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    D_801F5518 = func_80014C08(0x7FFFFFFF);
+    D_801F5478.unkA0 = (s32 *)func_80014C08(0x7FFFFFFF);
 }
 
 void func_801E8CD8(s32 id, s32 slot) {
@@ -3862,8 +4092,8 @@ void func_801E8E88(s32 program) {
         }
     } while (running != 0 && D_801F5478.unkC7 == 0);
     if (running == 0) {
-        animateWindowTo(&D_801F5008, (Rect16 *)-1);
-        animateWindowTo(&D_801F5050, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[6].win, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[7].win, (Rect16 *)-1);
         func_80014C08(20);
     }
     func_801E8E1C();
@@ -4195,8 +4425,8 @@ void func_801EA110(void) {
 
     D_801F5358 = D_801F5250->vars[12];
     for (i = 0; i < 3; i++) {
-        D_801F4E58[i].win.brightness = 0x80 - D_801F53B3 * 64;
-        D_801F4E58[i + 3].win.brightness = D_801F53B3 * 64 + 64;
+        D_801F4E58[i].win.brightness = 0x80 - D_801F5380.side * 64;
+        D_801F4E58[i + 3].win.brightness = D_801F5380.side * 64 + 64;
     }
     if (D_801F5478.unkBC == 0) {
         D_801F5478.unkBC = 1;
@@ -4207,9 +4437,9 @@ void func_801EA110(void) {
             if (D_801F5478.unkBA == 0) {
                 animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i].rect);
             } else if (i < 3) {
-                animateWindowTo(&D_801F4E58[i].win, &D_801F0114[i].rect);
+                animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i + 3].rect);
             } else {
-                animateWindowTo(&D_801F4E58[i].win, &D_801F006C[i].rect);
+                animateWindowTo(&D_801F4E58[i].win, &D_801F00C0[i - 3].rect);
             }
         }
         func_80014C08(30);
@@ -4314,8 +4544,8 @@ void func_801EA598(void) {
 }
 
 void func_801EA790(void) {
-    animateWindowTo(&D_801F5128, (Rect16 *)-1);
-    animateWindowTo(&D_801F43D0, &D_801F0038);
+    animateWindowTo(&D_801F4E58[10].win, (Rect16 *)-1);
+    animateWindowTo(&D_801F43D0, &D_801F0030.rect);
     D_801F0030.active = 1;
     D_801F5478.unkC2 = 0;
     D_801F5478.unkC1 = 3;
@@ -4326,9 +4556,9 @@ void func_801EA790(void) {
 }
 
 void func_801EA820(void) {
-    animateWindowTo(&D_801F5128, &D_801F01D8);
+    animateWindowTo(&D_801F4E58[10].win, &D_801F00C0[10].rect);
     animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-    D_801F0056 = 0;
+    D_801F0030.active = 0;
 }
 
 void func_801EA864(s32 index) {
@@ -4383,7 +4613,7 @@ void func_801EAA5C(void) {
         D_801F5548[1].unk124 = 14;
         D_801F5478.unkC1 = 0;
         D_801F5478.unkBB = 0;
-        animateWindowTo(&D_801F43D0, &D_801F0038);
+        animateWindowTo(&D_801F43D0, &D_801F0030.rect);
         func_801ECC6C();
     }
 }
@@ -4418,13 +4648,13 @@ void func_801EABB0(void) {
         if (D_801F5478.unkC2 == 0) {
             D_801F5478.unkC2 = 1;
             D_801F0030.active = 0;
-            animateWindowTo(&D_801F4380, &D_801F0064);
+            animateWindowTo(&D_801F4380, &D_801F005C.rect);
             playSoundEffect(3);
             return;
         }
         playSoundEffect(4);
         D_801F5478.unkC2 = 0;
-        D_801F0056 = 1;
+        D_801F0030.active = 1;
         animateWindowTo(&D_801F4380, (Rect16 *)-1);
     } else if (D_801F5478.unkC2 == 0) {
         if (D_801F5478.unkC3 == 0) {
@@ -4459,7 +4689,7 @@ void func_801EABB0(void) {
                 playSoundEffect(0);
                 if (D_801F5478.unkBA == 0) {
                     if (D_801F5478.unkC4 != 2) {
-                        D_801F0056 = 0;
+                        D_801F0030.active = 0;
                         D_801F5250->vars[8] = 1;
                         D_801F5478.unkC1 = 0;
                         func_801E8CD8(cardId, 0);
@@ -4467,7 +4697,7 @@ void func_801EABB0(void) {
                         D_801F5478.busy[1] = 1;
                         return;
                     }
-                    D_801F0056 = 0;
+                    D_801F0030.active = 0;
                     func_801E8CD8(cardId, 1);
                     do {
                         func_80014C08(1);
@@ -4484,11 +4714,11 @@ void func_801EABB0(void) {
                         func_80014C08(1);
                     } while (D_801F5478.busy[0] != 0);
                 } else if (D_801F5478.unkBA == 1) {
-                    D_801F0056 = 0;
+                    D_801F0030.active = 0;
                     uploadTim((u32 *)((u8 *)D_801F5478.unkA0 + D_801F5478.unkA0[cardId]), 0x1C0, 0x190, 0x180, 0x1FC);
                     D_801F5478.unkAE = cardId;
                     D_801F5478.unkC3 = 1;
-                    animateWindowTo(&D_801F51B8, &D_801F0210);
+                    animateWindowTo(&D_801F4E58[12].win, &D_801F00C0[12].rect);
                 }
             } else if (PAD_STATES[0]->pressed & 0x10) {
                 D_801F5478.unkC3 = 0;
@@ -4502,14 +4732,14 @@ void func_801EABB0(void) {
             D_801F5250->vars[8] = 1;
         } else if (PAD_STATES[0]->pressed & 0x10) {
             playSoundEffect(1);
-            D_801F0056 = 1;
+            D_801F0030.active = 1;
             D_801F5478.unkC3 = 0;
-            animateWindowTo(&D_801F51B8, (Rect16 *)-1);
+            animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
         }
     } else if (PAD_STATES[0]->pressed & 0x10) {
         playSoundEffect(4);
         D_801F5478.unkC2 = 0;
-        D_801F0056 = 1;
+        D_801F0030.active = 1;
         animateWindowTo(&D_801F4380, (Rect16 *)-1);
     }
 }
@@ -4535,16 +4765,16 @@ void func_801EB0F4(void) {
 
 void func_801EB1D0(void) {
     D_801F5250->vars[8] = -1;
-    D_801F0056 = 1;
+    D_801F0030.active = 1;
     D_801F5478.unkC3 = 0;
-    animateWindowTo(&D_801F51B8, (Rect16 *)-1);
+    animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
     D_801F5478.unkC1 = 3;
 }
 
 void func_801EB234(void) {
     setScreenFadeParams(0, 2, 6);
     func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
-    D_801F553F = 1;
+    D_801F5478.unkC7 = 1;
 }
 
 void func_801EB2A0(void) {
@@ -4594,7 +4824,7 @@ void func_801EB440(void) {
         runDialog(&D_801F57A8);
         D_801F5478.unkB7 = 10;
         D_801F5478.unkC1 = 3;
-        D_801F0056 = 1;
+        D_801F0030.active = 1;
         D_801F5478.unkC3 = 0;
         for (i = 0; i < 4; i++) {
             D_801F5860[i] = 0;
@@ -4700,7 +4930,7 @@ void func_801EB670(void) {
     }
     D_801F5478.unkB7 = 10;
     D_801F5478.unkC1 = 3;
-    D_801F0056 = 1;
+    D_801F0030.active = 1;
     D_801F5478.unkC3 = 0;
     for (i = 0; i < 4; i++) {
         D_801F5860[i] = 0;
@@ -4753,14 +4983,14 @@ void func_801EBA08(void) {
             D_801F2BFC[1] = D_801F4980[D_801F5478.unkAE]->modelId;
             return;
         }
-        animateWindowTo(&D_801F5200, &D_801F022C);
+        animateWindowTo(&D_801F4E58[13].win, &D_801F00C0[13].rect);
         D_801F5478.unkC8 = 2;
     }
     D_801F5548[0].unk124 = 0x3A;
     D_801F5548[1].unk124 = -0x58;
     D_801F5478.unkBB = 0;
     if (PAD_STATES[0]->pressed & 0x40) {
-        animateWindowTo(&D_801F5200, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[13].win, (Rect16 *)-1);
         playSoundEffect(0);
         D_801F5478.unkC1 = 0x12;
         D_801F5478.unkC8 = 3;
@@ -4781,10 +5011,10 @@ void func_801EBD64(void) {
     if (D_801F5478.unkC7 != 0) {
         func_801EE2DC(8, 0);
         D_801F5478.unkC7 = 0;
-        animateWindowTo(&D_801F5200, &D_801F022C);
+        animateWindowTo(&D_801F4E58[13].win, &D_801F00C0[13].rect);
     }
     if (PAD_STATES[0]->pressed & 0x40) {
-        animateWindowTo(&D_801F5200, (Rect16 *)-1);
+        animateWindowTo(&D_801F4E58[13].win, (Rect16 *)-1);
         playSoundEffect(0);
         D_801F5478.unkC1 = 0x12;
         D_801F5478.unkC8 = 3;
@@ -4957,7 +5187,7 @@ void func_801EC8DC(UiWindow *w) {
         drawText(x, y, (s32)((DigimonCardData *)(DIGIVOLVE_CARDS + id * 0x70))->name, 7, z);
         drawIcon(x + 0x46, y + 0x1A, 0, 6, z);
     }
-    drawLargeText(x, y + 0x12, (s32)D_801DF13C, 6, z);
+    drawLargeText(x, y + 0x12, (s32)"Number", 6, z);
     drawLargeText(x, y + 0x1E, (s32)D_801DF548, 6, z);
     rect.x = 0;
     rect.y = 0x90;
@@ -4984,7 +5214,7 @@ void func_801ECC24(void) {
     D_801F5478.unkC4 = 1;
     D_801F5478.unkC1 = 8;
     animateWindowTo(&D_801F43D0, (Rect16 *)-1);
-    D_801F0056 = 0;
+    D_801F0030.active = 0;
 }
 
 void func_801ECC6C(void) {
@@ -5544,10 +5774,10 @@ void func_801EE69C(EvoLoader *loader) {
                     D_801F5548[1].unk120 = 1;
                     break;
                 case 13:
-                    D_801F540A = 1;
+                    D_801F53C8.unk42 = 1;
                     break;
                 case 14:
-                    D_801F540A = 0;
+                    D_801F53C8.unk42 = 0;
                     break;
                 case 15:
                     D_801F5548[0].unk124 = 0x3A;
@@ -5627,7 +5857,7 @@ void func_801EE69C(EvoLoader *loader) {
                     loader->buffer = (void *)func_801EE1F4((s16)loader->script->params[0]);
                     break;
                 case 23:
-                    animateWindowTo(&D_801F51B8, (Rect16 *)-1);
+                    animateWindowTo(&D_801F4E58[12].win, (Rect16 *)-1);
                     break;
                 }
                 break;
@@ -5912,3 +6142,135 @@ void func_801EF7DC(EvoMsd *data, s32 parentTask) {
     freeHeapBlock(loader);
     func_80014A48(parentTask);
 }
+
+void (*D_801F0248[14])() = {
+    func_801EA358, func_801E75B0, func_801E765C, func_801EA358, func_801E75B0, func_801E765C, func_801E9B0C,
+    func_801E9A58, func_801E89E8, func_801E89E8, func_801EBE68, func_801EC434, func_801EC8DC, func_801E9C18,
+};
+
+typedef void (*EvoFxFunc)(EvoFx *);
+
+void (*D_801F0280[5])(EvoFx *) = {
+    (EvoFxFunc)func_801EE040,
+    (EvoFxFunc)renderRingEffect,
+    (EvoFxFunc)updateEffectObject,
+    (EvoFxFunc)renderStreakParticles,
+    (EvoFxFunc)func_801EDE18,
+};
+
+EvoFx *(*D_801F0294[5])(s32 *, EvoLoader *) = {
+    (EvoFx * (*)(s32 *, EvoLoader *)) func_801EF188,
+    func_801EF244,
+    func_801EF3A8,
+    func_801EF474,
+    func_801EF3DC,
+};
+
+void (*D_801F02A8[5])(EvoFx *) = {
+    (EvoFxFunc)func_801EF5A8,
+    (EvoFxFunc)freeRingEffect,
+    (EvoFxFunc)freeEffectObject,
+    (EvoFxFunc)freeStreakParticles,
+    (EvoFxFunc)func_801EDEF8,
+};
+
+/* not referenced by any code */
+u32 D_801F02BC = 0xF05B2E46;
+
+s8 D_801F02C0 = 0;
+/* not referenced by any code */
+u8 D_801F02C4[4] = { 0 };
+u16 D_801F02C8[16] = { 0 };
+u8 D_801F02E8 = 0;
+/* not referenced by any code */
+u8 D_801F02E9 = 0x23;
+u8 D_801F02EA = 0x8F;
+u8 D_801F02EB = 0x2B;
+u8 D_801F02EC[4] = { 0x74, 0x68, 0x7F, 0xC3 };
+EvoSpark D_801F02F0[16] = { { { 0 } } };
+EvoColor D_801F0530 = { 0 };
+SVECTOR *D_801F0538 = 0;
+/* not referenced by any code */
+u8 D_801F053C[4] = { 0 };
+s8 *D_801F0540 = 0;
+/* not referenced by any code */
+u8 D_801F0544[12] = { 0 };
+s16 D_801F0550[40] = { 0 };
+s16 D_801F05A0[42] = { 0 };
+s8 D_801F05F4 = 0;
+u16 D_801F05F6 = 0;
+s8 D_801F05F8 = 0;
+EvoShard *D_801F05FC = 0;
+EvoShatter D_801F0600 = { 0 };
+/* not referenced by any code */
+u8 D_801F062C[0x2584] = { 0 };
+u32 D_801F2BB0 = 0;
+/* not referenced by any code */
+u8 D_801F2BB4[4] = { 0 };
+SVECTOR *D_801F2BB8 = 0;
+SVECTOR *D_801F2BBC = 0;
+/* not referenced by any code */
+u8 D_801F2BC0[0x3C] = { 0 };
+s16 D_801F2BFC[3] = { 0 };
+/* not referenced by any code */
+u8 D_801F2C04[0x177C] = { 0 };
+UiWindow D_801F4380 = { 0 };
+/* not referenced by any code */
+u8 D_801F43C4[12] = { 0 };
+UiWindow D_801F43D0 = { 0 };
+/* not referenced by any code */
+u8 D_801F4414[12] = { 0 };
+CursorHighlight D_801F4420 = { { { 0 } } };
+CursorHighlight D_801F4470 = { { { 0 } } };
+EvoCardInfo *D_801F44C0[301] = { 0 };
+/* not referenced by any code */
+u8 D_801F4974[12] = { 0 };
+EvoCardInfo *D_801F4980[301] = { 0 };
+u8 *D_801F4E34 = 0;
+/* not referenced by any code */
+u8 D_801F4E38[8] = { 0 };
+u8 *D_801F4E40[3] = { 0 };
+u8 D_801F4E4C = 0;
+s32 D_801F4E50 = 0;
+/* not referenced by any code */
+u8 D_801F4E54[4] = { 0 };
+EvoWindow D_801F4E58[14] = { { { 0 } } };
+/* not referenced by any code */
+u8 D_801F5248[8] = { 0 };
+EvoProgram *D_801F5250 = 0;
+/* not referenced by any code */
+u8 D_801F5254[4] = { 0 };
+EvoText D_801F5258[4] = { { { 0 } } };
+u8 D_801F5358 = 0;
+/* not referenced by any code */
+u8 D_801F535C[4] = { 0 };
+u8 D_801F5360 = 0;
+/* not referenced by any code */
+u8 D_801F5364[28] = { 0 };
+EvoChoice D_801F5380 = { { 0 } };
+/* not referenced by any code */
+u8 D_801F53B4[20] = { 0 };
+EvoFade D_801F53C8 = { { { 0 } } };
+/* not referenced by any code */
+u8 D_801F540C[4] = { 0 };
+UiWindow D_801F5410 = { 0 };
+/* not referenced by any code */
+u8 D_801F5454[4] = { 0 };
+s16 D_801F5458 = 0;
+/* not referenced by any code */
+u8 D_801F545C[28] = { 0 };
+EvoMenu D_801F5478 = { { 0 } };
+EvoScene D_801F5548[2] = { { { { { 0 } } } } };
+u8 D_801F57A0 = 0;
+u8 D_801F57A1 = 0;
+/* not referenced by any code */
+u8 D_801F57A4[4] = { 0 };
+EvoDialog D_801F57A8 = { { 0 } };
+/* not referenced by any code */
+u8 D_801F5850[16] = { 0 };
+s16 D_801F5860[4] = { 0 };
+EvoFx D_801F5868 = { { 0 } };
+s8 D_801F59A4 = 0;
+s8 D_801F59A5 = 0;
+s8 D_801F59A6 = 0;
+u8 *D_801F59A8 = 0;

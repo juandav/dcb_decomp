@@ -55,6 +55,6 @@ segments:
     subsegments:
       - [0x0, .rodata, evoseg]
       - [0x1720, c, evoseg]
-      - [0x11924, data, evoseg]
+      - [0x11924, .data, evoseg]
 
   - [0x17A74]
