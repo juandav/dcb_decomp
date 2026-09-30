@@ -192,7 +192,7 @@ libc2_strcat
 libc2_strcmp gcc2.8
 libc2_strcpy
 libc2_strlen
-libc2_printf
+libc2_printf gcc2.8
 libc2_prnt
 libc2_memchr
 libc2_putchar gcc2.8
