@@ -26,7 +26,6 @@
 #include "dcb/kaw_hud.h"
 
 extern s32 KAW_MATCH_LOADING;
-extern u8 *D_801D485C;
 extern POLY_G4 KAW_DECK_CHART_POLYS[2][2][3];
 extern TILE KAW_DECK_LEVEL_BARS[2][2][4];
 extern DR_MODE KAW_DECK_CHART_MODES[2][2];
@@ -119,7 +118,8 @@ void KAW_loadMatchGraphics(s32 isVersus, s32 match, s32 task) {
     freeHeapBlock(arc);
     width0 = strlen(PLAYER(0)->name) * 16;
     if (isVersus != 0) {
-        width1 = *(s16 *)(D_801D485C + 4) * 4;
+        /* the width of the last image uploaded above, in VRAM halfwords */
+        width1 = LOADED_TIM.prect->w * 4;
     } else {
         width1 = strlen(PLAYER(1)->name) * 16;
     }

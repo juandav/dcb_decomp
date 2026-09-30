@@ -51,7 +51,6 @@ extern CursorHighlight SUB_CARD_LIST_CURSOR;
 extern CursorHighlight SUB_CARD_SORT_CURSOR;
 extern CursorHighlight SUB_DECK_SORT_CURSOR;
 extern u8 SUB_EDITOR_RUNNING;
-extern void *D_801F4350;
 extern s32 SUB_LIST_WINDOW_LABEL;
 
 extern void SUB_drawDeckEditTitle(UiWindow *window);
@@ -333,7 +332,7 @@ void SUB_runCardList(void) {
         SUB_openCenteredWindow(&SUB_WINDOWS[i], rects[i], (s32)labels[i], flags, style);
     }
     animateWindowTo(&SUB_CARD_DATA_WINDOW, (Rect16 *)-1);
-    D_801F4350 = allocTaskHeapBlock(0x2A);
+    SUB_COLLECTION_STATS.lists[8] = allocTaskHeapBlock(0x2A);
     for (i = 0; i < 8; i++) {
         SUB_COLLECTION_STATS.lists[i] = allocTaskHeapBlock(0xA4);
     }

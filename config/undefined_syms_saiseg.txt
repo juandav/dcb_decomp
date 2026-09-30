@@ -6,7 +6,7 @@ SAI_PLAYER_DATA_ROW = 0x801F354C;
 
 /* SAI_AREA's choiceStates, choicePhase, choiceMode, select.progress,
    select.blink, select.delay, select.emptyBlink, select.selected, exitArg,
-   imageHidden to closePanel, exitAction to partners, selectState, unk116,
+   imageHidden to closePanel, exitAction to partners, selectState,
    coverAlpha, location, prizePack, typing and nextBlink */
 SAI_CHOICE_STATES = 0x801F4604;
 SAI_CHOICE_PHASE = 0x801F4609;
@@ -25,7 +25,6 @@ SAI_AREA_MODE = 0x801F4696;
 SAI_PARTNER_COUNT = 0x801F4697;
 SAI_PARTNER_CHOICES = 0x801F4698;
 SAI_SELECT_STATE = 0x801F469C;
-D_801F469E = 0x801F469E;
 SAI_PANEL_COVER_ALPHA = 0x801F469F;
 SAI_LOCATION = 0x801F46A2;
 SAI_PRIZE_PACK = 0x801F46A5;
