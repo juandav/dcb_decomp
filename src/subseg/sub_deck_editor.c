@@ -741,6 +741,9 @@ void SUB_drawCardSortMenu(UiWindow *window) {
     }
 }
 
+/* shown, with dashes for the name, for a card whose collection entry lacks flag 0x40 */
+const char SUB_STR_QUESTION_MARK[] = "?";
+
 void SUB_drawCardList(UiWindow *window) {
     char buf[64];
     s32 x = window->originX - 4;
@@ -787,9 +790,9 @@ void SUB_drawCardList(UiWindow *window) {
             }
         } else {
             palette = 9;
-            drawTextColored(x + 0x46, y, "?", rgb, palette, z);
+            drawTextColored(x + 0x46, y, (u8 *)SUB_STR_QUESTION_MARK, rgb, palette, z);
             drawTextColored(x + 0x86, y, "-------------------", rgb, palette, z);
-            drawTextColored(x + 0x74, y, "?", rgb, palette, z);
+            drawTextColored(x + 0x74, y, (u8 *)SUB_STR_QUESTION_MARK, rgb, palette, z);
         }
         if (type == 0 || !(PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x40)) {
             drawTextColored(x + 0x38, y, (u8 *)SUB_STR_LV, rgb, palette, z);
@@ -3268,7 +3271,7 @@ void SUB_drawPickerList(UiWindow *window) {
             }
         } else {
             palette = 9;
-            drawTextColored(x + 0x59, y, "?", rgb, palette, z);
+            drawTextColored(x + 0x59, y, (u8 *)SUB_STR_QUESTION_MARK, rgb, palette, z);
             drawTextColored(x + 0x69, y, "------------------", rgb, palette, z);
         }
         if (type == 0 || !(PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x40)) {
