@@ -24,10 +24,12 @@
 #define SLOT(p, o) ((HudAnchor *)(D_801D83EC + (p) * 0xD8 + (o)))
 #define UNK7F8(c) ((*(Unk7F8 **)((u8 *)D_801D8340 + 0x7F8))[c])
 #define PANEL(i) (((HudPanel *)D_801D83EC)[i])
+/* D_801D83EC holds six panels per player (enum HudPanelSlot) */
+#define PLAYER_PANEL(p, slot) (&((Panel *)D_801D83EC)[(p) * 6 + (slot)])
 
 typedef struct Panel {
     /* 0x00 */ u8 unk0[0xC];
-    /* 0x0C */ u8 flags;
+    /* 0x0C */ u8 flags; /* 0x80: drawn */
     /* 0x0D */ u8 state;
     /* 0x0E */ u8 total;
     /* 0x0F */ u8 count;
@@ -40,6 +42,14 @@ typedef struct Panel {
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ struct Panel *parent;
 } Panel;
+enum HudPanelSlot {
+    HUD_CARD_INFO,
+    HUD_ATTACK,
+    HUD_STATUS,
+    HUD_PANEL_3,
+    HUD_DECK,
+    HUD_PANEL_5
+};
 typedef struct {
     /* 0x00 */ u8 rgb[4];
     /* 0x04 */ s16 clut;

@@ -82,19 +82,19 @@ void holdPanelAtTarget(Panel *panel) {
 }
 
 void tickDeckPanel(s32 player) {
-    void *panel;
+    Panel *panel;
 
-    panel = D_801D83EC + (player * 0xD8 + 0x90);
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_DECK);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)panel + 0x10)) = 0x20;
-        (*(s16 *)((s8 *)panel + 0x12)) = player * -0x12F + 0xF0;
+        panel->flags &= 0x7F;
+        panel->x = 0x20;
+        panel->y = player * -0x12F + 0xF0;
         break;
     case 1:
-        (D_801D83EC + player * 0xD8)[0x55] = 1;
-        (D_801D83EC + player * 0xD8)[0xD] = 5;
-        (*(u8 *)((s8 *)panel + 0xD)) += 1;
+        PLAYER_PANEL(player, HUD_STATUS)->state = 1;
+        PLAYER_PANEL(player, HUD_CARD_INFO)->state = 5;
+        panel->state++;
         break;
     case 2:
         startPanelMove(panel, 0x20, -(player * 0x7D) + 0x99, 0x10);
@@ -106,35 +106,35 @@ void tickDeckPanel(s32 player) {
         holdPanelAtTarget(panel);
         break;
     case 7:
-        (D_801D83EC + player * 0xD8)[0x55] = 6;
-        (D_801D83EC + player * 0xD8)[0xD] = 5;
-        (*(u8 *)((s8 *)panel + 0xD)) = 2;
+        PLAYER_PANEL(player, HUD_STATUS)->state = 6;
+        PLAYER_PANEL(player, HUD_CARD_INFO)->state = 5;
+        panel->state = 2;
         break;
     case 11:
         startPanelMove(panel, 0xE8, -(player * 0x7D) + 0x99, 0x10);
         break;
     case 12:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     }
 }
 
 void func_8003DD9C(s32 player) {
-    void *panel;
+    Panel *panel;
     s32 y;
 
-    panel = D_801D83EC + (player * 0xD8 + 0xB4);
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_PANEL_5);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)panel + 0x10)) = 0x164;
+        panel->flags &= 0x7F;
+        panel->x = 0x164;
         y = 0x31 - player * 0x31;
-        (*(s16 *)((s8 *)panel + 0x12)) = y;
+        panel->y = y;
         startPanelMove(panel, 0x164, y, 0);
         stepPanelMove(panel);
-        (*(u8 *)((s8 *)panel + 0xD)) = 0;
+        panel->state = 0;
         break;
     case 1:
         startPanelMove(panel, 0x100, 0x31 - player * 0x31, 8);
@@ -158,25 +158,25 @@ void func_8003DD9C(s32 player) {
         break;
     case 7:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     }
 }
 
 void tickStatusPanel(s32 player) {
-    void *panel;
+    Panel *panel;
 
-    panel = D_801D83EC + (player * 0xD8 + 0x48);
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_STATUS);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)panel + 0x10)) = player * 0x2A0 - 0xEC;
-        (*(s16 *)((s8 *)panel + 0x12)) = 0x5C;
+        panel->flags &= 0x7F;
+        panel->x = player * 0x2A0 - 0xEC;
+        panel->y = 0x5C;
         break;
     case 1:
         startPanelMove(panel, player * 0x7C + 0x28, 0x5C, 0x10);
-        (D_801D83EC + player * 0xD8)[0x79] = 4;
+        PLAYER_PANEL(player, HUD_PANEL_3)->state = 4;
         break;
     case 2:
         stepPanelMove(panel);
@@ -189,7 +189,7 @@ void tickStatusPanel(s32 player) {
         break;
     case 5:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     case 6:
@@ -197,7 +197,7 @@ void tickStatusPanel(s32 player) {
         break;
     case 7:
         if (stepPanelMove(panel) == 0) {
-            (D_801D83EC + player * 0xD8)[0x79] = 1;
+            PLAYER_PANEL(player, HUD_PANEL_3)->state = 1;
         }
         break;
     case 8:
@@ -207,21 +207,21 @@ void tickStatusPanel(s32 player) {
 }
 
 void func_8003E11C(s32 player) {
-    void *panel;
+    Panel *panel;
     s32 x;
     s32 y;
 
-    panel = D_801D83EC + (player * 0xD8 + 0x6C);
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_PANEL_3);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
+        panel->flags &= 0x7F;
         x = -(player * 0x41) + 0x44;
-        (*(s16 *)((s8 *)panel + 0x10)) = x;
+        panel->x = x;
         y = player * 0x1E + 0xA;
-        (*(s16 *)((s8 *)panel + 0x12)) = y;
+        panel->y = y;
         startPanelMove(panel, x, y, 0);
         stepPanelMove(panel);
-        (*(u8 *)((s8 *)panel + 0xD)) = 0;
+        panel->state = 0;
         break;
     case 1:
         startPanelMove(panel, -(player * 0xA1) + 0x74, player * 0x1E + 0xA, 8);
@@ -239,21 +239,21 @@ void func_8003E11C(s32 player) {
         break;
     case 5:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     }
 }
 
 void tickAttackPanel(s32 player) {
-    void *panel;
+    Panel *panel;
 
-    panel = D_801D83EC + (player * 0xD8 + 0x24);
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_ATTACK);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)panel + 0x10)) = 0x38;
-        (*(s16 *)((s8 *)panel + 0x12)) = player * -0x12F + 0xF0;
+        panel->flags &= 0x7F;
+        panel->x = 0x38;
+        panel->y = player * -0x12F + 0xF0;
         break;
     case 1:
         startPanelMove(panel, 0x38, player * -0x7F + 0x99, 0x10);
@@ -269,29 +269,29 @@ void tickAttackPanel(s32 player) {
         break;
     case 5:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     }
 }
 
 void tickCardInfoPanel(s32 player) {
-    void *panel;
+    Panel *panel;
 
-    panel = D_801D83EC + player * 0xD8;
-    switch ((*(u8 *)((s8 *)panel + 0xD))) {
+    panel = PLAYER_PANEL(player, HUD_CARD_INFO);
+    switch (panel->state) {
     case 0:
-        (*(u8 *)((s8 *)panel + 0xC)) &= 0x7F;
-        (*(s16 *)((s8 *)panel + 0x10)) = -0xFF;
-        (*(s16 *)((s8 *)panel + 0x12)) = player * 0x7E + 0x16;
+        panel->flags &= 0x7F;
+        panel->x = -0xFF;
+        panel->y = player * 0x7E + 0x16;
         break;
     case 1:
         startPanelMove(panel, 0x22, 0x16, 0xC);
-        (*(u8 *)((s8 *)panel + 0xD)) = 3;
+        panel->state = 3;
         break;
     case 2:
         startPanelMove(panel, 0x22, 0x94, 0xA);
-        (*(u8 *)((s8 *)panel + 0xD)) = 3;
+        panel->state = 3;
         break;
     case 3:
         stepPanelMove(panel);
@@ -300,11 +300,11 @@ void tickCardInfoPanel(s32 player) {
         holdPanelAtTarget(panel);
         break;
     case 5:
-        startPanelMove(panel, -0xFF, (*(s16 *)((s8 *)panel + 0x12)), 0xC);
+        startPanelMove(panel, -0xFF, panel->y, 0xC);
         break;
     case 6:
         if (stepPanelMove(panel) == 0) {
-            (*(u8 *)((s8 *)panel + 0xD)) = 0;
+            panel->state = 0;
         }
         break;
     }
@@ -333,6 +333,7 @@ void tickBattleHud(void) {
                 PLAYER(player)->stats[i] = 0;
             }
         }
+        /* roll each displayed stat toward the real one, 1/16 of the gap per frame */
         for (i = 0; i < 5; i++) {
             delta = PLAYER(player)->displayedStats[i] - PLAYER(player)->stats[i];
             step = (delta < 0 ? -delta : delta) / 16 + 1;
@@ -349,6 +350,7 @@ void tickBattleHud(void) {
             }
         }
     }
+    /* tick sound every 4 frames while a counter is still rolling */
     rollingCount = 0;
     for (player = 0; player < 2; player++) {
         for (i = 0; i < 5; i++) {
