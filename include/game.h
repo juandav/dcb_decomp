@@ -953,6 +953,7 @@ void ResetCallback(void);
 void SetDispMask(s32);
 void GsInitGraph(u16, u16, u16, u16, u16);
 s32 ClearImage(Rect16 *, s32, s32, s32);
+void MoveImage(Rect16 *rect, s32 x, s32 y);
 void SsInit(void);
 void func_800149A8(s32, s32, void (*)(), s32, s32, s32, s32);
 s32 func_8006A804();
