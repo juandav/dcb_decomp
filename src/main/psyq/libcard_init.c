@@ -42,8 +42,8 @@ long StopCARD(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068994);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80068994);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800689A4);
+INCLUDE_ASM("main/nonmatchings/psyq", func_800689A4);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_800689B4);
+INCLUDE_ASM("main/nonmatchings/psyq", func_800689B4);

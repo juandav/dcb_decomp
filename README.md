@@ -93,7 +93,7 @@ Memory map of `SLUS_013.28` (psylink puts `.rodata` in front of `.text`):
 
 The PsyQ objects need a binary-patched GCC 2.7.2 (`tools/patch_cc1.py`) and,
 for some objects, a patched SN GCC 2.8.1 (`tools/sn_cc1.py`).
-`config/psyq_objects.txt` says which compiler each object needs.
+`config/us/psyq_objects.txt` says which compiler each object needs.
 
 ## Dependencies
 
@@ -134,15 +134,15 @@ sha1sum disks/us/SLUS_013.28   # fa4e03b5e0671dce399a35f2747080ced492d2c3
 
 The build reads `disks/us/SLUS_013.28` and `disks/us/P.DRV`.
 `tools/extract_drv.py` takes each overlay out of `P.DRV`, and
-`config/overlays.sha1` holds their checksums.
+`config/us/overlays.sha1` holds their checksums.
 
 ## Build
 
 ```
-# Split the executable and the overlays with splat (writes asm/ and build/generated/)
+# Split the executable and the overlays with splat (writes asm/us/ and build/us/generated/)
 make regenerate
 
-# Build build/SLUS_013.28 and the overlays
+# Build build/us/SLUS_013.28 and the overlays
 make -j$(nproc)
 
 # Check all eight binaries against the originals
@@ -152,9 +152,9 @@ make compare
 `make compare` must print `OK` for the executable and for each of the seven
 overlays. A change only counts once all eight still match.
 
-`make regenerate` deletes `asm/`, `build/` and `expected/` and splits the
-binaries again. Run it after changing a `config/*.yaml`, so that no stale files
-stay behind in `asm/`.
+`make regenerate` deletes `asm/us/`, `build/us/` (and the patched compilers in
+`build/tools/`) and `expected/us/` and splits the binaries again. Run it after
+changing a `config/us/*.yaml`, so that no stale files stay behind in `asm/us/`.
 
 To use a different binutils or objdiff, create `local.mk`:
 ```
@@ -162,13 +162,24 @@ TOOLCHAIN := /path/to/mipsel-linux-gnu-
 OBJDIFF := /path/to/objdiff-cli
 ```
 
+### Versions
+
+The build handles one version of the game at a time, picked with `VERSION`:
+`make VERSION=us` (the default, and so far the only one). Each version has
+its settings in `mk/version/<version>.mk` (the executable's name, the disc
+directory and the overlays), its splat configs, symbols and checksums in
+`config/<version>/`, its disc in `disks/<version>/`, and its own generated
+`asm/<version>/`, `build/<version>/` and `expected/<version>/`. The C and the
+assembly see `VERSION_US` (`VERSION_<VERSION>`). The tools take `VERSION` from
+the environment too, us by default.
+
 ## Progress
 
 ```
-# Write objdiff.json and the target objects in expected/
+# Write objdiff.json and the target objects in expected/us/
 make objdiff
 
-# Write build/report.json
+# Write build/us/report.json
 make report
 ```
 
@@ -201,9 +212,10 @@ built.
 | `include/game.h` | types and declarations shared by several modules |
 | `include/dcb/` | one header per module (`<module>.h`, `<prefix>_<module>.h`) and one per overlay (`<overlay>.h`) |
 | `include/` | common headers, PsyQ and GTE helpers (`gte.h`), assembler macros |
-| `config/` | splat configs (`main.yaml`, `<overlay>.yaml`), symbols (`symbols.txt`, `symbols_<overlay>.txt`), the PsyQ object list, checksums |
+| `config/us/` | the version's splat configs (`main.yaml`, `<overlay>.yaml`), symbols (`symbols.txt`, `symbols_<overlay>.txt`), the PsyQ object list, checksums |
+| `mk/version/` | each version's settings for the Makefile: the executable's name, the disc directory, the overlays |
 | `tools/` | build helpers, `try_match.py`, `asm_source.py`, `extract_drv.py`, the report generator |
-| `asm/`, `expected/`, `build/` | generated; not in git |
+| `asm/<version>/`, `expected/<version>/`, `build/<version>/` | generated; not in git |
 
 ## Contributing
 
@@ -214,12 +226,14 @@ Some helpers, for the PsyQ functions that are still assembly or for checking a
 change to matched code:
 
 - `python3 external/m2c/m2c.py <file>.s` gives a first draft of a function,
-  from the `.s` file its `INCLUDE_ASM` line names.
+  from the `.s` file its `INCLUDE_ASM` line names (its folder is under
+  `asm/us/`).
 - `tools/try_match.py draft.c [func ...]` compiles a draft with the project's
   compiler and compares each function with the original. It prints both side
   by side when they differ. Set `OVERLAY=<overlay>` for an overlay's
   functions, and add `--psyq`, `--gcc28` or `--nocse` for PsyQ code. It needs
-  `asm/` from `make regenerate`.
+  `asm/us/` from `make regenerate`; `--version` (or `VERSION`) picks another
+  version.
 - [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) (in
   `external/`) searches for C that matches a near miss.
 - objdiff (see [Progress](#progress)) shows the differences per function

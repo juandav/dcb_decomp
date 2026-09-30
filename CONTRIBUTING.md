@@ -55,12 +55,12 @@ Verbs: `create*` sets up and opens something, `open*` only opens it, `tick*`
 updates it once per frame, `render*`/`draw*` draws it, `init*`, `load*`,
 `get*`/`set*`, `is*`/`has*`, `add*`/`remove*`, `count*`, `find*`.
 
-Every renamed symbol also goes in `config/symbols.txt`, so that splat's
+Every renamed symbol also goes in `config/us/symbols.txt`, so that splat's
 disassembly of the original uses the same name and objdiff keeps pairing them.
 An overlay function or global that the executable uses by address keeps the
-overlay's name there too, but in `config/symbols_overlay_calls.txt`, which only
-the executable's splat config reads (another overlay may be loaded at that
-address), with its declaration in `include/dcb/overlay_calls.h`.
+overlay's name there too, but in `config/us/symbols_overlay_calls.txt`, which
+only the executable's splat config reads (another overlay may be loaded at
+that address), with its declaration in `include/dcb/overlay_calls.h`.
 
 ## Pull requests
 

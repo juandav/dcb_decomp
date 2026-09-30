@@ -3,15 +3,15 @@ sha1: fa4e03b5e0671dce399a35f2747080ced492d2c3
 options:
   basename: main
   target_path: disks/us/SLUS_013.28
-  base_path: ..
+  base_path: ../..
   platform: psx
   compiler: GCC
 
-  asm_path: asm/main
+  asm_path: asm/us/main
   src_path: src/main
-  build_path: build
+  build_path: build/us
 
-  ld_script_path: build/generated/main.ld
+  ld_script_path: build/us/generated/main.ld
 
   global_vram_start: 0x80000000
   global_vram_end: 0x80200000
@@ -24,12 +24,12 @@ options:
   section_order: [".rodata", ".text", ".data", ".bss"]
 
   symbol_addrs_path:
-    - config/symbols.txt
+    - config/us/symbols.txt
     # the overlay functions the executable calls, under their overlay's names
-    - config/symbols_overlay_calls.txt
+    - config/us/symbols_overlay_calls.txt
 
-  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_main.txt
-  undefined_syms_auto_path: build/generated/undefined_syms_auto_main.txt
+  undefined_funcs_auto_path: build/us/generated/undefined_funcs_auto_main.txt
+  undefined_syms_auto_path: build/us/generated/undefined_syms_auto_main.txt
 
   string_encoding: ASCII
   data_string_encoding: ASCII

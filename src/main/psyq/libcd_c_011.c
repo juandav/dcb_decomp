@@ -233,4 +233,4 @@ void func_80058A10(long *dst, long *src, u_long n) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80058A3C);
+INCLUDE_ASM("main/nonmatchings/psyq", func_80058A3C);

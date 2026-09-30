@@ -583,4 +583,4 @@ int func_8006D62C(PadPort *p) {
     return -4;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006D748);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006D748);

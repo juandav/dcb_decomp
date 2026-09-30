@@ -1,3 +1,3 @@
 #include "psyq.h"
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", _SsVmSetVol);
+INCLUDE_ASM("main/nonmatchings/psyq", _SsVmSetVol);

@@ -26,9 +26,9 @@ long SpuIsTransferCompleted(long flag) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", __SN_ENTRY_POINT);
+INCLUDE_ASM("main/nonmatchings/psyq", __SN_ENTRY_POINT);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", __main);
+INCLUDE_ASM("main/nonmatchings/psyq", __main);
 
 void __sn_cpp_structors(long start, long end) {
     void (*fn)(void);

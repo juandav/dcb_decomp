@@ -22,7 +22,7 @@ int rcos(int a) {
     return D_8006F858[a];
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", csqrt_1);
+INCLUDE_ASM("main/nonmatchings/psyq", csqrt_1);
 
 long csqrt_1(long a);
 long func_8005FC54(long a);
@@ -75,6 +75,6 @@ int catan(int a) {
     return z[12];
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8005B864);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8005B864);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", InitGeom);
+INCLUDE_ASM("main/nonmatchings/psyq", InitGeom);

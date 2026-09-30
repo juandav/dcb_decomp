@@ -2,17 +2,34 @@
 
 -include local.mk
 
+# The version of the game to build. Each one has its settings in
+# mk/version/<version>.mk: the executable's name, the disc and the overlays.
+# The C and the assembly see it as VERSION_<VERSION> (VERSION_US).
+VERSION ?= us
+VERSIONS := us
+ifeq ($(filter $(VERSION),$(VERSIONS)),)
+$(error unsupported VERSION $(VERSION); supported: $(VERSIONS))
+endif
+VERSION_UPPER := $(shell echo $(VERSION) | tr a-z A-Z)
+include mk/version/$(VERSION).mk
+# the tools read it too (tools/version.py)
+export VERSION
+
+# splat configs, symbols and checksums
+CONFIG_DIR := config/$(VERSION)
+
 TOOLCHAIN ?= mipsel-linux-gnu-
 
-BUILDDIR := build
-ASM_DIR := asm
-EXPECTEDDIR := expected
+BUILDDIR := build/$(VERSION)
+ASM_DIR := asm/$(VERSION)
+EXPECTEDDIR := expected/$(VERSION)
 GENDIR := $(BUILDDIR)/generated
+# the compilers the build patches, the same for every version
+TOOLS_BUILDDIR := build/tools
 
-TARGET := disks/us/SLUS_013.28
-ELF := $(BUILDDIR)/SLUS_013.28.elf
-EXE := $(BUILDDIR)/SLUS_013.28
-MAP := $(BUILDDIR)/SLUS_013.28.map
+ELF := $(BUILDDIR)/$(EXE_NAME).elf
+EXE := $(BUILDDIR)/$(EXE_NAME)
+MAP := $(BUILDDIR)/$(EXE_NAME).map
 
 CPP := $(TOOLCHAIN)cpp
 AS := $(TOOLCHAIN)as
@@ -31,7 +48,8 @@ INC := -Iinclude -Iexternal/psyq_headers/psyq_lib47/include
 
 CPPFLAGS := $(INC) -undef -nostdinc \
 	    -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx \
-	    -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D_LANGUAGE_C -DLANGUAGE_C
+	    -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D_LANGUAGE_C -DLANGUAGE_C \
+	    -DVERSION_$(VERSION_UPPER) -DASM_DIR='"$(ASM_DIR)"'
 CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	    -fgnu-linker -Wall -Wno-unused
 MASPSXFLAGS := --aspsx-version=2.86
@@ -40,18 +58,19 @@ ALIGN_FIX := $(PYTHON) tools/fix_jtbl_align.py
 CC1_POST := cat
 
 # The PsyQ libraries: one file per library object under src/main/psyq/, in
-# the order of config/psyq_objects.txt. Each is compiled on its own and the
-# outputs are assembled together as psyq.c.o, so that splat's alignment of
-# the included rodata still counts from the start of the whole section.
+# the order of config/<version>/psyq_objects.txt. Each is compiled on its own
+# and the outputs are assembled together as psyq.c.o, so that splat's
+# alignment of the included rodata still counts from the start of the whole
+# section.
 # They were built with GCC 2.7.2 -O2, and their ASPSX moved the instruction
 # before `j $31` into its delay slot (tools/aspsx_reorder.py). They use
 # -mhard-float: with -msoft-float the FP registers are fixed, which lowers
 # loop.c's threshold and keeps it from hoisting constants the originals hoist.
-PSYQ_OBJECTS := $(shell awk '{print $$1}' config/psyq_objects.txt)
+PSYQ_OBJECTS := $(shell awk '{print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
 PSYQ_OBJ := $(PSYQ_OBJECTS:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_OBJ): GCC_VERSION := 2.7.2
 # ...binary-patched into the libraries' cc1 (see tools/patch_cc1.py, from dw3)
-PSYQ_CC1 := $(BUILDDIR)/tools/gcc-2.7.2-psx/cc1
+PSYQ_CC1 := $(TOOLS_BUILDDIR)/gcc-2.7.2-psx/cc1
 $(PSYQ_OBJ): CC1 := $(PSYQ_CC1)
 $(PSYQ_OBJ): $(PSYQ_CC1)
 $(PSYQ_CC1): bin/gcc-2.7.2-psx/cc1 tools/patch_cc1.py
@@ -65,10 +84,10 @@ $(PSYQ_OBJ): MASPSXFLAGS += --expand-div
 # address of a global in a register and reaches its fields from there. It
 # filled the delay slot of `j $31` itself; tools/unfill_epilogue.py undoes that
 # so ASPSX's rule applies as for the rest.
-PSYQ_GCC28 := $(shell awk '$$2 == "gcc2.8" {print $$1}' config/psyq_objects.txt)
+PSYQ_GCC28 := $(shell awk '$$2 == "gcc2.8" {print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
 PSYQ_GCC28_OBJ := $(PSYQ_GCC28:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 # That compiler never used `return` insns either (tools/sn_cc1.py).
-SN_CC1 := $(BUILDDIR)/cc1-2.8.1-sn
+SN_CC1 := $(TOOLS_BUILDDIR)/cc1-2.8.1-sn
 $(PSYQ_GCC28_OBJ): CC1 := $(SN_CC1)
 $(PSYQ_GCC28_OBJ): CC1FLAGS += -mno-split-addresses
 # putchar() has _putchar() and _putchar_flash() inlined
@@ -84,13 +103,14 @@ $(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
 # Others come from GCC 2.7.2 run without the second CSE pass, as all of
 # DW3's PsyQ: the first pass kept the address of a global in a register and
 # the second one would put the constant address back
-PSYQ_NOCSE := $(shell awk '$$2 == "nocse" {print $$1}' config/psyq_objects.txt)
+PSYQ_NOCSE := $(shell awk '$$2 == "nocse" {print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
 PSYQ_NOCSE_OBJ := $(PSYQ_NOCSE:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_NOCSE_OBJ): CC1FLAGS += -fno-rerun-cse-after-loop
-ASFLAGS := -EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0 $(INC)
+ASFLAGS := -EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0 $(INC) \
+	   --defsym VERSION_$(VERSION_UPPER)=1
 LDFLAGS := -nostdlib --no-check-sections -Map $(MAP) \
 	   -T $(GENDIR)/main.ld \
-	   -T config/undefined_syms.txt \
+	   -T $(CONFIG_DIR)/undefined_syms.txt \
 	   -T $(GENDIR)/undefined_syms_auto_main.txt \
 	   -T $(GENDIR)/undefined_funcs_auto_main.txt
 
@@ -116,15 +136,15 @@ TARGET_OBJ := $(TARGET_ASM:%.s=$(BUILDDIR)/%.s.o)
 OBJ := $(C_OBJ) $(ASM_OBJ) $(HASM_OBJ)
 
 # Overlays: code the game loads from P.DRV at OVERLAY_LOAD_ADDR, the end of
-# the executable's .bss. Each one has a splat config, config/<name>.yaml,
-# its C files under src/<name>/ and its own ELF linked against the
-# executable's symbols; `make compare` checks them with the executable.
-OVERLAYS := endseg evoseg kawseg openseg saiseg subseg sugseg
-OVERLAY_DRIVE := disks/us/P.DRV
+# the executable's .bss. Each one has a splat config,
+# config/<version>/<name>.yaml, its C files under src/<name>/ and its own ELF
+# linked against the executable's symbols; `make compare` checks them with
+# the executable. The version's OVERLAYS are in mk/version/<version>.mk.
+OVERLAY_DRIVE := $(DISK_DIR)/P.DRV
 OVERLAY_BINS := $(foreach o,$(OVERLAYS),$(BUILDDIR)/$(shell echo $(o) | tr a-z A-Z).BIN)
 
 # the executable's named symbols, as a linker script for the overlays
-$(GENDIR)/symbols_main.ld: config/symbols.txt
+$(GENDIR)/symbols_main.ld: $(CONFIG_DIR)/symbols.txt
 	@mkdir -p $(dir $@)
 	sed -e 's|//.*||' $< > $@
 
@@ -136,7 +156,7 @@ $(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
 	$(PYTHON) tools/extract_drv.py $$< $$($(1)_NAME) $$@
 
 $(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
-$(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(wildcard config/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
+$(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard $(CONFIG_DIR)/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
 	@# a C file with no code (an overlay's data-only files, such as
 	@# <prefix>_bss.c) gets no full disassembly from splat; its target is
@@ -151,10 +171,10 @@ $(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(wildcard config/symbols
 	done
 	@touch $$@
 
-$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld config/undefined_syms.txt $(wildcard config/undefined_syms_$(1).txt)
+$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld $(CONFIG_DIR)/undefined_syms.txt $(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)
 	$(LD) -nostdlib --no-check-sections -Map $(BUILDDIR)/$$($(1)_NAME).map \
-		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld -T config/undefined_syms.txt \
-		$(addprefix -T ,$(wildcard config/undefined_syms_$(1).txt)) \
+		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld -T $(CONFIG_DIR)/undefined_syms.txt \
+		$(addprefix -T ,$(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)) \
 		-T $(GENDIR)/undefined_syms_auto_$(1).txt \
 		-T $(GENDIR)/undefined_funcs_auto_$(1).txt -o $$@
 
@@ -168,9 +188,9 @@ all: $(EXE) $(OVERLAY_BINS)
 
 # Only rerun splat when its own inputs change, never for Makefile edits
 $(GENDIR)/main.ld: .EXTRA_PREREQS :=
-$(GENDIR)/main.ld: config/main.yaml config/symbols.txt config/symbols_overlay_calls.txt
+$(GENDIR)/main.ld: $(CONFIG_DIR)/main.yaml $(CONFIG_DIR)/symbols.txt $(CONFIG_DIR)/symbols_overlay_calls.txt
 	# splat reads the INCLUDE_ASMs of the psyq segment from src/main/psyq.c;
-	# without them it files every PsyQ function under asm/main/matchings
+	# without them it files every PsyQ function under $(ASM_DIR)/main/matchings
 	grep -h '^INCLUDE_' src/main/psyq/*.c > src/main/psyq.c
 	$(SPLAT) $< --disassemble-all --make-full-disasm-for-code; \
 		r=$$?; rm -f src/main/psyq.c; exit $$r
@@ -182,13 +202,13 @@ regenerate: reset
 	$(MAKE) generate
 
 compare: $(EXE) $(OVERLAY_BINS)
-	@sha1sum -c config/SLUS_013.28.sha1 config/overlays.sha1
+	@sha1sum -c $(CONFIG_DIR)/$(EXE_NAME).sha1 $(CONFIG_DIR)/overlays.sha1
 
 $(EXE): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 	@truncate -s %2048 $@
 
-$(ELF): $(OBJ) $(GENDIR)/main.ld config/undefined_syms.txt
+$(ELF): $(OBJ) $(GENDIR)/main.ld $(CONFIG_DIR)/undefined_syms.txt
 	$(LD) $(LDFLAGS) -o $@
 
 $(BUILDDIR)/%.c.o: %.c
@@ -216,7 +236,7 @@ $(BUILDDIR)/src/main/psyq/%.c.s: src/main/psyq/%.c
 # INCLUDE_ASM
 PSYQ_PARTS := $(foreach o,$(PSYQ_OBJECTS),$(or $(wildcard src/main/psyq/$(o).s),$(BUILDDIR)/src/main/psyq/$(o).c.s))
 
-$(BUILDDIR)/src/main/psyq.c.o: $(PSYQ_PARTS) config/psyq_objects.txt
+$(BUILDDIR)/src/main/psyq.c.o: $(PSYQ_PARTS) $(CONFIG_DIR)/psyq_objects.txt
 	for f in $(PSYQ_PARTS); do \
 		case $$f in \
 		src/*) printf '.section .text\n.set noat\n.set noreorder\n'; cat $$f; \
@@ -240,7 +260,7 @@ $(BUILDDIR)/%.s.o: %.s
 expected: $(TARGET_OBJ) $(C_OBJ)
 	rm -rf $(EXPECTEDDIR)
 	@mkdir -p $(EXPECTEDDIR)
-	cp -r $(BUILDDIR)/$(ASM_DIR) $(EXPECTEDDIR)/$(ASM_DIR)
+	cp -r $(BUILDDIR)/$(ASM_DIR) $(EXPECTEDDIR)/asm
 
 objdiff: expected
 	$(PYTHON) tools/objdiff_generate.py
@@ -249,7 +269,7 @@ report: objdiff
 	$(OBJDIFF) report generate -o $(BUILDDIR)/report.json
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm -rf $(BUILDDIR) $(TOOLS_BUILDDIR)
 
 reset: clean
 	rm -rf $(ASM_DIR) $(EXPECTEDDIR)

@@ -4,7 +4,7 @@
 const char D_80013D5C[] = "0123456789ABCDEF";
 const char D_80013D70[] = "0123456789abcdef";
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", sprintf);
+INCLUDE_ASM("main/nonmatchings/psyq", sprintf);
 
 void *memmove(u_char *dst, u_char *src, int n) {
     u_char *d = dst;

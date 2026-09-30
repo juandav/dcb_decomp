@@ -15,10 +15,10 @@ puts them in the previous symbol, as `.asciz ""` or `.word 0`); the filter
 finds those tables by assembling its output and adds the 4 bytes.
 
 The original tables are read from splat's full disassembly of each C
-segment (asm/<binary>/<segment>.s). The file's own rodata start (its
-.rodata subsegment in config/<binary>.yaml, given the unit's path under
-src/ such as main/gfx/prim as argument) decides which tables sit 4 bytes
-past an 8-byte boundary relative to that start.
+segment (asm/<version>/<binary>/<segment>.s). The file's own rodata start (its
+.rodata subsegment in config/<version>/<binary>.yaml, given the unit's path
+under src/ such as main/gfx/prim as argument) decides which tables sit 4
+bytes past an 8-byte boundary relative to that start.
 """
 
 import glob
@@ -27,6 +27,8 @@ import re
 import subprocess
 import sys
 import tempfile
+
+from version import ASM_DIR, CONFIG_DIR
 
 _tables = None
 # the binary whose unit is being filtered: the overlays share their
@@ -39,7 +41,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def rodata_start(unit):
     """VRAM where the .rodata subsegment of `unit` (binary/path) starts."""
     binary, _, path = unit.partition("/")
-    text = open(os.path.join(ROOT, "config", binary + ".yaml")).read()
+    text = open(os.path.join(CONFIG_DIR, binary + ".yaml")).read()
     m = re.search(r"\[(0x[0-9A-Fa-f]+), \.rodata, %s\]" % re.escape(path), text)
     if not m:
         return 0
@@ -48,14 +50,14 @@ def rodata_start(unit):
 
 
 def unit_asm(only=None):
-    """splat's full disassembly of each C segment (asm/<binary>/<unit>.s),
-    or only of those of the binary ONLY."""
-    for config in glob.glob(os.path.join(ROOT, "config", "*.yaml")):
+    """splat's full disassembly of each C segment
+    (asm/<version>/<binary>/<unit>.s), or only of those of the binary ONLY."""
+    for config in glob.glob(os.path.join(CONFIG_DIR, "*.yaml")):
         binary = os.path.basename(config)[:-5]
         if only is not None and binary != only:
             continue
         for unit in re.findall(r"\[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", open(config).read()):
-            path = os.path.join(ROOT, "asm", binary, unit + ".s")
+            path = os.path.join(ASM_DIR, binary, unit + ".s")
             if os.path.exists(path):
                 yield path
 

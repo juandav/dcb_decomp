@@ -3,16 +3,16 @@ sha1: 28080d23c69e25caea7564ef6a862bd7e248b17c
 options:
   basename: openseg
   # extracted from disks/us/P.DRV by tools/extract_drv.py
-  target_path: build/disks/OPENSEG.BIN
-  base_path: ..
+  target_path: build/us/disks/OPENSEG.BIN
+  base_path: ../..
   platform: psx
   compiler: GCC
 
-  asm_path: asm/openseg
+  asm_path: asm/us/openseg
   src_path: src/openseg
-  build_path: build
+  build_path: build/us
 
-  ld_script_path: build/generated/openseg.ld
+  ld_script_path: build/us/generated/openseg.ld
 
   global_vram_start: 0x80000000
   global_vram_end: 0x80200000
@@ -26,11 +26,11 @@ options:
 
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
-    - config/symbols.txt
-    - config/symbols_openseg.txt
+    - config/us/symbols.txt
+    - config/us/symbols_openseg.txt
 
-  undefined_funcs_auto_path: build/generated/undefined_funcs_auto_openseg.txt
-  undefined_syms_auto_path: build/generated/undefined_syms_auto_openseg.txt
+  undefined_funcs_auto_path: build/us/generated/undefined_funcs_auto_openseg.txt
+  undefined_syms_auto_path: build/us/generated/undefined_syms_auto_openseg.txt
 
   string_encoding: ASCII
   data_string_encoding: ASCII

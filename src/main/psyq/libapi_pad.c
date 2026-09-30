@@ -88,12 +88,12 @@ int func_8006AF10(void) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF54);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006AF54);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF64);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006AF64);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF74);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006AF74);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF84);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006AF84);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006AF94);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006AF94);

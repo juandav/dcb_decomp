@@ -84,4 +84,4 @@ long func_8006ABB0(long *fcb, long a1, long a2) {
 
 OBJECT_END(1);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_8006ACB4);
+INCLUDE_ASM("main/nonmatchings/psyq", func_8006ACB4);
