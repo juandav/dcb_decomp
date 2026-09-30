@@ -20,10 +20,10 @@ extern s32 HACK_SCRIPT_DONE;
 extern s32 HACK_TEXT_BUFFER;
 extern u8 *HACK_TEXT_CURSOR;
 extern u8 *HACK_SCRIPT_CURSOR;
-extern s32 HACK_TAUNT_WINDOW;
-extern s32 HACK_PARTNER_MOVED_WINDOW;
-extern s32 HACK_ERROR_WINDOW;
-extern s32 HACK_TERMINAL_WINDOW;
+extern UiWindow HACK_TAUNT_WINDOW;
+extern UiWindow HACK_PARTNER_MOVED_WINDOW;
+extern UiWindow HACK_ERROR_WINDOW;
+extern UiWindow HACK_TERMINAL_WINDOW;
 extern s32 HACK_SCRIPT_INDEX;
 extern u8 *HACKING_SCRIPTS[];
 /* the same text as in startCpuDuel, kept as its own copy */

@@ -29,7 +29,10 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-/* the hacking screens */
+/* the hacking screens, typed out by drawHackingTerminal. Control codes:
+   \001 types what follows one character per frame (as does a '>' line),
+   \002 n waits n frames, \004/\005/\006 pop up the system error, partner
+   moved and taunt windows; a new line types instantly again after 20 frames */
 u8 *HACKING_SCRIPTS[4] = {
     "Hacking System 2000\n"
     " (C)Analogman Software\n"
@@ -155,19 +158,19 @@ INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_PARTNER_MOVED)
 
 INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_TAUNT);
 
-void drawHackingTerminal(s16 *win) {
-    s16 rect[4];
+void drawHackingTerminal(UiWindow *win) {
+    Rect16 rect;
     s32 x;
     s32 y;
     s16 z;
     u8 *script;
 
-    x = win[0] + 1;
-    y = win[1];
+    x = win->originX + 1;
+    y = win->originY;
     if (HACK_LINE_COUNT >= 12) {
-        y -= (HACK_LINE_COUNT - 11) * 7;
+        y -= (HACK_LINE_COUNT - 11) * 7; /* scroll up once 12 lines are shown */
     }
-    z = win[0x1D];
+    z = win->z;
     if (HACK_WAIT_FRAMES > 0 || HACK_SCRIPT_DONE != 0) {
         HACK_WAIT_FRAMES--;
     } else {
@@ -182,30 +185,31 @@ void drawHackingTerminal(s16 *win) {
                 HACK_WAIT_FRAMES = script[1];
                 break;
             case 4:
+                /* the windows grow to the text's size rounded up to even */
                 measureText(STR_HACK_SYSTEM_ERROR);
-                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
-                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
-                rect[0] = 0x28;
-                rect[1] = 0x28;
-                animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)rect);
+                rect.w = (TEXT_WIDTH + 1) / 2 * 2;
+                rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect.x = 0x28;
+                rect.y = 0x28;
+                animateWindowTo(&HACK_ERROR_WINDOW, &rect);
                 playMenuSound(3);
                 break;
             case 5:
                 measureText(STR_HACK_PARTNER_MOVED);
-                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
-                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
-                rect[0] = 0x50;
-                rect[1] = 0x78;
-                animateWindowTo((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)rect);
+                rect.w = (TEXT_WIDTH + 1) / 2 * 2;
+                rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect.x = 0x50;
+                rect.y = 0x78;
+                animateWindowTo(&HACK_PARTNER_MOVED_WINDOW, &rect);
                 playMenuSound(3);
                 break;
             case 6:
                 measureText(STR_HACK_TAUNT);
-                rect[2] = (TEXT_WIDTH + 1) / 2 * 2;
-                rect[3] = (TEXT_HEIGHT + 1) / 2 * 2;
-                rect[0] = (0x140 - rect[2]) >> 1;
-                rect[1] = 0xB4 - rect[3] / 2;
-                animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)rect);
+                rect.w = (TEXT_WIDTH + 1) / 2 * 2;
+                rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
+                rect.x = (0x140 - rect.w) >> 1;
+                rect.y = 0xB4 - rect.h / 2;
+                animateWindowTo(&HACK_TAUNT_WINDOW, &rect);
                 playMenuSound(3);
                 break;
             case '>':
@@ -226,6 +230,7 @@ void drawHackingTerminal(s16 *win) {
             }
         } while (HACK_TYPING_MODE == 0 && HACK_WAIT_FRAMES == 0);
     }
+    /* the cursor blinks every 16 frames while the script waits */
     if ((HACK_BLINK_TIMER & 0x10) || HACK_WAIT_FRAMES == 0) {
         *HACK_TEXT_CURSOR = '|';
     } else {
@@ -236,23 +241,23 @@ void drawHackingTerminal(s16 *win) {
     drawMediumText(x, y, HACK_TEXT_BUFFER, 4, z);
 }
 
-void drawHackErrorText(void *win) {
-    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_SYSTEM_ERROR, 0, (s32) (*(s16 *)((s8 *)win + 0x3A)));
+void drawHackErrorText(UiWindow *win) {
+    drawText(win->originX, win->originY, (s32)STR_HACK_SYSTEM_ERROR, 0, win->z);
 }
 
-void drawHackPartnerMovedText(void *win) {
-    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_PARTNER_MOVED, 7, (s32) (*(s16 *)((s8 *)win + 0x3A)));
+void drawHackPartnerMovedText(UiWindow *win) {
+    drawText(win->originX, win->originY, (s32)STR_HACK_PARTNER_MOVED, 7, win->z);
 }
 
-void drawHackTauntText(void *win) {
-    drawText((*(s16 *)((s8 *)win + 0)), (*(s16 *)((s8 *)win + 2)), &STR_HACK_TAUNT, 7, (s32) (*(s16 *)((s8 *)win + 0x3A)));
+void drawHackTauntText(UiWindow *win) {
+    drawText(win->originX, win->originY, (s32)STR_HACK_TAUNT, 7, win->z);
 }
 
 void drawHackingWindows(void) {
-    drawWindow((UiWindow *)&HACK_TAUNT_WINDOW, &drawHackTauntText, 0xA);
-    drawWindow((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, &drawHackPartnerMovedText, 0xA);
-    drawWindow((UiWindow *)&HACK_ERROR_WINDOW, &drawHackErrorText, 0xA);
-    drawWindow((UiWindow *)&HACK_TERMINAL_WINDOW, &drawHackingTerminal, 0xA);
+    drawWindow(&HACK_TAUNT_WINDOW, &drawHackTauntText, 0xA);
+    drawWindow(&HACK_PARTNER_MOVED_WINDOW, &drawHackPartnerMovedText, 0xA);
+    drawWindow(&HACK_ERROR_WINDOW, &drawHackErrorText, 0xA);
+    drawWindow(&HACK_TERMINAL_WINDOW, &drawHackingTerminal, 0xA);
 }
 
 void runHackingSequence(s32 scriptIndex, s32 parentTask) {
@@ -279,31 +284,32 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     r.w = 0xA0;
     r.h = 0x54;
     openWindow(&HACK_TERMINAL_WINDOW, &r, -1, (s16 *)-1, 8, 0x58, 0x80, 0xC);
-    ((UiWindow *)&HACK_TERMINAL_WINDOW)->label = (s32)"SHELL COMMAND";
-    ((UiWindow *)&HACK_TERMINAL_WINDOW)->palette = 2;
-    ((UiWindow *)&HACK_TERMINAL_WINDOW)->labelPalette = 8;
+    HACK_TERMINAL_WINDOW.label = (s32)"SHELL COMMAND";
+    HACK_TERMINAL_WINDOW.palette = 2;
+    HACK_TERMINAL_WINDOW.labelPalette = 8;
     playMenuSound(3);
     measureText(STR_HACK_SYSTEM_ERROR);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     openWindow(&HACK_ERROR_WINDOW, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
-    ((UiWindow *)&HACK_ERROR_WINDOW)->palette = 2;
+    animateWindowTo(&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    HACK_ERROR_WINDOW.palette = 2;
     measureText(STR_HACK_PARTNER_MOVED);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
-    openWindow((UiWindow *)&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
-    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
-    ((UiWindow *)&HACK_ERROR_WINDOW)[1].palette = 2;
+    /* HACK_ERROR_WINDOW + 1 is HACK_PARTNER_MOVED_WINDOW */
+    openWindow(&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
+    animateWindowTo(&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
+    (&HACK_ERROR_WINDOW)[1].palette = 2;
     measureText(STR_HACK_TAUNT);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     r.x = (0x140 - r.w) >> 1;
     r.y = 0xB4 - r.h / 2;
     openWindow(&HACK_TAUNT_WINDOW, &r, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
-    ((UiWindow *)&HACK_TAUNT_WINDOW)->label = (s32)"MESSAGE";
-    ((UiWindow *)&HACK_TAUNT_WINDOW)->palette = 4;
-    animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
+    HACK_TAUNT_WINDOW.label = (s32)"MESSAGE";
+    HACK_TAUNT_WINDOW.palette = 4;
+    animateWindowTo(&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     addFrameCallback((s32)drawHackingWindows);
     do {
         func_80014C08(FRAME_INTERVAL);
@@ -312,10 +318,10 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
         }
     } while (done == 0);
     playMenuSound(4);
-    animateWindowTo((UiWindow *)&HACK_TERMINAL_WINDOW, (Rect16 *)-1);
-    animateWindowTo((UiWindow *)&HACK_ERROR_WINDOW, (Rect16 *)-1);
-    animateWindowTo((UiWindow *)&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
-    animateWindowTo((UiWindow *)&HACK_TAUNT_WINDOW, (Rect16 *)-1);
+    animateWindowTo(&HACK_TERMINAL_WINDOW, (Rect16 *)-1);
+    animateWindowTo(&HACK_ERROR_WINDOW, (Rect16 *)-1);
+    animateWindowTo(&HACK_PARTNER_MOVED_WINDOW, (Rect16 *)-1);
+    animateWindowTo(&HACK_TAUNT_WINDOW, (Rect16 *)-1);
     func_80014C08(20);
     removeFrameCallback((s32)drawHackingWindows);
     func_80014A48(parentTask);
