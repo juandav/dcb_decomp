@@ -138,6 +138,12 @@ $(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
 $(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
 $(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(wildcard config/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
+	@# a C file with no code (an overlay's zeroed data, <prefix>_bss.c) gets
+	@# no full disassembly from splat; its data file is its whole target
+	@for f in $(ASM_DIR)/$(1)/data/*.data.s; do \
+		u=$$$$(basename $$$$f .data.s); \
+		if [ -e src/$(1)/$$$$u.c ] && ! grep -qs '^glabel' $(ASM_DIR)/$(1)/$$$$u.s; then cp $$$$f $(ASM_DIR)/$(1)/$$$$u.s; fi; \
+	done
 	@touch $$@
 
 $(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld config/undefined_syms.txt $(wildcard config/undefined_syms_$(1).txt)

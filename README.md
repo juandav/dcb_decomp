@@ -183,8 +183,8 @@ shared by several functions stays behind `INCLUDE_RODATA`.
 The PsyQ functions were named from the
 [PsyQ 4.7 signatures](https://github.com/lab313ru/psx_psyq_signatures).
 
-When the overlays join the build, each will get its own `src/<overlay>/`
-folder.
+Each overlay has its own `src/<overlay>/` folder, split into modules like
+the executable.
 
 ## Links
 
