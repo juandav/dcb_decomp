@@ -487,7 +487,9 @@ typedef struct {
     /* 0x00 */ u16 cards[30];
     /* 0x3C */ char name[0x28];
     /* 0x64 */ u8 unk64[4];
-    /* 0x68 */ u8 unk68[5];
+    /* 0x68 */ u8 unk68[2];
+    /* 0x6A */ u8 stageId;
+    /* 0x6B */ u8 unk6B[2];
     /* 0x6D */ u8 partnerArmor;
 } PresetDeck;
 typedef struct {
@@ -802,7 +804,7 @@ typedef struct {
     /* 0x058 */ u8 *cursor;
     /* 0x05C */ u8 unk5C[0x784];
     /* 0x7E0 */ CardCache cache[6];
-    /* 0x7F8 */ u8 sprites[4];
+    /* 0x7F8 */ void *sprites;
     /* 0x7FC */ s32 cpuWaitFrames;
     /* 0x800 */ s32 unk800;
     /* 0x804 */ s32 cpuResult;
@@ -833,7 +835,11 @@ typedef struct {
     /* 0x825 */ u8 unk825;
     /* 0x826 */ u8 artSlot;
     /* 0x827 */ u8 cpuPlayer;
-    /* 0x828 */ u8 unk828[0x14];
+    /* 0x828 */ s32 ringMode; /* -1: no ring drawn */
+    /* 0x82C */ s32 ringX;
+    /* 0x830 */ s32 ringY;
+    /* 0x834 */ s32 ringRadius;
+    /* 0x838 */ s32 ringWidth;
     /* 0x83C */ s32 inPolygonBattle;
 } Duel;
 typedef struct {
