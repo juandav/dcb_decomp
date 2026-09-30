@@ -41,13 +41,13 @@ void initDuelState(s32 isCpuDuel) {
     DUEL->state = -1;
     DUEL->tutorial = 0;
     DUEL->unk825 = 0;
-    DUEL->unk823 = 0;
+    DUEL->menuOpen = 0;
     DUEL->awaitingInput = 0;
-    DUEL->unk824 = 0;
-    DUEL->unk820[0] = 0;
+    DUEL->quit = 0;
+    DUEL->tutorialBusy = 0;
     func_801F8200();
     initDuelPlayers(isCpuDuel);
-    DUEL->unk81D = -1;
+    DUEL->cursorMode = -1;
 }
 
 void startDuelScene(void) {
@@ -63,10 +63,10 @@ void startDuelScene(void) {
     camera->posX = 0;
     camera->posY = 0;
     camera->posZ = 0;
-    camera->unk8E = 0;
-    camera->unk90 = 0x1C0;
-    camera->unk92 = 0;
-    camera->unk94 = 0;
+    camera->targetPitch = 0;
+    camera->targetDistance = 0x1C0;
+    camera->targetHeight = 0;
+    camera->targetYaw = 0;
     camera->targetModel = -1;
     camera->snapCamera = 1;
     DUEL->loadBusy = 0;
@@ -236,8 +236,8 @@ void runDuel(s32 mode, s32 parent) {
             if (DUEL->fade < 0) {
                 DUEL->fade = 0;
             }
-            ((Graphics *)&GRAPHICS)->unk90 += 4;
-            ((Graphics *)&GRAPHICS)->unk8E -= 10;
+            ((Graphics *)&GRAPHICS)->targetDistance += 4;
+            ((Graphics *)&GRAPHICS)->targetPitch -= 10;
             ((Graphics *)&GRAPHICS)->rotZ += 6;
             if (timer++ >= 60) {
                 for (i = 0; i < 2; i++) {
@@ -267,8 +267,8 @@ void runDuel(s32 mode, s32 parent) {
                 timer = 0;
                 DUEL->state = 3;
                 freeWireGrid();
-                ((Graphics *)&GRAPHICS)->unk90 = 0x1C0;
-                ((Graphics *)&GRAPHICS)->unk8E = 0;
+                ((Graphics *)&GRAPHICS)->targetDistance = 0x1C0;
+                ((Graphics *)&GRAPHICS)->targetPitch = 0;
                 ((Graphics *)&GRAPHICS)->rotZ = 0;
             }
             break;
@@ -307,9 +307,9 @@ void runDuel(s32 mode, s32 parent) {
             winner = DUEL->winner;
             break;
         }
-        if (DUEL->unk824 >= 2) {
-            DUEL->winner = DUEL->unk824 & 1;
-            winner = DUEL->unk824 - 2;
+        if (DUEL->quit >= 2) {
+            DUEL->winner = DUEL->quit & 1;
+            winner = DUEL->quit - 2;
             break;
         }
     }
@@ -386,21 +386,21 @@ void runDuel(s32 mode, s32 parent) {
                     if ((PLAYER_DATA(winner).opponentDeckFlags[k] & 0x3FFF) >= 1000) {
                         PLAYER_DATA(winner).opponentDeckFlags[k] = (PLAYER_DATA(winner).opponentDeckFlags[k] & 0xC000) + 999;
                     }
-                } else if (++PLAYER_DATA(i).unkBFE[k] >= 1000) {
-                    PLAYER_DATA(i).unkBFE[k] = 999;
+                } else if (++PLAYER_DATA(i).opponentDeckLosses[k] >= 1000) {
+                    PLAYER_DATA(i).opponentDeckLosses[k] = 999;
                 }
             } else {
-                s8 c = PLAYER_DATA(i).unk30[4];
+                s8 c = PLAYER_DATA(i).deckChoice;
 
                 if (c != -1) {
                     PlayerDeck *e = &PLAYER_DATA(i).savedDecks[c];
 
                     if (i == winner) {
-                        if (++e->unk108[1] >= 1000) {
-                            e->unk108[1] = 999;
+                        if (++e->wins >= 1000) {
+                            e->wins = 999;
                         }
-                    } else if (++e->unk108[2] >= 1000) {
-                        e->unk108[2] = 999;
+                    } else if (++e->losses >= 1000) {
+                        e->losses = 999;
                     }
                 }
             }
@@ -409,11 +409,11 @@ void runDuel(s32 mode, s32 parent) {
             k = getBaseDeckId(((SessionData *)SESSION_DATA)->opponentDeckIndex);
             PLAYER_DATA(0).opponentDeckFlags[k] |= 0x8000;
             if (winner == 0) {
-                if (++PLAYER_DATA(0).unk888[k] >= 1000) {
-                    PLAYER_DATA(0).unk888[k] = 999;
+                if (++PLAYER_DATA(0).comWins[k] >= 1000) {
+                    PLAYER_DATA(0).comWins[k] = 999;
                 }
-            } else if (++PLAYER_DATA(0).unk9A4[k] >= 1000) {
-                PLAYER_DATA(0).unk9A4[k] = 999;
+            } else if (++PLAYER_DATA(0).comLosses[k] >= 1000) {
+                PLAYER_DATA(0).comLosses[k] = 999;
             }
         }
     }

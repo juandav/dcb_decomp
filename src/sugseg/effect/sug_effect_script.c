@@ -365,7 +365,7 @@ void SUG_initEffectRoot(void) {
     fx.fadeMode = 0;
     fx.speed = 0;
     fx.hitRadius = 0x80;
-    fx.parent = SCENE_3D->unk78;
+    fx.parent = SCENE_3D->viewMatrix;
     fx.mode = 0;
     SUG_EFFECT_ROOT = fx;
     initEffectObject(&SUG_EFFECT_ROOT);
@@ -573,11 +573,11 @@ void SUG_runEffectScript(EffectScript *runner) {
                         }
                         SCENE_3D->modelState[CAMERA->targetModel] = 1;
                         SCENE_3D->modelState[(s16)(CAMERA->targetModel ^ 1)] = -1;
-                        *(s16 *)CAMERA->pad96 = 0;
+                        CAMERA->targetFacedModel = 0;
                         break;
                     case 1:
                         CAMERA->targetModel = ((ModelEffect *)slots->slots[PARAMS->source].value)->modelSlot;
-                        *(s16 *)CAMERA->pad96 = slots->modelSlots[0];
+                        CAMERA->targetFacedModel = slots->modelSlots[0];
                         break;
                     }
                     break;
@@ -1081,12 +1081,12 @@ EffectScript *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state)
     switch (side) {
     case 0:
     case 1:
-        initTransform(runner->slots->xform, (s32)SCENE_3D->unk78, 0, 0, ((ModelData *)SCENE_3D->models[side])->x, 0,
+        initTransform(runner->slots->xform, (s32)SCENE_3D->viewMatrix, 0, 0, ((ModelData *)SCENE_3D->models[side])->x, 0,
                       ((ModelData *)SCENE_3D->models[side])->rotY, 0);
         break;
     default:
         runner->slots->modelSlots[0] = runner->slots->modelSlots[1] = 0;
-        initTransform(runner->slots->xform, (s32)SCENE_3D->unk78, 0, 0, 0, 0, 0, 0);
+        initTransform(runner->slots->xform, (s32)SCENE_3D->viewMatrix, 0, 0, 0, 0, 0, 0);
         break;
     }
     SUG_runEffectScript(runner);

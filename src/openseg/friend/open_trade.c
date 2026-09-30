@@ -1159,8 +1159,8 @@ void OPEN_runCardTrade(s32 parentTask) {
         }
         if (OPEN_TRADE_STATE == 2 && ((PAD_STATES[0]->pressed & 0x40) || (PAD_STATES[1]->pressed & 0x40))) {
             playMenuSound(1);
-            PLAYER_DATA(0).unk28_11 = 1;
-            PLAYER_DATA(1).unk28_11 = 1;
+            PLAYER_DATA(0).hasTraded = 1;
+            PLAYER_DATA(1).hasTraded = 1;
             for (i = 0; i < 2; i++) {
                 for (j = 0; j < 3; j++) {
                     card = OPEN_TRADE_PICKS[i][j];

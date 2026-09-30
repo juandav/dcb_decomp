@@ -67,10 +67,10 @@ void EVO_initFusionScene(void) {
     camera->posX = 0;
     camera->posY = 0;
     camera->posZ = 0;
-    camera->unk8E = 0;
-    camera->unk90 = 20;
-    camera->unk92 = 0;
-    camera->unk94 = 0;
+    camera->targetPitch = 0;
+    camera->targetDistance = 20;
+    camera->targetHeight = 0;
+    camera->targetYaw = 0;
     camera->targetModel = -1;
     camera->snapCamera = 1;
     waitFrames(2);

@@ -124,7 +124,7 @@ void updatePlayerRanks(s32 player) {
         }
         rank = 6;
     case 6:
-        if (PLAYER_DATA(player).unk28_11) {
+        if (PLAYER_DATA(player).hasTraded) {
             break;
         }
         rank = 7;

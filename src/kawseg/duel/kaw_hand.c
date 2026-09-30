@@ -162,11 +162,11 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
 
     KAW_DUEL->cursorMode = mode;
     for (i = 0; i < 2; i++) {
-        PLAYER(i)->unk1BD[0] = peekOnlineDeckTop(i);
-        PLAYER(i)->unk1BD[1] = peekOfflineDeckTop(i);
-        PLAYER(i)->unk1BD[2] = getActiveDigimonCard(i);
-        PLAYER(i)->unk1BD[3] = getPlayedCard(i);
-        PLAYER(i)->unk1BD[4] = peekDpSlotTop(i);
+        PLAYER(i)->topCards[0] = peekOnlineDeckTop(i);
+        PLAYER(i)->topCards[1] = peekOfflineDeckTop(i);
+        PLAYER(i)->topCards[2] = getActiveDigimonCard(i);
+        PLAYER(i)->topCards[3] = getPlayedCard(i);
+        PLAYER(i)->topCards[4] = peekDpSlotTop(i);
     }
     if (DUEL->cursorSlot == -1) {
         DUEL->cursorPlayer = player;
@@ -503,21 +503,21 @@ s32 KAW_checkKnockout(s32 player) {
         DUEL->winner = opponent;
         if (((*(u32 *)((u8 *)PLAYER(player) + 0x178) >> 14) & 1) && PLAYER(opponent)->wins != 2) {
             KAW_playEffect(0x1D, player);
-            showStatChangePopup(player, *(s16 *)PLAYER(player)->unk166, 0);
-            PLAYER(player)->stats[0] = *(s16 *)PLAYER(player)->unk166;
+            showStatChangePopup(player, PLAYER(player)->reviveHp, 0);
+            PLAYER(player)->stats[0] = PLAYER(player)->reviveHp;
             waitForStatCountersToSettle();
         } else {
             data = DUEL_PLAYERS[opponent];
             data += (getActiveDigimonCard(opponent) % 30) * sizeof(CardSlot);
             card = ((Player *)data)->cards[0].index;
-            if (++PLAYER_DATA(opponent).unk11B6[card] >= 1000) {
-                PLAYER_DATA(opponent).unk11B6[card] = 999;
+            if (++PLAYER_DATA(opponent).cardWins[card] >= 1000) {
+                PLAYER_DATA(opponent).cardWins[card] = 999;
             }
             data = DUEL_PLAYERS[player];
             data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);
             card = ((Player *)data)->cards[0].index;
-            if (++PLAYER_DATA(player).unk1334[card] >= 1000) {
-                PLAYER_DATA(player).unk1334[card] = 999;
+            if (++PLAYER_DATA(player).cardLosses[card] >= 1000) {
+                PLAYER_DATA(player).cardLosses[card] = 999;
             }
             data = DUEL_PLAYERS[player];
             data += (getActiveDigimonCard(player) % 30) * sizeof(CardSlot);

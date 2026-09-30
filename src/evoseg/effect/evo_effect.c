@@ -797,7 +797,7 @@ EvoEffectScript *EVO_createEffectScript(EvoMsd *data) {
     fx.fadeMode = 0;
     fx.speed = 0;
     fx.hitRadius = 0x80;
-    fx.parent = SCENE_3D->unk78;
+    fx.parent = SCENE_3D->viewMatrix;
     fx.mode = 0;
     EVO_EFFECT_ROOT = fx;
     initEffectObject(&EVO_EFFECT_ROOT);

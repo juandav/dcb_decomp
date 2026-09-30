@@ -116,7 +116,7 @@ void SAI_uploadPakTextures(u8 *pack) {
 
 void SAI_loadAreaPak(void) {
     char path[0x48];
-    s32 area = ((PlayerProfile *)PLAYER_PROFILES)->unkE;
+    s32 area = ((PlayerProfile *)PLAYER_PROFILES)->areaId;
 
     SESSION->loading = 1;
     sprintf(path, "C:\\area%2.2d.pak", area);
@@ -181,7 +181,7 @@ void SAI_drawSprite(Sprite3D *sprite) {
     s32 flag;
 
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
-    CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
+    CompMatrix((MATRIX *)SCENE_3D->viewMatrix, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     SetTransMatrix(&matrix);
     corners[0] = sprite->corners[0];

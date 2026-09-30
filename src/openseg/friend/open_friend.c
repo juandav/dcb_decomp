@@ -48,7 +48,7 @@ void OPEN_drawFriendMenu(void) {
         }
     }
     OPEN_drawSprite(D_801F4F00, D_801F4F04, 0x300, 0, 0x8C, 0x96, 0x300, 0x96, 0, 1, 1, 0x80, 2);
-    same = (u16)PLAYER_DATA(0).unk10 == (u16)PLAYER_DATA(1).unk10;
+    same = (u16)PLAYER_DATA(0).profileId == (u16)PLAYER_DATA(1).profileId;
     if ((OPEN_TRADE_ENABLED & 3) != 3) {
         same = 1;
     }
@@ -104,14 +104,14 @@ void OPEN_drawPlayerRecord(PlayerWindow *window) {
     drawText(x + 1, y + 0x30, (s32)"Deck", 6, z);
     for (i = 0; i < 3; i++) {
         if (PLAYER_DATA(window->player).savedDecks[i].inUse) {
-            strcpy(text, (char *)PLAYER_DATA(window->player).savedDecks[i].unk1);
+            strcpy(text, (char *)PLAYER_DATA(window->player).savedDecks[i].name);
             strcat(text, "Deck");
         } else {
             strcpy(text, "Unused Deck");
         }
         drawText(x + 0x37, y + (i + 4) * 12, (s32)text, 7, z);
     }
-    if (PLAYER_DATA(window->player).unk28_10) {
+    if (PLAYER_DATA(window->player).tradeUnlocked) {
         drawIcon(x + 8, y + 0x44, 2, 11, z);
     }
 }
@@ -239,12 +239,12 @@ void OPEN_runBattleWithFriend(void) {
     addFrameCallback((s32)OPEN_drawFriendScreen);
     do {
         waitFrames(FRAME_INTERVAL);
-        OPEN_TRADE_ENABLED = PLAYER_DATA(0).unk28_10 | (PLAYER_DATA(1).unk28_10 << 1);
+        OPEN_TRADE_ENABLED = PLAYER_DATA(0).tradeUnlocked | (PLAYER_DATA(1).tradeUnlocked << 1);
         if (PAD_STATES[0]->pressed & 0x40) {
             switch (((SessionView *)SESSION_DATA)->menuRow) {
             case 1:
                 message = NULL;
-                if ((u16)PLAYER_DATA(0).unk10 == (u16)PLAYER_DATA(1).unk10) {
+                if ((u16)PLAYER_DATA(0).profileId == (u16)PLAYER_DATA(1).profileId) {
                     message = "You can't trade the same Data!";
                 } else if (!(OPEN_TRADE_ENABLED & 3)) {
                     message = "Trade is disabled.";
@@ -394,6 +394,6 @@ s32 func_801EBA74(s32 kind) {
     id -= 12;
     word = id / 32;
     shift = id % 32;
-    ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[word] |= bit = 1 << shift;
-    return (((PlayerProfile *)PLAYER_PROFILES)->unk23FC[word] & bit) != 0;
+    ((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[word] |= bit = 1 << shift;
+    return (((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[word] & bit) != 0;
 }

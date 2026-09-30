@@ -29,7 +29,7 @@
 void waitDuelFrames(s32 frames) {
     while (frames > 0) {
         waitFrames(FRAME_INTERVAL);
-        if (DUEL->unk823 == 0) {
+        if (DUEL->menuOpen == 0) {
             frames--;
         }
         if (DUEL->stopTurnLoop != 0) {

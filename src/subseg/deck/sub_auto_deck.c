@@ -261,7 +261,7 @@ void SUB_runAutoDeckMenu(void) {
         break;
     case 3:
         PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse = 0;
-        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].unk1, SUB_EDITOR.player, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, SUB_EDITOR.player, 0);
         break;
     }
 }

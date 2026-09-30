@@ -170,17 +170,17 @@ void KAW_tickDuelMenu(void) {
                 initDialog((u8 *)&KAW_MENU_DIALOG, "Sound Settings", 2);
                 KAW_MENU_DIALOG.pad = KAW_DUEL->menuPlayer;
                 KAW_MENU_DIALOG.draw = KAW_renderDuelMenu;
-                KAW_MENU_DIALOG.result = ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 + 1;
+                KAW_MENU_DIALOG.result = ((PlayerProfile *)PLAYER_PROFILES)->monoSound + 1;
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
                 runDialog(&KAW_MENU_DIALOG);
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, &KAW_DUEL_MENU.rect);
                 switch (KAW_MENU_DIALOG.result) {
                 case 2:
-                    ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 = 1;
+                    ((PlayerProfile *)PLAYER_PROFILES)->monoSound = 1;
                     SsSetMono();
                     break;
                 case 1:
-                    ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 = 0;
+                    ((PlayerProfile *)PLAYER_PROFILES)->monoSound = 0;
                     SsSetStereo();
                     break;
                 case 0:

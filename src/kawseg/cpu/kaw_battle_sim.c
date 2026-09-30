@@ -832,7 +832,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 48:
         FLAGS178(self)->f14 = 1;
-        *(s16 *)PLAYER(self)->unk166 = value;
+        PLAYER(self)->reviveHp = value;
         if (!quiet) {
             KAW_playEffect(0xC, self);
         }

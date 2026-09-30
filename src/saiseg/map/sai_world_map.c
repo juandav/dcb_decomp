@@ -155,10 +155,10 @@ void SAI_initCamera(void) {
     camera->posX = 0;
     camera->posY = 0;
     camera->posZ = 0;
-    camera->unk8E = 0;
-    camera->unk90 = 0x1C0;
-    camera->unk92 = 0;
-    camera->unk94 = 0;
+    camera->targetPitch = 0;
+    camera->targetDistance = 0x1C0;
+    camera->targetHeight = 0;
+    camera->targetYaw = 0;
     camera->targetModel = -1;
     camera->snapCamera = 1;
 }
@@ -170,7 +170,7 @@ s32 SAI_isSavedScriptFlagSet(u32 id) {
     id -= 12;
     word = id >> 5;
     id &= 31;
-    return (((PlayerProfile *)PLAYER_PROFILES)->unk23FC[word] & (mask = 1 << id)) != 0;
+    return (((PlayerProfile *)PLAYER_PROFILES)->areaScriptFlags[word] & (mask = 1 << id)) != 0;
 }
 
 void SAI_slideIconToTop(void) {
@@ -827,7 +827,7 @@ void SAI_fadeOutRegion(void) {
             SAI_setRegionMapImage();
         } else {
             if (SAI_WORLD_MAP.menuChosen != 1) {
-                ((PlayerProfile *)PLAYER_PROFILES)->unkE = SESSION->area = SAI_WORLD_MAP.nodeIndex;
+                ((PlayerProfile *)PLAYER_PROFILES)->areaId = SESSION->area = SAI_WORLD_MAP.nodeIndex;
                 spawnTask(0, -1, 0, 0x400, SAI_loadAreaPak, 0, getCurrentTaskId, 0, 0);
             }
             SAI_MAP_MENU_TAB_STATE = 3;
@@ -1222,10 +1222,10 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     SAI_initMapAnims(SAI_WORLD_MAP.region);
     SAI_createMapFrame();
     SAI_createMapFrameShadow();
-    SESSION_SUB->unk1A4 = SAI_WORLD_MAP.nodeIndex = ((PlayerProfile *)PLAYER_PROFILES)->unkE;
+    SESSION_SUB->unk1A4 = SAI_WORLD_MAP.nodeIndex = ((PlayerProfile *)PLAYER_PROFILES)->areaId;
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 7; i++) {
-            if (((PlayerProfile *)PLAYER_PROFILES)->unkE == SAI_REGION_NODES[j][i]) {
+            if (((PlayerProfile *)PLAYER_PROFILES)->areaId == SAI_REGION_NODES[j][i]) {
                 SAI_WORLD_MAP.region = j;
             }
         }
@@ -1302,7 +1302,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     waitFrames(0x1E);
     SESSION_SUB->unk1A2 = 0;
     SESSION_SUB->unk1A5[0] = 0;
-    ((PlayerProfile *)PLAYER_PROFILES)->unkE = SESSION_SUB->unk1A4 = (u8)SAI_WORLD_MAP.nodeIndex;
+    ((PlayerProfile *)PLAYER_PROFILES)->areaId = SESSION_SUB->unk1A4 = (u8)SAI_WORLD_MAP.nodeIndex;
     if (SAI_WORLD_MAP.menuChosen == 1) {
         SAI_WORLD_MAP.iconRunning = 0;
         switch (SAI_WORLD_MAP.menuCursor) {
@@ -1313,7 +1313,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
             spawnTask(0, -1, 0, 0x1600, SAI_openEquipmentFromMap, 0, getCurrentTaskId(), 0, 0);
             break;
         case 2:
-            ((PlayerProfile *)PLAYER_PROFILES)->unkF = 0;
+            ((PlayerProfile *)PLAYER_PROFILES)->resumeInArea = 0;
             spawnTask(0, -1, 0, 0x400, openSaveScreenFromMap, 2, getCurrentTaskId(), 0, 0);
             break;
         }
@@ -1378,7 +1378,7 @@ void SAI_drawMapPaths(FrameBuffer *fb) {
 
     for (i = 0; i < SAI_WORLD_MAP.pathCount; i++) {
         buildRotTransMatrix(&SAI_WORLD_MAP.paths[i].pos, &SAI_WORLD_MAP.paths[i].rot, &matrix);
-        CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
+        CompMatrix((MATRIX *)SCENE_3D->viewMatrix, &matrix, &matrix);
         SetRotMatrix((s32)&matrix);
         SetTransMatrix(&matrix);
         corners[0].vx = 0;

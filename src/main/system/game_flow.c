@@ -61,7 +61,7 @@ void continueSavedGame(void) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    if (PLAYER_DATA(0).unkF == 0) {
+    if (PLAYER_DATA(0).resumeInArea == 0) {
         loadMusicTrack(0, 0x6F, 0x7F);
         playLoadedMusic(0);
         spawnTask(0, -1, 0, 0x400, D_801F00F4, 0, 0, getCurrentTaskId(), 0);

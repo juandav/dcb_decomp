@@ -285,7 +285,7 @@ void KAW_chooseSupportCard(void) {
             DUEL->cpuResult = -1;
             return;
         }
-        if ((s8)PLAYER(opponent)->unk1BD[0] != -1) {
+        if ((s8)PLAYER(opponent)->topCards[0] != -1) {
             for (i = 0; i < 4; i++) {
                 if (scores[i].kills != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                     DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -333,7 +333,7 @@ void KAW_chooseSupportCard(void) {
         cards = countOnlineDeckCards(self);
         switch (PLAYER(self)->unk178_28) {
         case 0:
-            if ((s8)PLAYER(opponent)->unk1BD[0] != -1) {
+            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].survives != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -422,11 +422,11 @@ void KAW_chooseSupportCard(void) {
                 DUEL->cpuResult = PLAYER(self)->hand[j];
                 return;
             }
-            if ((s8)PLAYER(opponent)->unk1BD[0] != -1) {
+            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].survives != 0 && KAW_isVoidingCard(self, PLAYER(self)->hand[i]) != 0) {
-                        if (KAW_isRecoveryCard(opponent, (s8)PLAYER(opponent)->unk1BD[0]) |
-                            KAW_isPileEffectCard(opponent, (s8)PLAYER(opponent)->unk1BD[0])) {
+                        if (KAW_isRecoveryCard(opponent, (s8)PLAYER(opponent)->topCards[0]) |
+                            KAW_isPileEffectCard(opponent, (s8)PLAYER(opponent)->topCards[0])) {
                             DUEL->cpuResult = PLAYER(self)->hand[i];
                         }
                         return;
@@ -443,7 +443,7 @@ void KAW_chooseSupportCard(void) {
         cards = countOnlineDeckCards(self);
         switch (PLAYER(self)->unk178_28) {
         case 0:
-            if ((s8)PLAYER(opponent)->unk1BD[0] != -1 && PLAYER(self)->wins != 2) {
+            if ((s8)PLAYER(opponent)->topCards[0] != -1 && PLAYER(self)->wins != 2) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].dies != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -511,7 +511,7 @@ void KAW_chooseSupportCard(void) {
                 DUEL->cpuResult = PLAYER(self)->hand[j];
                 return;
             }
-            if ((s8)PLAYER(opponent)->unk1BD[0] != -1) {
+            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].dies != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];

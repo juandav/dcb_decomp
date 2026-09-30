@@ -228,7 +228,7 @@ void runSceneCameraTask(s32 preset) {
             gte_SetTransMatrix(view);
         }
         /* Publish the view matrix to the scene */
-        *(MATRIX *)SCENE_3D->unk78 = *view;
+        *(MATRIX *)SCENE_3D->viewMatrix = *view;
         waitFrames(FRAME_INTERVAL);
     }
 }

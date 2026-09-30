@@ -278,12 +278,12 @@ void SAI_drawPlayerData(UiWindow *win) {
     for (i = 0; i < 3; i++) {
         drawText(x + 0x15, y + (i + 8) * 14, (s32)SAI_PLAYER_DATA_LABELS[i + 8], 6, z);
         if (((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].inUse != 0) {
-            sprintf(buf, "%s %s", ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].unk1, SAI_PLAYER_DATA_LABELS[14]);
+            sprintf(buf, "%s %s", ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].name, SAI_PLAYER_DATA_LABELS[14]);
             drawText(x + 0x46, y + (i + 8) * 14, (s32)buf, 7, z);
-            sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].unk108[1]);
+            sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].wins);
             drawText(x + 0xCA, y + (i + 8) * 14, (s32)buf, 7, z);
             drawText(x + 0xE2, y + (i + 8) * 14, (s32)SAI_PLAYER_DATA_LABELS[12], 6, z);
-            sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].unk108[2]);
+            sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].losses);
             drawText(x + 0xFE, y + (i + 8) * 14, (s32)buf, 7, z);
             drawText(x + 0x116, y + (i + 8) * 14, (s32)SAI_PLAYER_DATA_LABELS[13], 6, z);
         }
