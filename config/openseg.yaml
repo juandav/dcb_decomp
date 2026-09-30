@@ -27,6 +27,7 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/symbols.txt
+    - config/symbols_openseg.txt
 
   undefined_funcs_auto_path: build/generated/undefined_funcs_auto_openseg.txt
   undefined_syms_auto_path: build/generated/undefined_syms_auto_openseg.txt
@@ -54,6 +55,6 @@ segments:
     subsegments:
       - [0x0, .rodata, openseg]
       - [0x1AE8, c, openseg]
-      - [0x11FD0, data, openseg]
+      - [0x11FD0, .data, openseg]
 
   - [0x1A250]

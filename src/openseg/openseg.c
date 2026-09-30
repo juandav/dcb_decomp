@@ -98,7 +98,8 @@ typedef struct {
 extern Menu D_801EFF30[2];
 extern Menu D_801EFFB4[2];
 extern char *D_801EFF88[];
-extern s32 (*D_801F000C[])(s8 *, s8 *);
+typedef s32 (*CompareFunc)(s8 *, s8 *);
+extern CompareFunc D_801F000C[];
 void func_801E2068(s32 player);
 extern s32 D_801F4F08;
 extern s32 D_801F4F0C;
@@ -1369,6 +1370,57 @@ INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DDF38);
 
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DDF3C);
 
+/* the opening movies */
+Movie D_801EFF08[3] = {
+    { 0, 0, 0xB36 },
+    { 1, 0x3A18, 0x717 },
+    { 2, 0x8190, 0x52 },
+};
+
+s32 D_801EFF2C = 0xB0;
+
+/* the card list menus of both players */
+Menu D_801EFF30[2] = {
+    { NULL, NULL, { 0xA, 0x30, 0x90, 0x62 }, 0, -1, 0, -1, 0xA, 0x26, 0x78, 0xC, 1, 0x12D, 0x12, 1, 0, 0xE, 0, 0, 0 },
+    { NULL, NULL, { 0xA6, 0x30, 0x90, 0x62 }, 0, -1, 0, -1, 0xA, 0x26, 0x78, 0xC, 1, 0x12D, 0x12, 1, 0, 0xE, 0, 0, 1 },
+};
+
+/* the options of the sort menu */
+char *D_801EFF88[11] = {
+    "Number",
+    "*a0 Fire",
+    "*a1 Ice",
+    "*a2 Nature",
+    "*a3 Darkness",
+    "*a4 Rare",
+    "*a5 Option",
+    "*a6 Option",
+    "Level *e3",
+    "Level *e4",
+    "Level *e5",
+};
+
+/* the sort menus of both players */
+Menu D_801EFFB4[2] = {
+    { NULL, NULL, { 0x32, 0x3C, 0x52, 0x54 }, 0, -1, 0, -1, 0xA, 0x16, 0xD8, 0xC, 1, 0xB, 0, 1, 0, 0xE, 0, 0, 0 },
+    { NULL, NULL, { 0xC8, 0x3C, 0x52, 0x54 }, 0, -1, 0, -1, 0xA, 0x16, 0x48, 0xC, 1, 0xB, 0, 1, 0, 0xE, 0, 0, 1 },
+};
+
+/* how each option of the sort menu compares two cards ("Number" keeps the order) */
+CompareFunc D_801F000C[11] = {
+    NULL,
+    (CompareFunc)func_801E08D8,
+    (CompareFunc)func_801E0A08,
+    (CompareFunc)func_801E0B38,
+    (CompareFunc)func_801E0C6C,
+    (CompareFunc)func_801E0DA0,
+    (CompareFunc)func_801E0ED4,
+    (CompareFunc)func_801E0FBC,
+    (CompareFunc)func_801E10A4,
+    (CompareFunc)func_801E11D4,
+    (CompareFunc)func_801E1308,
+};
+
 void func_801E2B34(UiWindow *window) {
     s32 held[2];
     s32 offset;
@@ -2221,6 +2273,147 @@ void func_801E6424(void) {
 INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DE164);
 
 typedef struct {
+    /* 0x00 */ Rect16 uv;
+    /* 0x08 */ s32 duration;
+    /* 0x0C */ s16 unkC;
+    /* 0x0E */ s16 y;
+} CardAnimFrame;
+
+/* the pages of the introduction */
+ScrollPage D_801F0038[33] = {
+    { "Welcome to *c2Digital Card Battle*c7!", 0, 0x16, 0, -1 },
+    { "Please proceed to *c4User Registration*c7.\nPlease enter your nickname\nfor this World.", 1, 2, 0, -1 },
+    { "Please choose a Partner Card.\nYou can choose Veemon, Hawkmon,\nor Armadillomon.", 0, 3, 0, 0 },
+    { "Each Partner Card comes with a matching\nStarter *c5Deck*c7, so you can\nbattle right from the start.", 0, 4, 0, 0 },
+    { "Your Partner will grow with every battle\nand will become a reliable ally in \nthe battles you'll face.", 2, 5, 0, 1 },
+    { "Now, please choose a Partner.\nUse the directional and *b2 buttons.", 0, 6, 0, -1 },
+    { "This is a Veemon *c5Deck*c7,\nwith Fire and Darkness Digimon.\nIt's a strong offensive *c5Deck*c7.", 0, 9, 0, -1 },
+    { "This is a Hawkmon *c5Deck*c7, with Nature\nand tricky Rare Digimon.\nIt's a well-balanced *c5Deck*c7.", 0, 9, 0, -1 },
+    { "An Armadillomon *c5Deck*c7 has the\nstrong support of Rare Digimon.\nIt's a defensive *c5Deck*c7.", 0, 9, 0, -1 },
+    { "Next is how you appear in this world.\nWe only have one character available.\nWe hope you like him.", 3, 0xA, 0, -1 },
+    { "*c4User Registration*c7 is complete.\nWould you like to know more about\nthis world?", 4, 0xB, 0x20, -1 },
+    { "In this Cyber World, you play Digimon\nDigital Card Battles. There are\nalways many opponents to play with.", 0, 0x10, 0, 2 },
+    { "ERROR! (12)", 5, 0x15, 0x1B, 2 },
+    { "ERROR! (13)", 0, 0xE, 0, -1 },
+    { "ERROR! (14)", 6, 0x11, 0xF, -1 },
+    { "ERROR! (15)", 0, 0x10, 0, -1 },
+    { "Do you want to learn about the game?", 4, 0x1B, 0x20, -1 },
+    { "ERROR! (17)", 0, 0x12, 0, -1 },
+    { "ERROR! (18)", 0, 0x13, 0, -1 },
+    { "ERROR! (19)", 7, 0x1A, 0x14, -1 },
+    { "ERROR! (20)", 0, 0x10, 0, -1 },
+    { "ERROR! (21)", 5, 0xD, 0x10, 2 },
+    { "First, select the *c4Sound Settings*c7.\nThis can be changed during the game.", 8, 0x17, 0x16, -1 },
+    { "Next, select *c4Polygon Battle Settings*c7.\nThis can also be changed during the game.", 9, 1, 0x17, -1 },
+    { "Enjoy *c2Digital Card Battle*c7!", 0xB, 0x18, 0, -1 },
+    { "Card data conversion had failed.\nDo you want to learn about this game?", 4, 0x1B, 0x20, -1 },
+    { "ERROR! (26)", 4, 0x1B, 0x20, -1 },
+    { "Then I'll quickly tell you about \n*c2Digital Card Battle*c7.", 0, 0x1C, 0, -1 },
+    { "This is a fun world where a Player\ngets to play with Digimon and other\ncharacters, using Digimon Battle Cards.", 0, 0x1D, 0, 3 },
+    { "Collect Cards through battles. Trade and\nFuse them to create your own Decks.", 0, 0x1E, 0, 4 },
+    { "A *c5Deck *c7is a group of 30 Cards.\nYou'll use this to Battle Opponents.", 0, 0x1F, 0, 5 },
+    { "Betamon in Beginner City will teach\nyou the basics. You'll learn the rest\nas you go along.", 0, 0x20, 0, 6 },
+    { "Let's save your *c4Registration*c7.\nPlease insert a *c5MEMORY CARD*c7 with at\nleast 2 free blocks into MEMORY CARD slot 1.", 0xA, 0x18, 0, -1 },
+};
+
+/* not referenced by any code */
+s16 D_801F0140[160] = {
+    5, 8, 3, 9, 0xA, 0xE, 0x11, 0x12, 0x14, 0x13, 0x15, 0x17, 0x10, 0x18, 0x16, 0x1A,
+    0x1E, 0x1F, 0x1B, 0x1D, 0x2A, 0x2B, 0x29, 0x2C, 0x2D, 0x36, 0x32, 0x31, 0x2E, 0x34, 0x37, 0x3B,
+    0x3A, 0x38, 0x3C, 0x35, 0x34, 0x44, 0x42, 0x3F, 0x3E, 0x40, 0x4A, 0x8F, 0x50, 0x96, 0xB, 0x57,
+    0x56, 0x52, 0x58, 0x55, 0x5A, 0x5B, 0x5D, 0x59, 0xA4, 0x60, 0x5C, 0x65, 0xA2, 0x5F, 0xA3, 0x5E,
+    0x61, 0x64, -1, 0x66, 0x62, 0x6C, 0x8D, 0x6F, 0x71, 0x74, 0x70, 0x73, 0x78, 0x7A, 0x7B, 0x80,
+    0x7D, 0x7C, 0x7E, 0x82, 0x81, 0x83, 0x7F, 0x89, 0x87, 0x8A, 0x88, 0x90, 0x91, 0x92, 0x93, 0x95,
+    0x94, 0x9A, 0x9F, 0x9C, 0x9D, 0x9E, 0xA1, 0xA0, 0xAA, 0xAB, 0xA7, 0xA8, 0x51, 6, 0xC0, 0xDD,
+    0xCB, 0xD4, 0xE2, 0xBF, 0xEB, 0xEC, 0xED, 0xEE, 0xE3, 0xE4, 0xE5, 0xCC, 0xCD, 0xE6, 0xEF, 0xF0,
+    0xF5, 0xF6, 0x107, 0xFC, 0xFD, 0xFE, 0xFF, 0x100, 0x108, 0x10B, 0x10C, 0x10D, 0x10E, 0x10F, 0x110, 0x109,
+    0x10A, -1, -1, -1, -1, -1, -1, -1, -1, 0x128, 0x127, 0x129, 0x12B, 0x12C, -1, 0,
+};
+
+/* the parts of the title screen */
+TitlePart D_801F0280[22] = {
+    { 0x340, 0xA0, 0x6C, 0x2E, 0x360, 0xD1, 9, 0xB, 0x6C, 0x2E, 1, 0 },
+    { 0x340, 0, 0x80, 0x4A, 0x340, 0xCE, 0, 0, 0x80, 0x4A, 1, 1 },
+    { 0x360, 0, 0x80, 0x4A, 0x340, 0xCF, 6, 6, 0x80, 0x4A, 1, 2 },
+    { 0x35C, 0x83, 0x2C, 0x12, 0x340, 0xD1, -4, -3, 0x2C, 0x12, 1, 1 },
+    { 0x350, 0x4A, 0x98, 0xC, 0x340, 0xD0, 0, 0, 0x98, 0xC, 1, 1 },
+    { 0x350, 0x83, 0x30, 0x14, 0x340, 0xD2, 0, 0, 0x30, 0x14, 1, 2 },
+    { 0x350, 0x6F, 0x78, 0x14, 0x350, 0xD0, 0, 0, 0x78, 0x13, 1, 0 },
+    { 0x350, 0x56, 0x7C, 0x1A, 0x350, 0xD1, 0, 0, 0x7C, 0x19, 1, 2 },
+    { 0x376, 0x4A, 4, 9, 0x350, 0xD3, 0, 0x10, 4, 9, 0, 0 },
+    { 0x377, 0x4A, 4, 9, 0x350, 0xD4, 4, 0x10, 0x96, 9, 0, 0 },
+    { 0x36E, 0x6F, 0x10, 0x10, 0x350, 0xCE, 0, 0, 0x10, 0x10, 0, 0 },
+    { 0x372, 0x6F, 4, 8, 0x340, 0xD3, 0x10, 0, 0x104, 7, 0, 0 },
+    { 0x373, 0x6F, 0x10, 0x10, 0x360, 0xCF, 0x114, 0, 0x10, 0x10, 0, 0 },
+    { 0x36E, 0x7F, 9, 1, 0x350, 0xD5, 0, 0x10, 8, 0xF0, 0, 0 },
+    { 0x36E, 0x7F, 9, 1, 0x350, 0xD5, 0x124, 0x10, -8, 0xF0, 0, 0 },
+    { 0x36F, 0x56, 0x18, 0x18, 0x350, 0xCF, 4, 4, 0x18, 0x18, 1, 2 },
+    { 0x375, 0x56, 4, 0xD, 0x340, 0xD4, 0x1C, 4, 0xF4, 0xC, 1, 2 },
+    { 0x376, 0x56, 0x18, 0x18, 0x360, 0xD0, 0x110, 4, 0x18, 0x18, 1, 2 },
+    { 0x36F, 0x6E, 0xD, 1, 0x360, 0xCE, 4, 0x1C, 0xC, 0xF0, 1, 2 },
+    { 0x36F, 0x6E, 0xD, 1, 0x360, 0xCE, 0x128, 0x1C, -0xC, 0xF0, 1, 2 },
+    { 0x340, 0x4A, 0x40, 0x56, 0x340, 0xD5, 0x1A, 0x5A, 0x40, 0x56, 1, 0 },
+    { 0x350, 0x82, 0x60, 1, 0x350, 0xD2, 0, 0, 0x60, 0xF0, 0, 0 },
+};
+
+/* the letters of the name entry, ten per row */
+u8 D_801F0464[] = "ABCDEabcde"
+                  "FGHIJfghij"
+                  "KLMNOklmno"
+                  "PQRSTpqrst"
+                  "UVWXYuvwxy"
+                  "Z-   z    "
+                  "          "
+                  "          "
+                  "0123456789";
+
+/* not referenced by any code */
+u8 D_801F04BF = 0xC;
+
+/* the partner cards: Veemon, Hawkmon and Armadillomon */
+u8 D_801F04C0[3] = { 0xAF, 0xB6, 0xBE };
+
+/* the cards of each starter deck: two choices for each of five slots */
+s16 D_801F04C4[30] = {
+    0xB, 0x74, 0x19, 0x83, 0x1C, 0x89, 0x1F, 0x8A, 0xF9, 0x102,
+    0x50, 0x96, 0x60, 0xA4, 0x62, 0xA6, 0x64, 0xAB, 0xFA, 0x109,
+    0x2D, 0x95, 0x3C, 0xA0, 0x41, 0xA7, 0x44, 0xA9, 0xFB, 0x103,
+};
+
+s32 D_801F0500[3] = { 1, 0, 1 };
+
+/* the text color of a save slot, lit and dimmed */
+u8 D_801F050C[3] = { 0x80, 0x80, 0x80 };
+u8 D_801F0510[3] = { 0x20, 0x20, 0x20 };
+
+/* the frames of the memory card animation */
+CardAnimFrame D_801F0514[23] = {
+    { { 0, 0x54, 0x20, 0x20 }, 5, 0, 0 },
+    { { 0x20, 0x54, 0x20, 0x20 }, 6, 0, 0 },
+    { { 0x40, 0x54, 0x20, 0x20 }, 6, 0, 0 },
+    { { 0, 0x74, 0x20, 0x20 }, 5, 0, 0 },
+    { { 0x20, 0x74, 0x20, 0x20 }, 6, 0, 0 },
+    { { 0x40, 0x74, 0x20, 0x20 }, 6, 0, 0 },
+    { { 0, 0x94, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0x20, 0x94, 0x20, 0x20 }, 7, 0, 0 },
+    { { 0x40, 0x94, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0x40, 0x94, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0, 0xB4, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0x20, 0xB4, 0x20, 0x20 }, 2, 0, -1 },
+    { { 0x20, 0xB4, 0x20, 0x20 }, 4, 0, -3 },
+    { { 0x20, 0xB4, 0x20, 0x20 }, 6, 0, -5 },
+    { { 0x20, 0xB4, 0x20, 0x20 }, 5, 0, -3 },
+    { { 0x20, 0xB4, 0x20, 0x20 }, 3, 0, -1 },
+    { { 0, 0xB4, 0x20, 0x20 }, 0xC, 0, 0 },
+    { { 0, 0x94, 0x20, 0x20 }, 4, 0, 0 },
+    { { 0x40, 0xD4, 0x20, 0x20 }, 8, 0, 0 },
+    { { 0, 0xD4, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0x20, 0xD4, 0x20, 0x20 }, 0xD, 0, 0 },
+    { { 0x40, 0xD4, 0x20, 0x20 }, 0xA, 0, 0 },
+    { { 0, 0x94, 0x20, 0x20 }, 4, 0, 0 },
+};
+
+typedef struct {
     /* 0x00 */ u8 unk0[0x98];
     /* 0x98 */ char *options[2];
     /* 0xA0 */ u8 unkA0[5];
@@ -2941,7 +3134,6 @@ void func_801E8494(s32 x, s32 y, s32 texX, s32 texY, s32 palette, u8 *rgb, s32 o
     }
 }
 
-extern u8 D_801F04C0[3];
 extern u8 *CROSS_EFFECT_SHORT_NAMES[];
 
 void func_801E87E0(UiWindow *window) {
@@ -3328,7 +3520,10 @@ void func_801E9938();
 
 void func_801EA2F8(s32 parentTask) {
     char text[192]; /* unused, but it sizes the frame */
-    char *name;     /* never read: only its empty string is left in .rodata */
+    /* never read: only its empty string is left in .rodata. It is written
+       "\0" so that it stays apart from the "" of the arena table
+       D_801F06D4, which the original built in another file */
+    char *name;
     u32 *arc;
     s32 i;
     s32 choice;
@@ -3348,7 +3543,7 @@ void func_801EA2F8(s32 parentTask) {
         DrawSync(0);
     }
     freeHeapBlock(arc);
-    name = "";
+    name = "\0";
     choice = 1;
     for (i = 0; i < 3; i++) {
         D_801F0500[i] = 1;
@@ -3842,7 +4037,115 @@ s32 func_801EBA74(s32 kind) {
     return (((PlayerProfile *)PLAYER_PROFILES)->unk23FC[word] & bit) != 0;
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DED2C);
+/* where a save was made */
+char *D_801F0684[16] = {
+    "Beginner City",
+    "Flame City",
+    "Jungle City",
+    "Igloo City",
+    "Junk City",
+    "Dark City",
+    "Desert Island",
+    "Pyramid City",
+    "Sky City",
+    "Steep Road",
+    "Wiseman Tower",
+    "Infinity Tower",
+    "Mega Area",
+    "Giga Area",
+    "Giga Area",
+    "Tera Area",
+};
+
+/* the entrances of the Areas */
+char *D_801F06C4[4] = {
+    "To Giga Area Entrance",
+    "To Mega Area Entrance",
+    "To Tera Area Entrance",
+    "To Giga Area Entrance",
+};
+
+/* the arenas of each place, four per place */
+char *D_801F06D4[48] = {
+    "Beginner Arena",
+    "",
+    "",
+    "",
+    "Flame Arena",
+    "Extra Arena",
+    "",
+    "",
+    "Jungle Arena",
+    "Extra Arena",
+    "Beet Arena",
+    "",
+    "Igloo Arena",
+    "Extra Arena",
+    "",
+    "",
+    "Junk Arena",
+    "",
+    "",
+    "",
+    "Dark Arena",
+    "Extra Arena",
+    "",
+    "Haunted Arena",
+    "Desert Arena",
+    "",
+    "",
+    "",
+    "Pyramid Arena",
+    "Extra Arena",
+    "",
+    "",
+    "Sky Arena",
+    "Extra Arena",
+    "",
+    "",
+    "Steep Arena",
+    "",
+    "",
+    "",
+    "Wiseman Arena",
+    "",
+    "",
+    "",
+    "Infinity Arena",
+    "",
+    "",
+    "",
+};
+
+/* the memory card messages */
+char *D_801F0794[26] = {
+    "*s0Checking MEMORY CARD in\nMEMORY CARD slot *S. Do not insert\nor remove MEMORY CARD or Controller.",
+    "*s0MEMORY CARD in MEMORY CARD slot *E\ncontains no Digimon\nDigital Card Battle data.",
+    "*s0Checking MEMORY CARD in\nMEMORY CARD slot *E. Do not insert\nor remove MEMORY CARD or Controller.",
+    "*s0MEMORY CARD in MEMORY CARD slot *E\nis not formatted.",
+    "*s0There is no MEMORY CARD in\nMEMORY CARD slot *S. If you start now,\nyou won't be able to save. Is this OK?",
+    "*s0Failed to create new save data in\nMEMORY CARD slot *S. Data may be\ncorrupted. Try saving again.",
+    "*s0Return to title?",
+    "*s0Formatting MEMORY CARD in\nMEMORY CARD slot *S... Do not insert\nor remove MEMORY CARD or Controller.",
+    "*s0Do you want to stop Data Conversion?",
+    "*s0Not enough free blocks. At least\n2 free blocks are required to save.",
+    "*s0You cannot save your game if you\nbegin the game without creating\na save data here. Is this OK?",
+    "*s0Updating save data on MEMORY CARD in\nMEMORY CARD slot *S... Do not insert\nor remove MEMORY CARD or Controller.",
+    "*s0There is no MEMORY CARD\nin MEMORY CARD slot *E.",
+    "*s0MEMORY CARD in MEMORY CARD slot *E\ndoes not contain game data\ncurrently in play.",
+    "*s0Creating new data in MEMORY CARD\nslot *S... Do not insert or remove\nMEMORY CARD or Controller.",
+    "*s0Failed to update data in MEMORY CARD\nslot *S. Data may be corrupted.",
+    "*s0Load which save data?",
+    "*s0Save to which file?",
+    "*s0Loading data from MEMORY CARD slot *S.\nDo not insert or remove\nMEMORY CARD or Controller.",
+    "*s0Failed to load data from MEMORY CARD\nslot *S. Data may be corrupted.",
+    "*s0Finished loading data from\nMEMORY CARD slot *S.",
+    "*s0Finished creating data on MEMORY CARD\nin MEMORY CARD slot *S.",
+    "*s0Finished updating data on MEMORY CARD\nin MEMORY CARD slot *S.",
+    "*s0MEMORY CARD in MEMORY CARD slot 1\ncontains no Digimon\nDigital Card Battle game data.",
+    "*s0You cannot save your game if you\nbegin the game as is. Is this OK?",
+    "*s0Stop saving?",
+};
 
 void func_801EC558(void);
 void func_801EBEDC(s32 port);
@@ -4036,7 +4339,6 @@ void func_801EBF20(s32 port) {
     playMenuSound(3);
 }
 
-extern char *D_801F0794[];
 
 void func_801EC37C(UiWindow *window) {
     char text[136];
@@ -4250,8 +4552,6 @@ void func_801ECBE8(void) {
     playMenuSound(4);
 }
 
-extern u8 D_801F050C[];
-extern u8 D_801F0510[];
 void func_801ED3B8(SlotDraw draw);
 
 void func_801ECC64(SlotWindow *window) {
@@ -4306,13 +4606,6 @@ void func_801ECEAC(UiWindow *window) {
     drawText(window->originX + x, window->originY + 1, (s32)text, 7, window->z);
 }
 
-typedef struct {
-    /* 0x00 */ Rect16 uv;
-    /* 0x08 */ s32 duration;
-    /* 0x0C */ s16 unkC;
-    /* 0x0E */ s16 y;
-} CardAnimFrame;
-extern CardAnimFrame D_801F0514[];
 
 void func_801ECF48(void) {
     s8 firstFrames[7] = { 0, 6, 9, 17, 19, 21, 23 };
@@ -4426,9 +4719,6 @@ void func_801ED3B8(SlotDraw draw) {
     }
 }
 
-extern char *D_801F0684[];
-extern char *D_801F06C4[];
-extern char *D_801F06D4[];
 /* "Arena": the string is followed by two leftover bytes (E0 03) in the ROM, so it stays as data */
 extern char D_801DF78C[];
 
@@ -4829,10 +5119,12 @@ void func_801EE488(s32 port) {
     }
 }
 
-/* the save file names of the table at D_801F07FC (in .data) */
-const char D_801DF938[] = "BASLUS-01328_C";
-const char D_801DF948[] = "BASLUS-01328_B";
-const char D_801DF958[] = "BASLUS-01328_A";
+/* the save file names; the memory card functions take them as s32 */
+s32 D_801F07FC[3] = {
+    (s32)"BASLUS-01328_A",
+    (s32)"BASLUS-01328_B",
+    (s32)"BASLUS-01328_C",
+};
 
 u8 *func_801EE998(s32 value, s32 width, u8 *dst) {
     s32 i;
@@ -5219,7 +5511,6 @@ void func_801EF568(s32 port) {
     }
 }
 
-extern s32 D_801F07FC[3];
 
 s32 func_801EF774(s32 port, s32 slot) {
     s16 i;
@@ -5394,3 +5685,163 @@ u8 func_801EFE04(s32 player, s32 port, s32 slot) {
     }
     return status;
 }
+
+/* The data the overlay starts with zeroed. The names that code uses inside
+   D_801F7B88 are in config/undefined_syms_openseg.txt. */
+DecEnv D_801F0808 = { { 0 } };
+u8 *D_801F0840 = NULL;
+u8 *D_801F0844 = NULL;
+s32 D_801F0848 = 0;
+u16 *D_801F084C = NULL;
+s8 D_801F0850 = 0;
+s32 D_801F0854 = 0;
+s32 D_801F0858 = 0;
+u32 *D_801F085C = NULL;
+s32 D_801F0860 = 0;
+CdLocation D_801F0864 = { 0 };
+s8 D_801F0868 = 0;
+CdLocation D_801F086C = { 0 };
+u32 D_801F0870 = 0;
+s8 D_801F0874 = 0;
+s32 D_801F0878 = 0;
+/* not referenced by any code */
+s32 D_801F087C = 0xAFB40020;
+UiWindow D_801F0880 = { 0 };
+/* not referenced by any code */
+u8 D_801F08C4[0xC] = { 0 };
+UiWindow D_801F08D0 = { 0 };
+/* not referenced by any code */
+u8 D_801F0914[0xC] = { 0 };
+PlayerWindow D_801F0920[2] = { { { 0 } } };
+PlayerWindow D_801F09B0[2] = { { { 0 } } };
+MessageWindow D_801F0A40[2] = { { { 0 } } };
+CursorHighlight D_801F0AD0[2] = { { { { 0 } } } };
+PlayerWindow D_801F0B70[2] = { { { 0 } } };
+CursorHighlight D_801F0C00[2] = { { { { 0 } } } };
+CardEntry *D_801F0CA0[2][301] = { { 0 } };
+/* not referenced by any code */
+u8 D_801F1608[0x8] = { 0 };
+s16 D_801F1610[2][3] = { { 0 } };
+u32 *D_801F161C = NULL;
+s8 D_801F1620[2][301] = { { 0 } };
+/* not referenced by any code */
+s16 D_801F187A = 0;
+s32 D_801F187C = 0;
+s8 D_801F1880[2][301] = { { 0 } };
+/* not referenced by any code */
+s16 D_801F1ADA = 0;
+s32 D_801F1ADC = 0;
+s32 D_801F1AE0[2] = { 0 };
+s32 D_801F1AE8 = 0;
+/* not referenced by any code */
+s32 D_801F1AEC = 0;
+s16 D_801F1AF0[2][3] = { { 0 } };
+s32 D_801F1AFC = 0;
+s32 D_801F1B00 = 0;
+s32 D_801F1B04 = 0;
+s32 D_801F1B08 = 0;
+/* not referenced by any code */
+s32 D_801F1B0C = 0;
+UiWindow D_801F1B10 = { 0 };
+/* not referenced by any code */
+u8 D_801F1B54[0xC] = { 0 };
+UiWindow D_801F1B60 = { 0 };
+/* not referenced by any code */
+u8 D_801F1BA4[0xC] = { 0 };
+UiWindow D_801F1BB0 = { 0 };
+/* not referenced by any code */
+u8 D_801F1BF4[0x200C] = { 0 };
+POLY_FT4 D_801F3C00[2][40] = { { { 0 } } };
+s32 D_801F4880 = 0;
+s32 D_801F4884 = 0;
+s32 D_801F4888 = 0;
+s32 D_801F488C = 0;
+s32 D_801F4890 = 0;
+/* not referenced by any code */
+u8 D_801F4894[0x46C] = { 0 };
+u16 D_801F4D00[256] = { 0 };
+s32 D_801F4F00 = 0;
+s32 D_801F4F04 = 0;
+s32 D_801F4F08 = 0;
+s32 D_801F4F0C = 0;
+s32 D_801F4F10 = 0;
+s32 D_801F4F14 = 0;
+s32 D_801F4F18 = 0;
+s32 D_801F4F1C = 0;
+s32 D_801F4F20 = 0;
+/* not referenced by any code */
+s32 D_801F4F24 = 0;
+TextScroll D_801F4F28 = { 0 };
+UiWindow D_801F4F48 = { 0 };
+/* not referenced by any code */
+u8 D_801F4F8C[0xC] = { 0 };
+CursorHighlight D_801F4F98 = { { { 0 } } };
+UiWindow D_801F4FE8 = { 0 };
+/* not referenced by any code */
+u8 D_801F502C[0xC] = { 0 };
+CursorHighlight D_801F5038 = { { { 0 } } };
+UiWindow D_801F5088 = { 0 };
+/* not referenced by any code */
+u8 D_801F50CC[0xC] = { 0 };
+NameEntry D_801F50D8 = { 0 };
+/* not referenced by any code */
+s32 D_801F50F4 = 0;
+UiWindow D_801F50F8 = { 0 };
+/* not referenced by any code */
+u8 D_801F513C[0xC] = { 0 };
+CursorHighlight D_801F5148 = { { { 0 } } };
+StarterSelect D_801F5198 = { 0 };
+/* not referenced by any code */
+s16 D_801F519A = 0;
+s32 D_801F519C = 0;
+s32 D_801F51A0 = 0;
+/* not referenced by any code */
+u8 D_801F51A4[0xC] = { 0 };
+POLY_FT4 D_801F51B0[2][2] = { { { 0 } } };
+POLY_F4 D_801F5250[2] = { { 0 } };
+DR_MODE D_801F5280[2] = { { 0 } };
+s32 D_801F5290 = 0;
+s32 D_801F5294 = 0;
+s32 D_801F5298 = 0;
+s32 D_801F529C = 0;
+s32 D_801F52A0 = 0;
+s32 D_801F52A4 = 0;
+s32 D_801F52A8 = 0;
+s32 D_801F52AC = 0;
+s32 D_801F52B0 = 0;
+s32 D_801F52B4 = 0;
+s32 D_801F52B8 = 0;
+u8 D_801F52BC[3] = { 0 };
+u8 D_801F52C0[3] = { 0 };
+s32 D_801F52C4 = 0;
+s32 D_801F52C8 = 0;
+/* not referenced by any code */
+s32 D_801F52CC = 0;
+s32 D_801F52D0 = 0;
+s32 D_801F52D4 = 0;
+/* not referenced by any code */
+u8 D_801F52D8[0x8] = { 0 };
+PlayerWindow D_801F52E0[2] = { { { 0 } } };
+s32 D_801F5370 = 0;
+/* not referenced by any code */
+s32 D_801F5374 = 0;
+u8 *D_801F5378 = NULL;
+/* not referenced by any code */
+s32 D_801F537C = 0;
+UiWindow D_801F5380 = { 0 };
+/* not referenced by any code */
+s32 D_801F53C4 = 0;
+UiWindow D_801F53C8 = { 0 };
+/* not referenced by any code */
+u8 D_801F540C[0x277C] = { 0 };
+Unk801F7B88 D_801F7B88 = { { { 0 } } };
+/* not referenced by any code */
+s32 D_801F80CC = 0;
+Window D_801F80D0 = { { 0 } };
+/* not referenced by any code */
+s16 D_801F8176 = 0;
+u8 D_801F8178[0xC] = { 0 };
+u8 D_801F8184 = 0;
+/* not referenced by any code */
+u8 D_801F8185 = 0;
+s16 D_801F8186 = 0;
