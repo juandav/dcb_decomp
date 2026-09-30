@@ -26,8 +26,6 @@ extern UiWindow HACK_ERROR_WINDOW;
 extern UiWindow HACK_TERMINAL_WINDOW;
 extern s32 HACK_SCRIPT_INDEX;
 extern u8 *HACKING_SCRIPTS[];
-/* the same text as in startCpuDuel, kept as its own copy */
-extern char PATH_SAISEG_BIN[];
 
 s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot);
 s32 getExpForNextLevel(s32 level);

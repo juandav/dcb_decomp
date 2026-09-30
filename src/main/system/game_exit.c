@@ -82,11 +82,9 @@ void quitToTitleOrPlayEnding(s32 mode) {
         func_80014C08(0x7FFFFFFF);
         func_80014C08(10);
         func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, PATH_SAISEG_BIN, OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         func_80014C08(0x7FFFFFFF);
         func_80014C08(2);
         func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
     }
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/system/game_exit", PATH_SAISEG_BIN);
