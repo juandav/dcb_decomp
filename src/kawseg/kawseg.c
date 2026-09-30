@@ -12,6 +12,7 @@
 #include "dcb/battle_hud.h"
 #include "dcb/transform.h"
 #include "dcb/effect_object.h"
+#include "dcb/effect_prims.h"
 #include "dcb/decompress.h"
 #include "dcb/scroll_bg.h"
 #include "dcb/card_db.h"
@@ -66,8 +67,7 @@ typedef struct {
 } ExpScreen;
 typedef struct {
      char *name;
-     s32 unk4;
-     s32 unk8;
+     u8 unk4[8];
 } PartInfo;
 extern ExpScreen *D_801FC738;
 extern PartInfo D_801FBB38[];
@@ -5228,7 +5228,7 @@ void func_801F0A30(void) {
 
 #include "dcb/fade.h"
 
-extern u8 D_801FBB18[30];
+extern u8 D_801FBB18[32];
 void loadDuelCardGraphics();
 void func_801F8DB4(void *ptr);
 void func_801F8DF0();
@@ -5687,6 +5687,196 @@ void func_801F2A40(s32 mode, s32 winner, s32 deckId) {
 }
 
 INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DE41C);
+
+s16 D_801FB9A8[24] = {
+    0x6B, 0x71, 0x76, 0x8B, 0x99, 0x9A, 0x9B, 0x9C,
+    0x9D, 0x9E, 0x9F, 0xA0, 0xB6, 0xBE, 0xC9, 0xD4,
+    0xD5, 0xD6, 0xE1, 0xF7, 0xFF, 0x101, 0x123, 0x124,
+};
+
+s16 D_801FB9D8[6] = {
+    0x50, 0x98, 0xA8, 0xFD, 0x121, 0,
+};
+
+s16 D_801FB9E4[34] = {
+    0x23, 0x26, 0x27, 0x2F, 0x30, 0x34, 0x37, 0x46,
+    0x4E, 0x57, 0x86, 0x8E, 0x93, 0xA6, 0xC5, 0xCE,
+    0xCF, 0xD0, 0xD1, 0xD2, 0xDD, 0xDE, 0xDF, 0xE0,
+    0xF2, 0xF3, 0xF4, 0xF6, 0xF8, 0x103, 0x10A, 0x112,
+    0x11E, 0,
+};
+
+s16 D_801FBA28[4] = {
+    3, 0x6F, 0xEF, 0x113,
+};
+
+s32 D_801FBA30[2][4] = {
+    { 0x64, 0xF1, 0xB8, 0x79 },
+    { 0x4C, -0x71, 8, 7 },
+};
+
+s32 D_801FBA50[2][4] = {
+    { 0x140, 0xC3, 8, 0xC3 },
+    { -0x100, 0x10, 0, 0x10 },
+};
+
+s32 D_801FBA70[2][4] = {
+    { 0x140, 0x9F, 8, 0x9F },
+    { -0xC0, 0x42, 0x78, 0x42 },
+};
+
+s32 D_801FBA90[2][4] = {
+    { 0x140, 0xB1, 8, 0xB1 },
+    { -0xC0, 0x30, 0x78, 0x30 },
+};
+
+Menu D_801FBAB0[2] = {
+    { NULL, NULL, { 24, 40, 132, 56 }, 0, -1, 0, -1, 0xA, 0x81, 132, 12, 1, 1, 2, 1, 0, 14, 0, 0, 0 },
+    { NULL, NULL, { 24, 140, 132, 56 }, 0, -1, 0, -1, 0xA, 0x81, 132, 12, 1, 1, 2, 1, 0, 14, 0, 0, 1 },
+};
+
+Rect16 D_801FBB08[2] = {
+    { 0xBC, 0x1E, 0x76, 0x4C },
+    { 0xBC, 0x82, 0x76, 0x4C },
+};
+
+/* the online deck of deck 0x8C, as card ids less 0x1D; the code reads 30 */
+u8 D_801FBB18[32] = {
+    0x1D, 0xA, 1, 0x16, 4, 0x1C, 0xE, 0x18, 0xB, 0xF, 5, 0x1A, 0x19, 0x10, 0x15, 3,
+    0x12, 6, 0x13, 0x17, 0xC, 0x1E, 7, 2, 0x14, 0x11, 0x1B, 0xD, 9, 8, 0x11, 0xE,
+};
+
+/* the partner abilities; the code here only reads their texts */
+PartInfo D_801FBB38[128] = {
+    { "HP+50.", { 3, 5, 1, 99, 3, 7, 0, 0 } },
+    { "HP+100.", { 17, 16, 8, 12, 14, 19, 0, 0 } },
+    { "HP+150.", { 29, 32, 19, 25, 32, 33, 0, 0 } },
+    { "HP+200.", { 45, 48, 31, 40, 52, 59, 0, 0 } },
+    { "HP+300.", { 61, 67, 51, 57, 68, 78, 0, 0 } },
+    { "HP+400.", { 96, 89, 71, 81, 91, 88, 0, 0 } },
+    { "HP+500.", { 99, 0xFF, 75, 91, 0xFF, 95, 0, 0 } },
+    { "All Attack Powers +50.", { 18, 39, 54, 30, 57, 28, 0, 0 } },
+    { "All Attack Powers +100.", { 39, 86, 72, 50, 89, 51, 0, 0 } },
+    { "All Attack Powers +200.", { 75, 0xFF, 90, 93, 0xFF, 84, 0, 0 } },
+    { "*b0 Attack Power +100.", { 1, 9, 15, 5, 4, 2, 0, 0 } },
+    { "*b0 Attack Power +150.", { 10, 21, 38, 22, 16, 15, 0, 0 } },
+    { "*b0 Attack Power +200.", { 27, 54, 62, 41, 39, 30, 0, 0 } },
+    { "*b0 Attack Power +250.", { 48, 0xFF, 78, 61, 62, 61, 0, 0 } },
+    { "*b0 Attack Power +300.", { 67, 0xFF, 0xFF, 85, 82, 79, 0, 0 } },
+    { "*b1 Attack Power +50.", { 4, 1, 12, 2, 6, 13, 0, 0 } },
+    { "*b1 Attack Power +100.", { 12, 7, 22, 16, 18, 29, 0, 0 } },
+    { "*b1 Attack Power +150.", { 32, 28, 45, 36, 45, 43, 0, 0 } },
+    { "*b1 Attack Power +200.", { 51, 44, 0xFF, 56, 67, 66, 0, 0 } },
+    { "*b1 Attack Power +250.", { 77, 0xFF, 0xFF, 76, 86, 96, 0, 0 } },
+    { "*b2 Attack Power +50.", { 6, 6, 2, 4, 10, 1, 0, 0 } },
+    { "*b2 Attack Power +100.", { 19, 36, 20, 19, 27, 9, 0, 0 } },
+    { "*b2 Attack Power +150.", { 35, 69, 42, 38, 53, 24, 0, 0 } },
+    { "*b2 Attack Power +200.", { 82, 0xFF, 63, 67, 0xFF, 48, 0, 0 } },
+    { "*b0 to 0, *b2 Attack Power -100.", { 24, 12, 4, 14, 0xFF, 34, 0, 0 } },
+    { "*b1 to 0, *b2 Attack Power -100.", { 46, 23, 9, 35, 0xFF, 17, 0, 0 } },
+    { "*b2 to 0, *b2 Attack Power -100.", { 58, 71, 36, 10, 0xFF, 71, 0, 0 } },
+    { "Counter *b0,*b2 Attack Power to 0.", { 11, 26, 0xFF, 0xFF, 40, 62, 0, 0 } },
+    { "Counter *b1,*b2 Attack Power to 0.", { 36, 14, 0xFF, 0xFF, 24, 49, 0, 0 } },
+    { "Counter *b2,*b2 Attack Power to 0.", { 40, 57, 0xFF, 0xFF, 11, 21, 0, 0 } },
+    { "Opponent *a0 X3, *b2 Attack Power -200.", { 87, 92, 39, 69, 31, 50, 0, 0 } },
+    { "Opponent *a1 X3, *b2 Attack Power -200.", { 25, 97, 0xFF, 42, 77, 73, 0, 0 } },
+    { "Opponent *a2 X3, *b2 Attack Power -200.", { 37, 0xFF, 66, 0xFF, 83, 4, 0, 0 } },
+    { "Opponent *a3 X3, *b2 Attack Power -200.", { 68, 33, 46, 21, 5, 97, 0, 0 } },
+    { "Opponent *a4 X3, *b2 Attack Power -200.", { 52, 41, 6, 0xFF, 0xFF, 25, 0, 0 } },
+    { "1st Attack, *b2 Attack Power -200.", { 76, 50, 95, 62, 0xFF, 0xFF, 0, 0 } },
+    { "Jamming Support, *b2 Attack Power -100.", { 0xFF, 74, 27, 0xFF, 54, 10, 0, 0 } },
+    { "Eat-up HP, *b2 Attack Power -200.", { 0xFF, 87, 50, 0xFF, 73, 0xFF, 0, 0 } },
+    { "Add + 10 DP.", { 42, 4, 61, 1, 9, 0xFF, 0, 0 } },
+    { "Add + 20 DP.", { 91, 29, 79, 27, 21, 0xFF, 0, 0 } },
+    { "Add + 30 DP.", { 0xFF, 98, 97, 60, 78, 85, 0, 0 } },
+    { "Boost Attack Power +50.", { 2, 10, 13, 3, 7, 11, 0, 0 } },
+    { "Boost Attack Power +100.", { 21, 42, 56, 33, 36, 35, 0, 0 } },
+    { "Boost Attack Power +200.", { 26, 81, 73, 46, 84, 44, 0, 0 } },
+    { "Boost Attack Power +300.", { 69, 0xFF, 84, 82, 0xFF, 80, 0, 0 } },
+    { "Attack Power is Doubled.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Boost *b0 Attack Power +300.", { 8, 30, 47, 17, 26, 12, 0, 0 } },
+    { "Boost *b0 Attack Power +400.", { 34, 77, 74, 47, 46, 39, 0, 0 } },
+    { "Boost *b0 Attack Power +500.", { 55, 0xFF, 88, 88, 66, 74, 0, 0 } },
+    { "*b0 Attack Power is Doubled.", { 13, 64, 67, 58, 33, 63, 0, 0 } },
+    { "*b0 Attack Power is Tripled.", { 59, 0xFF, 94, 74, 0xFF, 86, 0, 0 } },
+    { "Boost *b1 Attack Power +200.", { 15, 2, 0xFF, 7, 22, 18, 0, 0 } },
+    { "Boost *b1 Attack Power +300.", { 28, 19, 0xFF, 23, 41, 36, 0, 0 } },
+    { "Boost *b1 Attack Power +400.", { 43, 70, 0xFF, 92, 59, 53, 0, 0 } },
+    { "*b1 Attack Power is Doubled.", { 22, 13, 59, 34, 0xFF, 67, 0, 0 } },
+    { "*b1 Attack Power is Tripled.", { 83, 0xFF, 91, 94, 0xFF, 89, 0, 0 } },
+    { "Boost *b2 Attack Power +100.", { 23, 40, 10, 18, 0xFF, 8, 0, 0 } },
+    { "Boost *b2 Attack Power +200.", { 38, 58, 40, 43, 0xFF, 20, 0, 0 } },
+    { "Boost *b2 Attack Power +300.", { 71, 0xFF, 60, 63, 0xFF, 90, 0, 0 } },
+    { "*b2 Attack Power is Doubled.", { 44, 72, 48, 51, 0xFF, 40, 0, 0 } },
+    { "*b2 Attack Power is Tripled.", { 88, 0xFF, 85, 95, 0xFF, 65, 0, 0 } },
+    { "Attack Power becomes same as HP.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Get 1st Attack.", { 53, 55, 98, 71, 85, 0xFF, 0, 0 } },
+    { "Attack becomes Eat-up HP.", { 0xFF, 93, 80, 0xFF, 61, 55, 0, 0 } },
+    { "Lower Opponent's *b0 Attack Power to 0.", { 54, 0xFF, 17, 0xFF, 28, 75, 0, 0 } },
+    { "Lower Opponent's *b1 Attack Power to 0.", { 84, 24, 28, 0xFF, 15, 0xFF, 0, 0 } },
+    { "Lower Opponent's *b2 Attack Power to 0.", { 0xFF, 66, 24, 0xFF, 13, 45, 0, 0 } },
+    { "*b0 Counterattack (Attack 2nd).", { 7, 0xFF, 33, 0xFF, 47, 14, 0, 0 } },
+    { "*b1 Counterattack (Attack 2nd).", { 33, 17, 0xFF, 0xFF, 37, 26, 0, 0 } },
+    { "*b2 Counterattack (Attack 2nd).", { 47, 43, 5, 0xFF, 0xFF, 37, 0, 0 } },
+    { "If *a0 Opponent, X2 own Attack Power.", { 74, 79, 0xFF, 77, 25, 38, 0, 0 } },
+    { "If *a0 Opponent, X3 own Attack Power.", { 0xFF, 91, 0xFF, 65, 74, 82, 0, 0 } },
+    { "If *a1 Opponent, X2 own Attack Power.", { 5, 47, 64, 26, 80, 76, 0, 0 } },
+    { "If *a1 Opponent, X3 own Attack Power.", { 60, 0xFF, 89, 83, 98, 91, 0, 0 } },
+    { "If *a2 Opponent, X2 own Attack Power.", { 50, 27, 58, 59, 42, 6, 0, 0 } },
+    { "If *a2 Opponent, X3 own Attack Power.", { 79, 0xFF, 93, 0xFF, 93, 70, 0, 0 } },
+    { "If *a3 Opponent, X2 own Attack Power.", { 56, 37, 44, 6, 19, 93, 0, 0 } },
+    { "If *a3 Opponent, X3 own Attack Power.", { 92, 60, 87, 79, 63, 0xFF, 0, 0 } },
+    { "If *a4 Opponent, X2 own Attack Power.", { 78, 76, 26, 72, 69, 46, 0, 0 } },
+    { "If *a4 Opponent, X3 own Attack Power.", { 89, 96, 55, 0xFF, 0xFF, 68, 0, 0 } },
+    { "Change own Specialty to *a0.", { 9, 35, 0xFF, 48, 96, 0xFF, 0, 0 } },
+    { "Change own Specialty to *a1.", { 0xFF, 99, 30, 87, 58, 0xFF, 0, 0 } },
+    { "Change own Specialty to *a2.", { 97, 3, 41, 8, 12, 94, 0, 0 } },
+    { "Change own Specialty to *a3.", { 30, 0xFF, 68, 98, 81, 3, 0, 0 } },
+    { "Change own Specialty to *a4.", { 95, 82, 14, 52, 76, 99, 0, 0 } },
+    { "Switch Opponent's Specialty to own.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Swap Specialty with Opponent's.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "If *a0 Opponent, lower its AP to 0.", { 66, 52, 0xFF, 97, 43, 0xFF, 0, 0 } },
+    { "If *a1 Opponent, lower its AP to 0.", { 41, 61, 34, 84, 8, 0xFF, 0, 0 } },
+    { "If *a2 Opponent, lower its AP to 0.", { 0xFF, 11, 52, 0xFF, 64, 22, 0, 0 } },
+    { "If *a3 Opponent, lower its AP to 0.", { 0xFF, 25, 37, 13, 2, 72, 0, 0 } },
+    { "If *a4 Opponent, lower its AP to 0.", { 0xFF, 75, 16, 0xFF, 34, 52, 0, 0 } },
+    { "Reduce both Players' Atk Pwr to 0.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "If *e3, boost Attack Power +200.", { 14, 31, 0xFF, 9, 48, 23, 0, 0 } },
+    { "If *e4, boost Attack Power +300.", { 31, 53, 0xFF, 20, 38, 57, 0, 0 } },
+    { "If *e5, boost Attack Power +400.", { 57, 0xFF, 81, 70, 95, 77, 0, 0 } },
+    { "Opponent uses *b0 Attack.", { 16, 62, 0xFF, 28, 97, 31, 0, 0 } },
+    { "Opponent uses *b1 Attack.", { 62, 18, 11, 39, 0xFF, 47, 0, 0 } },
+    { "Opponent uses *b2 Attack.", { 94, 8, 21, 0xFF, 44, 58, 0, 0 } },
+    { "Opponent uses same Attack.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Recover HP +200.", { 72, 15, 32, 11, 1, 81, 0, 0 } },
+    { "Recover HP +300.", { 90, 38, 53, 31, 17, 0xFF, 0, 0 } },
+    { "Recover HP +400.", { 0xFF, 68, 92, 73, 55, 0xFF, 0, 0 } },
+    { "Halve Attack Power, recover HP +400.", { 93, 20, 43, 15, 23, 0xFF, 0, 0 } },
+    { "Halve Attack Power, recover HP +600.", { 0xFF, 46, 86, 44, 60, 0xFF, 0, 0 } },
+    { "If HP < Opponent's HP, add HP +500.", { 98, 59, 23, 37, 29, 0xFF, 0, 0 } },
+    { "If HP < Opponent's HP, add HP +700.", { 0xFF, 83, 69, 53, 56, 0xFF, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 300.", { 49, 34, 0xFF, 24, 30, 42, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 600.", { 0xFF, 63, 0xFF, 49, 49, 64, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 1000.", { 0xFF, 94, 0xFF, 64, 65, 98, 0, 0 } },
+    { "Drop 1 Card in Opponent's Hand.", { 63, 22, 3, 45, 75, 27, 0, 0 } },
+    { "Drop 2 Cards in Opponent's Hand.", { 0xFF, 78, 25, 0xFF, 92, 56, 0, 0 } },
+    { "Drop Opponent's Top 2 DP Cards shown.", { 0xFF, 56, 18, 86, 35, 5, 0, 0 } },
+    { "Drop Opponent's Top 3 DP Cards shown.", { 0xFF, 88, 49, 0xFF, 90, 32, 0, 0 } },
+    { "Drop Opponent's Top 4 DP Cards shown.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Drop 2 Cards in Opponent's Online Deck.", { 0xFF, 51, 7, 29, 0xFF, 16, 0, 0 } },
+    { "Drop 3 Cards in Opponent's Online Deck.", { 0xFF, 95, 35, 89, 0xFF, 54, 0, 0 } },
+    { "Move Offline Top Card to Online Deck.", { 86, 0xFF, 70, 78, 50, 0xFF, 0, 0 } },
+    { "Void Opponent's Support Effect.", { 0xFF, 84, 65, 0xFF, 87, 69, 0, 0 } },
+    { "Draw until there are 4 Cards.", { 64, 45, 29, 54, 20, 0xFF, 0, 0 } },
+    { "Draw Online Partner Card, then Shuffle.", { 65, 80, 82, 68, 72, 0xFF, 0, 0 } },
+    { "If *e3, HP + 200 & all Attack Powers +100.", { 73, 73, 0xFF, 55, 94, 83, 0, 0 } },
+    { "If *ea, HP + 200 & all Attack Powers +100.", { 81, 0xFF, 76, 66, 79, 87, 0, 0 } },
+    { "Boost Battle Experience by 10%.", { 20, 49, 57, 32, 71, 41, 0, 0 } },
+    { "Boost Battle Experience by 20%.", { 85, 65, 77, 75, 88, 92, 0, 0 } },
+    { "Boost Battle Experience by 30%.", { 80, 0xFF, 96, 90, 99, 60, 0, 0 } },
+    { "Rare Card might appear after battle.", { 70, 85, 83, 80, 51, 0xFF, 0, 0 } },
+    { "Rare Card even more likely to appear.", { 0xFF, 90, 99, 96, 70, 0xFF, 0, 0 } },
+};
 
 void func_801F3BAC(UiWindow *window) {
     drawText(window->originX + 2, window->originY + 1, (s32)"Earned Experience Points", 7, 0);
@@ -6867,9 +7057,92 @@ void func_801F7810(UiWindow *w) {
     }
 }
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DF604);
+/* per effect kind: what updates it each frame, creates it and frees it */
+void (*D_801FC138[4])(u8 *) = {
+    /* SUGSEG's colour quad renderer, func_801E651C: in KAWSEG this address
+       is inside func_801E5710, and nothing here relocates it */
+    (void (*)(u8 *))0x801E651C,
+    (void (*)(u8 *))renderRingEffect,
+    (void (*)(u8 *))updateEffectObject,
+    (void (*)(u8 *))renderStreakParticles,
+};
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFB54);
+u8 *(*D_801FC148[4])(s32, EffectTable *) = {
+    (u8 *(*)(s32, EffectTable *))func_801F71A8,
+    (u8 *(*)(s32, EffectTable *))func_801F7264,
+    (u8 *(*)(s32, EffectTable *))func_801F73C8,
+    (u8 *(*)(s32, EffectTable *))func_801F73FC,
+};
+
+void (*D_801FC158[4])(u8 *) = {
+    (void (*)(u8 *))func_801F7530,
+    (void (*)(u8 *))freeRingEffect,
+    (void (*)(u8 *))freeEffectObject,
+    (void (*)(u8 *))freeStreakParticles,
+};
+
+/* the lines of the special effect descriptions */
+char *D_801FC168[51] = {
+    "          *c6*b2 Special Effect Descriptions *h-6*c7*h0",
+    "",
+    "*c5*d3\"Jamming Support\" *c7",
+    " Opponent's Support Effect is Voided.",
+    " Can't Void Option Effect.",
+    "*c5*d2\"1st Attack\"*c7",
+    " Attack first, regardless of Turn.",
+    " If you're 1st, Void Foe's \"1st Attack.\"",
+    "*c5*d2\"Eat-up HP\" *c7",
+    " Recover the same amount of HP as",
+    " the damage inflicted.",
+    "*c5*d1\"Crash\"*c7",
+    " Attack Power becomes same as HP.",
+    " HP becomes 10.",
+    " No Effect until just before Attack.",
+    "",
+    "*c5*d1\"Opponent *a0 X3\"*c7",
+    " If Opponent's Specialty is *a0,",
+    " own *b2 Attack is Tripled.",
+    "*c5*d1\"Opponent *a1 X3\"*c7",
+    " If Opponent's Specialty is *a1,",
+    " own *b2 Attack is Tripled.",
+    "*c5*d1\"Opponent *a2 X3\"*c7",
+    " If Opponent's Specialty is *a2,",
+    " own *b2 Attack is Tripled.",
+    "*c5*d1\"Opponent *a3 X3\"*c7",
+    " If Opponent's Specialty is *a3,",
+    " own *b2 Attack is Tripled.",
+    "*c5*d1\"Opponent *a4 X3\"*c7",
+    " If Opponent's Specialty is *a4,",
+    " own *b2 Attack is Tripled.",
+    "",
+    "*c5*d1\"*b0 Counter Attack\"*c7",
+    " If Opponent uses *b0 Attack, it will miss.",
+    " Then you Counter with Opponent's ",
+    " *b0 Attack power.",
+    "*c5*d1\"*b1 Counter Attack\"*c7",
+    " If Opponent uses *b1 Attack, it will miss.",
+    " Then you Counter with Opponent's ",
+    " *b1 Attack power.",
+    "*c5*d1\"*b2 Counter Attack\"*c7",
+    " If Opponent uses *b2 Attack, it will miss.",
+    " Then you Counter with Opponent's ",
+    " *b2 Attack power.",
+    "",
+    "*c5*d1\"*b0 to 0\"*c7",
+    " Lowers Opponent's *b0 Attack Power to 0.",
+    "*c5*d1\"*b1 to 0\"*c7",
+    " Lowers Opponent's *b1 Attack Power to 0.",
+    "*c5*d1\"*b2 to 0\"*c7",
+    " Lowers Opponent's *b2 Attack Power to 0.",
+};
+
+/* the options of the duel menu, D_801FC244 */
+char *D_801FC234[4] = {
+    "Sound",
+    "Polygon Battle",
+    "*b2 Special Effect Descriptions",
+    "Give Up",
+};
 
 extern char *D_801FC234[];
 extern Menu D_801FC244;
@@ -6907,7 +7180,6 @@ typedef struct {
 extern CursorHighlight D_801FC8D4;
 extern DialogK D_801FC924;
 extern UiWindow D_801FC9E4;
-extern char D_801DFB54[];
 extern char D_801DFBBC[];
 void func_80055730(void);
 
@@ -6962,7 +7234,7 @@ void func_801F7B2C(void) {
             case 1:
                 D_801FC924.yes = "On";
                 D_801FC924.no = "Off";
-                initDialog((u8 *)&D_801FC924, D_801DFB54, 2);
+                initDialog((u8 *)&D_801FC924, "Polygon Battle", 2);
                 D_801FC924.pad = ((DuelK *)D_801D8340)->menuPlayer;
                 D_801FC924.draw = func_801F77E0;
                 D_801FC924.result = ((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation + 1;
@@ -7126,7 +7398,7 @@ s32 func_801F848C(void) {
     freeHeapBlock(D_801D83EC);
 }
 
-extern Bytes4 D_801DFBC8;
+extern const Bytes4 D_801DFBC8;
 void func_801F851C(s32 x, s32 y, s32 u, s32 v, s32 frame, u16 clut, Bytes4 *rgb);
 
 void func_801F84CC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, u16 a5) {
@@ -7607,7 +7879,94 @@ void func_801FA290(void) {
 
 INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFBBC);
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFBC8);
+typedef struct {
+    /* 0x0 */ u8 id;
+    /* 0x1 */ u8 bonus;
+    /* 0x4 */ char *name;
+} BonusEntry;
+
+const Bytes4 D_801DFBC8 = { { 0x80, 0x80, 0x80, 0 } };
+
+Menu D_801FC244 = { NULL, NULL, { 20, 40, 180, 56 }, 0, -1, 0, -1, 8, 0x16, 180, 12, 1, 4, 0, 0, 0, 14, 0, 0, 0 };
+
+HudPanelInit D_801FC270[12] = {
+    { { 0, 0, 0xFF, 0x47 }, 0x1C, 0x7E30, 0, -1, 0xA },
+    { { 0, 0, 0xD0, 0x40 }, 0x1E, 0x7C31, 0, -1, 0xA },
+    { { 0, 0x7E, 0x74, 0x3C }, 0x1D, 0x7EF4, 0, -1, 0x64 },
+    { { 0xA0, 0x47, 0x30, 0x14 }, 0x1C, 0x7E70, 0, 2, 0x64 },
+    { { 0, 0x3F, 0xFF, 0x3F }, 0x1D, 0x7E74, 0, -1, 0x64 },
+    { { 0xA8, 0x4E, 0x28, 0xE }, 0x1E, 0x7DB3, 0, 4, 0x64 },
+    { { 0, 0, 0xFF, 0x47 }, 0x1C, 0x7E30, 0, -1, 0xA },
+    { { 0, 0, 0xD0, 0x40 }, 0x1E, 0x7E31, 0, -1, 0xA },
+    { { 0x74, 0x7E, 0x74, 0x3C }, 0x1D, 0x7EB4, 0, -1, 0x64 },
+    { { 0xA0, 0x5B, 0x30, 0x14 }, 0x1C, 0x7EB0, 0, 8, 0x64 },
+    { { 0, 0, 0xFF, 0x3F }, 0x1D, 0x7E34, 0, -1, 0x64 },
+    { { 0xA8, 0x40, 0x28, 0xE }, 0x1E, 0x7D73, 0, 10, 0x64 },
+};
+
+/* the bonuses a duel can give, with their experience */
+BonusEntry D_801FC300[32] = {
+    { 0, 3, "All *b0 Attack Win" },
+    { 1, 3, "All *b1 Attack Win" },
+    { 2, 3, "All *b2 Attack Win" },
+    { 3, 5, "All or Nothing Gamble Win" },
+    { 4, 2, "Last Chance Gamble Win" },
+    { 5, 5, "No Support Card Win" },
+    { 6, 3, "No Digivolve Win" },
+    { 7, 1, "No Discard Win" },
+    { 8, 5, "4-of-a-Kind Win" },
+    { 9, 2, "0 Online Card Left win" },
+    { 10, 1, "Partner Win" },
+    { 11, 3, "No Loss Win" },
+    { 12, 3, "Come-Back Win" },
+    { 13, 7, "Desperate Win" },
+    { 14, 2, "All Gone Win" },
+    { 15, 3, "Ultimate Level Win" },
+    { 16, 5, "Option Maniac Win" },
+    { 17, 8, "8 DP Cards Win" },
+    { 18, 1, "Lucky Seven Win" },
+    { 19, 3, "Just Enough Attack Win" },
+    { 20, 10, "12 S-Jewel Cards Win" },
+    { 21, 2, "Choked Loss" },
+    { 22, 2, "Loss by Gamble" },
+    { 23, 1, "Total Loss" },
+    { 24, 2, "Rainbow" },
+    { 25, 10, "Damage Fever" },
+    { 26, 7, "HP Fever" },
+    { 27, 2, "3 Partners" },
+    { 28, 2, "3 Partners Plus" },
+    { 29, 2, "Partner Normal Digivolve" },
+    { 30, 1, "Lucky Name" },
+    { 31, 10, "Super Bonus" },
+};
+
+/* the u8 arrays among these are not referenced by any code */
+u8 D_801FC400[4] = { 0 };
+s32 D_801FC404 = 0;
+u8 D_801FC408[8] = { 0 };
+UiWindow D_801FC410 = { 0 };
+DeckScreen *D_801FC454 = NULL;
+s32 D_801FC458 = 0;
+u8 D_801FC45C[8] = { 0 };
+POLY_G4 D_801FC464[2][2][3] = { { { { 0 } } } };
+TILE D_801FC614[2][2][4] = { { { { 0 } } } };
+DR_MODE D_801FC714[2][2] = { { { 0 } } };
+s32 D_801FC734 = 0;
+ExpScreen *D_801FC738 = NULL;
+PrizeScreen *D_801FC73C = NULL;
+EffectObject D_801FC740 = { { { { 0 } } } };
+s8 D_801FC87C = 0;
+s8 D_801FC87D = 0;
+s8 D_801FC87E = 0;
+u8 D_801FC880[4] = { 0 };
+UiWindow D_801FC884 = { 0 };
+u8 D_801FC8C8[12] = { 0 };
+CursorHighlight D_801FC8D4 = { { { 0 } } };
+DialogK D_801FC924 = { { 0 } };
+u8 D_801FC9CC[0x18] = { 0 };
+UiWindow D_801FC9E4 = { 0 };
+s32 D_801FCA28 = 0;
+s32 D_801FCA2C = 0;
 
 void func_801FA30C(s32 player) {
     Player *p;
@@ -7705,12 +8064,6 @@ s32 func_801FA780(s32 player) {
     }
 }
 
-typedef struct {
-    /* 0x0 */ u8 id;
-    /* 0x1 */ u8 bonus;
-    /* 0x4 */ char *name;
-} BonusEntry;
-
 
 s32 func_801FA918(BonusEntry *entry, s32 x, s32 y, s32 last, s32 z) {
     char buf[72];
@@ -7723,8 +8076,6 @@ s32 func_801FA918(BonusEntry *entry, s32 x, s32 y, s32 last, s32 z) {
     D_801FCA2C += entry->bonus;
     return D_801FCA28 == last;
 }
-
-extern BonusEntry D_801FC300[];
 
 s32 func_801FAA54(s32 x, s32 y, s32 count, s32 z, s32 exp) {
     BonusEntry *entry;
