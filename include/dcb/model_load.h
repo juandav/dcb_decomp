@@ -5,12 +5,12 @@
 #include "dcb/anim_control.h"
 
 void relocateOmdObjects(Tmd18 *tmd);
-void linkOmdObject(s32 tmd, void *obj, s32 index);
-s32 *readModelBonePositions(u8 *model, s32 *data);
+void linkOmdObject(s32 tmd, GsDOBJ4 *obj, s32 index);
+s32 *readModelBonePositions(Model *model, s32 *data);
 void unloadModel(s32 slot);
 void unloadAllModels(void);
-void *findLoadedModelById(s32 id);
-s32 reuseLoadedModelTexture(u8 *);
+Model *findLoadedModelById(s32 id);
+s32 reuseLoadedModelTexture(Model *model);
 void initModelBoneHierarchy(Model *model);
 s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format);
 void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot);

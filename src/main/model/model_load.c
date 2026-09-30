@@ -31,17 +31,17 @@ void relocateOmdObjects(Tmd18 *tmd) {
     }
 }
 
-void linkOmdObject(s32 tmd, void *obj, s32 index) {
-    (*(s32 *)((s8 *)obj + 0xC)) = (s32) (index + 1);
-    (*(s32 *)((s8 *)obj + 0)) = 0;
-    (*(s32 *)((s8 *)obj + 8)) = tmd;
+void linkOmdObject(s32 tmd, GsDOBJ4 *obj, s32 index) {
+    obj->id = index + 1;
+    obj->attribute = 0;
+    obj->tmd = (u32 *)tmd;
 }
 
-s32 *readModelBonePositions(u8 *model, s32 *data) {
+s32 *readModelBonePositions(Model *model, s32 *data) {
     s32 i;
 
-    for (i = 0; i < *(s16 *)(model + 4); i++) {
-        ((Unk1F80 *)model)->unk1F80[i] = (s16 *)(data + 1);
+    for (i = 0; i < model->nobj; i++) {
+        model->bonepos[i] = (s16 *)(data + 1);
         data += 3;
     }
     return data;
@@ -91,58 +91,56 @@ void unloadAllModels(void) {
     }
 }
 
-void *findLoadedModelById(s32 id) {
+Model *findLoadedModelById(s32 id) {
     s32 i;
 
     for (i = 0; i < 0x18; i++) {
-        if (SCENE_3D->modelState[i] != 0 &&
-            *(s16 *)((u8 *)SCENE_3D->models[i] + 6) == id) {
+        if (SCENE_3D->modelState[i] != 0 && ((Model *)SCENE_3D->models[i])->id == id) {
             return SCENE_3D->models[i];
         }
     }
     return 0;
 }
 
-s32 reuseLoadedModelTexture(u8 *model) {
-    Model *m;
-    Model *o;
-    s32 pos;
+/* If another loaded model already has this model's texture, copies it into
+   this model's VRAM slot instead of loading it again. Returns 0 when it did. */
+s32 reuseLoadedModelTexture(Model *model) {
+    Model *loaded;
+    s32 vramSlot;
     s32 px;
     s32 py;
     s32 cx;
     s32 cy;
 
-    m = (Model *)model;
-    o = findLoadedModelById(m->id);
-    if (o != 0) {
-        if (o->tpageOffset != m->tpageOffset) {
-            pos = m->tpageOffset / 0x10000 + 5;
-            px = ((pos & 0xF) << 6) + (o->prect.x & 0x3F);
-            py = ((pos & 0x10) << 4) + (o->prect.y & 0xFF);
-            cx = ((pos & 0xF) << 6) + (o->crect.x & 0x3F);
-            cy = ((pos & 0x10) << 4) + (o->crect.y & 0xFF);
-            MoveImage(&o->prect, px, py);
-            MoveImage(&o->crect, cx, cy);
+    loaded = findLoadedModelById(model->id);
+    if (loaded != 0) {
+        if (loaded->tpageOffset != model->tpageOffset) {
+            vramSlot = model->tpageOffset / 0x10000 + 5;
+            px = ((vramSlot & 0xF) << 6) + (loaded->prect.x & 0x3F);
+            py = ((vramSlot & 0x10) << 4) + (loaded->prect.y & 0xFF);
+            cx = ((vramSlot & 0xF) << 6) + (loaded->crect.x & 0x3F);
+            cy = ((vramSlot & 0x10) << 4) + (loaded->crect.y & 0xFF);
+            MoveImage(&loaded->prect, px, py);
+            MoveImage(&loaded->crect, cx, cy);
             DrawSync(0);
-            m->prect.x = px;
-            m->prect.y = py;
-            m->prect.h = o->prect.h;
-            m->prect.w = o->prect.w;
-            m->crect.x = cx;
-            m->crect.y = cy;
-            m->crect.h = o->crect.h;
-            m->crect.w = o->crect.w;
+            model->prect.x = px;
+            model->prect.y = py;
+            model->prect.h = loaded->prect.h;
+            model->prect.w = loaded->prect.w;
+            model->crect.x = cx;
+            model->crect.y = cy;
+            model->crect.h = loaded->crect.h;
+            model->crect.w = loaded->crect.w;
         }
         return 0;
     }
     return 1;
 }
 
-
 s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     char path[16];
     TIM_IMAGE tim;
-    u8 *model;
+    Model *model;
     u8 *data;
     u32 *img;
     s32 texX;
@@ -158,28 +156,30 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
         unloadModel(slot);
     }
     func_80014C08(FRAME_INTERVAL);
-    model = SCENE_3D->models[slot] = allocHeapBlock(0x28F8, slot + 0x40);
-    bzero(model, 0x28F8);
-    *(s32 *)(model + 0x26F4) = pak;
+    model = SCENE_3D->models[slot] = allocHeapBlock(sizeof(Model), slot + 0x40);
+    bzero(model, sizeof(Model));
+    model->pak = (void *)pak;
     pauseModelAnimation(slot);
-    RotMatrixYXZ(model + 0xA78, model + 0x2C);
-    *(s32 *)(model + 0x28) = 0;
-    *(s32 *)(model + 0x20) = 0x1000;
-    *(s32 *)(model + 0x1C) = 0x1000;
-    *(s32 *)(model + 0x18) = 0x1000;
+    RotMatrixYXZ(&model->rot, &model->root.coord);
+    model->root.flg = 0;
+    model->scale.vz = 0x1000;
+    model->scale.vy = 0x1000;
+    model->scale.vx = 0x1000;
     for (i = 0; i < 32; i++) {
         for (j = 0; j < 3; j++) {
-            ((Model *)model)->keys[i].pos[j].value = 0;
-            ((Model *)model)->keys[i].rot[j].value = 0;
-            ((Model *)model)->keys[i].scale[j].value = 0x10000000;
+            model->keys[i].pos[j].value = 0;
+            model->keys[i].rot[j].value = 0;
+            model->keys[i].scale[j].value = 0x10000000;
         }
     }
+    /* vramSlot: bits 0-3 pick a 64-pixel VRAM column, bit 4 the lower half.
+       By default slots 2n and 2n+1 share a column, the odd one below. */
     if (vramSlot < 0) {
         vramSlot = (slot >> 1) + (slot & 1) * 16 + 5;
     }
-    *(s32 *)(model + 0x26D4) = (vramSlot - 5) << 16;
-    *(s32 *)(model + 0x26D0) = ((((vramSlot & 0x10) << 10) | ((vramSlot & 0xF) * 4)) - 0x14) << 16;
-    *(s16 *)(model + 6) = id;
+    model->tpageOffset = (vramSlot - 5) << 16;
+    model->clutOffset = ((((vramSlot & 0x10) << 10) | ((vramSlot & 0xF) * 4)) - 0x14) << 16;
+    model->id = id;
     if (id > 1000) {
         sprintf(path, "M:\\%d_%d.omd", id / 10, id % 10);
     } else {
@@ -191,14 +191,15 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
         if (data == 0) {
             return 0;
         }
-        *(s32 *)model = LOADED_FILE_SIZE;
+        model->dataSize = LOADED_FILE_SIZE;
     } else {
-        *(s32 *)model = ((s32 *)data)[-1];
+        model->dataSize = ((s32 *)data)[-1];
     }
-    *(u8 **)(model + 0x26DC) = data;
+    model->data = data;
     if (vramSlot != 0) {
-        i = 0;
+        i = 0; /* set when the TIM was loaded from disc and has to be freed */
         img = findPakChunk((Chunk *)pak, 5, id);
+        /* not in the PAK: reuse another model's copy, or load the TIM named in the OMD */
         if (img == 0) {
             if (reuseLoadedModelTexture(model) == 0) {
                 goto skip;
@@ -213,48 +214,50 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
             uploadTimListOffset(img, texX - 0x140, texY);
             OpenTIM(img);
             ReadTIM(&tim);
-            *(Rect16 *)(model + 0x26E4) = *tim.prect;
-            *(Rect16 *)(model + 0x26EC) = *tim.crect;
-            ((Rect16 *)(model + 0x26EC))->x += texX - 0x140;
-            ((Rect16 *)(model + 0x26EC))->y += texY;
-            ((Rect16 *)(model + 0x26E4))->x += texX - 0x140;
-            ((Rect16 *)(model + 0x26E4))->y += texY;
+            model->prect = *tim.prect;
+            model->crect = *tim.crect;
+            model->crect.x += texX - 0x140;
+            model->crect.y += texY;
+            model->prect.x += texX - 0x140;
+            model->prect.y += texY;
             if (i) {
                 freeHeapBlock(img);
             }
         }
     }
 skip:
-    StoreImage2((Rect16 *)(model + 0x26EC), (u32 *)(model + 0x26F8));
+    StoreImage2(&model->crect, (u32 *)model->clut);
     data += 0x10;
-    *(s16 *)(model + 4) = *(u16 *)data;
+    model->nobj = *(u16 *)data;
     data += 4;
     for (i = 0; i < 32; i++) {
-        ((Model *)model)->parent[i] = *data++;
+        model->parent[i] = *data++;
     }
     data = (u8 *)readModelBonePositions(model, (s32 *)data);
     if (format == 0) {
-        for (i = 0; i < *(s16 *)(model + 4); i++) {
+        for (i = 0; i < model->nobj; i++) {
             if (i != 0) {
+                /* skip to the next "OMD0" */
                 for (data += 4; *(s32 *)data != 0x30444D4F; data += 4) {
                 }
             }
-            ((Model *)model)->obj[i].tmd = 0;
+            model->obj[i].tmd = 0;
             relocateOmdObjects((Tmd18 *)data);
-            linkOmdObject((s32)(data + 12), &((Model *)model)->obj[i], i);
+            linkOmdObject((s32)(data + 12), &model->obj[i], i);
         }
     } else {
-        for (i = 0; i < *(s16 *)(model + 4); i++) {
+        for (i = 0; i < model->nobj; i++) {
             if (i != 0) {
+                /* skip to the next TMD header (id 0x41, flags 0) */
                 for (data += 4; *(s32 *)data != 0x41 || ((s32 *)data)[1] != 0; data += 4) {
                 }
             }
-            ((Model *)model)->obj[i].tmd = 0;
+            model->obj[i].tmd = 0;
             GsMapModelingData((u32 *)(data + 4));
-            GsLinkObject4((u32)(data + 12), &((Model *)model)->obj[i], 0);
+            GsLinkObject4((u32)(data + 12), &model->obj[i], 0);
         }
     }
-    initModelBoneHierarchy((Model *)model);
+    initModelBoneHierarchy(model);
     return 1;
 }
 

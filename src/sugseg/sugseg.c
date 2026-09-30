@@ -5561,7 +5561,7 @@ void func_801EE3D4(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
     } while (DUEL->state != 3);
-    func_801E3FA8(SCENE_3D->models[23], SCENE_3D->modelState[0x1A]);
+    func_801E3FA8(SCENE_3D->models[23], SCENE_3D->texAnimFrames);
     func_800149B8(0x1A, 0x1F, 0, 0x400, func_801E3EB8);
     while (D_801EF978[D_801EF37C] != 1) {
         func_80014C08(FRAME_INTERVAL);

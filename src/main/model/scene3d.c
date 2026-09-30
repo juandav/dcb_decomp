@@ -66,7 +66,7 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 localScreen.t[0] = localScreen.t[1] = localScreen.t[2] = 0;
                 otDepth >>= 2;
                 ot += otDepth * 3;
-                animateStageTexture((u8 *)model);
+                animateStageTexture(model);
             }
             if (SCENE_3D->modelState[i] == 1) {
                 RotMatrix(&SCENE_WORLD_ROTATION, &SCENE_3D->root.coord);

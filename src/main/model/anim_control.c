@@ -17,62 +17,65 @@
 void initModelScene(void) {
     Scene3D *scene;
 
-    scene = SCENE_3D = allocHeapBlock(0x29C, 0x7F);
-    bzero(scene, 0x29C);
+    scene = SCENE_3D = allocHeapBlock(sizeof(Scene3D), 0x7F);
+    bzero(scene, sizeof(Scene3D));
     GsInitCoordinate2(NULL, &SCENE_3D->root);
     SCENE_3D_ENABLED = 1;
 }
 
+/* A negative keyTimer holds the animation; resumeModelAnimation flips it back. */
 void pauseModelAnimation(s32 slot) {
-    void *model;
-    void *model2;
+    Model *model;
+    Model *model2;
 
     model = SCENE_3D->models[slot];
-    if ((*(s32 *)((s8 *)model + 0x2208)) <= 0) {
-        (*(s32 *)((s8 *)model + 0x2208)) = -1;
+    if (model->anim.keyTimer <= 0) {
+        model->anim.keyTimer = -1;
         return;
     }
     model2 = SCENE_3D->models[slot];
-    (*(s32 *)((s8 *)model2 + 0x2208)) = (s32) -(*(s32 *)((s8 *)model2 + 0x2208));
+    model2->anim.keyTimer = -model2->anim.keyTimer;
 }
 
 void resumeModelAnimation(s32 slot) {
     s32 timer;
-    void *model;
+    Model *model;
 
     model = SCENE_3D->models[slot];
-    timer = (*(s32 *)((s8 *)model + 0x2208));
+    timer = model->anim.keyTimer;
     if (timer < 0) {
-        (*(s32 *)((s8 *)model + 0x2208)) = -timer;
+        model->anim.keyTimer = -timer;
     }
 }
 
-s32 startModelAnimation(s32 slot, s32 anim, s32 nextAnim, s32 rootOnly) {
-    void *model;
-    void *animState;
-    s32 frameCount;
+/* loopKey -2 takes the loop key stored in the clip's data. */
+s32 startModelAnimation(s32 slot, s32 anim, s32 loopKey, s32 rootOnly) {
+    Model *model;
+    ModelAnimState *animState;
+    s32 keyCount;
 
     model = SCENE_3D->models[slot];
-    animState = (s8 *)model + 0x2200;
-    frameCount = ((Model2220 *)model)->anims[anim].frameCount;
-    (*(s32 *)((s8 *)model + 0x26D8)) = rootOnly;
-    (*(s32 *)((s8 *)animState + 4)) = frameCount;
-    (*(s32 *)((s8 *)animState + 0x14)) = frameCount;
-    (*(s32 *)((s8 *)model + 0x2200)) = anim;
-    if (nextAnim == -2) {
-        nextAnim = (*(s16 *)((s8 *)((Model2220 *)model)->anims[anim].data + 0x1A));
+    animState = &model->anim;
+    keyCount = model->anims[anim].frameCount;
+    model->rootOnly = rootOnly;
+    animState->unk4 = keyCount;
+    animState->keyCount = keyCount;
+    animState->clip = anim;
+    if (loopKey == -2) {
+        loopKey = *(s16 *)((s8 *)model->anims[anim].data + 0x1A);
     }
-    (*(s32 *)((s8 *)animState + 0x18)) = nextAnim;
-    (*(s32 *)((s8 *)animState + 0xC)) = 0;
-    (*(s32 *)((s8 *)animState + 0x1C)) = 0x3F800000;
-    return loadNextAnimationKeyframe(model, 0, -1);
+    animState->loopKey = loopKey;
+    animState->key = 0;
+    animState->timeScale = 1.0f;
+    return loadNextAnimationKeyframe((Model2220 *)model, 0, -1);
 }
 
+/* The animation cache keys are 0x10000000 | modelId << 8 | anim. */
 void unloadModelAnimations(s32 slot) {
     s32 key;
     s32 i;
 
-    key = *(s16 *)((s8 *)SCENE_3D->models[slot] + 6);
+    key = ((Model *)SCENE_3D->models[slot])->id;
     freeHeapBlocksByTag(slot + 0x5A);
     key = (key << 8) | 0x10000000;
     for (i = 0; i < 0x20; i++) {
@@ -146,17 +149,17 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
     return animData;
 }
 
-void setModelAnimationData(Model2220 *model, s32 *data, s32 anim) {
+void setModelAnimationData(Model *model, s32 *data, s32 anim) {
     model->anims[anim].frameCount = *data++;
     model->anims[anim].data = data;
 }
 
 s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak) {
     s32 animData;
-    void *model;
+    Model *model;
 
     model = SCENE_3D->models[slot];
-    animData = loadAnimationData((*(s16 *)((s8 *)model + 6)), anim, slot, (Chunk *)pak);
+    animData = loadAnimationData(model->id, anim, slot, (Chunk *)pak);
     if (animData != 0) {
         setModelAnimationData(model, (s32 *)animData, index);
         return 1;
@@ -168,10 +171,11 @@ void loadModelAnimationFile(s32 slot, s32 anim, s32 index) {
     loadModelAnimation(slot, anim, index, 0);
 }
 
+/* Poses the model on the first key of an animation and holds it there. */
 void applyAnimationFirstFrame(s32 slot, s32 anim) {
-    u8 *model;
+    Model *model;
     BoneAnim *bone;
-    u8 *coord;
+    GsCOORDINATE2 *coord;
     SVECTOR *rot;
     s16 *keyframe;
     s32 *rotChan;
@@ -181,11 +185,13 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     s32 j;
 
     model = SCENE_3D->models[slot];
-    bone = (BoneAnim *)(model + 0xD80);
-    coord = model + 0x78;
-    rot = (SVECTOR *)(model + 0xA80);
-    keyframe = (s16 *)((u8 *)((Model2220 *)model)->anims[anim].data + 4);
-    for (i = 0; i < *(s16 *)(model + 4) + 1; i++, keyframe += 12, bone++, coord += 0x50, rot++) {
+    bone = (BoneAnim *)model->keys;
+    coord = model->coord;
+    rot = model->rots;
+    keyframe = (s16 *)((u8 *)model->anims[anim].data + 4);
+    /* nobj bones plus the root */
+    for (i = 0; i < model->nobj + 1; i++, keyframe += 12, bone++, coord++, rot++) {
+        /* zero the velocity of the nine channels */
         for (j = 0, rotChan = &bone->ch[0].velocity, posChan = &bone->ch[3].velocity, scaleChan = &bone->ch[6].velocity; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }
@@ -198,19 +204,19 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
         bone->ch[6].value = keyframe[8] << 16;
         bone->ch[7].value = keyframe[9] << 16;
         bone->ch[8].value = keyframe[10] << 16;
-        if (i < *(s16 *)(model + 4)) {
+        if (i < model->nobj) {
             rot->vx = bone->ch[0].value / 0x100000;
             rot->vy = bone->ch[1].value / 0x100000;
             rot->vz = bone->ch[2].value / 0x100000;
-            *(s32 *)(coord + 0x18) = (s16)(bone->ch[3].value >> 16) + ((Model2220 *)model)->bonepos[i][0];
-            *(s32 *)(coord + 0x1C) = (s16)(bone->ch[4].value >> 16) + ((Model2220 *)model)->bonepos[i][1];
-            *(s32 *)(coord + 0x20) = (s16)(bone->ch[5].value >> 16) + ((Model2220 *)model)->bonepos[i][2];
-            ((Model2220 *)model)->scale[i][0] = (s16)(bone->ch[6].value >> 16);
-            ((Model2220 *)model)->scale[i][1] = (s16)(bone->ch[7].value >> 16);
-            ((Model2220 *)model)->scale[i][2] = (s16)(bone->ch[8].value >> 16);
-            RotMatrixYXZ(rot, coord + 4);
-            *(s32 *)coord = 0;
-            ScaleMatrix(coord + 4, ((Model2220 *)model)->scale[i]);
+            coord->coord.t[0] = (s16)(bone->ch[3].value >> 16) + model->bonepos[i][0];
+            coord->coord.t[1] = (s16)(bone->ch[4].value >> 16) + model->bonepos[i][1];
+            coord->coord.t[2] = (s16)(bone->ch[5].value >> 16) + model->bonepos[i][2];
+            model->boneScale[i].vx = (s16)(bone->ch[6].value >> 16);
+            model->boneScale[i].vy = (s16)(bone->ch[7].value >> 16);
+            model->boneScale[i].vz = (s16)(bone->ch[8].value >> 16);
+            RotMatrixYXZ(rot, &coord->coord);
+            coord->flg = 0;
+            ScaleMatrix(&coord->coord, &model->boneScale[i]);
         }
     }
     pauseModelAnimation(slot);

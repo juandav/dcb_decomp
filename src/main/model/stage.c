@@ -81,6 +81,8 @@ ArenaStage ARENA_STAGES[56] = {
     { 0x17, 7, 0, 0x38, { 0, 0, 0 }, 0x80 },
 };
 
+/* Heap tags: slot + 0x1F4 holds a model's PAK, slot + 0x84 its animation data,
+   0x81 the skills and the stage. */
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     char path[32];
     s32 pak;
@@ -105,9 +107,9 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
         loadModelAnimation(slot, 6, 6, pak);
     } else {
         setModelAnimationData(SCENE_3D->models[slot],
-                      (s32 *)decompressToHeap(
-                          (s32)findPakChunk((Chunk *)((Model2220 *)SCENE_3D->models[slot])->pak, 1, 7), slot + 0x84),
-                      7);
+                              (s32 *)decompressToHeap(
+                                  (s32)findPakChunk((Chunk *)((Model *)SCENE_3D->models[slot])->pak, 1, 7), slot + 0x84),
+                              7);
         applyAnimationFirstFrame(slot, 7);
     }
     SCENE_3D->modelState[slot] = -1;
@@ -115,24 +117,24 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     return pak;
 }
 
-void syncPlayerDigimonModel(s32 player, void *card) {
+void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
     s32 modelId;
     s32 loadedId;
     s32 pak;
     DuelDigimonModels *models;
-    void *cardData;
+    DigimonCardData *cardData;
 
     models = &DUEL_DIGIMON_MODELS[player];
-    modelId = (*(u8 *)((s8 *)card + 0xE5));
+    modelId = card->modelId;
     loadedId = models->modelId;
     if (modelId != loadedId) {
         models->modelId = -2;
-        if ((*(s8 *)((s8 *)D_801D8340 + 0x811)) == 1) {
+        if (DUEL->loadBusy == 1) {
             do {
                 func_80014C08(FRAME_INTERVAL);
-            } while ((*(s8 *)((s8 *)D_801D8340 + 0x811)) == 1);
+            } while (DUEL->loadBusy == 1);
         }
-        (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 1;
+        DUEL->loadBusy = 1;
         if (loadedId > 0) {
             unloadModel(player);
             freeHeapBlocksByTag(player + 0x1F4);
@@ -141,35 +143,36 @@ void syncPlayerDigimonModel(s32 player, void *card) {
         if (modelId > 0) {
             cardData = findDigimonCardByModelId(modelId);
             pak = loadDigimonModelPak(player, modelId, 0, 0);
-            if (pak != 0) {
-                models->attackModels[0] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x22)), pak);
-                models->attackModels[1] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x3E)), pak);
-                models->attackModels[2] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5A)), pak);
-                models->unk14[0] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x24)), pak);
-                models->unk14[1] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x40)), pak);
-                models->unk14[2] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5C)), pak);
-                goto block_9;
+            if (pak == 0) {
+                /* leaves loadBusy set */
+                return;
             }
-        } else {
-block_9:
-            models->modelId = modelId;
-            (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
+            models->attackModels[0] = loadSkill(cardData->attack[0].skills[0], pak);
+            models->attackModels[1] = loadSkill(cardData->attack[1].skills[0], pak);
+            models->attackModels[2] = loadSkill(cardData->attack[2].skills[0], pak);
+            models->unk14[0] = loadSkill(cardData->attack[0].skills[1], pak);
+            models->unk14[1] = loadSkill(cardData->attack[1].skills[1], pak);
+            models->unk14[2] = loadSkill(cardData->attack[2].skills[1], pak);
         }
+        models->modelId = modelId;
+        DUEL->loadBusy = 0;
     }
 }
 
+/* Loads the arena and keeps both players' Digimon models in sync with their
+   battle cards until the duel sets stopStageTask. */
 void runDuelStageTask(s32 stageId) {
     s32 pak;
     s32 i;
-    u8 *activeCard;
+    DigimonCardData *battleCard;
 
-    if (*((s8 *)D_801D8340 + 0x811) == 1) {
+    if (DUEL->loadBusy == 1) {
         do {
             func_80014C08(FRAME_INTERVAL);
-        } while (*((s8 *)D_801D8340 + 0x811) == 1);
+        } while (DUEL->loadBusy == 1);
     }
-    *((s8 *)D_801D8340 + 0x811) = 1;
-    *((s8 *)D_801D8340 + 0x813) = 0;
+    DUEL->loadBusy = 1;
+    DUEL->stopStageTask = 0;
     pak = loadFile((s32) "A:\\BATTLE.PAK", getCurrentTaskId());
     if (pak != 0) {
         uploadTimList(findPakChunk((Chunk *)pak, 5, 0x68));
@@ -179,16 +182,16 @@ void runDuelStageTask(s32 stageId) {
     }
     loadArenaStage(stageId);
     DUEL_DIGIMON_MODELS[0].modelId = DUEL_DIGIMON_MODELS[1].modelId = -1;
-    *((s8 *)D_801D8340 + 0x811) = 0;
+    DUEL->loadBusy = 0;
     do {
         func_80014C08(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
-            activeCard = *(u8 **)(DUEL_PLAYERS[i] + 0x114);
-            if (activeCard != 0 && activeCard[0xE5] != DUEL_DIGIMON_MODELS[i].modelId) {
-                syncPlayerDigimonModel(i, activeCard);
+            battleCard = (DigimonCardData *)PLAYER(i)->battleCard;
+            if (battleCard != 0 && battleCard->modelId != DUEL_DIGIMON_MODELS[i].modelId) {
+                syncPlayerDigimonModel(i, battleCard);
             }
         }
-    } while (*((s8 *)D_801D8340 + 0x813) == 0);
+    } while (DUEL->stopStageTask == 0);
     for (i = 0; i < 2; i++) {
         if (DUEL_DIGIMON_MODELS[i].modelId > 0) {
             unloadModelAnimations(i);
@@ -201,14 +204,14 @@ void runDuelStageTask(s32 stageId) {
     freeHeapBlocksByTag(0x1F5);
     freeHeapBlocksByTag(0x85);
     freeHeapBlocksByTag(0x81);
-    *((s8 *)D_801D8340 + 0x813) = 0;
+    DUEL->stopStageTask = 0;
 }
 
 void playPolygonBattle(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (DUEL_DIGIMON_MODELS[0].modelId <= 0 || DUEL_DIGIMON_MODELS[1].modelId <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
-    *((s8 *)D_801D8340 + 0x811) = 1;
+    } while (DUEL_DIGIMON_MODELS[0].modelId <= 0 || DUEL_DIGIMON_MODELS[1].modelId <= 0 || DUEL->loadBusy == 1);
+    DUEL->loadBusy = 1;
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
@@ -222,31 +225,33 @@ void playPolygonBattle(void) {
     func_80014C08(0x7FFFFFFF);
     func_80014C08(2);
     playLoadedMusic(0);
-    *((s8 *)D_801D8340 + 0x811) = 0;
+    DUEL->loadBusy = 0;
 }
 
 void loadArenaStage(s32 stageId) {
     char path[32];
 
+    /* a negative id picks one of the last 12 stages at random */
     if (stageId < 0) {
         stageId = rand() % 12 + 0x2C;
     }
     sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + 900);
     func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
     STAGE_PAK = func_80014C08(0x7FFFFFFF);
+    /* the stage is model slot 23 */
     loadModel(0x17, ARENA_STAGES[stageId].bg + 900, 0, STAGE_PAK, 0);
     SCENE_3D->modelState[0x17] = -1;
-    ((Model2220 *)SCENE_3D->models[23])->tpageOffset = 0xA0000;
-    ((Model2220 *)SCENE_3D->models[23])->clutOffset = 0x280000;
+    ((Model *)SCENE_3D->models[23])->tpageOffset = 0xA0000;
+    ((Model *)SCENE_3D->models[23])->clutOffset = 0x280000;
     if (ARENA_STAGES[stageId].flags & 2) {
         loadModelAnimation(0x17, 0, 0, STAGE_PAK);
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }
-    SCENE_3D->modelState[0x18] = SCENE_3D->modelState[0x19] = 0;
-    SCENE_3D->modelState[0x1B] = ARENA_STAGES[stageId].texAnimDelay;
-    SCENE_3D->modelState[0x1A] = ARENA_STAGES[stageId].texAnimFrames;
-    *(s32 *)&SCENE_3D->modelState[0x24] = ARENA_STAGES[stageId].flags;
+    SCENE_3D->texAnimFrame = SCENE_3D->texAnimTimer = 0;
+    SCENE_3D->texAnimDelay = ARENA_STAGES[stageId].texAnimDelay;
+    SCENE_3D->texAnimFrames = ARENA_STAGES[stageId].texAnimFrames;
+    SCENE_3D->stageFlags = ARENA_STAGES[stageId].flags;
     STAGE_CLEAR_COLOR[0] = ARENA_STAGES[stageId].rgb[0];
     STAGE_CLEAR_COLOR[1] = ARENA_STAGES[stageId].rgb[1];
     STAGE_CLEAR_COLOR[2] = ARENA_STAGES[stageId].rgb[2];
@@ -259,20 +264,21 @@ void showArenaStage(s16 rotX) {
 
     SCENE_3D_ENABLED = 1;
     scene = SCENE_3D;
-    *(s16 *)((u8 *)scene->models[23] + 0xA78) = rotX;
-    tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, *(s16 *)((u8 *)scene->models[23] + 6)));
+    ((Model *)scene->models[23])->rot.vx = rotX;
+    tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, ((Model *)scene->models[23])->id));
     uploadTim((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
     freeHeapBlock((void *)tim);
-    if (rotX != 0 && (*(s32 *)&SCENE_3D->modelState[0x24] & 2)) {
+    if (rotX != 0 && (SCENE_3D->stageFlags & 2)) {
         func_80014A00(0x1B);
         func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }
-    ((Graphics *)&GRAPHICS)->buffers[0].draw.r0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.r0 = STAGE_CLEAR_COLOR[0];
-    ((Graphics *)&GRAPHICS)->buffers[0].draw.g0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.g0 = STAGE_CLEAR_COLOR[1];
-    ((Graphics *)&GRAPHICS)->buffers[0].draw.b0 = ((Graphics *)&GRAPHICS)->buffers[1].draw.b0 = STAGE_CLEAR_COLOR[2];
+    /* the background is cleared to the stage's colour */
+    DB(0).draw.r0 = DB(1).draw.r0 = STAGE_CLEAR_COLOR[0];
+    DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
+    DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
 }
 
 void unloadArenaStage(void) {
@@ -280,18 +286,20 @@ void unloadArenaStage(void) {
     freeHeapBlock(STAGE_PAK);
 }
 
-void animateStageTexture(u8 *model) {
+/* Every texAnimDelay frames, moves the stage's CLUT to the next frame of its
+   texture animation (stageFlags >> 3 frames). */
+void animateStageTexture(Model *model) {
     s32 vramSlot;
 
-    if (SCENE_3D->modelState[0x1B] != 0) {
-        if (++SCENE_3D->modelState[0x19] >= SCENE_3D->modelState[0x1B]) {
-            vramSlot = *(s32 *)(model + 0x26D4) / 0x10000 + 5;
-            SCENE_3D->modelState[0x19] = 0;
-            if (++SCENE_3D->modelState[0x18] >= (u8)SCENE_3D->modelState[0x24] >> 3) {
-                SCENE_3D->modelState[0x18] = 0;
+    if (SCENE_3D->texAnimDelay != 0) {
+        if (++SCENE_3D->texAnimTimer >= SCENE_3D->texAnimDelay) {
+            vramSlot = model->tpageOffset / 0x10000 + 5;
+            SCENE_3D->texAnimTimer = 0;
+            if (++SCENE_3D->texAnimFrame >= (u8)SCENE_3D->stageFlags >> 3) {
+                SCENE_3D->texAnimFrame = 0;
             }
-            *(s32 *)(model + 0x26D0) =
-                (((((vramSlot & 0x10) << 4) + SCENE_3D->modelState[0x18]) << 6 | (vramSlot & 0xF) << 2) - 0x14) << 16;
+            model->clutOffset =
+                (((((vramSlot & 0x10) << 4) + SCENE_3D->texAnimFrame) << 6 | (vramSlot & 0xF) << 2) - 0x14) << 16;
         }
     }
 }
