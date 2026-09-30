@@ -685,14 +685,6 @@ extern Bytes4 D_801EFF64;
 extern char D_801DF15C[];
 extern char D_801DF168[];
 extern char D_801DF16C[];
-extern char D_801DF174[];
-extern char D_801DF180[];
-extern char D_801DF190[];
-extern char D_801DF1A8[];
-extern char D_801DF1C0[];
-extern char D_801DF1E0[];
-extern char D_801DF204[];
-extern char D_801DF228[];
 
 extern char D_801DF13C[];
 extern char D_801DF548[];
@@ -1697,7 +1689,7 @@ void func_801E29AC(GsCOORDINATE2 *coord, MATRIX *m) {
     }
 }
 
-void func_801E2AA4(s32 part, MATRIX *m) {
+void func_801E2AA8(s32 part, MATRIX *m) {
     GsCOORDINATE2 root;
     GsCOORDINATE2 node;
     VECTOR trans;
@@ -2385,7 +2377,7 @@ void func_801E50BC(void) {
     }
 }
 
-s32 func_801E50E8(s16 joint, s16 timer) {
+s32 func_801E50F8(s16 joint, s16 timer) {
     EvoSpark *spark;
     EvoSpark *slot;
     s32 i;
@@ -3183,6 +3175,12 @@ void func_801E7178(UiWindow *w) {
     updateMenuCursor(&D_801F0030);
 }
 
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF15C);
+
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF168);
+
+INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF16C);
+
 void func_801E75B0(EvoWindow *w) {
     s32 x = w->win.originX;
     s32 y = w->win.originY;
@@ -3190,9 +3188,9 @@ void func_801E75B0(EvoWindow *w) {
     u8 unused[0x48]; /* stack space the original reserves but never touches */
 
     if (w->unk44 == 0) {
-        drawTextColored(x + 0x4B, y, D_801DF174, D_801EFF58[D_801F53B3].b, 6, z);
+        drawTextColored(x + 0x4B, y, "Card Fusion", D_801EFF58[D_801F53B3].b, 6, z);
     } else {
-        drawTextColored(x + 0x41, y, D_801DF180, D_801EFF58[(s8)(D_801F53B3 ^ 1)].b, 6, z);
+        drawTextColored(x + 0x41, y, "Partner Fusion", D_801EFF58[(s8)(D_801F53B3 ^ 1)].b, 6, z);
     }
 }
 
@@ -3204,38 +3202,16 @@ void func_801E765C(EvoWindow *w) {
 
     if (w->unk44 == 0) {
         x += 2;
-        drawTextColored(x, y, D_801DF190, D_801EFF58[D_801F5380.side].b, 8, z);
-        drawTextColored(x, y + 0xC, D_801DF1A8, D_801EFF58[D_801F5380.side].b, 8, z);
-        drawTextColored(x, y + 0x18, D_801DF1C0, D_801EFF58[D_801F5380.side].b, 8, z);
+        drawTextColored(x, y, "*w1Create a New Card", D_801EFF58[D_801F5380.side].b, 8, z);
+        drawTextColored(x, y + 0xC, "*w1by Fusing 2 Cards.", D_801EFF58[D_801F5380.side].b, 8, z);
+        drawTextColored(x, y + 0x18, "*w1Partner Cards can't be used.", D_801EFF58[D_801F5380.side].b, 8, z);
     } else {
         x += 2;
-        drawTextColored(x, y, D_801DF1E0, D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
-        drawTextColored(x, y + 0xC, D_801DF204, D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
-        drawTextColored(x, y + 0x18, D_801DF228, D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
+        drawTextColored(x, y, "*w1Increase Experience Points by", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
+        drawTextColored(x, y + 0xC, "*w1Fusing a Card to a Partner Card.", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
+        drawTextColored(x, y + 0x18, "*w1Also,2 Partner Cards can't be Fused.", D_801EFF58[(s8)(D_801F5380.side ^ 1)].b, 8, z);
     }
 }
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF15C);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF168);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF16C);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF174);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF180);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF190);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF1A8);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF1C0);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF1E0);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF204);
-
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", D_801DF228);
 
 void func_801E780C(EvoScene *scene) {
     char text[40];
@@ -4110,7 +4086,7 @@ void func_801E9A58(UiWindow *w) {
     }
 }
 
-void func_801E9B04(UiWindow *w) {
+void func_801E9B0C(UiWindow *w) {
     Rect16 uv;
     s32 x = w->originX;
     s32 y = w->originY;
@@ -4893,7 +4869,7 @@ void func_801EBE68(UiWindow *w) {
     }
 }
 
-void func_801EC42C(UiWindow *w) {
+void func_801EC434(UiWindow *w) {
     u8 palettes[8] = { 2, 1, 4, 9, 6, 8, 8, 8 };
     char text[72];
     Rect16 rect;
@@ -4950,7 +4926,7 @@ void func_801EC42C(UiWindow *w) {
     drawTexturedSprite(x, y, &rect, 0x1A, getClut(index * 16 + 0x190, 0x1EF), z, 0x80, -1);
 }
 
-void func_801EC9A8(UiWindow *w) {
+void func_801EC8DC(UiWindow *w) {
     Rect16 rect;
     char text[72];
     s32 x;
@@ -5298,7 +5274,7 @@ EvoModelFx *func_801EDAE8(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unuse
     return obj;
 }
 
-void func_801EDE1C(EvoModelFx *obj) {
+void func_801EDE18(EvoModelFx *obj) {
     if (obj->active != 0) {
         if (obj->fx.unk139 != 0) {
             tickEffectStartDelay(obj);
@@ -5318,7 +5294,7 @@ void func_801EDE1C(EvoModelFx *obj) {
     }
 }
 
-void func_801EDEF0(EvoModelFx *obj) {
+void func_801EDEF8(EvoModelFx *obj) {
     unloadModel(obj->slot);
     if (obj->clut.level != 0xFF) {
         obj->clut.level = 0xFF;
@@ -5344,7 +5320,7 @@ EvoFadeRect *func_801EDF48(s16 *rect, Bytes4 *from, Bytes4 *to, u8 blendMode, s1
     return f;
 }
 
-s32 func_801EE06C(EvoFadeRect *f) {
+s32 func_801EE040(EvoFadeRect *f) {
     PolyF4 *poly;
     DrTPage *tpage;
     s32 doneIn = 0;
@@ -5399,7 +5375,7 @@ void func_801EE248(void) {
     D_801F59A8 = (u8 *)func_80014C08(0x7FFFFFFF);
 }
 
-void func_801EE2B8(void) {
+void func_801EE2B4(void) {
     freeHeapBlock(D_801F59A8);
 }
 
@@ -5804,7 +5780,7 @@ EvoFx *func_801EF188(s32 *vars) {
     return (EvoFx *)func_801EDF48((s16 *)&rect, &from, &to, vars[28], vars[29], vars[69]);
 }
 
-EvoFx *func_801EF228(s32 *vars, EvoLoader *loader) {
+EvoFx *func_801EF244(s32 *vars, EvoLoader *loader) {
     Bytes4 inner;
     Bytes4 mid;
     Bytes4 outer;
@@ -5825,14 +5801,14 @@ EvoFx *func_801EF228(s32 *vars, EvoLoader *loader) {
                                      vars[70], vars[73], vars[74], 0);
 }
 
-EvoFx *func_801EF344(s32 *vars, EvoLoader *loader) {
+EvoFx *func_801EF3A8(s32 *vars, EvoLoader *loader) {
     EvoFx fx;
 
     func_801EF108(&fx, vars, loader);
     return (EvoFx *)cloneEffectObject((EffectTemplate *)&fx);
 }
 
-EvoFx *func_801EF384(s32 *vars, EvoLoader *loader) {
+EvoFx *func_801EF3DC(s32 *vars, EvoLoader *loader) {
     EvoFx fx;
     EvoFx *template = &fx;
 
@@ -5840,7 +5816,7 @@ EvoFx *func_801EF384(s32 *vars, EvoLoader *loader) {
     return (EvoFx *)func_801EDAE8(vars[56], template, vars[84], vars[85], -1, vars[86], vars[70], vars[87], (s32)loader->buffer, 0);
 }
 
-EvoFx *func_801EF414(s32 *vars, EvoLoader *loader) {
+EvoFx *func_801EF474(s32 *vars, EvoLoader *loader) {
     EvoFx fx;
     Bytes4 start;
     Bytes4 end;
@@ -5857,7 +5833,7 @@ EvoFx *func_801EF414(s32 *vars, EvoLoader *loader) {
                                           vars[82], vars[27], vars[70], vars[74]);
 }
 
-void func_801EF4F8(void *obj) {
+void func_801EF5A8(void *obj) {
     freeHeapBlock(obj);
 }
 

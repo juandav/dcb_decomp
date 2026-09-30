@@ -122,12 +122,6 @@ def name_rodata(base: str, target: str) -> None:
     for name, offset in rodata_symbols(target):
         if name not in have and re.fullmatch(r"(D|jtbl)_[0-9A-F]{8}", name):
             args += ["--add-symbol", f"{name}=.rodata:{offset:#x},object,global"]
-    # rodata the original keeps at the start of its .text (splat sees a
-    # function there) ends the target's .rodata early; a marker where it ends
-    # keeps the last table from running into it
-    end = len(section_bytes(target, ".rodata"))
-    if len(section_bytes(base, ".rodata")) > end:
-        args += ["--add-symbol", f"rodata_in_text={'.rodata'}:{end:#x},object,local"]
     if args:
         subprocess.run(["mipsel-linux-gnu-objcopy"] + args + [base], cwd=ROOT, check=True)
 
@@ -172,46 +166,6 @@ def relocate_by_section(path: str, section: str) -> None:
     (ROOT / path).write_bytes(blob)
 
 
-def relocate_text_by_function(path: str, section: str) -> None:
-    """Make PATH's SECTION relocations into .text relative to their function.
-
-    Jump tables point at labels inside functions: GCC relocates against .text
-    plus the offset, splat against a label. When the original's .text starts
-    with bytes that our C keeps in .rodata, the section offsets no longer
-    agree, so express both as the function that holds the label plus the
-    offset into it."""
-    with open(ROOT / path, "rb") as f:
-        elf = ELFFile(f)
-        names = [s.name for s in elf.iter_sections()]
-        if ".rel" + section not in names or ".text" not in names:
-            return
-        text = names.index(".text")
-        data = elf.get_section_by_name(section)
-        rel = elf.get_section_by_name(".rel" + section)
-        symtab = elf.get_section_by_name(".symtab")
-        syms = list(symtab.iter_symbols())
-        funcs = sorted((s["st_value"], s["st_size"], i) for i, s in enumerate(syms)
-                       if s["st_shndx"] == text and s["st_info"]["type"] == "STT_FUNC" and s["st_size"])
-        blob = bytearray((ROOT / path).read_bytes())
-        changed = False
-        for i, r in enumerate(rel.iter_relocations()):
-            sym = syms[r["r_info_sym"]]
-            if r["r_info_type"] != 2 or sym["st_shndx"] != text or sym["st_info"]["type"] == "STT_FUNC":
-                continue
-            word = data["sh_offset"] + r["r_offset"]
-            target = sym["st_value"] + int.from_bytes(blob[word:word + 4], "little")
-            owner = [(v, n) for v, size, n in funcs if v <= target < v + size]
-            if not owner:
-                continue
-            value, index = owner[0]
-            entry = rel["sh_offset"] + i * rel["sh_entsize"]
-            blob[entry + 4:entry + 8] = ((index << 8) | r["r_info_type"]).to_bytes(4, "little")
-            blob[word:word + 4] = (target - value).to_bytes(4, "little")
-            changed = True
-    if changed:
-        (ROOT / path).write_bytes(blob)
-
-
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
     target = f"expected/asm/{module}.s.o"
@@ -226,7 +180,6 @@ def unit(module: str, data: list) -> dict:
     for path in (target, base):
         for section in (".data", ".rodata"):
             relocate_by_section(path, section)
-            relocate_text_by_function(path, section)
     return {
         "name": module,
         "target_path": target,
