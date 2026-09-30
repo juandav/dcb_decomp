@@ -1208,6 +1208,8 @@ s32 func_801F97F4();
 MATRIX *CompMatrix(MATRIX *, MATRIX *, MATRIX *);
 s32 RotAverage4(SVECTOR *, SVECTOR *, SVECTOR *, SVECTOR *, s32 *, s32 *, s32 *, s32 *, s32 *, s32 *);
 void func_801F8E34(void *, s32);
+void func_801F48E0(u8 *archive);
+void func_801F5D58(u8 *archive);
 MATRIX *MulMatrix(MATRIX *, MATRIX *);
 MATRIX *MatrixNormal(MATRIX *, MATRIX *);
 MATRIX *TransposeMatrix(MATRIX *, MATRIX *);
