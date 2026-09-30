@@ -29,6 +29,7 @@
 #include "dcb/str_util.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
+#include "dcb/overlay_calls.h"
 
 void quitToTitleOrPlayEnding(s32 mode) {
     u8 dialog[0xB8];
@@ -52,7 +53,7 @@ void quitToTitleOrPlayEnding(s32 mode) {
         spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
         waitFrames(2);
         do {
-            spawnTask(0, -1, 0, 0x600, D_801EBAFC, 8, parentTask, 0, 0);
+            spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 8, parentTask, 0, 0);
             waitFrames(0x7FFFFFFF);
             playMenuSound(3);
             initDialog(dialog,
@@ -78,13 +79,13 @@ void quitToTitleOrPlayEnding(s32 mode) {
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
+        spawnTask(0, -1, 0, 0x800, END_runPlayerRecords, parentTask, mode, 0, 0);
         waitFrames(0x7FFFFFFF);
         waitFrames(10);
         waitFrames(2);
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, parentTask, 0, 0);
     }
 }

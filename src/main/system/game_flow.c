@@ -22,6 +22,7 @@
 #include "dcb/sound.h"
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
+#include "dcb/overlay_calls.h"
 
 void openSaveScreenFromMap(s32 saveMode) {
     waitFrames(2);
@@ -29,7 +30,7 @@ void openSaveScreenFromMap(s32 saveMode) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x600, D_801EBAFC, saveMode, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, saveMode, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     switch (saveMode) {
     case 2:
@@ -37,22 +38,22 @@ void openSaveScreenFromMap(s32 saveMode) {
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x400, D_801F00F4, 1, 1, getCurrentTaskId(), 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runWorldMap, 1, 1, getCurrentTaskId(), 0);
         break;
     case 4:
         waitFrames(2);
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
 
 void continueSavedGame(void) {
-    spawnTask(0, -1, 0, 0x600, D_801EBAFC, 0xFF, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 0xFF, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
-    if (D_801F80C1 != 0) {
+    if (OPEN_MEMCARD_CANCELLED != 0) {
         fadeOutScrollingBackground();
         spawnTask(0, -1, 0, 0x100, runTitleMenu, 0, 0, 0, 0);
         return;
@@ -64,9 +65,9 @@ void continueSavedGame(void) {
     if (PLAYER_DATA(0).resumeInArea == 0) {
         loadMusicTrack(0, 0x6F, 0x7F);
         playLoadedMusic(0);
-        spawnTask(0, -1, 0, 0x400, D_801F00F4, 0, 0, getCurrentTaskId(), 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runWorldMap, 0, 0, getCurrentTaskId(), 0);
     } else {
-        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
     }
 }
 
@@ -76,7 +77,7 @@ void openPartnerFusion(s8 mode) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\evoseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x1600, D_801E8E88, (s32 *) mode, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x1600, EVO_runFusion, (s32 *) mode, 0, 0, 0);
 }
 
 void returnToWorldMap(void) {
@@ -84,7 +85,7 @@ void returnToWorldMap(void) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
 }
 
 void openDeckEditor(s32 returnTo) {
@@ -92,7 +93,7 @@ void openDeckEditor(s32 returnTo) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x600, D_801E8C04, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x600, SUB_runDeckEditor, 0, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     switch (returnTo) {
     case 0:
@@ -100,14 +101,14 @@ void openDeckEditor(s32 returnTo) {
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runWorldMap, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         waitFrames(2);
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
@@ -117,7 +118,7 @@ void openPartnerEquipment(s32 returnTo) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x1000, D_801E4B34, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1000, SUB_runPartnerEquipment, 0, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     switch (returnTo) {
     case 0:
@@ -125,14 +126,14 @@ void openPartnerEquipment(s32 returnTo) {
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x400, D_801F00F4, 0, 1, getCurrentTaskId(), 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runWorldMap, 0, 1, getCurrentTaskId(), 0);
         break;
     case 1:
         waitFrames(2);
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
         break;
     }
 }
@@ -142,7 +143,7 @@ void runDeckEditorFromFriendMenu(s32 *param) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x600, D_801E8C04, param, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x600, SUB_runDeckEditor, param, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
@@ -155,7 +156,7 @@ void runPartnerEquipmentFromFriendMenu(s32 *param) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\subseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    spawnTask(0, -1, 0, 0x1000, D_801E4B34, param, getCurrentTaskId(), 1, 0);
+    spawnTask(0, -1, 0, 0x1000, SUB_runPartnerEquipment, param, getCurrentTaskId(), 1, 0);
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
@@ -174,19 +175,19 @@ void runTitleMenu(void) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     do {
-        spawnTask(0, -1, 0, 0x800, D_801EA2F8, stack, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, OPEN_runTitleScreen, stack, 0, 0, 0);
         choice = waitFrames(0x7FFFFFFF);
         again = 0;
         switch (choice) {
         case 0:
             changeScrollingBackground(6, 0x380, 0, 0x380, 0x80);
-            spawnTask(0, -1, 0, 0x800, D_801E6454, stack, 0, 0, 0);
+            spawnTask(0, -1, 0, 0x800, OPEN_runUserRegistration, stack, 0, 0, 0);
             waitFrames(0x7FFFFFFF);
             waitFrames(2);
             spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
             waitFrames(0x7FFFFFFF);
             waitFrames(2);
-            spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, getCurrentTaskId(), 0, 0);
             break;
         case 1:
             changeScrollingBackground(6, 0x380, 0, 0x380, 0x80);
@@ -195,9 +196,9 @@ void runTitleMenu(void) {
         case 2:
             changeScrollingBackground(7, 0x380, 0, 0x380, 0x80);
             ((SessionData *)SESSION_DATA)->menuRow = 0;
-            again = func_801EBD34();
+            again = OPEN_loadFriendSaves();
             if (again == 0) {
-                spawnTask(0, -1, 0, 0x800, D_801EB2E8, stack, 0, 0, 0);
+                spawnTask(0, -1, 0, 0x800, OPEN_runBattleWithFriend, stack, 0, 0, 0);
             } else {
                 fadeOutScrollingBackground();
             }

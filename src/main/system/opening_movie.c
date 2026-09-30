@@ -13,13 +13,14 @@
 #include "dcb/display.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
+#include "dcb/overlay_calls.h"
 
 void playOpeningMovie(s32 movieMode, s32 parentTask) {
     waitFrames(2);
     spawnTask(0, -1, 0, 0x1000, &loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    func_801DFBAC("\\DIGIMON.MOV;1");
-    func_801E055C(movieMode);
+    OPEN_findMovieFile("\\DIGIMON.MOV;1");
+    OPEN_playMovie(movieMode);
     resumeTask(parentTask);
 }

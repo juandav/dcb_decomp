@@ -168,7 +168,7 @@ all: $(EXE) $(OVERLAY_BINS)
 
 # Only rerun splat when its own inputs change, never for Makefile edits
 $(GENDIR)/main.ld: .EXTRA_PREREQS :=
-$(GENDIR)/main.ld: config/main.yaml config/symbols.txt
+$(GENDIR)/main.ld: config/main.yaml config/symbols.txt config/symbols_overlay_calls.txt
 	# splat reads the INCLUDE_ASMs of the psyq segment from src/main/psyq.c;
 	# without them it files every PsyQ function under asm/main/matchings
 	grep -h '^INCLUDE_' src/main/psyq/*.c > src/main/psyq.c

@@ -1022,7 +1022,6 @@ s32 StartRCnt(u32);
 extern int endTask(int);
 void SetPolyFT4(POLY_FT4 *);
 void SetDrawStp(DR_STP *, s32);
-void func_801EAD04(void); /* SUGSEG: SUG_updateScreenCopyQuads */
 u32 GetTPage(s32, s32, s32, s32);
 void SetGraphDebug(s32);
 void InitGeom(void);
@@ -1035,7 +1034,6 @@ void PutDrawEnv(DRAWENV *);
 void DrawOTag(u32 *);
 void ChangeClearPad(s32);
 s32 spawnTask();
-s32 func_801E055C(s32); /* OPENSEG: OPEN_playMovie */
 s32 CdInit(void);
 s32 CdControlB(u8, u8 *, u8 *);
 void CdSetDebug(s32);
@@ -1137,7 +1135,6 @@ void SpuSetVoiceAttr(SpuVoiceAttr *);
 s16 SsVabOpenHeadSticky(u8 *, s16, s32);
 s32 SsVabTransBody(s32, s16);
 s32 SsVabTransCompleted(s32);
-s32 func_801DFBAC(char *); /* OPENSEG: OPEN_findMovieFile */
 extern short SsUtKeyOnV(short voice, short vabId, short prog, short tone,
                         short note, short fine, short voll, short volr);
 s32 SsUtKeyOffV(s16);
@@ -1162,67 +1159,16 @@ s32 read(s32, void *, s32);
 DirEntry *firstfile(char *, DirEntry *);
 DirEntry *nextfile(DirEntry *);
 char *strcpy(char *, const char *);
-void D_801EBAFC(); /* OPENSEG: OPEN_runMemcardScreen */
-void D_801F00F4(); /* SAISEG: SAI_runWorldMap */
-void D_801E4D80(); /* SAISEG: SAI_runArea */
-void D_801E8E88(); /* EVOSEG: EVO_runFusion */
-void D_801E8C04(); /* SUBSEG: SUB_runDeckEditor */
-void D_801E4B34(); /* SUBSEG: SUB_runPartnerEquipment */
-void D_801EA2F8(); /* OPENSEG: OPEN_runTitleScreen */
-void D_801E6454(); /* OPENSEG: OPEN_runUserRegistration */
-void D_801EB2E8(); /* OPENSEG: OPEN_runBattleWithFriend */
-s32 func_801EBD34(void); /* OPENSEG: OPEN_loadFriendSaves */
 s32 rsin(s32);
 s32 rcos(s32);
 long SquareRoot0(long);
 void VectorNormal(VECTOR *, VECTOR *);
-s32 func_801E6C78(s32, s32, RingEffect *, u8 *, s32); /* SUGSEG: SUG_startTexAnim */
-void func_801E7020(u8 *); /* SUGSEG: SUG_tickTexAnim */
-void func_801E72D4(u8 *); /* SUGSEG: SUG_freeTexAnim */
-s32 func_801E6AA4(); /* KAWSEG: KAW_resolveBattle */
-s32 func_801E9F5C(); /* KAWSEG: KAW_checkDigivolveTarget */
-s32 func_801EA374(); /* KAWSEG: KAW_checkAnyDigivolve */
-s32 func_801EA558(); /* KAWSEG: KAW_setStatPenalty */
-s32 func_801EA8B4(); /* KAWSEG: KAW_showTutorialMessage */
-s32 func_801EAB4C(); /* KAWSEG: KAW_tickTutorial */
-s32 func_801EBACC(); /* KAWSEG: KAW_tickCardCursor */
-s32 func_801EC4CC(); /* KAWSEG: KAW_openCardSelect */
-s32 func_801EC528(); /* KAWSEG: KAW_closeCardSelect */
-s32 func_801EC570(); /* KAWSEG: KAW_drawCardToHand */
-s32 func_801EC608(); /* KAWSEG: KAW_discardCard */
-s32 func_801EC7C0(); /* KAWSEG: KAW_placeDigimonFromHand */
-s32 func_801EC84C(); /* KAWSEG: KAW_returnDigimonToHand */
-void func_801EC8E0(s32 player, s32 slot); /* KAWSEG: KAW_returnPlayedCard */
-s32 func_801ECA30(); /* KAWSEG: KAW_returnDpCardToHand */
-s32 func_801ECAC4(); /* KAWSEG: KAW_playOnlineDeckTop */
-s32 func_801ECB40(); /* KAWSEG: KAW_playCardFromHand */
-s32 func_801ECBCC(); /* KAWSEG: KAW_chargeDpCard */
-s32 func_801ECC58(); /* KAWSEG: KAW_redrawHand */
-s32 func_801ECD68(); /* KAWSEG: KAW_undoDigivolve */
-s32 func_801ECE24(); /* KAWSEG: KAW_discardDpSlots */
-s32 func_801ECF0C(); /* KAWSEG: KAW_checkKnockout */
-s32 func_801F6214(); /* KAWSEG: KAW_playEffect */
-s32 func_801F6268(); /* KAWSEG: KAW_playEffectOnOpponent */
-s32 func_801FA4E4(); /* KAWSEG: KAW_checkDigimonBonuses */
-s32 func_801FA780(); /* KAWSEG: KAW_checkHandBonuses */
-void func_801FB444(); /* KAWSEG: KAW_showBonusBanner */
 int abs(int);
-s32 func_801F8200(); /* KAWSEG: KAW_initHudPanels */
-s32 func_801F8854(); /* KAWSEG: KAW_allocCardPolys */
-s32 func_801F8998(s32, s32, s32, s32, s32); /* KAWSEG: KAW_createCursor */
 s32 endTask(s32);
-s32 func_801F848C(); /* KAWSEG: KAW_freeHudPanels */
-s32 func_801F88E8(); /* KAWSEG: KAW_freeCardPolys */
-s32 func_801EB53C(s32); /* KAWSEG: KAW_drawHandHints */
-s32 func_801F97F4(); /* KAWSEG: KAW_renderRing */
 MATRIX *CompMatrix(MATRIX *, MATRIX *, MATRIX *);
 s32 RotAverage4(SVECTOR *, SVECTOR *, SVECTOR *, SVECTOR *, s32 *, s32 *, s32 *, s32 *, s32 *, s32 *);
-void func_801F8E34(void *, s32); /* KAWSEG: KAW_renderCursor */
-void func_801F48E0(u8 *archive); /* KAWSEG: KAW_uploadPartnerPortraits */
-void func_801F5D58(u8 *archive); /* KAWSEG: KAW_rollPrizeCards */
 MATRIX *MulMatrix(MATRIX *, MATRIX *);
 MATRIX *MatrixNormal(MATRIX *, MATRIX *);
 MATRIX *TransposeMatrix(MATRIX *, MATRIX *);
-void D_801DF47C(); /* ENDSEG: END_runPlayerRecords */
 
 #endif /* GAME_H */

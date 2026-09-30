@@ -30,6 +30,7 @@
 #include "dcb/str_util.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
+#include "dcb/overlay_calls.h"
 
 void initScreenCopyEffect(void) {
     s32 i;
@@ -77,7 +78,7 @@ void renderScreenCopyEffect(void) {
         return;
     }
     if (SCREEN_COPY_MODE != 1) {
-        func_801EAD04();
+        SUG_updateScreenCopyQuads();
     }
     for (i = 1; i >= 0; i--) {
         if (SCREEN_COPY_EFFECT.mode == 1) {

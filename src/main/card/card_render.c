@@ -22,6 +22,7 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 #include "dcb/duel.h"
+#include "dcb/overlay_calls.h"
 
 s32 GLYPH_UPLOAD_BUSY = 0;
 s32 STAT_POPUP_RGB = 0x808080;
@@ -194,8 +195,8 @@ void loadDuelCardGraphics(s32 withExtras) {
         }
     }
     if (withExtras != 0) {
-        func_801F5D58((u8 *)arc);
-        func_801F48E0((u8 *)arc);
+        KAW_rollPrizeCards((u8 *)arc);
+        KAW_uploadPartnerPortraits((u8 *)arc);
     }
     DrawSync(0);
     waitFrames(FRAME_INTERVAL);
@@ -904,7 +905,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         if (spriteIndex == cursor->id) {
             cursor->sprite = sprite;
             sprite->z = 0x33;
-            func_801F8E34(duel->cursor, 0x33);
+            KAW_renderCursor(duel->cursor, 0x33);
         }
     }
     if (sprite->flags & 0x40) {

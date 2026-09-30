@@ -7,6 +7,7 @@
 #include "dcb/angle.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
+#include "dcb/overlay_calls.h"
 
 void loadPresetDeckForPlayer(s32 player) {
     PresetDeck *presetDecks;
@@ -78,7 +79,7 @@ void initDuelPlayers(s32 isCpuDuel) {
         strcpy(PLAYER(0)->name, PLAYER_DATA(0).name);
         strcpy(PLAYER(1)->name, ((SessionData *)SESSION_DATA)->opponentDeck.ownerName);
         if (((SessionData *)SESSION_DATA)->opponentDeckIndex == 0) {
-            func_801EA708();
+            KAW_startTutorial();
             for (i = 0; i < 2; i++) {
                 linkDeckCardData(i, DUEL_PLAYERS[i]);
             }
