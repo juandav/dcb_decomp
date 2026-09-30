@@ -27,6 +27,7 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/symbols.txt
+    - config/symbols_saiseg.txt
 
   undefined_funcs_auto_path: build/generated/undefined_funcs_auto_saiseg.txt
   undefined_syms_auto_path: build/generated/undefined_syms_auto_saiseg.txt
@@ -54,6 +55,6 @@ segments:
     subsegments:
       - [0x0, .rodata, saiseg]
       - [0x1B34, c, saiseg]
-      - [0x15528, data, saiseg]
+      - [0x15528, .data, saiseg]
 
   - [0x17530]

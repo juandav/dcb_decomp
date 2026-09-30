@@ -439,7 +439,7 @@ typedef struct {
 #define SESSION_SUB (((SessionData *)D_8006E054)->unk100C)
 extern s8 D_801F4830;
 extern s16 D_801F354C;
-extern u8 *D_801F3564[];
+extern char *D_801F3564[];
 extern u8 D_801F46A9;
 extern u8 D_801F46A7;
 typedef struct {
@@ -505,8 +505,8 @@ extern u8 D_801F5251;
 void func_801F0078(void);
 void func_801EB628(void);
 extern void (*D_801F3D00[])(void);
-extern Rect16 D_801F35BC[12];
-extern u8 *D_801F3634[];
+extern Rect16 D_801F35BC[15];
+extern char *D_801F3634[];
 TextLine *func_801DFBC4(TextLine *arg0);
 void rollRewardCards(s32 player, s32 pack);
 void func_801F1B5C(void);
@@ -584,14 +584,11 @@ void func_801E0A74(void);
 void func_801F00F4(s32 resume, s32 arg1);
 typedef struct {
     char *name;
-    s32 unk4;
-    s32 unk8;
+    u8 unk4[8];
 } PartInfo;
 extern u8 D_801F5458[];
 extern PartInfo D_801F3D38[];
-extern char D_801DE344[]; /* "Losses", in the D_801F3634 names */
-extern char D_801DE34C[]; /* "Wins" */
-extern u8 D_801DE328[][3];
+extern const u8 D_801DE328[][3];
 s32 func_801E1ABC(Menu *menu);
 typedef struct {
     u8 pad[0x30];
@@ -727,7 +724,48 @@ s32 func_801DFC00(u8 *src) {
     return i;
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DDF38);
+/* not referenced by any code */
+const s32 D_801DDF38 = 6;
+
+/* where the five windows of D_801F46B0 open */
+WindowDef D_801F3460[5] = {
+    { { 0xA0, 0x32, 0x40, 0x20 }, 0x80, 0x77, 0, 0, 2 },
+    { { 0xF, 0x82, 0x40, 0x20 }, 0x80, 0x77, 0, 0, 2 },
+    { { 0x1E, 0x14, 0x40, 0x20 }, 0x80, 0x77, 0, 0, 2 },
+    { { 0x5A, 0xB4, 0x40, 0x20 }, 0x80, 0x77, 0, 0, 2 },
+    { { 0xA0, 0x78, 0x40, 0x20 }, 0x80, 0x77, 0, 0, 2 },
+};
+
+/* VRAM areas func_801E4AF4 moves with MoveImage2 */
+Rect16 D_801F34EC[6] = {
+    { 0x220, 0xE2, 0x20, 2 },
+    { 0x220, 0xE5, 0x20, 1 },
+    { 0x220, 0xEC, 0x20, 1 },
+    { 0x220, 0xF4, 0x20, 1 },
+    { 0x230, 0xEB, 0x20, 1 },
+    { 0x280, 0x1FC, 0x100, 3 },
+};
+
+WindowDef D_801F351C = { { 0x88, 0x14, 0xA4, 0xD }, 0x80, 0x31, 0, 0, 8 };
+
+/* the rows of the player's data screen */
+Menu D_801F3538 = { NULL, NULL, { 10, 48, 300, 126 }, 0, -1, 0, -1, 0xa, 0x16, 72, 12, 0, 15, 0, 1, 0, 14, 0, 0, 0 };
+
+/* the help line for each row of D_801F3538 */
+char *D_801F3564[12] = {
+    "*w1Player's Name.",
+    "*w1Tamer Rank is based on Wins. There are 8 \nRanks. \"Beginner Tamer\" with 0 wins\nto \"Invincible Tamer\" with 500+ Wins.",
+    "*w1Collector Rank is set by the number of\nCards collected. 7 Titles from \"General \n\tPublic\" to the highest, plus one more.",
+    "*w1This shows how far you are in the game.\nCan you achieve 100%?",
+    "*w1This is the ratio of Cards collected.",
+    "*w1Collected Digi-Parts ratio, 128 total.",
+    "*w1Watch your wins and losses in Digi-land.\n\tRemember the Cards you were beaten by.\nIt will make you a better Card Tamer.",
+    "*w1Wins & losses in \"Battle with Friends.\"\nDo battle with all your friends.\nEverybody will love it! It's guaranteed!",
+    "*w1This is the first Deck you have.",
+    "*w1This is the second Deck you have.",
+    "*w1This is the third Deck you have.",
+    "*w1These are Partners & Digi-Eggs you own.\nVeemon alone has 3 Digi-Eggs.",
+};
 
 s32 func_801DFE70(s32 x, s32 y, TextLine *line, s32 z) {
     u8 buf[0x40];
@@ -1252,11 +1290,63 @@ void func_801E16B0(void) {
     D_801F4810.abilityRate /= 128;
 }
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE328);
+/* the three icons drawn for each partner */
+const u8 D_801DE328[6][3] = {
+    { 1, 2, 9 },
+    { 3, 5, 0 },
+    { 4, 6, 0 },
+    { 7, 6, 0 },
+    { 8, 1, 0 },
+    { 1, 7, 0 },
+};
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE344);
+void (*D_801F3594[4])(void) = {
+    func_801E0480,
+    func_801E04B8,
+    func_801E0650,
+    func_801E0684,
+};
 
-INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DE34C);
+/* not referenced by any code: "後藤豪太" in Shift-JIS */
+char D_801F35A4[24] = "\x8C\xE3\x93\xA1\x8D\x8B\x91\xBE";
+
+/* the cursor of each row of D_801F3538 */
+Rect16 D_801F35BC[15] = {
+    { 0x64, 0, 0x18, 0xE },
+    { 0x64, 0xE, 0x3C, 0xE },
+    { 0x64, 0, 0x48, 0xE },
+    { 0x64, 0xE, 0x30, 0xE },
+    { 0x64, 0, 0x60, 0xE },
+    { 0x64, 0xE, 0x60, 0xE },
+    { 0x15, 0, 0x60, 0xE },
+    { 0x15, 0xE, 0x48, 0xE },
+    { 0x15, 0, 0x30, 0xE },
+    { 0x15, 0xE, 0x30, 0xE },
+    { 0x15, 0, 0x30, 0xE },
+    { 0x15, 0xE, 0x90, 0xE },
+    { 0x15, 0, 0x18, 0xE },
+    { 0x15, 0xE, 0x3C, 0xE },
+    { 0x64, 0, 0x18, 0xE },
+};
+
+/* the labels of the player's data screen */
+char *D_801F3634[15] = {
+    "Name",
+    "Battle Title",
+    "Collector Title",
+    "Game Completion",
+    "Card Collection",
+    "Digi-Parts Stock",
+    "COM Battle Stats",
+    "2P Battle Stats",
+    "Deck 1",
+    "Deck 2",
+    "Deck 3",
+    "Partner Cards & Digi-Eggs",
+    "Wins",
+    "Losses",
+    "Deck",
+};
 
 void func_801E186C(void) {
     func_801E16B0();
@@ -1423,17 +1513,17 @@ void func_801E2120(UiWindow *win) {
     drawText(x + 0x15, y + 0x54, (s32)D_801F3634[6], 6, z);
     sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->battleWins);
     drawText(x + 0x89, y + 0x54, (s32)buf, 7, z);
-    drawText(x + 0xA3, y + 0x54, (s32)D_801DE34C, 6, z);
+    drawText(x + 0xA3, y + 0x54, (s32)"Wins", 6, z);
     sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->battleLosses);
     drawText(x + 0xC0, y + 0x54, (s32)buf, 7, z);
-    drawText(x + 0xDB, y + 0x54, (s32)D_801DE344, 6, z);
+    drawText(x + 0xDB, y + 0x54, (s32)"Losses", 6, z);
     drawText(x + 0x15, y + 0x62, (s32)D_801F3634[7], 6, z);
     sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->versusWins);
     drawText(x + 0x89, y + 0x62, (s32)buf, 7, z);
-    drawText(x + 0xA3, y + 0x62, (s32)D_801DE34C, 6, z);
+    drawText(x + 0xA3, y + 0x62, (s32)"Wins", 6, z);
     sprintf(buf, countFormat, ((PlayerProfile *)PLAYER_PROFILES)->versusLosses);
     drawText(x + 0xC0, y + 0x62, (s32)buf, 7, z);
-    drawText(x + 0xDB, y + 0x62, (s32)D_801DE344, 6, z);
+    drawText(x + 0xDB, y + 0x62, (s32)"Losses", 6, z);
     for (i = 0; i < 3; i++) {
         drawText(x + 0x15, y + (i + 8) * 14, (s32)D_801F3634[i + 8], 6, z);
         if (((PlayerProfile *)PLAYER_PROFILES)->savedDecks[i].inUse != 0) {
@@ -3679,17 +3769,40 @@ void func_801E9F28(void) {
     func_80014C08(1);
 }
 
-/* the names of D_801F36E0 */
-const char D_801DE710[] = "JIJIMON";
-const char D_801DE718[] = "MTLETEMON";
-const char D_801DE724[] = "PIEDMON";
-const char D_801DE72C[] = "VENOMMYOTIS";
-const char D_801DE738[] = "H-KBUTERIMON";
-const char D_801DE748[] = "A-VEEDRAMON";
-const char D_801DE754[] = "MTLGARURUMON";
-const char D_801DE764[] = "OMNIMON-2";
-const char D_801DE770[] = "WARGREYMON";
-const char D_801DE77C[] = "OMNIMON-1";
+void (*D_801F3670[5])() = {
+    func_801E9A6C,
+    func_801E9A6C,
+    func_801E9A6C,
+    func_801E9A6C,
+    func_801E9A6C,
+};
+
+/* the characters of the name entry grid, ten to a row */
+char D_801F3684[] =
+    "ABCDEabcde"
+    "FGHIJfghij"
+    "KLMNOklmno"
+    "PQRSTpqrst"
+    "UVWXYuvwxy"
+    "Z-   z    "
+    "          "
+    "          "
+    "0123456789";
+
+/* the names func_801EB1F8 recognises when one is typed in */
+char *D_801F36E0[10] = {
+    "OMNIMON-1",
+    "WARGREYMON",
+    "OMNIMON-2",
+    "MTLGARURUMON",
+    "A-VEEDRAMON",
+    "H-KBUTERIMON",
+    "VENOMMYOTIS",
+    "PIEDMON",
+    "MTLETEMON",
+    "JIJIMON",
+};
+
 const char D_801DE788[] = "";
 
 s32 func_801EA230(void) {
@@ -6025,135 +6138,316 @@ void func_801F2ABC(s32 task) {
     func_80014A48(task);
 }
 
-/* the texts the partner ability tables in .data point at */
-const char D_801DEA78[] = "Rare Card even more likely to appear.";
-const char D_801DEAA0[] = "Rare Card might appear after battle.";
-const char D_801DEAC8[] = "Boost Battle Experience by 30%.";
-const char D_801DEAE8[] = "Boost Battle Experience by 20%.";
-const char D_801DEB08[] = "Boost Battle Experience by 10%.";
-const char D_801DEB28[] = "If *ea, HP + 200 & all Attack Powers +100.";
-const char D_801DEB54[] = "If *e3, HP + 200 & all Attack Powers +100.";
-const char D_801DEB80[] = "Draw Online Partner Card, then Shuffle.";
-const char D_801DEBA8[] = "Draw until there are 4 Cards.";
-const char D_801DEBC8[] = "Void Opponent's Support Effect.";
-const char D_801DEBE8[] = "Move Offline Top Card to Online Deck.";
-const char D_801DEC10[] = "Drop 3 Cards in Opponent's Online Deck.";
-const char D_801DEC38[] = "Drop 2 Cards in Opponent's Online Deck.";
-const char D_801DEC60[] = "Drop Opponent's Top 4 DP Cards shown.";
-const char D_801DEC88[] = "Drop Opponent's Top 3 DP Cards shown.";
-const char D_801DECB0[] = "Drop Opponent's Top 2 DP Cards shown.";
-const char D_801DECD8[] = "Drop 2 Cards in Opponent's Hand.";
-const char D_801DECFC[] = "Drop 1 Card in Opponent's Hand.";
-const char D_801DED1C[] = "If KO'd in battle, revive w/ HP 1000.";
-const char D_801DED44[] = "If KO'd in battle, revive w/ HP 600.";
-const char D_801DED6C[] = "If KO'd in battle, revive w/ HP 300.";
-const char D_801DED94[] = "If HP < Opponent's HP, add HP +700.";
-const char D_801DEDB8[] = "If HP < Opponent's HP, add HP +500.";
-const char D_801DEDDC[] = "Halve Attack Power, recover HP +600.";
-const char D_801DEE04[] = "Halve Attack Power, recover HP +400.";
-const char D_801DEE2C[] = "Recover HP +400.";
-const char D_801DEE40[] = "Recover HP +300.";
-const char D_801DEE54[] = "Recover HP +200.";
-const char D_801DEE68[] = "Opponent uses same Attack.";
-const char D_801DEE84[] = "Opponent uses *b2 Attack.";
-const char D_801DEEA0[] = "Opponent uses *b1 Attack.";
-const char D_801DEEBC[] = "Opponent uses *b0 Attack.";
-const char D_801DEED8[] = "If *e5, boost Attack Power +400.";
-const char D_801DEEFC[] = "If *e4, boost Attack Power +300.";
-const char D_801DEF20[] = "If *e3, boost Attack Power +200.";
-const char D_801DEF44[] = "Reduce both Players' Atk Pwr to 0.";
-const char D_801DEF68[] = "If *a4 Opponent, lower its AP to 0.";
-const char D_801DEF8C[] = "If *a3 Opponent, lower its AP to 0.";
-const char D_801DEFB0[] = "If *a2 Opponent, lower its AP to 0.";
-const char D_801DEFD4[] = "If *a1 Opponent, lower its AP to 0.";
-const char D_801DEFF8[] = "If *a0 Opponent, lower its AP to 0.";
-const char D_801DF01C[] = "Swap Specialty with Opponent's.";
-const char D_801DF03C[] = "Switch Opponent's Specialty to own.";
-const char D_801DF060[] = "Change own Specialty to *a4.";
-const char D_801DF080[] = "Change own Specialty to *a3.";
-const char D_801DF0A0[] = "Change own Specialty to *a2.";
-const char D_801DF0C0[] = "Change own Specialty to *a1.";
-const char D_801DF0E0[] = "Change own Specialty to *a0.";
-const char D_801DF100[] = "If *a4 Opponent, X3 own Attack Power.";
-const char D_801DF128[] = "If *a4 Opponent, X2 own Attack Power.";
-const char D_801DF150[] = "If *a3 Opponent, X3 own Attack Power.";
-const char D_801DF178[] = "If *a3 Opponent, X2 own Attack Power.";
-const char D_801DF1A0[] = "If *a2 Opponent, X3 own Attack Power.";
-const char D_801DF1C8[] = "If *a2 Opponent, X2 own Attack Power.";
-const char D_801DF1F0[] = "If *a1 Opponent, X3 own Attack Power.";
-const char D_801DF218[] = "If *a1 Opponent, X2 own Attack Power.";
-const char D_801DF240[] = "If *a0 Opponent, X3 own Attack Power.";
-const char D_801DF268[] = "If *a0 Opponent, X2 own Attack Power.";
-const char D_801DF290[] = "*b2 Counterattack (Attack 2nd).";
-const char D_801DF2B0[] = "*b1 Counterattack (Attack 2nd).";
-const char D_801DF2D0[] = "*b0 Counterattack (Attack 2nd).";
-const char D_801DF2F0[] = "Lower Opponent's *b2 Attack Power to 0.";
-const char D_801DF318[] = "Lower Opponent's *b1 Attack Power to 0.";
-const char D_801DF340[] = "Lower Opponent's *b0 Attack Power to 0.";
-const char D_801DF368[] = "Attack becomes Eat-up HP.";
-const char D_801DF384[] = "Get 1st Attack.";
-const char D_801DF394[] = "Attack Power becomes same as HP.";
-const char D_801DF3B8[] = "*b2 Attack Power is Tripled.";
-const char D_801DF3D8[] = "*b2 Attack Power is Doubled.";
-const char D_801DF3F8[] = "Boost *b2 Attack Power +300.";
-const char D_801DF418[] = "Boost *b2 Attack Power +200.";
-const char D_801DF438[] = "Boost *b2 Attack Power +100.";
-const char D_801DF458[] = "*b1 Attack Power is Tripled.";
-const char D_801DF478[] = "*b1 Attack Power is Doubled.";
-const char D_801DF498[] = "Boost *b1 Attack Power +400.";
-const char D_801DF4B8[] = "Boost *b1 Attack Power +300.";
-const char D_801DF4D8[] = "Boost *b1 Attack Power +200.";
-const char D_801DF4F8[] = "*b0 Attack Power is Tripled.";
-const char D_801DF518[] = "*b0 Attack Power is Doubled.";
-const char D_801DF538[] = "Boost *b0 Attack Power +500.";
-const char D_801DF558[] = "Boost *b0 Attack Power +400.";
-const char D_801DF578[] = "Boost *b0 Attack Power +300.";
-const char D_801DF598[] = "Attack Power is Doubled.";
-const char D_801DF5B4[] = "Boost Attack Power +300.";
-const char D_801DF5D0[] = "Boost Attack Power +200.";
-const char D_801DF5EC[] = "Boost Attack Power +100.";
-const char D_801DF608[] = "Boost Attack Power +50.";
-const char D_801DF620[] = "Add + 30 DP.";
-const char D_801DF630[] = "Add + 20 DP.";
-const char D_801DF640[] = "Add + 10 DP.";
-const char D_801DF650[] = "Eat-up HP, *b2 Attack Power -200.";
-const char D_801DF674[] = "Jamming Support, *b2 Attack Power -100.";
-const char D_801DF69C[] = "1st Attack, *b2 Attack Power -200.";
-const char D_801DF6C0[] = "Opponent *a4 X3, *b2 Attack Power -200.";
-const char D_801DF6E8[] = "Opponent *a3 X3, *b2 Attack Power -200.";
-const char D_801DF710[] = "Opponent *a2 X3, *b2 Attack Power -200.";
-const char D_801DF738[] = "Opponent *a1 X3, *b2 Attack Power -200.";
-const char D_801DF760[] = "Opponent *a0 X3, *b2 Attack Power -200.";
-const char D_801DF788[] = "Counter *b2,*b2 Attack Power to 0.";
-const char D_801DF7AC[] = "Counter *b1,*b2 Attack Power to 0.";
-const char D_801DF7D0[] = "Counter *b0,*b2 Attack Power to 0.";
-const char D_801DF7F4[] = "*b2 to 0, *b2 Attack Power -100.";
-const char D_801DF818[] = "*b1 to 0, *b2 Attack Power -100.";
-const char D_801DF83C[] = "*b0 to 0, *b2 Attack Power -100.";
-const char D_801DF860[] = "*b2 Attack Power +200.";
-const char D_801DF878[] = "*b2 Attack Power +150.";
-const char D_801DF890[] = "*b2 Attack Power +100.";
-const char D_801DF8A8[] = "*b2 Attack Power +50.";
-const char D_801DF8C0[] = "*b1 Attack Power +250.";
-const char D_801DF8D8[] = "*b1 Attack Power +200.";
-const char D_801DF8F0[] = "*b1 Attack Power +150.";
-const char D_801DF908[] = "*b1 Attack Power +100.";
-const char D_801DF920[] = "*b1 Attack Power +50.";
-const char D_801DF938[] = "*b0 Attack Power +300.";
-const char D_801DF950[] = "*b0 Attack Power +250.";
-const char D_801DF968[] = "*b0 Attack Power +200.";
-const char D_801DF980[] = "*b0 Attack Power +150.";
-const char D_801DF998[] = "*b0 Attack Power +100.";
-const char D_801DF9B0[] = "All Attack Powers +200.";
-const char D_801DF9C8[] = "All Attack Powers +100.";
-const char D_801DF9E0[] = "All Attack Powers +50.";
-const char D_801DF9F8[] = "HP+500.";
-const char D_801DFA00[] = "HP+400.";
-const char D_801DFA08[] = "HP+300.";
-const char D_801DFA10[] = "HP+200.";
-const char D_801DFA18[] = "HP+150.";
-const char D_801DFA20[] = "HP+100.";
-const char D_801DFA28[] = "HP+50.";
+SpriteTemplate D_801F3708[66] = {
+    { 0x180, 0xA8, 0x200, 0xF8, 0, 0x1A, 0x28, 1, 0 },
+    { 0x1E8, 0xA8, 0x200, 0xF8, 0, 0x18, 0x10, 1, 0 },
+    { 0x180, 0x100, 0x180, 0x1A8, 0, 0xC6, 0xA2, 1, 0 },
+    { 0x180, 0x100, 0x280, 0x1F8, 0, 0xFF, 0x80, 1, 0 },
+    { 0x180, 0x180, 0x280, 0x1F9, 0, 0xFF, 0x7F, 1, 0 },
+    { 0x200, 0x100, 0x280, 0x1FA, 0, 0xFF, 0x80, 1, 0 },
+    { 0x2C0, 0xC0, 0x200, 0xF3, 0, 0x80, 0x20, 0, 0 },
+    { 0x2E0, 0, 0x200, 0xED, 0, 0x74, 0x18, 0, 0 },
+    { 0x2C0, 0, 0x200, 0xF4, 0, 0x50, 0x46, 0, 0 },
+    { 0x229, 0, 0x200, 0xE8, 0, 0x10, 0xD, 0, 0 },
+    { 0x320, 0x100, 0x280, 0x1F7, 0, 0x77, 0x28, 0, 0 },
+    { 0x320, 0x128, 0x280, 0x1F7, 0, 0x77, 0x28, 0, 0 },
+    { 0x320, 0x150, 0x280, 0x1F7, 0, 0x77, 0x28, 0, 0 },
+    { 0x320, 0x178, 0x280, 0x1F7, 0, 0x77, 0x28, 0, 0 },
+    { 0x340, 0x100, 0x280, 0x1F7, 0, 0x27, 0x28, 0, 0 },
+    { 0x340, 0x128, 0x280, 0x1F7, 0, 0x27, 0x70, 0, 0 },
+    { 0x340, 0x198, 0x280, 0x1F7, 0, 0x27, 0x28, 0, 0 },
+    { 0x34A, 0x100, 0x280, 0x1F7, 0, 0x27, 0x28, 0, 0 },
+    { 0x34A, 0x128, 0x280, 0x1F7, 0, 0x27, 0x70, 0, 0 },
+    { 0x34A, 0x198, 0x280, 0x1F7, 0, 0x27, 0x28, 0, 0 },
+    { 0x300, 0xA0, 0x200, 0xEF, 0, 0x58, 0x10, 0, 0 },
+    { 0x340, 0x78, 0x200, 0xE3, 0, 0x70, 0x6C, 0, 0 },
+    { 0x300, 0xB0, 0x200, 0xE3, 0, 0x54, 0x4C, 0, 0 },
+    { 0x318, 0x30, 0x200, 0xF1, 0, 0x44, 0x10, 0, 0 },
+    { 0x318, 0x60, 0x200, 0xF1, 0, 0x44, 0x10, 0, 0 },
+    { 0x318, 0x70, 0x200, 0xF1, 0, 0x44, 0x10, 0, 0 },
+    { 0x360, 0x78, 0x200, 0xE6, 0, 0x6C, 0x7A, 0, 0 },
+    { 0x318, 0xC8, 0x200, 0xEB, 0, 0x40, 0x37, 0, 0 },
+    { 0x180, 0, 0x200, 0xF9, 0, 0x40, 0x37, 1, 0 },
+    { 0x200, 0x30, 0x200, 0xEA, 0, 0x84, 0x30, 0, 0 },
+    { 0x2E0, 0xB4, 0x200, 0xE5, 0, 0x68, 0x1C, 0, 0 },
+    { 0x340, 0, 0x200, 0xE4, 0, 0x60, 0x14, 0, 0 },
+    { 0x240, 0, 0x200, 0xE5, 0, 0xAF, 0x30, 0, 0 },
+    { 0x240, 0x30, 0x200, 0xE5, 0, 0xAF, 0x30, 0, 0 },
+    { 0x280, 0, 0x200, 0xE5, 0, 0x27, 0x30, 0, 0 },
+    { 0x280, 0x30, 0x200, 0xE5, 0, 0x27, 0x90, 0, 0 },
+    { 0x280, 0xC0, 0x200, 0xE5, 0, 0x27, 0x30, 0, 0 },
+    { 0x28A, 0, 0x200, 0xE5, 0, 0x23, 0x30, 0, 0 },
+    { 0x28A, 0x30, 0x200, 0xE5, 0, 0x23, 0x90, 0, 0 },
+    { 0x28A, 0xC0, 0x200, 0xE5, 0, 0x23, 0x30, 0, 0 },
+    { 0x240, 0x60, 0x200, 0xE2, 0, 0xAF, 0x30, 0, 0 },
+    { 0x240, 0x90, 0x200, 0xE2, 0, 0xAF, 0x34, 0, 0 },
+    { 0x298, 0, 0x200, 0xE2, 0, 0x37, 0x30, 0, 0 },
+    { 0x298, 0x30, 0x200, 0xE2, 0, 0x37, 0x88, 0, 0 },
+    { 0x298, 0xB8, 0x200, 0xE2, 0, 0x37, 0x34, 0, 0 },
+    { 0x2A6, 0, 0x200, 0xE2, 0, 0x2B, 0x30, 0, 0 },
+    { 0x2A6, 0x30, 0x200, 0xE2, 0, 0x2B, 0x88, 0, 0 },
+    { 0x2A6, 0xB8, 0x200, 0xE2, 0, 0x2B, 0x34, 0, 0 },
+    { 0x300, 0x100, 0x280, 0x1F6, 0, 0x77, 0x28, 0, 0 },
+    { 0x300, 0x128, 0x280, 0x1F6, 0, 0x77, 0x28, 0, 0 },
+    { 0x300, 0x150, 0x280, 0x1F6, 0, 0x77, 0x28, 0, 0 },
+    { 0x300, 0x178, 0x280, 0x1F6, 0, 0x77, 0x28, 0, 0 },
+    { 0x358, 0x100, 0x280, 0x1F6, 0, 0x27, 0x28, 0, 0 },
+    { 0x358, 0x128, 0x280, 0x1F6, 0, 0x27, 0x78, 0, 0 },
+    { 0x358, 0x1A0, 0x280, 0x1F6, 0, 0x27, 0x28, 0, 0 },
+    { 0x362, 0x100, 0x280, 0x1F6, 0, 0x23, 0x28, 0, 0 },
+    { 0x362, 0x128, 0x280, 0x1F6, 0, 0x23, 0x78, 0, 0 },
+    { 0x362, 0x1A0, 0x280, 0x1F6, 0, 0x23, 0x28, 0, 0 },
+    { 0x318, 0xA4, 0x200, 0xEB, 0, 0x2A, 0x24, 0, 0 },
+    { 0x2C0, 0x82, 0x200, 0xFA, 0, 0x40, 0x38, 1, 0 },
+    { 0x218, 0, 0x200, 0xEC, 0, 0x34, 0x30, 0, 0 },
+    { 0x318, 0x80, 0x200, 0xF1, 0, 0x40, 0x10, 0, 0 },
+    { 0x2E0, 0x80, 0x200, 0xEE, 0, 0x2A, 0x24, 0, 0 },
+    { 0x2EB, 0x80, 0x200, 0xEE, 0, 0x2A, 0x24, 0, 0 },
+    { 0x22D, 0, 0x200, 0xE8, 0, 0x10, 0xD, 0, 0 },
+    { 0x328, 0, 0x210, 0xF2, 0, 0x58, 0x50, 0, 0 },
+};
+
+/* the map's nodes: position, the node in each direction, unlocked */
+MapNode D_801F3C30[16] = {
+    { 73, 26, { -1, 12, 4, 1 }, 1, 0 },
+    { 16, -17, { 3, 0, 2, 3 }, 1, 0 },
+    { 14, 34, { 1, 1, -1, -1 }, 1, 0 },
+    { -27, -50, { -1, 1, 1, -1 }, 1, 0 },
+    { 81, 53, { 0, -1, -1, 0 }, 1, 0 },
+    { -22, 25, { -1, 7, 13, 13 }, 1, 0 },
+    { 61, 67, { 7, 7, -1, -1 }, 1, 0 },
+    { 67, 18, { 8, -1, 6, 5 }, 1, 0 },
+    { 47, -37, { 14, 7, 7, 14 }, 1, 0 },
+    { 70, -36, { -1, 15, -1, 10 }, 1, 0 },
+    { -31, -16, { 9, 9, 11, -1 }, 1, 0 },
+    { 44, 21, { 10, -1, -1, 10 }, 1, 0 },
+    { 107, -11, { -1, -1, 0, 0 }, 1, 0 },
+    { -46, 33, { 5, 5, -1, -1 }, 1, 0 },
+    { -16, -44, { -1, 8, 8, -1 }, 1, 0 },
+    { 120, -18, { 9, -1, -1, 9 }, 1, 0 },
+};
+
+/* the nodes of each of the three areas, ended by -1 */
+s8 D_801F3CD0[3][7] = {
+    { 0, 1, 2, 3, 4, 12, -1 },
+    { 5, 6, 7, 8, 13, 14, -1 },
+    { 9, 10, 11, 15, -1, -1, -1 },
+};
+
+Rect16 D_801F3CE8[3] = {
+    { 0x180, 0x100, 0xC6, 0xA2 },
+    { 0x200, 0x100, 0xC6, 0xA2 },
+    { 0x280, 0x100, 0xC6, 0xA2 },
+};
+
+void (*D_801F3D00[3])(void) = {
+    NULL,
+    func_801EC51C,
+    func_801EC140,
+};
+
+void (*D_801F3D0C[10])(void) = {
+    func_801ED5D4,
+    func_801EE13C,
+    func_801EE690,
+    func_801EDFB8,
+    func_801EE9A0,
+    func_801EEBD0,
+    func_801EE9A0,
+    func_801EEC78,
+    func_801EF1A8,
+    func_801EC844,
+};
+
+u8 D_801F3D34[4] = { 0xB7, 0xB8, 0xBB, 0x0 };
+
+/* the partner abilities; the code here only reads their texts */
+PartInfo D_801F3D38[128] = {
+    { "HP+50.", { 3, 5, 1, 99, 3, 7, 0, 0 } },
+    { "HP+100.", { 17, 16, 8, 12, 14, 19, 0, 0 } },
+    { "HP+150.", { 29, 32, 19, 25, 32, 33, 0, 0 } },
+    { "HP+200.", { 45, 48, 31, 40, 52, 59, 0, 0 } },
+    { "HP+300.", { 61, 67, 51, 57, 68, 78, 0, 0 } },
+    { "HP+400.", { 96, 89, 71, 81, 91, 88, 0, 0 } },
+    { "HP+500.", { 99, 0xFF, 75, 91, 0xFF, 95, 0, 0 } },
+    { "All Attack Powers +50.", { 18, 39, 54, 30, 57, 28, 0, 0 } },
+    { "All Attack Powers +100.", { 39, 86, 72, 50, 89, 51, 0, 0 } },
+    { "All Attack Powers +200.", { 75, 0xFF, 90, 93, 0xFF, 84, 0, 0 } },
+    { "*b0 Attack Power +100.", { 1, 9, 15, 5, 4, 2, 0, 0 } },
+    { "*b0 Attack Power +150.", { 10, 21, 38, 22, 16, 15, 0, 0 } },
+    { "*b0 Attack Power +200.", { 27, 54, 62, 41, 39, 30, 0, 0 } },
+    { "*b0 Attack Power +250.", { 48, 0xFF, 78, 61, 62, 61, 0, 0 } },
+    { "*b0 Attack Power +300.", { 67, 0xFF, 0xFF, 85, 82, 79, 0, 0 } },
+    { "*b1 Attack Power +50.", { 4, 1, 12, 2, 6, 13, 0, 0 } },
+    { "*b1 Attack Power +100.", { 12, 7, 22, 16, 18, 29, 0, 0 } },
+    { "*b1 Attack Power +150.", { 32, 28, 45, 36, 45, 43, 0, 0 } },
+    { "*b1 Attack Power +200.", { 51, 44, 0xFF, 56, 67, 66, 0, 0 } },
+    { "*b1 Attack Power +250.", { 77, 0xFF, 0xFF, 76, 86, 96, 0, 0 } },
+    { "*b2 Attack Power +50.", { 6, 6, 2, 4, 10, 1, 0, 0 } },
+    { "*b2 Attack Power +100.", { 19, 36, 20, 19, 27, 9, 0, 0 } },
+    { "*b2 Attack Power +150.", { 35, 69, 42, 38, 53, 24, 0, 0 } },
+    { "*b2 Attack Power +200.", { 82, 0xFF, 63, 67, 0xFF, 48, 0, 0 } },
+    { "*b0 to 0, *b2 Attack Power -100.", { 24, 12, 4, 14, 0xFF, 34, 0, 0 } },
+    { "*b1 to 0, *b2 Attack Power -100.", { 46, 23, 9, 35, 0xFF, 17, 0, 0 } },
+    { "*b2 to 0, *b2 Attack Power -100.", { 58, 71, 36, 10, 0xFF, 71, 0, 0 } },
+    { "Counter *b0,*b2 Attack Power to 0.", { 11, 26, 0xFF, 0xFF, 40, 62, 0, 0 } },
+    { "Counter *b1,*b2 Attack Power to 0.", { 36, 14, 0xFF, 0xFF, 24, 49, 0, 0 } },
+    { "Counter *b2,*b2 Attack Power to 0.", { 40, 57, 0xFF, 0xFF, 11, 21, 0, 0 } },
+    { "Opponent *a0 X3, *b2 Attack Power -200.", { 87, 92, 39, 69, 31, 50, 0, 0 } },
+    { "Opponent *a1 X3, *b2 Attack Power -200.", { 25, 97, 0xFF, 42, 77, 73, 0, 0 } },
+    { "Opponent *a2 X3, *b2 Attack Power -200.", { 37, 0xFF, 66, 0xFF, 83, 4, 0, 0 } },
+    { "Opponent *a3 X3, *b2 Attack Power -200.", { 68, 33, 46, 21, 5, 97, 0, 0 } },
+    { "Opponent *a4 X3, *b2 Attack Power -200.", { 52, 41, 6, 0xFF, 0xFF, 25, 0, 0 } },
+    { "1st Attack, *b2 Attack Power -200.", { 76, 50, 95, 62, 0xFF, 0xFF, 0, 0 } },
+    { "Jamming Support, *b2 Attack Power -100.", { 0xFF, 74, 27, 0xFF, 54, 10, 0, 0 } },
+    { "Eat-up HP, *b2 Attack Power -200.", { 0xFF, 87, 50, 0xFF, 73, 0xFF, 0, 0 } },
+    { "Add + 10 DP.", { 42, 4, 61, 1, 9, 0xFF, 0, 0 } },
+    { "Add + 20 DP.", { 91, 29, 79, 27, 21, 0xFF, 0, 0 } },
+    { "Add + 30 DP.", { 0xFF, 98, 97, 60, 78, 85, 0, 0 } },
+    { "Boost Attack Power +50.", { 2, 10, 13, 3, 7, 11, 0, 0 } },
+    { "Boost Attack Power +100.", { 21, 42, 56, 33, 36, 35, 0, 0 } },
+    { "Boost Attack Power +200.", { 26, 81, 73, 46, 84, 44, 0, 0 } },
+    { "Boost Attack Power +300.", { 69, 0xFF, 84, 82, 0xFF, 80, 0, 0 } },
+    { "Attack Power is Doubled.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Boost *b0 Attack Power +300.", { 8, 30, 47, 17, 26, 12, 0, 0 } },
+    { "Boost *b0 Attack Power +400.", { 34, 77, 74, 47, 46, 39, 0, 0 } },
+    { "Boost *b0 Attack Power +500.", { 55, 0xFF, 88, 88, 66, 74, 0, 0 } },
+    { "*b0 Attack Power is Doubled.", { 13, 64, 67, 58, 33, 63, 0, 0 } },
+    { "*b0 Attack Power is Tripled.", { 59, 0xFF, 94, 74, 0xFF, 86, 0, 0 } },
+    { "Boost *b1 Attack Power +200.", { 15, 2, 0xFF, 7, 22, 18, 0, 0 } },
+    { "Boost *b1 Attack Power +300.", { 28, 19, 0xFF, 23, 41, 36, 0, 0 } },
+    { "Boost *b1 Attack Power +400.", { 43, 70, 0xFF, 92, 59, 53, 0, 0 } },
+    { "*b1 Attack Power is Doubled.", { 22, 13, 59, 34, 0xFF, 67, 0, 0 } },
+    { "*b1 Attack Power is Tripled.", { 83, 0xFF, 91, 94, 0xFF, 89, 0, 0 } },
+    { "Boost *b2 Attack Power +100.", { 23, 40, 10, 18, 0xFF, 8, 0, 0 } },
+    { "Boost *b2 Attack Power +200.", { 38, 58, 40, 43, 0xFF, 20, 0, 0 } },
+    { "Boost *b2 Attack Power +300.", { 71, 0xFF, 60, 63, 0xFF, 90, 0, 0 } },
+    { "*b2 Attack Power is Doubled.", { 44, 72, 48, 51, 0xFF, 40, 0, 0 } },
+    { "*b2 Attack Power is Tripled.", { 88, 0xFF, 85, 95, 0xFF, 65, 0, 0 } },
+    { "Attack Power becomes same as HP.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Get 1st Attack.", { 53, 55, 98, 71, 85, 0xFF, 0, 0 } },
+    { "Attack becomes Eat-up HP.", { 0xFF, 93, 80, 0xFF, 61, 55, 0, 0 } },
+    { "Lower Opponent's *b0 Attack Power to 0.", { 54, 0xFF, 17, 0xFF, 28, 75, 0, 0 } },
+    { "Lower Opponent's *b1 Attack Power to 0.", { 84, 24, 28, 0xFF, 15, 0xFF, 0, 0 } },
+    { "Lower Opponent's *b2 Attack Power to 0.", { 0xFF, 66, 24, 0xFF, 13, 45, 0, 0 } },
+    { "*b0 Counterattack (Attack 2nd).", { 7, 0xFF, 33, 0xFF, 47, 14, 0, 0 } },
+    { "*b1 Counterattack (Attack 2nd).", { 33, 17, 0xFF, 0xFF, 37, 26, 0, 0 } },
+    { "*b2 Counterattack (Attack 2nd).", { 47, 43, 5, 0xFF, 0xFF, 37, 0, 0 } },
+    { "If *a0 Opponent, X2 own Attack Power.", { 74, 79, 0xFF, 77, 25, 38, 0, 0 } },
+    { "If *a0 Opponent, X3 own Attack Power.", { 0xFF, 91, 0xFF, 65, 74, 82, 0, 0 } },
+    { "If *a1 Opponent, X2 own Attack Power.", { 5, 47, 64, 26, 80, 76, 0, 0 } },
+    { "If *a1 Opponent, X3 own Attack Power.", { 60, 0xFF, 89, 83, 98, 91, 0, 0 } },
+    { "If *a2 Opponent, X2 own Attack Power.", { 50, 27, 58, 59, 42, 6, 0, 0 } },
+    { "If *a2 Opponent, X3 own Attack Power.", { 79, 0xFF, 93, 0xFF, 93, 70, 0, 0 } },
+    { "If *a3 Opponent, X2 own Attack Power.", { 56, 37, 44, 6, 19, 93, 0, 0 } },
+    { "If *a3 Opponent, X3 own Attack Power.", { 92, 60, 87, 79, 63, 0xFF, 0, 0 } },
+    { "If *a4 Opponent, X2 own Attack Power.", { 78, 76, 26, 72, 69, 46, 0, 0 } },
+    { "If *a4 Opponent, X3 own Attack Power.", { 89, 96, 55, 0xFF, 0xFF, 68, 0, 0 } },
+    { "Change own Specialty to *a0.", { 9, 35, 0xFF, 48, 96, 0xFF, 0, 0 } },
+    { "Change own Specialty to *a1.", { 0xFF, 99, 30, 87, 58, 0xFF, 0, 0 } },
+    { "Change own Specialty to *a2.", { 97, 3, 41, 8, 12, 94, 0, 0 } },
+    { "Change own Specialty to *a3.", { 30, 0xFF, 68, 98, 81, 3, 0, 0 } },
+    { "Change own Specialty to *a4.", { 95, 82, 14, 52, 76, 99, 0, 0 } },
+    { "Switch Opponent's Specialty to own.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Swap Specialty with Opponent's.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "If *a0 Opponent, lower its AP to 0.", { 66, 52, 0xFF, 97, 43, 0xFF, 0, 0 } },
+    { "If *a1 Opponent, lower its AP to 0.", { 41, 61, 34, 84, 8, 0xFF, 0, 0 } },
+    { "If *a2 Opponent, lower its AP to 0.", { 0xFF, 11, 52, 0xFF, 64, 22, 0, 0 } },
+    { "If *a3 Opponent, lower its AP to 0.", { 0xFF, 25, 37, 13, 2, 72, 0, 0 } },
+    { "If *a4 Opponent, lower its AP to 0.", { 0xFF, 75, 16, 0xFF, 34, 52, 0, 0 } },
+    { "Reduce both Players' Atk Pwr to 0.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "If *e3, boost Attack Power +200.", { 14, 31, 0xFF, 9, 48, 23, 0, 0 } },
+    { "If *e4, boost Attack Power +300.", { 31, 53, 0xFF, 20, 38, 57, 0, 0 } },
+    { "If *e5, boost Attack Power +400.", { 57, 0xFF, 81, 70, 95, 77, 0, 0 } },
+    { "Opponent uses *b0 Attack.", { 16, 62, 0xFF, 28, 97, 31, 0, 0 } },
+    { "Opponent uses *b1 Attack.", { 62, 18, 11, 39, 0xFF, 47, 0, 0 } },
+    { "Opponent uses *b2 Attack.", { 94, 8, 21, 0xFF, 44, 58, 0, 0 } },
+    { "Opponent uses same Attack.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Recover HP +200.", { 72, 15, 32, 11, 1, 81, 0, 0 } },
+    { "Recover HP +300.", { 90, 38, 53, 31, 17, 0xFF, 0, 0 } },
+    { "Recover HP +400.", { 0xFF, 68, 92, 73, 55, 0xFF, 0, 0 } },
+    { "Halve Attack Power, recover HP +400.", { 93, 20, 43, 15, 23, 0xFF, 0, 0 } },
+    { "Halve Attack Power, recover HP +600.", { 0xFF, 46, 86, 44, 60, 0xFF, 0, 0 } },
+    { "If HP < Opponent's HP, add HP +500.", { 98, 59, 23, 37, 29, 0xFF, 0, 0 } },
+    { "If HP < Opponent's HP, add HP +700.", { 0xFF, 83, 69, 53, 56, 0xFF, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 300.", { 49, 34, 0xFF, 24, 30, 42, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 600.", { 0xFF, 63, 0xFF, 49, 49, 64, 0, 0 } },
+    { "If KO'd in battle, revive w/ HP 1000.", { 0xFF, 94, 0xFF, 64, 65, 98, 0, 0 } },
+    { "Drop 1 Card in Opponent's Hand.", { 63, 22, 3, 45, 75, 27, 0, 0 } },
+    { "Drop 2 Cards in Opponent's Hand.", { 0xFF, 78, 25, 0xFF, 92, 56, 0, 0 } },
+    { "Drop Opponent's Top 2 DP Cards shown.", { 0xFF, 56, 18, 86, 35, 5, 0, 0 } },
+    { "Drop Opponent's Top 3 DP Cards shown.", { 0xFF, 88, 49, 0xFF, 90, 32, 0, 0 } },
+    { "Drop Opponent's Top 4 DP Cards shown.", { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0 } },
+    { "Drop 2 Cards in Opponent's Online Deck.", { 0xFF, 51, 7, 29, 0xFF, 16, 0, 0 } },
+    { "Drop 3 Cards in Opponent's Online Deck.", { 0xFF, 95, 35, 89, 0xFF, 54, 0, 0 } },
+    { "Move Offline Top Card to Online Deck.", { 86, 0xFF, 70, 78, 50, 0xFF, 0, 0 } },
+    { "Void Opponent's Support Effect.", { 0xFF, 84, 65, 0xFF, 87, 69, 0, 0 } },
+    { "Draw until there are 4 Cards.", { 64, 45, 29, 54, 20, 0xFF, 0, 0 } },
+    { "Draw Online Partner Card, then Shuffle.", { 65, 80, 82, 68, 72, 0xFF, 0, 0 } },
+    { "If *e3, HP + 200 & all Attack Powers +100.", { 73, 73, 0xFF, 55, 94, 83, 0, 0 } },
+    { "If *ea, HP + 200 & all Attack Powers +100.", { 81, 0xFF, 76, 66, 79, 87, 0, 0 } },
+    { "Boost Battle Experience by 10%.", { 20, 49, 57, 32, 71, 41, 0, 0 } },
+    { "Boost Battle Experience by 20%.", { 85, 65, 77, 75, 88, 92, 0, 0 } },
+    { "Boost Battle Experience by 30%.", { 80, 0xFF, 96, 90, 99, 60, 0, 0 } },
+    { "Rare Card might appear after battle.", { 70, 85, 83, 80, 51, 0xFF, 0, 0 } },
+    { "Rare Card even more likely to appear.", { 0xFF, 90, 99, 96, 70, 0xFF, 0, 0 } },
+};
+
+/* the u8 arrays among these are not referenced by any code */
+UiWindow D_801F4338 = { 0 };
+u8 D_801F437C[12] = { 0 };
+CursorHighlight D_801F4388 = { { { 0 } } };
+UiWindow D_801F43D8 = { 0 };
+u8 D_801F441C[12] = { 0 };
+CursorHighlight D_801F4428 = { { { 0 } } };
+UiWindow D_801F4478 = { 0 };
+u8 D_801F44BC[12] = { 0 };
+CursorHighlight D_801F44C8 = { { { 0 } } };
+UiWindow D_801F4518 = { 0 };
+u8 D_801F455C[12] = { 0 };
+Unk801F4568 D_801F4568 = { 0 };
+Unk801F4588 D_801F4588 = { { { 0 } } };
+u8 D_801F46AC[4] = { 0 };
+UiWindow D_801F46B0[5] = { { 0 } };
+Unk801F4804 *D_801F4804 = NULL;
+u8 D_801F4808 = 0;
+u8 D_801F480C[4] = { 0 };
+Unk801F4810 D_801F4810 = { { 0 } };
+u8 D_801F4834 = 0;
+ScriptRunner *D_801F4838[1] = { NULL };
+u8 D_801F483C[4] = { 0 };
+TextLine D_801F4840[3] = { { { 0 } } };
+u8 D_801F4900[8] = { 0 };
+Unk801F4908 D_801F4908 = { { 0 } };
+u8 D_801F4A34[4] = { 0 };
+u8 D_801F4A38[0xB8] = { 0 };
+Unk801F4AF0 *D_801F4AF0 = NULL;
+u8 D_801F4AF4[4] = { 0 };
+s16 D_801F4AF8[3] = { 0 };
+u8 D_801F4AFE = 0;
+u8 D_801F4AFF = 0;
+UiWindow D_801F4B00 = { 0 };
+UiWindow D_801F4B44 = { 0 };
+u8 D_801F4B88[0xD0] = { 0 };
+s16 D_801F4C58 = 0;
+u8 D_801F4C5C[0x1EC] = { 0 };
+Unk801F4E48 D_801F4E48 = { 0 };
+u8 D_801F5254[4] = { 0 };
+Unk801F5258 D_801F5258 = { 0 };
+Sprite3D *D_801F5260[60] = { NULL };
+Unk801F5350 *D_801F5350 = NULL;
+u8 D_801F5354[4] = { 0 };
+RewardScreen *D_801F5358 = NULL;
+u8 D_801F535C[4] = { 0 };
+UiWindow D_801F5360 = { 0 };
+u8 D_801F53A4[12] = { 0 };
+CursorHighlight D_801F53B0 = { { { 0 } } };
+PartnerCursor D_801F5400 = { 0 };
+u8 D_801F5404[4] = { 0 };
+PartnerList D_801F5408 = { 0 };
+UiWindow D_801F5410 = { 0 };
+u8 D_801F5454[4] = { 0 };
+u8 D_801F5458[16] = { 0 };
 
 void func_801F2F04(UiWindow *window) {
     char buf[0x18];
