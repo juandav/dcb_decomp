@@ -47,6 +47,22 @@
                      :                                                                                               \
                      : "$8", "$9", "$10", "$11", "$12", "$13")
 
+/*
+ * Store the screen coordinates of the three vertices of the last rtpt, each
+ * SXY followed by its Z (SXY0, SZ1, SXY1, SZ2, SXY2, SZ3), as six words at `p`
+ */
+#define gte_stsxysz3c(p)                                                                                             \
+    __asm__ volatile("swc2 $12, 0(%0); swc2 $17, 4(%0); swc2 $13, 8(%0); swc2 $18, 12(%0); swc2 $14, 16(%0); "       \
+                     "swc2 $19, 20(%0)"                                                                              \
+                     :                                                                                               \
+                     : "r"(p))
+
+/* Store the three lit colours of the last ncct (RGB0-RGB2) as three words at `p` */
+#define gte_strgb3c(p) __asm__ volatile("swc2 $20, 0(%0); swc2 $21, 4(%0); swc2 $22, 8(%0)" : : "r"(p))
+
+/* Set the colour and code (RGBC) the lighting commands start from */
+#define gte_ldrgbc(v) __asm__ volatile("mtc2 %0, $6" : : "r"(v))
+
 /* GTE commands without the nops in front (the caller keeps the pipeline safe) */
 #define gte_nop() __asm__ volatile("nop")
 #define gte_rtpt() __asm__ volatile("rtpt")
