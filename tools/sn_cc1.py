@@ -33,6 +33,18 @@ GCC 2.7.2 does; 2.8.1 fixes all eight, which leaves one register less in
 loop.c's hoisting threshold (2 * (1 + non-fixed registers)), so the original
 hoists loop invariants ours keeps in the loop (CD_ready's table addresses).
 The CONDITIONAL_REGISTER_USAGE loop in init_reg_sets_1 now starts at $fcc1.
+Its local-alloc kept the hard registers it picked for SCRATCH operands, as
+GCC 2.7.2 does: block_alloc turned the SCRATCH itself into that REG. Ours
+builds a new REG for scratch_list and leaves the SCRATCH in the insn, so
+reload picks the scratch again from its spill registers, which exclude the
+argument registers of any call in the function (StCdInterrupt's `->loc = loc`
+block copy gets t1 there, a1 in the original). block_alloc+3856 now does
+PUT_CODE (x, REG); REGNO (x) = regno; x->used = 0 on the SCRATCH instead.
+Its mips.md still had type "multi" on movstrsi_internal, as GCC 2.7.2's
+does; 2.8.1 made it "store", which puts the block move on the memory unit,
+so the scheduler holds a load back from the slot before it (StCdInterrupt
+fills that slot with the `ori` of 0x20843, the original with the load).
+function_units_used() now takes the default case (no unit) for it.
 
 usage: sn_cc1.py cc1 patched_cc1
 """
@@ -45,10 +57,11 @@ with open(src, 'rb') as f:
     symtab = e.get_section_by_name('.symtab')
     segs = [s for s in e.iter_segments() if s['p_type'] == 'PT_LOAD']
 
-    def offset(name):
-        va = symtab.get_symbol_by_name(name)[0]['st_value']
+    def file_offset(va):
         return next(s['p_offset'] + va - s['p_vaddr'] for s in segs
                     if s['p_vaddr'] <= va < s['p_vaddr'] + s['p_filesz'])
+    def offset(name):
+        return file_offset(symtab.get_symbol_by_name(name)[0]['st_value'])
 
     def sym(name):
         return symtab.get_symbol_by_name(name)[0]['st_value']
@@ -93,7 +106,33 @@ with open(src, 'rb') as f:
     fcc = offset('init_reg_sets_1') + 0xab
     assert raw[fcc:fcc + 12] == bytes.fromhex('83fa037f3cc745f043000000')
 
+    # block_alloc+3856..+3915: `*loc = gen_rtx (REG, mode, regno)` with the
+    # qty_scratch_rtx slot as loc -> rewrite the SCRATCH in place; %edx holds
+    # the regno, %edi the block's locals, %esi the qty, %ebx must equal %edi
+    scr = offset('block_alloc') + 3856
+    assert raw[scr:scr + 6] == bytes.fromhex('8b8724a60000')
+    inplace = bytes.fromhex('8b8724a60000'   # mov qty_scratch_rtx,%eax
+                            '8b04b0'         # mov (%eax,%esi,4),%eax
+                            '66c7003400'     # PUT_CODE (x, REG)
+                            '895004'         # REGNO (x) = regno
+                            '806003df'       # x->used = 0
+                            '89fb')          # mov %edi,%ebx
+    inplace += b'\x90' * (3915 - 3856 - len(inplace))
+
+    # function_units_used: `add $got,%ebx` at +16, `ja default` at +44,
+    # `mov table(%eax,%ebx,1),%eax` at +53, entries GOT-relative, indexed
+    # by insn code + 1; movstrsi_internal is insn code 201
+    fu = sym('function_units_used')
+    fu_raw = raw[offset('function_units_used'):offset('function_units_used') + 60]
+    assert fu_raw[16:18] == b'\x81\xc3' and fu_raw[44:46] == b'\x0f\x87' and fu_raw[53:56] == b'\x8b\x84\x18'
+    got = fu + 16 + int.from_bytes(fu_raw[18:22], 'little', signed=True)
+    default = fu + 50 + int.from_bytes(fu_raw[46:50], 'little', signed=True)
+    table = got + int.from_bytes(fu_raw[56:60], 'little', signed=True)
+    movstr = file_offset(table + 202 * 4)
+
     patches = [(offset('mips_can_use_return_insn'), b'\x31\xc0\xc3'),
+               (movstr, (default - got).to_bytes(4, 'little', signed=True)),
+               (scr, inplace),
                (fcc + 8, b'\x44'),
                (offset('reload_cse_regs'), b'\xc3'),
                (offset('mips_expand_epilogue') + 180, blk),
