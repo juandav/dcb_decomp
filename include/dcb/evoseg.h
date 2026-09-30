@@ -55,6 +55,11 @@ typedef struct {
 } EvoColor;
 
 typedef struct {
+    s16 first;
+    s16 last;
+} EvoRange;
+
+typedef struct {
     s16 id;
     s8 type;
     u8 name[0x15];
@@ -246,9 +251,29 @@ typedef struct {
 } EvoWindow;
 
 typedef struct {
+    Rect16 rect;
+    s32 brightness;
+    s32 style;
+    s32 flags;
+    s32 label;
+    u8 labelPalette;
+} EvoWindowDef;
+
+typedef struct {
+    char *name;
+    s8 learnLevels[6];
+    u8 unkA[2];
+} EvoAbilityInfo;
+
+typedef struct {
     u8 pad0[0xA5];
     s8 choice;
 } EvoDialog;
+
+typedef struct {
+    u8 card;
+    u8 ability;
+} EvoAbilityReward;
 
 typedef struct {
     u8 pad0[0x20];
@@ -283,15 +308,31 @@ typedef struct {
 } EvoShatter;
 
 extern MATRIX D_801DBEA0;
+extern EvoCardInfo *EVO_CARDS_BY_ID[];
+extern u8 *EVO_SPARE_CARD_COUNTS;
+extern u8 *EVO_DECK_CARD_COUNTS[3];
+extern EvoFusion EVO_FUSION;
 extern EvoTray EVO_TRAYS[2];
 extern EvoScreenFlash EVO_SCREEN_FLASH;
+extern EvoProgram *EVO_SCRIPT;
+extern UiWindow EVO_CARD_LIST_WINDOW;
 extern u8 *EVO_EFFECT_ARCHIVE;
 extern EvoWindow EVO_WINDOWS[];
+extern u8 EVO_MAX_CARD_LEVEL;
 extern SVECTOR *EVO_SHARD_VERTEX_POOL;
 extern s8 EVO_SHATTER_STARTED;
 extern s8 EVO_CUTSCENE_STEP;
+extern EvoDialog EVO_DIALOG;
+extern u8 EVO_RANK_UP_STATE;
+extern s16 EVO_STAT_BONUSES[4];
+extern UiWindow EVO_RANK_UP_WINDOW;
 extern s16 EVO_CUTSCENE_MODELS[3];
+extern EvoText EVO_TEXT_LINES[4];
+extern u8 EVO_CARD_RECEIVED;
 extern EvoShard *EVO_SHARDS;
+extern EvoChoice EVO_TYPE_CHOICE;
+extern EvoCardInfo *EVO_CARD_LIST[];
+extern UiWindow EVO_SORT_WINDOW;
 
 long func_80062C44(void);
 void func_80062C34(long base);

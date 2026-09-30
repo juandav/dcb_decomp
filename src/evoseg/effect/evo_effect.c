@@ -19,7 +19,7 @@
 #include "dcb/vblank.h"
 #include "dcb/scroll_bg.h"
 #include "dcb/evoseg.h"
-#include "dcb/evo_fusion.h"
+#include "dcb/evo_fusion_result.h"
 
 typedef struct {
     s16 kind;
