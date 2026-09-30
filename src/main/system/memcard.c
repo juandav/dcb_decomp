@@ -276,7 +276,7 @@ s32 startMemoryCardSave(s32 port, u8 blocks, s32 data, s32 fileName, McHeader *h
     s32 fd;
 
     ((u8 *)header)[3] = blocks;
-    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
+    sprintf(name, "bu%1d0:%s", port, fileName);
     func_8006A864(func_8006A824(name, (((u8 *)header)[3] << 16) | 0x200));
     *(McHeader *)MEMORY_CARD_SAVE_HEADER = *header;
     MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8002);
@@ -344,7 +344,7 @@ s32 startMemoryCardLoad(s32 port, s32 data, s32 fileName) {
     char name[32];
     s32 fd;
 
-    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
+    sprintf(name, "bu%1d0:%s", port, fileName);
     MEMORY_CARD_FILE = fd = func_8006A824(name, 0x8001);
     if (fd == -1) {
         return -1;
@@ -409,7 +409,7 @@ s32 readMemoryCardSavePreview(s32 port, void *dst, s32 fileName) {
     char name[32];
     s32 fd;
 
-    sprintf(name, &FMT_MEMORY_CARD_FILE_PATH, port, fileName);
+    sprintf(name, "bu%1d0:%s", port, fileName);
     fd = func_8006A824(name, 1);
     if (fd == -1) {
         return 1;
@@ -429,8 +429,6 @@ s32 readMemoryCardSavePreview(s32 port, void *dst, s32 fileName) {
     func_8006A864(fd);
     return 0;
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/system/memcard", FMT_MEMORY_CARD_FILE_PATH);
 
 void scanMemoryCardFiles(s32 port) {
     char name[8];
