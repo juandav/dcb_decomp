@@ -107,7 +107,13 @@ typedef struct {
 } CameraPreset;
 
 extern VECTOR D_801D6A68;
-extern CameraPreset D_80010190[];
+/* The presets runSceneCameraTask(preset) starts from (preset 0 keeps the camera as it is) */
+const CameraPreset D_80010190[] = {
+    { -1, 1024, 2560, 336, 0, 0 },
+    { -1, 400, 512, 0, 0, 0 },
+    { -1, 400, 3000, 0, 0, 0 },
+    { -1, 400, 512, 0, 0, 0 },
+};
 
 /*
  * Task that places the 3D camera every frame: either eased toward the current
@@ -226,5 +232,3 @@ void runSceneCameraTask(s32 preset) {
         func_80014C08(FRAME_INTERVAL);
     }
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/model/camera", D_80010190);
