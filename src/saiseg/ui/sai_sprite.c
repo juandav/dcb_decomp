@@ -120,8 +120,8 @@ void SAI_loadAreaPak(void) {
 
     SESSION->loading = 1;
     sprintf(path, "C:\\area%2.2d.pak", area);
-    func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x31);
-    SESSION->pak = (Chunk *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x31);
+    SESSION->pak = (Chunk *)waitFrames(0x7FFFFFFF);
     SAI_uploadPakTextures((u8 *)SESSION->pak);
     truncatePakTextures(SESSION->pak);
     SESSION->script = findPakChunk(SESSION->pak, 2, area + 200);
@@ -149,7 +149,7 @@ Sprite3D *SAI_createSprite(s32 id) {
     sprite->otz = 0x23;
     for (i = 0; i < 2; i++) {
         quad = &sprite->quads[i];
-        func_800677A4(quad);
+        SetPolyFT4(quad);
         quad->r0 = 0x80;
         quad->g0 = 0x80;
         quad->b0 = 0x80;
@@ -183,7 +183,7 @@ void SAI_drawSprite(Sprite3D *sprite) {
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
     CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
-    func_8005C444(&matrix);
+    SetTransMatrix(&matrix);
     corners[0] = sprite->corners[0];
     corners[1] = sprite->corners[1];
     corners[2] = sprite->corners[2];

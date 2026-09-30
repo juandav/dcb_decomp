@@ -71,8 +71,8 @@ void DecDCTvlcBuild(u_short *table) {
 
 OBJECT_END(3);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068804);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", _bu_init);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068814);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", _card_info);
 
-INCLUDE_ASM("asm/main/nonmatchings/psyq", func_80068824);
+INCLUDE_ASM("asm/main/nonmatchings/psyq", _card_load);

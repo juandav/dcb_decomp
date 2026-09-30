@@ -41,15 +41,15 @@ int func_80057164(void) {
 }
 
 void func_800571A0(void) {
-    func_8006A784(0xF0000003, 0x20);
+    DeliverEvent(0xF0000003, 0x20);
 }
 
 void func_800571C8(void) {
-    func_8006A784(0xF0000003, 0x40);
+    DeliverEvent(0xF0000003, 0x40);
 }
 
 void func_800571F0(void) {
-    func_8006A784(0xF0000003, 0x40);
+    DeliverEvent(0xF0000003, 0x40);
 }
 
 OBJECT_END(3);

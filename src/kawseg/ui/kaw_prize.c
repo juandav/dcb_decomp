@@ -181,7 +181,7 @@ void KAW_runPrizeScreen(void) {
     }
     playSoundEffect(0xA3);
     addFrameCallback((s32)KAW_renderPrizeScreen);
-    func_80014C08(20);
+    waitFrames(20);
     KAW_waitForCross();
     playSoundEffect(0xA0);
     KAW_PRIZE_SCREEN->showRewards = 1;
@@ -205,9 +205,9 @@ void KAW_runPrizeScreen(void) {
         animateWindowTo(&KAW_PRIZE_SCREEN->rewards[i].window, (Rect16 *)-1);
         animateWindowTo(&KAW_PRIZE_SCREEN->prizes[i].window, (Rect16 *)-1);
     }
-    func_80014C08(30);
+    waitFrames(30);
     removeFrameCallback((s32)KAW_renderPrizeScreen);
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(KAW_PRIZE_SCREEN);
-    func_80014C08(2);
+    waitFrames(2);
 }

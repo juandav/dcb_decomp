@@ -1,5 +1,5 @@
 /*
- * libgte perspective transforms: func_8005C4A4 (SetGeomScreen),
+ * libgte perspective transforms: SetGeomScreen (SetGeomScreen),
  * RotTransPers, RotTransPers3, RotTrans, RotTransPers4, RotAverage4,
  * RotNclip3, RotNclip4, RotAverageNclip3 and RotAverageNclip4.
  *
@@ -11,7 +11,7 @@
  * - The stack arguments are loaded into $t0-$t3 inside the GTE's latency
  *   window while $v0/$v1 are free, and the RotNclip/RotAverageNclip
  *   variants skip their stores with `bgtz $v0,1f; nop; b end; nop`.
- * - func_8005C4A4 is a lone ctc2 followed by `jr $ra; nop`: the PsyQ build
+ * - SetGeomScreen is a lone ctc2 followed by `jr $ra; nop`: the PsyQ build
  *   (GCC 2.7.2 + ASPSX in reorder mode) puts that ctc2 in the delay slot.
  */
 
@@ -22,11 +22,11 @@
 
 .section .text
 
-glabel func_8005C4A4
+glabel SetGeomScreen
     ctc2       $a0, $26
     jr         $ra
      nop
-endlabel func_8005C4A4
+endlabel SetGeomScreen
     nop
 
 glabel RotTransPers

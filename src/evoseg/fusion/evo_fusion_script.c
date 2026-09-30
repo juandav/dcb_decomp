@@ -139,7 +139,7 @@ void EVO_runFusionScript(EvoProgram *data) {
                     playSoundEffect((s16)data->script->params[0]);
                     break;
                 case 6:
-                    func_80014C08((s16)data->script->params[0]);
+                    waitFrames((s16)data->script->params[0]);
                     break;
                 case 7:
                     EVO_FUSION.rewardStep = data->script->params[0];
@@ -200,8 +200,8 @@ EvoProgram *EVO_loadUnitScript(s32 index) {
     EvoProgram *program;
 
     sprintf(path, "C:\\EVENT\\unit0%d.MSD", index);
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    data = (EvoMsd *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    data = (EvoMsd *)waitFrames(0x7FFFFFFF);
     program = allocHeapBlock(sizeof(EvoProgram), 0x2C);
     program->data = data;
     program->script = EVO_createScriptContext(data);

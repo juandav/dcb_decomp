@@ -29,7 +29,7 @@ void EVO_initScreenFlash(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        func_80067784(&EVO_SCREEN_FLASH.poly[i]);
+        SetPolyF4(&EVO_SCREEN_FLASH.poly[i]);
         SetSemiTrans(&EVO_SCREEN_FLASH.poly[i], 1);
         setPrimQuadRect(&EVO_SCREEN_FLASH.poly[i], 0, 0, 320, 240);
         SetDrawTPage(&EVO_SCREEN_FLASH.tpage[i], 0, 0, 0x20);

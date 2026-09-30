@@ -78,7 +78,7 @@ void SUG_initSpritePolys(Sprite *sprite) {
         u1 = frame->u1;
         v0 = frame->v0;
         v1 = frame->v1;
-        func_800677A4(poly);
+        SetPolyFT4(poly);
         poly->clut = getClut(sheet->clutX, sheet->clutY);
         mode = sheet->mode;
         /* x and y rounded down to their texture page */

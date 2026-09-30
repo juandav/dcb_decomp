@@ -58,10 +58,10 @@ void func_8004ECA0(int start) {
         break;
     }
     if (D_8006F594.vsync != 0) {
-        func_8006A804();
+        EnterCriticalSection();
         VSyncCallback(D_8006F594.tick);
     } else {
-        func_8006A804();
+        EnterCriticalSection();
         ResetRCnt(spec);
         SetRCnt(spec, target, 0x1000);
         if (D_8006F594.irq == 0) {
@@ -73,7 +73,7 @@ void func_8004ECA0(int start) {
             InterruptCallback(D_8006F594.irq, func_8004EF5C);
         }
     }
-    func_8006A814();
+    ExitCriticalSection();
 }
 
 extern long D_8005B85C;

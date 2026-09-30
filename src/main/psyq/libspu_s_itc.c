@@ -10,10 +10,10 @@ long SpuIsTransferCompleted(long flag) {
     if (D_8006EF94 == 1 || D_8006EF58 == 1) {
         return 1;
     }
-    ret = func_8006A7B4(D_8006EF8C);
+    ret = TestEvent(D_8006EF8C);
     if (flag == 1) {
         if (ret == 0) {
-            while (func_8006A7B4(D_8006EF8C) == 0) {
+            while (TestEvent(D_8006EF8C) == 0) {
             }
         }
         ret = 1;

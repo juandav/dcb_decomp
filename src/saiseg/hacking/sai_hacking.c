@@ -59,59 +59,59 @@ void SAI_runSystemErrorHack(void) {
     stopMusic();
     addFrameCallback((s32)SAI_drawErrorWindows);
     setBackgroundScrollMode(1);
-    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 0, getCurrentTaskId(), 0, 0);
-    func_80014C08(360);
+    spawnTask(0, -1, 0, 0x800, runHackingSequence, 0, getCurrentTaskId(), 0, 0);
+    waitFrames(360);
     playMenuSound(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[0], &SAI_ERROR_WINDOW_DEFS[0].rect);
-    func_80014C08(7);
+    waitFrames(7);
     playMenuSound(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[1], &SAI_ERROR_WINDOW_DEFS[1].rect);
-    func_80014C08(8);
+    waitFrames(8);
     playMenuSound(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[2], &SAI_ERROR_WINDOW_DEFS[2].rect);
-    func_80014C08(3);
+    waitFrames(3);
     playMenuSound(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[3], &SAI_ERROR_WINDOW_DEFS[3].rect);
-    func_80014C08(2);
+    waitFrames(2);
     playMenuSound(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[4], &SAI_ERROR_WINDOW_DEFS[4].rect);
-    func_80014C08(110);
+    waitFrames(110);
     playSoundEffect(0x18);
-    func_80014C08(480);
+    waitFrames(480);
     playSoundEffect(0x19);
-    func_80014C08(120);
+    waitFrames(120);
     playSoundEffect(0x19);
-    func_80014C08(240);
+    waitFrames(240);
     animateWindowTo(&SAI_ERROR_WINDOWS[0], (Rect16 *)-1);
     playSoundEffect(0x19);
-    func_80014C08(4);
+    waitFrames(4);
     animateWindowTo(&SAI_ERROR_WINDOWS[1], (Rect16 *)-1);
     playSoundEffect(0x19);
-    func_80014C08(2);
+    waitFrames(2);
     animateWindowTo(&SAI_ERROR_WINDOWS[2], (Rect16 *)-1);
     playSoundEffect(0x19);
-    func_80014C08(3);
+    waitFrames(3);
     animateWindowTo(&SAI_ERROR_WINDOWS[3], (Rect16 *)-1);
     playSoundEffect(0x19);
-    func_80014C08(1);
+    waitFrames(1);
     animateWindowTo(&SAI_ERROR_WINDOWS[4], (Rect16 *)-1);
     playSoundEffect(0x19);
-    func_80014C08(120);
+    waitFrames(120);
     SAI_glitchVram(1);
     removeFrameCallback((s32)SAI_drawErrorWindows);
-    func_80014C08(170);
+    waitFrames(170);
     playSoundEffect(0x18);
-    func_80014C08(30);
+    waitFrames(30);
 }
 
 void SAI_runHackingScene1(void) {
-    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 1, getCurrentTaskId(), 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, runHackingSequence, 1, getCurrentTaskId(), 0, 0);
+    waitFrames(0x7FFFFFFF);
 }
 
 void SAI_runHackingScene3(void) {
-    func_800149B8(0, -1, 0, 0x800, runHackingSequence, 3, getCurrentTaskId(), 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, runHackingSequence, 3, getCurrentTaskId(), 0, 0);
+    waitFrames(0x7FFFFFFF);
 }
 
 void SAI_runHackingEvent(s32 mode, s32 task) {
@@ -132,7 +132,7 @@ void SAI_runHackingEvent(s32 mode, s32 task) {
         break;
     }
     SAI_AREA_MODE = AREA_MODE_SCRIPT;
-    func_80014A48(task);
+    resumeTask(task);
 }
 
 void SAI_flickerHackOverlay(void) {
@@ -153,13 +153,13 @@ void SAI_runHackOverlay(void) {
     SAI_HACK_OVERLAY_STATE = 1;
     for (i = 0; i < 2; i++) {
         SetDrawTPage(&tpages[i], 0, 0, 0x40);
-        func_80067784(&polys[i]);
+        SetPolyF4(&polys[i]);
         SetSemiTrans(&polys[i], 1);
         setPrimQuadRect(&polys[i], 0, 0, 0x140, 0xF0);
         setPrimRgb0(&polys[i], brightness, brightness, brightness);
     }
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (SAI_HACK_OVERLAY_STATE == 1) {
             if (brightness < 0xF7) {
                 brightness += 8;
@@ -186,5 +186,5 @@ void SAI_runHackOverlay(void) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[24], &tpages[FRAME_BUFFER_INDEX]);
         }
     } while (SAI_HACK_OVERLAY_STATE != 0);
-    func_80014C08(1);
+    waitFrames(1);
 }

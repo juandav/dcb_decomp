@@ -15,14 +15,14 @@
 #include "dcb/task.h"
 
 s32 SOUND_LOAD_BUSY = 0;
-extern s8 D_8006E00C[];
-extern s8 D_8006E01C[];
-extern s8 D_8006E02C[];
-s8 *SE_BANK_INFO[3] = { D_8006E00C, D_8006E02C, D_8006E01C };
+extern s8 SE0_BANK_INFO[];
+extern s8 SE1_BANK_INFO[];
+extern s8 SE2_BANK_INFO[];
+s8 *SE_BANK_INFO[3] = { SE0_BANK_INFO, SE2_BANK_INFO, SE1_BANK_INFO };
 /* a name, then the note played at byte 15 */
-s8 D_8006E00C[16] = { 'S', 'E', '0', [15] = 0x3C };
-s8 D_8006E01C[16] = { 'S', 'E', '1', [15] = 0x24 };
-s8 D_8006E02C[16] = { 'S', 'E', '2', [15] = 0x3C };
+s8 SE0_BANK_INFO[16] = { 'S', 'E', '0', [15] = 0x3C };
+s8 SE1_BANK_INFO[16] = { 'S', 'E', '1', [15] = 0x24 };
+s8 SE2_BANK_INFO[16] = { 'S', 'E', '2', [15] = 0x3C };
 s32 MUSIC_CHANGE_BUSY = 0;
 s32 PENDING_MUSIC_CHANGES = 0;
 s32 NEXT_SFX_VOICE = 0x12;
@@ -35,7 +35,7 @@ void initSound(void) {
     SsSetTickMode(1);
     SsStart();
     setReverbType(1);
-    func_80055740();
+    SsSetStereo();
     SOUND_STATE.seBank.buf = allocHeapBlock(0x2100, -2);
     SOUND_STATE.slot[0].buf = allocHeapBlock(0x9300, -2);
     SOUND_STATE.slot[1].buf = allocHeapBlock(0x9300, -2);
@@ -56,7 +56,7 @@ void loadSoundEffectBank(s32 bankId) {
     bank = &SOUND_STATE.seBank;
     if (bank->id != bankId) {
         while (SOUND_LOAD_BUSY != 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
         SOUND_LOAD_BUSY = 1;
         if (bank->id != 0xFF) {
@@ -93,7 +93,7 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
         return;
     }
     while (SOUND_LOAD_BUSY != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     SOUND_LOAD_BUSY = 1;
     setInstantVoiceRelease();
@@ -103,7 +103,7 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
         }
         SsSeqClose(SOUND_STATE.seq[slotIndex]);
         SsVabClose(slot->vab);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     slot->id = trackId;
     SOUND_STATE.vol[slotIndex] = volume;
@@ -129,14 +129,14 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
 
 void setReverbType(s32 reverbType) {
     if (reverbType == 0) {
-        func_80051C70();
+        SsUtReverbOff();
         SsUtSetReverbType(0);
         SsUtSetReverbDepth(0, 0);
         SpuClearReverbWorkArea(0);
         return;
     }
     SsUtSetReverbType((s16) reverbType);
-    func_80051C90();
+    SsUtReverbOn();
     SsUtSetReverbDepth(0x64, 0x64);
 }
 

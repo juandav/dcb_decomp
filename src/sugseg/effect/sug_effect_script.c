@@ -239,7 +239,7 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
         }
         GsGetLw(((Model *)SCENE_3D->models[slots->modelSlots[cmd->source]])->obj[cmd->target].coord2, &m);
         SetRotMatrix((s32)&m);
-        func_8005C444(&m);
+        SetTransMatrix(&m);
     } else {
         xform = (Xform *)slots->slots[id].value;
         saved = *(Xform *)slots->xform;
@@ -1042,7 +1042,7 @@ void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, EffectSlots *slots) {
         slots->slots[index].value = SUG_EFFECT_CREATE_FUNCS[kind](arg, slots);
         slots->count++;
         if ((slots->count & 0xF) == 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
     }
 }
@@ -1056,7 +1056,7 @@ void SUG_freeEffectEntries(EffectSlots *slots) {
             SCENE_3D->modelState[i] = -1;
         }
     }
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     for (i = 0; i < 150; i++) {
         if (slots->slots[i].id != -1) {
             fn = SUG_EFFECT_FREE_FUNCS[slots->slots[i].id];
@@ -1107,7 +1107,7 @@ s32 SUG_pauseEffectScript(EffectScript *runner, s32 *state) {
         *state = 1;
         truncatePakTextures((Chunk *)runner->slots->pak);
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (*state == 1);
     }
 }
@@ -1123,7 +1123,7 @@ void SUG_runEffectScriptTask(void *script, s32 slot, s32 a2, s32 *state) {
         obj = SUG_createEffectScript(script, slot, a2, state);
         running = *obj->regs;
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
             if (*state == 3) {
                 break;
             }

@@ -51,8 +51,8 @@ void func_8005655C(long count, long timeout) {
     while (D_80070AE8 < count) {
         if (--t == -1) {
             puts("VSync: timeout\n");
-            func_8006A884(0);
-            func_8006A894(3, 0);
+            ChangeClearPad(0);
+            ChangeClearRCnt(3, 0);
             return;
         }
     }

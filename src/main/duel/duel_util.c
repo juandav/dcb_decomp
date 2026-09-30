@@ -28,13 +28,13 @@
 
 void waitDuelFrames(s32 frames) {
     while (frames > 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (DUEL->unk823 == 0) {
             frames--;
         }
         if (DUEL->stopTurnLoop != 0) {
             DUEL->stopTurnLoop = 0;
-            func_80014A90();
+            exitTask();
             return;
         }
     }
@@ -45,7 +45,7 @@ s32 func_80033D9C(void) {
 
     if (DUEL->stopTurnLoop != 0) {
         DUEL->stopTurnLoop = 0;
-        func_80014A90();
+        exitTask();
         return -1;
     }
     if (PLAYER(DUEL->turnPlayer)->controller == 1) {
@@ -67,10 +67,10 @@ void waitForCpuDecision(void) {
     while (1) {
         if (DUEL->stopTurnLoop != 0) {
             DUEL->stopTurnLoop = 0;
-            func_80014A90();
+            exitTask();
             return;
         }
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (DUEL->tutorial != 0) {
             DUEL->cpuRequest = 0;
             return;

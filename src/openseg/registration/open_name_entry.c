@@ -363,7 +363,7 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawNameEntry);
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (OPEN_NAME_ENTRY.state == 0) {
             continue;
         }
@@ -394,9 +394,9 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     animateWindowTo(&OPEN_NAME_HELP_WINDOW, (Rect16 *)-1);
     animateWindowTo(&OPEN_NAME_ENTRY_WINDOW, (Rect16 *)-1);
     animateWindowTo(&OPEN_NAME_WINDOW, (Rect16 *)-1);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawNameEntry);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 /* the last three bytes are leftovers in the original, not zero padding */

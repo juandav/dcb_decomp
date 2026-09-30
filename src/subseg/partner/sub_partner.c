@@ -859,11 +859,11 @@ void SUB_runPartnerEquipment(s32 player, s32 parentTask, s32 viewOnly) {
     s32 result;
     s32 i;
 
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\PARTNER.ARC", getCurrentTaskId());
-    archive = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\PARTNER.ARC", getCurrentTaskId());
+    archive = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(archive[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)archive + archive[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(archive);
@@ -923,13 +923,13 @@ void SUB_runPartnerEquipment(s32 player, s32 parentTask, s32 viewOnly) {
     animateWindowTo(&SUB_ARMOR_WINDOW, (Rect16 *)-1);
     addFrameCallback((s32)SUB_drawPartnerEquipment);
     for (;;) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         switch (state) {
         case -1:
             SUB_PARTNER_TITLE_SHOWN = 0;
-            func_80014C08(20);
+            waitFrames(20);
             removeFrameCallback((s32)SUB_drawPartnerEquipment);
-            func_80014A48(parentTask);
+            resumeTask(parentTask);
             return;
         case 0:
             if (SUB_ARMOR_WINDOW_ANIM_DONE != 0 && SUB_PARTNER_WINDOW_ANIM_DONE != 0) {

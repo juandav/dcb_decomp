@@ -12,10 +12,10 @@ int _err_math(int code, int arg) {
     D_8006EF20 = arg;
     switch (code) {
     case 33:
-        func_8006A784(0xF4000002, 0x301);
+        DeliverEvent(0xF4000002, 0x301);
         break;
     case 34:
-        func_8006A784(0xF4000002, 0x302);
+        DeliverEvent(0xF4000002, 0x302);
         break;
     }
     return 0;

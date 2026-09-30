@@ -448,7 +448,7 @@ s32 KAW_chargeDpCard(s32 card, s32 player) {
 s32 KAW_redrawHand(s32 player) {
     s32 i;
 
-    while (func_80014C08(20), countEmptyHandSlots(player) != 4) {
+    while (waitFrames(20), countEmptyHandSlots(player) != 4) {
         for (i = 0; i < 4; i++) {
             if (((Player *)DUEL_PLAYERS[player])->hand[i] != -1) {
                 SPRITE_KIND(((Player *)DUEL_PLAYERS[player])->hand[i]) = 8;
@@ -459,7 +459,7 @@ s32 KAW_redrawHand(s32 player) {
         }
     }
     while (KAW_drawCardToHand(player) != -1) {
-        func_80014C08(20);
+        waitFrames(20);
         KAW_checkHandBonuses(player);
     }
 }
@@ -555,7 +555,7 @@ void KAW_drawCard3D(Icon3D *icon, s32 z, RawPolyFT4 *pk) {
     buildRotTransMatrix(&icon->pos, &icon->rot, &matrix);
     CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
-    func_8005C444(&matrix);
+    SetTransMatrix(&matrix);
     vertices[0].vx = -20;
     vertices[0].vy = -24;
     vertices[0].vz = 0;
@@ -610,7 +610,7 @@ void KAW_drawCard3D(Icon3D *icon, s32 z, RawPolyFT4 *pk) {
 
 void KAW_waitForCross(void) {
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
 }
 

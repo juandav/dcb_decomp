@@ -227,8 +227,8 @@ void loadCardDatabase(void) {
     s32 i;
     s32 cardId;
 
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", getCurrentTaskId(), -2);
-    CARD_DB_FILE = (u8 *)(file = (CardDbHeader *)func_80014C08(0x7FFFFFFF));
+    spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\CARD2.CDD", getCurrentTaskId(), -2);
+    CARD_DB_FILE = (u8 *)(file = (CardDbHeader *)waitFrames(0x7FFFFFFF));
     DIGIMON_CARDS = (u8 *)(file + 1);
     OPTION_CARDS = (u8 *)&((DigimonCardData *)DIGIMON_CARDS)[file->digimonCount];
     DIGIVOLVE_CARDS = (u8 *)&((OptionCardData *)OPTION_CARDS)[file->optionCount];

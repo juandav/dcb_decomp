@@ -47,7 +47,7 @@ void func_801E5710(void);
 #define WAIT_FOR_CPU_REQUEST()           \
     do {                                 \
         DUEL->cpuRequest = 0;            \
-        func_80014C08(FRAME_INTERVAL);   \
+        waitFrames(FRAME_INTERVAL);   \
     } while (0)
 
 void runCpuDecisionTask(void) {
@@ -85,7 +85,7 @@ void runCpuDecisionTask(void) {
             case 6:
                 func_801E0CCC(DUEL->cpuPlayer);
                 func_801E4E58(DUEL->cpuPlayer);
-                func_80014C08(60);
+                waitFrames(60);
                 break;
             case 7:
                 func_801E0CCC(DUEL->cpuPlayer);

@@ -39,21 +39,21 @@ void quitToTitleOrPlayEnding(s32 mode) {
     parentTask = getCurrentTaskId();
     if (mode == 0) {
         freeScrollingBackground();
-        func_80014C08(10);
+        waitFrames(10);
         ClearImage(&vramRect, 0, 0, 0);
         DrawSync(0);
-        func_80014C08(10);
+        waitFrames(10);
         done = 0;
         stopMusic();
-        func_80014C08(10);
-        func_800149B8(0, -1, 0, 0x800, playOpeningMovie, 1, parentTask);
-        func_80014C08(0x7FFFFFFF);
+        waitFrames(10);
+        spawnTask(0, -1, 0, 0x800, playOpeningMovie, 1, parentTask);
+        waitFrames(0x7FFFFFFF);
         resetDisplay(0x140, 0xF0, 0);
-        func_800149B8(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
-        func_80014C08(2);
+        spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
+        waitFrames(2);
         do {
-            func_800149B8(0, -1, 0, 0x600, D_801EBAFC, 8, parentTask, 0, 0);
-            func_80014C08(0x7FFFFFFF);
+            spawnTask(0, -1, 0, 0x600, D_801EBAFC, 8, parentTask, 0, 0);
+            waitFrames(0x7FFFFFFF);
             playMenuSound(3);
             initDialog(dialog,
                           "*c6 Is it OK to return to Title Screen?\n*c3(Unless you save the game now,\nyou won't be able "
@@ -70,21 +70,21 @@ void quitToTitleOrPlayEnding(s32 mode) {
                 break;
             }
         } while (!done);
-        func_80014C08(20);
-        func_80014A48(0);
-        func_80014A90();
+        waitFrames(20);
+        resumeTask(0);
+        exitTask();
     } else {
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(10);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-        func_80014C08(0x7FFFFFFF);
-        func_80014C08(2);
-        func_800149B8(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x800, D_801DF47C, parentTask, mode, 0, 0);
+        waitFrames(0x7FFFFFFF);
+        waitFrames(10);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, parentTask, 0, 0);
     }
 }

@@ -16,8 +16,8 @@ s32 D_8006DD3C[2] = { 0, 0 };
  * stack gets; the heap is what lies between the end of .bss and the stack.
  * Nothing in the game reads them.
  */
-u32 D_8006DD44 = 0x200000; /* _ramsize: the PlayStation's 2 MB */
-u32 D_8006DD48 = 0x8000;   /* _stacksize: 32 KB */
+u32 _ramsize = 0x200000; /* the PlayStation's 2 MB */
+u32 _stacksize = 0x8000;   /* 32 KB */
 
 int main(void) {
     Rect16 vramRect;
@@ -34,7 +34,7 @@ int main(void) {
     DrawSync(0);
     SsInit();
     resetHeap(1);
-    func_800149A8(1, 0x400, runMainTask, 0, 0, 0, 0);
+    launchTaskScheduler(1, 0x400, runMainTask, 0, 0, 0, 0);
     for (;;) {
         rand();
     }

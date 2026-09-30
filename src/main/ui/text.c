@@ -38,8 +38,8 @@ void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize) {
     SYSTEM_CLUT_X = vramX + 0x20;
     SYSTEM_CLUT_Y = vramY + 0xF8;
     SPRITE_POOL_SIZE = poolSize;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", getCurrentTaskId());
-    tim = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\SYSTEM.TIM", getCurrentTaskId());
+    tim = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTim(tim, SYSTEM_TEX_X, SYSTEM_TEX_Y, -2, -2);
     image = &LOADED_TIM;
     r.x = SYSTEM_CLUT_X;
@@ -963,11 +963,11 @@ void drawIconColored(s32 x, s32 y, s32 iconSet, s32 icon, u8 *rgb, s32 z) {
     }
 }
 
-void func_80029EC4(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text) {
-    func_80029EFC(x, y, palette, unused, (u8 *)&DEFAULT_TEXT_RGB, z, (u8 *)text);
+void drawIconText(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text) {
+    drawIconTextColored(x, y, palette, unused, (u8 *)&DEFAULT_TEXT_RGB, z, (u8 *)text);
 }
 
-s32 func_80029EFC(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text) {
+s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text) {
     s32 startX;
     s32 spacing;
     s32 lineSpacing;

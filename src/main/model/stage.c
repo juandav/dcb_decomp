@@ -131,7 +131,7 @@ void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
         models->modelId = -2;
         if (DUEL->loadBusy == 1) {
             do {
-                func_80014C08(FRAME_INTERVAL);
+                waitFrames(FRAME_INTERVAL);
             } while (DUEL->loadBusy == 1);
         }
         DUEL->loadBusy = 1;
@@ -168,7 +168,7 @@ void runDuelStageTask(s32 stageId) {
 
     if (DUEL->loadBusy == 1) {
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (DUEL->loadBusy == 1);
     }
     DUEL->loadBusy = 1;
@@ -184,7 +184,7 @@ void runDuelStageTask(s32 stageId) {
     DUEL_DIGIMON_MODELS[0].modelId = DUEL_DIGIMON_MODELS[1].modelId = -1;
     DUEL->loadBusy = 0;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             battleCard = (DigimonCardData *)PLAYER(i)->battleCard;
             if (battleCard != 0 && battleCard->modelId != DUEL_DIGIMON_MODELS[i].modelId) {
@@ -209,21 +209,21 @@ void runDuelStageTask(s32 stageId) {
 
 void playPolygonBattle(void) {
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (DUEL_DIGIMON_MODELS[0].modelId <= 0 || DUEL_DIGIMON_MODELS[1].modelId <= 0 || DUEL->loadBusy == 1);
     DUEL->loadBusy = 1;
-    func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
-    func_80014C08(2);
+    waitFrames(2);
+    spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
+    waitFrames(2);
     playLoadedMusic(1);
-    func_800149B8(0, -1, 0, 0x2000, D_801EEE90, 0, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x2000, D_801EEE90, 0, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
     SCENE_3D_ENABLED = 0;
-    func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
-    func_80014C08(2);
+    waitFrames(2);
+    spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\kawseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
+    waitFrames(2);
     playLoadedMusic(0);
     DUEL->loadBusy = 0;
 }
@@ -236,8 +236,8 @@ void loadArenaStage(s32 stageId) {
         stageId = rand() % 12 + 0x2C;
     }
     sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + 900);
-    func_800149B8(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
-    STAGE_PAK = func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
+    STAGE_PAK = waitFrames(0x7FFFFFFF);
     /* the stage is model slot 23 */
     loadModel(0x17, ARENA_STAGES[stageId].bg + 900, 0, STAGE_PAK, 0);
     SCENE_3D->modelState[0x17] = -1;
@@ -255,7 +255,7 @@ void loadArenaStage(s32 stageId) {
     STAGE_CLEAR_COLOR[0] = ARENA_STAGES[stageId].rgb[0];
     STAGE_CLEAR_COLOR[1] = ARENA_STAGES[stageId].rgb[1];
     STAGE_CLEAR_COLOR[2] = ARENA_STAGES[stageId].rgb[2];
-    D_8006DF80 = ARENA_STAGES[stageId].unk7;
+    STAGE_FADE_LEVEL = ARENA_STAGES[stageId].fadeLevel;
 }
 
 void showArenaStage(s16 rotX) {
@@ -270,8 +270,8 @@ void showArenaStage(s16 rotX) {
     DrawSync(0);
     freeHeapBlock((void *)tim);
     if (rotX != 0 && (SCENE_3D->stageFlags & 2)) {
-        func_80014A00(0x1B);
-        func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
+        endTask(0x1B);
+        spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }

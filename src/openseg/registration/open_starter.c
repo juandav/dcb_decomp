@@ -49,8 +49,8 @@ void OPEN_giveStarterDeck(s32 deck) {
     s32 i;
     u16 card;
 
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\DECK2.DEK", getCurrentTaskId(), -2);
-    file = (u8 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\DECK2.DEK", getCurrentTaskId(), -2);
+    file = (u8 *)waitFrames(0x7FFFFFFF);
     decks = (DeckFile *)(file + 8);
     obtainPartner(0, deck);
     for (i = 0; i < 30; i++) {
@@ -211,15 +211,15 @@ void OPEN_runStarterSelect(s32 parentTask) {
     u32 *arc;
     s32 i;
 
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\BCARD.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\BCARD.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
         DrawSync(0);
     }
     freeHeapBlock(arc);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\P_CARD.ARC", getCurrentTaskId());
-    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\P_CARD.ARC", getCurrentTaskId());
+    arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < 3; i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), i * 20 + 0x2C0, 0, -1, -1);
         DrawSync(0);
@@ -242,12 +242,12 @@ void OPEN_runStarterSelect(s32 parentTask) {
     cursor.w = 12;
     cursor.h = 12;
     initCursorHighlight(&OPEN_STARTER_CURSOR, &cursor, (Bytes4 *)-1);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawStarterSelectWindow);
     OPEN_INTRO_TEXT.waitInput = 1;
     while (1) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (OPEN_INTRO_TEXT.page == 5 && (PAD_STATES[0]->pressed & 0x40)) {
             playMenuSound(1);
             OPEN_INTRO_TEXT.waitInput = 0;
@@ -273,10 +273,10 @@ void OPEN_runStarterSelect(s32 parentTask) {
     animateWindowTo(&OPEN_STARTER_WINDOW, (Rect16 *)-1);
     playMenuSound(4);
     freeHeapBlock(arc);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawStarterSelectWindow);
     OPEN_giveStarterDeck(OPEN_STARTER_SELECT.deck);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 /* the last three bytes are leftovers in the original, not zero padding */

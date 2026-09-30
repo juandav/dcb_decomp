@@ -130,7 +130,7 @@ s32 KAW_resolveBattle(s32 quiet) {
                     CARD_SPR(card)->rgbc[2] = 0xFF;
                     if (SPRITE_KIND(card) == 0x19) {
                         SPRITE_KIND(card) = 0x10;
-                        func_80014C08(0x10);
+                        waitFrames(0x10);
                     }
                     KAW_playCardEffect(0x13, player, 1);
                     CARD_SPR(card)->rgbc[0] = 0x80;
@@ -157,7 +157,7 @@ s32 KAW_resolveBattle(s32 quiet) {
             if (!quiet && k < 4 && effects[k].order == i && getPlayedCard(player) != -1) {
                 if (SPRITE_KIND(getPlayedCard(player)) == 0x19) {
                     SPRITE_KIND(getPlayedCard(player)) = 0x10;
-                    func_80014C08(0x10);
+                    waitFrames(0x10);
                 }
                 card = getPlayedCard(player);
                 CARD_SPR(card)->rgbc[0] = 0xFF;
@@ -233,7 +233,7 @@ s32 KAW_resolveBattle(s32 quiet) {
             if (getPlayedCard(player) != -1 && (effects[i].order | effects[i + 2].order) == 0) {
                 if (SPRITE_KIND(getPlayedCard(player)) == 0x19) {
                     SPRITE_KIND(getPlayedCard(player)) = 0x10;
-                    func_80014C08(0x10);
+                    waitFrames(0x10);
                 }
                 card = getPlayedCard(player);
                 CARD_SPR(card)->rgbc[0] = 0xFF;
@@ -558,7 +558,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
             }
             if (!quiet) {
                 showStatChangePopup(self, value, slot + 1);
-                func_80014C08(6);
+                waitFrames(6);
             }
         }
         STATS(self)->attackDamage[slot] = value;
@@ -571,7 +571,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
             }
             if (!quiet) {
                 showStatChangePopup(other, value, slot + 1);
-                func_80014C08(6);
+                waitFrames(6);
             }
         }
         STATS(other)->attackDamage[slot] = value;
@@ -613,7 +613,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 if (removeCardFromHand(card, self) != -1) {
                     SPRITE_KIND(card) = 8;
                     discardCardToOfflineDeck(card, self);
-                    func_80014C08(20);
+                    waitFrames(20);
                 }
             }
         }
@@ -631,7 +631,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 if (removeCardFromHand(card, other) != -1) {
                     SPRITE_KIND(card) = 8;
                     discardCardToOfflineDeck(card, other);
-                    func_80014C08(20);
+                    waitFrames(20);
                 }
             }
         }
@@ -652,7 +652,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                         removeCardFromHand(PLAYER(self)->hand[i], self) != -1) {
                         SPRITE_KIND(PLAYER(self)->hand[i]) = 8;
                         discardCardToOfflineDeck(PLAYER(self)->hand[i], self);
-                        func_80014C08(20);
+                        waitFrames(20);
                     }
                 }
             }
@@ -674,7 +674,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                         removeCardFromHand(PLAYER(other)->hand[i], other) != -1) {
                         SPRITE_KIND(PLAYER(other)->hand[i]) = 8;
                         discardCardToOfflineDeck(PLAYER(other)->hand[i], other);
-                        func_80014C08(20);
+                        waitFrames(20);
                     }
                 }
             }
@@ -693,7 +693,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 returnCardToOnlineDeck(card, self);
                 removeCardFromHand(card, self);
                 SPRITE_KIND(card) = 1;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -710,7 +710,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 returnCardToOnlineDeck(card, self);
                 removeCardFromHand(card, other);
                 SPRITE_KIND(card) = 1;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -720,7 +720,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 discardCardToOfflineDeck(card, self);
                 drawOnlineDeckCard(self);
                 SPRITE_KIND(card) = 8;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -730,7 +730,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 discardCardToOfflineDeck(card, other);
                 drawOnlineDeckCard(other);
                 SPRITE_KIND(card) = 8;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -740,7 +740,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 returnCardToOnlineDeck(card, self);
                 takeOfflineDeckTopCard(self);
                 SPRITE_KIND(card) = 1;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -750,7 +750,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 returnCardToOnlineDeck(card, other);
                 takeOfflineDeckTopCard(other);
                 SPRITE_KIND(card) = 1;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -760,7 +760,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 discardCardToOfflineDeck(card, self);
                 removeCardFromDpSlots(card, self);
                 SPRITE_KIND(card) = 8;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -770,7 +770,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 discardCardToOfflineDeck(card, other);
                 removeCardFromDpSlots(card, other);
                 SPRITE_KIND(card) = 8;
-                func_80014C08(20);
+                waitFrames(20);
             }
         }
         break;
@@ -814,7 +814,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 n = addCardToHand(card, self);
                 SPRITE_KIND(card) = 3;
                 CARD_ANIM(card)->handSlot = n;
-                func_80014C08(20);
+                waitFrames(20);
                 KAW_checkHandBonuses(self);
             } else {
                 SHOW_EFFECT_FAILED(self);
@@ -844,7 +844,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 n = addCardToHand(card, self);
                 SPRITE_KIND(card) = 3;
                 CARD_ANIM(card)->handSlot = n;
-                func_80014C08(20);
+                waitFrames(20);
                 KAW_checkHandBonuses(self);
             }
         }
@@ -856,7 +856,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 n = addCardToHand(card, other);
                 SPRITE_KIND(card) = 3;
                 CARD_ANIM(card)->handSlot = n;
-                func_80014C08(20);
+                waitFrames(20);
                 KAW_checkHandBonuses(self);
             }
         }

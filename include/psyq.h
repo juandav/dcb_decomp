@@ -316,7 +316,6 @@ short _SsVabOpenHeadWithMode(unsigned char *addr, short vabId, long (*alloc)(), 
 void SysDeqIntRP(int, u_char *);
 void ChangeClearRCnt(int, int);
 void func_8002B018(void);
-void func_8006A784(u_long, int);
 void func_80056D0C();
 void *func_80056D78();
 void func_80056DA4(long *p, int n);
@@ -467,7 +466,7 @@ extern long D_8005B9B0;
 extern long D_8005BA18;
 extern long D_80080C20;
 
-void func_80051C70(void);
+void SsUtReverbOff(void);
 void func_80034BE8(void);
 extern u_char D_800555C1[];
 

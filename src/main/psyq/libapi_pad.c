@@ -18,10 +18,10 @@ long ReadInitPadFlag(void) {
 
 void PAD_init(char *bufA, long lenA, char *bufB, long lenB) {
     _remove_ChgclrPAD();
-    func_8006A804();
+    EnterCriticalSection();
     _patch_pad();
-    func_8006A814();
-    func_8006A884(0);
+    ExitCriticalSection();
+    ChangeClearPad(0);
     func_8006AE30();
     func_8006AF74(bufA, lenA, bufB, lenB);
     D_80077928 = 1;
@@ -29,10 +29,10 @@ void PAD_init(char *bufA, long lenA, char *bufB, long lenB) {
 
 long InitPAD(char *bufA, long lenA, char *bufB, long lenB) {
     _remove_ChgclrPAD();
-    func_8006A804();
+    EnterCriticalSection();
     _patch_pad();
-    func_8006A814();
-    func_8006A884(0);
+    ExitCriticalSection();
+    ChangeClearPad(0);
     func_8006AE30();
     func_8006AF54(bufA, lenA, bufB, lenB);
     D_80077928 = 1;
@@ -40,7 +40,7 @@ long InitPAD(char *bufA, long lenA, char *bufB, long lenB) {
 
 long StartPAD(void) {
     func_8006AF64();
-    func_8006A884(0);
+    ChangeClearPad(0);
     EnablePAD();
     return 1;
 }
@@ -56,14 +56,14 @@ void func_8006AF94(int prio, void *rp);
 void func_8006AF84(int prio, void *rp);
 
 int func_8006AE30(void) {
-    func_8006A804();
+    EnterCriticalSection();
     D_801DDC74[0] = func_8006AEA8;
     D_801DDC74[1] = func_8006AF10;
     D_801DDC70 = 0;
     D_801DDC7C = 0;
     func_8006AF94(1, &D_801DDC74[-1]);
     func_8006AF84(1, &D_801DDC74[-1]);
-    func_8006A814();
+    ExitCriticalSection();
     return 1;
 }
 

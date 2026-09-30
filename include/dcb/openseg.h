@@ -180,6 +180,6 @@ extern u8 OPEN_MEMCARD_STATE;
 extern s8 OPEN_MEMCARD_READY;
 extern u8 OPEN_MEMCARD_FREE_BLOCKS;
 
-void func_80055730(void);
+void SsSetMono(void);
 
 #endif /* DCB_OPENSEG_H */

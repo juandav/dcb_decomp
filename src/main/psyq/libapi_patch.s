@@ -38,7 +38,7 @@ endlabel DisablePAD
 glabel _patch_pad
     lui        $at, %hi(D_801DDC80)
     sw         $ra, %lo(D_801DDC80)($at)
-    jal        func_8006A804
+    jal        EnterCriticalSection
      nop
     addiu      $t1, $zero, 0x57
     addiu      $t2, $zero, 0xB0
@@ -58,7 +58,7 @@ glabel _patch_pad
     addiu      $t1, $t1, -0x1
     bnez       $t1, .L8006B00C
      nop
-    jal        func_8006A744
+    jal        FlushCache
      nop
     lui        $ra, %hi(D_801DDC80)
     lw         $ra, %lo(D_801DDC80)($ra)

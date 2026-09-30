@@ -15,11 +15,11 @@
 #include "dcb/task.h"
 
 void playOpeningMovie(s32 movieMode, s32 parentTask) {
-    func_80014C08(2);
-    func_800149B8(0, -1, 0, 0x1000, &loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
-    func_80014C08(2);
+    waitFrames(2);
+    spawnTask(0, -1, 0, 0x1000, &loadFileToAddress, "P:\\openseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
+    waitFrames(2);
     func_801DFBAC("\\DIGIMON.MOV;1");
     func_801E055C(movieMode);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }

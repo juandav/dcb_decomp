@@ -13,7 +13,7 @@ void SAI_initPanelCover(void) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        func_80067784(&SAI_AREA.coverPolys[i]);
+        SetPolyF4(&SAI_AREA.coverPolys[i]);
         SetSemiTrans(&SAI_AREA.coverPolys[i], 1);
         SetDrawTPage(&SAI_AREA.coverTpages[i], 0, 0, 0x40);
         SAI_AREA.coverPolys[i].b0 = 0xFF;
@@ -48,7 +48,7 @@ void SAI_drawPanelCover(void) {
     buildRotTransMatrix(&SAI_AREA.pos, &SAI_AREA.rot, &matrix);
     CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
-    func_8005C444(&matrix);
+    SetTransMatrix(&matrix);
     corners[0] = SAI_AREA.corners[0];
     corners[1] = SAI_AREA.corners[1];
     corners[2] = SAI_AREA.corners[2];
@@ -77,7 +77,7 @@ void func_801E2D90(void) {
     if (SAI_AREA.unk11E != 0) {
         SAI_SPRITES[0] = SAI_createSprite(4);
         SAI_AREA.unk116 = 1;
-        func_80014C08(20);
+        waitFrames(20);
         SAI_toggleMessageWindow(1);
     } else {
         if (D_801F469E == 0) {

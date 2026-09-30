@@ -49,7 +49,7 @@ void EVO_cancelPartnerFusion(void) {
 
 void EVO_leaveForCutscene(void) {
     setScreenFadeParams(0, 2, 6);
-    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
+    spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
     EVO_FUSION.cutscene = 1;
 }
 
@@ -185,7 +185,7 @@ void EVO_addPartnerExp(void) {
                 EVO_RANK_UP_STATE = 2;
                 animateWindowTo(&EVO_RANK_UP_WINDOW, &EVO_RANK_UP_RECT);
                 do {
-                    func_80014C08(1);
+                    waitFrames(1);
                 } while (!(PAD_STATES[0]->pressed & 0x40));
                 playMenuSound(1);
                 animateWindowTo(&EVO_RANK_UP_WINDOW, (Rect16 *)-1);

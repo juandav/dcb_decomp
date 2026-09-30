@@ -488,7 +488,7 @@ void KAW_showBonusBanner(s32 player, s32 id) {
     h = 0;
     frame = 0;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (frame < 100) {
             x += 16;
             if (x > 160) {

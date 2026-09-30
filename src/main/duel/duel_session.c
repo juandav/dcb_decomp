@@ -54,8 +54,8 @@ void startDuelScene(void) {
     Graphics *camera;
 
     initScene3D(0);
-    func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
-    func_80014C08(2);
+    spawnTask(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
+    waitFrames(2);
     camera = (Graphics *)&GRAPHICS;
     camera->rotX = 0;
     camera->rotY = 0;
@@ -70,7 +70,7 @@ void startDuelScene(void) {
     camera->targetModel = -1;
     camera->snapCamera = 1;
     DUEL->loadBusy = 0;
-    func_80014C08(2);
+    waitFrames(2);
 }
 
 void spawnDuelTasks(s32 isCpuDuel) {
@@ -78,11 +78,11 @@ void spawnDuelTasks(s32 isCpuDuel) {
     s32 stageArg;
 
     DUEL->cursor = (u8 *)func_801F8998(0, 0x26, 0x2E, 0xA, 1);
-    func_800149B8(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
+    spawnTask(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
     if ((isCpuDuel != 0) && (DUEL->tutorial == 0)) {
-        func_800149B8(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
     }
-    func_800149B8(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, &runCardArtLoader, 0, 0, 0, 0);
     if (isCpuDuel != 0) {
         stageId = ((SessionData *)D_8006E054)->opponentDeck.stageId;
         stageArg = ((SessionData *)D_8006E054)->opponentDeck.unk68[1];
@@ -90,11 +90,11 @@ void spawnDuelTasks(s32 isCpuDuel) {
         stageId = -1;
         stageArg = -1;
     }
-    func_800149B8(0, -1, 0, 0x1000, &runDuelStageTask, stageId, stageArg, 0, 0);
+    spawnTask(0, -1, 0, 0x1000, &runDuelStageTask, stageId, stageArg, 0, 0);
 }
 
 void teardownDuelScene(void) {
-    func_80014A00(0x19);
+    endTask(0x19);
     func_801F848C();
     func_801F88E8();
     freeHeapBlocksByTag(0x7F);
@@ -171,7 +171,7 @@ void runDuel(s32 mode, s32 parent) {
     DUEL->fade = 0x80;
     DUEL->inPolygonBattle = 0;
     for (;;) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         switch (DUEL->state) {
         case -1:
             addFrameCallback((s32)renderDuelFrame);
@@ -257,7 +257,7 @@ void runDuel(s32 mode, s32 parent) {
         case 23:
             ((Graphics *)&GRAPHICS)->rotZ += 8;
             if (++timer == 60) {
-                func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
+                spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 6, 0);
             }
             if (timer == 120) {
                 removeFrameCallback((s32)renderWireGrid);
@@ -274,7 +274,7 @@ void runDuel(s32 mode, s32 parent) {
             break;
         case 4:
             DUEL->state++;
-            func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 4, 0);
+            spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 4, 0);
             break;
         case 6:
             stopScreenFade();
@@ -321,24 +321,24 @@ void runDuel(s32 mode, s32 parent) {
     DUEL->stopCpuTask = -1;
     DUEL->fade = 0x80;
     while (DUEL->stopStageTask | DUEL->stopArtLoader) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     loadScrollingBackground();
-    func_800149B8(0, -1, 0, 0x800, D_801F2A40, mode, winner, ((SessionData *)D_8006E054)->opponentDeckIndex, 0);
-    func_80014C08(FRAME_INTERVAL);
+    spawnTask(0, -1, 0, 0x800, D_801F2A40, mode, winner, ((SessionData *)D_8006E054)->opponentDeckIndex, 0);
+    waitFrames(FRAME_INTERVAL);
     while (D_801FC734 != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (D_801FC734 == 1) {
             removeFrameCallback((s32)renderDuelFrame);
         }
     }
     while (DUEL->stopTurnLoop != 0) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
     func_801F8DB4(DUEL->cursor);
     if (DUEL->tutorial == 0 && mode != 0) {
         while (DUEL->stopCpuTask != 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
         if (((SessionData *)D_8006E054)->npcDeckIndex[0] != -1) {
             restorePartners(0);
@@ -420,8 +420,8 @@ void runDuel(s32 mode, s32 parent) {
     func_801F61E4();
     teardownDuelScene();
     func_801EA7E8();
-    func_80014C08(4);
+    waitFrames(4);
     stopMusic();
-    func_80014A48(parent, winner);
+    resumeTask(parent, winner);
 }
 

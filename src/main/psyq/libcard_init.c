@@ -9,9 +9,9 @@ extern void (*D_8006F59C[])();
 void InitCARD(long val) {
     int ret;
 
-    func_8006A884(0);
+    ChangeClearPad(0);
     VSync(0);
-    ret = func_8006A804();
+    ret = EnterCriticalSection();
     if (ReadInitPadFlag() == 0) {
         val = 0;
     }
@@ -21,17 +21,17 @@ void InitCARD(long val) {
     _patch_card2();
     _patch_card_info();
     if (ret == 1) {
-        func_8006A814();
+        ExitCriticalSection();
     }
 }
 
 long StartCARD(void) {
-    int ret = func_8006A804();
+    int ret = EnterCriticalSection();
 
     func_800689A4();
-    func_8006A884(0);
+    ChangeClearPad(0);
     if (ret == 1) {
-        func_8006A814();
+        ExitCriticalSection();
     }
     return 0;
 }

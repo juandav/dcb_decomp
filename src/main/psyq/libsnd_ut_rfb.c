@@ -15,10 +15,10 @@ void SsUtSetReverbFeedback(short feedback) {
 }
 OBJECT_END(1);
 
-void func_80051C70(void) {
+void SsUtReverbOff(void) {
     SpuSetReverb(0);
 }
 
-void func_80051C90(void) {
+void SsUtReverbOn(void) {
     SpuSetReverb(1);
 }

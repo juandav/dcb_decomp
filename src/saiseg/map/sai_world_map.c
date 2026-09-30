@@ -114,7 +114,7 @@ void SAI_initPathPolys(void) {
         DB(i).primSlots[1] = (s32)(SAI_MAP_PATH_POLYS[i] = allocHeapBlock(20 * sizeof(PolyF4), 0x28));
         poly = SAI_MAP_PATH_POLYS[i];
         for (j = 0; j < 20; j++, poly++) {
-            func_80067784(poly);
+            SetPolyF4(poly);
             poly->r0 = 0x7F;
             poly->g0 = 0x44;
             poly->b0 = 0xC;
@@ -136,8 +136,8 @@ void SAI_loadMapTextures(s32 useMap) {
     } else {
         sprintf(path, "C:\\OBJECT\\map.TIS");
     }
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
     *(s32 *)&((SessionData *)D_8006E054)->unk100C->unk0[0x194] = 0;
@@ -147,7 +147,7 @@ void SAI_initCamera(void) {
     Graphics *camera;
 
     initScene3D(0);
-    func_800149B8(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
+    spawnTask(0x19, -1, 0, 0x800, &runSceneCameraTask, 0);
     camera = (Graphics *)&GRAPHICS;
     camera->rotX = 0;
     camera->rotY = 0;
@@ -192,7 +192,7 @@ void SAI_runCornerIcon(s32 state) {
         s16 rect[4] = { 0x220, 0xE1, 0x20, 1 };
 
         changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
-        func_80014C08(2);
+        waitFrames(2);
         MoveImage2((Rect16 *)rect, 0x380, 0x80);
         setBackgroundScrollMode(1);
         state = 2;
@@ -214,7 +214,7 @@ void SAI_runCornerIcon(s32 state) {
     SAI_WORLD_MAP.iconRunning = 1;
     SAI_WORLD_MAP.iconMotion = state;
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (SAI_ICON_MOTION_FUNCS[SAI_WORLD_MAP.iconMotion] != NULL) {
             SAI_ICON_MOTION_FUNCS[SAI_WORLD_MAP.iconMotion]();
         }
@@ -828,7 +828,7 @@ void SAI_fadeOutRegion(void) {
         } else {
             if (SAI_WORLD_MAP.menuChosen != 1) {
                 ((PlayerProfile *)PLAYER_PROFILES)->unkE = SESSION->area = SAI_WORLD_MAP.nodeIndex;
-                func_800149B8(0, -1, 0, 0x400, SAI_loadAreaPak, 0, getCurrentTaskId, 0, 0);
+                spawnTask(0, -1, 0, 0x400, SAI_loadAreaPak, 0, getCurrentTaskId, 0, 0);
             }
             SAI_MAP_MENU_TAB_STATE = 3;
             SAI_WORLD_MAP.labelRegion = -1;
@@ -1205,9 +1205,9 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     s8 node;
 
     if (resume == 0) {
-        func_800149B8(0, -1, 0, 0x400, SAI_loadMapTextures, 0, getCurrentTaskId, 0, 0);
+        spawnTask(0, -1, 0, 0x400, SAI_loadMapTextures, 0, getCurrentTaskId, 0, 0);
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SESSION->loading != 0);
     }
     loadSoundEffectBank(1);
@@ -1216,7 +1216,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     SAI_unlockMapNodes();
     SAI_createMapMenuTab(0);
     if (SAI_ICON_RUNNING != 1) {
-        func_800149B8(0, -1, 0, 0x400, SAI_runCornerIcon, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x400, SAI_runCornerIcon, 0, getCurrentTaskId(), 0, 0);
     }
     SAI_MAP_ANIMS = allocTaskHeapBlock(sizeof(MapAnim) * 6);
     SAI_initMapAnims(SAI_WORLD_MAP.region);
@@ -1252,7 +1252,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     }
     SAI_setSpriteDepth(SAI_SPRITES[2], 0x23);
     for (i = 0; i < 2; i++) {
-        func_80067784(&SAI_WORLD_MAP.fades[i]);
+        SetPolyF4(&SAI_WORLD_MAP.fades[i]);
         SetSemiTrans(&SAI_WORLD_MAP.fades[i], 1);
         SetDrawTPage(&SAI_WORLD_MAP.tpages[i], 0, 0, 0x40);
         SAI_WORLD_MAP.fades[i].r0 = SAI_WORLD_MAP.fades[i].g0 = SAI_WORLD_MAP.fades[i].b0 = 0xFF;
@@ -1262,7 +1262,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
         SAI_WORLD_MAP.fades[i].y2 = SAI_WORLD_MAP.fades[i].y3 = 0xC8;
     }
     do {
-        func_80014C08(1);
+        waitFrames(1);
         if (SAI_MAP_STATE_FUNCS[SAI_WORLD_MAP.state] != NULL) {
             SAI_MAP_STATE_FUNCS[SAI_WORLD_MAP.state]();
         }
@@ -1292,14 +1292,14 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
             SAI_drawAreaPortrait();
         }
     } while (SAI_WORLD_MAP.state != MAP_DONE);
-    func_80014C08(1);
+    waitFrames(1);
     freeHeapBlocksByTag(0x2E);
     SAI_WORLD_MAP.active = -1;
-    func_80014A00(0x19);
+    endTask(0x19);
     freeHeapBlocksByTag(0x28);
     freeHeapBlocksByTag(0x7F);
     freeHeapBlocksByTag(0x29);
-    func_80014C08(0x1E);
+    waitFrames(0x1E);
     SESSION_SUB->unk1A2 = 0;
     SESSION_SUB->unk1A5[0] = 0;
     ((PlayerProfile *)PLAYER_PROFILES)->unkE = SESSION_SUB->unk1A4 = (u8)SAI_WORLD_MAP.nodeIndex;
@@ -1307,24 +1307,24 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
         SAI_WORLD_MAP.iconRunning = 0;
         switch (SAI_WORLD_MAP.menuCursor) {
         case 0:
-            func_800149B8(0, -1, 0, 0x1600, SAI_openDeckEditorFromMap, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1600, SAI_openDeckEditorFromMap, 0, getCurrentTaskId(), 0, 0);
             break;
         case 1:
-            func_800149B8(0, -1, 0, 0x1600, SAI_openEquipmentFromMap, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1600, SAI_openEquipmentFromMap, 0, getCurrentTaskId(), 0, 0);
             break;
         case 2:
             ((PlayerProfile *)PLAYER_PROFILES)->unkF = 0;
-            func_800149B8(0, -1, 0, 0x400, openSaveScreenFromMap, 2, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x400, openSaveScreenFromMap, 2, getCurrentTaskId(), 0, 0);
             break;
         }
     } else {
         do {
-            func_80014C08(1);
+            waitFrames(1);
         } while (SESSION->loading != 0);
-        func_80014C08(1);
-        func_800149B8(0, -1, 0, 0x1600, SAI_runArea, 1, getCurrentTaskId(), 0, 0);
+        waitFrames(1);
+        spawnTask(0, -1, 0, 0x1600, SAI_runArea, 1, getCurrentTaskId(), 0, 0);
     }
-    func_80014A90();
+    exitTask();
 }
 
 void SAI_initMapPaths(void) {
@@ -1380,7 +1380,7 @@ void SAI_drawMapPaths(FrameBuffer *fb) {
         buildRotTransMatrix(&SAI_WORLD_MAP.paths[i].pos, &SAI_WORLD_MAP.paths[i].rot, &matrix);
         CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
         SetRotMatrix((s32)&matrix);
-        func_8005C444(&matrix);
+        SetTransMatrix(&matrix);
         corners[0].vx = 0;
         corners[0].vy = 2;
         corners[0].vz = 0;

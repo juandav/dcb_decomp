@@ -53,11 +53,11 @@ void stopAllSoundEffects(void) {
 void stopMusic(void) {
     s16 *state;
 
-    func_80014A00(0x1C);
+    endTask(0x1C);
     state = (s16 *)&SOUND_STATE;
     if (((s16 *)&SOUND_STATE)[1] >= 0) {
         SsSeqStop(((s16 *)&SOUND_STATE)[state[1] + 2]);
-        func_80014C08(4);
+        waitFrames(4);
         ((s16 *)&SOUND_STATE)[1] = -1;
     }
 }
@@ -67,16 +67,16 @@ void fadeOutMusicTask(s32 slotIndex, s32 step) {
     s16 volR;
 
     for (;;) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         if (((SndState *)&SOUND_STATE)->cur != slotIndex) {
-            func_80014A90();
+            exitTask();
         }
         SsSeqGetVol(((SndState *)&SOUND_STATE)->seq[slotIndex], 0, &volL, &volR);
         if (volL == 0) {
             SsSeqStop(((SndState *)&SOUND_STATE)->seq[slotIndex]);
-            func_80014C08(4);
+            waitFrames(4);
             ((SndState *)&SOUND_STATE)->cur = -1;
-            func_80014A90();
+            exitTask();
         }
         volL -= step;
         if (volL < 0) {
@@ -90,8 +90,8 @@ void fadeOutMusic(s32 step) {
     s16 *state = (s16 *)&SOUND_STATE;
 
     if (state[1] >= 0) {
-        func_80014A00(0x1C);
-        func_800149B8(0x1C, -1, 0, 0x1000, &fadeOutMusicTask, state[1], step);
+        endTask(0x1C);
+        spawnTask(0x1C, -1, 0, 0x1000, &fadeOutMusicTask, state[1], step);
     }
 }
 
@@ -114,13 +114,13 @@ void playLoadedMusic(s32 slotIndex) {
 void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad) {
     PENDING_MUSIC_CHANGES++;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (MUSIC_CHANGE_BUSY != 0);
     MUSIC_CHANGE_BUSY = 1;
     if (((SndState *)&SOUND_STATE)->cur >= 0) {
         fadeOutMusic(2);
         while (((SndState *)&SOUND_STATE)->cur >= 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
     }
     if (needsLoad) {
@@ -129,12 +129,12 @@ void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad) {
     playLoadedMusic(slotIndex);
     MUSIC_CHANGE_BUSY = 0;
     PENDING_MUSIC_CHANGES--;
-    func_80014A90();
+    exitTask();
 }
 
 void waitForMusicChange(void) {
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (PENDING_MUSIC_CHANGES != 0);
 }
 
@@ -144,11 +144,11 @@ void playMusic(s32 slotIndex, s32 trackId, s32 volume) {
     state = (s8 *)&SOUND_STATE;
     if ((*(s16 *)(state + slotIndex * 0xC + 0x20)) != trackId) {
         waitForMusicChange();
-        func_800149B8(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 1);
+        spawnTask(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 1);
         return;
     }
     if (D_801D812A != slotIndex) {
         waitForMusicChange();
-        func_800149B8(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 0);
+        spawnTask(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 0);
     }
 }

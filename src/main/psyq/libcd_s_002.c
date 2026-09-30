@@ -30,17 +30,17 @@ OBJECT_END(3);
 
 extern long D_80070C48, D_80070C44, D_80070C40;
 
-long func_8005A344(long v) {
+int CdSetDebug(int level) {
     long old = D_80070C48;
 
-    D_80070C48 = v;
+    D_80070C48 = level;
     return old;
 }
 
 OBJECT_END(3);
 
-void func_8005A364(void) {
-    CD_sync();
+int CdSync(int mode, u_char *result) {
+    return CD_sync(mode, result);
 }
 
 void func_8005A384(void) {

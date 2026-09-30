@@ -106,11 +106,11 @@ void SAI_runPlayerData(void) {
     }
     openMenu(&SAI_PLAYER_DATA_MENU, &SAI_PLAYER_DATA_WINDOW, &SAI_PLAYER_DATA_CURSOR, (Bytes4 *)-1);
     SAI_PLAYER_DATA_WINDOW.label = (s32)"PLAYER'S DATA";
-    func_80014C08(1);
+    waitFrames(1);
     playSoundEffect(3);
     addFrameCallback((s32)SAI_drawPlayerDataWindows);
     while (1) {
-        func_80014C08(1);
+        waitFrames(1);
         if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
             break;
         }
@@ -128,7 +128,7 @@ void SAI_runPlayerData(void) {
     if (SAI_SCRIPT[0]->regs[15] != 0) {
         animateWindowTo(&SAI_STATS_HINT_WINDOW, (Rect16 *)-1);
     }
-    func_80014C08(15);
+    waitFrames(15);
     removeFrameCallback((s32)SAI_drawPlayerDataWindows);
     SAI_AREA.mode = AREA_MODE_SCRIPT;
     SAI_AREA.rewardBusy = 0;

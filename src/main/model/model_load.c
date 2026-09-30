@@ -85,7 +85,7 @@ void unloadAllModels(void) {
             SCENE_3D->models[i - 0x40] = 0;
         }
     }
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     for (i = 0x40; i < 0x7F; i++) {
         freeHeapBlocksByTag(i);
     }
@@ -155,7 +155,7 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
         unloadModelAnimations(slot);
         unloadModel(slot);
     }
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     model = SCENE_3D->models[slot] = allocHeapBlock(sizeof(Model), slot + 0x40);
     bzero(model, sizeof(Model));
     model->pak = (void *)pak;

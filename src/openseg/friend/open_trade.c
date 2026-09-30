@@ -1065,22 +1065,22 @@ void OPEN_runCardTrade(s32 parentTask) {
 
     OPEN_TRADE_BANNER_SHOWN = 1;
     OPEN_TRADE_BANNER_Y = -32;
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\TRADE.ARC", getCurrentTaskId());
-    OPEN_CARD_IMAGE_ARC = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\TRADE.ARC", getCurrentTaskId());
+    OPEN_CARD_IMAGE_ARC = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < (s32)(OPEN_CARD_IMAGE_ARC[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)OPEN_CARD_IMAGE_ARC + OPEN_CARD_IMAGE_ARC[i]), -1, -1, -1, -1);
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(OPEN_CARD_IMAGE_ARC);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\CARD_F.TIM", getCurrentTaskId());
-    OPEN_CARD_IMAGE_ARC = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\CARD_F.TIM", getCurrentTaskId());
+    OPEN_CARD_IMAGE_ARC = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTim(OPEN_CARD_IMAGE_ARC, 0x2C0, 0x52, 0x2C0, 0xF0);
     DrawSync(0);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     freeHeapBlock(OPEN_CARD_IMAGE_ARC);
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    OPEN_CARD_IMAGE_ARC = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    OPEN_CARD_IMAGE_ARC = (u32 *)waitFrames(0x7FFFFFFF);
     rect.x = 0x20;
     rect.y = 0x78;
     rect.w = 0x100;
@@ -1139,7 +1139,7 @@ void OPEN_runCardTrade(s32 parentTask) {
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawTradeScreen);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             if (OPEN_TRADE_PLAYER_READY[i] == 0) {
                 if (open[i]) {
@@ -1209,11 +1209,11 @@ void OPEN_runCardTrade(s32 parentTask) {
     }
     playMenuSound(4);
     OPEN_TRADE_BANNER_SHOWN = 0;
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawTradeScreen);
-    func_80014C08(2);
+    waitFrames(2);
     freeHeapBlock(OPEN_CARD_IMAGE_ARC);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 /* the last three bytes are leftovers in the original, not zero padding */

@@ -1,9 +1,8 @@
 /*
  * BIOS call stubs: EnterCriticalSection and ExitCriticalSection
- * (func_8006A804/func_8006A814, `li $a0,1|2; syscall 0; jr $ra`), the B0
- * table's open, lseek, read, write, close, nextfile and
- * ChangeClearPad (func_8006A824 .. func_8006A884) and the C0 table's
- * ChangeClearRCnt (func_8006A894).
+ * (`li $a0,1|2; syscall 0; jr $ra`), the B0 table's open, lseek, read,
+ * write, close, nextfile and ChangeClearPad and the C0 table's
+ * ChangeClearRCnt.
  *
  * Hand-written assembly, not compiler output: each stub is
  * `li $t2,0xB0 (or 0xC0); jr $t2; li $t1,N` with no frame, a jump to a
@@ -18,72 +17,72 @@
 
 .section .text
 
-glabel func_8006A804
+glabel EnterCriticalSection
     addiu      $a0, $zero, 0x1
     syscall    0
     jr         $ra
      nop
-endlabel func_8006A804
+endlabel EnterCriticalSection
 
-glabel func_8006A814
+glabel ExitCriticalSection
     addiu      $a0, $zero, 0x2
     syscall    0
     jr         $ra
      nop
-endlabel func_8006A814
+endlabel ExitCriticalSection
 
-glabel func_8006A824
+glabel open
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x32
-endlabel func_8006A824
+endlabel open
     nop
 
-glabel func_8006A834
+glabel lseek
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x33
-endlabel func_8006A834
+endlabel lseek
     nop
 
-glabel func_8006A844
+glabel read
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x34
-endlabel func_8006A844
+endlabel read
     nop
 
-glabel func_8006A854
+glabel write
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x35
-endlabel func_8006A854
+endlabel write
     nop
 
-glabel func_8006A864
+glabel close
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x36
-endlabel func_8006A864
+endlabel close
     nop
 
-glabel func_8006A874
+glabel nextfile
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x43
-endlabel func_8006A874
+endlabel nextfile
     nop
 
-glabel func_8006A884
+glabel ChangeClearPad
     addiu      $t2, $zero, 0xB0
     jr         $t2
      addiu     $t1, $zero, 0x5B
-endlabel func_8006A884
+endlabel ChangeClearPad
     nop
 
-glabel func_8006A894
+glabel ChangeClearRCnt
     addiu      $t2, $zero, 0xC0
     jr         $t2
      addiu     $t1, $zero, 0xA
-endlabel func_8006A894
+endlabel ChangeClearRCnt
     nop

@@ -42,7 +42,7 @@ s32 KAW_simulateBattles(s32 self) {
             continue;
         }
         for (card = 0; card < 5; card++) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
             DUEL_AI->sims[attack].cards[card].outcome = -1;
             DUEL_AI->sims[attack].cards[card].wins = 0;
             DUEL_AI->sims[attack].cards[card].losses = 0;

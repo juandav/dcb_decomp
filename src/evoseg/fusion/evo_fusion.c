@@ -109,8 +109,8 @@ void EVO_advanceText(void) {
 }
 
 void EVO_loadCardImages(void) {
-    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
-    EVO_FUSION.cardArchive = (s32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    EVO_FUSION.cardArchive = (s32 *)waitFrames(0x7FFFFFFF);
 }
 
 void EVO_loadCardImage(s32 id, s32 slot) {
@@ -119,8 +119,8 @@ void EVO_loadCardImage(s32 id, s32 slot) {
 
     EVO_FUSION.busy[0] = 1;
     sprintf(path, "B:\\CARD\\LC%3.3d.TIM", id);
-    func_800149B8(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
-    tim = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+    tim = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTim(tim, (slot & 1) * 32 + 0x240, (slot >> 1) * 64 + 0x100, 0x180, slot + 0x1E8);
     DrawSync(0);
     freeHeapBlock(tim);
@@ -205,7 +205,7 @@ void EVO_runFusion(s32 unit) {
     addFrameCallback((s32)EVO_renderFusion);
     EVO_loadScriptFlags();
     do {
-        func_80014C08(1);
+        waitFrames(1);
         switch (EVO_FUSION.scriptState) {
         case 0:
             running = EVO_tickFusionScript(EVO_SCRIPT);
@@ -274,24 +274,24 @@ void EVO_runFusion(s32 unit) {
     if (running == 0) {
         animateWindowTo(&EVO_WINDOWS[6].win, (Rect16 *)-1);
         animateWindowTo(&EVO_WINDOWS[7].win, (Rect16 *)-1);
-        func_80014C08(20);
+        waitFrames(20);
     }
     EVO_saveScriptFlags();
     removeFrameCallback((s32)EVO_renderFusion);
     removeFrameCallback((s32)renderSceneModels);
-    func_80014C08(1);
-    func_80014A00(0x1B);
+    waitFrames(1);
+    endTask(0x1B);
     freeHeapBlock(EVO_FUSION.cardArchive);
     freeHeapBlock(EVO_SCRIPT->data);
     freeHeapBlocksByTag(0x2C);
     freeHeapBlock(EVO_EFFECT_ARCHIVE);
     freeHeapBlocksByTag(0x7F);
     if (EVO_FUSION.cutscene != 0) {
-        func_80014C08(60);
+        waitFrames(60);
         hideScrollingBackground();
-        func_800149B8(0, -1, 0, 0x400, EVO_runFusionCutscene, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x400, EVO_runFusionCutscene, 0, getCurrentTaskId(), 0, 0);
     } else {
         removeFrameCallback((s32)EVO_drawScreenFlash);
-        func_800149B8(0, -1, 0, 0x400, returnToWorldMap, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x400, returnToWorldMap, 0, 0, 0, 0);
     }
 }

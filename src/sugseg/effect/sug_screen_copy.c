@@ -98,7 +98,7 @@ void SUG_startScreenCopyEffect(EffectParams *params, s32 clearColor) {
 }
 
 void SUG_tickScreenCopyEffect(void) {
-    if (D_800794E7 == 0) {
+    if (SCREEN_COPY_MODE == 0) {
         return;
     }
     switch (SUG_SCREEN_FX_PHASE) {
@@ -138,7 +138,7 @@ void SUG_tickScreenCopyEffect(void) {
 }
 
 void SUG_updateScreenCopyQuads(void) {
-    switch (D_800794E7) {
+    switch (SCREEN_COPY_MODE) {
     case 2:
         SUG_SCREEN_FX_ANGLE = 0;
         SCREEN_COPY_EFFECT.px[0][1] = SCREEN_COPY_EFFECT.px[0][3] = SCREEN_COPY_EFFECT.px[1][0] = SCREEN_COPY_EFFECT.px[1][2] = SCREEN_COPY_EFFECT.x + 0xA0;

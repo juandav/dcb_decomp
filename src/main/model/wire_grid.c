@@ -106,7 +106,7 @@ void createWireGrid(s32 width, s32 depth, s32 cols, s32 rows, s32 unused, s32 ve
     for (i = 0; i < 2; i++) {
         line = GRID_LINE_PRIMS[i] = allocTaskHeapBlock(GRID_LINE_COUNT * 16);
         for (j = 0; j < GRID_LINE_COUNT; j++) {
-            func_800678E4(line);
+            SetLineF2(line);
             line[4] = 8;
             line[5] = 0x40;
             line[6] = 8;

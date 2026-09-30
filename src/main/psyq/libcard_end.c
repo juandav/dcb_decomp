@@ -77,7 +77,6 @@ typedef struct {
 extern CardDir D_801DD960[15];
 extern long D_801DDB40[20];
 extern u_char D_801DDB90[128];
-int func_80068824(long chan);
 
 /* read a block back and wait for the card to finish */
 static __inline__ int card_read_sync(long chan, long block, u_char *buf) {
@@ -123,7 +122,7 @@ long _card_format(long chan) {
         return 0;
     }
     func_80068884();
-    if (func_80068824(chan) != 1) {
+    if (_card_load(chan) != 1) {
         return 0;
     }
     while (!(func_80069034(chan >> 4) & 1)) {

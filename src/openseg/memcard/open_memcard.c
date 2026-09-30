@@ -51,7 +51,7 @@ extern u8 OPEN_MEMCARD_CARD;
 /* "Arena": the string is followed by two leftover bytes (E0 03) in the ROM, so it stays as data */
 extern const char OPEN_STR_ARENA[];
 
-extern s32 D_801D8198;
+extern s32 MEMORY_CARD_WAIT_COUNTER;
 extern s8 OPEN_MEMCARD_SLOT;
 
 void OPEN_openMemcardWindows(void);
@@ -217,10 +217,10 @@ void OPEN_runMemcardScreen(s32 mode, s32 parentTask, s32 port) {
     addFrameCallback((s32)OPEN_drawMemcardScreen);
     do {
         OPEN_resetMemcardScreen(port);
-        func_800149B8(0, -1, 4, 0x800, OPEN_runMemcardAccess, 0, 0, 0, 0);
-        func_800149B8(0, -1, 0, 0x800, OPEN_runMemcardPrompts, 0, 0, 0, 0);
+        spawnTask(0, -1, 4, 0x800, OPEN_runMemcardAccess, 0, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, OPEN_runMemcardPrompts, 0, 0, 0, 0);
         while (OPEN_MEMCARD.ready != 1) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
         if (OPEN_MEMCARD.cancelled != 0) {
             break;
@@ -231,7 +231,7 @@ void OPEN_runMemcardScreen(s32 mode, s32 parentTask, s32 port) {
     } while (OPEN_MEMCARD.again != 0);
     animateWindowTo(&OPEN_MEMCARD_MESSAGE_WINDOW, (Rect16 *)-1);
     playMenuSound(4);
-    func_80014C08(20);
+    waitFrames(20);
     removeFrameCallback((s32)OPEN_drawMemcardScreen);
     switch (D_801F80CA) {
     case 0:
@@ -242,27 +242,27 @@ void OPEN_runMemcardScreen(s32 mode, s32 parentTask, s32 port) {
         if (OPEN_DIALOG.choice == 1) {
             stopMusic();
             fadeOutScrollingBackground();
-            func_80014C08(20);
-            func_80014A48(0);
-            func_80014A90();
+            waitFrames(20);
+            resumeTask(0);
+            exitTask();
         }
         break;
     }
     freeHeapBlock(OPEN_SAVE_PLACE_IMAGES);
-    func_80014C08(20);
+    waitFrames(20);
     freeHeapBlocksByTag(0x63);
-    func_80014A48(parentTask);
+    resumeTask(parentTask);
 }
 
 s32 OPEN_loadFriendSaves(void) {
     s32 task;
 
     task = getCurrentTaskId();
-    func_800149B8(0, -1, 0, 0x600, OPEN_runMemcardScreen, 7, task, 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 7, task, 0, 0);
+    waitFrames(0x7FFFFFFF);
     if (OPEN_MEMCARD.cancelled == 0) {
-        func_800149B8(0, -1, 0, 0x600, OPEN_runMemcardScreen, 7, task, 1, 0);
-        func_80014C08(0x7FFFFFFF);
+        spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 7, task, 1, 0);
+        waitFrames(0x7FFFFFFF);
         if (OPEN_MEMCARD.cancelled == 0) {
             return 0;
         }
@@ -271,14 +271,14 @@ s32 OPEN_loadFriendSaves(void) {
 }
 
 s32 OPEN_saveFriendGame(void) {
-    func_800149B8(0, -1, 0, 0x600, OPEN_runMemcardScreen, 6, getCurrentTaskId(), 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 6, getCurrentTaskId(), 0, 0);
+    waitFrames(0x7FFFFFFF);
     return OPEN_MEMCARD_CANCELLED != 0;
 }
 
 void OPEN_createNewSave(void) {
-    func_800149B8(0, -1, 0, 0x600, OPEN_runMemcardScreen, 0, getCurrentTaskId(), 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 0, getCurrentTaskId(), 0, 0);
+    waitFrames(0x7FFFFFFF);
 }
 
 void OPEN_initMemcardScreen(s32 port) {
@@ -461,16 +461,16 @@ void OPEN_drawMemcardMessage(UiWindow *window) {
 void OPEN_loadMemcardTextures(void) {
     u32 *pack;
 
-    func_800149B8(0, -1, 0, 0x800, loadFile, "C:\\OBJECT\\saveload.TIS", getCurrentTaskId(), 0, 0);
-    pack = (u32 *)func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFile, "C:\\OBJECT\\saveload.TIS", getCurrentTaskId(), 0, 0);
+    pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
     switch (OPEN_MEMCARD_MODE) {
     case 0:
     case 7:
     case 0xFF:
-        func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\SAVE.ARC", getCurrentTaskId());
-        OPEN_SAVE_PLACE_IMAGES = (u8 *)func_80014C08(0x7FFFFFFF);
+        spawnTask(0, -1, 0, 0x800, loadFile, "B:\\SAVE.ARC", getCurrentTaskId());
+        OPEN_SAVE_PLACE_IMAGES = (u8 *)waitFrames(0x7FFFFFFF);
         break;
     }
 }
@@ -479,7 +479,7 @@ void OPEN_initTransferArrow(POLY_FT4 *poly, s32 shade) {
     s32 u0;
     s32 u1;
 
-    func_800677A4(poly);
+    SetPolyFT4(poly);
     poly->r0 = shade;
     poly->g0 = shade;
     poly->b0 = shade;
@@ -824,8 +824,8 @@ void OPEN_runMemcardPrompts(void) {
     s32 port;
 
     do {
-        func_80014C08(FRAME_INTERVAL);
-        D_801D8198++;
+        waitFrames(FRAME_INTERVAL);
+        MEMORY_CARD_WAIT_COUNTER++;
         port = OPEN_MEMCARD.card;
         switch (OPEN_MEMCARD.state) {
         case 17:
@@ -1012,7 +1012,7 @@ void OPEN_runMemcardPrompts(void) {
             break;
         }
     } while (OPEN_MEMCARD_READY != 1);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
 }
 
 void OPEN_confirmOverwrite(s32 port) {
@@ -1039,7 +1039,7 @@ void OPEN_confirmPlayWithoutSaving(s32 port) {
     case 1:
         OPEN_MEMCARD_READY = 1;
         ((SessionData *)D_8006E054)->unk1027 = 1;
-        func_80014A90();
+        exitTask();
         break;
     case 0:
     case 2:

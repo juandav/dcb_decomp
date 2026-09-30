@@ -253,15 +253,15 @@ void EVO_initCutsceneScene(s8 evolved) {
         addFrameCallback((s32)renderWireGrid);
     }
     GRID_VISIBLE = 0;
-    func_80014A00(0x19);
-    func_800149B8(0x19, 0x1F, 0, 0x800, &runSceneCameraTask, 1);
-    func_80014A00(0x1B);
-    func_800149B8(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
+    endTask(0x19);
+    spawnTask(0x19, 0x1F, 0, 0x800, &runSceneCameraTask, 1);
+    endTask(0x1B);
+    spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
 }
 
 void EVO_freeCutsceneScene(s8 evolved) {
-    func_80014A00(0x1B);
-    func_80014A00(0x19);
+    endTask(0x1B);
+    endTask(0x19);
     removeFrameCallback((s32)renderWireGrid);
     removeFrameCallback((s32)EVO_tickShatter);
     if (evolved == 0) {
@@ -269,7 +269,7 @@ void EVO_freeCutsceneScene(s8 evolved) {
     } else {
         removeFrameCallback((s32)renderSceneModels);
     }
-    func_80014C08(1);
+    waitFrames(1);
     unloadAllModels();
     GRID_VISIBLE = 0;
     freeHeapBlocksByTag(0x7F);
@@ -311,17 +311,17 @@ void EVO_placeFusionModels(void) {
 
 void EVO_showFusedDigimon(s32 id) {
     loadDigimonModelPak(0, id, 0, 0);
-    func_80014C08(2);
-    func_80014C08(20);
+    waitFrames(2);
+    waitFrames(20);
     setModelAnimationPose(0, 0);
     D_80079584 = 0;
-    func_80014C08(1);
+    waitFrames(1);
     SCENE_3D->modelState[0] = 1;
     playModelAnimation(0, 0);
     GRID_VISIBLE = 1;
-    func_800149B8(0, -1, 0, 0x400, EVO_runFusedDigimonTask, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
-    func_80014C08(10);
+    spawnTask(0, -1, 0, 0x400, EVO_runFusedDigimonTask, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
+    waitFrames(10);
 }
 
 void EVO_initFusionBanner(void) {
@@ -414,12 +414,12 @@ void EVO_runFusedDigimonTask(s32 parentTask) {
     EVO_initFusionBanner();
     setScreenFadeParams(1, 1, 8);
     playSoundEffect(0x8D);
-    func_80014C08(120);
+    waitFrames(120);
     EVO_BANNER_FADE = 1;
-    func_80014C08(180);
+    waitFrames(180);
     frames = 0;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         frames++;
         if ((PAD_STATES[0]->pressed & 0x40) || frames > 180) {
             EVO_BANNER_FADE = 2;
@@ -427,17 +427,17 @@ void EVO_runFusedDigimonTask(s32 parentTask) {
         }
     } while (EVO_CUTSCENE_STEP != 6);
     EVO_SCREEN_FLASH.on = 1;
-    func_80014C08(10);
-    func_80014A48(parentTask);
+    waitFrames(10);
+    resumeTask(parentTask);
 }
 
 void EVO_runShatterTask(s32 parentTask) {
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         switch (EVO_CUTSCENE_STEP) {
         case 1:
-            func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
-            func_80014C08(60);
+            spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
+            waitFrames(60);
             EVO_CUTSCENE_STEP = 2;
             SCENE_3D->modelState[0] = -1;
             break;
@@ -448,19 +448,19 @@ void EVO_runShatterTask(s32 parentTask) {
             applyAnimationFirstFrame(1, 0);
             startModelAnimation(1, 0, -2, 0);
             D_80079584 = 1;
-            func_80014C08(5);
+            waitFrames(5);
             setScreenFadeParams(1, 1, 8);
             EVO_CUTSCENE_STEP = 3;
             break;
         case 4:
-            func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
-            func_80014C08(60);
+            spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 8, 0);
+            waitFrames(60);
             EVO_CUTSCENE_STEP = 5;
             break;
         }
     } while (EVO_CUTSCENE_STEP != 5);
-    func_80014C08(10);
-    func_80014A48(parentTask);
+    waitFrames(10);
+    resumeTask(parentTask);
 }
 
 void EVO_shatterFusionModels(s32 unused) {
@@ -470,12 +470,12 @@ void EVO_shatterFusionModels(s32 unused) {
     models[1] = loadDigimonModelPak(1, EVO_CUTSCENE_MODELS[1], 1, 1);
     EVO_placeFusionModels();
     D_80079584 = 0;
-    func_80014C08(20);
+    waitFrames(20);
     EVO_SCREEN_FLASH.on = 0;
     playSoundEffect(0x8D);
-    func_800149B8(0, -1, 0, 0x400, EVO_runShatterTask, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
-    func_80014C08(10);
+    spawnTask(0, -1, 0, 0x400, EVO_runShatterTask, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
+    waitFrames(10);
 }
 
 void EVO_runFusionCutscene(void) {
@@ -484,20 +484,20 @@ void EVO_runFusionCutscene(void) {
     EVO_initCutsceneScene(0);
     EVO_shatterFusionModels(0x73);
     EVO_freeCutsceneScene(0);
-    func_80014C08(2);
+    waitFrames(2);
     playMusic(0, 0x89, 100);
-    func_80014C08(2);
+    waitFrames(2);
     EVO_initCutsceneScene(1);
     EVO_showFusedDigimon(EVO_CUTSCENE_MODELS[2]);
     EVO_freeCutsceneScene(1);
-    func_80014C08(10);
+    waitFrames(10);
     do {
-        func_80014C08(1);
+        waitFrames(1);
     } while (PAD_STATES[0]->pressed & 0x40);
     removeFrameCallback((s32)EVO_drawFusionBanner);
     loadSoundEffectBank(1);
     changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
-    func_800149B8(0, -1, 0, 0x400, EVO_runFusion, -1, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x400, EVO_runFusion, -1, getCurrentTaskId(), 0, 0);
 }
 
 void EVO_setGteMatrix(MATRIX *m) {
@@ -569,9 +569,9 @@ void EVO_renderCutsceneModels(FrameBuffer *buffer, s32 bufferIndex) {
 }
 
 void EVO_initView(s32 projection) {
-    func_8005C484(160, 120);
-    func_8005C4A4(projection);
-    func_80062484(projection);
+    SetGeomOffset(160, 120);
+    SetGeomScreen(projection);
+    GsSetProjection(projection);
     SCENE_3D->view.vpx = 0;
     SCENE_3D->view.vpy = 0;
     SCENE_3D->view.vpz = 0;
@@ -606,7 +606,7 @@ void EVO_initLights(void) {
     ((FlatLight *)SCENE_3D->unkE4)[2].b = 0;
     GsSetFlatLight(2, &((FlatLight *)SCENE_3D->unkE4)[2]);
     GsSetAmbient(0x40, 0x40, 0x40);
-    func_8005C464(0x30, 0x30, 0x40);
+    SetBackColor(0x30, 0x30, 0x40);
     GsSetLightMode(0);
 }
 
@@ -615,7 +615,7 @@ void EVO_initShatterScene(s32 allocBuffers) {
 
     EVO_initGsSortTable();
     initModelScene();
-    func_8006A804();
+    EnterCriticalSection();
     for (i = 0; i < 2; i++) {
         if (allocBuffers) {
             DB(i).scenePackets = allocHeapBlock(0x1F400, 0x7F);
@@ -633,7 +633,7 @@ void EVO_initShatterScene(s32 allocBuffers) {
     GsInit3D();
     EVO_initView(0x1C0);
     EVO_initLights();
-    func_8006A814();
+    ExitCriticalSection();
     {
         MATRIX lightMatrices[2] = {
             { { { 0, 0x1800, -0x1800 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } },

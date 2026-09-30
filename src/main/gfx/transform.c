@@ -94,7 +94,7 @@ void updateTransformMatrix(void *xform, s32 axisMode) {
 }
 
 void loadGteMatrix(s32 matrix) {
-    func_8005C444();
+    SetTransMatrix();
     SetRotMatrix(matrix);
 }
 

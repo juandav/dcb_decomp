@@ -288,6 +288,6 @@ void runModelAnimationTask(void) {
                 }
             }
         }
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     }
 }

@@ -37,8 +37,8 @@ void drawLargeTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 void drawLargeText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 s32 drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
 void drawIcon(s32 x, s32 y, s32 iconSet, s32 icon, s32 z);
-s32 func_80029EFC(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text);
-void func_80029EC4(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text);
+s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text);
+void drawIconText(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text);
 void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
 
 #endif /* DCB_TEXT_H */

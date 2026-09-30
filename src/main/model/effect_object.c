@@ -75,7 +75,7 @@ void updateEffectTiltedArcMotion(EffectObject *fx) {
 }
 
 /* Like updateEffectTiltedArcMotion, with moveAccel for the height of the hop */
-void func_80030440(EffectObject *fx) {
+void updateEffectTiltedAccelArcMotion(EffectObject *fx) {
     s32 distance;
     s32 height;
     s32 offsetX;
@@ -308,7 +308,7 @@ void *initEffectObject(void *obj) {
 
 /*
  * Moves an effect one frame. mode picks the path (the case lists below: 1
- * linear, 2 arc, 3/4 wave on x/y, 5 tilted arc, 7 func_80030440, 8 shake;
+ * linear, 2 arc, 3/4 wave on x/y, 5 tilted arc, 7 updateEffectTiltedAccelArcMotion, 8 shake;
  * the modes of the first list stay at the start) and what happens when the
  * effect hits its target or its period runs out: stop, stop at the target,
  * restart, suspend or fade out. Modes 10 and >= 90 keep their scale and
@@ -473,7 +473,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 75:
     case 81:
     case 88:
-        func_80030440(fx);
+        updateEffectTiltedAccelArcMotion(fx);
         break;
     case 8:
     case 89:

@@ -164,7 +164,7 @@ void SUG_runDamagePopupTask(s32 side) {
     uv1.w = 0x3C;
     uv1.h = 0x10;
     for (; i < 150; i++) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawTexturedSprite(15, 0xAE, &uv0, SUG_HUD_TPAGE, 0x1568, 1, brightness[0], 1);
         SUG_drawNumber(0x1F, 0xC1, SUG_BATTLE->players[side].damage, brightness[1]);
         drawTexturedSprite(0x3F, 0xD9, &uv1, SUG_HUD_TPAGE, 0x1569, 1, brightness[2], 1);
@@ -196,7 +196,7 @@ void SUG_animateHpCounter(s32 side) {
 
     count = 40;
     if (side >= 0) {
-        func_800149B8(0, -1, 0, 0x400, SUG_runDamagePopupTask, side);
+        spawnTask(0, -1, 0, 0x400, SUG_runDamagePopupTask, side);
         minFrame = 4;
     } else {
         side = ~side;
@@ -221,7 +221,7 @@ void SUG_animateHpCounter(s32 side) {
                                                                          : SUG_TARGET_HP[side] - SUG_BATTLE->players[side].hp;
     }
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         model = SCENE_3D->models[side];
         if (model->unk2208 >= 0 && model->unk2200 >= minFrame) {
             if ((SUG_BATTLE->players[side].hp -= step) < 0) {
@@ -239,7 +239,7 @@ void SUG_animateHpCounter(s32 side) {
         SUG_BATTLE->players[side].hp = 0;
     }
     for (b = 0x80; b >= 0; b -= 4) {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].hp, b);
         drawTexturedSprite(0x78, 0x10, &uv, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, b, 1);
     }
@@ -272,7 +272,7 @@ void SUG_showAttackLabel(s32 side) {
     uv2.w = 0x18;
     uv2.h = 0x10;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&obj, ((SUG_BATTLE->flags.word >> 2) & 1) + 1, state, 2);
         SUG_drawHudSpriteTrail((s16)obj.pos, 0xA2, &obj.uv, SUG_HUD_TPAGE, getClut(0x280, 0x53), 1, 0x80, 1, obj.trail, 1);
         if (both) {
@@ -359,7 +359,7 @@ void SUG_showAttackBanner(s32 side) {
     }
     banners[1].brightness = 0x5A;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&banners[0], count, state, side < 0 ? 1 : 2);
         if (!flipped) {
             SUG_drawHudSpriteTrail((s16)banners[0].pos, 0xB4, &banners[0].uv, SUG_HUD_TPAGE, 0x1428, 1, banners[0].brightness, 0, banners[0].trail, 6);
@@ -403,9 +403,9 @@ void SUG_showHpBanner(s32 side) {
     icon.uv.w = 0x28;
     icon.uv.h = 0x18;
     SUG_initHudSlide(&num, -0x18, 0x10, 0x10, 2);
-    func_80014C08(0x28);
+    waitFrames(0x28);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&bar, 3, state, 2);
         SUG_drawHudSpriteTrail((s16)bar.pos, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.brightness, 0, bar.trail, 6);
         SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE,
@@ -416,7 +416,7 @@ void SUG_showHpBanner(s32 side) {
             playModelAnimation(side, 0);
         }
     } while (state != 3);
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
 }
 
 void SUG_showWinnerBanner(s32 side) {
@@ -436,7 +436,7 @@ void SUG_showWinnerBanner(s32 side) {
     icon.uv.w = 0x28;
     icon.uv.h = 0x18;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&banner, 2, state, 2);
         SUG_drawHudSpriteTrail((s16)banner.pos, 0xB4, &banner.uv, SUG_HUD_TPAGE, 0x14EB, 1, 0x80, 0, banner.trail, 6);
         SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE, getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1,
@@ -457,7 +457,7 @@ void SUG_showEatUpHpBanner(void) {
     obj.uv.h = 0x18;
     obj.brightness = 0x20;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&obj, 1, state, 2);
         SUG_drawHudSpriteTrail((s16)obj.pos, 0xB4, &obj.uv, SUG_HUD_TPAGE, 0x146B, 1, 0x80, 0, obj.trail, 6);
     } while (state != 3);

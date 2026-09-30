@@ -63,8 +63,8 @@ void loadScrollingBackground(void) {
         texWindow[3] = 0;
         SetTexWindow((u8 *)&D_801D8220 + i * sizeof(ScrollBgSprite), texWindow);
     }
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\BG.ARC", getCurrentTaskId(), -2);
-    D_801D8260 = func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\BG.ARC", getCurrentTaskId(), -2);
+    D_801D8260 = waitFrames(0x7FFFFFFF);
 }
 
 void freeScrollingBackground(void) {
@@ -80,7 +80,7 @@ void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
 
     if (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80) {
         do {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         } while (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80);
     }
     if (SCROLL_BACKGROUND.brightness == 0) {

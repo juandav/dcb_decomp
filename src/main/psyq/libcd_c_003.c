@@ -13,7 +13,7 @@ extern volatile u_char *D_80070B78;
 extern volatile u_char *D_80070B84;
 
 void StUnSetRing(void) {
-    func_8006A804();
+    EnterCriticalSection();
     if (D_80070C60 == 1) {
         func_8006B0D4(NULL);
         func_8006B0B4(0);
@@ -23,5 +23,5 @@ void StUnSetRing(void) {
     }
     *D_80070B78 = 0;
     *D_80070B84 = 0;
-    func_8006A814();
+    ExitCriticalSection();
 }

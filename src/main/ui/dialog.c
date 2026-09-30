@@ -76,8 +76,8 @@ void initDialog(Dialog *dialog, u8 *text, u32 flags) {
 }
 
 s8 runDialog(void *dialog) {
-    func_800149B8(0, -1, 0, 0x400, &dialogTask, dialog, getCurrentTaskId(), 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x400, &dialogTask, dialog, getCurrentTaskId(), 0, 0);
+    waitFrames(0x7FFFFFFF);
     return ((Dialog *)dialog)->choice;
 }
 
@@ -86,8 +86,8 @@ s32 runDialogForPad(void *dialog, s32 pad) {
 
     task = getCurrentTaskId();
     ((Dialog *)dialog)->pad = pad;
-    func_800149B8(0, -1, 0, 0x400, dialogTask, dialog, task, 0, 0);
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x400, dialogTask, dialog, task, 0, 0);
+    waitFrames(0x7FFFFFFF);
     return ((Dialog *)dialog)->choice;
 }
 
@@ -115,7 +115,7 @@ void dialogTask(Dialog *dialog, s32 parentTask) {
     pads = PAD_STATES;
     on = 1;
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawWindow(&dialog->win, drawDialogBody, 0);
         if (dialog->onFrame != 0) {
             dialog->onFrame();
@@ -147,15 +147,15 @@ void dialogTask(Dialog *dialog, s32 parentTask) {
     /* close the window and keep drawing until the animation ends */
     animateWindowTo(&dialog->win, (Rect16 *)-1);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
         drawWindow(&dialog->win, drawDialogBody, 0);
         if (dialog->onFrame != 0) {
             dialog->onFrame();
         }
     } while (dialog->win.animDone == 0);
     PAD_INPUT_ENABLED = 1;
-    func_80014A48(parentTask, dialog->choice);
-    func_80014A90();
+    resumeTask(parentTask, dialog->choice);
+    exitTask();
 }
 
 void drawDialogBody(Dialog *dialog) {

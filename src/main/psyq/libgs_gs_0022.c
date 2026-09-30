@@ -25,7 +25,7 @@ void GsSetDrawBuffOffset(void) {
 
         x = D_801DBD98.offx + D_801DBD88[D_801DBE24 == 0];
         y = D_801DBD98.offy + D_801DBD8C[D_801DBE24 == 0];
-        func_8005C484(x, y);
+        SetGeomOffset(x, y);
         D_801DBE14 = x;
         D_801DBE16 = y;
     }

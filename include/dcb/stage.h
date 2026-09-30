@@ -15,7 +15,7 @@ extern void *D_801D81AC;
 extern void *D_801D81B0;
 extern u8 D_801EEE90[];
 extern ArenaStage ARENA_STAGES[];
-extern s32 D_8006DF80;
+extern s32 STAGE_FADE_LEVEL;
 extern u8 STAGE_CLEAR_COLOR[3];
 extern s32 STAGE_PAK;
 extern u8 D_801F80C1;

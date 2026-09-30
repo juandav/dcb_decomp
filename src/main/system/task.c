@@ -11,15 +11,13 @@
 #include <kernel.h>
 
 /* The scheduler runs with the kernel's TCB: switching tasks means copying a
- * task's saved registers in or out of KERNEL_TCB->reg.
- * func_8006A804/func_8006A814 are EnterCriticalSection/ExitCriticalSection,
- * func_8006A794/func_8006A7C4 OpenEvent/EnableEvent (B0 calls 0x08/0x0C). */
+ * task's saved registers in or out of KERNEL_TCB->reg. */
 
 void setTaskVsyncMode(s32 vsyncMode) {
     Task *task;
     s32 i;
 
-    func_8006A804();
+    EnterCriticalSection();
     if (vsyncMode != 0) {
         if (TASK_VSYNC_MODE == 0) {
             TASK_VSYNC_MODE = 1;
@@ -36,7 +34,7 @@ void setTaskVsyncMode(s32 vsyncMode) {
         TASK_VSYNC_MODE = 0;
         D_80077AEC = TASKS;
     }
-    func_8006A814();
+    ExitCriticalSection();
 }
 
 s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a2, s32 a3) {
@@ -50,12 +48,12 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     s32 stack;
     s32 vsyncEvent;
 
-    func_8006A804();
+    EnterCriticalSection();
     TASK_VSYNC_MODE = mode;
     for (task = TASKS, i = 31; i >= 0; i--, task++) {
         task->status.flags = 0;
     }
-    CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&D_80077A1C = 0xFFFF;
+    CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&DEFERRED_TASK_PRIORITY = 0xFFFF;
     CURRENT_TASK = TASKS - 1;
     TASK_LIST_END.status.flags = 0x8000FFFF;
     TASK_LIST_END.prev = CURRENT_TASK + 1;
@@ -94,12 +92,12 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     mainTask->stack = stack;
     mainTask->regs[R_SP] = stack + (stackSize & ~7) - 0x20;
     /* preempt the running task at every vsync (root counter 3) */
-    vsyncEvent = func_8006A794(0xF2000003, 2, 0x1000, (long (*)())handleVsyncPreemption);
-    func_8006A7C4(vsyncEvent);
+    vsyncEvent = OpenEvent(0xF2000003, 2, 0x1000, (long (*)())handleVsyncPreemption);
+    EnableEvent(vsyncEvent);
     SetRCnt(0xF2000003, 1, 0x1000);
     StartRCnt(0xF2000003);
     VSYNC_EVENT = vsyncEvent;
-    func_8006A814();
+    ExitCriticalSection();
     return 0;
 }
 
@@ -119,8 +117,8 @@ long handleVsyncPreemption(void) {
     task->status.flags |= 0x20000000;
     if ((PREEMPTED_TASK_PRIORITY = CURRENT_TASK_PRIORITY) == 0) {
         if (TASK_VSYNC_MODE == 0) {
-            D_80077A14 = TASKS;
-            D_80077A1C = 0;
+            DEFERRED_TASK = TASKS;
+            DEFERRED_TASK_PRIORITY = 0;
         }
     } else {
         /* switch to the main task */
@@ -142,16 +140,16 @@ Task *selectNextTask(Task *current) {
 
     if (next->status.priority > 0 && priority == PREEMPTED_TASK_PRIORITY) {
         /* go back to the task that the vsync preempted */
-        D_80077A14 = next;
-        D_80077A1C = priority;
+        DEFERRED_TASK = next;
+        DEFERRED_TASK_PRIORITY = priority;
         next = PREEMPTED_TASK;
         PREEMPTED_TASK_PRIORITY = -1;
     } else {
         priority = next->status.priority;
-        if ((u16)priority > (u16)D_80077A1C) {
-            priority = D_80077A1C;
-            next = D_80077A14;
-            *(u16 *)&D_80077A1C = 0xFFFF;
+        if ((u16)priority > (u16)DEFERRED_TASK_PRIORITY) {
+            priority = DEFERRED_TASK_PRIORITY;
+            next = DEFERRED_TASK;
+            *(u16 *)&DEFERRED_TASK_PRIORITY = 0xFFFF;
         }
     }
     CURRENT_TASK = next;
@@ -245,7 +243,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     task->regs[R_A2] = a2;
     task->regs[R_A3] = a3;
     /* returning from the entry point ends the task */
-    task->regs[R_RA] = (s32)func_80014A90;
+    task->regs[R_RA] = (s32)exitTask;
     task->regs[R_GP] = TASK_GP;
     task->id = taskId;
     task->wakeResult = 0;
@@ -288,9 +286,9 @@ s32 killTask(s32 taskId) {
         PREEMPTED_TASK = next;
         PREEMPTED_TASK_PRIORITY = (u16)next->status.priority;
     }
-    if ((D_80077A1C >= 0) && (task == D_80077A14)) {
-        D_80077A14 = next;
-        D_80077A1C = (u16)next->status.priority;
+    if ((DEFERRED_TASK_PRIORITY >= 0) && (task == DEFERRED_TASK)) {
+        DEFERRED_TASK = next;
+        DEFERRED_TASK_PRIORITY = (u16)next->status.priority;
     }
     freeHeapBlocksByTag(task->id);
     freeHeapBlock((void *)task->stack);
@@ -319,9 +317,9 @@ void exitCurrentTask(void) {
         PREEMPTED_TASK = next;
         PREEMPTED_TASK_PRIORITY = (u16)next->status.priority;
     }
-    if ((D_80077A1C >= 0) && (task == D_80077A14)) {
-        D_80077A14 = next;
-        D_80077A1C = (u16)next->status.priority;
+    if ((DEFERRED_TASK_PRIORITY >= 0) && (task == DEFERRED_TASK)) {
+        DEFERRED_TASK = next;
+        DEFERRED_TASK_PRIORITY = (u16)next->status.priority;
     }
     freeHeapBlocksByTag(task->id);
     freeHeapBlock((void *)task->stack);
@@ -329,7 +327,7 @@ void exitCurrentTask(void) {
     selectNextTask(task);
 }
 
-/* func_80014A00 is killTask with the interrupts off */
+/* endTask is killTask with the interrupts off */
 int killOtherTasks(void) {
     int selfId = CURRENT_TASK->id;
     int i;
@@ -339,7 +337,7 @@ int killOtherTasks(void) {
         if (i == selfId) {
             continue;
         }
-        if (func_80014A00(i) == 0) {
+        if (endTask(i) == 0) {
             killedCount++;
         }
     }

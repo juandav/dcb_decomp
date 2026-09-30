@@ -4,7 +4,7 @@ void _SsContResetAll(short seq, short sep) {
     SeqStruct *score = &D_801D8618[seq][sep];
     int ch;
 
-    func_80051C70();
+    SsUtReverbOff();
     func_80052050();
     ch = score->channel;
     score->programs[ch] = ch;

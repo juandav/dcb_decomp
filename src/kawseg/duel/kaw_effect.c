@@ -101,8 +101,8 @@ void (*KAW_EFFECT_TICK_FUNCS[4])(u8 *) = {
 };
 
 void KAW_loadEffectArchive(void) {
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CBTL_EFF.ARC", getCurrentTaskId(), 0x38E);
-    KAW_DUEL->effectArchive = func_80014C08(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\CBTL_EFF.ARC", getCurrentTaskId(), 0x38E);
+    KAW_DUEL->effectArchive = waitFrames(0x7FFFFFFF);
 }
 
 void KAW_freeEffectArchive(void) {
@@ -142,8 +142,8 @@ void KAW_playEffectScript(s32 entry, s32 player1, s32 player2, s32 mode1, s32 mo
         break;
     }
     data = decompressArchiveEntry(KAW_DUEL->effectArchive, entry);
-    func_800149B8(0, 0x1F, 0, 0x800, KAW_runEffectScriptTask, data, getCurrentTaskId());
-    func_80014C08(0x7FFFFFFF);
+    spawnTask(0, 0x1F, 0, 0x800, KAW_runEffectScriptTask, data, getCurrentTaskId());
+    waitFrames(0x7FFFFFFF);
     freeHeapBlock((void *)data);
 }
 
@@ -172,7 +172,7 @@ s32 KAW_tickEffectScript(EffectTable *table) {
 void KAW_freeEffectEntries(EffectTable *table) {
     s32 i;
 
-    func_80014C08(FRAME_INTERVAL);
+    waitFrames(FRAME_INTERVAL);
     for (i = 0; i < 16; i++) {
         if (table->entries[i].kind != -1) {
             KAW_EFFECT_FREE_FUNCS[table->entries[i].kind](table->entries[i].obj);
@@ -228,10 +228,10 @@ void KAW_runEffectScript(EffectTable *table) {
                     restartEffectMotion((u8 *)&KAW_EFFECT_ROOT);
                     break;
                 case 2:
-                    D_800794E7 = 1;
+                    SCREEN_COPY_MODE = 1;
                     break;
                 case 3:
-                    D_800794E7 = 0;
+                    SCREEN_COPY_MODE = 0;
                     break;
                 case 4:
                     D_800795A8 = 0;
@@ -576,7 +576,7 @@ void KAW_createEffectEntry(s32 index, s32 kind, s32 params, EffectTable *table) 
         table->entries[index].active = 0;
         table->entries[index].obj = KAW_EFFECT_CREATE_FUNCS[kind](params, table);
         if ((++table->count & 0xF) == 0) {
-            func_80014C08(FRAME_INTERVAL);
+            waitFrames(FRAME_INTERVAL);
         }
     }
 }
@@ -636,10 +636,10 @@ void KAW_runEffectScriptTask(void *data, s32 task) {
 
     table = KAW_createEffectScript(data);
     do {
-        func_80014C08(FRAME_INTERVAL);
+        waitFrames(FRAME_INTERVAL);
     } while (KAW_tickEffectScript(table));
     KAW_freeEffectEntries(table);
     freeScriptContext(table->script, table->regs);
     freeHeapBlock(table);
-    func_80014A48(task);
+    resumeTask(task);
 }
