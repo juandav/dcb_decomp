@@ -2840,7 +2840,100 @@ s32 func_801E6AA4(s32 quiet) {
     }
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E7DD4);
+extern s32 D_801FC404;
+s32 func_801E7DD4(s32 self, s32 other, s32 kind, s32 value, s32 slot) {
+    s32 card;
+    s32 n;
+
+    switch (kind) {
+    case 0:
+        return value;
+    case 1:
+        return PLAYER(self)->specialty;
+    case 2:
+        return PLAYER(other)->specialty;
+    case 3:
+        return STATS(self)->hpBeforeBattle;
+    case 4:
+        return STATS(other)->hpBeforeBattle;
+    case 5:
+    case 7:
+    case 9:
+        return STATS(self)->attackDamage[(kind - 5) / 2];
+    case 6:
+    case 8:
+    case 10:
+        return STATS(other)->attackDamage[(kind - 6) / 2];
+    case 11:
+        return STATS(self)->attackDamage[slot];
+    case 12:
+        return STATS(other)->attackDamage[slot];
+    case 13:
+        card = getActiveDigimonCard(self);
+        return PLAYER(self)->cards[card % 30].card[0x1A] & 0xF;
+    case 14:
+        card = getActiveDigimonCard(other);
+        return PLAYER(other)->cards[card % 30].card[0x1A] & 0xF;
+    case 15:
+        switch (countEmptyDigimonStackSlots(self)) {
+        case 0:
+            return 1;
+        case 1:
+            card = PLAYER(self)->digimonStack[2];
+            if (PLAYER(self)->cards[card % 30].card[0x1A] & 0xF) {
+                return 0;
+            }
+        default:
+            return -1;
+        }
+    case 16:
+        switch (countEmptyDigimonStackSlots(other)) {
+        case 0:
+            return 1;
+        case 1:
+            card = PLAYER(other)->digimonStack[2];
+            if (PLAYER(other)->cards[card % 30].card[0x1A] & 0xF) {
+                return 0;
+            }
+        default:
+            return -1;
+        }
+    case 17:
+        return PLAYER(self)->usedAttack;
+    case 18:
+        return PLAYER(other)->usedAttack;
+    case 19:
+        card = getPlayedCard(other);
+        switch (PLAYER(other)->cards[card % 30].card[2]) {
+        case 0:
+            return 0;
+        case 1:
+            return 1;
+        default:
+            return -1;
+        }
+    case 20:
+        return self != DUEL->turnPlayer;
+    case 21:
+        return 4 - countEmptyHandSlots(self);
+    case 22:
+        return 4 - countEmptyHandSlots(other);
+    case 23:
+        return 8 - countEmptyDpSlots(self);
+    case 24:
+        return 8 - countEmptyDpSlots(other);
+    case 25:
+        return countOfflineDeckCards(self) == 0;
+    case 26:
+        return D_801FC404;
+    case 27:
+        return countOnlineDeckCards(self);
+    case 28:
+        return countOnlineDeckCards(other);
+    }
+    return 0;
+}
+
 
 extern s32 D_801FC404;
 void func_801FA30C(s32 player);
