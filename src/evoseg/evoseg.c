@@ -666,11 +666,11 @@ void EVO_checkCardCapacity(s16 cardId);
 extern Bytes4 EVO_TEXT_COLORS[];
 extern Bytes4 EVO_TEXT_COLOR_GREY;
 extern Bytes4 EVO_TEXT_COLOR_RED;
-extern char EVO_FMT_CARD_NUMBER[];
-extern char EVO_FMT_CARD_COUNT[];
-extern char EVO_STR_CARDS[];
+extern const char EVO_FMT_CARD_NUMBER[];
+extern const char EVO_FMT_CARD_COUNT[];
+extern const char EVO_STR_CARDS[];
 
-extern char EVO_STR_SPEC[];
+extern const char EVO_STR_SPEC[];
 
 void EVO_initCutsceneScene(s8 evolved) {
     if (evolved == 0) {
@@ -3389,16 +3389,16 @@ void EVO_drawCardList(UiWindow *w) {
         drawTextColored(x + 0xA, y, text, color, palette, z);
         sprintf(text, EVO_FMT_CARD_COUNT, EVO_SPARE_CARD_COUNTS[EVO_CARD_LIST[i]->id]);
         drawTextColored(x + 0xB5, y, text, color, palette, z);
-        drawTinyTextColored(x + 0xBD, y + 6, EVO_STR_CARDS, palette, color, z);
+        drawTinyTextColored(x + 0xBD, y + 6, (u8 *)EVO_STR_CARDS, palette, color, z);
     }
     updateMenuCursor(&EVO_CARD_LIST_MENU);
 }
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_FMT_CARD_NUMBER);
+const char EVO_FMT_CARD_NUMBER[] = "*s0%3.3d";
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_FMT_CARD_COUNT);
+const char EVO_FMT_CARD_COUNT[] = "%d";
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_STR_CARDS);
+const char EVO_STR_CARDS[] = "Cards";
 
 void EVO_drawFusionTypeTitle(EvoWindow *w) {
     s32 x = w->win.originX;
@@ -5200,7 +5200,8 @@ void EVO_drawCardInfo(UiWindow *w) {
     drawTexturedSprite(x + 0x60, y + 0xD, &rect, 0x97, 0x7F18, z, 0x80, -1);
 }
 
-INCLUDE_RODATA("asm/evoseg/nonmatchings/evoseg", EVO_STR_SPEC);
+/* the last two bytes are leftovers in the original, not zero padding */
+const char EVO_STR_SPEC[8] = "Spec.\0\x85\xA4";
 
 void EVO_resetFusion(void) {
     EVO_FUSION.secondCard = -1;
