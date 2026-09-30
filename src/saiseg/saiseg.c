@@ -1129,7 +1129,7 @@ void func_801E0D8C(s32 *regs) {
 
 void func_801E0F90(UiWindow *window, Rect16 pos, s32 label, s32 style, s32 brightness) {
     Rect16 rect;
-    Rect16 unused;
+    Rect16 unused; /* never used, but the original frame has room for it */
     Rect16 view;
 
     rect.x = pos.x - pos.w / 2;
@@ -6522,6 +6522,50 @@ void func_801F329C(void) {
     drawWindow(&D_801F5410, func_801F2F04, 0);
 }
 
-INCLUDE_ASM("asm/saiseg/nonmatchings/saiseg", func_801F32CC);
+extern char D_801DFA58[]; /* "GET DIGIPARTS LIST" */
+
+/*
+ * Task that grants a partner ability (a Digi-Part) and shows the parts list
+ * until Cross is pressed.
+ */
+void func_801F32CC(s32 ability, s32 task) {
+    Rect16 unused; /* never used, but the original frame has room for it */
+    Rect16 rect;
+    s32 i;
+    UiWindow *win;
+
+    rect.x = 0x28;
+    rect.y = 0x2C;
+    rect.w = 0xF0;
+    rect.h = 0xA8;
+    openWindow(&D_801F5410, &rect, -1, (s16 *)-1, 10, 0x16, 0x80, 12);
+    D_801F5410.label = (s32)D_801DFA58;
+    /*
+     * Dead code in the original: this loop's result is never used. GCC deletes
+     * the store only after register allocation, which is why the ROM's loop
+     * counter sits in a0; without it the code differs.
+     */
+    for (i = 0; i < 16; i++) {
+        if ((D_801F5458[i] >> (ability % 8)) & 1) {
+            win = &D_801F5410;
+        }
+    }
+    /* mark the ability as owned */
+    D_801F5458[ability / 8] |= 1 << (ability % 8);
+    grantPartnerAbility(0, ability);
+    playSoundEffect(3);
+    addFrameCallback((s32)func_801F329C);
+    do {
+        func_80014C08(1);
+    } while (!(PAD_STATES[0]->pressed & 0x40)); /* Cross */
+    playSoundEffect(4);
+    win = &D_801F5410;
+    animateWindowTo(win, (Rect16 *)-1);
+    func_80014C08(20);
+    removeFrameCallback((s32)func_801F329C);
+    func_80014C08(1);
+    D_801F4696 = 0;
+    func_80014A48(task);
+}
 
 INCLUDE_RODATA("asm/saiseg/nonmatchings/saiseg", D_801DFA58);
