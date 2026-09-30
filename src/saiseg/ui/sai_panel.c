@@ -7,8 +7,6 @@
 #include "dcb/sai_sprite.h"
 #include "dcb/sai_world_map.h"
 
-extern s8 D_801F469E;
-
 void SAI_initPanelCover(void) {
     s32 i;
 
@@ -81,13 +79,13 @@ void SAI_createPanelSprite(void) {
         waitFrames(20);
         SAI_toggleMessageWindow(1);
     } else {
-        if (D_801F469E == 0) {
+        if (SAI_AREA.unk116 == 0) {
             SAI_SPRITES[0] = SAI_createSprite(3);
         } else {
             SAI_setSpriteImage8Bit(SAI_SPRITES[0], &rect, 0);
             SAI_SPRITES[0]->quads[0].clut = SAI_SPRITES[0]->quads[1].clut = getClut(0x280, 0x1F8);
         }
-        D_801F469E = 1;
+        SAI_AREA.unk116 = 1;
     }
 }
 

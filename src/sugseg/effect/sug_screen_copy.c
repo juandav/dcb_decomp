@@ -4,7 +4,6 @@
 #include "dcb/vblank.h"
 #include "dcb/sug_battle.h"
 
-extern s16 D_800794C0;
 extern s32 SUG_SCREEN_FX_X;
 extern float SUG_SCREEN_FX_STEP_X;
 extern float SUG_SCREEN_FX_STEP_Y;
@@ -15,8 +14,6 @@ extern s32 SUG_SCREEN_FX_Y;
 extern s32 SUG_SCREEN_FX_MOTION;
 extern s32 SUG_SCREEN_FX_HOLD;
 extern s32 SUG_SCREEN_FX_FADE_TIME;
-extern s16 D_800794E8;
-extern s16 D_800794C2;
 extern s32 VBLANKS_PER_FRAME;
 
 s16 SUG_SCREEN_FX_ANGLE = 0;
@@ -58,7 +55,7 @@ void SUG_startScreenCopyFade(u8 r, u8 g, u8 b, s32 x, s32 y) {
         SUG_SCREEN_FX_STEP_Y = (float)(y - (SUG_SCREEN_FX_Y = SCREEN_COPY_EFFECT.y)) / SUG_SCREEN_FX_FADE_TIME;
         break;
     case 1:
-        SUG_SCREEN_FX_STEP_X = (float)(x - (SUG_SCREEN_FX_X = D_800794C0)) / SUG_SCREEN_FX_FADE_TIME;
+        SUG_SCREEN_FX_STEP_X = (float)(x - (SUG_SCREEN_FX_X = SCREEN_COPY_EFFECT.x)) / SUG_SCREEN_FX_FADE_TIME;
         if ((x | y) != 0) {
             SUG_SCREEN_FX_STEP_Y = y;
         }
@@ -107,7 +104,8 @@ void SUG_tickScreenCopyEffect(void) {
             SUG_stepScreenCopyFade();
             return;
         }
-        if (D_800794E8 != 0) {
+        /* read as a signed halfword here, unlike main */
+        if ((s16)SCREEN_COPY_EFFECT.abr != 0) {
             SUG_startScreenCopyFade(0, 0, 0, 0, 0);
         } else {
             SUG_startScreenCopyFade(0xA8, 0xA8, 0xA8, 0, 0);
@@ -177,7 +175,7 @@ void SUG_updateScreenCopyQuads(void) {
         SCREEN_COPY_EFFECT.py[0][2] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
         SCREEN_COPY_EFFECT.py[0][3] = SCREEN_COPY_EFFECT.py[1][2] = (0 * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
         SCREEN_COPY_EFFECT.py[1][3] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
-        SUG_SCREEN_FX_ANGLE += D_800794C2 * VBLANKS_PER_FRAME;
+        SUG_SCREEN_FX_ANGLE += SCREEN_COPY_EFFECT.y * VBLANKS_PER_FRAME;
         break;
     }
 }

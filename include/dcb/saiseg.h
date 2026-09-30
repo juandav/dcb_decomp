@@ -174,7 +174,7 @@ typedef struct {
     /* 0x110 */ s8 partners[4];
     /* 0x114 */ s8 selectState;
     /* 0x115 */ u8 unk115;
-    /* 0x116 */ u8 unk116;
+    /* 0x116 */ s8 unk116;
     /* 0x117 */ u8 coverAlpha;
     /* 0x118 */ s8 opening;
     /* 0x119 */ u8 pad119;

@@ -27,7 +27,6 @@ typedef struct {
 extern PlayerProfile *OPEN_MEMCARD_BUFFER;
 extern u8 OPEN_MEMCARD_MESSAGE_PORT;
 extern u8 OPEN_MEMCARD_READY_RESULT;
-extern u8 D_801F80C0;
 
 void StoreImage(Rect16 *rect, void *p);
 void OPEN_applyLoadedSave();
@@ -400,7 +399,7 @@ void OPEN_prepareSaveData(s32 port) {
     switch (OPEN_MEMCARD_MODE) {
     case 0:
         PLAYER_DATA(port).resumeInArea = 1;
-        PLAYER_DATA(port).unk28_13 = D_801F80C0;
+        PLAYER_DATA(port).unk28_13 = OPEN_MEMCARD.unk538;
         ((SessionView *)SESSION_DATA)->saves[port].playTime = PLAYER_DATA(port).playTime;
         *buffer = PLAYER_DATA(port);
         return;
