@@ -116,7 +116,93 @@ void runCardArtLoader(void) {
     DUEL->stopArtLoader = 0;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/card/card_render", loadDuelCardGraphics);
+/* Uploads the duel's card graphics to VRAM: the CBTL_SYS.ARC images, the art
+   of both players' 30 cards (setting up their card sprites) and their partners'
+   cards, plus the extra archive users when withExtras is set. */
+void loadDuelCardGraphics(s32 withExtras) {
+    /* Only nextAnim[0] is used. The rest is unused in the original; it sizes
+       the frame, and the array keeps the cursor in memory like the ROM does. */
+    CardAnim *nextAnim[3];
+    CardAnim *anim;
+    u32 *arc;
+    s32 i;
+    s32 j;
+    CardSprite *sprite;
+    u8 id;
+    u8 level;
+    Partner *partners;
+
+    DUEL_VRAM_READY = 0;
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\CBTL_SYS.ARC", getCurrentTaskId());
+    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    /* the archive starts with its offset table: its size / 4 - 1 images */
+    for (i = 0; i < (s32)(arc[0] >> 2) - 1; i++) {
+        uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
+        DrawSync(0);
+        func_80014C08(FRAME_INTERVAL);
+    }
+    freeHeapBlock(arc);
+
+    sprite = DUEL->sprites;
+    nextAnim[0] = (CardAnim *)D_801D833C;
+    func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
+    arc = (u32 *)func_80014C08(0x7FFFFFFF);
+    for (i = 0; i < 2; i++) {
+        /* the card art, in a 6x5 grid of 40x40 cells per player */
+        for (j = 0; j < 30; j++) {
+            uploadTim((u32 *)((u8 *)arc + arc[PLAYER(i)->cards[j].id]), (((i << 8) + (j % 6) * 40) >> 1) + 0x2C0,
+                      (j / 6) * 40, -1, -1);
+            anim = nextAnim[0];
+            anim->spr = sprite;
+            anim->state = 0;
+            sprite->flags = 0;
+            sprite->rgbc[3] = 0x2C;
+            sprite->fade[3] = 0x2E;
+            sprite->rgbc[0] = 0x80;
+            sprite->rgbc[1] = 0x80;
+            sprite->rgbc[2] = 0x80;
+            sprite->fade[0] = 0;
+            sprite->fade[1] = 0;
+            sprite->fade[2] = 0;
+            sprite->tpage = getTPage(1, 0, (i << 7) + 0x2C0, 0);
+            sprite->clut = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
+            /* option cards use palette 5, Digimon the one of their level */
+            if (PLAYER(i)->cards[j].type != 0) {
+                level = 5;
+            } else {
+                level = (u8)PLAYER(i)->cards[j].card[0x1A] >> 4;
+            }
+            sprite->pal = level;
+            sprite->u = (j % 6) * 40;
+            sprite->v = (j / 6) * 40;
+            nextAnim[0]++;
+            sprite++;
+        }
+        /* the partners' cards and their armor cards, in the row below */
+        for (j = 0; j < 3; j++) {
+            id = PLAYER_DATA(i).partners[j].cardId;
+            if (id != 0) {
+                uploadTim((u32 *)((u8 *)arc + arc[id]), (((i << 8) + j * 40) >> 1) + 0x2C0, 0xC8, -1, -1);
+                partners = PLAYER_DATA(i).partners;
+                id = partners[j].armorCardId;
+                if (id != 0) {
+                    uploadTim((u32 *)((u8 *)arc + arc[id]), (((i << 8) + (j + 3) * 40) >> 1) + 0x2C0, 0xC8, -1,
+                              -1);
+                    PLAYER(i)->unk170[j + 1] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
+                }
+            }
+        }
+    }
+    if (withExtras != 0) {
+        func_801F5D58((u8 *)arc);
+        func_801F48E0((u8 *)arc);
+    }
+    DrawSync(0);
+    func_80014C08(FRAME_INTERVAL);
+    freeHeapBlock(arc);
+    func_80014C08(10);
+    DUEL_VRAM_READY = 1;
+}
 
 /* the message on the top bar */
 u8 * STATUS_MESSAGE_TEXTS[18] = {
