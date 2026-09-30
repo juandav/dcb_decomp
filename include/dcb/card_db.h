@@ -13,6 +13,8 @@ typedef struct {
 } DigivolveCardData;
 
 extern u8 PARTNER_ARMOR_CARD_IDS[6][3];
+/* per pack: for each colour and the options, a card id range (first, span, …) */
+extern s8 REWARD_CARD_RANGES[16][6][3];
 extern u8 *CARD_DB_FILE;
 extern u8 *OPTION_CARDS;
 extern u8 *DIGIVOLVE_CARDS;
