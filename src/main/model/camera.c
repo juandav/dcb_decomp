@@ -96,6 +96,135 @@ s32 stepCameraTowardTarget(u8 *camera, s32 *pos, s32 distance, s16 *target) {
     return distance;
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/model/camera", runSceneCameraTask);
+/* A camera preset: the model to follow and where the camera sits around it */
+typedef struct {
+    /* 0x0 */ s16 model; /* index into SCENE_3D->models, or -1 for a free camera */
+    /* 0x2 */ s16 pitch;
+    /* 0x4 */ s16 distance;
+    /* 0x6 */ s16 height;
+    /* 0x8 */ s16 yaw;
+    /* 0xA */ s16 facedModel; /* the model that a big (id >= 2000) model faces */
+} CameraPreset;
+
+extern VECTOR D_801D6A68;
+extern CameraPreset D_80010190[];
+
+/*
+ * Task that places the 3D camera every frame: either eased toward the current
+ * preset (free camera), or attached to the root bone of the followed model.
+ * The GTE work area lives in the scratchpad.
+ */
+void runSceneCameraTask(s32 preset) {
+    s32 yaw;
+    s32 depth;
+    s32 facing;
+    s32 sign;
+    Graphics *camera;
+    Model *model;
+    BoneKeys *root; /* the root bone's channels: angles 12.20, translation 16.16 */
+    VECTOR *scale;
+    VECTOR *viewTrans;
+    MATRIX *view;
+    SVECTOR *offset;
+    SVECTOR *angles;
+    s32 *gteFlag;
+    Scene3D *scene;
+    Graphics *graphics;
+    CameraPreset *target;
+    VECTOR *lookAt;
+    s32 *lookAtCoords;
+
+    yaw = 0;
+    /* GRAPHICS.targetModel starts the current CameraPreset */
+    target = (CameraPreset *)&((Graphics *)&GRAPHICS)->targetModel;
+    scene = SCENE_3D;
+    scene->unkC0 = 0;
+    scene->unk98.vx = scene->unk98.vy = scene->unk98.vz = 0;
+    scene->unkA8.vx = scene->unkA8.vy = scene->unkA8.vz = 0;
+    scene->unkB0.vx = scene->unkB0.vy = scene->unkB0.vz = 0;
+    camera = (Graphics *)&GRAPHICS;
+    lookAt = &D_801D6A68;
+    if (preset != 0) {
+        lookAt->vx = lookAt->vy = lookAt->vz = 0;
+        camera->posX = camera->posY = camera->posZ = 0;
+        *target = D_80010190[preset];
+        camera->height = target->height << 12;
+        camera->distance = target->distance << 12;
+        camera->pitch = target->pitch << 12;
+        camera->originX = 0;
+        camera->originY = 0;
+        camera->originZ = 0;
+    }
+    target->model = -1;
+    target->facedModel = 0;
+    lookAtCoords = (s32 *)&D_801D6A68;
+    while (1) {
+        /* GTE work area in the scratchpad */
+        viewTrans = (VECTOR *)0x1F800004;
+        view = (MATRIX *)0x1F800014;
+        offset = (SVECTOR *)0x1F80003C;
+        angles = (SVECTOR *)0x1F800034;
+        gteFlag = (s32 *)0x1F800000;
+        view->t[0] = view->t[1] = view->t[2] = 0;
+        gte_SetTransMatrix(view);
+        if (target->model < 0 || SCENE_3D->modelState[target->model] <= 0) {
+            /* Free camera: ease toward the preset and orbit the look-at point */
+            graphics = (Graphics *)&GRAPHICS;
+            *lookAt = *(VECTOR *)&graphics->posX;
+            yaw = stepCameraTowardTarget((u8 *)camera, lookAtCoords, yaw, (s16 *)target);
+            SCENE_WORLD_ROTATION.vx = angles->vx = camera->rotX = camera->pitch / 4096;
+            SCENE_WORLD_ROTATION.vy = angles->vy = camera->rotY + yaw;
+            SCENE_WORLD_ROTATION.vz = angles->vz = camera->rotZ;
+            RotMatrix(angles, view);
+            gte_SetRotMatrix(view);
+            offset->vx = camera->originX;
+            offset->vy = camera->originY;
+            offset->vz = camera->originZ;
+            /* Rotate the origin offset into view space */
+            gte_ldv0(offset);
+            gte_rtv0tr();
+            gte_stlvnl(viewTrans);
+            gte_stflg(gteFlag);
+            viewTrans->vz += camera->distance / 4096;
+            viewTrans->vy += camera->height / 4096;
+            TransMatrix(view, viewTrans);
+            gte_SetTransMatrix(view);
+        } else {
+            /* Follow the root bone of the target model */
+            model = SCENE_3D->models[target->model];
+            root = &model->keys[model->nobj];
+            scale = &model->scale;
+            if (model->id < 2000) {
+                facing = model->rot.vy;
+                /* A model turned around (rot.vy != 0) mirrors the offset */
+                sign = facing == 0 ? 1 : -1;
+                depth = model->pos.vz;
+            } else {
+                /* A big model: look from the side of the model it faces */
+                facing = ((Model *)SCENE_3D->models[target->facedModel])->rot.vy;
+                sign = facing == 0 ? 1 : -1;
+                depth = ((Model *)SCENE_3D->models[target->facedModel])->pos.vz + sign * model->pos.vz;
+            }
+            SCENE_WORLD_ROTATION.vx = -root->rot[0].value / 0x100000;
+            SCENE_WORLD_ROTATION.vy = -root->rot[1].value / 0x100000 + facing;
+            SCENE_WORLD_ROTATION.vz = -root->rot[2].value / 0x100000;
+            RotMatrix(&SCENE_WORLD_ROTATION, view);
+            gte_SetRotMatrix(view);
+            /* Offset by the root bone's translation, scaled by the model scale (4096 = 1.0) */
+            offset->vx = (float)-(s16)(root->pos[0].value >> 16) * ((float)scale->vx * (1.0f / 4096)) * (float)sign;
+            offset->vy = (float)-(s16)(root->pos[1].value >> 16) * ((float)scale->vy * (1.0f / 4096)) - (float)model->pos.vy;
+            offset->vz = (float)-(s16)(root->pos[2].value >> 16) * ((float)scale->vz * (1.0f / 4096)) * (float)sign - (float)depth;
+            gte_ldv0(offset);
+            gte_rtv0tr();
+            gte_stlvnl(viewTrans);
+            gte_stflg(gteFlag);
+            TransMatrix(view, viewTrans);
+            gte_SetTransMatrix(view);
+        }
+        /* Publish the view matrix to the scene */
+        *(MATRIX *)SCENE_3D->unk78 = *view;
+        func_80014C08(FRAME_INTERVAL);
+    }
+}
 
 INCLUDE_RODATA("asm/main/nonmatchings/model/camera", D_80010190);

@@ -113,7 +113,11 @@ typedef struct GsCOORDINATE2 {
 typedef struct {
     /* 0x000 */ GsOT ot[2];
     /* 0x028 */ GsCOORDINATE2 root;
-    /* 0x078 */ u8 unk78[0x4C];
+    /* 0x078 */ u8 unk78[0x20]; /* the camera view matrix (MATRIX) */
+    /* 0x098 */ VECTOR unk98;
+    /* 0x0A8 */ SVECTOR unkA8;
+    /* 0x0B0 */ VECTOR unkB0;
+    /* 0x0C0 */ s32 unkC0;
     /* 0x0C4 */ GsRVIEW2 view;
     /* 0x0E4 */ u8 unkE4[0x30];
     /* 0x114 */ s8 modelState[24];
@@ -138,7 +142,13 @@ typedef struct {
     s16 rotX;
     s16 rotY;
     s16 rotZ;
-    u8 pad5A[0x1A];
+    u8 pad5A[0x2];
+    /* 0x5C */ s32 originX; /* the negated look-at position */
+    /* 0x60 */ s32 originY;
+    /* 0x64 */ s32 originZ;
+    /* 0x68 */ s32 distance; /* 20.12 fixed point */
+    /* 0x6C */ s32 height;
+    /* 0x70 */ s32 pitch;
     s32 snapCamera;
     u8 pad78[0x4];
     s32 posX;
@@ -977,7 +987,7 @@ extern u8 *D_801D83EC;
 extern u8 *D_801D833C;
 extern MsgBar DUEL_MSG_BAR;
 extern u8 D_801D83D1;
-extern s32 runSceneCameraTask;
+void runSceneCameraTask(s32 preset);
 extern s32 PATH_KAWSEG_BIN;
 extern s32 PATH_DECK2_DEK;
 
