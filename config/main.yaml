@@ -95,8 +95,9 @@ segments:
       - [0x37BC, .rodata, psyq]
       - [0x464C, c, main]
       - [0x4704, c, system/task]
-      # the game's own startup and interrupt glue, written in assembly
-      - [0x5170, asm, startup]
+      # the game's own task switching and interrupt glue, written in
+      # assembly (src/main/startup.s)
+      - [0x5170, hasm, startup]
       - [0x54F0, c, system/vblank]
       - [0x5564, c, gfx/screen_copy]
       - [0x5AAC, c, system/render_loop]
