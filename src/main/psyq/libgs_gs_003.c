@@ -42,10 +42,10 @@ void GsSwapDispBuff(void) {
 
 OBJECT_END(3);
 
-extern MATRIX D_801DBEC0;
+extern MATRIX GsIDMATRIX;
 
 void GsInitCoordinate2(GsCOORDINATE2 *super, GsCOORDINATE2 *base) {
-    base->coord = D_801DBEC0;
+    base->coord = GsIDMATRIX;
     base->super = super;
     base->flg = 0;
     if ((u_long)super > 1) {

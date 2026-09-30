@@ -6,10 +6,10 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-extern MATRIX D_801DBEC0;
+extern MATRIX GsIDMATRIX;
 
 void Gssub_make_matrix(MATRIX *m, short s, short c, char axis) {
-    *m = D_801DBEC0;
+    *m = GsIDMATRIX;
     switch (axis) {
     case 'x':
     case 'X':
@@ -40,21 +40,17 @@ __asm__(".section .rodata\n\t.space 4\n\t.section .text\n");
 
 OBJECT_END(2);
 
-extern long D_801DBF98;
-
-void func_80062C34(long v) {
-    D_801DBF98 = v;
+void GsSetWorkBase(PACKET *outpacketp) {
+    GsOUT_PACKET_P = outpacketp;
 }
 
 OBJECT_END(1);
 
-extern long D_801DBF98;
-
-long func_80062C44(void) {
-    return D_801DBF98;
+PACKET *GsGetWorkBase(void) {
+    return GsOUT_PACKET_P;
 }
 
-extern MATRIX D_801DBEA0;
+extern MATRIX GsWSMATRIX;
 extern MATRIX D_801DBEE0;
 extern MATRIX D_801DBE80;
 void gte_rotate_z_matrix(MATRIX *m, long r);
@@ -70,8 +66,8 @@ int GsSetRefView2(GsRVIEW2 *pv) {
     long t;
     long s;
 
-    D_801DBEA0 = D_801DBEE0;
-    gte_rotate_z_matrix(&D_801DBEA0, -pv->rz);
+    GsWSMATRIX = D_801DBEE0;
+    gte_rotate_z_matrix(&GsWSMATRIX, -pv->rz);
     func_80063024((long *)pv, (long *)&rv);
     r = SquareRoot0((rv.vrx - rv.vpx) * (rv.vrx - rv.vpx) + (rv.vry - rv.vpy) * (rv.vry - rv.vpy) + (rv.vrz - rv.vpz) * (rv.vrz - rv.vpz));
     if (r == 0) {
@@ -81,19 +77,19 @@ int GsSetRefView2(GsRVIEW2 *pv) {
     s = -((t << 12) / r);
     t = SquareRoot0((rv.vrx - rv.vpx) * (rv.vrx - rv.vpx) + (rv.vrz - rv.vpz) * (rv.vrz - rv.vpz));
     Gssub_make_matrix(&m, s, (t << 12) / r, 'x');
-    MulMatrix(&D_801DBEA0, &m);
+    MulMatrix(&GsWSMATRIX, &m);
     if (t != 0) {
         r = t;
         t = rv.vrx - rv.vpx;
         s = (t << 12) / r;
         t = rv.vrz - rv.vpz;
         Gssub_make_matrix(&m, -s, (t << 12) / r, 'y');
-        MulMatrix(&D_801DBEA0, &m);
+        MulMatrix(&GsWSMATRIX, &m);
     }
     vec.vx = -pv->vpx;
     vec.vy = -pv->vpy;
     vec.vz = -pv->vpz;
-    ApplyMatrixLV(&D_801DBEA0, &vec, (VECTOR *)D_801DBEA0.t);
+    ApplyMatrixLV(&GsWSMATRIX, &vec, (VECTOR *)GsWSMATRIX.t);
     if (pv->super != NULL) {
         GsGetLw(pv->super, &m);
         TransposeMatrix(&m, &tm);
@@ -101,9 +97,9 @@ int GsSetRefView2(GsRVIEW2 *pv) {
         tm.t[0] = -vec.vx;
         tm.t[1] = -vec.vy;
         tm.t[2] = -vec.vz;
-        GsMulCoord2(&D_801DBEA0, &tm);
-        D_801DBEA0 = tm;
+        GsMulCoord2(&GsWSMATRIX, &tm);
+        GsWSMATRIX = tm;
     }
-    D_801DBE80 = D_801DBEA0;
+    D_801DBE80 = GsWSMATRIX;
     return 0;
 }

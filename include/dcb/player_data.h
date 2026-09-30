@@ -5,7 +5,7 @@
 
 
 void initPlayerData(void);
-void func_8002D458(void);
+void resetScriptProgress(void);
 void resetPlayerData(void);
 void renderFullscreenBackground(void);
 void playModelAnimation(s32 modelSlot, s32 animId);

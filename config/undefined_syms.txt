@@ -1,5 +1,5 @@
 D_800767F0 = 0x800767F0;
-D_801DBFB0 = 0x801DBFB0;
+GsFCALL4 = 0x801DBFB0;
 
 /* PsyQ's startup hands __sn_cpp_structors an empty constructor table at the
    start of .rodata; no object names that address (openDiscFile's ".DRV;1"

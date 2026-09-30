@@ -307,7 +307,7 @@ typedef struct {
     s8 model;
 } EvoShatter;
 
-extern MATRIX D_801DBEA0;
+extern MATRIX GsWSMATRIX;
 extern EvoCardInfo *EVO_CARDS_BY_ID[];
 extern u8 *EVO_SPARE_CARD_COUNTS;
 extern u8 *EVO_DECK_CARD_COUNTS[3];
@@ -334,7 +334,7 @@ extern EvoChoice EVO_TYPE_CHOICE;
 extern EvoCardInfo *EVO_CARD_LIST[];
 extern UiWindow EVO_SORT_WINDOW;
 
-long func_80062C44(void);
-void func_80062C34(long base);
+long GsGetWorkBase(void);
+void GsSetWorkBase(long base);
 
 #endif /* DCB_EVOSEG_H */

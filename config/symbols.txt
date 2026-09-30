@@ -677,6 +677,7 @@ RCpolyGT4 = 0x8005F364; // type:func
 RCpolyGT4A = 0x8005F36C; // type:func
 ratan2 = 0x8005F984; // type:func
 _patch_gte = 0x8005FB04; // type:func
+NormalColorCol = 0x8005FBE4; // type:func
 NormalColorCol3 = 0x8005FC04; // type:func
 GsTMDfastF3L = 0x8005FC74; // type:func
 GsTMDfastNF4 = 0x8005FDC4; // type:func
@@ -716,6 +717,8 @@ GsSetLightMode = 0x80062A44; // type:func
 GsSetAmbient = 0x80062AC4; // type:func
 gte_init = 0x80062AF4; // type:func
 Gssub_make_matrix = 0x80062B64; // type:func
+GsSetWorkBase = 0x80062C34; // type:func
+GsGetWorkBase = 0x80062C44; // type:func
 GsSetRefView2 = 0x80062C54; // type:func
 GsMulCoord2 = 0x800631F4; // type:func
 gte_rotate_z_matrix = 0x80063274; // type:func
@@ -757,6 +760,7 @@ _GPU_ResetCallback = 0x800674B4; // type:func
 SetDefDrawEnv = 0x80067504; // type:func
 SetDefDispEnv = 0x800675C4; // type:func
 GetTPage = 0x80067604; // type:func
+GetClut = 0x80067644; // type:func
 AddPrim = 0x80067664; // type:func
 SetSemiTrans = 0x800676A4; // type:func
 SetShadeTex = 0x800676D4; // type:func
@@ -879,6 +883,10 @@ PadInitDirect = 0x8006B3E4; // type:func
 _padInitDirPort = 0x8006B494; // type:func
 _dirFailAuto = 0x8006BDC4; // type:func
 D_80011440 = 0x80011440; // force_not_migration:True
+GsWSMATRIX = 0x801DBEA0;
+GsIDMATRIX = 0x801DBEC0;
+GsOUT_PACKET_P = 0x801DBF98;
+GsFCALL4 = 0x801DBFB0;
 
 // Cards
 initPlayerData = 0x8002D404; // type:func
@@ -951,6 +959,7 @@ BASE_DECK_IDS = 0x8006E50C;
 CARD_PACK_NAMES = 0x8006E31C;
 GLYPH_UPLOAD_BUSY = 0x8006E294;
 SESSION_DATA = 0x8006E054;
+resetScriptProgress = 0x8002D458; // type:func
 
 // Graphics
 transformAndAddPolyGT4 = 0x8001D900; // type:func

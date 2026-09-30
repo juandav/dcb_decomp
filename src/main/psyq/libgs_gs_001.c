@@ -97,7 +97,7 @@ extern volatile long D_801DBE28;
 extern volatile long D_801DBE2C;
 extern MATRIX D_801DBE40;
 extern MATRIX D_801DBE60;
-extern MATRIX D_801DBEC0;
+extern MATRIX GsIDMATRIX;
 extern MATRIX D_801DBEE0;
 
 void func_80061ADC(u_short w, u_short h) {
@@ -106,13 +106,13 @@ void func_80061ADC(u_short w, u_short h) {
     D_801DBE28 = w;
     D_801DBE2C = h;
     aspect = (D_801DBE2C << 14) / D_801DBE28;
-    D_801DBEC0.m[2][2] = D_801DBEC0.m[1][1] = D_801DBEC0.m[0][0] = 0x1000;
-    D_801DBEC0.m[0][1] = D_801DBEC0.m[0][2] = 0;
-    D_801DBEC0.m[1][0] = D_801DBEC0.m[1][2] = 0;
-    D_801DBEC0.m[2][0] = D_801DBEC0.m[2][1] = 0;
-    D_801DBEC0.t[0] = D_801DBEC0.t[1] = D_801DBEC0.t[2] = 0;
-    D_801DBEE0 = D_801DBEC0;
-    D_801DBE40 = D_801DBEC0;
+    GsIDMATRIX.m[2][2] = GsIDMATRIX.m[1][1] = GsIDMATRIX.m[0][0] = 0x1000;
+    GsIDMATRIX.m[0][1] = GsIDMATRIX.m[0][2] = 0;
+    GsIDMATRIX.m[1][0] = GsIDMATRIX.m[1][2] = 0;
+    GsIDMATRIX.m[2][0] = GsIDMATRIX.m[2][1] = 0;
+    GsIDMATRIX.t[0] = GsIDMATRIX.t[1] = GsIDMATRIX.t[2] = 0;
+    D_801DBEE0 = GsIDMATRIX;
+    D_801DBE40 = GsIDMATRIX;
     D_801DBE40.m[0][0] = D_801DBE40.m[1][1] = D_801DBE40.m[2][2] = 0;
     D_801DBE60 = D_801DBE40;
     D_801DBD90[0] = 0;

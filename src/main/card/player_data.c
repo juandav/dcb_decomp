@@ -22,18 +22,18 @@ void initPlayerData(void) {
     loadCardDatabase();
     PLAYER_PROFILES = allocPermanentHeapBlock(sizeof(PlayerProfile) * 2);
     SESSION_DATA = session = allocPermanentHeapBlock(0x102C);
-    ((SessionData *)SESSION_DATA)->unk100C = allocPermanentHeapBlock(0x1AC);
+    ((SessionData *)SESSION_DATA)->areaSession = allocPermanentHeapBlock(0x1AC);
     resetPlayerData();
 }
 
-void func_8002D458(void) {
+void resetScriptProgress(void) {
     s32 i;
 
     ((SessionData *)SESSION_DATA)->unk1027 = 0;
-    ((SessionData *)SESSION_DATA)->unk100C->unk1A4 = 0;
-    ((SessionData *)SESSION_DATA)->unk100C->unk1A2 = 0;
-    ((SessionData *)SESSION_DATA)->unk100C->unk1A9 = 0;
-    ((SessionData *)SESSION_DATA)->unk100C->unk1A8 = 0;
+    ((SessionData *)SESSION_DATA)->areaSession->area = 0;
+    ((SessionData *)SESSION_DATA)->areaSession->unk1A2 = 0;
+    ((SessionData *)SESSION_DATA)->areaSession->resumeMode = 0;
+    ((SessionData *)SESSION_DATA)->areaSession->location = 0;
     for (i = 0; i < 12; i++) {
         PLAYER_DATA(0).areaScriptFlags[i] = 0;
     }
@@ -127,7 +127,7 @@ void resetPlayerData(void) {
         profile->playTime = 0;
     }
     strcpy(PLAYER_DATA(0).name, "Player");
-    func_8002D458();
+    resetScriptProgress();
 }
 
 void renderFullscreenBackground(void) {

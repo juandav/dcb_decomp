@@ -18,7 +18,7 @@
 #include "dcb/sai_area.h"
 #include "dcb/sai_sprite.h"
 
-#define SESSION_SUB (((SessionData *)SESSION_DATA)->unk100C)
+#define SESSION_SUB (((SessionData *)SESSION_DATA)->areaSession)
 
 /* the world map's states, SAI_MAP_STATE_FUNCS' index (WorldMap.state) */
 enum MapState {
@@ -130,7 +130,7 @@ void SAI_loadMapTextures(s32 useMap) {
     char path[0x48];
     u32 *pack;
 
-    *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x194] = 1;
+    *(s32 *)&((SessionData *)SESSION_DATA)->areaSession->unk0[0x194] = 1;
     if (useMap == 0) {
         sprintf(path, worldPath);
     } else {
@@ -140,7 +140,7 @@ void SAI_loadMapTextures(s32 useMap) {
     pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
-    *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x194] = 0;
+    *(s32 *)&((SessionData *)SESSION_DATA)->areaSession->unk0[0x194] = 0;
 }
 
 void SAI_initCamera(void) {
@@ -1222,7 +1222,7 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     SAI_initMapAnims(SAI_WORLD_MAP.region);
     SAI_createMapFrame();
     SAI_createMapFrameShadow();
-    SESSION_SUB->unk1A4 = SAI_WORLD_MAP.nodeIndex = ((PlayerProfile *)PLAYER_PROFILES)->areaId;
+    SESSION_SUB->area = SAI_WORLD_MAP.nodeIndex = ((PlayerProfile *)PLAYER_PROFILES)->areaId;
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 7; i++) {
             if (((PlayerProfile *)PLAYER_PROFILES)->areaId == SAI_REGION_NODES[j][i]) {
@@ -1301,8 +1301,8 @@ void SAI_runWorldMap(s32 resume, s32 openMenu) {
     freeHeapBlocksByTag(0x29);
     waitFrames(0x1E);
     SESSION_SUB->unk1A2 = 0;
-    SESSION_SUB->unk1A5[0] = 0;
-    ((PlayerProfile *)PLAYER_PROFILES)->areaId = SESSION_SUB->unk1A4 = (u8)SAI_WORLD_MAP.nodeIndex;
+    SESSION_SUB->unk1A5 = 0;
+    ((PlayerProfile *)PLAYER_PROFILES)->areaId = SESSION_SUB->area = (u8)SAI_WORLD_MAP.nodeIndex;
     if (SAI_WORLD_MAP.menuChosen == 1) {
         SAI_WORLD_MAP.iconRunning = 0;
         switch (SAI_WORLD_MAP.menuCursor) {

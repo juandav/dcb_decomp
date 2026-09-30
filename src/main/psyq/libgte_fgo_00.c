@@ -219,7 +219,7 @@ u_long *GsTMDdivTNG3(TMD_P_TNG3 *op, SVECTOR *vp, POLY_GT3 *pk, u_long n, u_long
 OBJECT_END(2);
 
 void func_8005DB44(u_long *sz0, u_long *sz1, u_long *sz2, u_long *sz3);
-void func_8005FBE4(SVECTOR *n, CVECTOR *in, CVECTOR *out);
+void NormalColorCol(SVECTOR *n, CVECTOR *in, CVECTOR *out);
 POLY_FT4 *RCpolyFT4A(POLY_FT4 *pk, DIVPOLYGON4 *divp, long n, CRVECTOR4 *cr);
 
 u_long *GsTMDdivTF4L(TMD_P_TF4 *op, SVECTOR *vp, SVECTOR *np, POLY_FT4 *pk, u_long n, u_long shift, GsOT *ot,
@@ -255,7 +255,7 @@ u_long *GsTMDdivTF4L(TMD_P_TF4 *op, SVECTOR *vp, SVECTOR *np, POLY_FT4 *pk, u_lo
             continue;
         }
         func_8005DB44(&r0->sz, &r1->sz, &r2->sz, &r3->sz);
-        func_8005FBE4(&np[op->n0], (CVECTOR *)&col, &divp->rgbc);
+        NormalColorCol(&np[op->n0], (CVECTOR *)&col, &divp->rgbc);
         divp->ot = (u_long *)(ot->org + ((otz - ot->offset) >> shift));
         divp->rgbc.cd = op->cd | (D_801DBFA4 << 1);
         divp->clut = op->clut;

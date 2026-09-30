@@ -711,14 +711,18 @@ typedef struct {
     /* 0x276E */ s8 rewardResults[3];
     /* 0x2771 */ u8 unk2771[3];
 } PlayerProfile;
+/* Where SAISEG keeps its area state while other overlays run (SAISEG's
+   SaisegSession sees the whole block) */
 typedef struct {
     /* 0x000 */ u8 unk0[0x1A2];
     /* 0x1A2 */ s16 unk1A2;
-    /* 0x1A4 */ u8 unk1A4;
-    /* 0x1A5 */ u8 unk1A5[3];
-    /* 0x1A8 */ u8 unk1A8;
-    /* 0x1A9 */ u8 unk1A9;
-} Unk8006E054Sub;
+    /* 0x1A4 */ u8 area;
+    /* 0x1A5 */ u8 unk1A5;
+    /* 0x1A6 */ u8 duelResult; /* 0: the player won */
+    /* 0x1A7 */ u8 unk1A7;
+    /* 0x1A8 */ u8 location;
+    /* 0x1A9 */ u8 resumeMode; /* 1: back from a duel, 2: back from the complete stats */
+} AreaSession;
 typedef struct {
     /* 0x0000 */ u8 *npcDeckFile;
     /* 0x0004 */ u8 opponentDeckIndex;
@@ -727,7 +731,7 @@ typedef struct {
     /* 0x0076 */ u8 unk76[2];
     /* 0x0078 */ Partner partnerBackup[2][3];
     /* 0x1008 */ s16 npcDeckIndex[2];
-    /* 0x100C */ Unk8006E054Sub *unk100C;
+    /* 0x100C */ AreaSession *areaSession;
     /* 0x1010 */ u8 unk1010[0x17];
     /* 0x1027 */ u8 unk1027;
     /* 0x1028 */ s8 menuRow; /* the row picked in an OPENSEG menu */
