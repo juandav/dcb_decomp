@@ -31,7 +31,9 @@ so that the Digimon decomps read the same way.
 - An overlay's modules carry its prefix (`src/openseg/open_title.c`,
   `include/dcb/open_title.h`), and `include/dcb/<overlay>.h` holds what
   several of them share. The data an overlay starts with zeroed is in
-  `<prefix>_bss.c`, a C file with no code.
+  `<prefix>_bss.c`, a C file with no code; data that sits apart from its
+  module's, such as SAISEG's leading tables, goes in one too
+  (`sai_data.c`).
 
 ## Names
 

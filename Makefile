@@ -138,11 +138,16 @@ $(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
 $(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
 $(GENDIR)/$(1).ld: config/$(1).yaml config/symbols.txt $(wildcard config/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
-	@# a C file with no code (an overlay's zeroed data, <prefix>_bss.c) gets
-	@# no full disassembly from splat; its data file is its whole target
-	@for f in $(ASM_DIR)/$(1)/data/*.data.s; do \
-		u=$$$$(basename $$$$f .data.s); \
-		if [ -e src/$(1)/$$$$u.c ] && ! grep -qs '^glabel' $(ASM_DIR)/$(1)/$$$$u.s; then cp $$$$f $(ASM_DIR)/$(1)/$$$$u.s; fi; \
+	@# a C file with no code (an overlay's data-only files, such as
+	@# <prefix>_bss.c) gets no full disassembly from splat; its target is
+	@# splat's files of its rodata and data
+	@for c in $$$$(find src/$(1) -name '*.c'); do \
+		u=$$$${c#src/$(1)/}; u=$$$${u%.c}; t=$(ASM_DIR)/$(1)/$$$$u.s; \
+		if ! grep -qs '^glabel' $$$$t; then \
+			mkdir -p $$$$(dirname $$$$t); \
+			{ echo '.include "macro.inc"'; cat $(ASM_DIR)/$(1)/data/$$$$u.rodata.s $(ASM_DIR)/$(1)/data/$$$$u.data.s 2>/dev/null \
+				| grep -v '^\.include "macro.inc"'; } > $$$$t; \
+		fi; \
 	done
 	@touch $$@
 
