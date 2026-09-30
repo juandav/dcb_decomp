@@ -63,7 +63,7 @@ void loadScrollingBackground(void) {
         texWindow[3] = 0;
         SetTexWindow((u8 *)&D_801D8220 + i * sizeof(ScrollBgSprite), texWindow);
     }
-    func_800149B8(0, -1, 0, 0x800, loadFileTagged, &PATH_BG_ARC, getCurrentTaskId(), -2);
+    func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\BG.ARC", getCurrentTaskId(), -2);
     D_801D8260 = func_80014C08(0x7FFFFFFF);
 }
 
