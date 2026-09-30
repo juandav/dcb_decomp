@@ -138,4 +138,12 @@ void runDuelMessageWindow(void) {
     runDialogForPad(&D_801D8278, padIndex);
 }
 
-INCLUDE_RODATA("asm/main/nonmatchings/duel/duel_util", OVERLAY_LOAD_ADDR);
+/*
+ * The overlays (openseg, saiseg, kawseg...) are loaded right after the
+ * executable's .bss; the loaders read the address from here. It is const
+ * here, so it goes to .rodata, while game.h declares it a plain s32 for the
+ * loaders: declared const there, GCC would keep the value across calls,
+ * which the original code doesn't (GCC only warns about the mismatch).
+ */
+extern u8 D_801DDF38[];
+const s32 OVERLAY_LOAD_ADDR = (s32)D_801DDF38;
