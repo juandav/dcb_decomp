@@ -28,6 +28,7 @@
 #include "dcb/dialog.h"
 #include "dcb/libmath.h"
 #include "dcb/duel_setup.h"
+#include "dcb/pad.h"
 #include "dcb/sound.h"
 
 typedef struct {
@@ -86,8 +87,8 @@ typedef struct {
      s16 rhs[3];
      s8 ops[2];
 } SupportEffect;
-s32 KAW_getSupportOperand(s32 arg0, s32 arg1, s32 lhs, s32 rhs, s32 slot);
-s32 KAW_applySupportAction(s32 arg0, s32 arg1, s32 kind, s32 value, s32 slot, s32 arg5);
+s32 KAW_getSupportOperand(s32 self, s32 other, s32 kind, s32 value, s32 slot);
+s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet);
 extern s32 KAW_MATCH_LOADING;
 extern s32 KAW_BONUS_ROW;
 extern s32 KAW_BONUS_EXP;
@@ -165,39 +166,51 @@ s32 KAW_findCardIdInHand(s32 id, s32 player);
 extern s16 KAW_PILE_EFFECT_CARDS[];
 extern s16 KAW_REVIVE_CARDS[];
 extern s16 KAW_RECOVERY_CARDS[];
+/* what the CPU can do with one hand card: kind 1 digivolves into it now,
+   2 once it has more DP (need), 0 nothing */
 typedef struct {
     /* 0x0 */ s8 kind;
     /* 0x1 */ u8 need;
-    /* 0x2 */ s16 unk2;
-    /* 0x4 */ s16 id;
-} Slot7C8;
+    /* 0x2 */ s16 card;
+    /* 0x4 */ s16 option; /* the Digivolve card that makes it possible */
+} DigivolvePlan;
 typedef struct {
-    /* 0x000 */ u8 unk0[0x7C4];
-    /* 0x7C4 */ Slot7C8 *selected;
-    /* 0x7C8 */ Slot7C8 slots[4];
-    /* 0x7E0 */ u8 unk7E0[0x3F];
+    /* 0x000 */ struct ScriptRunner *tutorialScript;
+    /* 0x004 */ struct RingPrims *ringPrims;
+    /* 0x008 */ u8 unk8[0x40];
+    /* 0x048 */ struct HudPrims *hudPrims;
+    /* 0x04C */ s32 effectArchive; /* CBTL_EFF.ARC */
+    /* 0x050 */ u8 unk50[0x774];
+    /* 0x7C4 */ DigivolvePlan *selected;
+    /* 0x7C8 */ DigivolvePlan slots[4];
+    /* 0x7E0 */ u8 unk7E0[0x3D];
+    /* 0x81D */ s8 cursorMode; /* which cards the card cursor offers, -1: none */
+    /* 0x81E */ u8 winner;
     /* 0x81F */ s8 tutorial;
-    /* 0x820 */ s8 unk820;
+    /* 0x820 */ s8 tutorialBusy; /* set while the tutorial script runs */
     /* 0x821 */ s8 menuPlayer;
     /* 0x822 */ s8 awaitingInput;
     /* 0x823 */ s8 menuOpen;
-    /* 0x824 */ s8 quit;
+    /* 0x824 */ s8 quit; /* 2 + the winner when the duel ends early (tutorial, Give Up) */
     /* 0x825 */ u8 unk825[0x1B];
     /* 0x840 */ u8 bonusFlags[32];
     /* 0x860 */ s16 rewardCluts[3];
     /* 0x866 */ s16 partnerCluts[3];
 } DuelK;
-typedef struct {
+/* the duel state (DUEL) as KAWSEG sees it */
+#define KAW_DUEL ((DuelK *)D_801D8340)
+typedef struct ScriptRunner {
      void *data;
      Script *script;
      s32 *regs;
-     s32 unkC;
-     s32 unk10;
+     s32 delay; /* frames to wait before running the script again */
+     s32 text; /* the message being shown */
 } ScriptRunner;
 s32 KAW_tickTutorial();
 s32 KAW_returnDiscardToHand(s32 player, s32 slot);
 s32 KAW_returnDpCardToHand(s32 card, s32 player, s32 slot);
-void KAW_drawSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 arg8, s32 arg9, s32 argA, s32 brightness, s32 z);
+void KAW_drawSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 tp, s32 semi, s32 abr, s32 brightness,
+                   s32 otz);
 typedef struct {
     /* 0x00 */ u8 r0;
     /* 0x01 */ u8 g0;
@@ -313,9 +326,9 @@ typedef struct {
     /* 0x08 */ POLY_G4 prims[8];
 } GradPacket;
 extern GradPacket *D_801D83F4;
-void KAW_drawCursor(void *arg0);
-void KAW_renderCursor(void *arg0, s32 arg1);
-typedef struct {
+void KAW_drawCursor(void *cursor);
+void KAW_renderCursor(void *cursor, s32 otz);
+typedef struct RingPrims {
     /* 0x000 */ DR_MODE dm;
     /* 0x008 */ PolyF4 edges[32];
     /* 0x308 */ POLY_G4 fades[32];
@@ -855,22 +868,22 @@ s32 KAW_planDigivolves(s32 player) {
     if (getActiveDigimonCard(player) == -1) {
         return -1;
     }
-    ((DuelK *)D_801D8340)->selected = NULL;
+    KAW_DUEL->selected = NULL;
     for (i = 0; i < 4; i++) {
-        ((DuelK *)D_801D8340)->slots[i].unk2 = PLAYER(player)->hand[i];
-        ((DuelK *)D_801D8340)->slots[i].kind = -1;
-        ((DuelK *)D_801D8340)->slots[i].need = 100;
-        ((DuelK *)D_801D8340)->slots[i].id = -1;
+        KAW_DUEL->slots[i].card = PLAYER(player)->hand[i];
+        KAW_DUEL->slots[i].kind = -1;
+        KAW_DUEL->slots[i].need = 100;
+        KAW_DUEL->slots[i].option = -1;
         card = PLAYER(player)->hand[i];
         if (card != -1 && PLAYER(player)->cards[card % 30].type == 0) {
-            ((DuelK *)D_801D8340)->slots[i].kind = 0;
+            KAW_DUEL->slots[i].kind = 0;
             specialty = PLAYER(player)->specialty;
             level = (u8)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF;
             need = PLAYER(player)->cards[card % 30].card[0x1B] - sumDigivolvePoints(player);
             if (need < 0) {
-                ((DuelK *)D_801D8340)->slots[i].need = 0;
+                KAW_DUEL->slots[i].need = 0;
             } else {
-                ((DuelK *)D_801D8340)->slots[i].need = need;
+                KAW_DUEL->slots[i].need = need;
             }
             if ((u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4 == specialty && level != 1) {
                 if (level == 0) {
@@ -878,7 +891,7 @@ s32 KAW_planDigivolves(s32 player) {
                 }
                 if (((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF) == level + 1) {
                     if (need <= 0) {
-                        ((DuelK *)D_801D8340)->slots[i].kind = 1;
+                        KAW_DUEL->slots[i].kind = 1;
                     } else {
                         for (j = 0; j < 4; j++) {
                             if (j == i) {
@@ -887,10 +900,10 @@ s32 KAW_planDigivolves(s32 player) {
                             other = PLAYER(player)->hand[j];
                             if (other != -1 && PLAYER(player)->cards[other % 30].type == 0) {
                                 if (PLAYER(player)->cards[other % 30].card[0x1C] >= need) {
-                                    ((DuelK *)D_801D8340)->slots[i].kind = 1;
+                                    KAW_DUEL->slots[i].kind = 1;
                                     break;
                                 }
-                                ((DuelK *)D_801D8340)->slots[i].kind = 2;
+                                KAW_DUEL->slots[i].kind = 2;
                             }
                         }
                     }
@@ -900,10 +913,10 @@ s32 KAW_planDigivolves(s32 player) {
     }
     j = 0;
     for (i = 0; i < 4; i++) {
-        if (((DuelK *)D_801D8340)->slots[i].kind == 1) {
+        if (KAW_DUEL->slots[i].kind == 1) {
             return 1;
         }
-        if (((DuelK *)D_801D8340)->slots[i].kind == 2) {
+        if (KAW_DUEL->slots[i].kind == 2) {
             j = 2;
         }
     }
@@ -1556,14 +1569,14 @@ s32 KAW_chooseDpCard(s32 player) {
     } else {
         need = 60 - sumDigivolvePoints(player);
     }
-    if (((DuelK *)D_801D8340)->selected != NULL) {
-        if (((DuelK *)D_801D8340)->selected->kind == 1) {
-            if (((DuelK *)D_801D8340)->selected->need == 0) {
+    if (KAW_DUEL->selected != NULL) {
+        if (KAW_DUEL->selected->kind == 1) {
+            if (KAW_DUEL->selected->need == 0) {
                 return -1;
             }
         }
-        if (((DuelK *)D_801D8340)->selected->kind > 0) {
-            need = ((DuelK *)D_801D8340)->selected->need;
+        if (KAW_DUEL->selected->kind > 0) {
+            need = KAW_DUEL->selected->need;
         }
     }
     /* a copy of player for the rest: it only changes the register allocation */
@@ -1580,7 +1593,7 @@ s32 KAW_chooseDpCard(s32 player) {
             } else if (PLAYER(self)->cards[ids[i] % 30].card[0x1C] == 0) {
                 ids[i] = -1;
             } else {
-                if (((DuelK *)D_801D8340)->selected != NULL && ((DuelK *)D_801D8340)->selected->unk2 == ids[i]) {
+                if (KAW_DUEL->selected != NULL && KAW_DUEL->selected->card == ids[i]) {
                     ids[i] = -1;
                 }
                 if (ids[i] != -1) {
@@ -1643,31 +1656,31 @@ s32 KAW_chooseDpCard(s32 player) {
     return -1;
 }
 
-Slot7C8 *KAW_selectDigivolvePlan(s32 kind) {
+DigivolvePlan *KAW_selectDigivolvePlan(s32 kind) {
     s32 i;
 
-    if (((DuelK *)D_801D8340)->selected == NULL) {
+    if (KAW_DUEL->selected == NULL) {
         switch (kind) {
         case 0:
-            ((DuelK *)D_801D8340)->selected = NULL;
+            KAW_DUEL->selected = NULL;
             break;
         case 1:
             for (i = 0; i < 4; i++) {
-                if (((DuelK *)D_801D8340)->slots[i].kind == 1) {
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[i];
+                if (KAW_DUEL->slots[i].kind == 1) {
+                    KAW_DUEL->selected = &KAW_DUEL->slots[i];
                 }
             }
             break;
         case 2:
             for (i = 0; i < 4; i++) {
-                if (((DuelK *)D_801D8340)->slots[i].kind == 2) {
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[i];
+                if (KAW_DUEL->slots[i].kind == 2) {
+                    KAW_DUEL->selected = &KAW_DUEL->slots[i];
                 }
             }
             break;
         }
     }
-    return ((DuelK *)D_801D8340)->selected;
+    return KAW_DUEL->selected;
 }
 
 s32 KAW_chooseDigivolveTarget(s32 player) {
@@ -1688,13 +1701,13 @@ s32 KAW_chooseDigivolveTarget(s32 player) {
     if (getActiveDigimonCard(self) == -1) {
         return -1;
     }
-    if (((DuelK *)D_801D8340)->selected == NULL) {
+    if (KAW_DUEL->selected == NULL) {
         return -1;
     }
-    if (PLAYER(self)->cards[((DuelK *)D_801D8340)->selected->unk2 % 30].card[2] != 0) {
+    if (PLAYER(self)->cards[KAW_DUEL->selected->card % 30].card[2] != 0) {
         return -1;
     }
-    sel = ((DuelK *)D_801D8340)->selected->unk2;
+    sel = KAW_DUEL->selected->card;
     if (getPlayedCard(player) == -1) {
         need = PLAYER(self)->cards[sel % 30].card[0x1B];
         if (sumDigivolvePoints(self) < need) {
@@ -1770,7 +1783,7 @@ s32 KAW_chooseDigivolveTarget(s32 player) {
             break;
         }
     }
-    return ((DuelK *)D_801D8340)->selected->unk2;
+    return KAW_DUEL->selected->card;
 }
 
 void KAW_planDigivolveOptions(s32 player) {
@@ -1788,19 +1801,19 @@ void KAW_planDigivolveOptions(s32 player) {
     s32 flag;
 
     for (i = 0; i < 4; i++) {
-        card = ((DuelK *)D_801D8340)->slots[i].unk2;
-        if (card != -1 && PLAYER(player)->cards[card % 30].type == 0 && ((DuelK *)D_801D8340)->slots[i].kind == 1 &&
+        card = KAW_DUEL->slots[i].card;
+        if (card != -1 && PLAYER(player)->cards[card % 30].type == 0 && KAW_DUEL->slots[i].kind == 1 &&
             ((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF) == 2) {
             return;
         }
     }
     for (i = 0; i < 4; i++) {
-        option = ((DuelK *)D_801D8340)->slots[i].unk2;
+        option = KAW_DUEL->slots[i].card;
         if (option == -1 || PLAYER(player)->cards[option % 30].type != 2) {
             continue;
         }
         for (j = 0; j < 4; j++) {
-            card = ((DuelK *)D_801D8340)->slots[j].unk2;
+            card = KAW_DUEL->slots[j].card;
             if (card == -1 || PLAYER(player)->cards[card % 30].type != 0) {
                 continue;
             }
@@ -1821,28 +1834,28 @@ void KAW_planDigivolveOptions(s32 player) {
                 }
                 for (k = 0; k < 4; k++) {
                     minNeed[k] = 100;
-                    if (((DuelK *)D_801D8340)->slots[j].need - 20 > 0 && k == j) {
+                    if (KAW_DUEL->slots[j].need - 20 > 0 && k == j) {
                         continue;
                     }
                     hand = PLAYER(player)->hand[k];
                     if (hand == -1 || PLAYER(player)->cards[hand % 30].type != 0) {
                         continue;
                     }
-                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < ((DuelK *)D_801D8340)->slots[j].need - 20) {
+                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < KAW_DUEL->slots[j].need - 20) {
                         continue;
                     }
-                    if (((DuelK *)D_801D8340)->slots[j].need - 20 < 0) {
+                    if (KAW_DUEL->slots[j].need - 20 < 0) {
                         minNeed[k] = 0;
                     } else {
-                        minNeed[k] = ((DuelK *)D_801D8340)->slots[j].need - 20;
+                        minNeed[k] = KAW_DUEL->slots[j].need - 20;
                     }
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 for (k = 0; k < 4; k++) {
-                    if (minNeed[k] < ((DuelK *)D_801D8340)->slots[j].need) {
-                        ((DuelK *)D_801D8340)->slots[j].need = minNeed[k];
+                    if (minNeed[k] < KAW_DUEL->slots[j].need) {
+                        KAW_DUEL->slots[j].need = minNeed[k];
                     }
                 }
                 break;
@@ -1851,19 +1864,19 @@ void KAW_planDigivolveOptions(s32 player) {
                     break;
                 }
                 for (k = 0; k < 4; k++) {
-                    if (((DuelK *)D_801D8340)->slots[j].need != 0 && k == j) {
+                    if (KAW_DUEL->slots[j].need != 0 && k == j) {
                         continue;
                     }
                     hand = PLAYER(player)->hand[k];
                     if (hand == -1 || PLAYER(player)->cards[hand % 30].type != 0) {
                         continue;
                     }
-                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < ((DuelK *)D_801D8340)->slots[j].need) {
+                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < KAW_DUEL->slots[j].need) {
                         continue;
                     }
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 break;
             case 2:
@@ -1876,10 +1889,10 @@ void KAW_planDigivolveOptions(s32 player) {
                 if (PLAYER(player)->statPenalty != 0 || level + 1 != target || targetSpecialty != specialty) {
                     break;
                 }
-                ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                ((DuelK *)D_801D8340)->slots[j].need = 0;
-                ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                KAW_DUEL->slots[j].kind = 1;
+                KAW_DUEL->slots[j].need = 0;
+                KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 break;
             case 3:
                 if (level != target) {
@@ -1889,39 +1902,39 @@ void KAW_planDigivolveOptions(s32 player) {
                 if (PLAYER(player)->statPenalty != 0) {
                     flag = 1;
                 }
-                if (!PLAYER(player)->hasBattled || flag != 1 || ((DuelK *)D_801D8340)->selected != NULL) {
+                if (!PLAYER(player)->hasBattled || flag != 1 || KAW_DUEL->selected != NULL) {
                     break;
                 }
                 for (k = 0; k < 4; k++) {
-                    if (((DuelK *)D_801D8340)->slots[j].need != 0 && k == j) {
+                    if (KAW_DUEL->slots[j].need != 0 && k == j) {
                         continue;
                     }
                     hand = PLAYER(player)->hand[k];
                     if (hand == -1 || PLAYER(player)->cards[hand % 30].type != 0) {
                         continue;
                     }
-                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < ((DuelK *)D_801D8340)->slots[j].need) {
+                    if (PLAYER(player)->cards[hand % 30].card[0x1C] < KAW_DUEL->slots[j].need) {
                         continue;
                     }
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 break;
             case 4:
                 if (countEmptyDigimonStackSlots(player) < 2 && PLAYER(player)->displayedStats[0] < 300) {
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].need = 0;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].need = 0;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 break;
             case 5:
                 if (level < target) {
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].need = 0;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].need = 0;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 break;
             case 6:
@@ -1930,38 +1943,38 @@ void KAW_planDigivolveOptions(s32 player) {
                 }
                 if ((target == 2 && PLAYER(player)->displayedStats[0] < 300) || target == 3) {
                     for (k = 0; k < 4; k++) {
-                        if (((DuelK *)D_801D8340)->slots[j].need != 0 && k == j) {
+                        if (KAW_DUEL->slots[j].need != 0 && k == j) {
                             continue;
                         }
                         hand = PLAYER(player)->hand[k];
                         if (hand == -1 || PLAYER(player)->cards[hand % 30].type != 0) {
                             continue;
                         }
-                        if (PLAYER(player)->cards[hand % 30].card[0x1C] < ((DuelK *)D_801D8340)->slots[j].need) {
+                        if (PLAYER(player)->cards[hand % 30].card[0x1C] < KAW_DUEL->slots[j].need) {
                             continue;
                         }
-                        ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                        ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                        ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                        KAW_DUEL->slots[j].kind = 1;
+                        KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                        KAW_DUEL->selected = &KAW_DUEL->slots[j];
                     }
                 }
                 break;
             case 7:
                 if (level == 1 && PLAYER(player)->displayedStats[0] < 300) {
-                    ((DuelK *)D_801D8340)->slots[j].kind = 1;
-                    ((DuelK *)D_801D8340)->slots[j].need = 0;
-                    ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
-                    ((DuelK *)D_801D8340)->selected = &((DuelK *)D_801D8340)->slots[j];
+                    KAW_DUEL->slots[j].kind = 1;
+                    KAW_DUEL->slots[j].need = 0;
+                    KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
+                    KAW_DUEL->selected = &KAW_DUEL->slots[j];
                 }
                 break;
             }
         }
     }
-    if (((DuelK *)D_801D8340)->selected != NULL) {
+    if (KAW_DUEL->selected != NULL) {
         return;
     }
     for (i = 0; i < 4; i++) {
-        option = ((DuelK *)D_801D8340)->slots[i].unk2;
+        option = KAW_DUEL->slots[i].card;
         if (option == -1 || PLAYER(player)->cards[option % 30].type != 2) {
             continue;
         }
@@ -1969,12 +1982,12 @@ void KAW_planDigivolveOptions(s32 player) {
             if (i == j) {
                 continue;
             }
-            card = ((DuelK *)D_801D8340)->slots[j].unk2;
+            card = KAW_DUEL->slots[j].card;
             if (card == -1 || PLAYER(player)->cards[card % 30].type != 2) {
                 continue;
             }
             if (PLAYER(player)->cards[option % 30].card[0x1A] == PLAYER(player)->cards[card % 30].card[0x1A]) {
-                ((DuelK *)D_801D8340)->slots[j].id = ((DuelK *)D_801D8340)->slots[i].unk2;
+                KAW_DUEL->slots[j].option = KAW_DUEL->slots[i].card;
             }
         }
     }
@@ -1984,8 +1997,8 @@ s32 KAW_chooseDigivolveOption(void) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        if (((DuelK *)D_801D8340)->slots[i].id != -1) {
-            return ((DuelK *)D_801D8340)->slots[i].id;
+        if (KAW_DUEL->slots[i].option != -1) {
+            return KAW_DUEL->slots[i].option;
         }
     }
     return -1;
@@ -2525,7 +2538,7 @@ typedef struct {
     s8 order;
 } BattleEffect;
 
-s32 KAW_runSupportEffect(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *effects, s32 arg4);
+s32 KAW_runSupportEffect(s32 self, s32 other, SupportCond *conds, SupportEffect *effects, s32 quiet);
 void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 quiet);
 void KAW_recordBestDamage(Player *p);
 void KAW_playCardEffect(s32 entry, s32 player, s32 mode);
@@ -3279,7 +3292,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
             if (card != -1) {
                 n = addCardToHand(card, self);
                 SPRITE_KIND(card) = 3;
-                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                CARD_ANIM(card)->handSlot = n;
                 func_80014C08(20);
                 KAW_checkHandBonuses(self);
             } else {
@@ -3309,7 +3322,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 card = drawOnlineDeckCard(self);
                 n = addCardToHand(card, self);
                 SPRITE_KIND(card) = 3;
-                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                CARD_ANIM(card)->handSlot = n;
                 func_80014C08(20);
                 KAW_checkHandBonuses(self);
             }
@@ -3321,7 +3334,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
                 card = drawOnlineDeckCard(other);
                 n = addCardToHand(card, other);
                 SPRITE_KIND(card) = 3;
-                *(s8 *)(D_801D833C + card * 36 + 0x23) = n;
+                CARD_ANIM(card)->handSlot = n;
                 func_80014C08(20);
                 KAW_checkHandBonuses(self);
             }
@@ -3481,7 +3494,7 @@ s32 KAW_compareSupportValues(s32 a, s32 op, s32 b) {
     return 0;
 }
 
-s32 KAW_runSupportEffect(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *effects, s32 arg4) {
+s32 KAW_runSupportEffect(s32 self, s32 other, SupportCond *conds, SupportEffect *effects, s32 quiet) {
     s32 vals[6];
     s16 slotVals[3][3];
     s32 i;
@@ -3492,7 +3505,7 @@ s32 KAW_runSupportEffect(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *
     for (i = 0; i < 2; i++) {
         if (conds[i].active != 0) {
             for (j = 0; j < 6; j++) {
-                vals[j] = KAW_getSupportOperand(arg0, arg1, conds[i].lhs[j], conds[i].rhs[j], 0);
+                vals[j] = KAW_getSupportOperand(self, other, conds[i].lhs[j], conds[i].rhs[j], 0);
             }
             a = KAW_calcSupportValue(KAW_calcSupportValue(vals[0], conds[i].ops[0], vals[1]), conds[i].ops[1], vals[2]);
             if (KAW_compareSupportValues(a, conds[i].cmp, KAW_calcSupportValue(KAW_calcSupportValue(vals[3], conds[i].ops[2], vals[4]), conds[i].ops[3], vals[5])) == 0) {
@@ -3505,20 +3518,20 @@ s32 KAW_runSupportEffect(s32 arg0, s32 arg1, SupportCond *conds, SupportEffect *
             if (effects[i].kind == 10 || effects[i].kind == 11) {
                 for (j = 0; j < 3; j++) {
                     for (k = 0; k < 3; k++) {
-                        slotVals[j][k] = KAW_getSupportOperand(arg0, arg1, effects[i].lhs[j], effects[i].rhs[j], k);
+                        slotVals[j][k] = KAW_getSupportOperand(self, other, effects[i].lhs[j], effects[i].rhs[j], k);
                     }
                 }
                 for (k = 0; k < 3; k++) {
-                    KAW_applySupportAction(arg0, arg1, effects[i].kind,
+                    KAW_applySupportAction(self, other, effects[i].kind,
                                   KAW_calcSupportValue(KAW_calcSupportValue(slotVals[2][k], effects[i].ops[1], slotVals[1][k]), effects[i].ops[0], slotVals[0][k]),
-                                  k, arg4);
+                                  k, quiet);
                 }
             } else {
                 for (j = 0; j < 3; j++) {
-                    vals[j] = KAW_getSupportOperand(arg0, arg1, effects[i].lhs[j], effects[i].rhs[j], 0);
+                    vals[j] = KAW_getSupportOperand(self, other, effects[i].lhs[j], effects[i].rhs[j], 0);
                 }
-                KAW_applySupportAction(arg0, arg1, effects[i].kind,
-                              KAW_calcSupportValue(KAW_calcSupportValue(vals[2], effects[i].ops[1], vals[1]), effects[i].ops[0], vals[0]), 0, arg4);
+                KAW_applySupportAction(self, other, effects[i].kind,
+                              KAW_calcSupportValue(KAW_calcSupportValue(vals[2], effects[i].ops[1], vals[1]), effects[i].ops[0], vals[0]), 0, quiet);
             }
         }
     }
@@ -3708,25 +3721,25 @@ void KAW_recordBestDamage(Player *p) {
 
 void KAW_startTutorial(void) {
     DUEL->tutorial = 1;
-    *(ScriptRunner **)D_801D8340 = allocTaskHeapBlock(sizeof(ScriptRunner));
+    KAW_DUEL->tutorialScript = allocTaskHeapBlock(sizeof(ScriptRunner));
     func_800149B8(0, -1, 0, 0x800, loadFile, "B:\\BETA.MSD", getCurrentTaskId());
-    (*(ScriptRunner **)D_801D8340)->data = (void *)func_80014C08(0x7FFFFFFF);
-    (*(ScriptRunner **)D_801D8340)->script = createScriptContext((*(ScriptRunner **)D_801D8340)->data);
-    (*(ScriptRunner **)D_801D8340)->regs = allocScriptRegisters(10);
-    (*(ScriptRunner **)D_801D8340)->unkC = 0;
+    KAW_DUEL->tutorialScript->data = (void *)func_80014C08(0x7FFFFFFF);
+    KAW_DUEL->tutorialScript->script = createScriptContext(KAW_DUEL->tutorialScript->data);
+    KAW_DUEL->tutorialScript->regs = allocScriptRegisters(10);
+    KAW_DUEL->tutorialScript->delay = 0;
     KAW_tickTutorial();
 }
 
 void KAW_freeTutorial(void) {
     if (DUEL->tutorial) {
-        freeScriptContext((*(ScriptRunner **)D_801D8340)->script, (*(ScriptRunner **)D_801D8340)->regs);
-        freeHeapBlock((*(ScriptRunner **)D_801D8340)->data);
-        freeHeapBlock(*(ScriptRunner **)D_801D8340);
+        freeScriptContext(KAW_DUEL->tutorialScript->script, KAW_DUEL->tutorialScript->regs);
+        freeHeapBlock(KAW_DUEL->tutorialScript->data);
+        freeHeapBlock(KAW_DUEL->tutorialScript);
     }
 }
 
 void KAW_drawTutorialText(UiWindow *window) {
-    drawText(window->originX, window->originY, *(s32 *)(*(u8 **)D_801D8340 + 0x10), 7, window->z);
+    drawText(window->originX, window->originY, KAW_DUEL->tutorialScript->text, 7, window->z);
 }
 
 extern UiWindow KAW_TUTORIAL_WINDOW;
@@ -3758,8 +3771,8 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
         }
         *dst++ = *src++;
     } while (src[-1] != 0);
-    (*(ScriptRunner **)D_801D8340)->unk10 = (s32)text;
-    measureText((u8 *)(*(ScriptRunner **)D_801D8340)->unk10);
+    KAW_DUEL->tutorialScript->text = (s32)text;
+    measureText((u8 *)KAW_DUEL->tutorialScript->text);
     w = (TEXT_WIDTH + 1) / 2;
     rect.w = w * 2;
     h = (TEXT_HEIGHT + 1) / 2;
@@ -3773,7 +3786,7 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     PAD_INPUT_ENABLED = 0;
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (drawWindow(&KAW_TUTORIAL_WINDOW, KAW_drawTutorialText, 0) == 0 || ((PAD_STATES[0]->rawPressed & 0x40) >> 6) == 0);
+    } while (drawWindow(&KAW_TUTORIAL_WINDOW, KAW_drawTutorialText, 0) == 0 || ((PAD_STATES[0]->rawPressed & PAD_CROSS) >> 6) == 0);
     playSoundEffect(0xA4);
     animateWindowTo(&KAW_TUTORIAL_WINDOW, (Rect16 *)-1);
     for (i = 0; i < 16; i++) {
@@ -3783,7 +3796,7 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     PAD_INPUT_ENABLED = 0;
 }
 
-void KAW_closeRing(s32 arg0, s32 arg1, s32 arg2);
+void KAW_closeRing(s32 x, s32 y, s32 width);
 void KAW_openRing(void);
 
 s32 KAW_tickTutorial(void) {
@@ -3793,14 +3806,14 @@ s32 KAW_tickTutorial(void) {
     s32 slot;
     s32 id;
 
-    if (DUEL->unk823 != 0 || DUEL->tutorial == 0) {
+    if (KAW_DUEL->menuOpen != 0 || DUEL->tutorial == 0) {
         return;
     }
-    if ((*(ScriptRunner **)D_801D8340)->unkC != 0) {
-        (*(ScriptRunner **)D_801D8340)->unkC--;
+    if (KAW_DUEL->tutorialScript->delay != 0) {
+        KAW_DUEL->tutorialScript->delay--;
         return;
     }
-    vars = (*(ScriptRunner **)D_801D8340)->regs;
+    vars = KAW_DUEL->tutorialScript->regs;
     vars[2] = DUEL->step;
     if (DUEL->cursorPlayer == 0) {
         vars[3] = DUEL->cursorSlot;
@@ -3811,31 +3824,31 @@ s32 KAW_tickTutorial(void) {
     vars[5] = 0;
     vars[6] = 0;
     vars[7] = 0;
-    if (PAD_STATES[0]->pressed & 0x20) {
+    if (PAD_STATES[0]->pressed & PAD_CIRCLE) {
         vars[4] = 1;
     }
-    if (PAD_STATES[0]->pressed & 0x80) {
+    if (PAD_STATES[0]->pressed & PAD_SQUARE) {
         vars[5] = 1;
     }
-    if (PAD_STATES[0]->pressed & 0x10) {
+    if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
         vars[6] = 1;
     }
-    if (PAD_STATES[0]->pressed & 0x40) {
+    if (PAD_STATES[0]->pressed & PAD_CROSS) {
         vars[7] = 1;
     }
     do {
-        DUEL->unk820[0] = 1;
-        result = runScriptToNextEvent((*(ScriptRunner **)D_801D8340)->script, vars);
+        KAW_DUEL->tutorialBusy = 1;
+        result = runScriptToNextEvent(KAW_DUEL->tutorialScript->script, vars);
         if (result == 1) {
-            DUEL->unk81D = vars[9];
-            switch ((*(ScriptRunner **)D_801D8340)->script->eventOp) {
+            KAW_DUEL->cursorMode = vars[9];
+            switch (KAW_DUEL->tutorialScript->script->eventOp) {
             case 10:
-                switch ((*(ScriptRunner **)D_801D8340)->script->eventArg) {
+                switch (KAW_DUEL->tutorialScript->script->eventArg) {
                 case 0:
-                    KAW_showTutorialMessage((*(ScriptRunner **)D_801D8340)->regs[8], (u8 *)(*(ScriptRunner **)D_801D8340)->regs[0]);
+                    KAW_showTutorialMessage(KAW_DUEL->tutorialScript->regs[8], (u8 *)KAW_DUEL->tutorialScript->regs[0]);
                     break;
                 case 1:
-                    DUEL->unk820[0] = 0;
+                    KAW_DUEL->tutorialBusy = 0;
                     return;
                 case 2:
                     break;
@@ -3845,8 +3858,8 @@ s32 KAW_tickTutorial(void) {
                     linkDeckCardData(player, (PlayerDeck *)DUEL_PLAYERS[player]);
                     break;
                 case 4:
-                    DUEL->unk824 = 2;
-                    DUEL->unk820[0] = 0;
+                    KAW_DUEL->quit = 2;
+                    KAW_DUEL->tutorialBusy = 0;
                     return;
                 case 5:
                     DUEL->cursorSlot = -1;
@@ -3864,44 +3877,44 @@ s32 KAW_tickTutorial(void) {
                 }
                 break;
             case 11:
-                switch ((*(ScriptRunner **)D_801D8340)->script->eventArg) {
+                switch (KAW_DUEL->tutorialScript->script->eventArg) {
                 case 0:
-                    func_80014C08((s16)(*(ScriptRunner **)D_801D8340)->script->params[0]);
+                    func_80014C08((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 1:
-                    DUEL->cpuResult = (s16)(*(ScriptRunner **)D_801D8340)->script->params[0];
+                    DUEL->cpuResult = (s16)KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 2:
-                    D_801D83D4 = (*(ScriptRunner **)D_801D8340)->script->params[0];
+                    D_801D83D4 = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 3:
-                    playSoundEffect((s16)(*(ScriptRunner **)D_801D8340)->script->params[0]);
+                    playSoundEffect((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 4:
-                    DUEL->unk81D = vars[9];
-                    KAW_openCardSelect((s16)(*(ScriptRunner **)D_801D8340)->script->params[0]);
+                    KAW_DUEL->cursorMode = vars[9];
+                    KAW_openCardSelect((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 5:
                     vars[9] = -1;
-                    DUEL->unk81D = -1;
-                    KAW_closeCardSelect((s16)(*(ScriptRunner **)D_801D8340)->script->params[0]);
+                    KAW_DUEL->cursorMode = -1;
+                    KAW_closeCardSelect((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 6:
-                    D_801D83D1 = (*(ScriptRunner **)D_801D8340)->script->params[0];
+                    D_801D83D1 = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 }
                 break;
             case 12:
-                switch ((*(ScriptRunner **)D_801D8340)->script->eventArg) {
+                switch (KAW_DUEL->tutorialScript->script->eventArg) {
                 case 0:
-                    DUEL_MSG_BAR.playerLabel = (*(ScriptRunner **)D_801D8340)->script->params[0];
-                    DUEL_MSG_BAR.phase = (*(ScriptRunner **)D_801D8340)->script->params[1];
+                    DUEL_MSG_BAR.playerLabel = KAW_DUEL->tutorialScript->script->params[0];
+                    DUEL_MSG_BAR.phase = KAW_DUEL->tutorialScript->script->params[1];
                     func_80014C08(60);
                     break;
                 case 1:
                     player = vars[1];
-                    slot = (s16)(*(ScriptRunner **)D_801D8340)->script->params[0];
-                    id = (s16)(*(ScriptRunner **)D_801D8340)->script->params[1];
+                    slot = (s16)KAW_DUEL->tutorialScript->script->params[0];
+                    id = (s16)KAW_DUEL->tutorialScript->script->params[1];
                     PLAYER(player)->cards[slot].id = id;
                     if (id < 0xBF) {
                         PLAYER(player)->cards[slot].type = 0;
@@ -3916,12 +3929,12 @@ s32 KAW_tickTutorial(void) {
                     PLAYER(player)->unk0 = 1;
                     break;
                 case 2:
-                    DUEL_MSG_BAR.playerLabel = (*(ScriptRunner **)D_801D8340)->script->params[0];
-                    DUEL_MSG_BAR.next2 = (*(ScriptRunner **)D_801D8340)->script->params[1];
+                    DUEL_MSG_BAR.playerLabel = KAW_DUEL->tutorialScript->script->params[0];
+                    DUEL_MSG_BAR.next2 = KAW_DUEL->tutorialScript->script->params[1];
                     break;
                 case 3:
-                    ((CardCursor *)DUEL->cursor)->id = (*(ScriptRunner **)D_801D8340)->script->params[0];
-                    DUEL->cursorSlot = (*(ScriptRunner **)D_801D8340)->script->params[1];
+                    ((CardCursor *)DUEL->cursor)->id = KAW_DUEL->tutorialScript->script->params[0];
+                    DUEL->cursorSlot = KAW_DUEL->tutorialScript->script->params[1];
                     if (((CardCursor *)DUEL->cursor)->id < 30) {
                         DUEL->cursorPlayer = 0;
                     } else {
@@ -3931,16 +3944,16 @@ s32 KAW_tickTutorial(void) {
                 }
                 break;
             case 13:
-                if ((*(ScriptRunner **)D_801D8340)->script->eventArg == 0) {
-                    KAW_closeRing((s16)(*(ScriptRunner **)D_801D8340)->script->params[0], (s16)(*(ScriptRunner **)D_801D8340)->script->params[1],
-                                  (s16)(*(ScriptRunner **)D_801D8340)->script->params[2]);
+                if (KAW_DUEL->tutorialScript->script->eventArg == 0) {
+                    KAW_closeRing((s16)KAW_DUEL->tutorialScript->script->params[0], (s16)KAW_DUEL->tutorialScript->script->params[1],
+                                  (s16)KAW_DUEL->tutorialScript->script->params[2]);
                 }
                 break;
             }
         }
-        clearScriptBusy((*(ScriptRunner **)D_801D8340)->script);
+        clearScriptBusy(KAW_DUEL->tutorialScript->script);
     } while (result != 0);
-    DUEL->unk820[0] = 0;
+    KAW_DUEL->tutorialBusy = 0;
 }
 
 void KAW_pickCardArtSlot(void) {
@@ -4018,7 +4031,7 @@ s32 KAW_drawHandHints(s32 player) {
         if (card == -1) {
             continue;
         }
-        switch (DUEL->unk81D) {
+        switch (KAW_DUEL->cursorMode) {
         case 1:
             if (PLAYER(player)->cards[card % 30].type != 0) {
                 break;
@@ -4060,7 +4073,7 @@ s32 KAW_drawHandHints(s32 player) {
             break;
         }
     }
-    if (DUEL->unk81D == 4) {
+    if (KAW_DUEL->cursorMode == 4) {
         card = peekOnlineDeckTop(player);
         if (card != -1) {
             if (player == 0) {
@@ -4090,7 +4103,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     s16 cur;
     CardSprite *spr;
 
-    DUEL->unk81D = mode;
+    KAW_DUEL->cursorMode = mode;
     for (i = 0; i < 2; i++) {
         PLAYER(i)->unk1BD[0] = peekOnlineDeckTop(i);
         PLAYER(i)->unk1BD[1] = peekOfflineDeckTop(i);
@@ -4110,7 +4123,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     }
     cur = ((CardCursor *)DUEL->cursor)->id;
     best = 0x280;
-    if (PAD_STATES[player]->repeat & 0x1000) {
+    if (PAD_STATES[player]->repeat & PAD_UP) {
         cx = CARD_SPR(cur)->pos.vx;
         spr = CARD_SPR(cur);
         cy = spr->pos.vy - spr->scale * 24 / 4096;
@@ -4132,7 +4145,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                 }
             }
         }
-    } else if (PAD_STATES[player]->repeat & 0x4000) {
+    } else if (PAD_STATES[player]->repeat & PAD_DOWN) {
         cx = CARD_SPR(cur)->pos.vx;
         spr = CARD_SPR(cur);
         cy = spr->pos.vy + spr->scale * 24 / 4096;
@@ -4154,7 +4167,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                 }
             }
         }
-    } else if ((u16)PAD_STATES[player]->repeat & 0x8000) {
+    } else if ((u16)PAD_STATES[player]->repeat & PAD_LEFT) {
         spr = CARD_SPR(cur);
         cx = spr->pos.vx - spr->scale * 20 / 4096;
         cy = CARD_SPR(cur)->pos.vy;
@@ -4176,7 +4189,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                 }
             }
         }
-    } else if (PAD_STATES[player]->repeat & 0x2000) {
+    } else if (PAD_STATES[player]->repeat & PAD_RIGHT) {
         spr = CARD_SPR(cur);
         cx = spr->pos.vx + spr->scale * 20 / 4096;
         cy = CARD_SPR(cur)->pos.vy;
@@ -4224,7 +4237,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     } else if (DUEL->cursorSlot >= 4) {
         return -1;
     }
-    if (PAD_STATES[player]->pressed & 0x40) {
+    if (PAD_STATES[player]->pressed & PAD_CROSS) {
         return 0;
     }
     return -1;
@@ -4237,7 +4250,7 @@ s32 KAW_openCardSelect(s32 player) {
 
 s32 KAW_closeCardSelect(s32 index) {
     DUEL->cursorSlot = -1;
-    DUEL->unk81D = -1;
+    KAW_DUEL->cursorMode = -1;
     D_801D83EC[index * 0xD8 + 0xD] = 5;
 }
 
@@ -4254,7 +4267,7 @@ s32 KAW_drawCardToHand(s32 player) {
     card = drawOnlineDeckCard(player);
     slot = addCardToHand(card, player);
     SPRITE_KIND(card) = 3;
-    *(s8 *)(D_801D833C + card * 36 + 0x23) = slot;
+    CARD_ANIM(card)->handSlot = slot;
     return card;
 }
 
@@ -4264,7 +4277,7 @@ s32 KAW_discardCard(s32 card, s32 player) {
     } else if (removeCardFromDigimonStack(card, player) != -1) {
         SPRITE_KIND(card) = 8;
     }
-    ((CardAnim *)(D_801D833C + card * 36))->spr->pal = (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4;
+    CARD_SPR(card)->pal = (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4;
     discardCardToOfflineDeck(card, player);
 }
 
@@ -4298,7 +4311,7 @@ s32 KAW_returnDigimonToHand(s32 card, s32 player, s32 slot) {
     if (removeCardFromDigimonStack(card, player) != -1) {
         SPRITE_KIND(card) = 3;
         ((Player *)DUEL_PLAYERS[player])->hand[slot] = card;
-        *(s8 *)(D_801D833C + card * 36 + 0x23) = slot;
+        CARD_ANIM(card)->handSlot = slot;
     }
 }
 
@@ -4310,7 +4323,7 @@ void KAW_returnPlayedCard(s32 player, s32 slot) {
         if (slot != 4) {
             SPRITE_KIND(card) = 3;
             ((Player *)DUEL_PLAYERS[player])->hand[slot] = card;
-            *(s8 *)(D_801D833C + card * 36 + 0x23) = slot;
+            CARD_ANIM(card)->handSlot = slot;
         } else {
             SPRITE_KIND(card) = 1;
             returnCardToOnlineDeck(card, player);
@@ -4325,7 +4338,7 @@ s32 KAW_returnDiscardToHand(s32 player, s32 slot) {
     if (card != -1) {
         SPRITE_KIND(card) = 3;
         ((Player *)DUEL_PLAYERS[player])->hand[slot] = card;
-        *(s8 *)(D_801D833C + card * 36 + 0x23) = slot;
+        CARD_ANIM(card)->handSlot = slot;
     }
 }
 
@@ -4333,7 +4346,7 @@ s32 KAW_returnDpCardToHand(s32 card, s32 player, s32 slot) {
     if (removeCardFromDpSlots(card, player) != -1) {
         SPRITE_KIND(card) = 3;
         ((Player *)DUEL_PLAYERS[player])->hand[slot] = card;
-        *(s8 *)(D_801D833C + card * 36 + 0x23) = slot;
+        CARD_ANIM(card)->handSlot = slot;
     }
 }
 
@@ -4458,7 +4471,7 @@ s32 KAW_checkKnockout(s32 player) {
             }
             while (getActiveDigimonCard(player) != -1) {
                 card = getActiveDigimonCard(player);
-                ((CardAnim *)(D_801D833C + card * 36))->spr->pal = (u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4;
+                CARD_SPR(card)->pal = (u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4;
                 KAW_discardCard(card, player);
                 waitDuelFrames(20);
             }
@@ -4541,7 +4554,7 @@ void KAW_drawCard3D(Icon3D *icon, s32 z, RawPolyFT4 *pk) {
 void KAW_waitForCross(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (!(PAD_STATES[0]->pressed & 0x40));
+    } while (!(PAD_STATES[0]->pressed & PAD_CROSS));
 }
 
 void KAW_drawSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 tp, s32 semi, s32 abr, s32 brightness,
@@ -4961,7 +4974,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
             func_80014C08(FRAME_INTERVAL);
             if (!(done & 1)) {
                 if (KAW_MATCH_SCREEN->unk504[0] != 0) {
-                    if (PAD_STATES[0]->pressed & 0x40) {
+                    if (PAD_STATES[0]->pressed & PAD_CROSS) {
                         i = KAW_MATCH_SCREEN->deckIds[0][KAW_DECK_LIST_MENUS[0].row];
                         if (((SessionData *)D_8006E054)->unk1010[0x12] != 0) {
                             if (i < 3) {
@@ -4987,17 +5000,17 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                             }
                             done |= 1;
                         }
-                    } else if (PAD_STATES[0]->pressed & 0x10) {
+                    } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
                         KAW_closeDeckList(0);
                     }
                 } else {
                     pressed = PAD_STATES[0]->pressed;
-                    if (pressed & 0xF0) {
-                        if (pressed & 0x20) {
+                    if (pressed & (PAD_TRIANGLE | PAD_CIRCLE | PAD_CROSS | PAD_SQUARE)) {
+                        if (pressed & PAD_CIRCLE) {
                             i = 0;
-                        } else if (PAD_STATES[0]->pressed & 0x10) {
+                        } else if (PAD_STATES[0]->pressed & PAD_TRIANGLE) {
                             i = 1;
-                        } else if (PAD_STATES[0]->pressed & 0x40) {
+                        } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
                             i = 2;
                         } else {
                             i = 3;
@@ -5027,7 +5040,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
             }
             if (isVersus == 0 && !(done & 2)) {
                 if (KAW_MATCH_SCREEN->unk504[1] != 0) {
-                    if (PAD_STATES[1]->pressed & 0x40) {
+                    if (PAD_STATES[1]->pressed & PAD_CROSS) {
                         playSoundEffect(0xA0);
                         i = KAW_MATCH_SCREEN->deckIds[1][KAW_DECK_LIST_MENUS[1].row];
                         if (i < 3) {
@@ -5037,23 +5050,23 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                             DECK_CHOICE(1) = -1;
                         }
                         done |= 2;
-                    } else if (PAD_STATES[1]->pressed & 0x10) {
+                    } else if (PAD_STATES[1]->pressed & PAD_TRIANGLE) {
                         KAW_closeDeckList(1);
                     }
                 } else {
                     pressed = PAD_STATES[1]->pressed;
-                    if (pressed & 0xF0) {
-                        if (pressed & 0x20) {
+                    if (pressed & (PAD_TRIANGLE | PAD_CIRCLE | PAD_CROSS | PAD_SQUARE)) {
+                        if (pressed & PAD_CIRCLE) {
                             if (PLAYER_DATA(1).savedDecks[0].inUse) {
                                 DECK_CHOICE(1) = 0;
                                 done |= 2;
                             }
-                        } else if (PAD_STATES[1]->pressed & 0x10) {
+                        } else if (PAD_STATES[1]->pressed & PAD_TRIANGLE) {
                             if (PLAYER_DATA(1).savedDecks[1].inUse) {
                                 DECK_CHOICE(1) = 1;
                                 done |= 2;
                             }
-                        } else if (PAD_STATES[1]->pressed & 0x40) {
+                        } else if (PAD_STATES[1]->pressed & PAD_CROSS) {
                             if (PLAYER_DATA(1).savedDecks[2].inUse) {
                                 DECK_CHOICE(1) = 2;
                                 done |= 2;
@@ -5285,7 +5298,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
         KAW_MATCH_SCREEN->cards[i].code = 0x2C;
         setRGB0(&KAW_MATCH_SCREEN->cards[i], 0x80, 0x80, 0x80);
         k = i ^ j;
-        if (((DuelK *)D_801D8340)->tutorial) {
+        if (KAW_DUEL->tutorial) {
             k = 1;
         }
         KAW_MATCH_SCREEN->cards[i].tpage = ((k * 10 + 0x180) & 0x3FF) >> 6;
@@ -5309,7 +5322,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     KAW_MATCH_SCREEN->barH = 0;
     KAW_MATCH_SCREEN->cursor = (s16 *)KAW_createCursor(1, 0x12, 0x16, 6, 1);
     addFrameCallback((s32)KAW_renderVersusScreen);
-    step = ((DuelK *)D_801D8340)->tutorial;
+    step = KAW_DUEL->tutorial;
     do {
         func_80014C08(FRAME_INTERVAL);
         frame++;
@@ -5436,20 +5449,20 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
                 PAD_INPUT_ENABLED = 1;
                 step = 2;
             }
-            if ((u16)PAD_STATES[0]->pressed & 0x2000) {
+            if ((u16)PAD_STATES[0]->pressed & PAD_RIGHT) {
                 if (KAW_MATCH_SCREEN->choice == 0) {
                     playSoundEffect(0xA2);
                     KAW_MATCH_SCREEN->choice = 1;
                 }
             }
-            if ((u16)(PAD_STATES[0]->pressed & 0x8000)) {
+            if ((u16)(PAD_STATES[0]->pressed & PAD_LEFT)) {
                 if (KAW_MATCH_SCREEN->choice == 1) {
                     playSoundEffect(0xA2);
                     KAW_MATCH_SCREEN->choice = 0;
                 }
             }
             KAW_drawCursorAt(KAW_MATCH_SCREEN->cursor, KAW_MATCH_SCREEN->choice * 160 + 0x4F, 0x78);
-            if (PAD_STATES[0]->pressed & 0x40) {
+            if (PAD_STATES[0]->pressed & PAD_CROSS) {
                 playSoundEffect(0xA6);
                 KAW_MATCH_SCREEN->chosen = KAW_MATCH_SCREEN->choice + 2;
                 KAW_MATCH_SCREEN->timer = 1;
@@ -5461,7 +5474,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     } while (!DUEL_VRAM_READY || KAW_MATCH_SCREEN->timer < 181);
     func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
     func_80014C08(40);
-    if (!((DuelK *)D_801D8340)->tutorial) {
+    if (!KAW_DUEL->tutorial) {
         for (i = 0; i < 2; i++) {
             PLAYER(i)->shufflePasses += 600;
             shuffleOnlineDeck(i);
@@ -5473,9 +5486,9 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
         }
     }
     if (KAW_MATCH_SCREEN->cards[KAW_MATCH_SCREEN->chosen - 2].u != 0) {
-        ((u8 *)D_801D8340)[0x817] = 1;
+        DUEL->turnPlayer = 1;
     } else {
-        ((u8 *)D_801D8340)[0x817] = 0;
+        DUEL->turnPlayer = 0;
     }
     removeFrameCallback((s32)KAW_renderVersusScreen);
     KAW_freeCursor(KAW_MATCH_SCREEN->cursor);
@@ -5520,7 +5533,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         i = func_800471F4(deckId);
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[i];
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->unk888[i];
-        if (!((DuelK *)D_801D8340)->tutorial && winner != 0) {
+        if (!KAW_DUEL->tutorial && winner != 0) {
             loadMusicTrack(0, 0x96, 0x7F);
         } else {
             loadMusicTrack(0, 0x95, 0x7F);
@@ -5556,28 +5569,28 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         if (mode != 0) {
             if (winner == i) {
                 KAW_MATCH_SCREEN->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleWins;
-                if (!((DuelK *)D_801D8340)->tutorial) {
+                if (!KAW_DUEL->tutorial) {
                     KAW_MATCH_SCREEN->wins[i]++;
                 }
                 KAW_MATCH_SCREEN->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleLosses;
             } else {
                 KAW_MATCH_SCREEN->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleWins;
                 KAW_MATCH_SCREEN->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleLosses;
-                if (!((DuelK *)D_801D8340)->tutorial) {
+                if (!KAW_DUEL->tutorial) {
                     KAW_MATCH_SCREEN->losses[i]++;
                 }
             }
         } else {
             if (winner == i) {
                 KAW_MATCH_SCREEN->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusWins;
-                if (!((DuelK *)D_801D8340)->tutorial) {
+                if (!KAW_DUEL->tutorial) {
                     KAW_MATCH_SCREEN->wins[i]++;
                 }
                 KAW_MATCH_SCREEN->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusLosses;
             } else {
                 KAW_MATCH_SCREEN->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusWins;
                 KAW_MATCH_SCREEN->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusLosses;
-                if (!((DuelK *)D_801D8340)->tutorial) {
+                if (!KAW_DUEL->tutorial) {
                     KAW_MATCH_SCREEN->losses[i]++;
                 }
             }
@@ -5593,7 +5606,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         func_80014C08(FRAME_INTERVAL);
         frame++;
         prims = (VersusPrims *)CURRENT_FRAME_BUFFER->primSlots[15];
-        if (!((DuelK *)D_801D8340)->tutorial && frame >= 56) {
+        if (!KAW_DUEL->tutorial && frame >= 56) {
             scale -= 8;
             if (scale < 100) {
                 scale = 100;
@@ -5646,7 +5659,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         if (frame == 50) {
             playSoundEffect(0xA7);
         }
-        if (!((DuelK *)D_801D8340)->tutorial && frame == 70) {
+        if (!KAW_DUEL->tutorial && frame == 70) {
             playSoundEffect(0x83);
         }
         i = 0;
@@ -5654,7 +5667,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         KAW_drawDeckName(KAW_VS_INNER_LINE_POS[i][0], KAW_VS_INNER_LINE_POS[i][1], (char *)DUEL_PLAYERS[i] + 1);
         KAW_drawBattleRecord(KAW_VS_OUTER_LINE_POS[i][0], KAW_VS_OUTER_LINE_POS[i][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
         KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0xB8, KAW_VS_PANEL_POS[i][1] + 4, 0x140, 0, 0x80, 0x70, 0x140, 0xFE, 1, 0, 0, 0x80, 4);
-        if (!((DuelK *)D_801D8340)->tutorial) {
+        if (!KAW_DUEL->tutorial) {
             if (winner == 0) {
                 KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 8, KAW_VS_PANEL_POS[i][1] + 0x14, 0x1D0, 0, 0xA0, 0x5C, 0x180, 0xF8, 0, 0, 0, 0x80, 4);
             } else {
@@ -5668,7 +5681,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         KAW_drawDeckName(KAW_VS_OUTER_LINE_POS[i][0], KAW_VS_OUTER_LINE_POS[i][1], (char *)DUEL_PLAYERS[i] + 1);
         KAW_drawBattleRecord(KAW_VS_INNER_LINE_POS[i][0], KAW_VS_INNER_LINE_POS[i][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
         KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 8, KAW_VS_PANEL_POS[i][1] + 4, 0x140, 0x70, 0x80, 0x70, 0x140, 0xFF, 1, 0, 0, 0x80, 4);
-        if (!((DuelK *)D_801D8340)->tutorial) {
+        if (!KAW_DUEL->tutorial) {
             if (winner != 0) {
                 KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0x96, KAW_VS_PANEL_POS[i][1] + 0x14, 0x1D0, 0, 0xA0, 0x5C, 0x180, 0xF8, 0, 0, 0, 0x80, 4);
             } else {
@@ -5680,7 +5693,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         if (frame > 30) {
             KAW_RESULT_SCREEN_STATE = 1;
         }
-    } while (frame < 100 || !(PAD_STATES[0]->pressed & 0x40));
+    } while (frame < 100 || !(PAD_STATES[0]->pressed & PAD_CROSS));
     KAW_RESULT_SCREEN_STATE = 0;
     func_80014C08(2);
     freeHeapBlock(KAW_MATCH_SCREEN);
@@ -5884,7 +5897,7 @@ void KAW_drawExpTitle(UiWindow *window) {
     drawText(window->originX + 2, window->originY + 1, (s32)"Earned Experience Points", 7, 0);
 }
 
-void KAW_drawPortrait(s32 x, s32 y, s32 arg2, s32 arg3, s32 arg4, u16 arg5);
+void KAW_drawPortrait(s32 x, s32 y, s32 u, s32 v, s32 frame, u16 clut);
 
 void KAW_drawPartnerExp(ExpWindow *w) {
     s32 x;
@@ -5965,7 +5978,7 @@ void KAW_drawBonusList(UiWindow *w) {
     sprintf(buf, "*s0+%3d", exp);
     drawText(x + 0xA2, rowY, (s32)buf, 5, z);
     KAW_EXP_SCREEN->done = KAW_drawBonuses(x, y + 0x1C, KAW_EXP_SCREEN->progress / 32, z, exp);
-    if (PAD_STATES[0]->pressed & 0x40) {
+    if (PAD_STATES[0]->pressed & PAD_CROSS) {
         KAW_EXP_SCREEN->speed = 0x20;
     }
     if (KAW_EXP_SCREEN->done == 0) {
@@ -5975,16 +5988,16 @@ void KAW_drawBonusList(UiWindow *w) {
             scrollWindowTo((s16 *)w, 0, w->view.h - w->rect.h);
         }
     } else {
-        if (PAD_STATES[0]->repeat & 1) {
+        if (PAD_STATES[0]->repeat & PAD_L2) {
             scrollWindowTo((s16 *)w, 0, 0);
         }
-        if (PAD_STATES[0]->repeat & 2) {
+        if (PAD_STATES[0]->repeat & PAD_R2) {
             scrollWindowTo((s16 *)w, 0, w->view.h - w->rect.h);
         }
-        if (PAD_STATES[0]->repeat & 0x1000) {
+        if (PAD_STATES[0]->repeat & PAD_UP) {
             scrollWindowTo((s16 *)w, 0, w->view.y - 13);
         }
-        if (PAD_STATES[0]->repeat & 0x4000) {
+        if (PAD_STATES[0]->repeat & PAD_DOWN) {
             scrollWindowTo((s16 *)w, 0, w->view.y + 13);
         }
     }
@@ -6048,16 +6061,16 @@ void KAW_drawEarnedParts(UiWindow *w) {
     }
     w->view.h = n * 13 + 15;
     if (w->view.h - w->rect.h >= 0) {
-        if (PAD_STATES[0]->repeat & 1) {
+        if (PAD_STATES[0]->repeat & PAD_L2) {
             scrollWindowTo((s16 *)w, 0, w->view.y - w->rect.h);
         }
-        if (PAD_STATES[0]->repeat & 2) {
+        if (PAD_STATES[0]->repeat & PAD_R2) {
             scrollWindowTo((s16 *)w, 0, w->view.y + w->rect.h);
         }
-        if (PAD_STATES[0]->repeat & 0x1000) {
+        if (PAD_STATES[0]->repeat & PAD_UP) {
             scrollWindowTo((s16 *)w, 0, w->view.y - 13);
         }
-        if (PAD_STATES[0]->repeat & 0x4000) {
+        if (PAD_STATES[0]->repeat & PAD_DOWN) {
             scrollWindowTo((s16 *)w, 0, w->view.y + 13);
         }
     }
@@ -6103,7 +6116,7 @@ void KAW_uploadPartnerPortraits(u8 *archive) {
         }
         if (id != 0) {
             uploadTim((u32 *)(archive + ((s32 *)archive)[id]), i * 20 + 0x2C0, 0x128, -1, -1);
-            ((DuelK *)D_801D8340)->partnerCluts[i] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
+            KAW_DUEL->partnerCluts[i] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
         }
     }
 }
@@ -6175,7 +6188,7 @@ void KAW_runExpScreen(void) {
         KAW_EXP_SCREEN->rankWindows[i].window.palette = 2;
         animateWindowTo(&KAW_EXP_SCREEN->rankWindows[i].window, (Rect16 *)-1);
         if (((PlayerProfile *)PLAYER_PROFILES)->partners[i].cardId != 0) {
-            KAW_EXP_SCREEN->expWindows[i].clut = ((DuelK *)D_801D8340)->partnerCluts[i];
+            KAW_EXP_SCREEN->expWindows[i].clut = KAW_DUEL->partnerCluts[i];
         }
     }
     playSoundEffect(0xA3);
@@ -6189,7 +6202,7 @@ void KAW_runExpScreen(void) {
     animateWindowTo(&KAW_EXP_SCREEN->window, &rect);
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (KAW_EXP_SCREEN->done == 0 || !(PAD_STATES[0]->pressed & 0x40));
+    } while (KAW_EXP_SCREEN->done == 0 || !(PAD_STATES[0]->pressed & PAD_CROSS));
     playSoundEffect(0xA4);
     animateWindowTo(&KAW_EXP_SCREEN->window, (Rect16 *)-1);
     func_80014C08(20);
@@ -6423,7 +6436,7 @@ void KAW_rollPrizeCards(u8 *archive) {
     rollRewardCards(0, ((u8 *)D_8006E054)[0x73]);
     for (i = 0; i < 3; i++) {
         uploadTim((u32 *)(archive + ((s32 *)archive)[((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i]]), i * 20 + 0x2C0, 0x100, -1, -1);
-        ((DuelK *)D_801D8340)->rewardCluts[i] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
+        KAW_DUEL->rewardCluts[i] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);
     }
 }
 
@@ -6442,7 +6455,7 @@ void KAW_runPrizeScreen(void) {
     for (i = 0; i < 3; i++) {
         KAW_PRIZE_SCREEN->prizes[i].index = i;
         KAW_PRIZE_SCREEN->prizes[i].cardId = ((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i];
-        KAW_PRIZE_SCREEN->prizes[i].clut = ((DuelK *)D_801D8340)->rewardCluts[i];
+        KAW_PRIZE_SCREEN->prizes[i].clut = KAW_DUEL->rewardCluts[i];
         rect.x = 16;
         rect.y = i * 65 + 0x26;
         rect.w = 0x120;
@@ -6484,11 +6497,11 @@ void KAW_runPrizeScreen(void) {
 
 void KAW_loadEffectArchive(void) {
     func_800149B8(0, -1, 0, 0x800, loadFileTagged, "B:\\CBTL_EFF.ARC", getCurrentTaskId(), 0x38E);
-    *(s32 *)((u8 *)D_801D8340 + 0x4C) = func_80014C08(0x7FFFFFFF);
+    KAW_DUEL->effectArchive = func_80014C08(0x7FFFFFFF);
 }
 
 void KAW_freeEffectArchive(void) {
-    freeHeapBlock(*(void **)((u8 *)D_801D8340 + 0x4C));
+    freeHeapBlock((void *)KAW_DUEL->effectArchive);
 }
 
 s32 KAW_playEffect(s32 entry, s32 player) {
@@ -6523,7 +6536,7 @@ void KAW_playEffectScript(s32 entry, s32 player1, s32 player2, s32 mode1, s32 mo
         KAW_EFFECT_TARGET_CARD = getPlayedCard(player2);
         break;
     }
-    data = decompressArchiveEntry(*(s32 *)((u8 *)D_801D8340 + 0x4C), entry);
+    data = decompressArchiveEntry(KAW_DUEL->effectArchive, entry);
     func_800149B8(0, 0x1F, 0, 0x800, KAW_runEffectScriptTask, data, getCurrentTaskId());
     func_80014C08(0x7FFFFFFF);
     freeHeapBlock((void *)data);
@@ -6531,6 +6544,47 @@ void KAW_playEffectScript(s32 entry, s32 player1, s32 player2, s32 mode1, s32 mo
 
 extern EffectObject KAW_EFFECT_ROOT;
 extern void (*KAW_EFFECT_TICK_FUNCS[])(u8 *);
+/* the effect script's registers from byte 0x248 (register 0x92) on hold an
+ * effect object's parameters: what KAW_getEffectParams reads out of the object
+ * and KAW_setEffectParams writes back */
+typedef struct {
+    /* 0x00 */ s32 px;
+    /* 0x04 */ s32 py;
+    /* 0x08 */ s32 pz;
+    /* 0x0C */ s32 px2;
+    /* 0x10 */ s32 py2;
+    /* 0x14 */ s32 pz2;
+    /* 0x18 */ s32 moveSpeed;
+    /* 0x1C */ s32 moveAccel;
+    /* 0x20 */ s32 rx;
+    /* 0x24 */ s32 ry;
+    /* 0x28 */ s32 rz;
+    /* 0x2C */ s32 drx;
+    /* 0x30 */ s32 dry;
+    /* 0x34 */ s32 drz;
+    /* 0x38 */ s32 ddrx;
+    /* 0x3C */ s32 ddry;
+    /* 0x40 */ s32 ddrz;
+    /* 0x44 */ s32 sx;
+    /* 0x48 */ s32 sy;
+    /* 0x4C */ s32 sz;
+    /* 0x50 */ s32 sxT;
+    /* 0x54 */ s32 syT;
+    /* 0x58 */ s32 szT;
+    /* 0x5C */ s32 dsx;
+    /* 0x60 */ s32 dsy;
+    /* 0x64 */ s32 dsz;
+    /* 0x68 */ s32 hitRadius;
+    /* 0x6C */ s32 period;
+    /* 0x70 */ s32 fadeMode;
+    /* 0x74 */ s32 speed;
+    /* 0x78 */ s32 mode;
+    /* 0x7C */ s32 wavePhase;
+    /* 0x80 */ s32 waveAmplitude;
+    /* 0x84 */ s32 waveFreq;
+    /* 0x88 */ s32 parent; /* -2: none, -1: KAW_EFFECT_ROOT, else an entry of the table */
+} EffectParams;
+#define EFFECT_PARAMS(regs) ((EffectParams *)((u8 *)(regs) + 0x248))
 void KAW_runEffectScript(EffectTable *table);
 
 s32 KAW_tickEffectScript(EffectTable *table) {
@@ -6545,8 +6599,8 @@ s32 KAW_tickEffectScript(EffectTable *table) {
         if (table->entries[i].active != 0 && KAW_EFFECT_TICK_FUNCS[table->entries[i].kind] != NULL) {
             KAW_EFFECT_TICK_FUNCS[table->entries[i].kind](table->entries[i].obj);
             if (table->entries[i].kind > 0) {
-                table->regs[i + 0x52] = *(s32 *)(table->entries[i].obj + 0x118);
-                table->regs[i + 0x72] = *(s32 *)(table->entries[i].obj + 0x11C);
+                table->regs[i + 0x52] = ((EffectObject *)table->entries[i].obj)->state;
+                table->regs[i + 0x72] = ((EffectObject *)table->entries[i].obj)->flag;
             }
         }
     }
@@ -6571,9 +6625,9 @@ void KAW_getCardPosition(s32 index, u8 *fx) {
     if (index >= 0) {
         base = (s32)D_801D833C;
         anim = (CardAnim *)(index * 36 + base);
-        *(s32 *)(fx + 0x248) = anim->spr->pos.vx;
-        *(s32 *)(fx + 0x24C) = anim->spr->pos.vy;
-        *(s32 *)(fx + 0x250) = anim->spr->pos.vz;
+        EFFECT_PARAMS(fx)->px = anim->spr->pos.vx;
+        EFFECT_PARAMS(fx)->py = anim->spr->pos.vy;
+        EFFECT_PARAMS(fx)->pz = anim->spr->pos.vz;
     }
 }
 
@@ -6584,7 +6638,7 @@ void KAW_setCardSpriteColor(s32 index, u8 *fx) {
         rgb[0] = *(s32 *)(fx + 0x94);
         rgb[1] = *(s32 *)(fx + 0x98);
         rgb[2] = *(s32 *)(fx + 0x9C);
-        KAW_fadeCardSprite(*(CardSprite **)(D_801D833C + index * 36), rgb);
+        KAW_fadeCardSprite(CARD_SPR(index), rgb);
     }
 }
 
@@ -6592,7 +6646,7 @@ extern u8 D_800795A8;
 void KAW_getEffectParams(EffectObject *o, u8 *fx, s32 current);
 void KAW_setEffectParams(EffectObject *o, u8 *fx);
 void KAW_getEffectWorldPos(void *xform, u8 *fx);
-void KAW_createEffectEntry(s32 index, s32 kind, s32 arg2, EffectTable *table);
+void KAW_createEffectEntry(s32 index, s32 kind, s32 params, EffectTable *table);
 void KAW_showCardLabel(CardSprite *sprite, s32 num);
 void KAW_hideCardLabel(CardSprite *sprite);
 
@@ -6775,107 +6829,107 @@ void KAW_runEffectScript(EffectTable *table) {
 
 void KAW_getEffectParams(EffectObject *o, u8 *fx, s32 current) {
     if (current == 0) {
-        *(s32 *)(fx + 0x248) = o->px;
-        *(s32 *)(fx + 0x24C) = o->py;
-        *(s32 *)(fx + 0x250) = o->pz;
-        *(s32 *)(fx + 0x268) = (s16)o->rx0;
-        *(s32 *)(fx + 0x26C) = (s16)o->ry0;
-        *(s32 *)(fx + 0x270) = (s16)o->rz0;
-        *(s32 *)(fx + 0x28C) = o->sx0;
-        *(s32 *)(fx + 0x290) = o->sy0;
-        *(s32 *)(fx + 0x294) = o->sz0;
+        EFFECT_PARAMS(fx)->px = o->px;
+        EFFECT_PARAMS(fx)->py = o->py;
+        EFFECT_PARAMS(fx)->pz = o->pz;
+        EFFECT_PARAMS(fx)->rx = (s16)o->rx0;
+        EFFECT_PARAMS(fx)->ry = (s16)o->ry0;
+        EFFECT_PARAMS(fx)->rz = (s16)o->rz0;
+        EFFECT_PARAMS(fx)->sx = o->sx0;
+        EFFECT_PARAMS(fx)->sy = o->sy0;
+        EFFECT_PARAMS(fx)->sz = o->sz0;
     } else {
-        *(s32 *)(fx + 0x248) = o->posX;
-        *(s32 *)(fx + 0x24C) = o->posY;
-        *(s32 *)(fx + 0x250) = o->posZ;
-        *(s32 *)(fx + 0x268) = o->rotX;
-        *(s32 *)(fx + 0x26C) = o->rotY;
-        *(s32 *)(fx + 0x270) = o->rotZ;
-        *(s32 *)(fx + 0x28C) = o->sx;
-        *(s32 *)(fx + 0x290) = o->sy;
-        *(s32 *)(fx + 0x294) = o->sz;
+        EFFECT_PARAMS(fx)->px = o->posX;
+        EFFECT_PARAMS(fx)->py = o->posY;
+        EFFECT_PARAMS(fx)->pz = o->posZ;
+        EFFECT_PARAMS(fx)->rx = o->rotX;
+        EFFECT_PARAMS(fx)->ry = o->rotY;
+        EFFECT_PARAMS(fx)->rz = o->rotZ;
+        EFFECT_PARAMS(fx)->sx = o->sx;
+        EFFECT_PARAMS(fx)->sy = o->sy;
+        EFFECT_PARAMS(fx)->sz = o->sz;
     }
-    *(s32 *)(fx + 0x254) = o->px2;
-    *(s32 *)(fx + 0x258) = o->py2;
-    *(s32 *)(fx + 0x25C) = o->pz2;
-    *(s32 *)(fx + 0x260) = *(s16 *)((u8 *)o + 0x120);
-    *(s32 *)(fx + 0x264) = *(s16 *)((u8 *)o + 0x122);
-    *(s32 *)(fx + 0x274) = o->drx;
-    *(s32 *)(fx + 0x278) = o->dry;
-    *(s32 *)(fx + 0x27C) = o->drz;
-    *(s32 *)(fx + 0x280) = o->ddrx;
-    *(s32 *)(fx + 0x284) = o->ddry;
-    *(s32 *)(fx + 0x288) = o->ddrz;
-    *(s32 *)(fx + 0x298) = o->sxT;
-    *(s32 *)(fx + 0x29C) = o->syT;
-    *(s32 *)(fx + 0x2A0) = o->szT;
-    *(s32 *)(fx + 0x2A4) = o->dsx;
-    *(s32 *)(fx + 0x2A8) = o->dsy;
-    *(s32 *)(fx + 0x2AC) = o->dsz;
-    *(s32 *)(fx + 0x2B0) = o->hitRadius;
-    *(s32 *)(fx + 0x2B4) = o->period;
-    *(s32 *)(fx + 0x2B8) = o->fadeMode;
-    *(s32 *)(fx + 0x2BC) = o->speed;
-    *(s32 *)(fx + 0x2C4) = *(s16 *)((u8 *)o + 0x128);
-    *(s32 *)(fx + 0x2C8) = *(s16 *)((u8 *)o + 0x12A);
-    *(s32 *)(fx + 0x2CC) = *(s16 *)((u8 *)o + 0x126);
-    *(s32 *)(fx + 0x2C0) = o->mode;
+    EFFECT_PARAMS(fx)->px2 = o->px2;
+    EFFECT_PARAMS(fx)->py2 = o->py2;
+    EFFECT_PARAMS(fx)->pz2 = o->pz2;
+    EFFECT_PARAMS(fx)->moveSpeed = o->moveSpeed;
+    EFFECT_PARAMS(fx)->moveAccel = o->moveAccel;
+    EFFECT_PARAMS(fx)->drx = o->drx;
+    EFFECT_PARAMS(fx)->dry = o->dry;
+    EFFECT_PARAMS(fx)->drz = o->drz;
+    EFFECT_PARAMS(fx)->ddrx = o->ddrx;
+    EFFECT_PARAMS(fx)->ddry = o->ddry;
+    EFFECT_PARAMS(fx)->ddrz = o->ddrz;
+    EFFECT_PARAMS(fx)->sxT = o->sxT;
+    EFFECT_PARAMS(fx)->syT = o->syT;
+    EFFECT_PARAMS(fx)->szT = o->szT;
+    EFFECT_PARAMS(fx)->dsx = o->dsx;
+    EFFECT_PARAMS(fx)->dsy = o->dsy;
+    EFFECT_PARAMS(fx)->dsz = o->dsz;
+    EFFECT_PARAMS(fx)->hitRadius = o->hitRadius;
+    EFFECT_PARAMS(fx)->period = o->period;
+    EFFECT_PARAMS(fx)->fadeMode = o->fadeMode;
+    EFFECT_PARAMS(fx)->speed = o->speed;
+    EFFECT_PARAMS(fx)->wavePhase = o->wavePhase;
+    EFFECT_PARAMS(fx)->waveAmplitude = o->waveAmplitude;
+    EFFECT_PARAMS(fx)->waveFreq = o->waveFreq;
+    EFFECT_PARAMS(fx)->mode = o->mode;
 }
 
 void KAW_setEffectParams(EffectObject *o, u8 *fx) {
-    o->px = *(s32 *)(fx + 0x248);
-    o->py = *(s32 *)(fx + 0x24C);
-    o->pz = *(s32 *)(fx + 0x250);
-    o->px2 = *(s32 *)(fx + 0x254);
-    o->py2 = *(s32 *)(fx + 0x258);
-    o->pz2 = *(s32 *)(fx + 0x25C);
-    *(s16 *)((u8 *)o + 0x120) = *(s32 *)(fx + 0x260);
-    *(s16 *)((u8 *)o + 0x122) = *(s32 *)(fx + 0x264);
-    o->rx0 = *(s32 *)(fx + 0x268);
-    o->ry0 = *(s32 *)(fx + 0x26C);
-    o->rz0 = *(s32 *)(fx + 0x270);
-    o->drx = *(s32 *)(fx + 0x274);
-    o->dry = *(s32 *)(fx + 0x278);
-    o->drz = *(s32 *)(fx + 0x27C);
-    o->ddrx = *(s32 *)(fx + 0x280);
-    o->ddry = *(s32 *)(fx + 0x284);
-    o->ddrz = *(s32 *)(fx + 0x288);
-    o->sx0 = *(s32 *)(fx + 0x28C);
-    o->sy0 = *(s32 *)(fx + 0x290);
-    o->sz0 = *(s32 *)(fx + 0x294);
-    o->sxT = *(s32 *)(fx + 0x298);
-    o->syT = *(s32 *)(fx + 0x29C);
-    o->szT = *(s32 *)(fx + 0x2A0);
-    o->dsx = *(s32 *)(fx + 0x2A4);
-    o->dsy = *(s32 *)(fx + 0x2A8);
-    o->dsz = *(s32 *)(fx + 0x2AC);
-    o->hitRadius = *(s32 *)(fx + 0x2B0);
-    o->period = *(s32 *)(fx + 0x2B4);
-    o->fadeMode = *(s32 *)(fx + 0x2B8);
-    o->speed = *(s32 *)(fx + 0x2BC);
-    *(s16 *)((u8 *)o + 0x128) = *(s32 *)(fx + 0x2C4);
-    *(s16 *)((u8 *)o + 0x12A) = *(s32 *)(fx + 0x2C8);
-    *(s16 *)((u8 *)o + 0x126) = *(s32 *)(fx + 0x2CC);
-    o->mode = *(s32 *)(fx + 0x2C0);
+    o->px = EFFECT_PARAMS(fx)->px;
+    o->py = EFFECT_PARAMS(fx)->py;
+    o->pz = EFFECT_PARAMS(fx)->pz;
+    o->px2 = EFFECT_PARAMS(fx)->px2;
+    o->py2 = EFFECT_PARAMS(fx)->py2;
+    o->pz2 = EFFECT_PARAMS(fx)->pz2;
+    o->moveSpeed = EFFECT_PARAMS(fx)->moveSpeed;
+    o->moveAccel = EFFECT_PARAMS(fx)->moveAccel;
+    o->rx0 = EFFECT_PARAMS(fx)->rx;
+    o->ry0 = EFFECT_PARAMS(fx)->ry;
+    o->rz0 = EFFECT_PARAMS(fx)->rz;
+    o->drx = EFFECT_PARAMS(fx)->drx;
+    o->dry = EFFECT_PARAMS(fx)->dry;
+    o->drz = EFFECT_PARAMS(fx)->drz;
+    o->ddrx = EFFECT_PARAMS(fx)->ddrx;
+    o->ddry = EFFECT_PARAMS(fx)->ddry;
+    o->ddrz = EFFECT_PARAMS(fx)->ddrz;
+    o->sx0 = EFFECT_PARAMS(fx)->sx;
+    o->sy0 = EFFECT_PARAMS(fx)->sy;
+    o->sz0 = EFFECT_PARAMS(fx)->sz;
+    o->sxT = EFFECT_PARAMS(fx)->sxT;
+    o->syT = EFFECT_PARAMS(fx)->syT;
+    o->szT = EFFECT_PARAMS(fx)->szT;
+    o->dsx = EFFECT_PARAMS(fx)->dsx;
+    o->dsy = EFFECT_PARAMS(fx)->dsy;
+    o->dsz = EFFECT_PARAMS(fx)->dsz;
+    o->hitRadius = EFFECT_PARAMS(fx)->hitRadius;
+    o->period = EFFECT_PARAMS(fx)->period;
+    o->fadeMode = EFFECT_PARAMS(fx)->fadeMode;
+    o->speed = EFFECT_PARAMS(fx)->speed;
+    o->wavePhase = EFFECT_PARAMS(fx)->wavePhase;
+    o->waveAmplitude = EFFECT_PARAMS(fx)->waveAmplitude;
+    o->waveFreq = EFFECT_PARAMS(fx)->waveFreq;
+    o->mode = EFFECT_PARAMS(fx)->mode;
 }
 
 void KAW_getEffectWorldPos(void *xform, u8 *fx) {
     SVECTOR pos;
 
     getTransformWorldPos(xform, &pos);
-    *(s32 *)(fx + 0x248) = pos.vx;
-    *(s32 *)(fx + 0x24C) = pos.vy;
-    *(s32 *)(fx + 0x250) = pos.vz;
+    EFFECT_PARAMS(fx)->px = pos.vx;
+    EFFECT_PARAMS(fx)->py = pos.vy;
+    EFFECT_PARAMS(fx)->pz = pos.vz;
 }
 
 void KAW_initEffectFromParams(EffectTemplate *template, u8 *fx, EffectTable *table) {
     KAW_setEffectParams((EffectObject *)template, fx);
-    if (*(s32 *)(fx + 0x2D0) == -2) {
+    if (EFFECT_PARAMS(fx)->parent == -2) {
         template->data[0x26] = 0;
-    } else if (*(s32 *)(fx + 0x2D0) == -1) {
+    } else if (EFFECT_PARAMS(fx)->parent == -1) {
         template->data[0x26] = (s32)&KAW_EFFECT_ROOT;
     } else {
-        template->data[0x26] = (s32)table->entries[*(s32 *)(fx + 0x2D0)].obj;
+        template->data[0x26] = (s32)table->entries[EFFECT_PARAMS(fx)->parent].obj;
     }
 }
 
@@ -6948,11 +7002,11 @@ void KAW_freeFadeRect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-void KAW_createEffectEntry(s32 index, s32 kind, s32 arg2, EffectTable *table) {
+void KAW_createEffectEntry(s32 index, s32 kind, s32 params, EffectTable *table) {
     if (KAW_EFFECT_CREATE_FUNCS[kind] != NULL) {
         table->entries[index].kind = kind;
         table->entries[index].active = 0;
-        table->entries[index].obj = KAW_EFFECT_CREATE_FUNCS[kind](arg2, table);
+        table->entries[index].obj = KAW_EFFECT_CREATE_FUNCS[kind](params, table);
         if ((++table->count & 0xF) == 0) {
             func_80014C08(FRAME_INTERVAL);
         }
@@ -7045,16 +7099,16 @@ void KAW_drawEffectHelp(UiWindow *w) {
         }
         drawText(x, y + i * 12, (s32)KAW_EFFECT_HELP_LINES[i], 7, z);
     }
-    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 2) {
+    if (PAD_STATES[KAW_DUEL->menuPlayer]->repeat & PAD_R2) {
         scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] + w->rect.h);
     }
-    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 1) {
+    if (PAD_STATES[KAW_DUEL->menuPlayer]->repeat & PAD_L2) {
         scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] - w->rect.h);
     }
-    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 0x1000) {
+    if (PAD_STATES[KAW_DUEL->menuPlayer]->repeat & PAD_UP) {
         scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] - 12);
     }
-    if (PAD_STATES[(s8)DUEL->unk820[1]]->repeat & 0x4000) {
+    if (PAD_STATES[KAW_DUEL->menuPlayer]->repeat & PAD_DOWN) {
         scrollWindowTo((s16 *)w, w->scroll[2], w->scroll[3] + 12);
     }
 }
@@ -7191,30 +7245,30 @@ void KAW_tickDuelMenu(void) {
     s32 player;
     s32 i;
 
-    if (DUEL_MSG_BAR.playerLabel == 1 || ((DuelK *)D_801D8340)->awaitingInput == 0 || ((DuelK *)D_801D8340)->unk820 != 0) {
+    if (DUEL_MSG_BAR.playerLabel == 1 || KAW_DUEL->awaitingInput == 0 || KAW_DUEL->tutorialBusy != 0) {
         return;
     }
     player = DUEL_MSG_BAR.playerLabel & 1;
-    if (!(PAD_STATES[player]->pressed & 0x800)) {
+    if (!(PAD_STATES[player]->pressed & PAD_START)) {
         return;
     }
     playSoundEffect(0xA3);
-    ((DuelK *)D_801D8340)->menuOpen = 1;
-    ((DuelK *)D_801D8340)->menuPlayer = player;
+    KAW_DUEL->menuOpen = 1;
+    KAW_DUEL->menuPlayer = player;
     KAW_DUEL_MENU.pad = player;
     openMenu(&KAW_DUEL_MENU, &KAW_DUEL_MENU_WINDOW, &KAW_DUEL_MENU_CURSOR, (Bytes4 *)-1);
     KAW_DUEL_MENU_WINDOW.label = (s32)"MENU";
     for (;;) {
         func_80014C08(FRAME_INTERVAL);
         drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
-        if (PAD_STATES[((DuelK *)D_801D8340)->menuPlayer]->pressed & 0x40) {
+        if (PAD_STATES[KAW_DUEL->menuPlayer]->pressed & PAD_CROSS) {
             playSoundEffect(0xA0);
             switch (KAW_DUEL_MENU.row) {
             case 0:
                 KAW_MENU_DIALOG.yes = "Stereo";
                 KAW_MENU_DIALOG.no = "Mono";
                 initDialog((u8 *)&KAW_MENU_DIALOG, "Sound Settings", 2);
-                KAW_MENU_DIALOG.pad = ((DuelK *)D_801D8340)->menuPlayer;
+                KAW_MENU_DIALOG.pad = KAW_DUEL->menuPlayer;
                 KAW_MENU_DIALOG.draw = KAW_renderDuelMenu;
                 KAW_MENU_DIALOG.result = ((PlayerProfile *)PLAYER_PROFILES)->unk20_0 + 1;
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
@@ -7237,7 +7291,7 @@ void KAW_tickDuelMenu(void) {
                 KAW_MENU_DIALOG.yes = "On";
                 KAW_MENU_DIALOG.no = "Off";
                 initDialog((u8 *)&KAW_MENU_DIALOG, "Polygon Battle", 2);
-                KAW_MENU_DIALOG.pad = ((DuelK *)D_801D8340)->menuPlayer;
+                KAW_MENU_DIALOG.pad = KAW_DUEL->menuPlayer;
                 KAW_MENU_DIALOG.draw = KAW_renderDuelMenu;
                 KAW_MENU_DIALOG.result = ((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation + 1;
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
@@ -7270,7 +7324,7 @@ void KAW_tickDuelMenu(void) {
                     func_80014C08(FRAME_INTERVAL);
                     drawWindow(&KAW_HELP_WINDOW, KAW_drawEffectHelp, 0);
                     drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
-                } while (!(PAD_STATES[((DuelK *)D_801D8340)->menuPlayer]->pressed & 0x10));
+                } while (!(PAD_STATES[KAW_DUEL->menuPlayer]->pressed & PAD_TRIANGLE));
                 playSoundEffect(0xA4);
                 animateWindowTo(&KAW_HELP_WINDOW, (Rect16 *)-1);
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, &KAW_DUEL_MENU.rect);
@@ -7281,12 +7335,12 @@ void KAW_tickDuelMenu(void) {
                 }
                 break;
             case 3:
-                if (((DuelK *)D_801D8340)->tutorial) {
+                if (KAW_DUEL->tutorial) {
                     initDialog((u8 *)&KAW_MENU_DIALOG, "Quit Tutorial?", 1);
                 } else {
                     initDialog((u8 *)&KAW_MENU_DIALOG, KAW_STR_GIVE_UP, 1);
                 }
-                KAW_MENU_DIALOG.pad = ((DuelK *)D_801D8340)->menuPlayer;
+                KAW_MENU_DIALOG.pad = KAW_DUEL->menuPlayer;
                 KAW_MENU_DIALOG.draw = KAW_renderDuelMenu;
                 animateWindowTo(&KAW_DUEL_MENU_WINDOW, (Rect16 *)-1);
                 runDialog(&KAW_MENU_DIALOG);
@@ -7294,17 +7348,17 @@ void KAW_tickDuelMenu(void) {
                 switch (KAW_MENU_DIALOG.result) {
                 case 2:
                 case 0:
-                    ((DuelK *)D_801D8340)->quit = 0;
+                    KAW_DUEL->quit = 0;
                     break;
                 case 1:
-                    ((DuelK *)D_801D8340)->quit = ((D_801D83D1 & 1) + 2) ^ 1;
+                    KAW_DUEL->quit = ((D_801D83D1 & 1) + 2) ^ 1;
                     break;
                 }
                 break;
             }
         }
-        if (!(PAD_STATES[((DuelK *)D_801D8340)->menuPlayer]->pressed & 0x810)) {
-            if (((DuelK *)D_801D8340)->quit == 0) {
+        if (!(PAD_STATES[KAW_DUEL->menuPlayer]->pressed & (PAD_TRIANGLE | PAD_START))) {
+            if (KAW_DUEL->quit == 0) {
                 continue;
             }
         } else {
@@ -7315,7 +7369,7 @@ void KAW_tickDuelMenu(void) {
                 drawWindow(&KAW_DUEL_MENU_WINDOW, KAW_drawDuelMenu, 0);
             }
         }
-        ((DuelK *)D_801D8340)->menuOpen = 0;
+        KAW_DUEL->menuOpen = 0;
         return;
     }
 }
@@ -7342,17 +7396,17 @@ typedef struct {
     /* 0x9 */ s8 parent;
     /* 0xA */ s16 z;
 } HudPanelInit;
-typedef struct {
+typedef struct HudPrims {
     u8 data[0x5F0];
-} Unk5F0;
+} HudPrims;
 
 extern HudPanelInit KAW_HUD_PANEL_INITS[];
 s32 KAW_initHudPanels(void) {
     s32 i;
 
-    *(Unk5F0 **)((u8 *)D_801D8340 + 0x48) = allocTaskHeapBlock(sizeof(Unk5F0) * 2);
+    KAW_DUEL->hudPrims = allocTaskHeapBlock(sizeof(HudPrims) * 2);
     for (i = 0; i < 2; i++) {
-        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[11] = (s32)&(*(Unk5F0 **)((u8 *)D_801D8340 + 0x48))[i];
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[11] = (s32)&KAW_DUEL->hudPrims[i];
     }
     D_801D83EC = allocTaskHeapBlock(sizeof(HudPanelK) * 12);
     for (i = 0; i < 12; i++) {
@@ -7396,7 +7450,7 @@ s32 KAW_initHudPanels(void) {
 }
 
 s32 KAW_freeHudPanels(void) {
-    freeHeapBlock(*(void **)((u8 *)D_801D8340 + 0x48));
+    freeHeapBlock(KAW_DUEL->hudPrims);
     freeHeapBlock(D_801D83EC);
 }
 
@@ -7486,7 +7540,7 @@ void KAW_fadeCardSprite(CardSprite *sprite, u8 *to) {
 
 void KAW_initCursorShape(Shape *shape, s32 x, s32 y, s32 d);
 
-s32 KAW_createCursor(s32 arg0, s32 x, s32 y, s32 d, s32 count) {
+s32 KAW_createCursor(s32 mode, s32 x, s32 y, s32 d, s32 count) {
     s32 i;
     s32 j;
     s32 k;
@@ -7512,7 +7566,7 @@ s32 KAW_createCursor(s32 arg0, s32 x, s32 y, s32 d, s32 count) {
     shapes = allocTaskHeapBlock(count * sizeof(Shape));
     for (i = 0; i < count; i++) {
         shapes[i].unk2 = 0;
-        shapes[i].mode = arg0;
+        shapes[i].mode = mode;
         shapes[i].index = i;
         rgb = shapes[i].rgb;
         rgb[0] = 0xFF;
@@ -7602,18 +7656,18 @@ void KAW_freeCursor(void *ptr) {
     }
 }
 
-void KAW_drawCursorAt(arg0, x, y)
-    s16 *arg0;
+void KAW_drawCursorAt(cursor, x, y)
+    s16 *cursor;
     s16 x;
     s16 y;
 {
-    arg0[4] = x;
-    arg0[5] = y;
-    KAW_drawCursor(arg0);
+    cursor[4] = x;
+    cursor[5] = y;
+    KAW_drawCursor(cursor);
 }
 
-void KAW_drawCursor(void *arg0) {
-    KAW_renderCursor(arg0, 1);
+void KAW_drawCursor(void *cursor) {
+    KAW_renderCursor(cursor, 1);
 }
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -7638,7 +7692,7 @@ void KAW_drawCursor(void *arg0) {
         func_8005C444(m);                                             \
     } while (0)
 
-void KAW_renderCursor(void *arg0, s32 otz) {
+void KAW_renderCursor(void *cursor, s32 otz) {
     Shape *shape;
     GradPacket *pk;
     MATRIX matrix;
@@ -7650,7 +7704,7 @@ void KAW_renderCursor(void *arg0, s32 otz) {
     s32 i;
     CardSprite *sprite;
 
-    shape = arg0;
+    shape = cursor;
     pk = (GradPacket *)CURRENT_FRAME_BUFFER->primSlots[12] + shape->index;
     i = (((PlayerProfile *)PLAYER_PROFILES)->playTime * 8) % 200;
     level = (u8)(i >= 100 ? 300 - i : i + 100);
@@ -7718,32 +7772,28 @@ void KAW_renderCursor(void *arg0, s32 otz) {
 
 void KAW_initRing(void) {
     s32 i;
-    u8 *duel;
 
-    *(RingPrims **)((u8 *)D_801D8340 + 0x4) = allocTaskHeapBlock(sizeof(RingPrims) * 2);
+    KAW_DUEL->ringPrims = allocTaskHeapBlock(sizeof(RingPrims) * 2);
     for (i = 0; i < 2; i++) {
-        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[13] = (s32)&(*(RingPrims **)((u8 *)D_801D8340 + 0x4))[i];
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[13] = (s32)&KAW_DUEL->ringPrims[i];
     }
-    duel = D_801D8340;
-    *(s32 *)(duel + 0x828) = -1;
-    *(s32 *)(duel + 0x834) = 0x140;
+    DUEL->ringMode = -1;
+    DUEL->ringRadius = 320;
 }
 
 void KAW_freeRing(void) {
-    freeHeapBlock(*(void **)((u8 *)D_801D8340 + 0x4));
+    freeHeapBlock(KAW_DUEL->ringPrims);
 }
 
-void KAW_closeRing(s32 arg0, s32 arg1, s32 arg2) {
-    u8 *duel = D_801D8340;
-
-    *(s32 *)(duel + 0x828) = 1;
-    *(s32 *)(duel + 0x82C) = arg0;
-    *(s32 *)(duel + 0x830) = arg1;
-    *(s32 *)(duel + 0x838) = arg2;
+void KAW_closeRing(s32 x, s32 y, s32 width) {
+    DUEL->ringMode = 1;
+    DUEL->ringX = x;
+    DUEL->ringY = y;
+    DUEL->ringWidth = width;
 }
 
 void KAW_openRing(void) {
-    *(s32 *)((u8 *)D_801D8340 + 0x828) = 0;
+    DUEL->ringMode = 0;
 }
 
 s32 KAW_renderRing(void) {
@@ -7858,7 +7908,7 @@ void KAW_resetBonusFlags(s32 player) {
         FLAGS110(player)->f28 = 0;
     }
     for (i = 0; i < 32; i++) {
-        ((DuelK *)D_801D8340)->bonusFlags[i] = 0;
+        KAW_DUEL->bonusFlags[i] = 0;
     }
 }
 
@@ -7868,7 +7918,7 @@ void KAW_countEarnedBonuses(void) {
     ProfileK *profile;
 
     i = 0;
-    flags = (u8 *)D_801D8340 + 0x840;
+    flags = KAW_DUEL->bonusFlags;
     profile = (ProfileK *)PLAYER_PROFILES;
     for (; i < 32; i++) {
         if (flags[i] != 0) {
@@ -8071,7 +8121,7 @@ s32 KAW_checkHandBonuses(s32 player) {
 s32 KAW_addBonusLine(BonusEntry *entry, s32 x, s32 y, s32 last, s32 z) {
     char buf[72];
 
-    ((DuelK *)D_801D8340)->bonusFlags[entry->id] = 1;
+    KAW_DUEL->bonusFlags[entry->id] = 1;
     drawText(x + 6, y + KAW_BONUS_ROW * 13, (s32)entry->name, 7, z);
     sprintf(buf, "*s0+%3d*c7(%3d)", entry->bonus, ((ProfileK *)PLAYER_PROFILES)->counts[entry->id] + 1);
     drawText(x + 0xA2, y + KAW_BONUS_ROW * 13, (s32)buf, 5, z);
@@ -8091,7 +8141,7 @@ s32 KAW_drawBonuses(s32 x, s32 y, s32 count, s32 z, s32 exp) {
     }
     KAW_BONUS_EXP = exp;
     KAW_BONUS_ROW = 0;
-    if (((u8 *)D_801D8340)[0x81E] == 0) {
+    if (DUEL->winner == 0) {
         if (!(FLAGS110(0)->f1 | FLAGS110(0)->f2) && KAW_addBonusLine(entry, x, y, count, z)) {
             return 0;
         }
@@ -8108,7 +8158,7 @@ s32 KAW_drawBonuses(s32 x, s32 y, s32 count, s32 z, s32 exp) {
             return 0;
         }
         entry++;
-        if (((DuelK *)D_801D8340)->bonusFlags[3] == 0 && FLAGS110(0)->f17 && KAW_addBonusLine(entry, x, y, count, z)) {
+        if (KAW_DUEL->bonusFlags[3] == 0 && FLAGS110(0)->f17 && KAW_addBonusLine(entry, x, y, count, z)) {
             return 0;
         }
         entry++;
@@ -8150,7 +8200,7 @@ s32 KAW_drawBonuses(s32 x, s32 y, s32 count, s32 z, s32 exp) {
             return 0;
         }
         entry++;
-        if (((DuelK *)D_801D8340)->bonusFlags[13] == 0 && countOnlineDeckCards(0) + 4 == countEmptyHandSlots(0)
+        if (KAW_DUEL->bonusFlags[13] == 0 && countOnlineDeckCards(0) + 4 == countEmptyHandSlots(0)
             && KAW_addBonusLine(entry, x, y, count, z)) {
             return 0;
         }
