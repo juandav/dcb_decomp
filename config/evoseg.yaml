@@ -41,7 +41,7 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
-  # src/evoseg/evoseg.c exists
+  # the C files in src/evoseg/ exist
   create_c_files: False
 
 segments:
@@ -53,8 +53,19 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, .rodata, evoseg]
-      - [0x1720, c, evoseg]
-      - [0x11924, .data, evoseg]
+      - [0x0, .rodata, evo_cutscene]
+      - [0xCC, .rodata, evo_shatter]
+      - [0x14C, .rodata, evo_fusion]
+      - [0x1618, .rodata, evo_effect]
+      - [0x1720, c, evo_cutscene]
+      - [0x4CD4, c, evo_shatter]
+      - [0x8304, c, evo_fusion]
+      - [0xFBB0, c, evo_effect]
+      - [0x11924, c, evo_bss]
+      - [0x11924, .data, evo_shatter]
+      - [0x11928, .data, evo_cutscene]
+      - [0x1199C, .data, evo_fusion]
+      - [0x12348, .data, evo_effect]
+      - [0x12384, .data, evo_bss]
 
   - [0x17A74]
