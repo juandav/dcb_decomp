@@ -233,13 +233,31 @@ u16 func_80067644(s32 x, s32 y);
 Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
 
 typedef struct {
-    u8 unk0[8];
+    s32 duration;
+    u8 u0;
+    u8 u1;
+    u8 v0;
+    u8 v1;
     s16 w;
     s16 h;
-    u8 unkC[6];
+    s16 attr;
+    u8 shade;
+    u8 clutRow;
+    u8 unk10[2];
     s8 originX;
     s8 originY;
 } SpriteFrame;
+/* the header of a sprite's data (Sprite.tex); its frames follow at 0x10 */
+typedef struct {
+    s32 frameCount;
+    s8 loopFrame;
+    u8 unk5;
+    u16 mode;
+    u16 clutX;
+    u16 clutY;
+    u16 x;
+    u16 y;
+} SpriteSheet;
 typedef struct {
     u8 *tex;
     SpriteFrame *frames;
@@ -4683,7 +4701,45 @@ void func_801EB3EC(void) {
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EB458);
+void func_801EB458(Sprite *sprite) {
+    SpriteSheet *sheet;
+    SpriteFrame *frame;
+    POLY_FT4 *poly;
+    u8 u0;
+    u8 u1;
+    u8 v0;
+    u8 v1;
+    s32 i;
+    s32 mode;
+
+    frame = sprite->frames;
+    sheet = (SpriteSheet *)sprite->tex;
+    for (i = 0; i < 2; i++) {
+        poly = &sprite->polys[i];
+        u0 = frame->u0;
+        u1 = frame->u1;
+        v0 = frame->v0;
+        v1 = frame->v1;
+        func_800677A4(poly);
+        poly->clut = getClut(sheet->clutX, sheet->clutY);
+        mode = sheet->mode;
+        /* x and y rounded down to their texture page */
+        poly->tpage = getTPage(mode & 3, 0, sheet->x & (-64 << mode), sheet->y & ~0xFF);
+        poly->pad2 = 1;
+        poly->u0 = u0;
+        poly->v0 = v0;
+        poly->u1 = u1;
+        poly->v1 = v0;
+        poly->u2 = u0;
+        poly->v2 = v1;
+        poly->u3 = u1;
+        poly->v3 = v1;
+        poly->r0 = 0x80;
+        poly->g0 = 0x80;
+        poly->b0 = 0x80;
+        setShadeTex(poly, 0);
+    }
+}
 
 void func_801EB5CC(Sprite *sprite, s32 frame) {
     SpriteFrame *f;
