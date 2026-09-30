@@ -41,7 +41,7 @@ extern Unk801F7C88 OPEN_MEMCARD_SLOT_WINDOWS[3];
 extern UiWindow OPEN_MEMCARD_INFO_WINDOW;
 extern UiWindow OPEN_OPERATION_WINDOW;
 extern s8 OPEN_MEMCARD_EMPTY[2][3];
-extern u8 D_801F80CA;
+extern u8 OPEN_MEMCARD_EXIT_ACTION;
 extern UiWindow OPEN_MEMCARD_MESSAGE_WINDOW;
 extern u8 OPEN_MEMCARD_CANCELLED;
 extern u8 *OPEN_SAVE_PLACE_IMAGES;
@@ -233,7 +233,7 @@ void OPEN_runMemcardScreen(s32 mode, s32 parentTask, s32 port) {
     playMenuSound(4);
     waitFrames(20);
     removeFrameCallback((s32)OPEN_drawMemcardScreen);
-    switch (D_801F80CA) {
+    switch (OPEN_MEMCARD_EXIT_ACTION) {
     case 0:
         break;
     case 1:
@@ -346,7 +346,7 @@ void OPEN_resetMemcardScreen(s32 port) {
         if (port == 0) {
             OPEN_MEMCARD.again = 1;
         }
-        D_801F80CA = 0;
+        OPEN_MEMCARD_EXIT_ACTION = 0;
         break;
     case 0xFF:
         OPEN_MEMCARD.loading = 1;

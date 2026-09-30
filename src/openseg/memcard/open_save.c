@@ -26,7 +26,7 @@ typedef struct {
 
 extern PlayerProfile *OPEN_MEMCARD_BUFFER;
 extern u8 OPEN_MEMCARD_MESSAGE_PORT;
-extern u8 D_801F8184;
+extern u8 OPEN_MEMCARD_READY_RESULT;
 extern u8 D_801F80C0;
 
 void StoreImage(Rect16 *rect, void *p);
@@ -268,7 +268,7 @@ void OPEN_runMemcardAccess(void) {
             if (status == 1) {
                 OPEN_MEMCARD.message = 12;
                 OPEN_MEMCARD.state = 19;
-                D_801F8184 = status;
+                OPEN_MEMCARD_READY_RESULT = status;
             }
             break;
         case 4:
@@ -309,7 +309,7 @@ void OPEN_runMemcardAccess(void) {
         case 10:
             result = OPEN_ensureMemoryCardReady(port);
             if (result == 1) {
-                D_801F8184 = result;
+                OPEN_MEMCARD_READY_RESULT = result;
                 OPEN_MEMCARD_STATE = result;
                 OPEN_hideSaveSlots();
             }
@@ -317,7 +317,7 @@ void OPEN_runMemcardAccess(void) {
         case 7:
             result = OPEN_ensureMemoryCardReady(port);
             if (result == 1) {
-                D_801F8184 = result;
+                OPEN_MEMCARD_READY_RESULT = result;
                 OPEN_MEMCARD_STATE = result;
             }
             break;
@@ -357,12 +357,12 @@ void OPEN_runMemcardAccess(void) {
             OPEN_MEMCARD.state = 12;
             break;
         case 20:
-            D_801F8184 = 1;
+            OPEN_MEMCARD_READY_RESULT = 1;
             OPEN_MEMCARD.message = 15;
             OPEN_MEMCARD.state = 21;
             break;
         case 13:
-            D_801F8184 = 1;
+            OPEN_MEMCARD_READY_RESULT = 1;
             OPEN_MEMCARD.message = 19;
             OPEN_MEMCARD.state = 14;
             break;

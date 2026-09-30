@@ -214,7 +214,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SAI_addOpponent((s16)runner->script->params[0]);
                     break;
                 case 4:
-                    func_801E09F4();
+                    SAI_copyScriptFlagsForFusion();
                     runner->regs[0] = 0;
                     SAI_AREA.exitAction = AREA_EXIT_FUSION;
                     SAI_AREA.exitArg = (s16)runner->script->params[0];

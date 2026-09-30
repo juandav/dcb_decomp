@@ -4,8 +4,8 @@
 #include "dcb/sugseg.h"
 
 extern s32 SUG_CAMERA_SPIN;
-extern s32 D_801EF384;
-extern s32 D_801EF388;
+extern s32 SUG_CAMERA_ORBIT_RANGE;
+extern s32 SUG_CAMERA_YAW_SPIN;
 extern u16 CAMERA_TARGET_PITCH;
 
 void SUG_resetCameraPos(void) {
@@ -26,7 +26,7 @@ void SUG_orbitCamera(void) {
     speed = 1;
     SUG_resetCameraPos();
     CAMERA->rotY += SUG_CAMERA_SPIN * 2;
-    if (D_801EF384 == speed) {
+    if (SUG_CAMERA_ORBIT_RANGE == speed) {
         min = 0x100;
         max = 0x580;
         outStep = 16;
@@ -43,5 +43,5 @@ void SUG_orbitCamera(void) {
     } else {
         CAMERA->targetPitch += inStep * speed;
     }
-    CAMERA->targetYaw += 4 / speed * D_801EF388;
+    CAMERA->targetYaw += 4 / speed * SUG_CAMERA_YAW_SPIN;
 }

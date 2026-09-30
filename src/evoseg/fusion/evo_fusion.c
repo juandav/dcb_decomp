@@ -252,7 +252,7 @@ void EVO_runFusion(s32 unit) {
             EVO_repickSecondCard();
             break;
         case 13:
-            func_801EBE08();
+            EVO_slideOutFirstTrayWithResult();
             break;
         case 14:
             EVO_slideTrayOut((s16)EVO_SCRIPT->script->params[0]);

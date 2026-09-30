@@ -9,15 +9,19 @@ SUB_DECK_SORT_MENU_PAD = 0x801F21C4;
 /* SUB_CARD_SORT_MENU's rect */
 SUB_CARD_SORT_MENU_RECT = 0x801F20E0;
 
-/* SUB_WINDOWS[1] to [6], and the labels of [1] and [2] */
-D_801F3294 = 0x801F3294;
-D_801F32C0 = 0x801F32C0;
-D_801F32D8 = 0x801F32D8;
-D_801F3304 = 0x801F3304;
-D_801F331C = 0x801F331C;
-D_801F3360 = 0x801F3360;
-D_801F33A4 = 0x801F33A4;
-D_801F33E8 = 0x801F33E8;
+/* SUB_WINDOWS[1] to [6], and the labels of [1] and [2]. Each screen gives
+   them its own content: [1] the card list, the deck's title or (with [2] and
+   [3]) the deck summaries; [2] the card list's help or the card picker; [3]
+   the collection totals or the deck's stats; [4] the specialty counts or the
+   deck's grid; [5] the slot's card info; [6] the card data or the sort hint */
+SUB_LIST_WINDOWS = 0x801F3294;
+SUB_LIST_WINDOW_LABEL = 0x801F32C0;
+SUB_PICKER_WINDOW = 0x801F32D8;
+SUB_PICKER_WINDOW_LABEL = 0x801F3304;
+SUB_STATS_WINDOW = 0x801F331C;
+SUB_GRID_WINDOW = 0x801F3360;
+SUB_CARD_INFO_WINDOW = 0x801F33A4;
+SUB_CARD_DATA_WINDOW = 0x801F33E8;
 
 /* SUB_DECK_EDIT's card and cardId */
 SUB_DECK_EDIT_CARD = 0x801F404C;

@@ -349,7 +349,7 @@ void EVO_initFusionBanner(void) {
     addFrameCallback((s32)EVO_drawFusionBanner);
 }
 
-const u8 D_801DDF44[20][3] = {
+const u8 EVO_OLD_FUSION_RECIPES[20][3] = {
     { 0x01, 0x04, 0xEC },
     { 0x04, 0x23, 0xEC },
     { 0x02, 0x25, 0xED },

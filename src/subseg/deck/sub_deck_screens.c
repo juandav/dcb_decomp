@@ -25,12 +25,12 @@ extern DeckCardCounts *SUB_DECK_CARD_COUNTS;
 extern s16 SUB_COLLECTION_SHOW_INFO;
 extern UiWindow SUB_CARD_SORT_WINDOW;
 extern UiWindow SUB_DECK_SORT_WINDOW;
-extern UiWindow D_801F32D8;
-extern UiWindow D_801F3294[3];
-extern UiWindow D_801F331C;
-extern UiWindow D_801F3360;
-extern UiWindow D_801F33A4;
-extern UiWindow D_801F33E8;
+extern UiWindow SUB_PICKER_WINDOW;
+extern UiWindow SUB_LIST_WINDOWS[3];
+extern UiWindow SUB_STATS_WINDOW;
+extern UiWindow SUB_GRID_WINDOW;
+extern UiWindow SUB_CARD_INFO_WINDOW;
+extern UiWindow SUB_CARD_DATA_WINDOW;
 extern PlayerDeck SUB_ORIGINAL_DECK;
 extern u16 SUB_COLLECTION_COUNTS[8];
 extern u8 SUB_CARD_LIST_MENU_ACTIVE;
@@ -46,13 +46,13 @@ extern s16 SUB_DECK_MENU_SLOT;
 extern s8 SUB_EDITOR_HIDDEN;
 extern u8 SUB_EDITOR_USE_DECK_COUNTS;
 extern s8 SUB_DECK_EDIT_MODE;
-extern s32 D_801F3304;
+extern s32 SUB_PICKER_WINDOW_LABEL;
 extern CursorHighlight SUB_CARD_LIST_CURSOR;
 extern CursorHighlight SUB_CARD_SORT_CURSOR;
 extern CursorHighlight SUB_DECK_SORT_CURSOR;
 extern u8 SUB_EDITOR_RUNNING;
 extern void *D_801F4350;
-extern s32 D_801F32C0;
+extern s32 SUB_LIST_WINDOW_LABEL;
 
 extern void SUB_drawDeckEditTitle(UiWindow *window);
 extern void SUB_drawSortHint(UiWindow *window);
@@ -227,13 +227,13 @@ void SUB_drawCardListScreen(void) {
     Rect16 uv;
     s16 y;
 
-    drawWindow(&D_801F33E8, SUB_drawCardData, 0);
+    drawWindow(&SUB_CARD_DATA_WINDOW, SUB_drawCardData, 0);
     drawWindow(&SUB_CARD_SORT_WINDOW, SUB_drawCardSortMenu, 0);
     drawWindow(SUB_WINDOWS, SUB_drawCardCountPage, 0);
-    drawWindow(D_801F3294, SUB_drawCardList, 0);
-    drawWindow(&D_801F32D8, SUB_drawCardListHelp, 0);
-    drawWindow(&D_801F331C, SUB_drawCollectionTotals, 0);
-    drawWindow(&D_801F3360, SUB_drawSpecialtyCounts, 0);
+    drawWindow(SUB_LIST_WINDOWS, SUB_drawCardList, 0);
+    drawWindow(&SUB_PICKER_WINDOW, SUB_drawCardListHelp, 0);
+    drawWindow(&SUB_STATS_WINDOW, SUB_drawCollectionTotals, 0);
+    drawWindow(&SUB_GRID_WINDOW, SUB_drawSpecialtyCounts, 0);
     if (SUB_EDITOR.hidden == 0) {
         if (++SUB_EDITOR.slide > 20) {
             SUB_EDITOR.slide = 20;
@@ -291,8 +291,8 @@ void SUB_runCardList(void) {
     rects[6].h = 0x56;
     SUB_CARD_LIST_MENU.rect.h = 0x60;
     SUB_CARD_LIST_MENU.ox = 0x85;
-    openMenu(&SUB_CARD_LIST_MENU, D_801F3294, &SUB_CARD_LIST_CURSOR, (Bytes4 *)-1);
-    D_801F32C0 = (s32)SUB_STR_CARD_LIST;
+    openMenu(&SUB_CARD_LIST_MENU, SUB_LIST_WINDOWS, &SUB_CARD_LIST_CURSOR, (Bytes4 *)-1);
+    SUB_LIST_WINDOW_LABEL = (s32)SUB_STR_CARD_LIST;
     SUB_CARD_LIST_MENU.active = running;
     SUB_CARD_LIST_MENU.row = 0;
     centerMenuOnCursor(&SUB_CARD_LIST_MENU);
@@ -332,7 +332,7 @@ void SUB_runCardList(void) {
         }
         SUB_openCenteredWindow(&SUB_WINDOWS[i], rects[i], (s32)labels[i], flags, style);
     }
-    animateWindowTo(&D_801F33E8, (Rect16 *)-1);
+    animateWindowTo(&SUB_CARD_DATA_WINDOW, (Rect16 *)-1);
     D_801F4350 = allocTaskHeapBlock(0x2A);
     for (i = 0; i < 8; i++) {
         SUB_COLLECTION_STATS.lists[i] = allocTaskHeapBlock(0xA4);
@@ -379,13 +379,13 @@ void SUB_runCardList(void) {
                     infoRect.y = rects[6].y - rects[6].h / 2;
                     infoRect.w = rects[6].w & ~1;
                     infoRect.h = rects[6].h & ~1;
-                    animateWindowTo(&D_801F33E8, &infoRect);
-                    animateWindowTo(D_801F3294, (Rect16 *)-1);
+                    animateWindowTo(&SUB_CARD_DATA_WINDOW, &infoRect);
+                    animateWindowTo(SUB_LIST_WINDOWS, (Rect16 *)-1);
                 } else {
                     playMenuSound(3);
                     SUB_CARD_LIST_MENU.active = 1;
-                    animateWindowTo(D_801F3294, &SUB_CARD_LIST_MENU.rect);
-                    animateWindowTo(&D_801F33E8, (Rect16 *)-1);
+                    animateWindowTo(SUB_LIST_WINDOWS, &SUB_CARD_LIST_MENU.rect);
+                    animateWindowTo(&SUB_CARD_DATA_WINDOW, (Rect16 *)-1);
                 }
             }
         } else if (action == 3 || action == 4) {
@@ -415,8 +415,8 @@ void SUB_runCardList(void) {
                 SUB_COLLECTION_STATS.showInfo = 0;
                 playMenuSound(3);
                 SUB_CARD_LIST_MENU.active = 1;
-                animateWindowTo(D_801F3294, &SUB_CARD_LIST_MENU.rect);
-                animateWindowTo(&D_801F33E8, (Rect16 *)-1);
+                animateWindowTo(SUB_LIST_WINDOWS, &SUB_CARD_LIST_MENU.rect);
+                animateWindowTo(&SUB_CARD_DATA_WINDOW, (Rect16 *)-1);
             }
         }
     } while (running);
@@ -839,9 +839,9 @@ void SUB_drawDeckMenu(void) {
     for (i = 0; i < 3; i++) {
         SUB_DECK_MENU.current = i;
         if (PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].inUse != 0) {
-            drawWindow(&D_801F3294[i], SUB_drawDeckSummary, 30);
+            drawWindow(&SUB_LIST_WINDOWS[i], SUB_drawDeckSummary, 30);
         } else {
-            drawWindow(&D_801F3294[i], SUB_drawEmptyDeck, 30);
+            drawWindow(&SUB_LIST_WINDOWS[i], SUB_drawEmptyDeck, 30);
         }
     }
     if (SUB_EDITOR.hidden == 0) {
@@ -1044,13 +1044,13 @@ void SUB_drawDeckEdit(void) {
 
     drawWindow(&SUB_CARD_SORT_WINDOW, SUB_drawCardSortMenu, 29);
     drawWindow(&SUB_DECK_SORT_WINDOW, SUB_drawDeckSortMenu, 29);
-    drawWindow(&D_801F32D8, SUB_drawPickerList, 30);
+    drawWindow(&SUB_PICKER_WINDOW, SUB_drawPickerList, 30);
     drawWindow(SUB_WINDOWS, SUB_drawPickerCardInfo, 30);
-    drawWindow(D_801F3294, SUB_drawDeckEditTitle, 30);
-    drawWindow(&D_801F331C, SUB_drawDeckStats, 30);
-    drawWindow(&D_801F3360, SUB_drawDeckGrid, 30);
-    drawWindow(&D_801F33A4, SUB_drawSlotCardInfo, 30);
-    drawWindow(&D_801F33E8, SUB_drawSortHint, 30);
+    drawWindow(SUB_LIST_WINDOWS, SUB_drawDeckEditTitle, 30);
+    drawWindow(&SUB_STATS_WINDOW, SUB_drawDeckStats, 30);
+    drawWindow(&SUB_GRID_WINDOW, SUB_drawDeckGrid, 30);
+    drawWindow(&SUB_CARD_INFO_WINDOW, SUB_drawSlotCardInfo, 30);
+    drawWindow(&SUB_CARD_DATA_WINDOW, SUB_drawSortHint, 30);
     if (SUB_EDITOR.hidden == 0) {
         if (++SUB_EDITOR.slide > 20) {
             SUB_EDITOR.slide = 20;
@@ -1122,8 +1122,8 @@ void SUB_initDeckEdit(PlayerDeck *deck) {
     SUB_DECK_EDIT_MODE = 1;
     SUB_CARD_LIST_MENU.rect.h = 0x60;
     SUB_CARD_LIST_MENU.ox = 0x62;
-    openMenu(&SUB_CARD_LIST_MENU, &D_801F32D8, &SUB_CARD_LIST_CURSOR, (Bytes4 *)-1);
-    D_801F3304 = (s32)SUB_STR_CARD_LIST;
+    openMenu(&SUB_CARD_LIST_MENU, &SUB_PICKER_WINDOW, &SUB_CARD_LIST_CURSOR, (Bytes4 *)-1);
+    SUB_PICKER_WINDOW_LABEL = (s32)SUB_STR_CARD_LIST;
     openMenu(&SUB_CARD_SORT_MENU, &SUB_CARD_SORT_WINDOW, &SUB_CARD_SORT_CURSOR, (Bytes4 *)-1);
     animateWindowTo(&SUB_CARD_SORT_WINDOW, (Rect16 *)-1);
     SUB_CARD_SORT_WINDOW.label = (s32)"SORT MENU";
@@ -1189,7 +1189,7 @@ void SUB_initDeckEdit(PlayerDeck *deck) {
         SUB_openCenteredWindow(&SUB_WINDOWS[i], rects[i], (s32)labels[i], flags, style);
     }
     animateWindowTo(&SUB_WINDOWS[0], (Rect16 *)-1);
-    animateWindowTo(&D_801F32D8, (Rect16 *)-1);
+    animateWindowTo(&SUB_PICKER_WINDOW, (Rect16 *)-1);
 }
 
 s32 SUB_canAddCardToDeck(s32 cardId) {
@@ -1338,10 +1338,10 @@ void SUB_tickDeckSlots(PlayerDeck *deck) {
             to.h = h;
             SUB_DECK_EDIT.mode = 2;
             animateWindowTo(SUB_WINDOWS, &to);
-            animateWindowTo(&D_801F32D8, &SUB_CARD_LIST_MENU.rect);
-            animateWindowTo(&D_801F331C, (Rect16 *)-1);
-            animateWindowTo(&D_801F3360, (Rect16 *)-1);
-            animateWindowTo(&D_801F33A4, (Rect16 *)-1);
+            animateWindowTo(&SUB_PICKER_WINDOW, &SUB_CARD_LIST_MENU.rect);
+            animateWindowTo(&SUB_STATS_WINDOW, (Rect16 *)-1);
+            animateWindowTo(&SUB_GRID_WINDOW, (Rect16 *)-1);
+            animateWindowTo(&SUB_CARD_INFO_WINDOW, (Rect16 *)-1);
             playMenuSound(1);
         }
     } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x10) {
@@ -1428,7 +1428,7 @@ void SUB_showDeckSlots(void) {
 
     SUB_DECK_EDIT.mode = 1;
     animateWindowTo(SUB_WINDOWS, (Rect16 *)-1);
-    animateWindowTo(&D_801F32D8, (Rect16 *)-1);
+    animateWindowTo(&SUB_PICKER_WINDOW, (Rect16 *)-1);
     from.x = 0x23;
     from.y = 0xAD;
     from.w = 0x36;
@@ -1439,7 +1439,7 @@ void SUB_showDeckSlots(void) {
     to.y = 0x7A;
     to.w = w;
     to.h = h;
-    animateWindowTo(&D_801F331C, &to);
+    animateWindowTo(&SUB_STATS_WINDOW, &to);
     from.x = 0xBF;
     from.y = 0xBB;
     from.w = 0xF2;
@@ -1450,7 +1450,7 @@ void SUB_showDeckSlots(void) {
     to.y = 0x96;
     to.w = w;
     to.h = h;
-    animateWindowTo(&D_801F3360, &to);
+    animateWindowTo(&SUB_GRID_WINDOW, &to);
     from.x = 0xBF;
     from.y = 0x5C;
     from.w = 0xF2;
@@ -1461,7 +1461,7 @@ void SUB_showDeckSlots(void) {
     to.y = 0x2A;
     to.w = w;
     to.h = h;
-    animateWindowTo(&D_801F33A4, &to);
+    animateWindowTo(&SUB_CARD_INFO_WINDOW, &to);
 }
 
 void SUB_tickCardPicker(PlayerDeck *deck) {

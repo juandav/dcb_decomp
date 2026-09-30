@@ -35,7 +35,7 @@ const u8 SAI_PARTNER_ARMOR_ICONS[6][3] = {
 };
 
 /* not referenced by any code: "後藤豪太" in Shift-JIS */
-char D_801F35A4[24] = "\x8C\xE3\x93\xA1\x8D\x8B\x91\xBE";
+char SAI_UNUSED_PLAYER_NAME[24] = "\x8C\xE3\x93\xA1\x8D\x8B\x91\xBE";
 
 /* the cursor of each row of SAI_PLAYER_DATA_MENU */
 Rect16 SAI_PLAYER_DATA_CURSOR_RECTS[15] = {
