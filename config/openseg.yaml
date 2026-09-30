@@ -41,7 +41,7 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
-  # src/openseg/openseg.c exists
+  # the C files in src/openseg/ exist
   create_c_files: False
 
 segments:
@@ -53,8 +53,33 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, .rodata, openseg]
-      - [0x1AE8, c, openseg]
-      - [0x11FD0, .data, openseg]
+      - [0x0, .rodata, open_movie]
+      - [0x18, .rodata, open_trade]
+      - [0x24C, .rodata, open_registration]
+      - [0xAFC, .rodata, open_name_entry]
+      - [0xBA4, .rodata, open_starter]
+      - [0xC14, .rodata, open_title]
+      - [0xC70, .rodata, open_friend]
+      - [0xDF4, .rodata, open_memcard]
+      - [0x1A00, .rodata, open_save]
+      - [0x1AE8, c, open_movie]
+      - [0x29A0, c, open_trade]
+      - [0x6CE0, c, open_registration]
+      - [0x9080, c, open_name_entry]
+      - [0xA334, c, open_starter]
+      - [0xB30C, c, open_title]
+      - [0xC93C, c, open_friend]
+      - [0xDBC4, c, open_memcard]
+      - [0x10A60, c, open_save]
+      - [0x11FD0, c, open_bss]
+      - [0x11FD0, .data, open_movie]
+      - [0x11FF8, .data, open_trade]
+      - [0x12100, .data, open_registration]
+      - [0x1252C, .data, open_name_entry]
+      - [0x12588, .data, open_starter]
+      - [0x125C8, .data, open_title]
+      - [0x125D4, .data, open_memcard]
+      - [0x128C4, .data, open_save]
+      - [0x128D0, .data, open_bss]
 
   - [0x1A250]
