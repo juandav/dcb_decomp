@@ -119,14 +119,14 @@ void syncPlayerDigimonModel(s32 player, void *card) {
     s32 modelId;
     s32 loadedId;
     s32 pak;
-    void *models;
+    DuelDigimonModels *models;
     void *cardData;
 
-    models = (void *)((s8 *)&DUEL_DIGIMON_MODELS + (player << 5));
+    models = &DUEL_DIGIMON_MODELS[player];
     modelId = (*(u8 *)((s8 *)card + 0xE5));
-    loadedId = (*(s32 *)((s8 *)models + 0));
+    loadedId = models->modelId;
     if (modelId != loadedId) {
-        (*(s32 *)((s8 *)models + 0)) = -2;
+        models->modelId = -2;
         if ((*(s8 *)((s8 *)D_801D8340 + 0x811)) == 1) {
             do {
                 func_80014C08(FRAME_INTERVAL);
@@ -142,17 +142,17 @@ void syncPlayerDigimonModel(s32 player, void *card) {
             cardData = findDigimonCardByModelId(modelId);
             pak = loadDigimonModelPak(player, modelId, 0, 0);
             if (pak != 0) {
-                (*(s32 *)((s8 *)models + 8)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x22)), pak);
-                (*(s32 *)((s8 *)models + 0xC)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x3E)), pak);
-                (*(s32 *)((s8 *)models + 0x10)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5A)), pak);
-                (*(s32 *)((s8 *)models + 0x14)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x24)), pak);
-                (*(s32 *)((s8 *)models + 0x18)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x40)), pak);
-                (*(s32 *)((s8 *)models + 0x1C)) = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5C)), pak);
+                models->attackModels[0] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x22)), pak);
+                models->attackModels[1] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x3E)), pak);
+                models->attackModels[2] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5A)), pak);
+                models->unk14[0] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x24)), pak);
+                models->unk14[1] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x40)), pak);
+                models->unk14[2] = loadSkill((s32) (*(s16 *)((s8 *)cardData + 0x5C)), pak);
                 goto block_9;
             }
         } else {
 block_9:
-            (*(s32 *)((s8 *)models + 0)) = modelId;
+            models->modelId = modelId;
             (*(s8 *)((s8 *)D_801D8340 + 0x811)) = 0;
         }
     }
@@ -178,19 +178,19 @@ void runDuelStageTask(s32 stageId) {
         truncatePakTextures((Chunk *)pak);
     }
     loadArenaStage(stageId);
-    DUEL_DIGIMON_MODELS = (&DUEL_DIGIMON_MODELS)[8] = -1;
+    DUEL_DIGIMON_MODELS[0].modelId = DUEL_DIGIMON_MODELS[1].modelId = -1;
     *((s8 *)D_801D8340 + 0x811) = 0;
     do {
         func_80014C08(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             activeCard = *(u8 **)(DUEL_PLAYERS[i] + 0x114);
-            if (activeCard != 0 && activeCard[0xE5] != (&DUEL_DIGIMON_MODELS)[i * 8]) {
+            if (activeCard != 0 && activeCard[0xE5] != DUEL_DIGIMON_MODELS[i].modelId) {
                 syncPlayerDigimonModel(i, activeCard);
             }
         }
     } while (*((s8 *)D_801D8340 + 0x813) == 0);
     for (i = 0; i < 2; i++) {
-        if ((&DUEL_DIGIMON_MODELS)[i * 8] > 0) {
+        if (DUEL_DIGIMON_MODELS[i].modelId > 0) {
             unloadModelAnimations(i);
             unloadModel(i);
         }
@@ -207,7 +207,7 @@ void runDuelStageTask(s32 stageId) {
 void playPolygonBattle(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (DUEL_DIGIMON_MODELS <= 0 || (&DUEL_DIGIMON_MODELS)[8] <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
+    } while (DUEL_DIGIMON_MODELS[0].modelId <= 0 || DUEL_DIGIMON_MODELS[1].modelId <= 0 || *((s8 *)D_801D8340 + 0x811) == 1);
     *((s8 *)D_801D8340 + 0x811) = 1;
     func_80014C08(2);
     func_800149B8(0, -1, 0, 0x1000, loadFileToAddress, "P:\\sugseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());

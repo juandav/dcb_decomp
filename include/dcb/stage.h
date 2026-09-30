@@ -3,7 +3,14 @@
 
 #include "game.h"
 
-extern s32 DUEL_DIGIMON_MODELS;
+typedef struct {
+    /* 0x00 */ s32 modelId;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 attackModels[3];
+    /* 0x14 */ s32 unk14[3];
+} DuelDigimonModels;
+
+extern DuelDigimonModels DUEL_DIGIMON_MODELS[2];
 extern void *D_801D81AC;
 extern void *D_801D81B0;
 extern u8 D_801EEE90[];

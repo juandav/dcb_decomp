@@ -530,7 +530,7 @@ typedef struct {
     /* 0x11C */ s16 stats[5];
     /* 0x126 */ s16 displayedStats[5];
     /* 0x130 */ Popup statPopups[5];
-    /* 0x158 */ u8 unk158[2];
+    /* 0x158 */ s16 unk158;
     /* 0x15A */ s16 hpAfterBattle;
     /* 0x15C */ s16 baseAttackPowers[3];
     /* 0x162 */ s16 damageTaken;
@@ -542,7 +542,9 @@ typedef struct {
     /* 0x178 */ u32 attackChoice : 2;
     /* 0x178 */ u32 shownAttack : 2;
     /* 0x178 */ u32 unk178_6 : 1;
-    /* 0x178 */ u32 unk178_7 : 4;
+    /* 0x178 */ u32 unk178_7 : 1;
+    /* 0x178 */ u32 unk178_8 : 1;
+    /* 0x178 */ u32 unk178_9 : 2;
     /* 0x178 */ u32 unk178_11 : 1;
     /* 0x178 */ u32 unk178_12 : 1;
     /* 0x178 */ u32 unk178_13 : 2;
