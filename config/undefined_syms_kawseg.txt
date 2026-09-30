@@ -1,0 +1,4 @@
+/* addresses KAWSEG uses that none of its objects defines */
+
+/* a label inside func_801E5710 (see config/symbols_kawseg.txt) */
+func_801E6424 = 0x801E6424;
