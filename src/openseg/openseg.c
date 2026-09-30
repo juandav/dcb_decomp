@@ -655,7 +655,7 @@ typedef struct {
     s32 heights[5];
 } MovieHeights;
 /* the rodata blob that holds this table also holds the sort menu's strings, so it stays as data */
-extern MovieHeights OPEN_MOVIE_HEIGHTS;
+extern const MovieHeights OPEN_MOVIE_HEIGHTS;
 
 /* main calls it as func_801E055C, declared s32 in game.h; nothing is returned */
 s32 OPEN_playMovie(s32 index) {
@@ -1366,9 +1366,10 @@ void OPEN_drawTradeList(UiWindow *window) {
     SPRITE_POOL_CURSOR += sizeof(SprtPacket);
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", D_801DDF38);
+/* not referenced by any code */
+const s32 D_801DDF38 = 8;
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", OPEN_MOVIE_HEIGHTS);
+const MovieHeights OPEN_MOVIE_HEIGHTS = { { 0xA0, 0xB0, 0xF0, 0xA0, 0xB0 } };
 
 /* the opening movies */
 Movie OPEN_MOVIES[3] = {
@@ -1780,7 +1781,7 @@ void OPEN_drawTradeScreen(void) {
 extern CursorHighlight OPEN_SORT_MENU_CURSORS[2];
 extern CursorHighlight OPEN_CARD_LIST_CURSORS[2];
 /* "Do you want to Quit Trading?": the string is followed by leftover bytes, so it stays as data */
-extern char OPEN_STR_QUIT_TRADING[];
+extern const char OPEN_STR_QUIT_TRADING[];
 
 void OPEN_runCardTrade(s32 parentTask) {
     s32 open[2];
@@ -2270,7 +2271,8 @@ void OPEN_unloadSceneModel(void) {
     unloadModelAnimations(0);
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", OPEN_STR_QUIT_TRADING);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char OPEN_STR_QUIT_TRADING[32] = "Do you want to Quit Trading?\0\x10\x02\x02";
 
 typedef struct {
     /* 0x00 */ Rect16 uv;
@@ -2974,7 +2976,7 @@ void OPEN_drawNameEntry(void) {
 }
 
 /* "Is this name OK?": the string is followed by leftover bytes in the ROM, so it stays as data */
-extern char OPEN_STR_IS_THIS_NAME_OK[];
+extern const char OPEN_STR_IS_THIS_NAME_OK[];
 void OPEN_runNameEntry(char *name, s32 parentTask) {
     Rect16 cursor;
     Rect16 rect;
@@ -3066,7 +3068,8 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     func_80014A48(parentTask);
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", OPEN_STR_IS_THIS_NAME_OK);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char OPEN_STR_IS_THIS_NAME_OK[20] = "Is this name OK?\0\x18\x62\0";
 
 void OPEN_giveStarterDeck(s32 deck) {
     u8 *file;
@@ -3231,7 +3234,7 @@ void OPEN_drawStarterSelectWindow(void) {
 }
 
 /* "Is this Deck OK?": the string is followed by leftover bytes in the ROM, so it stays as data */
-extern char OPEN_STR_IS_THIS_DECK_OK[];
+extern const char OPEN_STR_IS_THIS_DECK_OK[];
 
 void OPEN_runStarterSelect(s32 parentTask) {
     Rect16 cursor;
@@ -3370,7 +3373,8 @@ void OPEN_drawSprite(s32 x, s32 y, s32 texX, s32 texY, s32 w, s32 h, s32 clutX, 
     }
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", OPEN_STR_IS_THIS_DECK_OK);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char OPEN_STR_IS_THIS_DECK_OK[20] = "Is this Deck OK?\0\x6D\x01\x0C";
 
 /* libgpu's POLY_F4 */
 typedef struct {
@@ -4720,7 +4724,7 @@ void OPEN_drawSaveSummary(SlotDraw draw) {
 }
 
 /* "Arena": the string is followed by two leftover bytes (E0 03) in the ROM, so it stays as data */
-extern char OPEN_STR_ARENA[];
+extern const char OPEN_STR_ARENA[];
 
 void OPEN_drawSaveDetails(s32 x, s32 y, s32 z) {
     char text[24];
@@ -4769,7 +4773,8 @@ void OPEN_drawSaveDetails(s32 x, s32 y, s32 z) {
     }
 }
 
-INCLUDE_RODATA("asm/openseg/nonmatchings/openseg", OPEN_STR_ARENA);
+/* the last two bytes are leftovers in the original, not zero padding */
+const char OPEN_STR_ARENA[8] = "Arena\0\xE0\x03";
 
 extern s32 D_801D8198;
 void OPEN_confirmOverwrite(s32 port);
