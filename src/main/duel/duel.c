@@ -501,9 +501,9 @@ void runDuelTurnLoop(void) {
                     if (PLAYER(ME)->controller != 1) {
                         runDuelMessageWindow();
                     } else {
-                        D_801D831D = 1;
+                        CHOICE = 1;
                     }
-                    switch (D_801D831D) {
+                    switch (CHOICE) {
                     case 0:
                     case 2:
                         devolveOutcome = 2;
@@ -527,9 +527,9 @@ void runDuelTurnLoop(void) {
                     if (PLAYER(ME)->controller != 1) {
                         runDuelMessageWindow();
                     } else {
-                        D_801D831D = 1;
+                        CHOICE = 1;
                     }
-                    switch (D_801D831D) {
+                    switch (CHOICE) {
                     case 0:
                     case 2:
                         devolveOutcome = 2;

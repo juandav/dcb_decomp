@@ -25,14 +25,14 @@ void setTaskVsyncMode(s32 vsyncMode) {
             task = TASKS;
             for (i = 31; i >= 0; i--, task++) {
                 if (task->status.priority > 0) {
-                    D_80077AEC = task;
+                    TASK_LIST_END.next = task;
                     break;
                 }
             }
         }
     } else if (TASK_VSYNC_MODE != 0) {
         TASK_VSYNC_MODE = 0;
-        D_80077AEC = TASKS;
+        TASK_LIST_END.next = TASKS;
     }
     ExitCriticalSection();
 }
@@ -60,7 +60,7 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     if (TASK_VSYNC_MODE != 0) {
         TASK_LIST_END.next = &TASK_LIST_END;
     } else {
-        D_80077AEC = TASKS;
+        TASK_LIST_END.next = TASKS;
     }
     TASK_LIST_END.id = -1;
     /* 0x108 holds the kernel's process control block, whose first word is
@@ -68,7 +68,7 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     pcb = *(struct TCBH **)0x108;
     KERNEL_TCB = pcb->entry;
     src = KERNEL_TCB->reg;
-    dst = &D_80077BC0;
+    dst = TASKS[0].regs;
     for (j = 39; j >= 0; j--) {
         *dst++ = *src++;
     }
@@ -228,7 +228,7 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     task->prev = before;
     task->next = after;
     if (TASK_VSYNC_MODE != 0 && priority > 0 && before->status.priority == 0) {
-        D_80077AEC = task;
+        TASK_LIST_END.next = task;
     }
     src = KERNEL_TCB->reg;
     dst = task->regs;

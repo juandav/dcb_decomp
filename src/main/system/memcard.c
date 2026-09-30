@@ -17,7 +17,8 @@ void playMenuSound(u32 kind) {
     s32 sound;
 
     sound = 0;
-    if (D_801D813C == 0) {
+    /* only while the menu's sound effect bank (SE0) is loaded */
+    if (SOUND_STATE.seBank.id == 0) {
         switch (kind) {
         case 0:
             sound = 0xA1;

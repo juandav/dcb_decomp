@@ -10,7 +10,6 @@
 
 extern s8 D_801D83D4;
 extern s8 D_801D83D7;
-extern s8 D_801D831D;
 
 void runDuelTurnLoop(void);
 

@@ -7,7 +7,6 @@ typedef struct {
     u8 data[0x200];
 } McHeader;
 
-extern s16 D_801D813C;
 extern s32 MEMORY_CARD_EVENT_DONE;
 extern s32 MEMORY_CARD_EVENT_ERROR;
 extern s32 MEMORY_CARD_EVENT_TIMEOUT;

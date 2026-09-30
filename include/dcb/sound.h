@@ -27,8 +27,6 @@ extern s8 *SE_BANK_INFO[];
 extern s32 SFX_BASE_NOTE;
 extern s32 NEXT_SFX_VOICE;
 extern u16 D_8006E04C;
-extern s16 D_801D813E;
-extern s16 D_801D812A;
 
 void initSound();
 void loadSoundEffectBank(s32 bankId);
