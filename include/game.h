@@ -508,7 +508,8 @@ typedef struct {
 } RingEffect;
 typedef struct {
     /* 0x00 */ u16 cards[30];
-    /* 0x3C */ char name[0x28];
+    /* 0x3C */ char name[0x13];
+    /* 0x4F */ char ownerName[0x15]; /* the duelist who plays it */
     /* 0x64 */ u8 unk64[4];
     /* 0x68 */ u8 unk68[2];
     /* 0x6A */ u8 stageId;
