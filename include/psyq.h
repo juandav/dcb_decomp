@@ -381,8 +381,6 @@ void GsSetDrawBuffOffset(void);
 void _remove_ChgclrPAD(void);
 void _patch_pad(void);
 
-extern char D_800139D4[];
-extern char D_80013A1C[];
 extern short D_801DBE24;
 extern long D_80082148;
 extern long D_8008214C;
