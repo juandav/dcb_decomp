@@ -103,10 +103,17 @@ TARGET_ASM := $(C_SRC:src/%.c=$(ASM_DIR)/%.s)
 ASM_SRC := $(filter-out $(TARGET_ASM),$(shell find $(ASM_DIR) -name '*.s' \
 	   -not -path '*/nonmatchings/*' -not -path '*/matchings/*' 2> /dev/null))
 
+# Code that was written in assembly, kept as assembly source: splat's hasm
+# segments (src/<binary>/<name>.s; splat only writes one if it isn't there),
+# and the PsyQ objects Sony assembled (src/main/psyq/<object>.s, used in
+# place of <object>.c, see PSYQ_PARTS)
+HASM_SRC := $(shell find src -name '*.s' -not -path 'src/main/psyq/*' 2> /dev/null)
+
 C_OBJ := $(C_SRC:%.c=$(BUILDDIR)/%.c.o)
 ASM_OBJ := $(ASM_SRC:%.s=$(BUILDDIR)/%.s.o)
+HASM_OBJ := $(HASM_SRC:%.s=$(BUILDDIR)/%.s.o)
 TARGET_OBJ := $(TARGET_ASM:%.s=$(BUILDDIR)/%.s.o)
-OBJ := $(C_OBJ) $(ASM_OBJ)
+OBJ := $(C_OBJ) $(ASM_OBJ) $(HASM_OBJ)
 
 # Overlays: code the game loads from P.DRV at OVERLAY_LOAD_ADDR, the end of
 # the executable's .bss. Each one has a splat config, config/<name>.yaml,
@@ -193,10 +200,21 @@ $(BUILDDIR)/src/main/psyq/%.c.s: src/main/psyq/%.c
 		| sed -e 's/\$$L\(C\?[0-9]\)/$$L$*_\1/g' \
 		      -e 's/\.L_\(NOT_DIV_BY_ZERO\|DIV_BY_POSITIVE_SIGN\)_/.L_\1_$*_/g' > $@
 
-$(BUILDDIR)/src/main/psyq.c.o: $(PSYQ_OBJ) config/psyq_objects.txt
-	awk '/^(gcc2_compiled\.|__gnu_compiled_c):$$/ && seen[$$0]++ {next} \
-	     /^\.include "include\/labels\.inc"$$/ && seen[$$0]++ {next} \
-	     /^[ \t]*\.file[ \t]/ {next} {print}' $(PSYQ_OBJ) > $(@:.o=.s)
+# A PsyQ object written in assembly is src/main/psyq/<object>.s, taken as it
+# is in place of the compiled <object>.c, between the same .set lines as an
+# INCLUDE_ASM
+PSYQ_PARTS := $(foreach o,$(PSYQ_OBJECTS),$(or $(wildcard src/main/psyq/$(o).s),$(BUILDDIR)/src/main/psyq/$(o).c.s))
+
+$(BUILDDIR)/src/main/psyq.c.o: $(PSYQ_PARTS) config/psyq_objects.txt
+	for f in $(PSYQ_PARTS); do \
+		case $$f in \
+		src/*) printf '.section .text\n.set noat\n.set noreorder\n'; cat $$f; \
+		       printf '\n.set reorder\n.set at\n.section .text\n' ;; \
+		*) cat $$f ;; \
+		esac; \
+	done | awk '/^(gcc2_compiled\.|__gnu_compiled_c):$$/ && seen[$$0]++ {next} \
+	     /^\.include "(include\/)?(labels|macro)\.inc"$$/ && seen["inc"]++ {next} \
+	     /^[ \t]*\.file[ \t]/ {next} {print}' > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
 
 # gas aligns these sections to 16 bytes, psylink packed them to 4

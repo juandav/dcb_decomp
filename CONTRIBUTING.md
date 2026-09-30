@@ -10,6 +10,15 @@ so that the Digimon decomps read the same way.
 - No `NON_MATCHING` code, no inline assembly in place of C, and no tricks that
   wouldn't pass review. A function that doesn't match yet stays behind its
   `INCLUDE_ASM`.
+- Code that was written in assembly, not compiled, is kept as assembly
+  source instead: a comment at the top of the `.s` says what shows it is
+  hand-written (things no compiler emits, such as `$at` used as a
+  temporary). A splat segment becomes `hasm` in its config, and splat writes
+  `src/<binary>/<name>.s` the first time (`tools/asm_source.py` then drops its
+  address comments). A PsyQ object becomes `src/main/psyq/<object>.s` in
+  place of `<object>.c`: `tools/asm_source.py src/main/psyq/<object>.c`
+  writes it from the object's `INCLUDE_ASM`s, and the build takes the `.s`
+  whenever it exists.
 
 ## Layout
 
