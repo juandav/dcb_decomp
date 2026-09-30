@@ -55,6 +55,6 @@ segments:
     subsegments:
       - [0x0, .rodata, kawseg]
       - [0x1F4C, c, kawseg]
-      - [0x1DA70, data, kawseg]
+      - [0x1DA70, .data, kawseg]
 
   - [0x1EAF8]
