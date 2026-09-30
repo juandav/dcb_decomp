@@ -12,6 +12,15 @@ ModelTextureSlot MODEL_TEXTURE_SLOTS[4] = {
     { 0x002F00C0, 0x103F00C0 },
 };
 
+/*
+ * Transforms a model's vertices and lights its coloured groups on the GTE.
+ * `vertices` is a count followed by SVECTORs; each rtpt handles three of
+ * them and writes their screen XY and Z to `out`. Then come the groups: a
+ * word with a colour in the top 24 bits and a vertex count in the low 8
+ * (0 means "just copy the colour"), followed by that many normals that ncct
+ * lights, three at a time. The next three vectors are read while the GTE
+ * is still busy with the current ones.
+ */
 u32 *transformAndLightVertices(u32 *vertices, u32 *out) {
     s32 count;
     s32 groups;
@@ -24,16 +33,12 @@ u32 *transformAndLightVertices(u32 *vertices, u32 *out) {
         count -= 3;
         gte_rtpt();
         gte_prefetchv3c(vertices);
-        gte_swc2(12, 0, out);
-        gte_swc2(17, 4, out);
-        gte_swc2(13, 8, out);
-        gte_swc2(18, 12, out);
-        gte_swc2(14, 16, out);
-        gte_swc2(19, 20, out);
+        gte_stsxysz3c(out);
         out += 6;
         gte_ldv3_prefetched();
         vertices += 6;
     } while (count > 0);
+    /* the loop read up to two vectors past the end */
     vertices -= 6;
     vertices += count * 2;
     out += count * 2;
@@ -44,8 +49,9 @@ u32 *transformAndLightVertices(u32 *vertices, u32 *out) {
         if (count == 0) {
             *out++ = word;
         } else {
-            gte_mtc2(6, word);
+            gte_ldrgbc(word);
             gte_ldv3c(vertices);
+            /* give the GTE time to take the colour */
             gte_nop();
             gte_nop();
             do {
@@ -53,9 +59,7 @@ u32 *transformAndLightVertices(u32 *vertices, u32 *out) {
                 vertices += 6;
                 count -= 3;
                 gte_prefetchv3c(vertices);
-                gte_swc2(20, 0, out);
-                gte_swc2(21, 4, out);
-                gte_swc2(22, 8, out);
+                gte_strgb3c(out);
                 gte_ldv3_prefetched();
                 out += 3;
             } while (count > 0);
