@@ -23,6 +23,7 @@
 #include "dcb/fade.h"
 #include "dcb/sound_play.h"
 #include "dcb/angle.h"
+#include "gte.h"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
@@ -548,7 +549,7 @@ typedef struct {
     s32 active;
 } Effect;
 extern MATRIX D_801DBEC0;
-void func_801EB874(void *a0, s16 brightness);
+void func_801EB874(Sprite *sprite, s16 brightness);
 typedef struct {
     u8 unk0[0x20];
     VECTOR pos;
@@ -4784,7 +4785,69 @@ void func_801EB798(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EB874);
+void func_801EB874(Sprite *sprite, s16 brightness) {
+    POLY_FT4 *poly;
+    MATRIX *m;
+    SpriteFrame *frame;
+    u32 otz;
+    s32 p;
+    s32 flag;
+    s32 mode;
+    u8 u0, u1, v0, v1;
+
+    poly = &sprite->polys[FRAME_BUFFER_INDEX];
+    m = (MATRIX *)0x1F800008;
+    if (sprite->unk82 < 0) {
+        return;
+    }
+    frame = &sprite->frames[sprite->unk82];
+    if (++sprite->unk83 >= frame->duration) {
+        if (++sprite->unk82 >= ((SpriteSheet *)sprite->tex)->frameCount) {
+            if ((sprite->unk82 = ((SpriteSheet *)sprite->tex)->loopFrame) < 0) {
+                sprite->unk82 = -8;
+                return;
+            }
+        }
+        sprite->unk83 -= frame->duration;
+        func_801EB5CC(sprite, sprite->unk82);
+        frame = &sprite->frames[sprite->unk82];
+    }
+    gte_ldv0(&sprite->pos);
+    gte_rtv0tr();
+    gte_stlvnl(m->t);
+    gte_stflg(&flag);
+    gte_SetTransMatrix(m);
+    otz = RotAverage4(&sprite->v[0], &sprite->v[1], &sprite->v[2], &sprite->v[3], (s32 *)&poly->x0, (s32 *)&poly->x1,
+                      (s32 *)&poly->x2, (s32 *)&poly->x3, &p, &flag);
+    if (sprite->unk81 != 0) {
+        otz = sprite->unk81;
+    }
+    if (otz < 0x1000) {
+        poly->r0 = poly->g0 = poly->b0 = frame->shade * brightness / 256;
+        poly->clut = getClut(((SpriteSheet *)sprite->tex)->clutX, ((SpriteSheet *)sprite->tex)->clutY + frame->clutRow);
+        if (frame->attr >= 0) {
+            mode = ((SpriteSheet *)sprite->tex)->mode;
+            poly->tpage = getTPage(mode & 3, frame->attr & 3, ((SpriteSheet *)sprite->tex)->x & (-64 << mode),
+                                   ((SpriteSheet *)sprite->tex)->y & ~0xFF);
+            SetSemiTrans(poly, 1);
+        } else {
+            SetSemiTrans(poly, 0);
+        }
+        u0 = frame->u0;
+        u1 = frame->u1;
+        v0 = frame->v0;
+        v1 = frame->v1;
+        poly->u0 = u0;
+        poly->v0 = v0;
+        poly->u1 = u1;
+        poly->v1 = v0;
+        poly->u2 = u0;
+        poly->v2 = v1;
+        poly->u3 = u1;
+        poly->v3 = v1;
+        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
+    }
+}
 
 INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801EBBFC);
 
