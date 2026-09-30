@@ -23,13 +23,15 @@ game to build it.
   function that is not decompiled yet stays in its file as an `INCLUDE_ASM`
   line that pulls in the original assembly.
 - The game's `.rodata` and `.data` are written in C, in the module that defines
-  them. The `.bss` and the startup code (`startup`, hand-written assembly)
-  still come from splat.
+  them. The `.bss` still comes from splat.
+- Code written in assembly is assembly source: the task switching and
+  interrupt glue (`src/main/startup.s`) and the soft-float routines
+  (`src/main/libmath.s`).
 - The PsyQ 4.7 libraries linked into the executable are decompiled too, one
   file per library object. They need a binary-patched GCC 2.7.2
   (`tools/patch_cc1.py`) and, for some objects, a patched SN GCC 2.8.1
   (`tools/sn_cc1.py`); `config/psyq_objects.txt` says which. Like the
-  soft-float library (`libmath.c`), they are not the game's code and are left
+  soft-float library (`libmath.s`, `libmath.c`), they are not the game's code and are left
   out of the progress.
 - Progress is measured by objdiff with one unit per game module and tracked on
   [decomp.dev](https://decomp.dev/juandav/dcb_decomp).
