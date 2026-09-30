@@ -918,7 +918,7 @@ typedef struct CardSprite {
     /* 0x10 */ u16 clut;
     /* 0x12 */ u16 tpage;
     /* 0x14 */ u8 pal;
-    /* 0x15 */ u8 flags;
+    /* 0x15 */ u8 flags; /* 0x80: drawn, 0x40: fading from -> to, 0x20: shows num */
     /* 0x16 */ u8 u;
     /* 0x17 */ u8 v;
     /* 0x18 */ VECTOR pos;

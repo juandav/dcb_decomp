@@ -369,7 +369,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, CardSprite *cardSpri
 
     poly = &((POLY_FT4 *)CURRENT_FRAME_BUFFER->primSlots[11])[16 + index * 2];
     /* a 4-frame animation, one frame every 4 ticks */
-    u = ((((PlayerProfile *)PLAYER_PROFILES)->playTime / 4) % 4) * 32;
+    u = ((PLAYER_DATA(0).playTime / 4) % 4) * 32;
     initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
     poly->g0 = 0x80;
