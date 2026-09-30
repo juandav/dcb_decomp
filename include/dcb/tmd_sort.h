@@ -11,6 +11,14 @@
                    SORT_WORK->code);                                                                                 \
     }
 
+/* A vertex of an environment-mapped model after transformVerticesWithEnvMap */
+typedef struct {
+    /* 0x0 */ u32 color;
+    /* 0x4 */ u8 u;
+    /* 0x5 */ u8 v;
+    /* 0x6 */ s16 z;
+} EnvMapVertex;
+
 typedef struct {
     /* 0x00 */ u32 *data;
     /* 0x04 */ u32 *work;
