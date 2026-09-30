@@ -26,13 +26,19 @@
 #include "dcb/angle.h"
 #include "gte.h"
 
+/* main's createRingEffect, renderRingEffect and freeRingEffect call these three
+   through their addresses (func_801E6C78, func_801E7020, func_801E72D4 in game.h) */
+s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak);
+void SUG_tickTexAnim(u8 *arg);
+void SUG_freeTexAnim(u8 *obj);
+
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
 
 extern s16 D_800794C0;
-extern s32 D_801EF7E0;
-extern float D_801EF7E8;
-extern float D_801EF7EC;
+extern s32 SUG_SCREEN_FX_X;
+extern float SUG_SCREEN_FX_STEP_X;
+extern float SUG_SCREEN_FX_STEP_Y;
 
 typedef struct {
     Rect16 rect;
@@ -73,8 +79,8 @@ typedef struct {
     u8 unk2D4[5];
     u8 primKind;
 } Unk801E57E0;
-void func_801E31E4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
-void func_801E3428(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
+void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
+void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
 
 typedef struct {
     u8 *c00;
@@ -173,10 +179,10 @@ typedef struct {
     /* 0x1DC */ u8 unk1DC;
     /* 0x1DD */ u8 unk1DD;
 } Unk801DF598;
-void func_801DF7E8(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz);
-void func_801DFDA4(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
-void func_801E05F4(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
-void func_801E0F98(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
+void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz);
+void SUG_drawSphereF(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
+void SUG_drawSphereG(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
+void SUG_drawSphereGT(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
 
 typedef struct {
     u8 unk0[0x5C];
@@ -232,7 +238,7 @@ typedef struct {
     s32 unk16C;
 } SpriteCommand;
 u16 func_80067644(s32 x, s32 y);
-Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
+Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
 
 typedef struct {
     s32 duration;
@@ -277,7 +283,7 @@ typedef struct {
     u8 unk8A;
     s8 useOrigin;
 } Sprite;
-void func_801EB798(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey);
+void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey);
 typedef struct {
     u32 turn : 1;
     u32 flag1 : 1;
@@ -302,12 +308,12 @@ typedef struct {
         DuelFlagBits bits;
     } flags;
 } DuelState;
-extern u16 D_801EF38C;
-extern DuelState *D_801EF958;
-void func_801EC494(s32 x, s32 y, s32 value, u8 brightness);
-extern s16 D_801EF9A4[2];
-void func_801EDB64(void);
-void func_801EC8A4(s32 a0);
+extern u16 SUG_HUD_TPAGE;
+extern DuelState *SUG_BATTLE;
+void SUG_drawNumber(s32 x, s32 y, s32 value, u8 brightness);
+extern s16 SUG_TARGET_HP[2];
+void SUG_showEatUpHpBanner(void);
+void SUG_animateHpCounter(s32 a0);
 
 typedef Unk801DF598 Unk801E1D80;
 typedef struct {
@@ -408,8 +414,8 @@ typedef struct {
 typedef struct {
     s32 v[4];
 } Entry16;
-void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9);
-void *func_801E41AC(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey);
+void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9);
+void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey);
 typedef struct {
     u8 unk0[0x74];
     s32 semi;
@@ -439,7 +445,7 @@ typedef struct {
     s32 count;
     s32 endLength;
 } StreakCommand;
-void func_801EAB5C(void);
+void SUG_tickScreenCopyEffect(void);
 
 typedef struct {
     u8 unk0[0x139];
@@ -455,8 +461,8 @@ typedef struct {
     s8 unk571;
     s32 unk574;
 } Unk801E3C2C;
-extern MATRIX D_801EF25C;
-extern MATRIX D_801EF27C;
+extern MATRIX SUG_DEFAULT_LIGHT_MATRIX;
+extern MATRIX SUG_DEFAULT_LIGHT_COLORS;
 typedef struct {
     u8 unk0[0x130];
     u32 animId;
@@ -494,7 +500,7 @@ typedef struct {
     u8 unk137;
     u8 unk138[4];
 } CameraEffect;
-extern CameraEffect D_801EF808;
+extern CameraEffect SUG_EFFECT_ROOT;
 typedef struct {
     u8 unk0[0x65C];
     s32 unk65C[3];
@@ -507,7 +513,7 @@ typedef struct {
     s32 unk6A0[3];
     s32 unk6AC[3];
 } Unk801E9FE0;
-LightMotion *func_801E76A8(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration);
+LightMotion *SUG_createLightMotion(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration);
 
 typedef struct {
     s32 v[4];
@@ -539,8 +545,8 @@ typedef struct {
     u8 unk56C[2];
     s8 modelSlot;
 } Unk801E3D2C;
-void func_801E3668(ClutFade *fade, u16 stp);
-void func_801E3D94(u8 level);
+void SUG_uploadShadedClut(ClutFade *fade, u16 stp);
+void SUG_setStageBrightness(u8 level);
 typedef struct {
     u8 unk0[0x139];
     u8 unk139;
@@ -550,7 +556,7 @@ typedef struct {
     s32 active;
 } Effect;
 extern MATRIX D_801DBEC0;
-void func_801EB874(Sprite *sprite, s16 brightness);
+void SUG_drawSprite(Sprite *sprite, s16 brightness);
 typedef struct {
     u8 unk0[0x20];
     VECTOR pos;
@@ -593,19 +599,19 @@ typedef struct {
     u8 unk2DB;
     u8 unk2DC;
 } Unk801E5144;
-Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+Unk801E5144 *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
                            s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
                            s32 a19, s32 a20);
-void func_801E521C(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3);
-void func_801E5278(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
-void func_801DE40C(void **obj);
-void func_801E72D4(u8 *obj);
-void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8);
+void SUG_setTrailColors(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3);
+void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
+void SUG_freePosHistory(void **obj);
+void SUG_freeTexAnim(u8 *obj);
+void SUG_fillGradientColors(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8);
 typedef struct {
     s32 key;
     void *data;
 } CacheEntry;
-extern CacheEntry D_801EF7A0[8];
+extern CacheEntry SUG_TAM_CACHE[8];
 typedef struct {
     s16 duration;
     u8 u;
@@ -629,10 +635,10 @@ typedef struct {
 } Image;
 s32 LoadImage2(Rect16 *rect, u8 *pixels);
 s32 MoveImage2(Rect16 *rect, s32 x, s32 y);
-void func_801E7304(Image *image);
-void func_801E73C0(Image *image);
-void func_801E7480(Image *image);
-void func_801E7598(Image *image);
+void SUG_scrollTexAnimLeft(Image *image);
+void SUG_scrollTexAnimRight(Image *image);
+void SUG_scrollTexAnimUp(Image *image);
+void SUG_scrollTexAnimDown(Image *image);
 typedef struct {
     s16 kind;
     u8 unk2[2];
@@ -676,10 +682,10 @@ typedef struct {
     s32 unk10;
     s32 unk14;
 } Runner;
-Runner *func_801EA258(void *script, s32 side, s32 a2, s32 *state);
-s32 func_801E8500(Runner *runner);
-void func_801E8678(Runner *runner);
-void func_801EA174(Slots *slots);
+Runner *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state);
+s32 SUG_tickEffectScript(Runner *runner);
+void SUG_runEffectScript(Runner *runner);
+void SUG_freeEffectEntries(Slots *slots);
 typedef struct {
     u8 r;
     u8 g;
@@ -703,36 +709,36 @@ typedef struct {
     u8 visible;
     u8 mode;
 } ColorQuad;
-ColorQuad *func_801E6424(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode);
-ScrollTex *func_801E66D0(Rect16 *rect, s32 depth, s32 mode, s16 speed);
-void func_801E9494(EffectTemplate *template, EffectCommand *cmd, Slots *ctx);
-void func_801E864C(void *obj);
-extern s32 D_801EF7F8;
-extern u8 D_801EF800[3];
-extern u8 D_801EF804[3];
-/* takes one argument, but func_801EA9FC calls it without setting it */
-void func_801EA574();
-extern s32 D_801EF7E4;
-extern s16 D_801EF2A0;
-extern s32 D_801EF7FC;
-extern s32 D_801EF29C;
-extern s32 D_801EF7F0;
-extern s32 D_801EF7F4;
-void func_801EA7BC(u8 r, u8 g, u8 b, s32 a3, s32 a4);
+ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode);
+ScrollTex *SUG_createScrollTexture(Rect16 *rect, s32 depth, s32 mode, s16 speed);
+void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Slots *ctx);
+void SUG_freeEffectSlots(void *obj);
+extern s32 SUG_SCREEN_FX_FRAME;
+extern u8 SUG_SCREEN_FX_BASE_RGB[3];
+extern u8 SUG_SCREEN_FX_RGB_STEP[3];
+/* takes one argument, but SUG_stepScreenCopyFade calls it without setting it */
+void SUG_moveScreenCopy();
+extern s32 SUG_SCREEN_FX_Y;
+extern s16 SUG_SCREEN_FX_ANGLE;
+extern s32 SUG_SCREEN_FX_MOTION;
+extern s32 SUG_SCREEN_FX_PHASE;
+extern s32 SUG_SCREEN_FX_HOLD;
+extern s32 SUG_SCREEN_FX_FADE_TIME;
+void SUG_startScreenCopyFade(u8 r, u8 g, u8 b, s32 a3, s32 a4);
 typedef struct {
     s32 key;
     u8 *data;
     s32 subKey;
 } Entry;
-extern Entry *D_801EF950;
+extern Entry *SUG_SPRITE_CACHE;
 #define setEntry(e, _key, _data, _subKey) \
     do {                                  \
         (e)->key = (_key);                \
         (e)->data = (_data);              \
         (e)->subKey = (_subKey);          \
     } while (0)
-extern const char D_801DE0B0[];
-void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey);
+extern const char SUG_FMT_SPRITE_PATH[];
+void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey);
 typedef struct {
     float unk0;
     s16 target[2];
@@ -741,23 +747,23 @@ typedef struct {
     s16 unk16;
     Rect16 uv;
 } Unk801EC160;
-void func_801EBFA0(s16 *dst, s32 count, s16 value);
-s32 func_801EC1F4(Unk801EC160 *obj, s32 count, s32 state, s32 speed);
-void func_801EBFD4(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count);
-extern s16 D_801EF37C;
-extern s32 D_801EF978[2];
-void func_801EB3EC(void);
-void func_801E6B40(void);
-void func_801EDC4C(void);
-void func_801E8358(void);
-void func_801EBE40(void);
-void func_801E723C(void);
-void func_801E40B0(void);
+void SUG_fillShorts(s16 *dst, s32 count, s16 value);
+s32 SUG_tickHudSlides(Unk801EC160 *obj, s32 count, s32 state, s32 speed);
+void SUG_drawHudSpriteTrail(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count);
+extern s16 SUG_CURRENT_SCRIPT;
+extern s32 SUG_SCRIPT_STATES[2];
+void SUG_initSpriteCache(void);
+void SUG_initTamCache(void);
+void SUG_placeBattleModels(void);
+void SUG_initEffectRoot(void);
+void SUG_freeSprites(void);
+void SUG_freeTamCache(void);
+void SUG_resetStageBrightness(void);
 extern s16 D_80079584;
-void func_801EBE8C(void);
-void func_801ECF20(s32 a0);
+void SUG_orbitCamera(void);
+void SUG_showAttackBanner(s32 a0);
 
-Table *func_801DE0C0(s32 columns, s32 rows) {
+Table *SUG_createPosHistory(s32 columns, s32 rows) {
     Table *table;
     s32 count;
     s32 i;
@@ -781,7 +787,7 @@ Table *func_801DE0C0(s32 columns, s32 rows) {
     return table;
 }
 
-void func_801DE1AC(Table *table, Quad *quad, Short4 *s4) {
+void SUG_fillPosHistory(Table *table, Quad *quad, Short4 *s4) {
     s32 i;
 
     for (i = 0; i < table->count; i++) {
@@ -790,7 +796,7 @@ void func_801DE1AC(Table *table, Quad *quad, Short4 *s4) {
     }
 }
 
-void func_801DE244(Table *table, Quad *quad, Short4 *s4) {
+void SUG_pushPosHistory(Table *table, Quad *quad, Short4 *s4) {
     if (quad != NULL) {
         table->quads[table->head] = *quad;
     }
@@ -801,7 +807,7 @@ void func_801DE244(Table *table, Quad *quad, Short4 *s4) {
     table->head = (table->head + 1) % table->count;
 }
 
-void func_801DE2F8(Table *table, s32 back, Quad *quad, Short4 *s4) {
+void SUG_getPosHistory(Table *table, s32 back, Quad *quad, Short4 *s4) {
     s32 i;
 
     if (back == 0) {
@@ -826,13 +832,13 @@ void func_801DE2F8(Table *table, s32 back, Quad *quad, Short4 *s4) {
     }
 }
 
-void func_801DE40C(void **obj) {
+void SUG_freePosHistory(void **obj) {
     obj[0] = (void *)freeHeapBlock(obj[0]);
     obj[1] = (void *)freeHeapBlock(obj[1]);
     freeHeapBlock(obj);
 }
 
-WordTable *func_801DE454(s32 columns, s32 rows) {
+WordTable *SUG_createValueHistory(s32 columns, s32 rows) {
     WordTable *table;
     s32 count;
     s32 i;
@@ -852,7 +858,7 @@ WordTable *func_801DE454(s32 columns, s32 rows) {
     return table;
 }
 
-void func_801DE504(WordTable *table, s32 word, s16 half) {
+void SUG_fillValueHistory(WordTable *table, s32 word, s16 half) {
     s32 i;
 
     for (i = 0; i < table->count; i++) {
@@ -861,7 +867,7 @@ void func_801DE504(WordTable *table, s32 word, s16 half) {
     }
 }
 
-void func_801DE55C(WordTable *table, s32 *word, s16 *half) {
+void SUG_pushValueHistory(WordTable *table, s32 *word, s16 *half) {
     if (word != NULL) {
         table->words[table->head] = *word;
     }
@@ -872,7 +878,7 @@ void func_801DE55C(WordTable *table, s32 *word, s16 *half) {
     table->head = (table->head + 1) % table->count;
 }
 
-void func_801DE5D8(WordTable *table, s32 back, s32 *word, s16 *half) {
+void SUG_getValueHistory(WordTable *table, s32 back, s32 *word, s16 *half) {
     s32 i;
 
     if (back == 0) {
@@ -897,13 +903,13 @@ void func_801DE5D8(WordTable *table, s32 back, s32 *word, s16 *half) {
     }
 }
 
-void func_801DE69C(void **obj) {
+void SUG_freeValueHistory(void **obj) {
     obj[0] = (void *)freeHeapBlock(obj[0]);
     obj[1] = (void *)freeHeapBlock(obj[1]);
     freeHeapBlock(obj);
 }
 
-void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y);
+void SUG_setSphereColor(u8 *object, Bytes4 *src, s16 x, s16 y);
 /* called with one argument more than their definitions take (a trailing 1) */
 void initLineF2Pair();
 void initPolyF3Pair();
@@ -911,7 +917,7 @@ void initPolyF4Pair();
 void initPolyG3Pair();
 void initPolyGT3Pair();
 
-Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
+Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
                            u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18) {
     Unk801DF598 *fx;
     s32 rings;
@@ -950,7 +956,7 @@ Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *te
     fx->vertCount = total + 2;
     fx->ringVertCount = (rings + 2) * a5;
     fx->unk1C0 = total + rings * a5 + a5 * 2;
-    if (a12 >= 0 && func_801E6C78(a12, 3, (RingEffect *)fx, fx->unk13C, a18) != 0) {
+    if (a12 >= 0 && SUG_startTexAnim(a12, 3, (RingEffect *)fx, fx->unk13C, a18) != 0) {
         fx->unk1D8 = 1;
     } else {
         fx->unk1D8 = -1;
@@ -961,7 +967,7 @@ Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *te
     fx->unk1DC = a11;
     *(s32 *)fx->unk1C8 = a9;
     fx->brightness = a0;
-    func_801DF570((u8 *)fx, (Bytes4 *)color, a2, a3);
+    SUG_setSphereColor((u8 *)fx, (Bytes4 *)color, a2, a3);
     fx->unk1DD = a16;
     fx->unk1B4 = a17;
     *(EffectTemplate *)fx = *template;
@@ -1163,14 +1169,14 @@ Unk801DF598 *func_801DE6E4(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *te
     return fx;
 }
 
-void func_801DF570(u8 *object, Bytes4 *src, s16 x, s16 y) {
+void SUG_setSphereColor(u8 *object, Bytes4 *src, s16 x, s16 y) {
     *(Bytes4 *)(object + 0x1A0) = *src;
     *(s16 *)(object + 0x1D0) = x;
     *(s16 *)(object + 0x1D2) = y;
     *(s16 *)(object + 0x1D6) = -1;
 }
 
-void func_801DF598(Unk801DF598 *fx) {
+void SUG_tickSphereEffect(Unk801DF598 *fx) {
     s32 speed;
 
     if (fx->unk139 != 0) {
@@ -1190,7 +1196,7 @@ void func_801DF598(Unk801DF598 *fx) {
         } else {
             speed = 0x400 / fx->unk1C4;
         }
-        func_801DF7E8(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereLines(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
         break;
     case 8:
         if (fx->unk1D2 == 0) {
@@ -1198,7 +1204,7 @@ void func_801DF598(Unk801DF598 *fx) {
         } else {
             speed = 0x400 / fx->unk1C4;
         }
-        func_801DFDA4(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereF(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
         break;
     case 9:
         if (fx->unk1D2 == 0) {
@@ -1206,7 +1212,7 @@ void func_801DF598(Unk801DF598 *fx) {
         } else {
             speed = 0x400 / (fx->unk1C4 + 1);
         }
-        func_801E05F4(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereG(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
         break;
     case 13:
         if (fx->unk1D2 == 0) {
@@ -1214,13 +1220,13 @@ void func_801DF598(Unk801DF598 *fx) {
         } else {
             speed = 0x400 / (fx->unk1C4 + 1);
         }
-        func_801E0F98(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereGT(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
         break;
     }
     PopMatrix();
 }
 
-void func_801DF7E8(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
+void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
     u8 rgb[3];
     s32 i;
     s32 j;
@@ -1271,7 +1277,7 @@ void func_801DF7E8(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
 }
 
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
-void func_801DFDA4(fx, cull, count, speed, otz)
+void SUG_drawSphereF(fx, cull, count, speed, otz)
     Unk801DF598 *fx;
     u8 cull;
     s32 count;
@@ -1405,7 +1411,7 @@ void func_801DFDA4(fx, cull, count, speed, otz)
     }
 }
 
-void func_801E05F4(fx, cull, count, speed, otz)
+void SUG_drawSphereG(fx, cull, count, speed, otz)
     Unk801DF598 *fx;
     u8 cull;
     s32 count;
@@ -1574,7 +1580,7 @@ void func_801E05F4(fx, cull, count, speed, otz)
 
 
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
-void func_801E0F98(fx, cull, count, speed, otz)
+void SUG_drawSphereGT(fx, cull, count, speed, otz)
     Unk801DF598 *fx;
     u8 cull;
     s32 count;
@@ -1601,7 +1607,7 @@ void func_801E0F98(fx, cull, count, speed, otz)
 
     inner = 0;
     if (fx->unk1D8 >= 0) {
-        func_801E1960(fx);
+        SUG_updateSphereUvs(fx);
     }
     if (fx->brightness != fx->prevBrightness) {
         base.r = fx->rgb[0] * fx->brightness / 256;
@@ -1742,7 +1748,7 @@ void func_801E0F98(fx, cull, count, speed, otz)
     fx->prevBrightness = fx->brightness;
 }
 
-void func_801E1960(Unk801E1D80 *obj) {
+void SUG_updateSphereUvs(Unk801E1D80 *obj) {
     Rect16 uv;
     POLY_GT4 *gt4;
     s32 n;
@@ -1750,7 +1756,7 @@ void func_801E1960(Unk801E1D80 *obj) {
     s32 skip;
 
     n = obj->unk1CC;
-    func_801E7020(obj->unk13C);
+    SUG_tickTexAnim(obj->unk13C);
     uv = obj->uv;
     for (i = 0; i < n; i++) {
         obj->ttris[FRAME_BUFFER_INDEX][i].u0 = uv.x + uv.w;
@@ -1785,12 +1791,12 @@ void func_801E1960(Unk801E1D80 *obj) {
     }
 }
 
-void func_801E1D80(Unk801E1D80 *obj) {
+void SUG_freeSphereEffect(Unk801E1D80 *obj) {
     s32 i;
 
     freeHeapBlock(obj->verts);
     if (obj->unk1D8 >= 0) {
-        func_801E72D4(obj->unk13C);
+        SUG_freeTexAnim(obj->unk13C);
     }
     for (i = 0; i < 2; i++) {
         if (obj->tris[i] != NULL) {
@@ -1826,7 +1832,7 @@ const s32 D_801DDF38 = 4;
 
 /* fills a grid of a2 x a3 cells, 4 colors each, by blending the corner colors; the kinds split it
    into 1, 2 or 4 blends around the middle color a8 */
-void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8) {
+void SUG_fillGradientColors(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8) {
     Bytes4 top;
     Bytes4 left;
     Bytes4 right;
@@ -1855,22 +1861,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
         }
@@ -1886,22 +1892,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
         }
@@ -1915,22 +1921,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
         }
@@ -1947,22 +1953,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -1978,22 +1984,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -2008,22 +2014,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
         blend.wx1 = a2 / 2;
         blend.wy0 = 0;
         blend.wy1 = a3;
-        func_801E2F70(&blend, top.b);
+        SUG_blendCornerColors(&blend, top.b);
         blend.wx0 = 0;
         blend.wx1 = a2;
         blend.wy0 = a3 / 2;
         blend.wy1 = a3 / 2;
-        func_801E2F70(&blend, left.b);
+        SUG_blendCornerColors(&blend, left.b);
         blend.wx0 = a2;
         blend.wx1 = 0;
         blend.wy0 = a3 / 2;
         blend.wy1 = a3 / 2;
-        func_801E2F70(&blend, right.b);
+        SUG_blendCornerColors(&blend, right.b);
         blend.wx0 = a2 / 2;
         blend.wx1 = a2 / 2;
         blend.wy0 = a3;
         blend.wy1 = 0;
-        func_801E2F70(&blend, bottom.b);
+        SUG_blendCornerColors(&blend, bottom.b);
         out = (Bytes4 *)a0;
         blend.c00 = c0->b;
         blend.c10 = top.b;
@@ -2035,22 +2041,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -2066,22 +2072,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -2097,22 +2103,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -2128,22 +2134,22 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[0].b);
+                SUG_blendCornerColors(&blend, out[0].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y;
                 blend.wy1 = a3 / 2 - y;
-                func_801E2F70(&blend, out[1].b);
+                SUG_blendCornerColors(&blend, out[1].b);
                 blend.wx0 = x;
                 blend.wx1 = a2 / 2 - x;
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[2].b);
+                SUG_blendCornerColors(&blend, out[2].b);
                 blend.wx0 = x + 1;
                 blend.wx1 = a2 / 2 - (x + 1);
                 blend.wy0 = y + 1;
                 blend.wy1 = a3 / 2 - (y + 1);
-                func_801E2F70(&blend, out[3].b);
+                SUG_blendCornerColors(&blend, out[3].b);
                 out += 4;
             }
             out += a2 / 2 * 4;
@@ -2152,7 +2158,7 @@ void func_801E1EE8(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Byt
     }
 }
 
-void func_801E2F70(Blend *blend, u8 *out) {
+void SUG_blendCornerColors(Blend *blend, u8 *out) {
     s32 bottom[3];
     s32 top[3];
 
@@ -2167,7 +2173,7 @@ void func_801E2F70(Blend *blend, u8 *out) {
     out[2] = (blend->wy0 * bottom[2] + blend->wy1 * top[2]) / (blend->wy0 + blend->wy1);
 }
 
-void func_801E31E4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink) {
+void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink) {
     Rect16 r;
     s32 col;
     s32 stepX;
@@ -2217,7 +2223,7 @@ void func_801E31E4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s
     }
 }
 
-void func_801E3428(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink) {
+void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink) {
     Rect16 cell;
     s32 col;
     s32 stepX;
@@ -2267,7 +2273,7 @@ void func_801E3428(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s
     }
 }
 
-void func_801E3668(ClutFade *fade, u16 stp) {
+void SUG_uploadShadedClut(ClutFade *fade, u16 stp) {
     u16 *src;
     u16 *dst;
     s32 brighten;
@@ -2320,9 +2326,9 @@ void func_801E3668(ClutFade *fade, u16 stp) {
     DrawSync(0);
 }
 
-extern const Rect16 D_801DDF50;
+extern const Rect16 SUG_MODEL_CLUT_RECT;
 
-void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9) {
+void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9) {
     Unk801E3C2C *fx;
     Rect16 rect;
     s32 slot;
@@ -2351,13 +2357,13 @@ void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 a
     }
     fx->unk574 = a9;
     fx->unk13C->owner = fx;
-    if (vramSlot != 0 && a4 >= 0 && func_801E6C78(a4, 0, (RingEffect *)fx->unk13C, fx->unk140, pak)) {
+    if (vramSlot != 0 && a4 >= 0 && SUG_startTexAnim(a4, 0, (RingEffect *)fx->unk13C, fx->unk140, pak)) {
         fx->unk570 = 1;
     } else {
         fx->unk570 = -1;
     }
     if (vramSlot != 0) {
-        rect = D_801DDF50;
+        rect = SUG_MODEL_CLUT_RECT;
         if (fx->unk574 == 0) {
             rect.y = 0xF0;
         }
@@ -2368,7 +2374,7 @@ void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 a
         fx->fade.brighten = 0;
         fx->fade.level = fx->lastBrightness = brightness;
         if (brightness != 0xFF) {
-            func_801E3668(&fx->fade, 0x8000);
+            SUG_uploadShadedClut(&fx->fade, 0x8000);
         }
     } else {
         fx->unk13C->unk26D4 = -1;
@@ -2377,7 +2383,7 @@ void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 a
     return fx;
 }
 
-void func_801E3C2C(Unk801E3C2C *obj) {
+void SUG_tickModelEffect(Unk801E3C2C *obj) {
     if (obj->unk571 != 0) {
         if (obj->unk139 != 0) {
             tickEffectStartDelay(obj);
@@ -2388,7 +2394,7 @@ void func_801E3C2C(Unk801E3C2C *obj) {
             obj->fade.level = updateEffectBrightness(obj, obj->fade.level);
             if (obj->fade.level != obj->lastBrightness) {
                 obj->lastBrightness = obj->fade.level;
-                func_801E3668(&obj->fade, 0x8000);
+                SUG_uploadShadedClut(&obj->fade, 0x8000);
             }
             if (obj->fade.level == 0) {
                 SCENE_3D->modelState[obj->modelSlot] = -1;
@@ -2398,32 +2404,32 @@ void func_801E3C2C(Unk801E3C2C *obj) {
         SCENE_3D->modelState[obj->modelSlot] = 3;
     }
     if (obj->unk570 >= 0) {
-        func_801E7020(obj->unk140);
+        SUG_tickTexAnim(obj->unk140);
     }
 }
 
-void func_801E3D2C(Unk801E3D2C *obj) {
+void SUG_freeModelEffect(Unk801E3D2C *obj) {
     unloadModel(obj->modelSlot);
     if (obj->unk13C->unk26D4 != -1 && obj->fade.level != 0xFF) {
         obj->fade.level = 0xFF;
-        func_801E3668(&obj->fade, 0x8000);
+        SUG_uploadShadedClut(&obj->fade, 0x8000);
     }
     freeHeapBlock(obj);
 }
 
-extern ClutFade D_801EF390;
+extern ClutFade SUG_STAGE_CLUT;
 
-void func_801E3D94(u8 level) {
+void SUG_setStageBrightness(u8 level) {
     u8 r;
     u8 g;
     u8 b;
 
-    D_801EF390.level = level;
+    SUG_STAGE_CLUT.level = level;
     if (level == 0xFF) {
-        LoadImage((s16 *)&D_801EF390.rect, (s32)D_801EF390.clut);
+        LoadImage((s16 *)&SUG_STAGE_CLUT.rect, (s32)SUG_STAGE_CLUT.clut);
         DrawSync(0);
     } else {
-        func_801E3668(&D_801EF390, 0);
+        SUG_uploadShadedClut(&SUG_STAGE_CLUT, 0);
     }
     r = STAGE_CLEAR_COLOR[0] * level / 255;
     g = STAGE_CLEAR_COLOR[1] * level / 255;
@@ -2436,7 +2442,7 @@ void func_801E3D94(u8 level) {
 #define FADE_LEVEL (((u8 *)SCENE_3D)[0x130])
 #define FADE_TARGET (((u8 *)SCENE_3D)[0x131])
 
-void func_801E3EB8(void) {
+void SUG_runStageFadeTask(void) {
     while (1) {
         func_80014C08(FRAME_INTERVAL);
         if (FADE_LEVEL > FADE_TARGET) {
@@ -2460,25 +2466,25 @@ void func_801E3EB8(void) {
         } else {
             continue;
         }
-        func_801E3D94(FADE_LEVEL);
+        SUG_setStageBrightness(FADE_LEVEL);
     }
 }
 
-void func_801E3FA8(ModelData *model, s16 h) {
+void SUG_saveStageClut(ModelData *model, s16 h) {
     Rect16 rect;
 
-    rect = D_801DDF50;
+    rect = SUG_MODEL_CLUT_RECT;
     rect.h = h;
     rect.x += ((model->unk26D4 / 0x10000 + 5) & 0xF) << 6;
     rect.y += ((model->unk26D4 / 0x10000 + 5) >> 4) << 8;
-    StoreImage2(&rect, (u32 *)D_801EF390.clut);
-    D_801EF390.rect = rect;
-    D_801EF390.brighten = 0;
+    StoreImage2(&rect, (u32 *)SUG_STAGE_CLUT.clut);
+    SUG_STAGE_CLUT.rect = rect;
+    SUG_STAGE_CLUT.brighten = 0;
     FADE_LEVEL = FADE_TARGET = 0xFF;
 }
 
-void func_801E40B0(void) {
-    func_801E3D94(0xFF);
+void SUG_resetStageBrightness(void) {
+    SUG_setStageBrightness(0xFF);
     DB(1).draw.r0 = 0;
     DB(0).draw.r0 = 0;
     DB(1).draw.g0 = 0;
@@ -2487,7 +2493,7 @@ void func_801E40B0(void) {
     DB(0).draw.b0 = 0;
 }
 
-void func_801E40F0(s32 slot, s32 target) {
+void SUG_shadeModelClut(s32 slot, s32 target) {
     ClutFade fade;
     ModelData *model;
     s32 i;
@@ -2500,21 +2506,21 @@ void func_801E40F0(s32 slot, s32 target) {
         for (i = 0; i < 256; i++) {
             fade.clut[i] = model->clut[i];
         }
-        func_801E3668(&fade, 0x8000);
+        SUG_uploadShadedClut(&fade, 0x8000);
     } else {
         LoadImage((s16 *)&model->clutRect, (s32)model->clut);
         DrawSync(0);
     }
 }
 
-void *func_801E41AC(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey) {
+void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey) {
     Effect *fx;
 
     fx = allocTaskHeapBlock(sizeof(Effect));
     fx->sprite.flipX = flipX;
     fx->sprite.flipY = flipY;
     fx->sprite.unk8A = a5 == 0;
-    func_801EB798(&fx->sprite, key, 4, 4, 0, 0, 0, a7, useOrigin, subKey);
+    SUG_initSprite(&fx->sprite, key, 4, 4, 0, 0, 0, a7, useOrigin, subKey);
     fx->brightness = brightness;
     if (template != NULL) {
         *(EffectTemplate *)fx = *template;
@@ -2527,7 +2533,7 @@ void *func_801E41AC(s32 brightness, EffectTemplate *template, s32 key, s32 flipX
     return fx;
 }
 
-void func_801E42F4(Effect *fx) {
+void SUG_tickSpriteEffect(Effect *fx) {
     PushMatrix();
     if (fx->active != 0) {
         if (fx->unk139 != 0 || (fx->brightness = updateEffectBrightness(fx, fx->brightness)) == 0) {
@@ -2540,15 +2546,15 @@ void func_801E42F4(Effect *fx) {
         SetRotMatrix((s32)&D_801DBEC0);
         func_8005C444(&D_801DBEC0);
     }
-    func_801EB874(&fx->sprite, fx->brightness);
+    SUG_drawSprite(&fx->sprite, fx->brightness);
     PopMatrix();
 }
 
-void func_801E43A4(void *ptr) {
+void SUG_freeSpriteEffect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+Unk801E5144 *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
                            s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
                            s32 a19, s32 a20) {
     Unk801E5144 *obj;
@@ -2556,7 +2562,7 @@ Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c
 
     obj = allocTaskHeapBlock(sizeof(Unk801E5144));
     for (i = 0; i < 2; i++) {
-        obj->tables[i] = func_801DE0C0(count + 1, rows);
+        obj->tables[i] = SUG_createPosHistory(count + 1, rows);
     }
     obj->unk2C0 = clut;
     obj->unk2BC = tpage;
@@ -2578,18 +2584,18 @@ Unk801E5144 *func_801E43C4(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c
     initTransform(obj->xforms[0], (s32)obj, x0, 0, 0, 0, 0, 0);
     initTransform(obj->xforms[1], (s32)obj, x1, 0, 0, 0, 0, 0);
     obj->unk15C = allocTaskHeapBlock(a11 ? count * 16 : 16);
-    func_801E5278(obj, a12, a13, a14, id, uv, tpage, clut);
-    func_801E521C(obj, a11, c0, c1, c2, c3);
+    SUG_initTrailPrims(obj, a12, a13, a14, id, uv, tpage, clut);
+    SUG_setTrailColors(obj, a11, c0, c1, c2, c3);
     obj->unk2D0 = id;
-    if (id < 100 || func_801E6C78(id, 4, (RingEffect *)obj, obj->unk13C, a20) == 0) {
+    if (id < 100 || SUG_startTexAnim(id, 4, (RingEffect *)obj, obj->unk13C, a20) == 0) {
         obj->unk2D0 = -1;
     }
     return obj;
 }
 
-void func_801E5AB0(Unk801E5144 *obj);
+void SUG_shadeTrailPrims(Unk801E5144 *obj);
 
-void func_801E4728(Unk801E5144 *obj) {
+void SUG_tickTrailEffect(Unk801E5144 *obj) {
     Short4 pos;
     Short4 b;
     Short4 c;
@@ -2711,20 +2717,20 @@ void func_801E4728(Unk801E5144 *obj) {
             obj->unk2DC++;
         }
         if (moved == 1) {
-            func_801DE244(obj->tables[i], NULL, &pos);
+            SUG_pushPosHistory(obj->tables[i], NULL, &pos);
         }
         obj->hist[i] = pos;
     }
     PushMatrix();
     updateTransformMatrix(obj->xform, 0);
-    func_801E5AB0(obj);
+    SUG_shadeTrailPrims(obj);
     switch (obj->unk2D9) {
     case 1:
         tp = obj->unk160[FRAME_BUFFER_INDEX];
         line = obj->unk168[FRAME_BUFFER_INDEX];
         for (i = 0; i < obj->count; i++, line++, tp++) {
-            func_801DE2F8(obj->tables[0], i, NULL, &pos);
-            func_801DE2F8(obj->tables[0], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &d);
             transformAndAddLineG2((s32)line, (s32)tp, (s32)&pos, (s32)&d, obj->unk2D8, obj->unk2C4);
         }
         break;
@@ -2732,23 +2738,23 @@ void func_801E4728(Unk801E5144 *obj) {
         tp = obj->unk160[FRAME_BUFFER_INDEX];
         g4 = obj->unk170[FRAME_BUFFER_INDEX];
         for (i = 0; i < obj->count; i++, g4++, tp++) {
-            func_801DE2F8(obj->tables[0], i, NULL, &pos);
-            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
-            func_801DE2F8(obj->tables[1], i, NULL, &b);
-            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
+            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
             transformAndAddPolyG4((s32)g4, (s32)tp, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, obj->unk2D8, 0, obj->unk2C4);
         }
         break;
     case 12:
         ft4 = obj->unk178[FRAME_BUFFER_INDEX];
         if (obj->unk2D0 != -1) {
-            func_801E7020(obj->unk13C);
+            SUG_tickTexAnim(obj->unk13C);
         }
         for (i = 0; i < obj->count; i++, ft4++) {
-            func_801DE2F8(obj->tables[0], i, NULL, &pos);
-            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
-            func_801DE2F8(obj->tables[1], i, NULL, &b);
-            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
+            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
             setPrimQuadUvRect((u8 *)ft4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
             transformAndAddPolyFT4((s32)ft4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
         }
@@ -2756,13 +2762,13 @@ void func_801E4728(Unk801E5144 *obj) {
     case 13:
         gt4 = obj->unk180[FRAME_BUFFER_INDEX];
         if (obj->unk2D0 != -1) {
-            func_801E7020(obj->unk13C);
+            SUG_tickTexAnim(obj->unk13C);
         }
         for (i = 0; i < obj->count; i++, gt4++) {
-            func_801DE2F8(obj->tables[0], i, NULL, &pos);
-            func_801DE2F8(obj->tables[0], i + 1, NULL, &c);
-            func_801DE2F8(obj->tables[1], i, NULL, &b);
-            func_801DE2F8(obj->tables[1], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
+            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
             setPrimQuadUvRect((u8 *)gt4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
             transformAndAddPolyGT4((s32)gt4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
         }
@@ -2771,7 +2777,7 @@ void func_801E4728(Unk801E5144 *obj) {
     PopMatrix();
 }
 
-void func_801E5144(Unk801E5144 *obj) {
+void SUG_freeTrailEffect(Unk801E5144 *obj) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
@@ -2780,22 +2786,22 @@ void func_801E5144(Unk801E5144 *obj) {
         freeHeapBlock(obj->unk178[i]);
         freeHeapBlock(obj->unk180[i]);
         freeHeapBlock(obj->unk160[i]);
-        func_801DE40C((void **)obj->tables[i]);
+        SUG_freePosHistory((void **)obj->tables[i]);
     }
     if (obj->unk2D0 >= 0) {
-        func_801E72D4(obj->unk13C);
+        SUG_freeTexAnim(obj->unk13C);
     }
     freeHeapBlock(obj->unk15C);
     freeHeapBlock(obj);
 }
 
-void func_801E521C(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3) {
+void SUG_setTrailColors(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3) {
     obj->unk2DB = kind;
-    func_801E1EE8(obj->unk15C, kind, 1, obj->count, c0, c1, c2, c3, 0);
+    SUG_fillGradientColors(obj->unk15C, kind, 1, obj->count, c0, c1, c2, c3, 0);
     obj->unk2D6 = -1;
 }
 
-void func_801E5278(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
+void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
     s32 i;
     LineG2 *line0;
     LineG2 *line1;
@@ -2891,19 +2897,19 @@ void func_801E5278(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rec
     }
 }
 
-void func_801E57E0(Unk801E57E0 *obj) {
+void SUG_updateTrailUvs(Unk801E57E0 *obj) {
     Rect16 uv;
     POLY_FT4 *ft4;
     POLY_GT4 *gt4;
     s32 i;
 
-    func_801E7020(obj->unk13C);
+    SUG_tickTexAnim(obj->unk13C);
     uv = obj->uv;
     if (obj->state != 3) {
         switch (obj->primKind) {
         case 12:
             ft4 = obj->ft4[FRAME_BUFFER_INDEX];
-            func_801E31E4(ft4, &uv, obj->count, 1, obj->count, 0, 0, 0);
+            SUG_setGridUvsFT4(ft4, &uv, obj->count, 1, obj->count, 0, 0, 0);
             for (i = 0; i < obj->count; i++, ft4++) {
                 ft4->tpage = obj->tpage;
                 ft4->clut = obj->clut;
@@ -2911,7 +2917,7 @@ void func_801E57E0(Unk801E57E0 *obj) {
             break;
         case 13:
             gt4 = obj->gt4[FRAME_BUFFER_INDEX];
-            func_801E3428(gt4, &uv, obj->count, 1, obj->count, 0, 0, 0);
+            SUG_setGridUvsGT4(gt4, &uv, obj->count, 1, obj->count, 0, 0, 0);
             for (i = 0; i < obj->count; i++, gt4++) {
                 gt4->tpage = obj->tpage;
                 gt4->clut = obj->clut;
@@ -2941,7 +2947,7 @@ void func_801E57E0(Unk801E57E0 *obj) {
 }
 
 
-void func_801E5AB0(Unk801E5144 *obj) {
+void SUG_shadeTrailPrims(Unk801E5144 *obj) {
     u8 c0[3];
     u8 c1[3];
     u8 c2[3];
@@ -3062,7 +3068,7 @@ void func_801E5AB0(Unk801E5144 *obj) {
 /* called with one argument more than the executable's prototype (dcb/prim_pair.h) */
 void initPolyF4Pair();
 
-ColorQuad *func_801E6424(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode) {
+ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode) {
     ColorQuad *quad;
 
     quad = allocTaskHeapBlock(sizeof(ColorQuad));
@@ -3079,7 +3085,7 @@ ColorQuad *func_801E6424(Rect16 *rect, Color *color, Color *color2, u8 blend, s1
     return quad;
 }
 
-s32 func_801E651C(ColorQuad *quad) {
+s32 SUG_tickFadeRect(ColorQuad *quad) {
     PolyF4 *poly;
     u32 *tpage;
     s32 fadedIn;
@@ -3119,7 +3125,7 @@ s32 func_801E651C(ColorQuad *quad) {
     return -1;
 }
 
-ScrollTex *func_801E66D0(Rect16 *rect, s32 depth, s32 mode, s16 speed) {
+ScrollTex *SUG_createScrollTexture(Rect16 *rect, s32 depth, s32 mode, s16 speed) {
     ScrollTex *tex;
 
     tex = allocTaskHeapBlock(sizeof(ScrollTex));
@@ -3136,7 +3142,7 @@ ScrollTex *func_801E66D0(Rect16 *rect, s32 depth, s32 mode, s16 speed) {
     return tex;
 }
 
-void func_801E6814(ScrollTex *tex) {
+void SUG_scrollTexture(ScrollTex *tex) {
     Rect16 rects[4];
 
     if (tex->speed == 0) {
@@ -3229,32 +3235,32 @@ void func_801E6814(ScrollTex *tex) {
     DrawSync(0);
 }
 
-void func_801E6AF8(void **obj) {
+void SUG_freeScrollTexture(void **obj) {
     obj[3] = (void *)freeHeapBlock(obj[3]);
     obj[2] = (void *)freeHeapBlock(obj[2]);
     freeHeapBlock(obj);
 }
 
-void func_801E6B40(void) {
+void SUG_initTamCache(void) {
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        D_801EF7A0[i].key = -1;
-        D_801EF7A0[i].data = NULL;
+        SUG_TAM_CACHE[i].key = -1;
+        SUG_TAM_CACHE[i].data = NULL;
     }
 }
 
-void *func_801E6B84(s32 key, s32 *path, s32 sub, Chunk *pak) {
+void *SUG_loadTamFile(s32 key, s32 *path, s32 sub, Chunk *pak) {
     void *data;
     s32 free;
     s32 i;
 
     free = -1;
     for (i = 0; i < 8; i++) {
-        if (D_801EF7A0[i].key == key) {
-            return D_801EF7A0[i].data;
+        if (SUG_TAM_CACHE[i].key == key) {
+            return SUG_TAM_CACHE[i].data;
         }
-        if (free < 0 && D_801EF7A0[i].key < 0) {
+        if (free < 0 && SUG_TAM_CACHE[i].key < 0) {
             free = i;
         }
     }
@@ -3263,8 +3269,8 @@ void *func_801E6B84(s32 key, s32 *path, s32 sub, Chunk *pak) {
         if (data == NULL) {
             data = (void *)loadFileTagged(path, getCurrentTaskId(), 0x82);
             if (data != NULL) {
-                D_801EF7A0[free].key = key;
-                D_801EF7A0[free].data = data;
+                SUG_TAM_CACHE[free].key = key;
+                SUG_TAM_CACHE[free].data = data;
             }
         }
         return data;
@@ -3272,7 +3278,7 @@ void *func_801E6B84(s32 key, s32 *path, s32 sub, Chunk *pak) {
     return NULL;
 }
 
-const Rect16 D_801DDF50 = { 0x30, 0x70, 0x10, 0x10 };
+const Rect16 SUG_MODEL_CLUT_RECT = { 0x30, 0x70, 0x10, 0x10 };
 
 typedef struct {
     u8 unk0[0x1A4];
@@ -3282,7 +3288,7 @@ typedef struct {
     u8 type;
 } Unk801E6C78;
 
-s32 func_801E6C78(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
+s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
     Rect16 *uv;
     s32 slot;
     u8 y;
@@ -3355,7 +3361,7 @@ s32 func_801E6C78(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         ((Image *)arg3)->rect.x = (slot & 0xF) << 6;
         ((Image *)arg3)->rect.y = ((slot >> 4) << 8) + y;
         if (id >= 4) {
-            ((Image *)arg3)->header = func_801E6B84(id, (s32 *)path, sub, (Chunk *)pak);
+            ((Image *)arg3)->header = SUG_loadTamFile(id, (s32 *)path, sub, (Chunk *)pak);
             if (((Image *)arg3)->header == NULL) {
                 return 0;
             }
@@ -3380,23 +3386,23 @@ s32 func_801E6C78(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
     return 0;
 }
 
-void func_801E7020(u8 *arg) {
+void SUG_tickTexAnim(u8 *arg) {
     Image *image = (Image *)arg;
     Rect16 rect;
 
     image->timer++;
     switch (image->type) {
     case 0:
-        func_801E7304(image);
+        SUG_scrollTexAnimLeft(image);
         return;
     case 1:
-        func_801E73C0(image);
+        SUG_scrollTexAnimRight(image);
         return;
     case 2:
-        func_801E7480(image);
+        SUG_scrollTexAnimUp(image);
         return;
     case 3:
-        func_801E7598(image);
+        SUG_scrollTexAnimDown(image);
         return;
     }
     if (image->timer < image->frames[image->frame].duration) {
@@ -3423,19 +3429,19 @@ void func_801E7020(u8 *arg) {
     }
 }
 
-void func_801E723C(void) {
+void SUG_freeTamCache(void) {
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        if (D_801EF7A0[i].key != -1) {
-            freeHeapBlock(D_801EF7A0[i].data);
-            D_801EF7A0[i].key = -1;
-            D_801EF7A0[i].data = NULL;
+        if (SUG_TAM_CACHE[i].key != -1) {
+            freeHeapBlock(SUG_TAM_CACHE[i].data);
+            SUG_TAM_CACHE[i].key = -1;
+            SUG_TAM_CACHE[i].data = NULL;
         }
     }
 }
 
-void func_801E72D4(u8 *obj) {
+void SUG_freeTexAnim(u8 *obj) {
     void *ptr = *(void **)(obj + 0x1C);
 
     if (ptr != NULL) {
@@ -3443,7 +3449,7 @@ void func_801E72D4(u8 *obj) {
     }
 }
 
-void func_801E7304(Image *image) {
+void SUG_scrollTexAnimLeft(Image *image) {
     Image *self;
     u8 *row;
     u8 *p;
@@ -3466,7 +3472,7 @@ void func_801E7304(Image *image) {
     DrawSync(0);
 }
 
-void func_801E73C0(Image *image) {
+void SUG_scrollTexAnimRight(Image *image) {
     Image *self;
     u8 *row;
     u8 *p;
@@ -3490,7 +3496,7 @@ void func_801E73C0(Image *image) {
     DrawSync(0);
 }
 
-void func_801E7480(Image *image) {
+void SUG_scrollTexAnimUp(Image *image) {
     Rect16 top;
     Rect16 bottom;
     s32 shift;
@@ -3511,7 +3517,7 @@ void func_801E7480(Image *image) {
     }
 }
 
-void func_801E7598(Image *image) {
+void SUG_scrollTexAnimDown(Image *image) {
     Rect16 top;
     Rect16 bottom;
     s32 shift;
@@ -3532,7 +3538,7 @@ void func_801E7598(Image *image) {
     }
 }
 
-LightMotion *func_801E76A8(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration) {
+LightMotion *SUG_createLightMotion(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration) {
     LightMotion *motion;
 
     motion = allocTaskHeapBlock(sizeof(LightMotion));
@@ -3554,7 +3560,7 @@ LightMotion *func_801E76A8(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *co
     return motion;
 }
 
-void func_801E7880(LightMotion *motion) {
+void SUG_tickLightMotion(LightMotion *motion) {
     s32 t;
 
     if (motion->frame < motion->duration) {
@@ -3566,19 +3572,19 @@ void func_801E7880(LightMotion *motion) {
         SCENE_LIGHT_COLORS.m[1][motion->light] = motion->color.vy + t * motion->colorStep.vy;
         SCENE_LIGHT_COLORS.m[2][motion->light] = motion->color.vz + t * motion->colorStep.vz;
         if (++motion->frame == motion->duration) {
-            SCENE_LIGHT_MATRIX = D_801EF25C;
-            SCENE_LIGHT_COLORS = D_801EF27C;
+            SCENE_LIGHT_MATRIX = SUG_DEFAULT_LIGHT_MATRIX;
+            SCENE_LIGHT_COLORS = SUG_DEFAULT_LIGHT_COLORS;
         }
     }
 }
 
-void func_801E7AF4(void *obj) {
-    SCENE_LIGHT_MATRIX = D_801EF25C;
-    SCENE_LIGHT_COLORS = D_801EF27C;
+void SUG_freeLightMotion(void *obj) {
+    SCENE_LIGHT_MATRIX = SUG_DEFAULT_LIGHT_MATRIX;
+    SCENE_LIGHT_COLORS = SUG_DEFAULT_LIGHT_COLORS;
     freeHeapBlock(obj);
 }
 
-void func_801E7BEC(Unk801E7BEC *cmd, Unk801E7BEC_Dst *dst) {
+void SUG_getEffectOtz(Unk801E7BEC *cmd, Unk801E7BEC_Dst *dst) {
     switch (cmd->kind) {
     case 10:
         dst->value = *(s32 *)(cmd->source + 0x1B4);
@@ -3598,7 +3604,7 @@ void func_801E7BEC(Unk801E7BEC *cmd, Unk801E7BEC_Dst *dst) {
     }
 }
 
-void func_801E7C94(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
+void SUG_setEffectOtz(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
     switch (cmd->kind) {
     case 10:
         *(s32 *)(cmd->target + 0x1B4) = src->value.w;
@@ -3618,14 +3624,14 @@ void func_801E7C94(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
     }
 }
 
-void func_801E908C(EffectInit *fx, EffectCommand *cmd, s32 live);
+void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live);
 typedef struct Xform {
     u8 unk0[0x48];
     struct Xform *parent;
 } Xform;
 void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
 
-void func_801E7D28(Slots *slots, s32 id, EffectCommand *cmd) {
+void SUG_detachEffectToWorld(Slots *slots, s32 id, EffectCommand *cmd) {
     SVECTOR v;
     SVECTOR unused;
     VECTOR out;
@@ -3643,7 +3649,7 @@ void func_801E7D28(Slots *slots, s32 id, EffectCommand *cmd) {
     memset(&unused, 0, sizeof(unused));
     model = SCENE_3D->models[slots->modelSlots[cmd->source]];
     coord = model->coord;
-    func_801E908C((EffectInit *)slots->slots[id].value, cmd, 1);
+    SUG_getEffectParams((EffectInit *)slots->slots[id].value, cmd, 1);
     PushMatrix();
     if (cmd->source >= 0) {
         SCENE_3D->root.flg = model->root.flg = 0;
@@ -3693,11 +3699,11 @@ void func_801E7D28(Slots *slots, s32 id, EffectCommand *cmd) {
     cmd->pos2[2] = out.vz;
     PopMatrix();
     cmd->target = -1;
-    func_801E9494((EffectTemplate *)slots->slots[id].value, cmd, slots);
+    SUG_initEffectFromParams((EffectTemplate *)slots->slots[id].value, cmd, slots);
     initEffectObject((void *)slots->slots[id].value);
 }
 
-void func_801E8168(Unk801E8168 *obj, s32 dy, Chunk *pak) {
+void SUG_uploadEffectTim(Unk801E8168 *obj, s32 dy, Chunk *pak) {
     char path[32];
     u32 *tim;
     s32 loaded = 0;
@@ -3718,7 +3724,7 @@ void func_801E8168(Unk801E8168 *obj, s32 dy, Chunk *pak) {
     }
 }
 
-void func_801E826C(s32 id, Chunk *pak) {
+void SUG_uploadTimFile(s32 id, Chunk *pak) {
     char path[32];
     u32 *tims;
     s32 loaded = 0;
@@ -3738,7 +3744,7 @@ void func_801E826C(s32 id, Chunk *pak) {
     }
 }
 
-s32 func_801E8304(s32 id) {
+s32 SUG_loadEffectPak(s32 id) {
     char path[32];
     s32 file;
 
@@ -3750,7 +3756,7 @@ s32 func_801E8304(s32 id) {
     return 0;
 }
 
-void func_801E8358(void) {
+void SUG_initEffectRoot(void) {
     CameraEffect fx;
 
     fx.unkD4[0] = 100;
@@ -3782,11 +3788,11 @@ void func_801E8358(void) {
     fx.unk12C = 0x80;
     fx.parent = SCENE_3D->unk78;
     fx.unk12E = 0;
-    D_801EF808 = fx;
-    initEffectObject(&D_801EF808);
+    SUG_EFFECT_ROOT = fx;
+    initEffectObject(&SUG_EFFECT_ROOT);
 }
 
-void func_801E8470(Runner *obj) {
+void SUG_initEffectSlots(Runner *obj) {
     s32 i;
 
     obj->slots = allocTaskHeapBlock(sizeof(Slots));
@@ -3800,9 +3806,9 @@ void func_801E8470(Runner *obj) {
     obj->slots->unk508 = 0;
 }
 
-extern void (*D_801EF2A4[])(u8 *value);
+extern void (*SUG_EFFECT_TICK_FUNCS[])(u8 *value);
 
-s32 func_801E8500(Runner *runner) {
+s32 SUG_tickEffectScript(Runner *runner) {
     Slots *slots;
     void (*fn)(u8 *);
     s32 i;
@@ -3810,14 +3816,14 @@ s32 func_801E8500(Runner *runner) {
     slots = runner->slots;
     i = 0;
     PushMatrix();
-    tickEffectMotion((s32)&D_801EF808, 0);
+    tickEffectMotion((s32)&SUG_EFFECT_ROOT, 0);
     updateTransformMatrix(slots->xform, 0);
     PopMatrix();
     runner->regs[0] = 1;
-    func_801E8678(runner);
+    SUG_runEffectScript(runner);
     for (; i < 150; i++) {
         if (slots->slots[i].active != 0) {
-            fn = D_801EF2A4[slots->slots[i].id];
+            fn = SUG_EFFECT_TICK_FUNCS[slots->slots[i].id];
             if (fn != NULL) {
                 fn((u8 *)slots->slots[i].value);
                 if (slots->slots[i].id >= 10) {
@@ -3830,8 +3836,8 @@ s32 func_801E8500(Runner *runner) {
     return runner->regs[0];
 }
 
-void func_801E864C(void *obj) {
-    func_801EA174(obj);
+void SUG_freeEffectSlots(void *obj) {
+    SUG_freeEffectEntries(obj);
     freeHeapBlock(obj);
 }
 
@@ -3841,12 +3847,12 @@ typedef struct {
     AnimChan ch[3][3];
 } BoneChannels;
 /* takes a third argument, but this caller does not set it */
-void func_801E92B0();
-void func_801E9448(void *xform, u8 *obj);
-void func_801EA0E0(s32 index, s32 kind, s32 arg, Slots *slots);
-void func_801EAAAC(u8 *obj, s32 clearColor);
+void SUG_setEffectParams();
+void SUG_getEffectWorldPos(void *xform, u8 *obj);
+void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, Slots *slots);
+void SUG_startScreenCopyEffect(u8 *obj, s32 clearColor);
 
-void func_801E8678(Runner *runner) {
+void SUG_runEffectScript(Runner *runner) {
     Slots *slots;
     s32 *regs;
     s32 result;
@@ -3872,18 +3878,18 @@ void func_801E8678(Runner *runner) {
             case 10:
                 switch (((Script *)runner->context)->eventArg) {
                 case 0:
-                    func_801E908C((EffectInit *)&D_801EF808, (EffectCommand *)regs, 0);
+                    SUG_getEffectParams((EffectInit *)&SUG_EFFECT_ROOT, (EffectCommand *)regs, 0);
                     break;
                 case 1:
-                    func_801E92B0(&D_801EF808, regs);
-                    restartEffectMotion((u8 *)&D_801EF808);
+                    SUG_setEffectParams(&SUG_EFFECT_ROOT, regs);
+                    restartEffectMotion((u8 *)&SUG_EFFECT_ROOT);
                     break;
                 case 2:
-                    SCREEN_COPY_EFFECT.abr = D_801EF29C = 0;
+                    SCREEN_COPY_EFFECT.abr = SUG_SCREEN_FX_PHASE = 0;
                     SCREEN_COPY_EFFECT.mode = 1;
                     break;
                 case 3:
-                    D_801EF29C = SCREEN_COPY_EFFECT.abr = SCREEN_COPY_EFFECT.x = SCREEN_COPY_EFFECT.y = SCREEN_COPY_EFFECT.mode = 0;
+                    SUG_SCREEN_FX_PHASE = SCREEN_COPY_EFFECT.abr = SCREEN_COPY_EFFECT.x = SCREEN_COPY_EFFECT.y = SCREEN_COPY_EFFECT.mode = 0;
                     SCREEN_COPY_EFFECT.r = 0xA8;
                     SCREEN_COPY_EFFECT.g = 0xA8;
                     SCREEN_COPY_EFFECT.b = 0xA8;
@@ -3895,7 +3901,7 @@ void func_801E8678(Runner *runner) {
                     D_800795A8 = 1;
                     break;
                 case 6:
-                    func_801E8168((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->unk508);
+                    SUG_uploadEffectTim((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->unk508);
                     break;
                 case 7:
                     pauseModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
@@ -3908,7 +3914,7 @@ void func_801E8678(Runner *runner) {
                                                                           ((EffectCommand *)regs)->pos2[2] - ((EffectCommand *)regs)->pos[2]);
                     break;
                 case 10:
-                    func_801EAAAC((u8 *)regs, 0);
+                    SUG_startScreenCopyEffect((u8 *)regs, 0);
                     break;
                 }
                 break;
@@ -3916,7 +3922,7 @@ void func_801E8678(Runner *runner) {
                 switch (((Script *)runner->context)->eventArg) {
                 case 0:
                     if ((s16)((Script *)runner->context)->params[0] >= 0) {
-                        func_801E826C((s16)((Script *)runner->context)->params[0], (Chunk *)slots->unk508);
+                        SUG_uploadTimFile((s16)((Script *)runner->context)->params[0], (Chunk *)slots->unk508);
                     }
                     break;
                 case 1:
@@ -3924,7 +3930,7 @@ void func_801E8678(Runner *runner) {
                     break;
                 case 2:
                     anim = (s16)((Script *)runner->context)->params[0];
-                    if (anim == 4 && D_801EF9A4[slots->modelSlots[((EffectCommand *)regs)->source]] <= 0) {
+                    if (anim == 4 && SUG_TARGET_HP[slots->modelSlots[((EffectCommand *)regs)->source]] <= 0) {
                         anim = 5;
                     }
                     playModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source], anim);
@@ -3933,13 +3939,13 @@ void func_801E8678(Runner *runner) {
                     playSoundEffect((s16)((Script *)runner->context)->params[0]);
                     break;
                 case 5:
-                    func_801E7BEC((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
-                    func_801E908C((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 0);
+                    SUG_getEffectOtz((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
+                    SUG_getEffectParams((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 0);
                     break;
                 case 6:
-                    func_801E9494((EffectTemplate *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, slots);
+                    SUG_initEffectFromParams((EffectTemplate *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, slots);
                     initEffectObject((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value);
-                    func_801E7C94((Unk801E7C94 *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7C94_Src *)regs);
+                    SUG_setEffectOtz((Unk801E7C94 *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7C94_Src *)regs);
                     break;
                 case 7:
                     stopSoundVoice(((Script *)runner->context)->params[0]);
@@ -3962,7 +3968,7 @@ void func_801E8678(Runner *runner) {
                     runner->unk10 = (s16)((Script *)runner->context)->params[0] - 1;
                     return;
                 case 13:
-                    func_801E9448((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (u8 *)regs);
+                    SUG_getEffectWorldPos((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (u8 *)regs);
                     break;
                 case 14:
                     switch ((s16)((Script *)runner->context)->params[0]) {
@@ -4002,30 +4008,30 @@ void func_801E8678(Runner *runner) {
                     }
                     break;
                 case 15:
-                    func_801E7BEC((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
-                    func_801E908C((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 1);
+                    SUG_getEffectOtz((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
+                    SUG_getEffectParams((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 1);
                     break;
                 case 16:
-                    slots->unk508 = func_801E8304((s16)((Script *)runner->context)->params[0]);
+                    slots->unk508 = SUG_loadEffectPak((s16)((Script *)runner->context)->params[0]);
                     break;
                 case 17:
-                    func_801E7D28(slots, (s16)((Script *)runner->context)->params[0], (EffectCommand *)regs);
+                    SUG_detachEffectToWorld(slots, (s16)((Script *)runner->context)->params[0], (EffectCommand *)regs);
                     break;
                 case 18:
-                    func_801EAAAC((u8 *)regs, regs[30]);
+                    SUG_startScreenCopyEffect((u8 *)regs, regs[30]);
                     if ((SCREEN_COPY_EFFECT.mode = ((Script *)runner->context)->params[0]) >= 2) {
                         SCREEN_COPY_EFFECT.abr = regs[30];
                     }
                     break;
                 case 19:
-                    func_801E40F0(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
+                    SUG_shadeModelClut(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
                     break;
                 }
                 break;
             case 12:
                 switch (((Script *)runner->context)->eventArg) {
                 case 0:
-                    func_801EA0E0((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1], (s32)regs, slots);
+                    SUG_createEffectEntry((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1], (s32)regs, slots);
                     break;
                 case 5:
                     ((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value)->unk12E = ((Script *)runner->context)->params[1];
@@ -4048,7 +4054,7 @@ void func_801E8678(Runner *runner) {
                 if (((Script *)runner->context)->eventArg == 0) {
                     tpage = (s16)((Script *)runner->context)->params[1];
                     vramY = ((tpage & 0x10) << 4) + ((s16)((Script *)runner->context)->params[2] << 7);
-                    func_801EBBFC((s16)((Script *)runner->context)->params[0], (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
+                    SUG_loadSprite((s16)((Script *)runner->context)->params[0], (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
                                   slots->unk508);
                 }
                 break;
@@ -4058,7 +4064,7 @@ void func_801E8678(Runner *runner) {
     } while (result != 0);
 }
 
-void func_801E908C(EffectInit *fx, EffectCommand *cmd, s32 live) {
+void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live) {
     if (live == 0) {
         cmd->pos[0] = fx->pos[0];
         cmd->pos[1] = fx->pos[1];
@@ -4109,7 +4115,7 @@ void func_801E908C(EffectInit *fx, EffectCommand *cmd, s32 live) {
     cmd->target = fx->unk13A;
 }
 
-void func_801E92B0(EffectInit *fx, EffectCommand *cmd, void *ctx) {
+void SUG_setEffectParams(EffectInit *fx, EffectCommand *cmd, void *ctx) {
     fx->pos[0] = cmd->pos[0];
     fx->pos[1] = cmd->pos[1];
     fx->pos[2] = cmd->pos[2];
@@ -4146,7 +4152,7 @@ void func_801E92B0(EffectInit *fx, EffectCommand *cmd, void *ctx) {
     fx->unk12E = cmd->unk6D4;
 }
 
-void func_801E9448(void *xform, u8 *obj) {
+void SUG_getEffectWorldPos(void *xform, u8 *obj) {
     SVECTOR pos;
 
     getTransformWorldPos(xform, &pos);
@@ -4155,8 +4161,8 @@ void func_801E9448(void *xform, u8 *obj) {
     *(s32 *)(obj + 0x664) = pos.vz;
 }
 
-void func_801E9494(EffectTemplate *template, EffectCommand *cmd, Slots *ctx) {
-    func_801E92B0((EffectInit *)template, cmd, ctx);
+void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Slots *ctx) {
+    SUG_setEffectParams((EffectInit *)template, cmd, ctx);
     ((u8 *)template)[0x13B] = cmd->source;
     ((u8 *)template)[0x13A] = cmd->target;
     if (cmd->target < 0) {
@@ -4172,7 +4178,7 @@ void func_801E9494(EffectTemplate *template, EffectCommand *cmd, Slots *ctx) {
     }
 }
 
-void func_801E9598(u8 *obj) {
+void SUG_createFadeRectFromParams(u8 *obj) {
     Rect16 rect;
     Color from;
     Color to;
@@ -4187,20 +4193,20 @@ void func_801E9598(u8 *obj) {
     to.r = *(s32 *)(obj + 0xB0);
     to.g = *(s32 *)(obj + 0xB4);
     to.b = *(s32 *)(obj + 0xB8);
-    func_801E6424(&rect, &from, &to, *(s32 *)(obj + 0x78), *(s32 *)(obj + 0x80), *(s32 *)(obj + 0x120));
+    SUG_createFadeRect(&rect, &from, &to, *(s32 *)(obj + 0x78), *(s32 *)(obj + 0x80), *(s32 *)(obj + 0x120));
 }
 
-void func_801E9654(u8 *a, u8 *b) {
+void SUG_createScrollTextureFromParams(u8 *a, u8 *b) {
     Rect16 rect;
 
     rect.x = *(s32 *)(a + 0x150);
     rect.y = *(s32 *)(a + 0x154) + *(s32 *)(b + 0x4B0) * 256;
     rect.w = *(s32 *)(a + 0x158);
     rect.h = *(s32 *)(a + 0x15C);
-    func_801E66D0(&rect, *(s32 *)(a + 0x70), *(s32 *)(a + 0x120), *(s16 *)(a + 0x80));
+    SUG_createScrollTexture(&rect, *(s32 *)(a + 0x70), *(s32 *)(a + 0x120), *(s16 *)(a + 0x80));
 }
 
-void func_801E96C4(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createSphereFromParams(SpriteCommand *cmd, Slots *ctx) {
     u8 color[3];
     Rect16 uv;
     EffectTemplate template;
@@ -4210,7 +4216,7 @@ void func_801E96C4(SpriteCommand *cmd, Slots *ctx) {
     s16 u;
     s32 v;
 
-    func_801E9494(&template, (EffectCommand *)cmd, ctx);
+    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
     color[0] = cmd->r;
     color[1] = cmd->g;
     color[2] = cmd->b;
@@ -4231,12 +4237,12 @@ void func_801E96C4(SpriteCommand *cmd, Slots *ctx) {
     uv.w = cmd->texW;
     uv.h = cmd->texH;
     tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
-    func_801DE6E4(cmd->unkEC, color, cmd->unk68, cmd->unk6C, &template, cmd->unk64, cmd->unk60, cmd->unkF8, cmd->unk74, cmd->abr,
+    SUG_createSphereEffect(cmd->unkEC, color, cmd->unk68, cmd->unk6C, &template, cmd->unk64, cmd->unk60, cmd->unkF8, cmd->unk74, cmd->abr,
                   cmd->unk12C, cmd->unk5C, cmd->unk130, &uv, tpage, func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
                   cmd->unk138, cmd->unk13C, ctx->unk508);
 }
 
-void func_801E9890(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createTrailFromParams(SpriteCommand *cmd, Slots *ctx) {
     Bytes4 c0;
     Bytes4 c1;
     Bytes4 c2;
@@ -4249,7 +4255,7 @@ void func_801E9890(SpriteCommand *cmd, Slots *ctx) {
     s16 u;
     s32 v;
 
-    func_801E9494(&template, (EffectCommand *)cmd, ctx);
+    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
     c0.b[0] = cmd->r;
     c0.b[1] = cmd->g;
     c0.b[2] = cmd->b;
@@ -4279,12 +4285,12 @@ void func_801E9890(SpriteCommand *cmd, Slots *ctx) {
     uv.w = cmd->texW;
     uv.h = cmd->texH;
     tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
-    func_801E43C4(cmd->unkEC, &c0, &c1, &c2, &c3, &template, cmd->unk168, cmd->unk16C, cmd->unk5C, cmd->unk118, cmd->unk120,
+    SUG_createTrailEffect(cmd->unkEC, &c0, &c1, &c2, &c3, &template, cmd->unk168, cmd->unk16C, cmd->unk5C, cmd->unk118, cmd->unk120,
                   cmd->unk6C, cmd->unk74, cmd->abr, cmd->unk12C, cmd->unk130, &uv, tpage,
                   func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk13C, ctx->unk508);
 }
 
-void func_801E9ADC(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createRingFromParams(SpriteCommand *cmd, Slots *ctx) {
     Bytes4 inner;
     Bytes4 mid;
     Bytes4 outer;
@@ -4296,7 +4302,7 @@ void func_801E9ADC(SpriteCommand *cmd, Slots *ctx) {
     s16 u;
     s32 v;
 
-    func_801E9494(&template, (EffectCommand *)cmd, ctx);
+    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
     inner.b[0] = cmd->r;
     inner.b[1] = cmd->g;
     inner.b[2] = cmd->b;
@@ -4329,29 +4335,29 @@ void func_801E9ADC(SpriteCommand *cmd, Slots *ctx) {
                      ctx->unk508);
 }
 
-EffectTemplate *func_801E9D14(EffectCommand *cmd, Slots *ctx) {
+EffectTemplate *SUG_createEffectObjectFromParams(EffectCommand *cmd, Slots *ctx) {
     EffectTemplate template;
 
-    func_801E9494(&template, cmd, ctx);
+    SUG_initEffectFromParams(&template, cmd, ctx);
     return cloneEffectObject(&template);
 }
 
-void func_801E9D48(u8 *obj, u8 *b) {
+void SUG_createModelEffectFromParams(u8 *obj, u8 *b) {
     EffectTemplate buf;
     EffectTemplate *template;
     Entry16 *entry;
 
     template = &buf;
-    func_801E9494(template, (EffectCommand *)obj, (Slots *)b);
+    SUG_initEffectFromParams(template, (EffectCommand *)obj, (Slots *)b);
     entry = *(Entry16 **)(obj + 0x6F0);
     if (entry != NULL) {
         entry += *(s32 *)(b + 0x4B0);
     }
-    func_801E38A0(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x6EC), *(s32 *)(obj + 0x6F4), (s32)entry,
+    SUG_createModelEffect(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x6EC), *(s32 *)(obj + 0x6F4), (s32)entry,
                   *(s32 *)(obj + 0x128), *(s32 *)(obj + 0x72C), *(s32 *)(b + 0x508), *(s32 *)(b + 0x4B8));
 }
 
-void func_801E9E04(u8 *obj, u8 *b) {
+void SUG_createSpriteEffectFromParams(u8 *obj, u8 *b) {
     EffectTemplate buf;
     EffectTemplate *template;
     SVECTOR unused;
@@ -4359,13 +4365,13 @@ void func_801E9E04(u8 *obj, u8 *b) {
     template = NULL;
     if (*(s32 *)(obj + 0x6F0) != 0) {
         template = &buf;
-        func_801E9494(template, (EffectCommand *)obj, (Slots *)b);
+        SUG_initEffectFromParams(template, (EffectCommand *)obj, (Slots *)b);
     }
-    func_801E41AC(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x71C), *(s32 *)(obj + 0x720),
+    SUG_createSpriteEffect(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x71C), *(s32 *)(obj + 0x720),
                   *(s32 *)(obj + 0x724), *(s32 *)(obj + 0x728), *(s32 *)(obj + 0x13C), *(s32 *)(b + 0x508));
 }
 
-void func_801E9EAC(StreakCommand *cmd, void *ctx) {
+void SUG_createStreaksFromParams(StreakCommand *cmd, void *ctx) {
     EffectTemplate template;
     u8 from[3];
     u8 to[3];
@@ -4376,12 +4382,12 @@ void func_801E9EAC(StreakCommand *cmd, void *ctx) {
     to[0] = cmd->toR;
     to[1] = cmd->toG;
     to[2] = cmd->toB;
-    func_801E9494(&template, (EffectCommand *)cmd, ctx);
+    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
     createStreakParticles(from, to, &template, cmd->spreadX, cmd->spreadY, cmd->length, cmd->endLength, cmd->frames, cmd->speedRange,
                           cmd->reverse, cmd->count, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semi, cmd->flags, cmd->fixedOtz);
 }
 
-void func_801E9FE0(Unk801E9FE0 *obj) {
+void SUG_createLightMotionFromParams(Unk801E9FE0 *obj) {
     VECTOR a;
     VECTOR b;
     VECTOR c;
@@ -4399,20 +4405,20 @@ void func_801E9FE0(Unk801E9FE0 *obj) {
     d.vx = obj->unk6AC[0];
     d.vy = obj->unk6AC[1];
     d.vz = obj->unk6AC[2];
-    func_801E76A8(&a, &b, &c, &d, obj->unk67C, obj->unk680, obj->unk684);
+    SUG_createLightMotion(&a, &b, &c, &d, obj->unk67C, obj->unk680, obj->unk684);
 }
 
-void func_801EA0C0(void *ptr) {
+void SUG_freeFadeRect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-extern s32 (*D_801EF2EC[])(s32 arg, Slots *slots);
+extern s32 (*SUG_EFFECT_CREATE_FUNCS[])(s32 arg, Slots *slots);
 
-void func_801EA0E0(s32 index, s32 kind, s32 arg, Slots *slots) {
-    if (D_801EF2EC[kind] != NULL) {
+void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, Slots *slots) {
+    if (SUG_EFFECT_CREATE_FUNCS[kind] != NULL) {
         slots->slots[index].id = kind;
         slots->slots[index].active = 0;
-        slots->slots[index].value = D_801EF2EC[kind](arg, slots);
+        slots->slots[index].value = SUG_EFFECT_CREATE_FUNCS[kind](arg, slots);
         slots->count++;
         if ((slots->count & 0xF) == 0) {
             func_80014C08(FRAME_INTERVAL);
@@ -4420,9 +4426,9 @@ void func_801EA0E0(s32 index, s32 kind, s32 arg, Slots *slots) {
     }
 }
 
-extern void (*D_801EF334[])(s32 value);
+extern void (*SUG_EFFECT_FREE_FUNCS[])(s32 value);
 
-void func_801EA174(Slots *slots) {
+void SUG_freeEffectEntries(Slots *slots) {
     void (*fn)(s32);
     s32 i;
 
@@ -4434,7 +4440,7 @@ void func_801EA174(Slots *slots) {
     func_80014C08(FRAME_INTERVAL);
     for (i = 0; i < 150; i++) {
         if (slots->slots[i].id != -1) {
-            fn = D_801EF334[slots->slots[i].id];
+            fn = SUG_EFFECT_FREE_FUNCS[slots->slots[i].id];
             if (fn != NULL) {
                 fn(slots->slots[i].value);
             }
@@ -4442,14 +4448,14 @@ void func_801EA174(Slots *slots) {
     }
 }
 
-Runner *func_801EA258(void *script, s32 side, s32 a2, s32 *state) {
+Runner *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state) {
     Runner *runner;
 
     runner = allocTaskHeapBlock(sizeof(Runner));
     runner->script = script;
     runner->context = createScriptContext(script);
     runner->regs = allocScriptRegisters(0x1CC);
-    func_801E8470(runner);
+    SUG_initEffectSlots(runner);
     runner->slots->modelSlots[0] = side;
     runner->slots->modelSlots[1] = side ^ 1;
     runner->slots->modelSlots[2] = a2;
@@ -4464,12 +4470,12 @@ Runner *func_801EA258(void *script, s32 side, s32 a2, s32 *state) {
         initTransform(runner->slots->xform, (s32)SCENE_3D->unk78, 0, 0, 0, 0, 0, 0);
         break;
     }
-    func_801E8678(runner);
+    SUG_runEffectScript(runner);
     return runner;
 }
 
-void func_801EA3AC(Runner *runner) {
-    func_801E864C(runner->slots);
+void SUG_freeEffectScript(Runner *runner) {
+    SUG_freeEffectSlots(runner->slots);
     freeScriptContext(runner->context, runner->regs);
     if ((void *)runner->slots->unk508 != NULL) {
         freeHeapBlock((void *)runner->slots->unk508);
@@ -4477,7 +4483,7 @@ void func_801EA3AC(Runner *runner) {
     freeHeapBlock(runner);
 }
 
-s32 func_801EA410(Runner *runner, s32 *state) {
+s32 SUG_pauseEffectScript(Runner *runner, s32 *state) {
     if (*state != 3) {
         *state = 1;
         truncatePakTextures((Chunk *)runner->slots->unk508);
@@ -4487,7 +4493,7 @@ s32 func_801EA410(Runner *runner, s32 *state) {
     }
 }
 
-void func_801EA48C(void *script, s32 slot, s32 a2, s32 *state) {
+void SUG_runEffectScriptTask(void *script, s32 slot, s32 a2, s32 *state) {
     Runner *obj;
     s32 prev;
     s32 running;
@@ -4495,138 +4501,138 @@ void func_801EA48C(void *script, s32 slot, s32 a2, s32 *state) {
     /* the extra block is needed for the register allocation to match */
     do {
         prev = *state;
-        obj = func_801EA258(script, slot, a2, state);
+        obj = SUG_createEffectScript(script, slot, a2, state);
         running = *obj->regs;
         do {
             func_80014C08(FRAME_INTERVAL);
             if (*state == 3) {
                 break;
             }
-            if (running < 0 && *state < 0 && func_801EA410(obj, state) == 3) {
+            if (running < 0 && *state < 0 && SUG_pauseEffectScript(obj, state) == 3) {
                 break;
             }
-            running = func_801E8500(obj);
-            func_801EAB5C();
+            running = SUG_tickEffectScript(obj);
+            SUG_tickScreenCopyEffect();
         } while (running != 0);
         if (prev == -2) {
             pauseModelAnimation(slot);
         }
     } while (0);
     *state = 0;
-    func_801EA3AC(obj);
+    SUG_freeEffectScript(obj);
 }
 
 /* old-style definition: one caller passes no argument */
-void func_801EA574(frame)
+void SUG_moveScreenCopy(frame)
     s32 frame;
 {
     s32 radius;
 
-    switch (D_801EF7FC) {
+    switch (SUG_SCREEN_FX_MOTION) {
     case 0:
-        SCREEN_COPY_EFFECT.x = D_801EF7E0 + D_801EF7E8 * frame;
-        SCREEN_COPY_EFFECT.y = D_801EF7E4 + D_801EF7EC * frame;
+        SCREEN_COPY_EFFECT.x = SUG_SCREEN_FX_X + SUG_SCREEN_FX_STEP_X * frame;
+        SCREEN_COPY_EFFECT.y = SUG_SCREEN_FX_Y + SUG_SCREEN_FX_STEP_Y * frame;
         break;
     case 1:
-        radius = D_801EF7E0 + D_801EF7E8 * frame;
-        SCREEN_COPY_EFFECT.x = rcos(D_801EF7E4) * radius / 4096;
-        SCREEN_COPY_EFFECT.y = rsin(D_801EF7E4) * radius / 4096;
-        D_801EF7E4 = D_801EF7E4 + D_801EF7EC;
+        radius = SUG_SCREEN_FX_X + SUG_SCREEN_FX_STEP_X * frame;
+        SCREEN_COPY_EFFECT.x = rcos(SUG_SCREEN_FX_Y) * radius / 4096;
+        SCREEN_COPY_EFFECT.y = rsin(SUG_SCREEN_FX_Y) * radius / 4096;
+        SUG_SCREEN_FX_Y = SUG_SCREEN_FX_Y + SUG_SCREEN_FX_STEP_Y;
         break;
     case 2:
-        SCREEN_COPY_EFFECT.x = rand() % D_801EF7E0 - D_801EF7E0 / 2;
-        SCREEN_COPY_EFFECT.y = rand() % D_801EF7E4 - D_801EF7E4 / 2;
+        SCREEN_COPY_EFFECT.x = rand() % SUG_SCREEN_FX_X - SUG_SCREEN_FX_X / 2;
+        SCREEN_COPY_EFFECT.y = rand() % SUG_SCREEN_FX_Y - SUG_SCREEN_FX_Y / 2;
         break;
     }
 }
 
-void func_801EA7BC(u8 r, u8 g, u8 b, s32 x, s32 y) {
-    D_801EF800[0] = SCREEN_COPY_EFFECT.r;
-    D_801EF800[1] = SCREEN_COPY_EFFECT.g;
-    D_801EF800[2] = SCREEN_COPY_EFFECT.b;
-    D_801EF804[0] = (r - SCREEN_COPY_EFFECT.r) / D_801EF7F4;
-    D_801EF804[1] = (g - SCREEN_COPY_EFFECT.g) / D_801EF7F4;
-    D_801EF804[2] = (b - SCREEN_COPY_EFFECT.b) / D_801EF7F4;
-    switch (D_801EF7FC) {
+void SUG_startScreenCopyFade(u8 r, u8 g, u8 b, s32 x, s32 y) {
+    SUG_SCREEN_FX_BASE_RGB[0] = SCREEN_COPY_EFFECT.r;
+    SUG_SCREEN_FX_BASE_RGB[1] = SCREEN_COPY_EFFECT.g;
+    SUG_SCREEN_FX_BASE_RGB[2] = SCREEN_COPY_EFFECT.b;
+    SUG_SCREEN_FX_RGB_STEP[0] = (r - SCREEN_COPY_EFFECT.r) / SUG_SCREEN_FX_FADE_TIME;
+    SUG_SCREEN_FX_RGB_STEP[1] = (g - SCREEN_COPY_EFFECT.g) / SUG_SCREEN_FX_FADE_TIME;
+    SUG_SCREEN_FX_RGB_STEP[2] = (b - SCREEN_COPY_EFFECT.b) / SUG_SCREEN_FX_FADE_TIME;
+    switch (SUG_SCREEN_FX_MOTION) {
     case 0:
-        D_801EF7E8 = (float)(x - (D_801EF7E0 = SCREEN_COPY_EFFECT.x)) / D_801EF7F4;
-        D_801EF7EC = (float)(y - (D_801EF7E4 = SCREEN_COPY_EFFECT.y)) / D_801EF7F4;
+        SUG_SCREEN_FX_STEP_X = (float)(x - (SUG_SCREEN_FX_X = SCREEN_COPY_EFFECT.x)) / SUG_SCREEN_FX_FADE_TIME;
+        SUG_SCREEN_FX_STEP_Y = (float)(y - (SUG_SCREEN_FX_Y = SCREEN_COPY_EFFECT.y)) / SUG_SCREEN_FX_FADE_TIME;
         break;
     case 1:
-        D_801EF7E8 = (float)(x - (D_801EF7E0 = D_800794C0)) / D_801EF7F4;
+        SUG_SCREEN_FX_STEP_X = (float)(x - (SUG_SCREEN_FX_X = D_800794C0)) / SUG_SCREEN_FX_FADE_TIME;
         if ((x | y) != 0) {
-            D_801EF7EC = y;
+            SUG_SCREEN_FX_STEP_Y = y;
         }
         break;
     case 2:
         if ((x | y) != 0) {
-            D_801EF7E0 = x;
-            D_801EF7E4 = y;
+            SUG_SCREEN_FX_X = x;
+            SUG_SCREEN_FX_Y = y;
         }
         break;
     }
-    D_801EF7F8 = 0;
+    SUG_SCREEN_FX_FRAME = 0;
 }
 
-void func_801EA9FC(void) {
-    SCREEN_COPY_EFFECT.r = D_801EF800[0] + D_801EF804[0] * D_801EF7F8;
-    SCREEN_COPY_EFFECT.g = D_801EF800[1] + D_801EF804[1] * D_801EF7F8;
-    SCREEN_COPY_EFFECT.b = D_801EF800[2] + D_801EF804[2] * D_801EF7F8;
-    func_801EA574();
-    D_801EF7F8++;
+void SUG_stepScreenCopyFade(void) {
+    SCREEN_COPY_EFFECT.r = SUG_SCREEN_FX_BASE_RGB[0] + SUG_SCREEN_FX_RGB_STEP[0] * SUG_SCREEN_FX_FRAME;
+    SCREEN_COPY_EFFECT.g = SUG_SCREEN_FX_BASE_RGB[1] + SUG_SCREEN_FX_RGB_STEP[1] * SUG_SCREEN_FX_FRAME;
+    SCREEN_COPY_EFFECT.b = SUG_SCREEN_FX_BASE_RGB[2] + SUG_SCREEN_FX_RGB_STEP[2] * SUG_SCREEN_FX_FRAME;
+    SUG_moveScreenCopy();
+    SUG_SCREEN_FX_FRAME++;
 }
 
-void func_801EAAAC(u8 *obj, s32 clearColor) {
-    D_801EF7F8 = 0;
-    D_801EF2A0 = D_801EF7E4 = 0;
-    D_801EF7FC = *(s32 *)(obj + 0x6D4);
-    D_801EF29C = 1;
-    D_801EF7F0 = *(s32 *)(obj + 0xE4);
-    D_801EF7F4 = *(s32 *)(obj + 0x118);
+void SUG_startScreenCopyEffect(u8 *obj, s32 clearColor) {
+    SUG_SCREEN_FX_FRAME = 0;
+    SUG_SCREEN_FX_ANGLE = SUG_SCREEN_FX_Y = 0;
+    SUG_SCREEN_FX_MOTION = *(s32 *)(obj + 0x6D4);
+    SUG_SCREEN_FX_PHASE = 1;
+    SUG_SCREEN_FX_HOLD = *(s32 *)(obj + 0xE4);
+    SUG_SCREEN_FX_FADE_TIME = *(s32 *)(obj + 0x118);
     SCREEN_COPY_EFFECT.mode = 1;
     if (clearColor) {
         SCREEN_COPY_EFFECT.r = 0;
         SCREEN_COPY_EFFECT.g = 0;
         SCREEN_COPY_EFFECT.b = 0;
     }
-    func_801EA7BC(*(s32 *)(obj + 0xA4), *(s32 *)(obj + 0xA8), *(s32 *)(obj + 0xAC), *(s32 *)(obj + 0x84), *(s32 *)(obj + 0x88));
+    SUG_startScreenCopyFade(*(s32 *)(obj + 0xA4), *(s32 *)(obj + 0xA8), *(s32 *)(obj + 0xAC), *(s32 *)(obj + 0x84), *(s32 *)(obj + 0x88));
 }
 
 extern s16 D_800794E8;
 
-void func_801EAB5C(void) {
+void SUG_tickScreenCopyEffect(void) {
     if (D_800794E7 == 0) {
         return;
     }
-    switch (D_801EF29C) {
+    switch (SUG_SCREEN_FX_PHASE) {
     case 1:
-        if (D_801EF7F8 < D_801EF7F4) {
-            func_801EA9FC();
+        if (SUG_SCREEN_FX_FRAME < SUG_SCREEN_FX_FADE_TIME) {
+            SUG_stepScreenCopyFade();
             return;
         }
         if (D_800794E8 != 0) {
-            func_801EA7BC(0, 0, 0, 0, 0);
+            SUG_startScreenCopyFade(0, 0, 0, 0, 0);
         } else {
-            func_801EA7BC(0xA8, 0xA8, 0xA8, 0, 0);
+            SUG_startScreenCopyFade(0xA8, 0xA8, 0xA8, 0, 0);
         }
-        D_801EF29C++;
+        SUG_SCREEN_FX_PHASE++;
         /* fallthrough */
     case 2:
-        if (++D_801EF7F8 < D_801EF7F0) {
-            if (D_801EF7FC != 0) {
-                func_801EA574(0);
+        if (++SUG_SCREEN_FX_FRAME < SUG_SCREEN_FX_HOLD) {
+            if (SUG_SCREEN_FX_MOTION != 0) {
+                SUG_moveScreenCopy(0);
             }
             return;
         }
-        D_801EF7F8 = 0;
-        D_801EF29C++;
+        SUG_SCREEN_FX_FRAME = 0;
+        SUG_SCREEN_FX_PHASE++;
         /* fallthrough */
     case 3:
-        if (D_801EF7F8 < D_801EF7F4) {
-            func_801EA9FC();
+        if (SUG_SCREEN_FX_FRAME < SUG_SCREEN_FX_FADE_TIME) {
+            SUG_stepScreenCopyFade();
             return;
         }
-        SCREEN_COPY_EFFECT.abr = D_801EF7F8 = D_801EF29C = SCREEN_COPY_EFFECT.x = SCREEN_COPY_EFFECT.y = SCREEN_COPY_EFFECT.mode = 0;
+        SCREEN_COPY_EFFECT.abr = SUG_SCREEN_FX_FRAME = SUG_SCREEN_FX_PHASE = SCREEN_COPY_EFFECT.x = SCREEN_COPY_EFFECT.y = SCREEN_COPY_EFFECT.mode = 0;
         SCREEN_COPY_EFFECT.r = 0xA8;
         SCREEN_COPY_EFFECT.g = 0xA8;
         SCREEN_COPY_EFFECT.b = 0xA8;
@@ -4637,10 +4643,10 @@ void func_801EAB5C(void) {
 extern s16 D_800794C2;
 extern s32 D_80079548;
 
-void func_801EAD04(void) {
+void SUG_updateScreenCopyQuads(void) {
     switch (D_800794E7) {
     case 2:
-        D_801EF2A0 = 0;
+        SUG_SCREEN_FX_ANGLE = 0;
         SCREEN_COPY_EFFECT.px[0][1] = SCREEN_COPY_EFFECT.px[0][3] = SCREEN_COPY_EFFECT.px[1][0] = SCREEN_COPY_EFFECT.px[1][2] = SCREEN_COPY_EFFECT.x + 0xA0;
         if (SCREEN_COPY_EFFECT.x < 0) {
             SCREEN_COPY_EFFECT.px[0][0] = SCREEN_COPY_EFFECT.px[0][2] = SCREEN_COPY_EFFECT.x;
@@ -4665,29 +4671,29 @@ void func_801EAD04(void) {
         SCREEN_COPY_EFFECT.py[0][2] = SCREEN_COPY_EFFECT.py[0][3] = SCREEN_COPY_EFFECT.py[1][2] = SCREEN_COPY_EFFECT.py[1][3] = SCREEN_COPY_EFFECT.y + 0xF0;
         break;
     case 4:
-        SCREEN_COPY_EFFECT.px[0][1] = SCREEN_COPY_EFFECT.px[1][0] = (0 * rcos(D_801EF2A0) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.px[0][3] = SCREEN_COPY_EFFECT.px[1][2] = (0 * rcos(D_801EF2A0) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.px[0][0] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rcos(D_801EF2A0) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.px[0][2] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rcos(D_801EF2A0) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.px[1][1] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rcos(D_801EF2A0) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.px[1][3] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rcos(D_801EF2A0) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(D_801EF2A0)) / 4096 + 0xA0;
-        SCREEN_COPY_EFFECT.py[0][0] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rsin(D_801EF2A0) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        SCREEN_COPY_EFFECT.py[0][1] = SCREEN_COPY_EFFECT.py[1][0] = (0 * rsin(D_801EF2A0) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        SCREEN_COPY_EFFECT.py[1][1] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rsin(D_801EF2A0) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        SCREEN_COPY_EFFECT.py[0][2] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rsin(D_801EF2A0) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        SCREEN_COPY_EFFECT.py[0][3] = SCREEN_COPY_EFFECT.py[1][2] = (0 * rsin(D_801EF2A0) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        SCREEN_COPY_EFFECT.py[1][3] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rsin(D_801EF2A0) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(D_801EF2A0)) / 4096 + 0x78;
-        D_801EF2A0 += D_800794C2 * D_80079548;
+        SCREEN_COPY_EFFECT.px[0][1] = SCREEN_COPY_EFFECT.px[1][0] = (0 * rcos(SUG_SCREEN_FX_ANGLE) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.px[0][3] = SCREEN_COPY_EFFECT.px[1][2] = (0 * rcos(SUG_SCREEN_FX_ANGLE) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.px[0][0] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rcos(SUG_SCREEN_FX_ANGLE) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.px[0][2] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rcos(SUG_SCREEN_FX_ANGLE) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.px[1][1] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rcos(SUG_SCREEN_FX_ANGLE) - (-SCREEN_COPY_EFFECT.x - 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.px[1][3] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rcos(SUG_SCREEN_FX_ANGLE) - (SCREEN_COPY_EFFECT.x + 0x78) * rsin(SUG_SCREEN_FX_ANGLE)) / 4096 + 0xA0;
+        SCREEN_COPY_EFFECT.py[0][0] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SCREEN_COPY_EFFECT.py[0][1] = SCREEN_COPY_EFFECT.py[1][0] = (0 * rsin(SUG_SCREEN_FX_ANGLE) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SCREEN_COPY_EFFECT.py[1][1] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (-SCREEN_COPY_EFFECT.x - 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SCREEN_COPY_EFFECT.py[0][2] = ((-SCREEN_COPY_EFFECT.x - 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SCREEN_COPY_EFFECT.py[0][3] = SCREEN_COPY_EFFECT.py[1][2] = (0 * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SCREEN_COPY_EFFECT.py[1][3] = ((SCREEN_COPY_EFFECT.x + 0xA0) * rsin(SUG_SCREEN_FX_ANGLE) + (SCREEN_COPY_EFFECT.x + 0x78) * rcos(SUG_SCREEN_FX_ANGLE)) / 4096 + 0x78;
+        SUG_SCREEN_FX_ANGLE += D_800794C2 * D_80079548;
         break;
     }
 }
 
-Entry *func_801EB380(s32 key, s32 subKey) {
+Entry *SUG_findSpriteEntry(s32 key, s32 subKey) {
     Entry *entry;
     Entry *free;
     s32 i;
 
-    entry = D_801EF950;
+    entry = SUG_SPRITE_CACHE;
     free = NULL;
     for (i = 0; i < 128; i++, entry++) {
         if (key == entry->key && subKey == entry->subKey) {
@@ -4700,18 +4706,18 @@ Entry *func_801EB380(s32 key, s32 subKey) {
     return free;
 }
 
-void func_801EB3EC(void) {
+void SUG_initSpriteCache(void) {
     s32 i;
 
-    D_801EF950 = allocHeapBlock(0x600, 0x80);
+    SUG_SPRITE_CACHE = allocHeapBlock(0x600, 0x80);
     for (i = 0; i < 128; i++) {
-        D_801EF950[i].key = -1;
-        D_801EF950[i].data = NULL;
-        D_801EF950[i].subKey = 0;
+        SUG_SPRITE_CACHE[i].key = -1;
+        SUG_SPRITE_CACHE[i].data = NULL;
+        SUG_SPRITE_CACHE[i].subKey = 0;
     }
 }
 
-void func_801EB458(Sprite *sprite) {
+void SUG_initSpritePolys(Sprite *sprite) {
     SpriteSheet *sheet;
     SpriteFrame *frame;
     POLY_FT4 *poly;
@@ -4751,7 +4757,7 @@ void func_801EB458(Sprite *sprite) {
     }
 }
 
-void func_801EB5CC(Sprite *sprite, s32 frame) {
+void SUG_setSpriteFrameVerts(Sprite *sprite, s32 frame) {
     SpriteFrame *f;
     s32 xs[2];
     s32 ys[2];
@@ -4773,13 +4779,13 @@ void func_801EB5CC(Sprite *sprite, s32 frame) {
     }
 }
 
-void func_801EB458(Sprite *sprite);
+void SUG_initSpritePolys(Sprite *sprite);
 
-void func_801EB798(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey) {
-    sprite->tex = func_801EB380(key, subKey)->data;
+void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey) {
+    sprite->tex = SUG_findSpriteEntry(key, subKey)->data;
     if (sprite->tex != NULL) {
         sprite->frames = (SpriteFrame *)(sprite->tex + 0x10);
-        func_801EB458(sprite);
+        SUG_initSpritePolys(sprite);
         sprite->useOrigin = useOrigin;
         sprite->pos.vx = x;
         sprite->pos.vy = y;
@@ -4789,12 +4795,12 @@ void func_801EB798(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y
         sprite->scaleX = scaleX;
         sprite->scaleY = scaleY;
         sprite->unk81 = a7;
-        func_801EB5CC(sprite, 0);
+        SUG_setSpriteFrameVerts(sprite, 0);
         sprite->v[0].vz = sprite->v[1].vz = sprite->v[2].vz = sprite->v[3].vz = 0;
     }
 }
 
-void func_801EB874(Sprite *sprite, s16 brightness) {
+void SUG_drawSprite(Sprite *sprite, s16 brightness) {
     POLY_FT4 *poly;
     MATRIX *m;
     SpriteFrame *frame;
@@ -4818,7 +4824,7 @@ void func_801EB874(Sprite *sprite, s16 brightness) {
             }
         }
         sprite->unk83 -= frame->duration;
-        func_801EB5CC(sprite, sprite->unk82);
+        SUG_setSpriteFrameVerts(sprite, sprite->unk82);
         frame = &sprite->frames[sprite->unk82];
     }
     gte_ldv0(&sprite->pos);
@@ -4858,7 +4864,7 @@ void func_801EB874(Sprite *sprite, s16 brightness) {
     }
 }
 
-void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey) {
+void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
     char path[20];
     s32 task;
     Entry *entry;
@@ -4869,7 +4875,7 @@ void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey) {
     s32 i;
 
     task = getCurrentTaskId();
-    entry = func_801EB380(id, subKey);
+    entry = SUG_findSpriteEntry(id, subKey);
     if (entry == NULL) {
         return;
     }
@@ -4888,7 +4894,7 @@ void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey) {
     x -= 0x140;
     tims = findPakChunk((Chunk *)subKey, 5, id);
     if (tims == NULL) {
-        sprintf(path, D_801DE0B0, data);
+        sprintf(path, SUG_FMT_SPRITE_PATH, data);
         tims = (u32 *)loadFile(path, task);
         uploadTimListOffset(tims, x, y);
         freeHeapBlock(tims);
@@ -4909,32 +4915,32 @@ void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey) {
     }
 }
 
-void func_801EBE20(s32 a0, s32 a1, s32 a2) {
-    func_801EBBFC(a0, a1, a2, 0);
+void SUG_loadSpriteFile(s32 a0, s32 a1, s32 a2) {
+    SUG_loadSprite(a0, a1, a2, 0);
 }
 
-void func_801EBE40(void) {
+void SUG_freeSprites(void) {
     freeHeapBlocksByTag(0x80);
 }
 
-void func_801EBE60(s8 *obj) {
+void SUG_hideSprite(s8 *obj) {
     obj[0x82] = -1;
 }
 
-void func_801EBE6C(void) {
+void SUG_resetCameraPos(void) {
     ((Graphics *)&GRAPHICS)->posZ = 0;
     ((Graphics *)&GRAPHICS)->posX = 0;
     ((Graphics *)&GRAPHICS)->unk92 = 0;
     ((Graphics *)&GRAPHICS)->posY = -150;
 }
 
-extern s32 D_801EF380;
+extern s32 SUG_CAMERA_SPIN;
 extern s32 D_801EF384;
 extern s32 D_801EF388;
 extern u16 D_80079586;
 #define CAMERA ((Graphics *)&GRAPHICS)
 
-void func_801EBE8C(void) {
+void SUG_orbitCamera(void) {
     s32 speed;
     s32 min;
     s32 max;
@@ -4943,8 +4949,8 @@ void func_801EBE8C(void) {
     s32 angle;
 
     speed = 1;
-    func_801EBE6C();
-    CAMERA->rotY += D_801EF380 * 2;
+    SUG_resetCameraPos();
+    CAMERA->rotY += SUG_CAMERA_SPIN * 2;
     if (D_801EF384 == speed) {
         min = 0x100;
         max = 0x580;
@@ -4965,7 +4971,7 @@ void func_801EBE8C(void) {
     CAMERA->unk94 += 4 / speed * D_801EF388;
 }
 
-void func_801EBFA0(s16 *dst, s32 count, s16 value) {
+void SUG_fillShorts(s16 *dst, s32 count, s16 value) {
     s32 i;
 
     for (i = 0; i < count; i++) {
@@ -4973,7 +4979,7 @@ void func_801EBFA0(s16 *dst, s32 count, s16 value) {
     }
 }
 
-void func_801EBFD4(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count) {
+void SUG_drawHudSpriteTrail(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count) {
     float level;
     s32 i;
 
@@ -4995,19 +5001,19 @@ void func_801EBFD4(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 br
     }
 }
 
-void func_801EC160(Unk801EC160 *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
+void SUG_initHudSlide(Unk801EC160 *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
     obj->unk0 = a1;
     obj->target[0] = a2;
     obj->target[1] = a3;
     obj->flags = flags;
     if (flags & 2) {
-        func_801EBFA0(obj->unk8, 6, a1);
+        SUG_fillShorts(obj->unk8, 6, a1);
     }
     obj->unk16 = 0x80;
 }
 
 /* old-style definition: the callers pass an int, the byte is read here */
-s32 func_801EC1F4(obj, count, state, speed)
+s32 SUG_tickHudSlides(obj, count, state, speed)
     Unk801EC160 *obj;
     s32 count;
     s32 state;
@@ -5052,7 +5058,7 @@ s32 func_801EC1F4(obj, count, state, speed)
     return state;
 }
 
-void func_801EC494(s32 x, s32 y, s32 value, u8 brightness) {
+void SUG_drawNumber(s32 x, s32 y, s32 value, u8 brightness) {
     s32 digits[4];
     Rect16 uv;
     s32 any;
@@ -5072,7 +5078,7 @@ void func_801EC494(s32 x, s32 y, s32 value, u8 brightness) {
     uv.h = 0x18;
     clut = 0x1469;
     if (x != 0x1F) {
-        drawTexturedSprite(x, y, &uv, D_801EF38C, 0x1468, 1, brightness, 1);
+        drawTexturedSprite(x, y, &uv, SUG_HUD_TPAGE, 0x1468, 1, brightness, 1);
         x += 16;
     }
     uv.w = 0x18;
@@ -5086,13 +5092,13 @@ void func_801EC494(s32 x, s32 y, s32 value, u8 brightness) {
         } while (j <= i);
         if (any != 0 || i == 3) {
             uv.x = digits[i] * 24;
-            drawTexturedSprite(x + 4 + count * 21, y, &uv, D_801EF38C, clut, 1, brightness, 1);
+            drawTexturedSprite(x + 4 + count * 21, y, &uv, SUG_HUD_TPAGE, clut, 1, brightness, 1);
             count++;
         }
     }
 }
 
-void func_801EC6E0(s32 side) {
+void SUG_runDamagePopupTask(s32 side) {
     Rect16 uv0;
     Rect16 uv1;
     u8 brightness[3];
@@ -5111,9 +5117,9 @@ void func_801EC6E0(s32 side) {
     uv1.h = 0x10;
     for (; i < 150; i++) {
         func_80014C08(FRAME_INTERVAL);
-        drawTexturedSprite(15, 0xAE, &uv0, D_801EF38C, 0x1568, 1, brightness[0], 1);
-        func_801EC494(0x1F, 0xC1, D_801EF958->players[side].value, brightness[1]);
-        drawTexturedSprite(0x3F, 0xD9, &uv1, D_801EF38C, 0x1569, 1, brightness[2], 1);
+        drawTexturedSprite(15, 0xAE, &uv0, SUG_HUD_TPAGE, 0x1568, 1, brightness[0], 1);
+        SUG_drawNumber(0x1F, 0xC1, SUG_BATTLE->players[side].value, brightness[1]);
+        drawTexturedSprite(0x3F, 0xD9, &uv1, SUG_HUD_TPAGE, 0x1569, 1, brightness[2], 1);
         if (i < 20) {
             brightness[0] = i * 8;
         } else if (i < 40) {
@@ -5132,7 +5138,7 @@ void func_801EC6E0(s32 side) {
     }
 }
 
-void func_801EC8A4(s32 side) {
+void SUG_animateHpCounter(s32 side) {
     Rect16 uv;
     s32 step;
     s32 count;
@@ -5142,56 +5148,56 @@ void func_801EC8A4(s32 side) {
 
     count = 40;
     if (side >= 0) {
-        func_800149B8(0, -1, 0, 0x400, func_801EC6E0, side);
+        func_800149B8(0, -1, 0, 0x400, SUG_runDamagePopupTask, side);
         minFrame = 4;
     } else {
         side = ~side;
         minFrame = 0;
     }
-    uv.x = D_801EF958->players[side].element * 40;
+    uv.x = SUG_BATTLE->players[side].element * 40;
     uv.y = 0xA8;
     uv.w = 0x28;
     uv.h = 0x18;
-    step = D_801EF9A4[side];
+    step = SUG_TARGET_HP[side];
     if (step < 0) {
         step = 0;
     }
-    step = (D_801EF958->players[side].unk0 - step) / 40;
-    if (step == 0 && D_801EF9A4[side] != D_801EF958->players[side].unk0) {
-        if (D_801EF958->players[side].unk0 < D_801EF9A4[side]) {
+    step = (SUG_BATTLE->players[side].unk0 - step) / 40;
+    if (step == 0 && SUG_TARGET_HP[side] != SUG_BATTLE->players[side].unk0) {
+        if (SUG_BATTLE->players[side].unk0 < SUG_TARGET_HP[side]) {
             step = -1;
         } else {
             step = 1;
         }
-        count = D_801EF9A4[side] - D_801EF958->players[side].unk0 < 0 ? -(D_801EF9A4[side] - D_801EF958->players[side].unk0)
-                                                                         : D_801EF9A4[side] - D_801EF958->players[side].unk0;
+        count = SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0 < 0 ? -(SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0)
+                                                                         : SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0;
     }
     do {
         func_80014C08(FRAME_INTERVAL);
         model = SCENE_3D->models[side];
         if (model->unk2208 >= 0 && model->unk2200 >= minFrame) {
-            if ((D_801EF958->players[side].unk0 -= step) < 0) {
-                D_801EF958->players[side].unk0 = 0;
+            if ((SUG_BATTLE->players[side].unk0 -= step) < 0) {
+                SUG_BATTLE->players[side].unk0 = 0;
                 break;
             }
             count--;
         }
-        func_801EC494(0xA8, 0x10, D_801EF958->players[side].unk0, 0x80);
-        drawTexturedSprite(0x78, 0x10, &uv, D_801EF38C, getClut(D_801EF958->players[side].element * 16 + 0x290, 0x50), 1, 0x80, 1);
+        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].unk0, 0x80);
+        drawTexturedSprite(0x78, 0x10, &uv, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, 0x80, 1);
     } while (count > 0);
-    if (D_801EF9A4[side] > 0) {
-        D_801EF958->players[side].unk0 = D_801EF9A4[side];
+    if (SUG_TARGET_HP[side] > 0) {
+        SUG_BATTLE->players[side].unk0 = SUG_TARGET_HP[side];
     } else {
-        D_801EF958->players[side].unk0 = 0;
+        SUG_BATTLE->players[side].unk0 = 0;
     }
     for (b = 0x80; b >= 0; b -= 4) {
         func_80014C08(FRAME_INTERVAL);
-        func_801EC494(0xA8, 0x10, D_801EF958->players[side].unk0, b);
-        drawTexturedSprite(0x78, 0x10, &uv, D_801EF38C, getClut(D_801EF958->players[side].element * 16 + 0x290, 0x50), 1, b, 1);
+        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].unk0, b);
+        drawTexturedSprite(0x78, 0x10, &uv, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, b, 1);
     }
 }
 
-void func_801ECC70(s32 side) {
+void SUG_showAttackLabel(s32 side) {
     Unk801EC160 obj;
     Unk801EC160 obj2;
     Rect16 uv2;
@@ -5200,35 +5206,35 @@ void func_801ECC70(s32 side) {
     s32 both;
 
     state = 0;
-    alt = D_801EF958->players[side].unk8_5;
-    both = ((D_801EF958->flags.word >> 1) & 1) | (alt != 0);
-    func_801EC160(&obj, 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
+    alt = SUG_BATTLE->players[side].unk8_5;
+    both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
+    SUG_initHudSlide(&obj, 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
     obj.uv.x = 0;
     obj.uv.y = 0x88;
     obj.uv.w = 0xA0;
     obj.uv.h = 0x10;
     obj.unk16 = 0x5A;
-    func_801EC160(&obj2, -0x40, 0x32, 0x30, 2);
+    SUG_initHudSlide(&obj2, -0x40, 0x32, 0x30, 2);
     obj2.uv.x = alt * 64;
     obj2.uv.y = 0x58;
     obj2.uv.w = 0x40;
     obj2.uv.h = 0x20;
-    uv2.x = D_801EF958->players[side].unk8 * 24 + 0xA0;
+    uv2.x = SUG_BATTLE->players[side].unk8 * 24 + 0xA0;
     uv2.y = 0xA0;
     uv2.w = 0x18;
     uv2.h = 0x10;
     do {
         func_80014C08(FRAME_INTERVAL);
-        state = func_801EC1F4(&obj, ((D_801EF958->flags.word >> 2) & 1) + 1, state, 2);
-        func_801EBFD4((s16)obj.unk0, 0xA2, &obj.uv, D_801EF38C, getClut(0x280, 0x53), 1, 0x80, 1, obj.unk8, 1);
+        state = SUG_tickHudSlides(&obj, ((SUG_BATTLE->flags.word >> 2) & 1) + 1, state, 2);
+        SUG_drawHudSpriteTrail((s16)obj.unk0, 0xA2, &obj.uv, SUG_HUD_TPAGE, getClut(0x280, 0x53), 1, 0x80, 1, obj.unk8, 1);
         if (both) {
-            func_801EBFD4((s16)obj2.unk0, 0x92, &obj2.uv, D_801EF38C, getClut(alt * 16 + 0x2A0, 0x54), 1, 0x80, 0, obj2.unk8, 6);
+            SUG_drawHudSpriteTrail((s16)obj2.unk0, 0x92, &obj2.uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, 0x80, 0, obj2.unk8, 6);
         }
-        drawTexturedSprite((s16)obj.unk0 + 6, 0xA2, &uv2, D_801EF38C, D_801EF958->players[side].unk8 | 0x14A8, 0, 0x80, 1);
+        drawTexturedSprite((s16)obj.unk0 + 6, 0xA2, &uv2, SUG_HUD_TPAGE, SUG_BATTLE->players[side].unk8 | 0x14A8, 0, 0x80, 1);
     } while (state != 2);
 }
 
-void func_801ECF20(s32 side) {
+void SUG_showAttackBanner(s32 side) {
     Unk801EC160 banners[5];
     Rect16 unused; /* unused, but it sizes the frame */
     Rect16 uv0;
@@ -5249,13 +5255,13 @@ void func_801ECF20(s32 side) {
     b = -1;
     c = -1;
     if (side >= 0) {
-        func_801EC160(&banners[0], -0x100, 0x2B, 0x20, 2);
+        SUG_initHudSlide(&banners[0], -0x100, 0x2B, 0x20, 2);
         banners[0].uv.x = 0;
         banners[0].uv.y = 0;
         banners[0].uv.w = 0x100;
         banners[0].uv.h = 0x28;
     } else {
-        func_801EC160(&banners[0], -0x80, -0x80, 0x60, 2);
+        SUG_initHudSlide(&banners[0], -0x80, -0x80, 0x60, 2);
         banners[0].uv.x = 0x80;
         banners[0].uv.y = 0x58;
         banners[0].uv.w = 0x80;
@@ -5263,34 +5269,34 @@ void func_801ECF20(s32 side) {
         side = ~side;
         flipped = 1;
     }
-    uv0.x = D_801EF958->players[side].element * 40;
+    uv0.x = SUG_BATTLE->players[side].element * 40;
     uv0.y = 0xA8;
     uv0.w = 0x28;
     uv0.h = 0x18;
-    uv1.x = D_801EF958->players[side].unk8 * 24 + 0xA0;
+    uv1.x = SUG_BATTLE->players[side].unk8 * 24 + 0xA0;
     uv1.y = 0xA0;
     uv1.w = 0x18;
     uv1.h = 0x10;
-    alt = D_801EF958->players[side].unk8_5;
-    both = ((D_801EF958->flags.word >> 1) & 1) | (alt != 0);
-    if (!((D_801EF958->flags.word >> 2) & 1)) {
-        func_801EC160(&banners[1], 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
+    alt = SUG_BATTLE->players[side].unk8_5;
+    both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
+    if (!((SUG_BATTLE->flags.word >> 2) & 1)) {
+        SUG_initHudSlide(&banners[1], 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
         if (both) {
             a = count++;
-            func_801EC160(&banners[a], -0x40, 0x32, 0x30, 2);
+            SUG_initHudSlide(&banners[a], -0x40, 0x32, 0x30, 2);
         }
     } else {
         if (both) {
             a = count++;
-            func_801EC160(&banners[a], 0x30, -0xFA, -0xFA, 2);
+            SUG_initHudSlide(&banners[a], 0x30, -0xFA, -0xFA, 2);
         }
-        func_801EC160(&banners[1], both * 32 + 0x50, -0xC8, -0xC8, 2);
+        SUG_initHudSlide(&banners[1], both * 32 + 0x50, -0xC8, -0xC8, 2);
         b = count++;
-        func_801EC160(&banners[b], 0x140, 0x4E, 0x50, 2);
+        SUG_initHudSlide(&banners[b], 0x140, 0x4E, 0x50, 2);
     }
-    if (D_801EF958->players[side].unk8_6) {
+    if (SUG_BATTLE->players[side].unk8_6) {
         c = count++;
-        func_801EC160(&banners[c], banners[1].unk0 + 160.0f, banners[1].target[0] + 0xA0, banners[1].target[1] + 0xA0, 2);
+        SUG_initHudSlide(&banners[c], banners[1].unk0 + 160.0f, banners[1].target[0] + 0xA0, banners[1].target[1] + 0xA0, 2);
         setRECT(&banners[c].uv, 0xE8, 0xA0, 0x18, 0x20);
     }
     banners[1].uv.x = 0;
@@ -5306,31 +5312,31 @@ void func_801ECF20(s32 side) {
     banners[1].unk16 = 0x5A;
     do {
         func_80014C08(FRAME_INTERVAL);
-        state = func_801EC1F4(&banners[0], count, state, side < 0 ? 1 : 2);
+        state = SUG_tickHudSlides(&banners[0], count, state, side < 0 ? 1 : 2);
         if (!flipped) {
-            func_801EBFD4((s16)banners[0].unk0, 0xB4, &banners[0].uv, D_801EF38C, 0x1428, 1, banners[0].unk16, 0, banners[0].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[0].unk0, 0xB4, &banners[0].uv, SUG_HUD_TPAGE, 0x1428, 1, banners[0].unk16, 0, banners[0].unk8, 6);
         } else {
-            func_801EBFD4((s16)banners[0].unk0, 0xC2, &banners[0].uv, D_801EF38C, 0x146A, 1, banners[0].unk16, 0, banners[0].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[0].unk0, 0xC2, &banners[0].uv, SUG_HUD_TPAGE, 0x146A, 1, banners[0].unk16, 0, banners[0].unk8, 6);
         }
-        func_801EBFD4((s16)banners[1].unk0, 0xA2, &banners[1].uv, D_801EF38C, 0x14E8, 1, banners[1].unk16, 1, banners[1].unk8, 1);
+        SUG_drawHudSpriteTrail((s16)banners[1].unk0, 0xA2, &banners[1].uv, SUG_HUD_TPAGE, 0x14E8, 1, banners[1].unk16, 1, banners[1].unk8, 1);
         if (a >= 0) {
-            func_801EBFD4((s16)banners[a].unk0, 0x92, &banners[a].uv, D_801EF38C, getClut(alt * 16 + 0x2A0, 0x54), 1, banners[a].unk16, 0, banners[a].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[a].unk0, 0x92, &banners[a].uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, banners[a].unk16, 0, banners[a].unk8, 6);
         }
         if (b >= 0) {
-            func_801EBFD4((s16)banners[b].unk0, 0xA2, &banners[b].uv, D_801EF38C, 0x14E9, 1, banners[b].unk16, 0, banners[b].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[b].unk0, 0xA2, &banners[b].uv, SUG_HUD_TPAGE, 0x14E9, 1, banners[b].unk16, 0, banners[b].unk8, 6);
         } else {
-            drawTexturedSprite((s16)banners[1].unk0 + 6, 0xA2, &uv1, D_801EF38C, D_801EF958->players[side].unk8 | 0x14A8, 0, banners[1].unk16, 1);
+            drawTexturedSprite((s16)banners[1].unk0 + 6, 0xA2, &uv1, SUG_HUD_TPAGE, SUG_BATTLE->players[side].unk8 | 0x14A8, 0, banners[1].unk16, 1);
         }
         if (c >= 0) {
-            func_801EBFD4((s16)banners[c].unk0, 0x98, &banners[c].uv, D_801EF38C, 0x14EA, 1, banners[c].unk16, 0, banners[c].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[c].unk0, 0x98, &banners[c].uv, SUG_HUD_TPAGE, 0x14EA, 1, banners[c].unk16, 0, banners[c].unk8, 6);
         }
-        drawTexturedSprite(0x10, 0x10, &uv0, D_801EF38C, getClut(D_801EF958->players[side].element * 16 + 0x290, 0x50), 1, banners[0].unk16, 1);
+        drawTexturedSprite(0x10, 0x10, &uv0, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, banners[0].unk16, 1);
     } while (state != 3);
-    D_801EF958->flags.word &= ~2;
-    D_801EF958->flags.word &= ~4;
+    SUG_BATTLE->flags.word &= ~2;
+    SUG_BATTLE->flags.word &= ~4;
 }
 
-void func_801ED6F0(s32 side) {
+void SUG_showHpBanner(s32 side) {
     Unk801EC160 bar;
     Unk801EC160 icon;
     Unk801EC160 num;
@@ -5338,26 +5344,26 @@ void func_801ED6F0(s32 side) {
     s32 state;
 
     state = 0;
-    func_801EC160(&bar, -0x100, 0x3C, 0x32, 2);
+    SUG_initHudSlide(&bar, -0x100, 0x3C, 0x32, 2);
     bar.uv.x = 0;
     bar.uv.y = 0xD8;
     bar.uv.w = 0x100;
     bar.uv.h = 0x28;
-    func_801EC160(&icon, -0x18, 0xC6, 0xBC, 2);
-    icon.uv.x = D_801EF958->players[side].element * 40;
+    SUG_initHudSlide(&icon, -0x18, 0xC6, 0xBC, 2);
+    icon.uv.x = SUG_BATTLE->players[side].element * 40;
     icon.uv.y = 0xA8;
     icon.uv.w = 0x28;
     icon.uv.h = 0x18;
-    func_801EC160(&num, -0x18, 0x10, 0x10, 2);
+    SUG_initHudSlide(&num, -0x18, 0x10, 0x10, 2);
     func_80014C08(0x28);
     do {
         func_80014C08(FRAME_INTERVAL);
-        state = func_801EC1F4(&bar, 3, state, 2);
-        func_801EBFD4((s16)bar.unk0, 0xB4, &bar.uv, D_801EF38C, 0x1528, 1, bar.unk16, 0, bar.unk8, 6);
-        func_801EBFD4(10, (s16)icon.unk0, &icon.uv, D_801EF38C,
-                      getClut(0x290 + D_801EF958->players[side].element * 16, 0x50), 1, icon.unk16, 0,
+        state = SUG_tickHudSlides(&bar, 3, state, 2);
+        SUG_drawHudSpriteTrail((s16)bar.unk0, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.unk16, 0, bar.unk8, 6);
+        SUG_drawHudSpriteTrail(10, (s16)icon.unk0, &icon.uv, SUG_HUD_TPAGE,
+                      getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1, icon.unk16, 0,
                       icon.unk8, 6);
-        func_801EC494(0xA8, (s16)num.unk0, D_801EF958->players[side].unk0, num.unk16);
+        SUG_drawNumber(0xA8, (s16)num.unk0, SUG_BATTLE->players[side].unk0, num.unk16);
         if (((ModelData *)SCENE_3D->models[side])->unk2208 < 0) {
             playModelAnimation(side, 0);
         }
@@ -5365,38 +5371,38 @@ void func_801ED6F0(s32 side) {
     func_80014C08(FRAME_INTERVAL);
 }
 
-void func_801ED97C(s32 side) {
+void SUG_showWinnerBanner(s32 side) {
     Unk801EC160 banner;
     Unk801EC160 icon;
     s32 state;
 
     state = 0;
-    func_801EC160(&banner, -0x100, 0x3C, 0x32, 3);
+    SUG_initHudSlide(&banner, -0x100, 0x3C, 0x32, 3);
     banner.uv.x = 0;
     banner.uv.y = 0x28;
     banner.uv.w = 0x100;
     banner.uv.h = 0x28;
-    func_801EC160(&icon, -0x18, 0xC6, 0xBC, 3);
-    icon.uv.x = D_801EF958->players[side].element * 40;
+    SUG_initHudSlide(&icon, -0x18, 0xC6, 0xBC, 3);
+    icon.uv.x = SUG_BATTLE->players[side].element * 40;
     icon.uv.y = 0xA8;
     icon.uv.w = 0x28;
     icon.uv.h = 0x18;
     do {
         func_80014C08(FRAME_INTERVAL);
-        state = func_801EC1F4(&banner, 2, state, 2);
-        func_801EBFD4((s16)banner.unk0, 0xB4, &banner.uv, D_801EF38C, 0x14EB, 1, 0x80, 0, banner.unk8, 6);
-        func_801EBFD4(10, (s16)icon.unk0, &icon.uv, D_801EF38C, getClut(0x290 + D_801EF958->players[side].element * 16, 0x50), 1,
+        state = SUG_tickHudSlides(&banner, 2, state, 2);
+        SUG_drawHudSpriteTrail((s16)banner.unk0, 0xB4, &banner.uv, SUG_HUD_TPAGE, 0x14EB, 1, 0x80, 0, banner.unk8, 6);
+        SUG_drawHudSpriteTrail(10, (s16)icon.unk0, &icon.uv, SUG_HUD_TPAGE, getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1,
                       0x80, 0, icon.unk8, 6);
     } while (state != 3);
 }
 
-void func_801EDB64(void) {
+void SUG_showEatUpHpBanner(void) {
     Unk801EC160 obj;
     Rect16 unused;
     s32 state;
 
     state = 0;
-    func_801EC160(&obj, -0x60, 0x7A, 0x70, 3);
+    SUG_initHudSlide(&obj, -0x60, 0x7A, 0x70, 3);
     obj.uv.x = 0xA0;
     obj.uv.y = 0x78;
     obj.uv.w = 0x60;
@@ -5404,45 +5410,45 @@ void func_801EDB64(void) {
     obj.unk16 = 0x20;
     do {
         func_80014C08(FRAME_INTERVAL);
-        state = func_801EC1F4(&obj, 1, state, 2);
-        func_801EBFD4((s16)obj.unk0, 0xB4, &obj.uv, D_801EF38C, 0x146B, 1, 0x80, 0, obj.unk8, 6);
+        state = SUG_tickHudSlides(&obj, 1, state, 2);
+        SUG_drawHudSpriteTrail((s16)obj.unk0, 0xB4, &obj.uv, SUG_HUD_TPAGE, 0x146B, 1, 0x80, 0, obj.unk8, 6);
     } while (state != 3);
 }
 
-void func_801EDC4C(void) {
+void SUG_placeBattleModels(void) {
     Scene3D *scene;
 
     scene = SCENE_3D;
-    ((ModelData *)scene->models[D_801EF958->flags.bits.turn])->x = 750;
-    ((ModelData *)scene->models[D_801EF958->flags.bits.turn])->rotY = 0;
-    ((ModelData *)scene->models[D_801EF958->flags.bits.turn ^ 1])->x = -750;
-    ((ModelData *)scene->models[D_801EF958->flags.bits.turn ^ 1])->rotY = 0x800;
-    D_801EF9A4[D_801EF958->flags.bits.turn] = D_801EF958->players[D_801EF958->flags.bits.turn].unk0 - D_801EF958->players[D_801EF958->flags.bits.turn ^ 1].value;
-    D_801EF9A4[D_801EF958->flags.bits.turn ^ 1] = D_801EF958->players[D_801EF958->flags.bits.turn ^ 1].unk0 - D_801EF958->players[D_801EF958->flags.bits.turn].value;
+    ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn])->x = 750;
+    ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn])->rotY = 0;
+    ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn ^ 1])->x = -750;
+    ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn ^ 1])->rotY = 0x800;
+    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].unk0 - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].value;
+    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn ^ 1] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].unk0 - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].value;
     scene->modelState[0] = -1;
     SCENE_3D->modelState[1] = -1;
 }
 
-void func_801EDD9C(void) {
+void SUG_initBattleScene(void) {
     s32 unused[8];
 
-    D_801EF37C = 0;
+    SUG_CURRENT_SCRIPT = 0;
     addFrameCallback((s32)renderSceneModels);
-    func_801EB3EC();
-    func_801E6B40();
-    func_801EDC4C();
-    func_801E8358();
-    D_801EF978[1] = 0;
-    D_801EF978[0] = 0;
+    SUG_initSpriteCache();
+    SUG_initTamCache();
+    SUG_placeBattleModels();
+    SUG_initEffectRoot();
+    SUG_SCRIPT_STATES[1] = 0;
+    SUG_SCRIPT_STATES[0] = 0;
 }
 
-void func_801EDDF8(void) {
+void SUG_showWireGrid(void) {
     createWireGrid(2000, 3000, 9, 13, 1, 0);
     GRID_VISIBLE = 1;
     SCENE_3D->modelState[23] = 1;
 }
 
-void func_801EDE4C(void) {
+void SUG_freeBattleScene(void) {
     SCENE_3D->modelState[0] = -1;
     SCENE_3D->modelState[1] = -1;
     SCENE_3D->modelState[23] = -1;
@@ -5452,13 +5458,13 @@ void func_801EDE4C(void) {
     removeFrameCallback((s32)renderWireGrid);
     freeHeapBlock(DB(0).scenePackets);
     freeHeapBlock(DB(1).scenePackets);
-    func_801EBE40();
-    func_801E723C();
+    SUG_freeSprites();
+    SUG_freeTamCache();
     func_80022E58();
-    func_801E40B0();
+    SUG_resetStageBrightness();
 }
 
-void func_801EDF00(s32 frames, s32 resetCamera) {
+void SUG_runCameraOrbit(s32 frames, s32 resetCamera) {
     Graphics *camera;
 
     if (resetCamera) {
@@ -5474,74 +5480,74 @@ void func_801EDF00(s32 frames, s32 resetCamera) {
     SCENE_3D->modelState[1] = 1;
     do {
         frames--;
-        func_801EBE8C();
+        SUG_orbitCamera();
         func_80014C08(FRAME_INTERVAL);
     } while (frames >= 0);
 }
 
-extern s16 D_801EF37E;
-extern s32 D_801EF984;
+extern s16 SUG_ACTIVE_MODEL;
+extern s32 SUG_PREV_MODEL;
 
-void func_801EDFA8(s32 model, s32 a1, void *script, void (*fn)(s32), s32 switchModel) {
+void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 switchModel) {
     s16 other;
 
-    other = D_801EF37C ^ 1;
+    other = SUG_CURRENT_SCRIPT ^ 1;
     if (switchModel) {
-        playModelAnimation(D_801EF37E, 0);
-        SCENE_3D->modelState[D_801EF37E] = 1;
-        if (D_801EF37E != D_801EF984) {
-            SCENE_3D->modelState[D_801EF984] = -1;
-            applyAnimationFirstFrame(D_801EF984, 0);
+        playModelAnimation(SUG_ACTIVE_MODEL, 0);
+        SCENE_3D->modelState[SUG_ACTIVE_MODEL] = 1;
+        if (SUG_ACTIVE_MODEL != SUG_PREV_MODEL) {
+            SCENE_3D->modelState[SUG_PREV_MODEL] = -1;
+            applyAnimationFirstFrame(SUG_PREV_MODEL, 0);
         }
-        D_80079584 = D_801EF37E;
+        D_80079584 = SUG_ACTIVE_MODEL;
     }
-    while (D_801EF978[D_801EF37C] != 1) {
+    while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 1) {
         func_80014C08(FRAME_INTERVAL);
     }
     if (script != NULL) {
-        if (D_801EF978[other] != 0) {
-            if (D_801EF978[other] < 0) {
-                while (D_801EF978[other] != 1) {
+        if (SUG_SCRIPT_STATES[other] != 0) {
+            if (SUG_SCRIPT_STATES[other] < 0) {
+                while (SUG_SCRIPT_STATES[other] != 1) {
                     func_80014C08(FRAME_INTERVAL);
                 }
             }
-            D_801EF978[other] = 3;
-            while (D_801EF978[other] != 0) {
+            SUG_SCRIPT_STATES[other] = 3;
+            while (SUG_SCRIPT_STATES[other] != 0) {
                 func_80014C08(FRAME_INTERVAL);
             }
         }
-        D_801EF978[other] = -1;
-        func_800149B8(0, 0x1F, 0, 0x2000, func_801EA48C, script, model, a1, &D_801EF978[other]);
+        SUG_SCRIPT_STATES[other] = -1;
+        func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, script, model, a1, &SUG_SCRIPT_STATES[other]);
     }
-    D_801EF978[D_801EF37C] = 2;
+    SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = 2;
     if (fn != NULL) {
-        fn(D_801EF37E);
+        fn(SUG_ACTIVE_MODEL);
     }
-    if (fn == func_801ECF20 && D_801EF958->players[D_801EF37E].unk8_5) {
+    if (fn == SUG_showAttackBanner && SUG_BATTLE->players[SUG_ACTIVE_MODEL].unk8_5) {
         func_80014C08(30);
-        D_801EF9A4[D_801EF37E] = 10;
-        func_801EC8A4(~D_801EF37E);
-        if (!D_801EF958->flags.bits.flag2) {
-            D_801EF9A4[D_801EF37E] -= D_801EF958->players[(s16)(D_801EF37E ^ 1)].value;
+        SUG_TARGET_HP[SUG_ACTIVE_MODEL] = 10;
+        SUG_animateHpCounter(~SUG_ACTIVE_MODEL);
+        if (!SUG_BATTLE->flags.bits.flag2) {
+            SUG_TARGET_HP[SUG_ACTIVE_MODEL] -= SUG_BATTLE->players[(s16)(SUG_ACTIVE_MODEL ^ 1)].value;
         }
     }
-    if (D_801EF978[D_801EF37C] == 1) {
-        D_801EF978[D_801EF37C] = 2;
+    if (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] == 1) {
+        SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = 2;
     }
-    while (D_801EF978[D_801EF37C] != 0) {
+    while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 0) {
         func_80014C08(FRAME_INTERVAL);
     }
-    D_801EF37C = other;
-    D_801EF984 = D_801EF37E;
-    D_801EF37E = model;
+    SUG_CURRENT_SCRIPT = other;
+    SUG_PREV_MODEL = SUG_ACTIVE_MODEL;
+    SUG_ACTIVE_MODEL = model;
 }
 
-extern void *D_801EF968[4];
-void func_801EEBEC(s32 model, s32 anim);
-void func_801EEC3C(s32 side, s32 amount);
-void func_801EEE24(s32 model);
+extern void *SUG_SKILL_SCRIPTS[4];
+void SUG_playSoloAnimation(s32 model, s32 anim);
+void SUG_applyEatUpHp(s32 side, s32 amount);
+void SUG_playNoDamageTurn(s32 model);
 
-void func_801EE3D4(void) {
+void SUG_playBattleExchange(void) {
     s32 first;
     s32 second;
     s32 other;
@@ -5550,22 +5556,22 @@ void func_801EE3D4(void) {
     DuelFlagBits flags;
 
     winner = -1;
-    flags = D_801EF958->flags.bits;
+    flags = SUG_BATTLE->flags.bits;
     first = flags.turn ^ (flags.flag1 | flags.flag3);
     other = first ^ flags.flag2;
     second = first ^ 1;
-    if (D_801EF958->players[other].value == 0) {
+    if (SUG_BATTLE->players[other].value == 0) {
         other ^= 1;
     }
-    D_801EF978[D_801EF37C] = -1;
-    D_801EF37E = D_801EF958->flags.bits.turn;
-    func_800149B8(0, 0x1F, 0, 0x2000, func_801EA48C, D_801D81AC, D_801EF958->flags.bits.turn, 1, &D_801EF978[D_801EF37C]);
+    SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = -1;
+    SUG_ACTIVE_MODEL = SUG_BATTLE->flags.bits.turn;
+    func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81AC, SUG_BATTLE->flags.bits.turn, 1, &SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT]);
     do {
         func_80014C08(FRAME_INTERVAL);
     } while (DUEL->state != 3);
-    func_801E3FA8(SCENE_3D->models[23], SCENE_3D->texAnimFrames);
-    func_800149B8(0x1A, 0x1F, 0, 0x400, func_801E3EB8);
-    while (D_801EF978[D_801EF37C] != 1) {
+    SUG_saveStageClut(SCENE_3D->models[23], SCENE_3D->texAnimFrames);
+    func_800149B8(0x1A, 0x1F, 0, 0x400, SUG_runStageFadeTask);
+    while (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] != 1) {
         func_80014C08(FRAME_INTERVAL);
     }
     func_80014A00(0x19);
@@ -5575,66 +5581,66 @@ void func_801EE3D4(void) {
     DB(0).draw.r0 = DB(1).draw.r0 = STAGE_CLEAR_COLOR[0];
     DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
     DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
-    func_801EDDF8();
+    SUG_showWireGrid();
     ((ModelData *)SCENE_3D->models[23])->unkA78 = 0;
     setScreenFadeParams(1, 1, 6);
-    func_801EDFA8(D_801EF958->flags.bits.turn ^ 1, 1, D_801D81AC, func_801ED6F0, 0);
-    func_801EDFA8(other, 0, D_801EF968[other * 2], func_801ED6F0, 0);
-    func_801EDF00(0x78, 1);
+    SUG_playAttackTurn(SUG_BATTLE->flags.bits.turn ^ 1, 1, D_801D81AC, SUG_showHpBanner, 0);
+    SUG_playAttackTurn(other, 0, SUG_SKILL_SCRIPTS[other * 2], SUG_showHpBanner, 0);
+    SUG_runCameraOrbit(0x78, 1);
     SCENE_3D->modelState[first ^ 1] = -1;
     ((Graphics *)&GRAPHICS)->targetModel = first;
     do {
         func_80014C08(FRAME_INTERVAL);
-    } while (D_801EF978[0] != 1);
-    if (D_801EF958->flags.bits.flag2) {
-        func_801EEBEC(first, D_801EF958->players[first].unk8 + 1);
-        func_801ECC70(first);
-    } else if (D_801EF958->players[first].value == 0) {
-        func_801EEE24(first);
+    } while (SUG_SCRIPT_STATES[0] != 1);
+    if (SUG_BATTLE->flags.bits.flag2) {
+        SUG_playSoloAnimation(first, SUG_BATTLE->players[first].unk8 + 1);
+        SUG_showAttackLabel(first);
+    } else if (SUG_BATTLE->players[first].value == 0) {
+        SUG_playNoDamageTurn(first);
     } else {
         FADE_TARGET = D_8006DF80;
-        func_801EDFA8(second, 1, D_801EF968[first * 2 + 1], func_801ECF20, 1);
+        SUG_playAttackTurn(second, 1, SUG_SKILL_SCRIPTS[first * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
-        hp = D_801EF958->players[second].unk0;
-        func_801EDFA8(second, 0, D_801EF968[second * 2], func_801EC8A4, 1);
+        hp = SUG_BATTLE->players[second].unk0;
+        SUG_playAttackTurn(second, 0, SUG_SKILL_SCRIPTS[second * 2], SUG_animateHpCounter, 1);
         applyAnimationFirstFrame(first, 0);
         playModelAnimation(first, 0);
         do {
             func_80014C08(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[second])->unk2208 >= 0);
-        if (D_801EF958->players[first].unk8_4) {
-            func_801EEC3C(first, hp);
+        if (SUG_BATTLE->players[first].unk8_4) {
+            SUG_applyEatUpHp(first, hp);
         }
-        if (D_801EF9A4[second] <= 0) {
+        if (SUG_TARGET_HP[second] <= 0) {
             goto firstWins;
         }
         playModelAnimation(second, 0);
         func_80014C08(20);
     }
-    if (D_801EF958->players[second].value == 0) {
-        func_801EEE24(second);
+    if (SUG_BATTLE->players[second].value == 0) {
+        SUG_playNoDamageTurn(second);
     } else {
         FADE_TARGET = D_8006DF80;
-        func_801EDFA8(first, 1, D_801EF968[second * 2 + 1], func_801ECF20, 1);
+        SUG_playAttackTurn(first, 1, SUG_SKILL_SCRIPTS[second * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
-        hp = D_801EF958->players[first].unk0;
-        func_801EDFA8(second, 0, NULL, func_801EC8A4, 1);
+        hp = SUG_BATTLE->players[first].unk0;
+        SUG_playAttackTurn(second, 0, NULL, SUG_animateHpCounter, 1);
         applyAnimationFirstFrame(second, 0);
         playModelAnimation(second, 0);
         do {
             func_80014C08(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[first])->unk2208 >= 0);
-        if (D_801EF958->players[second].unk8_4) {
-            func_801EEC3C(second, hp);
+        if (SUG_BATTLE->players[second].unk8_4) {
+            SUG_applyEatUpHp(second, hp);
         } else {
-            if (D_801EF9A4[first] <= 0) {
+            if (SUG_TARGET_HP[first] <= 0) {
                 goto secondWins;
             }
             playModelAnimation(first, 0);
             func_80014C08(30);
         }
     }
-    if (D_801EF9A4[first] > 0) {
+    if (SUG_TARGET_HP[first] > 0) {
         playModelAnimation(first, 0);
         goto done;
     }
@@ -5644,101 +5650,101 @@ secondWins:
 firstWins:
     winner = first;
 done:
-    D_801EF978[0] = D_801EF978[1] = 3;
+    SUG_SCRIPT_STATES[0] = SUG_SCRIPT_STATES[1] = 3;
     if (winner >= 0) {
         SCENE_3D->modelState[winner] = 1;
         playModelAnimation(winner, 6);
         D_80079584 = winner;
         func_80014C08(FRAME_INTERVAL);
         SCENE_3D->modelState[winner ^ 1] = -1;
-        func_801ED97C(winner);
+        SUG_showWinnerBanner(winner);
         func_80014C08(8);
     } else {
         SCENE_3D->modelState[0] = 1;
         SCENE_3D->modelState[1] = 1;
     }
-    func_800149B8(0, 0x1F, 0, 0x800, func_801EDF00, 0xA0, 0);
+    func_800149B8(0, 0x1F, 0, 0x800, SUG_runCameraOrbit, 0xA0, 0);
     func_80014C08(0x82);
     DUEL->state = 4;
     func_80014C08(30);
 }
 
-void func_801EEBEC(s32 model, s32 anim) {
+void SUG_playSoloAnimation(s32 model, s32 anim) {
     SCENE_3D->modelState[model] = 1;
     SCENE_3D->modelState[model ^ 1] = -1;
     D_80079584 = model;
     playModelAnimation(model, anim);
 }
 
-void func_801EEC3C(s32 side, s32 amount) {
+void SUG_applyEatUpHp(s32 side, s32 amount) {
     s32 state;
 
     state = -1;
     SCENE_3D->modelState[side] = 1;
     D_80079584 = side;
-    func_800149B8(0, 0x1F, 0, 0x2000, func_801EA48C, D_801D81B0, side, 0, &state);
-    func_800149B8(0, -1, 0, 0x800, func_801EDB64);
+    func_800149B8(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81B0, side, 0, &state);
+    func_800149B8(0, -1, 0, 0x800, SUG_showEatUpHpBanner);
     while (state != 1) {
         func_80014C08(FRAME_INTERVAL);
     }
     state = 2;
-    if (D_801EF958->players[side].value < amount) {
-        amount = D_801EF958->players[side].value;
+    if (SUG_BATTLE->players[side].value < amount) {
+        amount = SUG_BATTLE->players[side].value;
     }
-    D_801EF9A4[side] = D_801EF958->players[side].unk0 + amount;
-    if (D_801EF9A4[side] >= 0x2707) {
-        D_801EF9A4[side] = 0x2706;
+    SUG_TARGET_HP[side] = SUG_BATTLE->players[side].unk0 + amount;
+    if (SUG_TARGET_HP[side] >= 0x2707) {
+        SUG_TARGET_HP[side] = 0x2706;
     }
-    func_801EC8A4(~side);
-    D_801EF9A4[side] -= D_801EF958->players[side ^ 1].value;
+    SUG_animateHpCounter(~side);
+    SUG_TARGET_HP[side] -= SUG_BATTLE->players[side ^ 1].value;
     while (state != 0) {
         func_80014C08(FRAME_INTERVAL);
     }
 }
 
-void func_801EEE24(s32 model) {
+void SUG_playNoDamageTurn(s32 model) {
     SCENE_3D->modelState[model] = 1;
     playModelAnimation(model, 0);
     D_80079584 = model;
     SCENE_3D->modelState[model ^ 1] = -1;
-    func_801ECF20(~model);
+    SUG_showAttackBanner(~model);
 }
 
-extern DuelState D_801EF988;
+extern DuelState SUG_BATTLE_STATE;
 
-void func_801EEE90(s32 arg, s32 parentTask) {
+void SUG_runPolygonBattle(s32 arg, s32 parentTask) {
     s32 i;
 
-    D_801EF958 = &D_801EF988;
-    D_801EF988.flags.bits.flag1 = PLAYER((s8)(DUEL->turnPlayer ^ 1))->unk178_8;
-    D_801EF988.flags.bits.flag2 = PLAYER(0)->counter | PLAYER(1)->counter;
-    D_801EF988.flags.bits.flag3 = PLAYER(DUEL->turnPlayer)->unk178_7;
-    D_801EF988.flags.bits.turn = DUEL->turnPlayer;
+    SUG_BATTLE = &SUG_BATTLE_STATE;
+    SUG_BATTLE_STATE.flags.bits.flag1 = PLAYER((s8)(DUEL->turnPlayer ^ 1))->unk178_8;
+    SUG_BATTLE_STATE.flags.bits.flag2 = PLAYER(0)->counter | PLAYER(1)->counter;
+    SUG_BATTLE_STATE.flags.bits.flag3 = PLAYER(DUEL->turnPlayer)->unk178_7;
+    SUG_BATTLE_STATE.flags.bits.turn = DUEL->turnPlayer;
     for (i = 0; i < 2; i++) {
-        D_801EF958->players[i].unk0 = PLAYER(i)->unk158;
-        D_801EF958->players[i].value = PLAYER(i ^ 1)->damageTaken;
+        SUG_BATTLE->players[i].unk0 = PLAYER(i)->unk158;
+        SUG_BATTLE->players[i].value = PLAYER(i ^ 1)->damageTaken;
         switch (PLAYER(i)->controller) {
         case 0:
         case 2:
-            D_801EF958->players[i].element = 0;
+            SUG_BATTLE->players[i].element = 0;
             break;
         case 1:
-            D_801EF958->players[i].element = 2;
+            SUG_BATTLE->players[i].element = 2;
             break;
         case 3:
-            D_801EF958->players[i].element = 1;
+            SUG_BATTLE->players[i].element = 1;
             break;
         }
-        D_801EF958->players[i].unk8 = PLAYER(i)->usedAttack;
-        D_801EF958->players[i].unk8_4 = PLAYER(i)->eatUpHp;
-        D_801EF958->players[i].unk8_5 = PLAYER(i)->crash;
-        D_801EF958->players[i].unk8_6 = PLAYER(i)->unk178_13;
-        D_801EF968[i * 2] = (void *)DUEL_DIGIMON_MODELS[i].attackModels[D_801EF958->players[i].unk8];
-        D_801EF968[i * 2 + 1] = (void *)DUEL_DIGIMON_MODELS[i].unk14[D_801EF958->players[i].unk8];
+        SUG_BATTLE->players[i].unk8 = PLAYER(i)->usedAttack;
+        SUG_BATTLE->players[i].unk8_4 = PLAYER(i)->eatUpHp;
+        SUG_BATTLE->players[i].unk8_5 = PLAYER(i)->crash;
+        SUG_BATTLE->players[i].unk8_6 = PLAYER(i)->unk178_13;
+        SUG_SKILL_SCRIPTS[i * 2] = (void *)DUEL_DIGIMON_MODELS[i].attackModels[SUG_BATTLE->players[i].unk8];
+        SUG_SKILL_SCRIPTS[i * 2 + 1] = (void *)DUEL_DIGIMON_MODELS[i].unk14[SUG_BATTLE->players[i].unk8];
     }
-    func_801EDD9C();
-    func_801EE3D4();
-    func_801EDE4C();
+    SUG_initBattleScene();
+    SUG_playBattleExchange();
+    SUG_freeBattleScene();
     DB(0).draw.b0 = DB(1).draw.b0 = 0;
     DB(0).draw.g0 = DB(1).draw.g0 = 0;
     DB(0).draw.r0 = DB(1).draw.r0 = 0;
@@ -5746,111 +5752,111 @@ void func_801EEE90(s32 arg, s32 parentTask) {
 }
 
 /* the last three bytes are leftovers in the original, not zero padding */
-const char D_801DE0B0[16] = "E:\\SPRITE\\%s\0\0\xA2\xAF";
+const char SUG_FMT_SPRITE_PATH[16] = "E:\\SPRITE\\%s\0\0\xA2\xAF";
 
-/* the light matrix and colours func_801E7880 sets */
-MATRIX D_801EF25C = { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
-MATRIX D_801EF27C = { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } };
-s32 D_801EF29C = 0;
-s16 D_801EF2A0 = 0;
+/* the light matrix and colours SUG_tickLightMotion sets */
+MATRIX SUG_DEFAULT_LIGHT_MATRIX = { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
+MATRIX SUG_DEFAULT_LIGHT_COLORS = { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } };
+s32 SUG_SCREEN_FX_PHASE = 0;
+s16 SUG_SCREEN_FX_ANGLE = 0;
 
 /* per effect slot kind: the functions that update, create and free it */
 typedef void (*SlotUpdate)(u8 *value);
 typedef s32 (*SlotCreate)(s32 arg, Slots *slots);
 typedef void (*SlotFree)(s32 value);
 
-SlotUpdate D_801EF2A4[18] = {
-    (SlotUpdate)func_801E651C,
-    (SlotUpdate)func_801E6814,
+SlotUpdate SUG_EFFECT_TICK_FUNCS[18] = {
+    (SlotUpdate)SUG_tickFadeRect,
+    (SlotUpdate)SUG_scrollTexture,
     NULL,
-    (SlotUpdate)func_801E7880,
-    NULL,
-    NULL,
+    (SlotUpdate)SUG_tickLightMotion,
     NULL,
     NULL,
     NULL,
     NULL,
-    (SlotUpdate)func_801DF598,
     NULL,
-    (SlotUpdate)func_801E4728,
+    NULL,
+    (SlotUpdate)SUG_tickSphereEffect,
+    NULL,
+    (SlotUpdate)SUG_tickTrailEffect,
     (SlotUpdate)renderRingEffect,
     (SlotUpdate)updateEffectObject,
-    (SlotUpdate)func_801E3C2C,
-    (SlotUpdate)func_801E42F4,
+    (SlotUpdate)SUG_tickModelEffect,
+    (SlotUpdate)SUG_tickSpriteEffect,
     (SlotUpdate)renderStreakParticles,
 };
 
-SlotCreate D_801EF2EC[18] = {
-    (SlotCreate)func_801E9598,
-    (SlotCreate)func_801E9654,
+SlotCreate SUG_EFFECT_CREATE_FUNCS[18] = {
+    (SlotCreate)SUG_createFadeRectFromParams,
+    (SlotCreate)SUG_createScrollTextureFromParams,
     NULL,
-    (SlotCreate)func_801E9FE0,
-    NULL,
-    NULL,
+    (SlotCreate)SUG_createLightMotionFromParams,
     NULL,
     NULL,
     NULL,
     NULL,
-    (SlotCreate)func_801E96C4,
     NULL,
-    (SlotCreate)func_801E9890,
-    (SlotCreate)func_801E9ADC,
-    (SlotCreate)func_801E9D14,
-    (SlotCreate)func_801E9D48,
-    (SlotCreate)func_801E9E04,
-    (SlotCreate)func_801E9EAC,
+    NULL,
+    (SlotCreate)SUG_createSphereFromParams,
+    NULL,
+    (SlotCreate)SUG_createTrailFromParams,
+    (SlotCreate)SUG_createRingFromParams,
+    (SlotCreate)SUG_createEffectObjectFromParams,
+    (SlotCreate)SUG_createModelEffectFromParams,
+    (SlotCreate)SUG_createSpriteEffectFromParams,
+    (SlotCreate)SUG_createStreaksFromParams,
 };
 
-SlotFree D_801EF334[18] = {
-    (SlotFree)func_801EA0C0,
-    (SlotFree)func_801E6AF8,
+SlotFree SUG_EFFECT_FREE_FUNCS[18] = {
+    (SlotFree)SUG_freeFadeRect,
+    (SlotFree)SUG_freeScrollTexture,
     NULL,
-    (SlotFree)func_801E7AF4,
-    NULL,
-    NULL,
+    (SlotFree)SUG_freeLightMotion,
     NULL,
     NULL,
     NULL,
     NULL,
-    (SlotFree)func_801E1D80,
     NULL,
-    (SlotFree)func_801E5144,
+    NULL,
+    (SlotFree)SUG_freeSphereEffect,
+    NULL,
+    (SlotFree)SUG_freeTrailEffect,
     (SlotFree)freeRingEffect,
     (SlotFree)freeEffectObject,
-    (SlotFree)func_801E3D2C,
-    (SlotFree)func_801E43A4,
+    (SlotFree)SUG_freeModelEffect,
+    (SlotFree)SUG_freeSpriteEffect,
     (SlotFree)freeStreakParticles,
 };
 
 /* the u8 arrays among these are not referenced by any code */
-s16 D_801EF37C = 0;
-s16 D_801EF37E = 0;
-s32 D_801EF380 = 1;
+s16 SUG_CURRENT_SCRIPT = 0;
+s16 SUG_ACTIVE_MODEL = 0;
+s32 SUG_CAMERA_SPIN = 1;
 s32 D_801EF384 = 1;
 s32 D_801EF388 = 1;
-u16 D_801EF38C = 10;
-ClutFade D_801EF390 = { { 0 } };
+u16 SUG_HUD_TPAGE = 10;
+ClutFade SUG_STAGE_CLUT = { { 0 } };
 u8 D_801EF79C[4] = { 0 };
-CacheEntry D_801EF7A0[8] = { { 0 } };
-s32 D_801EF7E0 = 0;
-s32 D_801EF7E4 = 0;
-float D_801EF7E8 = 0;
-float D_801EF7EC = 0;
-s32 D_801EF7F0 = 0;
-s32 D_801EF7F4 = 0;
-s32 D_801EF7F8 = 0;
-s32 D_801EF7FC = 0;
-u8 D_801EF800[3] = { 0 };
-u8 D_801EF804[3] = { 0 };
-CameraEffect D_801EF808 = { { 0 } };
+CacheEntry SUG_TAM_CACHE[8] = { { 0 } };
+s32 SUG_SCREEN_FX_X = 0;
+s32 SUG_SCREEN_FX_Y = 0;
+float SUG_SCREEN_FX_STEP_X = 0;
+float SUG_SCREEN_FX_STEP_Y = 0;
+s32 SUG_SCREEN_FX_HOLD = 0;
+s32 SUG_SCREEN_FX_FADE_TIME = 0;
+s32 SUG_SCREEN_FX_FRAME = 0;
+s32 SUG_SCREEN_FX_MOTION = 0;
+u8 SUG_SCREEN_FX_BASE_RGB[3] = { 0 };
+u8 SUG_SCREEN_FX_RGB_STEP[3] = { 0 };
+CameraEffect SUG_EFFECT_ROOT = { { 0 } };
 u8 D_801EF944[12] = { 0 };
-Entry *D_801EF950 = NULL;
+Entry *SUG_SPRITE_CACHE = NULL;
 u8 D_801EF954[4] = { 0 };
-DuelState *D_801EF958 = NULL;
+DuelState *SUG_BATTLE = NULL;
 u8 D_801EF95C[12] = { 0 };
-void *D_801EF968[4] = { NULL };
-s32 D_801EF978[2] = { 0 };
+void *SUG_SKILL_SCRIPTS[4] = { NULL };
+s32 SUG_SCRIPT_STATES[2] = { 0 };
 u8 D_801EF980[4] = { 0 };
-s32 D_801EF984 = 0;
-DuelState D_801EF988 = { { { 0 } } };
-s16 D_801EF9A4[2] = { 0 };
+s32 SUG_PREV_MODEL = 0;
+DuelState SUG_BATTLE_STATE = { { { 0 } } };
+s16 SUG_TARGET_HP[2] = { 0 };
