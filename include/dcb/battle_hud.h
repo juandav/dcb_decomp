@@ -3,8 +3,8 @@
 
 #include "game.h"
 
-#define SPRITE(c) (((CardAnim *)D_801D833C)[c].spr)
-#define CARD_ANIM(c) (&((CardAnim *)D_801D833C)[c])
+#define SPRITE(c) (((CardAnim *)CARD_ANIMS)[c].spr)
+#define CARD_ANIM(c) (&((CardAnim *)CARD_ANIMS)[c])
 #define ANIM_SAVE(a)                   \
     (a)->x = (a)->spr->pos.vx;         \
     (a)->y = (a)->spr->pos.vy;         \
@@ -22,9 +22,9 @@
     (a)->spr->rot.vy = RY - (RY - (a)->ry) * (a)->count / (a)->total;        \
     (a)->spr->rot.vz = RZ - (RZ - (a)->rz) * (a)->count / (a)->total;        \
     (a)->spr->scale = SC - (SC - (a)->scale) * (a)->count / (a)->total
-#define PANEL(i) (((HudPanel *)D_801D83EC)[i])
-/* D_801D83EC holds six panels per player (enum HudPanelSlot) */
-#define PLAYER_PANEL(p, slot) (&((Panel *)D_801D83EC)[(p) * 6 + (slot)])
+#define PANEL(i) (((HudPanel *)HUD_PANELS)[i])
+/* HUD_PANELS holds six panels per player (enum HudPanelSlot) */
+#define PLAYER_PANEL(p, slot) (&((Panel *)HUD_PANELS)[(p) * 6 + (slot)])
 
 typedef struct Panel {
     /* 0x00 */ u8 unk0[0xC];
@@ -79,10 +79,10 @@ typedef struct {
     /* 0x23 */ s8 handSlot;
 } CardAnim;
 
-extern s32 D_8006E298;
+extern s32 STAT_POPUP_RGB;
 extern u8 *CROSS_EFFECT_SHORT_NAMES[];
 extern u8 *CROSS_EFFECT_NAMES[];
-extern u8 D_8006E4FC[];
+extern u8 CROSS_EFFECT_ICONS[];
 
 void waitForStatCountersToSettle(void);
 void showStatChangePopup(s32 player, s32 newValue, s32 stat);

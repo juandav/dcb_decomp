@@ -182,7 +182,7 @@ void SAI_drawRewardResult(RewardWindow *win) {
 void SAI_drawRewardTitle(UiWindow *window) {
     if (SAI_REWARD_FROM_SCRIPT == 0) {
         drawText(window->originX + 2, window->originY + 1, (s32)"Earned a Prize Pack", 7, 0);
-        drawText(window->originX + 0x92, window->originY + 1, (s32)D_8006E31C[SAI_PRIZE_PACK], 6, 0);
+        drawText(window->originX + 0x92, window->originY + 1, (s32)CARD_PACK_NAMES[SAI_PRIZE_PACK], 6, 0);
     } else {
         drawText(window->originX + 2, window->originY + 1, (s32)"Received", 7, 0);
     }

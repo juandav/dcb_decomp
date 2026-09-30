@@ -17,7 +17,7 @@ typedef struct {
     /* 0x24 */ u32 uv3;
 } RawPolyFT4;
 
-extern s32 D_8006E294;
+extern s32 GLYPH_UPLOAD_BUSY;
 extern s32 DUEL_VRAM_READY;
 extern s32 CARD_ART_LAST_SPRITE;
 extern s8 STATUS_STEP_SPRITES[];
@@ -27,7 +27,7 @@ extern u8 *STATUS_MESSAGE_TEXTS[];
 extern DR_AREA HELP_BAR_RESTORE_AREA[2];
 extern DR_AREA HELP_BAR_CLIP_AREA[2];
 extern u8 *HELP_BAR_TEXTS[];
-extern u8 *D_8006E31C[];
+extern u8 *CARD_PACK_NAMES[];
 extern s32 CARD_POLY_COUNT;
 
 void startCpuDuel(s32 deckIndex);

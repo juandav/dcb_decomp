@@ -194,7 +194,7 @@ void runTitleMenu(void) {
             break;
         case 2:
             changeScrollingBackground(7, 0x380, 0, 0x380, 0x80);
-            ((SessionData *)D_8006E054)->menuRow = 0;
+            ((SessionData *)SESSION_DATA)->menuRow = 0;
             again = func_801EBD34();
             if (again == 0) {
                 spawnTask(0, -1, 0, 0x800, D_801EB2E8, stack, 0, 0, 0);

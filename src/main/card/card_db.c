@@ -15,7 +15,7 @@
 #include "dcb/hacking_shell.h"
 #include "dcb/game_exit.h"
 
-u8 D_8006E50C[10] = { 0x55, 0x5C, 0x5A, 0x52, 0x58, 0x4F, 0xD, 0, 0x30, 0 };
+u8 BASE_DECK_IDS[10] = { 0x55, 0x5C, 0x5A, 0x52, 0x58, 0x4F, 0xD, 0, 0x30, 0 };
 u8 PARTNER_CARD_IDS[6] = { 0xAF, 0xB6, 0xBE, 0xB8, 0xB7, 0xBB };
 u8 PARTNER_ARMOR_CARD_IDS[6][3] = {
     { 0xAC, 0xB9, 0xAD },
@@ -244,7 +244,7 @@ void loadCardDatabase(void) {
     }
 }
 
-void func_80045968(s32 player, s32 cardId, s32 copy) {
+void assignCardCopySerial(s32 player, s32 cardId, s32 copy) {
     s32 serial;
     s32 i;
 
@@ -283,7 +283,7 @@ s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
         return -3;
     }
     for (copy = PLAYER_DATA(player).cardCollection[cardId] & 7; copy < 6; copy++) {
-        func_80045968(player, cardId, copy);
+        assignCardCopySerial(player, cardId, copy);
     }
     if ((PLAYER_DATA(player).cardCollection[cardId] & 7) == 6) {
         PLAYER_DATA(player).cardCollection[cardId] |= 0x50;
@@ -387,7 +387,7 @@ void markBuildableOpponentDecks(s32 player) {
     s32 j;
     s32 missing;
 
-    decks = (PresetDeck *)(((SessionData *)D_8006E054)->npcDeckFile + 8);
+    decks = (PresetDeck *)(((SessionData *)SESSION_DATA)->npcDeckFile + 8);
     for (i = 0; i < 0x9F; i++) {
         if (((PlayerProfile *)PLAYER_PROFILES)[player].opponentDeckFlags[i] & 0x8000) {
             for (j = 0; j < 0x12D; j++) {
@@ -709,7 +709,7 @@ s32 deleteSavedDeck(s32 player, s32 slot) {
 
 /* the opponent deck whose win record a duel against deckId counts for:
    variant decks count for their base deck */
-s32 func_800471F4(s32 deckId) {
+s32 getBaseDeckId(s32 deckId) {
     s32 baseDeckId;
 
     baseDeckId = deckId;
@@ -739,7 +739,7 @@ s32 func_800471F4(s32 deckId) {
     case 0x8A:
     case 0x8B:
     case 0x8D:
-        baseDeckId = D_8006E50C[baseDeckId - 0x84];
+        baseDeckId = BASE_DECK_IDS[baseDeckId - 0x84];
         break;
     }
     return baseDeckId;
@@ -749,7 +749,7 @@ void backupPartners(s32 player) {
     s32 slot;
 
     for (slot = 0; slot < 3; slot++) {
-        ((SessionData *)D_8006E054)->partnerBackup[player][slot] = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot];
+        ((SessionData *)SESSION_DATA)->partnerBackup[player][slot] = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot];
         ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId = 0;
     }
 }
@@ -759,7 +759,7 @@ void restorePartners(s32 player) {
 
     for (slot = 0; slot < 3; slot++) {
         ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot] =
-            ((SessionData *)D_8006E054)->partnerBackup[player][slot];
+            ((SessionData *)SESSION_DATA)->partnerBackup[player][slot];
     }
 }
 
@@ -819,7 +819,7 @@ void addPartner(s32 player, s32 partner, s32 obtain) {
             if (obtain != 0) {
                 cardId = PLAYER_DATA(player).partners[slot].cardId;
                 PLAYER_DATA(player).cardCollection[cardId] = 1;
-                func_80045968(player, cardId, 0);
+                assignCardCopySerial(player, cardId, 0);
                 updatePlayerRanks(player);
                 grantPartnerAbility(player, PARTNER_START_ABILITIES[partner]);
                 PLAYER_DATA(player).cardCollection[PARTNER_CARD_IDS[partner]] |= 0xF0;

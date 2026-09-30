@@ -7,7 +7,7 @@
 #include "dcb/prim_util.h"
 #include "dcb/kawseg.h"
 
-#define RING ((DuelRing *)D_801D8340)
+#define RING ((DuelRing *)DUEL_STATE)
 
 typedef struct {
     /* 0x00 */ s16 mode;
@@ -97,27 +97,27 @@ s32 KAW_initHudPanels(void) {
     for (i = 0; i < 2; i++) {
         ((Graphics *)&GRAPHICS)->buffers[i].primSlots[11] = (s32)&KAW_DUEL->hudPrims[i];
     }
-    D_801D83EC = allocTaskHeapBlock(sizeof(HudPanelK) * 12);
+    HUD_PANELS = allocTaskHeapBlock(sizeof(HudPanelK) * 12);
     for (i = 0; i < 12; i++) {
-        ((HudPanelK *)D_801D83EC)[i].rgb[0] = 0x80;
-        ((HudPanelK *)D_801D83EC)[i].rgb[1] = 0x80;
-        ((HudPanelK *)D_801D83EC)[i].rgb[2] = 0x80;
-        ((HudPanelK *)D_801D83EC)[i].x = 0;
-        ((HudPanelK *)D_801D83EC)[i].y = 0;
-        ((HudPanelK *)D_801D83EC)[i].unk8[0] = KAW_HUD_PANEL_INITS[i].unk0[0];
-        ((HudPanelK *)D_801D83EC)[i].unk8[1] = KAW_HUD_PANEL_INITS[i].unk0[1];
-        ((HudPanelK *)D_801D83EC)[i].unk8[2] = KAW_HUD_PANEL_INITS[i].unk0[2];
-        ((HudPanelK *)D_801D83EC)[i].unk8[3] = KAW_HUD_PANEL_INITS[i].unk0[3];
-        ((HudPanelK *)D_801D83EC)[i].unk6 = KAW_HUD_PANEL_INITS[i].unk4;
-        ((HudPanelK *)D_801D83EC)[i].unk4 = KAW_HUD_PANEL_INITS[i].unk6;
-        ((HudPanelK *)D_801D83EC)[i].flags = 0;
-        ((HudPanelK *)D_801D83EC)[i].state = 0;
+        ((HudPanelK *)HUD_PANELS)[i].rgb[0] = 0x80;
+        ((HudPanelK *)HUD_PANELS)[i].rgb[1] = 0x80;
+        ((HudPanelK *)HUD_PANELS)[i].rgb[2] = 0x80;
+        ((HudPanelK *)HUD_PANELS)[i].x = 0;
+        ((HudPanelK *)HUD_PANELS)[i].y = 0;
+        ((HudPanelK *)HUD_PANELS)[i].unk8[0] = KAW_HUD_PANEL_INITS[i].unk0[0];
+        ((HudPanelK *)HUD_PANELS)[i].unk8[1] = KAW_HUD_PANEL_INITS[i].unk0[1];
+        ((HudPanelK *)HUD_PANELS)[i].unk8[2] = KAW_HUD_PANEL_INITS[i].unk0[2];
+        ((HudPanelK *)HUD_PANELS)[i].unk8[3] = KAW_HUD_PANEL_INITS[i].unk0[3];
+        ((HudPanelK *)HUD_PANELS)[i].unk6 = KAW_HUD_PANEL_INITS[i].unk4;
+        ((HudPanelK *)HUD_PANELS)[i].unk4 = KAW_HUD_PANEL_INITS[i].unk6;
+        ((HudPanelK *)HUD_PANELS)[i].flags = 0;
+        ((HudPanelK *)HUD_PANELS)[i].state = 0;
         if (KAW_HUD_PANEL_INITS[i].parent != -1) {
-            ((HudPanelK *)D_801D83EC)[i].parent = &((HudPanelK *)D_801D83EC)[KAW_HUD_PANEL_INITS[i].parent];
+            ((HudPanelK *)HUD_PANELS)[i].parent = &((HudPanelK *)HUD_PANELS)[KAW_HUD_PANEL_INITS[i].parent];
         } else {
-            ((HudPanelK *)D_801D83EC)[i].parent = NULL;
+            ((HudPanelK *)HUD_PANELS)[i].parent = NULL;
         }
-        ((HudPanelK *)D_801D83EC)[i].z = KAW_HUD_PANEL_INITS[i].z;
+        ((HudPanelK *)HUD_PANELS)[i].z = KAW_HUD_PANEL_INITS[i].z;
     }
     DUEL_MSG_BAR.bannerState = 0;
     DUEL_MSG_BAR.playerLabel = 0;
@@ -140,7 +140,7 @@ s32 KAW_initHudPanels(void) {
 
 s32 KAW_freeHudPanels(void) {
     freeHeapBlock(KAW_DUEL->hudPrims);
-    freeHeapBlock(D_801D83EC);
+    freeHeapBlock(HUD_PANELS);
 }
 
 void KAW_drawPortrait(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, u16 a5) {

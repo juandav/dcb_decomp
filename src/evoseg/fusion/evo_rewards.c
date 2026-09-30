@@ -177,7 +177,7 @@ void EVO_addPartnerExp(void) {
                     EVO_SCRIPT->vars[19] = 2;
                     EVO_NEW_DIGI_PART = ability;
                 }
-                ability = func_8004994C(0, EVO_FUSION.partner);
+                ability = rollPartnerAbility(0, EVO_FUSION.partner);
                 if (ability >= 0) {
                     EVO_STAT_BONUSES[ability] += 10;
                 }

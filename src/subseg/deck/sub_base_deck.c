@@ -30,7 +30,7 @@ void SUB_drawBaseDeckList(UiWindow *window) {
     char buf[64];
     s32 x = window->originX;
     s32 z = window->z;
-    DeckRecord *records = (DeckRecord *)(*(u8 **)D_8006E054 + 8);
+    DeckRecord *records = (DeckRecord *)(*(u8 **)SESSION_DATA + 8);
     s32 i;
     s32 y;
     s32 palette;
@@ -73,7 +73,7 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
 
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\DECK2.DEK", getCurrentTaskId());
     file = (u8 *)waitFrames(0x7FFFFFFF);
-    *(u8 **)D_8006E054 = file;
+    *(u8 **)SESSION_DATA = file;
     records = (DeckRecord *)(file + 8);
     markBuildableOpponentDecks(player);
     for (i = 0; i < 0x9F; i++) {
@@ -116,7 +116,7 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
         }
         linkDeckCardData(player, deck);
     }
-    freeHeapBlock(*(u8 **)D_8006E054);
+    freeHeapBlock(*(u8 **)SESSION_DATA);
     return selected;
 }
 

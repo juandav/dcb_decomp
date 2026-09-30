@@ -173,8 +173,8 @@ void SAI_freeOpponentSelect(void) {
     for (i = 0x1F; i < 0x2E; i++) {
         SAI_freeSprite(SAI_SPRITES[i]);
     }
-    ((SaveBlock *)((SessionData *)D_8006E054)->unk100C)->opponents = SAI_OPPONENTS;
-    ((SaveBlock *)((SessionData *)D_8006E054)->unk100C)->select = SAI_AREA.select;
+    ((SaveBlock *)((SessionData *)SESSION_DATA)->unk100C)->opponents = SAI_OPPONENTS;
+    ((SaveBlock *)((SessionData *)SESSION_DATA)->unk100C)->select = SAI_AREA.select;
     SAI_clearOpponents();
 }
 

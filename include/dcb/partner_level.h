@@ -26,6 +26,6 @@ extern u8 *HACKING_SCRIPTS[];
 
 s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot);
 s32 getExpForNextLevel(s32 level);
-s32 func_8004994C(s32 player, s32 slot);
+s32 rollPartnerAbility(s32 player, s32 slot);
 
 #endif /* DCB_PARTNER_LEVEL_H */

@@ -21,19 +21,19 @@ void initPlayerData(void) {
 
     loadCardDatabase();
     PLAYER_PROFILES = allocPermanentHeapBlock(sizeof(PlayerProfile) * 2);
-    D_8006E054 = session = allocPermanentHeapBlock(0x102C);
-    ((SessionData *)D_8006E054)->unk100C = allocPermanentHeapBlock(0x1AC);
+    SESSION_DATA = session = allocPermanentHeapBlock(0x102C);
+    ((SessionData *)SESSION_DATA)->unk100C = allocPermanentHeapBlock(0x1AC);
     resetPlayerData();
 }
 
 void func_8002D458(void) {
     s32 i;
 
-    ((SessionData *)D_8006E054)->unk1027 = 0;
-    ((SessionData *)D_8006E054)->unk100C->unk1A4 = 0;
-    ((SessionData *)D_8006E054)->unk100C->unk1A2 = 0;
-    ((SessionData *)D_8006E054)->unk100C->unk1A9 = 0;
-    ((SessionData *)D_8006E054)->unk100C->unk1A8 = 0;
+    ((SessionData *)SESSION_DATA)->unk1027 = 0;
+    ((SessionData *)SESSION_DATA)->unk100C->unk1A4 = 0;
+    ((SessionData *)SESSION_DATA)->unk100C->unk1A2 = 0;
+    ((SessionData *)SESSION_DATA)->unk100C->unk1A9 = 0;
+    ((SessionData *)SESSION_DATA)->unk100C->unk1A8 = 0;
     for (i = 0; i < 12; i++) {
         PLAYER_DATA(0).unk23FC[i] = 0;
     }
@@ -87,7 +87,7 @@ void resetPlayerData(void) {
         for (i = 0; i < 0x12D; i++) {
             profile->cardCollection[i] = 0;
             for (j = 0; j < 8; j++) {
-                func_80045968(player, i, j);
+                assignCardCopySerial(player, i, j);
             }
         }
         for (i = 0; i < 0xBF; i++) {

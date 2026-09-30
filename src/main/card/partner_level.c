@@ -53,7 +53,7 @@ s32 getExpForNextLevel(s32 level) {
     return (level + 2) * level;
 }
 
-s32 func_8004994C(s32 player, s32 slot) {
+s32 rollPartnerAbility(s32 player, s32 slot) {
     if ((s8)((s8)((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level % 5) != 0) {
         return -1;
     }

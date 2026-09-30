@@ -311,8 +311,8 @@ void OPEN_resetMemcardScreen(s32 port) {
     case 0:
         countSeenCards(port);
         OPEN_MEMCARD.loading = 0;
-        ((SessionView *)D_8006E054)->saves[port].slot = 0;
-        ((SessionView *)D_8006E054)->saves[port].file = 0;
+        ((SessionView *)SESSION_DATA)->saves[port].slot = 0;
+        ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
         OPEN_MEMCARD.unk542 = 0;
         break;
@@ -334,8 +334,8 @@ void OPEN_resetMemcardScreen(s32 port) {
         break;
     case 7:
         OPEN_MEMCARD.loading = 1;
-        ((SessionView *)D_8006E054)->saves[port].slot = port;
-        ((SessionView *)D_8006E054)->saves[port].file = 0;
+        ((SessionView *)SESSION_DATA)->saves[port].slot = port;
+        ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
         OPEN_MEMCARD.unk542 = 0;
         break;
@@ -350,8 +350,8 @@ void OPEN_resetMemcardScreen(s32 port) {
         break;
     case 0xFF:
         OPEN_MEMCARD.loading = 1;
-        ((SessionView *)D_8006E054)->saves[port].slot = 0;
-        ((SessionView *)D_8006E054)->saves[port].file = 0;
+        ((SessionView *)SESSION_DATA)->saves[port].slot = 0;
+        ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
         OPEN_MEMCARD.unk542 = 0;
         break;
@@ -653,7 +653,7 @@ void OPEN_drawMemcardOperation(UiWindow *window) {
     char text[40];
     s32 x;
 
-    sprintf(text, "Player %d : Slot %d", OPEN_MEMCARD_CARD + 1, ((SessionData *)D_8006E054)->unk1010[OPEN_MEMCARD_CARD * 8] + 1);
+    sprintf(text, "Player %d : Slot %d", OPEN_MEMCARD_CARD + 1, ((SessionData *)SESSION_DATA)->unk1010[OPEN_MEMCARD_CARD * 8] + 1);
     x = (0x84 - strlen(text) * 6) / 2;
     drawText(window->originX + x, window->originY + 1, (s32)text, 7, window->z);
 }
@@ -1018,7 +1018,7 @@ void OPEN_runMemcardPrompts(void) {
 void OPEN_confirmOverwrite(s32 port) {
     char text[136];
 
-    sprintf(text, "Will write over File%d.\nIs this OK?", ((SessionView *)D_8006E054)->saves[port].file + 1);
+    sprintf(text, "Will write over File%d.\nIs this OK?", ((SessionView *)SESSION_DATA)->saves[port].file + 1);
     initDialog((u8 *)&OPEN_DIALOG, text, 1);
     runDialogForPad((s32 *)&OPEN_DIALOG, port);
     switch (OPEN_DIALOG.choice) {
@@ -1038,13 +1038,13 @@ void OPEN_confirmPlayWithoutSaving(s32 port) {
     switch (OPEN_DIALOG.choice) {
     case 1:
         OPEN_MEMCARD_READY = 1;
-        ((SessionData *)D_8006E054)->unk1027 = 1;
+        ((SessionData *)SESSION_DATA)->unk1027 = 1;
         exitTask();
         break;
     case 0:
     case 2:
         OPEN_MEMCARD_STATE = 1;
-        ((SessionData *)D_8006E054)->unk1027 = 0;
+        ((SessionData *)SESSION_DATA)->unk1027 = 0;
         break;
     }
 }
@@ -1109,7 +1109,7 @@ void OPEN_selectSaveFile(s32 port) {
             initDialog((u8 *)&OPEN_DIALOG, text, i);
             runDialogForPad((s32 *)&OPEN_DIALOG, port);
             if (i == 1 && OPEN_DIALOG.choice == 1) {
-                ((SessionView *)D_8006E054)->saves[port].file = OPEN_MEMCARD.slot;
+                ((SessionView *)SESSION_DATA)->saves[port].file = OPEN_MEMCARD.slot;
                 if (OPEN_MEMCARD.mode == 0) {
                     OPEN_MEMCARD.state = 4;
                 } else {
@@ -1135,11 +1135,11 @@ void OPEN_selectSaveFile(s32 port) {
             OPEN_MEMCARD.ready = 1;
             OPEN_hideSaveSlots();
             OPEN_MEMCARD.state = 0x1A;
-            ((SessionData *)D_8006E054)->unk1027 = 1;
+            ((SessionData *)SESSION_DATA)->unk1027 = 1;
             break;
         case 0:
         case 2:
-            ((SessionData *)D_8006E054)->unk1027 = 0;
+            ((SessionData *)SESSION_DATA)->unk1027 = 0;
             if (OPEN_MEMCARD.mode == 0) {
                 OPEN_MEMCARD.message = 0x11;
             } else {

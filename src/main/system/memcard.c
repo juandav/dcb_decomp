@@ -11,7 +11,7 @@
 #include "dcb/sound_play.h"
 
 s32 PLAYER_PROFILES = 0;
-void *D_8006E054 = 0;
+void *SESSION_DATA = 0;
 
 void playMenuSound(u32 kind) {
     s32 sound;

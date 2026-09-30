@@ -79,8 +79,8 @@ void KAW_drawPrizeCard(PrizeWindow *win) {
         drawTextColored(x + 0x3C, y + 0x31, buf, rgb.b, 7, z);
         sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
         drawSmallTextColored(x + 0x56, y + 0x33, buf, 7, rgb.b, z);
-        if (D_8006E4FC[card->crossEffect] != 0) {
-            drawIconColored(x + 0x95, y + 0x31, 0, D_8006E4FC[card->crossEffect] + 0x14, rgb.b, z);
+        if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
+            drawIconColored(x + 0x95, y + 0x31, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, rgb.b, z);
         }
         drawIconColored(x + 0x74, y + 0x1A, 0, 0x18, rgb.b, z);
         sprintf(buf, "*s0%2d", card->dpCost);
@@ -132,7 +132,7 @@ void KAW_drawPrizeResult(RewardWindow *w) {
 
 void KAW_drawPrizeTitle(UiWindow *window) {
     drawText(window->originX + 2, window->originY + 1, (s32)"Earned a Prize Pack", 7, 0);
-    drawText(window->originX + 0x92, window->originY + 1, (s32)D_8006E31C[((u8 *)D_8006E054)[0x73]], 6, 0);
+    drawText(window->originX + 0x92, window->originY + 1, (s32)CARD_PACK_NAMES[((u8 *)SESSION_DATA)[0x73]], 6, 0);
 }
 
 void KAW_renderPrizeScreen(void) {
@@ -150,7 +150,7 @@ void KAW_renderPrizeScreen(void) {
 void KAW_rollPrizeCards(u8 *archive) {
     s32 i;
 
-    rollRewardCards(0, ((u8 *)D_8006E054)[0x73]);
+    rollRewardCards(0, ((u8 *)SESSION_DATA)[0x73]);
     for (i = 0; i < 3; i++) {
         uploadTim((u32 *)(archive + ((s32 *)archive)[((PlayerProfile *)PLAYER_PROFILES)->rewardCards[i]]), i * 20 + 0x2C0, 0x100, -1, -1);
         KAW_DUEL->rewardCluts[i] = getClut(LOADED_TIM.crect->x, LOADED_TIM.crect->y);

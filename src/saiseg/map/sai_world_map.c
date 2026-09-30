@@ -18,7 +18,7 @@
 #include "dcb/sai_area.h"
 #include "dcb/sai_sprite.h"
 
-#define SESSION_SUB (((SessionData *)D_8006E054)->unk100C)
+#define SESSION_SUB (((SessionData *)SESSION_DATA)->unk100C)
 
 /* the world map's states, SAI_MAP_STATE_FUNCS' index (WorldMap.state) */
 enum MapState {
@@ -130,7 +130,7 @@ void SAI_loadMapTextures(s32 useMap) {
     char path[0x48];
     u32 *pack;
 
-    *(s32 *)&((SessionData *)D_8006E054)->unk100C->unk0[0x194] = 1;
+    *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x194] = 1;
     if (useMap == 0) {
         sprintf(path, worldPath);
     } else {
@@ -140,7 +140,7 @@ void SAI_loadMapTextures(s32 useMap) {
     pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);
     freeHeapBlock(pack);
-    *(s32 *)&((SessionData *)D_8006E054)->unk100C->unk0[0x194] = 0;
+    *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x194] = 0;
 }
 
 void SAI_initCamera(void) {
@@ -328,7 +328,7 @@ void SAI_tickMapMenu(void) {
             SAI_WORLD_MAP.menuPhase = 2;
             SAI_WORLD_MAP.menuChosen = 0;
         } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
-            if (((SessionData *)D_8006E054)->unk1027 != 1 || SAI_MAP_MENU_CURSOR != 2) {
+            if (((SessionData *)SESSION_DATA)->unk1027 != 1 || SAI_MAP_MENU_CURSOR != 2) {
                 playSoundEffect(0);
                 SAI_WORLD_MAP.menuPhase = 2;
                 SAI_WORLD_MAP.menuChosen = 1;
@@ -356,7 +356,7 @@ void SAI_tickMapMenu(void) {
             SAI_SPRITES[i]->pos.vx = x + 3;
         }
         if (i != 30) {
-            if (((SessionData *)D_8006E054)->unk1027 == 1) {
+            if (((SessionData *)SESSION_DATA)->unk1027 == 1) {
                 if (SAI_WORLD_MAP.menuCursor == i - 31) {
                     if (i == 33) {
                         SAI_SPRITES[i]->quads[0].clut = getClut(0x200, 0xF1);
@@ -620,7 +620,7 @@ void SAI_openMapMenu(void) {
     SAI_SPRITES[31] = SAI_createSprite(0x18);
     SAI_SPRITES[32] = SAI_createSprite(0x19);
     SAI_SPRITES[33] = SAI_createSprite(0x17);
-    if (((SessionData *)D_8006E054)->unk1027 == 1) {
+    if (((SessionData *)SESSION_DATA)->unk1027 == 1) {
         SAI_SPRITES[33]->quads[0].clut = getClut(0x200, 0xF1);
         SAI_SPRITES[33]->quads[1].clut = getClut(0x200, 0xF1);
     }

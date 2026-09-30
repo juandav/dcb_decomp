@@ -24,7 +24,7 @@ void EVO_loadUnitTextures(void) {
     char path[24];
     u32 *pack;
 
-    sprintf(path, "C:\\OBJECT\\unit.TIS", (s8)((SessionData *)D_8006E054)->unk100C->unk1A4);
+    sprintf(path, "C:\\OBJECT\\unit.TIS", (s8)((SessionData *)SESSION_DATA)->unk100C->unk1A4);
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
     pack = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTexturePack(pack);

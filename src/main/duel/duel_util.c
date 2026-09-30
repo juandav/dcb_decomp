@@ -40,7 +40,7 @@ void waitDuelFrames(s32 frames) {
     }
 }
 
-s32 func_80033D9C(void) {
+s32 isCrossPressedByTurnPlayer(void) {
     PadState *pad;
 
     if (DUEL->stopTurnLoop != 0) {
@@ -135,7 +135,7 @@ void runDuelMessageWindow(void) {
     if (player->controller == 1) {
         padIndex = 0;
     }
-    runDialogForPad(&D_801D8278, padIndex);
+    runDialogForPad(&DUEL_DIALOG, padIndex);
 }
 
 /*

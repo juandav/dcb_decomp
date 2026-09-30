@@ -228,7 +228,7 @@ void KAW_drawBonusList(UiWindow *w) {
     y = w->originY;
     z = w->z;
     drawText(x + 0x28, y + 1, (s32)"Detail of Earned Experience Points", 6, 0);
-    exp = DUEL->winner == 0 ? ((u8 *)D_8006E054)[0x74] : 0;
+    exp = DUEL->winner == 0 ? ((u8 *)SESSION_DATA)[0x74] : 0;
     rowY = y + 15;
     drawText(x + 6, rowY, (s32)"Experience Points from Opponent", 7, z);
     sprintf(buf, "*s0+%3d", exp);
@@ -365,8 +365,8 @@ void KAW_uploadPartnerPortraits(u8 *archive) {
     s32 id;
 
     for (i = 0; i < 3; i++) {
-        if (((SessionData *)D_8006E054)->npcDeckIndex[0] != -1) {
-            id = ((SessionData *)D_8006E054)->partnerBackup[0][i].cardId;
+        if (((SessionData *)SESSION_DATA)->npcDeckIndex[0] != -1) {
+            id = ((SessionData *)SESSION_DATA)->partnerBackup[0][i].cardId;
         } else {
             id = ((PlayerProfile *)PLAYER_PROFILES)->partners[i].cardId;
         }
@@ -487,7 +487,7 @@ void KAW_runExpScreen(void) {
                                 KAW_EXP_SCREEN->partFlags[n / 8] |= 1 << (n % 8);
                                 grantPartnerAbility(0, n);
                             }
-                            n = func_8004994C(0, i);
+                            n = rollPartnerAbility(0, i);
                             if (n >= 0) {
                                 KAW_EXP_SCREEN->gains[i][n] += 10;
                                 gained = 1;

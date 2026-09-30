@@ -23,15 +23,15 @@
 #include "dcb/str_util.h"
 #include "dcb/duel.h"
 
-s32 D_8006E294 = 0;
-s32 D_8006E298 = 0x808080;
+s32 GLYPH_UPLOAD_BUSY = 0;
+s32 STAT_POPUP_RGB = 0x808080;
 
 void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
     char path[64]; /* unused, but it is in the original stack frame */
     u8 *fontArchive;
     s32 i;
 
-    D_8006E294 = 1;
+    GLYPH_UPLOAD_BUSY = 1;
     DUEL_VRAM_READY = 0;
     spawnTask(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", getCurrentTaskId());
     fontArchive = (u8 *)waitFrames(0x7FFFFFFF);
@@ -46,7 +46,7 @@ void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
         }
     }
     freeHeapBlock(fontArchive);
-    D_8006E294 = 0;
+    GLYPH_UPLOAD_BUSY = 0;
     resumeTask(parentTask);
 }
 
@@ -144,7 +144,7 @@ void loadDuelCardGraphics(s32 withExtras) {
     freeHeapBlock(arc);
 
     sprite = DUEL->sprites;
-    nextAnim[0] = (CardAnim *)D_801D833C;
+    nextAnim[0] = (CardAnim *)CARD_ANIMS;
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
     arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < 2; i++) {
@@ -1035,7 +1035,7 @@ MATRIX *buildRotTransMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
 }
 
 /* the names of the card packs */
-u8 * D_8006E31C[16] = {
+u8 * CARD_PACK_NAMES[16] = {
     "Basic Pack",
     "Hyper Pack",
     "Super Pack",
@@ -1111,4 +1111,4 @@ u8 * CROSS_EFFECT_NAMES[16] = {
     "*a3 Foe X3",
     "*a4 Foe X3",
 };
-u8 D_8006E4FC[16] = { 0, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1 };
+u8 CROSS_EFFECT_ICONS[16] = { 0, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1 };
