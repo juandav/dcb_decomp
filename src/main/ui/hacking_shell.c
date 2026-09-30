@@ -152,11 +152,11 @@ u8 *HACKING_SCRIPTS[4] = {
     "\002\377\002\300",
 };
 
-INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_SYSTEM_ERROR);
-
-INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_PARTNER_MOVED);
-
-INCLUDE_RODATA("asm/main/nonmatchings/ui/hacking_shell", STR_HACK_TAUNT);
+/* The texts of the three message windows; GCC keeps one copy of each,
+   emitted with drawHackingTerminal, the first function that uses them */
+#define STR_HACK_SYSTEM_ERROR "         *c6SYSTEM ERROR\n*c2Illegal Sharing:*c7Unauthorized command\nwas used."
+#define STR_HACK_PARTNER_MOVED "Player's Partner Card was moved to\nthe bottom of Online Deck."
+#define STR_HACK_TAUNT "Ha ha. Isn't this interesting!"
 
 void drawHackingTerminal(UiWindow *win) {
     Rect16 rect;
@@ -186,7 +186,7 @@ void drawHackingTerminal(UiWindow *win) {
                 break;
             case 4:
                 /* the windows grow to the text's size rounded up to even */
-                measureText(STR_HACK_SYSTEM_ERROR);
+                measureText((u8 *)STR_HACK_SYSTEM_ERROR);
                 rect.w = (TEXT_WIDTH + 1) / 2 * 2;
                 rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect.x = 0x28;
@@ -195,7 +195,7 @@ void drawHackingTerminal(UiWindow *win) {
                 playMenuSound(3);
                 break;
             case 5:
-                measureText(STR_HACK_PARTNER_MOVED);
+                measureText((u8 *)STR_HACK_PARTNER_MOVED);
                 rect.w = (TEXT_WIDTH + 1) / 2 * 2;
                 rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect.x = 0x50;
@@ -204,7 +204,7 @@ void drawHackingTerminal(UiWindow *win) {
                 playMenuSound(3);
                 break;
             case 6:
-                measureText(STR_HACK_TAUNT);
+                measureText((u8 *)STR_HACK_TAUNT);
                 rect.w = (TEXT_WIDTH + 1) / 2 * 2;
                 rect.h = (TEXT_HEIGHT + 1) / 2 * 2;
                 rect.x = (0x140 - rect.w) >> 1;
@@ -288,20 +288,20 @@ void runHackingSequence(s32 scriptIndex, s32 parentTask) {
     HACK_TERMINAL_WINDOW.palette = 2;
     HACK_TERMINAL_WINDOW.labelPalette = 8;
     playMenuSound(3);
-    measureText(STR_HACK_SYSTEM_ERROR);
+    measureText((u8 *)STR_HACK_SYSTEM_ERROR);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     openWindow(&HACK_ERROR_WINDOW, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
     animateWindowTo(&HACK_ERROR_WINDOW, (Rect16 *)-1);
     HACK_ERROR_WINDOW.palette = 2;
-    measureText(STR_HACK_PARTNER_MOVED);
+    measureText((u8 *)STR_HACK_PARTNER_MOVED);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     /* HACK_ERROR_WINDOW + 1 is HACK_PARTNER_MOVED_WINDOW */
     openWindow(&HACK_ERROR_WINDOW + 1, &r, -1, (s16 *)-1, 0, 0x77, 0x80, 0xC);
     animateWindowTo(&HACK_ERROR_WINDOW + 1, (Rect16 *)-1);
     (&HACK_ERROR_WINDOW)[1].palette = 2;
-    measureText(STR_HACK_TAUNT);
+    measureText((u8 *)STR_HACK_TAUNT);
     r.w = (TEXT_WIDTH + 1) / 2 * 2;
     r.h = (TEXT_HEIGHT + 1) / 2 * 2;
     r.x = (0x140 - r.w) >> 1;
