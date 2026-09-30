@@ -21,6 +21,7 @@
 #include "dcb/transform.h"
 #include "dcb/text.h"
 #include "dcb/str_util.h"
+#include "dcb/duel.h"
 
 s32 D_8006E294 = 0;
 s32 D_8006E298 = 0x808080;
@@ -76,7 +77,7 @@ void runCardArtLoader(void) {
         if (DUEL->cursorSlot == -1 || DUEL->cursorSlot == 4) {
             continue;
         }
-        spriteIndex = *(s16 *)(DUEL->cursor + 2);
+        spriteIndex = CUR_CARD;
         if (spriteIndex == -1) {
             continue;
         }
@@ -89,7 +90,7 @@ void runCardArtLoader(void) {
                 continue;
             }
             DUEL->cache[slot].used = 0;
-            CARD_ART_LAST_SPRITE = *(s16 *)(DUEL->cursor + 2);
+            CARD_ART_LAST_SPRITE = CUR_CARD;
             if (DUEL->cache[slot].id != cardId) {
                 DUEL->loadBusy = 1;
                 DUEL->cache[slot].id = cardId;
@@ -174,10 +175,11 @@ void drawHudSprite(SprtInfo *info, s32 unused, s32 z) {
 
 void renderDuelBackground(s32 brightness) {
     POLY_FT4 *poly;
-    u8 *polyBuf;
+    POLY_FT4 *polys;
 
-    polyBuf = (u8 *)CURRENT_FRAME_BUFFER->primSlots[11];
-    poly = (POLY_FT4 *)(polyBuf + 0x1E0);
+    /* four quads, one per screen quarter, from the same texture (mirrored) */
+    polys = (POLY_FT4 *)CURRENT_FRAME_BUFFER->primSlots[11];
+    poly = &polys[12];
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
@@ -201,7 +203,7 @@ void renderDuelBackground(s32 brightness) {
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
-    poly = (POLY_FT4 *)(polyBuf + 0x208);
+    poly = &polys[13];
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
@@ -225,7 +227,7 @@ void renderDuelBackground(s32 brightness) {
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
-    poly = (POLY_FT4 *)(polyBuf + 0x230);
+    poly = &polys[14];
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
@@ -249,7 +251,7 @@ void renderDuelBackground(s32 brightness) {
     poly->tpage = 0x1C;
     poly->clut = 0x7C33;
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
-    poly = (POLY_FT4 *)(polyBuf + 0x258);
+    poly = &polys[15];
     initPrimByType(0xC, poly, 0, 0);
     poly->r0 = brightness;
     poly->g0 = brightness;
@@ -275,11 +277,12 @@ void renderDuelBackground(s32 brightness) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], poly);
 }
 
-void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
+void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, CardSprite *cardSprite) {
     POLY_FT4 *poly;
     s32 u;
 
-    poly = (POLY_FT4 *)((u8 *)CURRENT_FRAME_BUFFER->primSlots[11] + (index * 80 + 0x280));
+    poly = &((POLY_FT4 *)CURRENT_FRAME_BUFFER->primSlots[11])[16 + index * 2];
+    /* a 4-frame animation, one frame every 4 ticks */
     u = ((((PlayerProfile *)PLAYER_PROFILES)->playTime / 4) % 4) * 32;
     initPrimByType(0xC, poly, 1, 0);
     poly->r0 = 0x80;
@@ -310,14 +313,14 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
         poly->r0 = 0x80;
         poly->g0 = 0x80;
         poly->b0 = 0x80;
-        poly->u0 = cardSprite[0x16];
-        poly->v0 = cardSprite[0x17];
-        poly->u1 = cardSprite[0x16] + 0x28;
-        poly->v1 = cardSprite[0x17];
-        poly->u2 = cardSprite[0x16];
-        poly->v2 = cardSprite[0x17] + 0x27;
-        poly->u3 = cardSprite[0x16] + 0x28;
-        poly->v3 = cardSprite[0x17] + 0x27;
+        poly->u0 = cardSprite->u;
+        poly->v0 = cardSprite->v;
+        poly->u1 = cardSprite->u + 0x28;
+        poly->v1 = cardSprite->v;
+        poly->u2 = cardSprite->u;
+        poly->v2 = cardSprite->v + 0x27;
+        poly->u3 = cardSprite->u + 0x28;
+        poly->v3 = cardSprite->v + 0x27;
         poly->x0 = x;
         poly->y0 = y;
         poly->x1 = x + 0x40;
@@ -326,8 +329,8 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, u8 *cardSprite) {
         poly->y2 = y + 0x40;
         poly->x3 = x + 0x40;
         poly->y3 = y + 0x40;
-        poly->tpage = *(u16 *)(cardSprite + 0x12);
-        poly->clut = *(u16 *)(cardSprite + 0x10);
+        poly->tpage = cardSprite->tpage;
+        poly->clut = cardSprite->clut;
         addPrim(&CURRENT_FRAME_BUFFER->ot[z], poly);
     }
 }
@@ -357,7 +360,9 @@ void renderPhaseBanner(void) {
         DUEL_MSG_BAR.bannerStep = step;
         DUEL_MSG_BAR.bannerPhase = phase;
     }
-    poly = (POLY_FT4 *)(CURRENT_FRAME_BUFFER->primSlots[11] + 0x320);
+    poly = &((POLY_FT4 *)CURRENT_FRAME_BUFFER->primSlots[11])[20];
+    /* 0: slide in from the right, 1: flash with fading echoes, 2-3: move to the
+       corner of playerLabel's side, 4: stay there */
     switch ((u8)DUEL_MSG_BAR.bannerState) {
     case 0:
         DUEL_MSG_BAR.px -= 14;
@@ -567,7 +572,7 @@ void renderStatusMessage(s32 brightness) {
     if (DUEL_MSG_BAR.cur != DUEL_MSG_BAR.next) {
         if (++DUEL_MSG_BAR.y > 0x10) {
             DUEL_MSG_BAR.cur = DUEL_MSG_BAR.next;
-            DUEL_MSG_BAR.player = ((u8 *)D_801D8340)[0x817];
+            DUEL_MSG_BAR.player = DUEL->turnPlayer;
         }
     } else if (DUEL_MSG_BAR.y != 0) {
         DUEL_MSG_BAR.y--;
@@ -575,6 +580,8 @@ void renderStatusMessage(s32 brightness) {
     if (DUEL_MSG_BAR.cur != -1) {
         src = STATUS_MESSAGE_TEXTS[DUEL_MSG_BAR.cur];
         dst = buf;
+        /* copy the message, replacing "*P0"/"*P1" with a player's name; a
+           two-byte Shift-JIS character (lead byte 0x81-0x98) is copied whole */
         do {
             if (*src < 0x81 || *src >= 0x99) {
                 if (*src == '*' && src[1] == 'P') {
@@ -582,8 +589,8 @@ void renderStatusMessage(s32 brightness) {
                     player = *src++ - '0';
                     player ^= DUEL_MSG_BAR.player;
                     *dst = 0;
-                    strcpy((char *)dst, (char *)DUEL_PLAYERS[player] + 0x1CE);
-                    dst += strlen(DUEL_PLAYERS[player] + 0x1CE);
+                    strcpy((char *)dst, PLAYER(player)->name);
+                    dst += strlen(PLAYER(player)->name);
                     continue;
                 }
             } else {
@@ -591,7 +598,7 @@ void renderStatusMessage(s32 brightness) {
             }
             *dst++ = *src++;
         } while (src[-1] != 0);
-        drawTextColored(0x10, DUEL_MSG_BAR.y + 0xE, (s32)buf, (s32 *)rgb, 7, 0xFFE);
+        drawTextColored(0x10, DUEL_MSG_BAR.y + 0xE, buf, rgb, 7, 0xFFE);
     }
     clipRect.x = env.disp[0] + 0x10;
     clipRect.y = env.disp[1] + 0xE;
@@ -643,9 +650,9 @@ void renderHelpBar(s32 brightness) {
         addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFE], &CUR_SPRT->dm);
         SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         if (DUEL_MSG_BAR.curLabel2 == 1 && DUEL_MSG_BAR.cur2 != 2 && DUEL_MSG_BAR.cur2 != 0) {
-            drawTextColored(0x50, 0xDB - DUEL_MSG_BAR.y2, (s32)"Thinking.....", (s32 *)rgb, 7, 0xFFE);
+            drawTextColored(0x50, 0xDB - DUEL_MSG_BAR.y2, "Thinking.....", rgb, 7, 0xFFE);
         } else {
-            drawTextColored(0x40, 0xDB - DUEL_MSG_BAR.y2, (s32)HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], (s32 *)rgb, 7, 0xFFE);
+            drawTextColored(0x40, 0xDB - DUEL_MSG_BAR.y2, HELP_BAR_TEXTS[DUEL_MSG_BAR.cur2], rgb, 7, 0xFFE);
         }
     }
     clipRect.x = env.disp[0] + 0x10;
@@ -700,8 +707,7 @@ void resetCardPolyCount(void) {
     CARD_POLY_COUNT = 0;
 }
 
-void projectCardSprite(void *cardSprite, s32 spriteIndex) {
-    u8 *sprite;
+void projectCardSprite(CardSprite *sprite, s32 spriteIndex) {
     MATRIX matrix;
     SVECTOR vertices[4];
     s32 sxy[4];
@@ -709,35 +715,35 @@ void projectCardSprite(void *cardSprite, s32 spriteIndex) {
     s32 otz;
     s32 flag;
 
-    sprite = cardSprite;
-    if (!(sprite[0x15] & 0x80)) {
+    if (!(sprite->flags & 0x80)) {
         return;
     }
     PushMatrix();
-    buildRotTransMatrix((VECTOR *)(sprite + 0x18), (SVECTOR *)(sprite + 0x28), &matrix);
-    CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), &matrix, &matrix);
+    buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
+    CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     func_8005C444(&matrix);
-    vertices[0].vx = -(*(s32 *)(sprite + 0x30) * 40) / 8192;
-    vertices[0].vy = -(*(s32 *)(sprite + 0x30) * 48) / 8192;
+    vertices[0].vx = -(sprite->scale * 40) / 8192;
+    vertices[0].vy = -(sprite->scale * 48) / 8192;
     vertices[0].vz = 0;
-    vertices[1].vx = (*(s32 *)(sprite + 0x30) * 40) / 8192;
-    vertices[1].vy = -(*(s32 *)(sprite + 0x30) * 48) / 8192;
+    vertices[1].vx = (sprite->scale * 40) / 8192;
+    vertices[1].vy = -(sprite->scale * 48) / 8192;
     vertices[1].vz = 0;
-    vertices[2].vx = -(*(s32 *)(sprite + 0x30) * 40) / 8192;
-    vertices[2].vy = (*(s32 *)(sprite + 0x30) * 48) / 8192;
+    vertices[2].vx = -(sprite->scale * 40) / 8192;
+    vertices[2].vy = (sprite->scale * 48) / 8192;
     vertices[2].vz = 0;
-    vertices[3].vx = (*(s32 *)(sprite + 0x30) * 40) / 8192;
-    vertices[3].vy = (*(s32 *)(sprite + 0x30) * 48) / 8192;
+    vertices[3].vx = (sprite->scale * 40) / 8192;
+    vertices[3].vy = (sprite->scale * 48) / 8192;
     vertices[3].vz = 0;
     RotAverageNclip4((s32)&vertices[0], (s32)&vertices[1], (s32)&vertices[2], (s32)&vertices[3], (s32)&sxy[0], (s32)&sxy[1], (s32)&sxy[2],
                      (s32)&sxy[3], &depthCue, &otz, &flag);
-    *(s32 *)(sprite + 0x38) = 0x57 - *(s16 *)(D_801D833C + spriteIndex * 36 + 0x20);
-    if (*((s8 *)D_801D8340 + 0x81C) >= 0 && spriteIndex == *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x58) + 2)) {
-        *(s32 *)(sprite + 0x38) = 0x33;
+    sprite->z = 0x57 - CARD_ANIM(spriteIndex)->count;
+    /* the card under the cursor is drawn in front */
+    if (DUEL->cursorSlot >= 0 && spriteIndex == CUR_CARD) {
+        sprite->z = 0x33;
     }
-    *(s16 *)(sprite + 0x34) = sxy[0];
-    *(s16 *)(sprite + 0x36) = sxy[0] >> 16;
+    sprite->sx = sxy[0];
+    sprite->sy = sxy[0] >> 16;
     PopMatrix();
 }
 
@@ -754,8 +760,8 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     u32 *fade;
     RawPolyFT4 *buf;
     RawPolyFT4 *pk;
-    u8 *duel;
-    u8 *t;
+    Duel *duel;
+    CardCursor *cursor;
     u16 clut;
     u16 tpage;
     u8 u0, v0, u1, v1, u2, v2, u3, v3;
@@ -765,7 +771,7 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
     }
     PushMatrix();
     buildRotTransMatrix(&sprite->pos, &sprite->rot, &matrix);
-    CompMatrix((MATRIX *)((u8 *)SCENE_3D + 0x78), &matrix, &matrix);
+    CompMatrix((MATRIX *)SCENE_3D->unk78, &matrix, &matrix);
     SetRotMatrix((s32)&matrix);
     func_8005C444(&matrix);
     vertices[0].vx = -(sprite->scale * 40) / 8192;
@@ -805,14 +811,14 @@ void renderCardSprite(CardSprite *sprite, s32 spriteIndex) {
         addPrim(&CURRENT_FRAME_BUFFER->ot[0], &CUR_SPRT->dm);
         SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
-    sprite->z = 0x57 - *(s16 *)(D_801D833C + spriteIndex * 36 + 0x20);
-    duel = D_801D8340;
-    if (*(s8 *)(duel + 0x81C) >= 0) {
-        t = *(u8 **)(duel + 0x58);
-        if (spriteIndex == *(s16 *)(t + 2)) {
-            *(CardSprite **)(t + 4) = sprite;
+    sprite->z = 0x57 - CARD_ANIM(spriteIndex)->count;
+    duel = DUEL;
+    if (duel->cursorSlot >= 0) {
+        cursor = (CardCursor *)duel->cursor;
+        if (spriteIndex == cursor->id) {
+            cursor->sprite = sprite;
             sprite->z = 0x33;
-            func_801F8E34(*(u8 **)(duel + 0x58), 0x33);
+            func_801F8E34(duel->cursor, 0x33);
         }
     }
     if (sprite->flags & 0x40) {

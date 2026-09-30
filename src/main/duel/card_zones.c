@@ -8,6 +8,11 @@
 #include "dcb/angle.h"
 #include "dcb/main.h"
 #include "dcb/task.h"
+#include "dcb/battle_hud.h"
+
+/* A duel player's card zones (online and offline decks, hand, DP slots,
+   Digimon stack, played card) hold indices into its cards[]; -1 is an empty
+   slot. */
 
 s32 peekOfflineDeckTop(s32 player) {
     s32 i;
@@ -15,7 +20,7 @@ s32 peekOfflineDeckTop(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+    pile = PLAYER(player)->offlineDeck;
     do {
         cardIndex = pile[i];
         if (cardIndex != -1) {
@@ -34,10 +39,10 @@ s32 discardCardToOfflineDeck(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 29; i >= 0; i--) {
-        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x19B] == cardIndex) {
+        if (PLAYER(player)->offlineDeck[i] == cardIndex) {
             return -1;
         }
-        pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+        pile = PLAYER(player)->offlineDeck;
         entry = pile + i;
         if (*entry == -1) {
             *entry = cardIndex;
@@ -54,7 +59,7 @@ s32 countOfflineDeckCards(s32 player) {
 
     i = 0;
     count = 0;
-    pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+    pile = PLAYER(player)->offlineDeck;
     do {
         if (pile[i] != -1) {
             count++;
@@ -70,7 +75,7 @@ s32 takeOfflineDeckTopCard(s32 player) {
     s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        pile = (s8 *)DUEL_PLAYERS[player] + 0x19B;
+        pile = PLAYER(player)->offlineDeck;
         entry = pile + i;
         if (*entry != -1) {
             s32 cardIndex = *entry;
@@ -87,7 +92,7 @@ s32 peekOnlineDeckTop(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+    pile = PLAYER(player)->onlineDeck;
     do {
         cardIndex = pile[i];
         if (cardIndex != -1) {
@@ -107,7 +112,7 @@ s32 countOnlineDeckCards(s32 player) {
 
     i = 0;
     count = 0;
-    pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+    pile = PLAYER(player)->onlineDeck;
     do {
         if (pile[i] != -1) {
             count++;
@@ -123,7 +128,7 @@ s32 drawOnlineDeckCard(s32 player) {
     s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+        pile = PLAYER(player)->onlineDeck;
         entry = pile + i;
         if (*entry != -1) {
             s32 cardIndex = *entry;
@@ -160,10 +165,10 @@ s32 returnCardToOnlineDeck(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 29; i >= 0; i--) {
-        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x17D] == cardIndex) {
+        if (PLAYER(player)->onlineDeck[i] == cardIndex) {
             return -1;
         }
-        pile = (s8 *)DUEL_PLAYERS[player] + 0x17D;
+        pile = PLAYER(player)->onlineDeck;
         entry = pile + i;
         if (*entry == -1) {
             *entry = cardIndex;
@@ -180,7 +185,7 @@ s32 countEmptyHandSlots(s32 player) {
 
     i = 0;
     count = 0;
-    hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
+    hand = PLAYER(player)->hand;
     do {
         if (hand[i] == -1) {
             count++;
@@ -196,7 +201,7 @@ s32 addCardToHand(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
+        hand = PLAYER(player)->hand;
         entry = hand + i;
         if (*entry == -1) {
             *entry = cardIndex;
@@ -212,7 +217,7 @@ s32 removeCardFromHand(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        hand = (s8 *)DUEL_PLAYERS[player] + 0x1B9;
+        hand = PLAYER(player)->hand;
         entry = hand + i;
         if (*entry == cardIndex) {
             *entry = -1;
@@ -228,7 +233,7 @@ s32 checkHandHasDigimonCard(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    duelPlayer = (Player *)DUEL_PLAYERS[player];
+    duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 0) {
@@ -244,7 +249,7 @@ s32 checkHandHasOptionCard(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    duelPlayer = (Player *)DUEL_PLAYERS[player];
+    duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 1) {
@@ -260,7 +265,7 @@ s32 checkHandHasDigivolveCard(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    duelPlayer = (Player *)DUEL_PLAYERS[player];
+    duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
         if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 2) {
@@ -276,7 +281,7 @@ s32 getActiveDigimonCard(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
+    stack = PLAYER(player)->digimonStack;
     do {
         cardIndex = stack[i];
         if (cardIndex != -1) {
@@ -296,7 +301,7 @@ s32 countEmptyDigimonStackSlots(s32 player) {
 
     i = 0;
     count = 0;
-    stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
+    stack = PLAYER(player)->digimonStack;
     do {
         if (stack[i] == -1) {
             count++;
@@ -307,14 +312,15 @@ s32 countEmptyDigimonStackSlots(s32 player) {
 }
 
 s32 placeActiveDigimon(s32 cardIndex, s32 player) {
-    s8 *card;
+    DigimonCardData *card;
     s32 statShift;
     s32 stackSlot;
 
     if (cardIndex == -1) {
         return -1;
     }
-    card = PLAYER(player)->cards[cardIndex % 30].card;
+    card = (DigimonCardData *)PLAYER(player)->cards[cardIndex % 30].card;
+    /* a stat penalty of n > 1 divides the card's stats by 2^(n-1), rounded down to tens */
     statShift = PLAYER(player)->statPenalty - 1;
     if (statShift < 0) {
         statShift = 0;
@@ -322,11 +328,11 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
     for (stackSlot = 2; stackSlot >= 0; stackSlot--) {
         if (PLAYER(player)->digimonStack[stackSlot] == -1 || PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
             PLAYER(player)->digimonStack[stackSlot] = cardIndex;
-            PLAYER(player)->specialty = ((u8)card[0x1A] >> 4);
-            PLAYER(player)->stats[0] = (*(s16 *)(card + 0x1E) >> statShift) / 10 * 10;
-            PLAYER(player)->baseAttackPowers[0] = (*(s16 *)(card + 0x20) >> statShift) / 10 * 10;
-            PLAYER(player)->baseAttackPowers[1] = (*(s16 *)(card + 0x3C) >> statShift) / 10 * 10;
-            PLAYER(player)->baseAttackPowers[2] = (*(s16 *)(card + 0x58) >> statShift) / 10 * 10;
+            PLAYER(player)->specialty = card->attr >> 4;
+            PLAYER(player)->stats[0] = (card->hp >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[0] = (card->attack[0].power >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[1] = (card->attack[1].power >> statShift) / 10 * 10;
+            PLAYER(player)->baseAttackPowers[2] = (card->attack[2].power >> statShift) / 10 * 10;
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
@@ -340,7 +346,7 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
 s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
     Rect16 unused;
-    s8 *armorCard;
+    DigimonCardData *armorCard;
     s32 cardIndex;
     s32 stackSlot;
 
@@ -349,8 +355,9 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     }
     cardIndex = getActiveDigimonCard(player);
     setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].unk292[0]);
-    armorCard = (s8 *)&PLAYER_DATA(player).partners[partnerSlot] + 0x13C;
-    PLAYER(player)->cards[cardIndex % 30].card = armorCard;
+    armorCard = &PLAYER_DATA(player).partners[partnerSlot].card[1];
+    PLAYER(player)->cards[cardIndex % 30].card = (s8 *)armorCard;
+    /* copy the armor's art over the card's art in VRAM */
     artRect.x = ((player << 8) + (partnerSlot + 3) * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;
     artRect.w = 0x14;
@@ -358,17 +365,18 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
     for (stackSlot = 0; stackSlot < 3; stackSlot++) {
         if (PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
-            PLAYER(player)->specialty = (u8)armorCard[0x1A] >> 4;
-            PLAYER(player)->stats[0] = *(s16 *)(armorCard + 0x1E);
-            PLAYER(player)->baseAttackPowers[0] = *(s16 *)(armorCard + 0x20);
-            PLAYER(player)->baseAttackPowers[1] = *(s16 *)(armorCard + 0x3C);
-            PLAYER(player)->baseAttackPowers[2] = *(s16 *)(armorCard + 0x58);
+            PLAYER(player)->specialty = armorCard->attr >> 4;
+            PLAYER(player)->stats[0] = armorCard->hp;
+            PLAYER(player)->baseAttackPowers[0] = armorCard->attack[0].power;
+            PLAYER(player)->baseAttackPowers[1] = armorCard->attack[1].power;
+            PLAYER(player)->baseAttackPowers[2] = armorCard->attack[2].power;
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->hasBattled = 0;
-            PLAYER(player)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10);
-            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[partnerSlot + 1];
+            /* unk170[0] keeps the base card's value for armorDevolvePartner */
+            PLAYER(player)->unk170[0] = UNK7F8(cardIndex).unk10;
+            UNK7F8(cardIndex).unk10 = PLAYER(player)->unk170[partnerSlot + 1];
             return 0;
         }
     }
@@ -378,7 +386,7 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
 s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
     Rect16 unused;
-    s8 *baseCard;
+    DigimonCardData *baseCard;
     s32 cardIndex;
     s32 stackSlot;
 
@@ -387,8 +395,9 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     }
     cardIndex = getActiveDigimonCard(player);
     setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].cardId);
-    baseCard = (s8 *)&PLAYER_DATA(player).partners[partnerSlot];
-    PLAYER(player)->cards[cardIndex % 30].card = baseCard;
+    baseCard = &PLAYER_DATA(player).partners[partnerSlot].card[0];
+    PLAYER(player)->cards[cardIndex % 30].card = (s8 *)baseCard;
+    /* copy the partner's art back over the card's art in VRAM */
     artRect.x = ((player << 8) + partnerSlot * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;
     artRect.w = 0x14;
@@ -396,16 +405,16 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     MoveImage2(&artRect, ((player << 8) + cardIndex % 30 % 6 * 40 >> 1) + 0x2C0, cardIndex % 30 / 6 * 40);
     for (stackSlot = 0; stackSlot < 3; stackSlot++) {
         if (PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
-            PLAYER(player)->specialty = (u8)baseCard[0x1A] >> 4;
-            PLAYER(player)->stats[0] = *(s16 *)(baseCard + 0x1E);
-            PLAYER(player)->baseAttackPowers[0] = *(s16 *)(baseCard + 0x20);
-            PLAYER(player)->baseAttackPowers[1] = *(s16 *)(baseCard + 0x3C);
-            PLAYER(player)->baseAttackPowers[2] = *(s16 *)(baseCard + 0x58);
+            PLAYER(player)->specialty = baseCard->attr >> 4;
+            PLAYER(player)->stats[0] = baseCard->hp;
+            PLAYER(player)->baseAttackPowers[0] = baseCard->attack[0].power;
+            PLAYER(player)->baseAttackPowers[1] = baseCard->attack[1].power;
+            PLAYER(player)->baseAttackPowers[2] = baseCard->attack[2].power;
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->hasBattled = 0;
-            *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[0];
+            UNK7F8(cardIndex).unk10 = PLAYER(player)->unk170[0];
             return 0;
         }
     }
@@ -418,7 +427,7 @@ s32 removeCardFromDigimonStack(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 0; i < 3; i++) {
-        stack = (s8 *)DUEL_PLAYERS[player] + 0x1CA;
+        stack = PLAYER(player)->digimonStack;
         entry = stack + i;
         if (*entry == cardIndex) {
             *entry = -1;
@@ -436,11 +445,11 @@ s32 sumDigivolvePoints(s32 player) {
 
     i = 0;
     points = 0;
-    duelPlayer = (Player *)DUEL_PLAYERS[player];
+    duelPlayer = PLAYER(player);
     for (; i < 8; i++) {
         cardIndex = duelPlayer->dpSlots[i];
         if (cardIndex != -1) {
-            points += duelPlayer->cards[cardIndex % 30].card[0x1C];
+            points += ((DigimonCardData *)duelPlayer->cards[cardIndex % 30].card)->dpBonus;
         }
     }
     if (points > 90) {
@@ -455,7 +464,7 @@ s32 peekDpSlotTop(s32 player) {
     s32 cardIndex;
 
     i = 0;
-    dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+    dpSlots = PLAYER(player)->dpSlots;
     do {
         cardIndex = dpSlots[i];
         if (cardIndex != -1) {
@@ -475,7 +484,7 @@ s32 countEmptyDpSlots(s32 player) {
 
     i = 0;
     count = 0;
-    dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+    dpSlots = PLAYER(player)->dpSlots;
     do {
         if (dpSlots[i] == -1) {
             count++;
@@ -491,10 +500,10 @@ s32 addCardToDpSlots(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 7; i >= 0; i--) {
-        if ((((s8 *)DUEL_PLAYERS[player]) + i)[0x1C2] == cardIndex) {
+        if (PLAYER(player)->dpSlots[i] == cardIndex) {
             return -1;
         }
-        dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+        dpSlots = PLAYER(player)->dpSlots;
         entry = dpSlots + i;
         if (*entry == -1) {
             *entry = cardIndex;
@@ -510,7 +519,7 @@ s32 removeCardFromDpSlots(s32 cardIndex, s32 player) {
     s8 *entry;
 
     for (i = 0; i < 8; i++) {
-        dpSlots = (s8 *)DUEL_PLAYERS[player] + 0x1C2;
+        dpSlots = PLAYER(player)->dpSlots;
         entry = dpSlots + i;
         if (*entry != -1 && *entry == cardIndex) {
             *entry = -1;
@@ -521,29 +530,29 @@ s32 removeCardFromDpSlots(s32 cardIndex, s32 player) {
 }
 
 s32 getPlayedCard(s32 player) {
-    return ((s8 *)DUEL_PLAYERS[player])[0x1CD];
+    return PLAYER(player)->playedCard;
 }
 
 s32 isPlayedCardSlotEmpty(s32 player) {
-    return ((s8 *)DUEL_PLAYERS[player])[0x1CD] == -1;
+    return PLAYER(player)->playedCard == -1;
 }
 
 s32 setPlayedCard(s32 cardIndex, s32 player) {
-    if ((s8)DUEL_PLAYERS[player][0x1CD] == cardIndex) {
+    if (PLAYER(player)->playedCard == cardIndex) {
         return -1;
     }
-    if ((s8)DUEL_PLAYERS[player][0x1CD] == -1) {
-        DUEL_PLAYERS[player][0x1CD] = cardIndex;
+    if (PLAYER(player)->playedCard == -1) {
+        PLAYER(player)->playedCard = cardIndex;
         return 0;
     }
     return -1;
 }
 
 s32 takePlayedCard(s32 player) {
-    s8 *duelPlayer = (s8 *)DUEL_PLAYERS[player];
-    s32 cardIndex = duelPlayer[0x1CD];
+    Player *duelPlayer = PLAYER(player);
+    s32 cardIndex = duelPlayer->playedCard;
 
-    duelPlayer[0x1CD] = -1;
+    duelPlayer->playedCard = -1;
     return cardIndex;
 }
 
@@ -556,15 +565,15 @@ void shuffleOnlineDeck(s32 player) {
 
     cardCount = countOnlineDeckCards(player);
     if (cardCount >= 2) {
-        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->shufflePasses; pass++) {
+        for (pass = 0; pass < PLAYER(player)->shufflePasses; pass++) {
             for (i = 30 - cardCount; i < 30; i++) {
                 swapIndex = rand() % cardCount + (30 - cardCount);
-                swap = ((Player *)DUEL_PLAYERS[player])->onlineDeck[i];
-                ((Player *)DUEL_PLAYERS[player])->onlineDeck[i] = ((Player *)DUEL_PLAYERS[player])->onlineDeck[swapIndex];
-                ((Player *)DUEL_PLAYERS[player])->onlineDeck[swapIndex] = swap;
+                swap = PLAYER(player)->onlineDeck[i];
+                PLAYER(player)->onlineDeck[i] = PLAYER(player)->onlineDeck[swapIndex];
+                PLAYER(player)->onlineDeck[swapIndex] = swap;
             }
         }
-        ((Player *)DUEL_PLAYERS[player])->shufflePasses = 0;
+        PLAYER(player)->shufflePasses = 0;
     }
 }
 
@@ -577,15 +586,15 @@ void shuffleOfflineDeck(s32 player) {
 
     cardCount = countOfflineDeckCards(player);
     if (cardCount >= 2) {
-        for (pass = 0; pass < ((Player *)DUEL_PLAYERS[player])->shufflePasses; pass++) {
+        for (pass = 0; pass < PLAYER(player)->shufflePasses; pass++) {
             for (i = 30 - cardCount; i < 30; i++) {
                 swapIndex = rand() % cardCount + (30 - cardCount);
-                swap = ((Player *)DUEL_PLAYERS[player])->offlineDeck[i];
-                ((Player *)DUEL_PLAYERS[player])->offlineDeck[i] = ((Player *)DUEL_PLAYERS[player])->offlineDeck[swapIndex];
-                ((Player *)DUEL_PLAYERS[player])->offlineDeck[swapIndex] = swap;
+                swap = PLAYER(player)->offlineDeck[i];
+                PLAYER(player)->offlineDeck[i] = PLAYER(player)->offlineDeck[swapIndex];
+                PLAYER(player)->offlineDeck[swapIndex] = swap;
             }
         }
-        ((Player *)DUEL_PLAYERS[player])->shufflePasses = 0;
+        PLAYER(player)->shufflePasses = 0;
     }
 }
 

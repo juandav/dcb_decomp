@@ -36,39 +36,42 @@ void resetScrollingBackground(void) {
 void loadScrollingBackground(void) {
     s16 texWindow[4];
     s32 i;
-    s8 *bg;
-    s8 *buf;
+    ScrollBackground *bg;
+    ScrollBgSprite *sprite;
 
-    bg = (s8 *)&SCROLL_BACKGROUND;
-    if ((*(s32 *)(bg + 0x68)) != 0) {
+    bg = &SCROLL_BACKGROUND;
+    if (bg->tim != 0) {
         return;
     }
-    (*(s8 *)(bg + 0x6C)) = -1;
-    (*(s8 *)(bg + 0x6D)) = -1;
-    (*(s16 *)(bg + 0x72)) = 0;
-    (*(s16 *)(bg + 0x70)) = 0;
-    (*(s8 *)(bg + 0x6E)) = 0;
-    (*(s8 *)(bg + 0x6F)) = 5;
+    bg->mode = -1;
+    bg->shownImage = -1;
+    bg->brightness = 0;
+    bg->scrollPos = 0;
+    bg->scrollMode = 0;
+    bg->scrollSpeed = 5;
+    /* one sprite per frame buffer, covering the whole screen */
     for (i = 0; i < 2; i++) {
-        buf = (s8 *)&SCROLL_BACKGROUND + i * 0x34;
-        initPrimByType(0xE, buf, 0, 0);
-        (*(s16 *)(buf + 0x10)) = 0x141;
-        (*(s16 *)(buf + 0x12)) = 0xF0;
+        sprite = &SCROLL_BACKGROUND.buf[i];
+        initPrimByType(0xE, sprite, 0, 0);
+        sprite->w = 0x141;
+        sprite->h = 0xF0;
+        /* buf[i].twin0: an empty texture window, drawn after the sprite to
+           turn windowing back off */
         texWindow[0] = 0;
         texWindow[1] = 0;
         texWindow[2] = 0;
         texWindow[3] = 0;
-        SetTexWindow((s8 *)&D_801D8220 + i * 0x34, texWindow);
+        SetTexWindow((u8 *)&D_801D8220 + i * sizeof(ScrollBgSprite), texWindow);
     }
     func_800149B8(0, -1, 0, 0x800, loadFileTagged, &PATH_BG_ARC, getCurrentTaskId(), -2);
     D_801D8260 = func_80014C08(0x7FFFFFFF);
 }
 
 void freeScrollingBackground(void) {
-    s8 *bg = (s8 *)&SCROLL_BACKGROUND;
+    ScrollBackground *bg = &SCROLL_BACKGROUND;
 
-    freeHeapBlock(*(void **)(bg + 0x68));
-    *(void **)(bg + 0x68) = 0;
+    freeHeapBlock((void *)bg->tim);
+    bg->tim = 0;
     hideScrollingBackground();
 }
 
@@ -90,8 +93,8 @@ void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
         SCROLL_BACKGROUND.w = w;
         SCROLL_BACKGROUND.h = h;
         for (i = 0; i < 2; i++) {
-            (SCROLL_BACKGROUND.buf + i)->clut = getClut(w, h);
-            SetDrawTPage((SCROLL_BACKGROUND.buf + i)->tpage, 0, 0, GetTPage(0, 0, x, y));
+            SCROLL_BACKGROUND.buf[i].clut = getClut(w, h);
+            SetDrawTPage(SCROLL_BACKGROUND.buf[i].tpage, 0, 0, GetTPage(0, 0, x, y));
         }
     }
     SCROLL_BACKGROUND.scrollMode = 0;
@@ -99,13 +102,13 @@ void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
 }
 
 void hideScrollingBackground(void) {
-    s8 *bg;
+    ScrollBackground *bg;
 
-    bg = (s8 *)&SCROLL_BACKGROUND;
-    bg[0x6C] = -1;
-    bg[0x6D] = -1;
-    (*(s16 *)(bg + 0x72)) = 0;
-    (*(s16 *)(bg + 0x70)) = 0;
+    bg = &SCROLL_BACKGROUND;
+    bg->mode = -1;
+    bg->shownImage = -1;
+    bg->brightness = 0;
+    bg->scrollPos = 0;
 }
 
 void fadeOutScrollingBackground(void) {
@@ -125,6 +128,7 @@ void renderScrollingBackground(void) {
     s16 texWindow[4];
     u8 buffer;
 
+    /* mode and shownImage both -1: nothing to show */
     if (SCROLL_BACKGROUND.tim == 0 || *(u16 *)&SCROLL_BACKGROUND.mode == 0xFFFF) {
         return;
     }
@@ -141,7 +145,9 @@ void renderScrollingBackground(void) {
         break;
     }
     bg = &SCROLL_BACKGROUND;
+    /* the scroll position is in 1/60 texel; it wraps every 128 texels */
     bg->scrollPos = (bg->scrollPos + (s8)bg->scrollSpeed) % 7680;
+    /* a new image: fade the old one out, upload the new one, fade it in */
     if (bg->mode != bg->shownImage) {
         if (bg->shownImage == -1) {
             if (bg->brightness == 0) {
