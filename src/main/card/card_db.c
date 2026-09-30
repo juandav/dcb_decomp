@@ -2,6 +2,7 @@
 #include "gte.h"
 #include "game.h"
 #include "dcb/card_db.h"
+#include "dcb/heap.h"
 #include "dcb/loader.h"
 #include "dcb/vram_upload.h"
 #include "dcb/display.h"
@@ -415,7 +416,107 @@ void markBuildableOpponentDecks(s32 player) {
     }
 }
 
-INCLUDE_ASM("asm/main/nonmatchings/card/card_db", rollRewardCards);
+void rollRewardCards(s32 player, s32 pack) {
+    u8 **cards;
+    s16 *inRange;
+    s16 *nearRange;
+    u8 **card;
+    u8 **data;
+    s16 *in;
+    s16 *near;
+    s32 bonusChance;
+    s16 inCount;
+    s16 nearCount;
+    s32 i;
+    s8 upper;
+    s8 lower;
+
+    clearCollectionFirstObtainedFlags(player);
+    cards = allocTaskHeapBlock(0x4B4);
+    inRange = allocTaskHeapBlock(0x25A);
+    nearRange = allocTaskHeapBlock(0x25A);
+    bonusChance = 0;
+    for (i = 0; i < 3; i++) {
+        if (PLAYER_DATA(player).partners[i].cardId != 0) {
+            bonusChance += PLAYER_DATA(player).partners[i].unk292[2];
+        }
+    }
+    inCount = 0;
+    nearCount = 0;
+    in = inRange;
+    near = nearRange;
+    card = cards;
+    for (i = 0; i < 0x12D; i++) {
+        upper = -1;
+        *in = upper;
+        *near = upper;
+        if (i < 0xBF) {
+            *card = DIGIMON_CARDS + i * 0x13C;
+        } else if (i < 0x125) {
+            *card = OPTION_CARDS + (i * 0xE2 - 0xA89E);
+        } else {
+            *card = DIGIVOLVE_CARDS + (i * 0x70 - 0x8030);
+        }
+        card++;
+        in++;
+        near++;
+    }
+    in = inRange;
+    near = nearRange;
+    data = cards;
+    for (i = 0; i < 0x12D; i++, data++) {
+        upper = 0;
+        lower = 0;
+        switch ((s8)(*data)[2]) {
+        case 0:
+            upper = 0;
+            switch ((*data)[0x1A] & 0xF) {
+            case 0:
+                upper = 2;
+                break;
+            case 2:
+                upper = 1;
+                break;
+            case 3:
+                upper = 0;
+                break;
+            }
+            upper = REWARD_CARD_RANGES[pack][(*data)[0x1A] >> 4][upper];
+            lower = 0;
+            if (upper < 0) {
+                lower = abs(upper);
+                upper = 99;
+            }
+            break;
+        case 1:
+        case 2:
+            upper = REWARD_CARD_RANGES[pack][5][0];
+            lower = REWARD_CARD_RANGES[pack][5][1];
+            break;
+        }
+        if ((*data)[0x19] != 0) {
+            if ((*data)[0x19] <= upper && (*data)[0x19] >= lower) {
+                *in++ = i;
+                inCount++;
+            } else if (upper != 0 && (*data)[0x19] <= upper + REWARD_CARD_RANGES[pack][5][2] && (*data)[0x19] >= lower) {
+                *near++ = i;
+                nearCount++;
+            }
+        }
+    }
+    if (rand() % 100 < bonusChance) {
+        PLAYER_DATA(player).rewardCards[0] = nearRange[rand() % nearCount];
+        PLAYER_DATA(player).rewardCards[1] = inRange[rand() % inCount];
+        PLAYER_DATA(player).rewardCards[2] = inRange[rand() % inCount];
+    } else {
+        PLAYER_DATA(player).rewardCards[0] = inRange[rand() % inCount];
+        PLAYER_DATA(player).rewardCards[1] = inRange[rand() % inCount];
+        PLAYER_DATA(player).rewardCards[2] = inRange[rand() % inCount];
+    }
+    freeHeapBlock(cards);
+    freeHeapBlock(inRange);
+    freeHeapBlock(nearRange);
+}
 
 void addRewardCardsToCollection(s32 player) {
     s32 i;
