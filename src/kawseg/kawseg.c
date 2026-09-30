@@ -910,7 +910,8 @@ s32 func_801E157C(s32 player) {
     return j;
 }
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DDF38);
+/* not referenced by any code */
+const s32 D_801DDF38 = 5;
 
 s32 func_801E19EC(s32 player) {
     s32 self;
@@ -5485,7 +5486,7 @@ void func_801F1AA8(s32 mode, s32 deckId) {
 
 
 extern s32 D_801FC734;
-extern char D_801DE41C[]; /* "B:\\WIN\\%3.3d.ARC", still in the INCLUDE_RODATA block below */
+extern const char D_801DE41C[];
 
 void func_801F2A40(s32 mode, s32 winner, s32 deckId) {
     char path[64];
@@ -5686,7 +5687,8 @@ void func_801F2A40(s32 mode, s32 winner, s32 deckId) {
     func_80014C08(2);
 }
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DE41C);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char D_801DE41C[20] = "B:\\WIN\\%3.3d.ARC\0\x02\x24\x41";
 
 s16 D_801FB9A8[24] = {
     0x6B, 0x71, 0x76, 0x8B, 0x99, 0x9A, 0x9B, 0x9C,
@@ -7180,7 +7182,7 @@ typedef struct {
 extern CursorHighlight D_801FC8D4;
 extern DialogK D_801FC924;
 extern UiWindow D_801FC9E4;
-extern char D_801DFBBC[];
+extern const char D_801DFBBC[];
 void func_80055730(void);
 
 void func_801F7B2C(void) {
@@ -7877,7 +7879,8 @@ void func_801FA290(void) {
     }
 }
 
-INCLUDE_RODATA("asm/kawseg/nonmatchings/kawseg", D_801DFBBC);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char D_801DFBBC[12] = "Give Up?\0\xD0\x12\x2B";
 
 typedef struct {
     /* 0x0 */ u8 id;
