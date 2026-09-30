@@ -284,44 +284,42 @@ extern s8 SUB_PARTNER_WINDOW_ANIM_DONE;
 extern s8 SUB_ARMOR_WINDOW_ANIM_DONE;
 extern void SUB_drawPartnerEquipment(void);
 /*
- * Strings kept as INCLUDE_RODATA: several functions use them and a shared
- * literal would land at its first use instead of where the original put it,
- * they sit inside a bigger blob, or a literal would be emitted at the wrong
- * place in .rodata.
+ * Strings several functions share: each one is defined further down, where the
+ * original put it in .rodata, instead of as a literal at its first use.
  */
-extern char SUB_STR_NO_DECK_NAME[]; /* "A Deck Name has not been entered!" */
-extern char SUB_STR_BASE_DECK_LIST[]; /* "BASE DECK LIST", then a 0xFE where GCC pads with a zero */
-extern char SUB_STR_LV[]; /* "Lv" */
-extern char SUB_STR_TYPE[]; /* "Type" */
-extern char SUB_FMT_CARD_NUMBER[]; /* "*s0%3.3d" */
-extern char SUB_FMT_COUNT[]; /* "%d" */
-extern char SUB_STR_CARDS[]; /* "Cards" */
-extern char SUB_STR_L1_BACK[]; /* "L1BACK" */
-extern char SUB_STR_CARD_LIST[]; /* "CARD LIST" */
-extern char SUB_STR_HELP[]; /* "HELP" */
-extern char SUB_STR_PARTNER_TITLE[]; /* "PARTNER" */
-extern char SUB_STR_CARD_DATA[]; /* "CARD DATA" */
-extern char SUB_STR_CARD_INFO[]; /* "CARD INFO." */
-extern char SUB_FMT_3_DIGITS[]; /* "*s0%3d" */
-extern char SUB_STR_TOTAL[]; /* "Total" */
-extern char SUB_FMT_4_DIGITS[]; /* "*s0%4d" */
-extern char SUB_FMT_2_DIGITS[]; /* "*s0%2d" */
-extern char SUB_STR_WINS[]; /* "Wins" */
-extern char SUB_STR_LOSSES[]; /* "Losses" */
-extern char SUB_STR_SUPPORT_EFFECT[]; /* "Support Effect" */
-extern char SUB_STR_FIRE_ICON[]; /* "*a0" */
-extern char SUB_STR_ICE_ICON[]; /* "*a1" */
-extern char SUB_STR_NATURE_ICON[]; /* "*a2" */
-extern char SUB_STR_DARKNESS_ICON[]; /* "*a3" */
-extern char SUB_STR_RARE_ICON[]; /* "*a4" */
-extern char SUB_STR_OPTION_CARD[]; /* "Option Card" */
-extern char SUB_STR_PARTNER[]; /* "Partner" */
-extern char SUB_STR_DECK_1[]; /* "DECK 1" */
-extern char SUB_STR_DECK_2[]; /* "DECK 2" */
-extern char SUB_STR_DECK_3[]; /* "DECK 3" */
-extern char SUB_STR_SUM[]; /* "SUM" */
-extern char SUB_STR_DECK_TITLE[]; /* "DECK" */
-extern char SUB_STR_DISABLE[]; /* "Disable" */
+extern const char SUB_STR_NO_DECK_NAME[];
+extern const char SUB_STR_BASE_DECK_LIST[];
+extern const char SUB_STR_LV[];
+extern const char SUB_STR_TYPE[];
+extern const char SUB_FMT_CARD_NUMBER[];
+extern const char SUB_FMT_COUNT[];
+extern const char SUB_STR_CARDS[];
+extern const char SUB_STR_L1_BACK[];
+extern const char SUB_STR_CARD_LIST[];
+extern const char SUB_STR_HELP[];
+extern const char SUB_STR_PARTNER_TITLE[];
+extern const char SUB_STR_CARD_DATA[];
+extern const char SUB_STR_CARD_INFO[];
+extern const char SUB_FMT_3_DIGITS[];
+extern const char SUB_STR_TOTAL[];
+extern const char SUB_FMT_4_DIGITS[];
+extern const char SUB_FMT_2_DIGITS[];
+extern const char SUB_STR_WINS[];
+extern const char SUB_STR_LOSSES[];
+extern const char SUB_STR_SUPPORT_EFFECT[];
+extern const char SUB_STR_FIRE_ICON[];
+extern const char SUB_STR_ICE_ICON[];
+extern const char SUB_STR_NATURE_ICON[];
+extern const char SUB_STR_DARKNESS_ICON[];
+extern const char SUB_STR_RARE_ICON[];
+extern const char SUB_STR_OPTION_CARD[];
+extern const char SUB_STR_PARTNER[];
+extern const char SUB_STR_DECK_1[];
+extern const char SUB_STR_DECK_2[];
+extern const char SUB_STR_DECK_3[];
+extern const char SUB_STR_SUM[];
+extern const char SUB_STR_DECK_TITLE[];
+extern const char SUB_STR_DISABLE[];
 
 extern s16 SUB_DECK_MENU_SLOT;
 extern u8 SUB_AUTO_DECK_ENABLED;
@@ -352,7 +350,8 @@ extern void SUB_initCollectionStats(void);
 extern void SUB_drawCardListScreen(void);
 extern void SUB_runPartnerEquipment();
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", D_801DDF38);
+/* not referenced by any code */
+const s32 D_801DDF38 = 7;
 
 s32 SUB_moveNameEntryCursor(void) {
     Rect16 rect;
@@ -720,10 +719,11 @@ void SUB_enterDeckName(s32 mode, char *name, s32 pad) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_NO_DECK_NAME);
+/* the last two bytes are leftovers in the original, not zero padding */
+const char SUB_STR_NO_DECK_NAME[36] = "A Deck Name has not been entered!\0\x0E\0";
 
 /* its own copy of "Deck": SUB_drawDeckNameField was in another file of the original */
-static const char SUB_STR_DECK[] = "Deck";
+const char SUB_STR_DECK[] = "Deck";
 
 void SUB_drawBaseDeckList(UiWindow *window) {
     char buf[64];
@@ -983,7 +983,8 @@ void SUB_drawArmorPortrait(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_BASE_DECK_LIST);
+/* the last byte is a leftover in the original, not zero padding */
+const char SUB_STR_BASE_DECK_LIST[16] = "BASE DECK LIST\0\xFE";
 
 /* the characters of the name entry grid, ten to a row */
 u8 SUB_NAME_ENTRY_CHARS[] =
@@ -2534,14 +2535,14 @@ void SUB_drawCardList(UiWindow *window) {
             drawTextColored(x + 0x74, y, "?", rgb, palette, z);
         }
         if (type == 0 || !(PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x40)) {
-            drawTextColored(x + 0x38, y, SUB_STR_LV, rgb, palette, z);
-            drawTextColored(x + 0x56, y, SUB_STR_TYPE, rgb, palette, z);
+            drawTextColored(x + 0x38, y, (u8 *)SUB_STR_LV, rgb, palette, z);
+            drawTextColored(x + 0x56, y, (u8 *)SUB_STR_TYPE, rgb, palette, z);
         }
         sprintf(buf, SUB_FMT_CARD_NUMBER, *(s16 *)SUB_CARD_LIST[i]);
         drawTextColored(x + 0x20, y, buf, rgb, palette, z);
         sprintf(buf, SUB_FMT_COUNT, count);
         drawTextColored(x + 0x100, y, buf, rgb, palette, z);
-        drawTextColored(x + 0x108, y, SUB_STR_CARDS, rgb, palette, z);
+        drawTextColored(x + 0x108, y, (u8 *)SUB_STR_CARDS, rgb, palette, z);
         if (PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x80) {
             drawIconColored(x + 4, y, 2, 9, rgb, z);
         }
@@ -3101,15 +3102,15 @@ void SUB_drawDeckSortMenu(UiWindow *window) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_LV);
+const char SUB_STR_LV[] = "Lv";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_TYPE);
+const char SUB_STR_TYPE[] = "Type";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_FMT_CARD_NUMBER);
+const char SUB_FMT_CARD_NUMBER[] = "*s0%3.3d";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_FMT_COUNT);
+const char SUB_FMT_COUNT[] = "%d";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_CARDS);
+const char SUB_STR_CARDS[] = "Cards";
 
 /* the deck's sort orders */
 char *SUB_DECK_SORT_LABELS[18] = {
@@ -3529,20 +3530,20 @@ void SUB_drawCardListScreen(void) {
     drawTexturedSprite(6, y, &uv, 0x18, 0x7E21, 30, 0x80, -1);
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_L1_BACK);
+const char SUB_STR_L1_BACK[] = "L1BACK";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_CARD_LIST);
+const char SUB_STR_CARD_LIST[] = "CARD LIST";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_HELP);
+const char SUB_STR_HELP[] = "HELP";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_PARTNER_TITLE);
+const char SUB_STR_PARTNER_TITLE[] = "PARTNER";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_CARD_DATA);
+const char SUB_STR_CARD_DATA[] = "CARD DATA";
 
 void SUB_runCardList(void) {
     Rect16 rects[7];
     Rect16 infoRect;
-    char *labels[7] = { SUB_STR_L1_BACK, SUB_STR_CARD_LIST, SUB_STR_HELP, SUB_STR_HELP, SUB_STR_PARTNER_TITLE, SUB_STR_HELP, SUB_STR_CARD_DATA };
+    const char *labels[7] = { SUB_STR_L1_BACK, SUB_STR_CARD_LIST, SUB_STR_HELP, SUB_STR_HELP, SUB_STR_PARTNER_TITLE, SUB_STR_HELP, SUB_STR_CARD_DATA };
     s32 running;
     s32 i;
     s32 action;
@@ -3846,13 +3847,13 @@ void SUB_drawSpecialtyCounts(UiWindow *window) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_CARD_INFO);
+const char SUB_STR_CARD_INFO[] = "CARD INFO.";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_FMT_3_DIGITS);
+const char SUB_FMT_3_DIGITS[] = "*s0%3d";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_TOTAL);
+const char SUB_STR_TOTAL[] = "Total";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_FMT_4_DIGITS);
+const char SUB_FMT_4_DIGITS[] = "*s0%4d";
 
 SortCompare SUB_DECK_SORT_COMPARES[18] = {
     (SortCompare)SUB_compareDeckByNumber,
@@ -4087,31 +4088,31 @@ void SUB_countSavedDecks(void) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_FMT_2_DIGITS);
+const char SUB_FMT_2_DIGITS[] = "*s0%2d";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_WINS);
+const char SUB_STR_WINS[] = "Wins";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_LOSSES);
+const char SUB_STR_LOSSES[] = "Losses";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_SUPPORT_EFFECT);
+const char SUB_STR_SUPPORT_EFFECT[] = "Support Effect";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_FIRE_ICON);
+const char SUB_STR_FIRE_ICON[] = "*a0";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_ICE_ICON);
+const char SUB_STR_ICE_ICON[] = "*a1";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_NATURE_ICON);
+const char SUB_STR_NATURE_ICON[] = "*a2";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DARKNESS_ICON);
+const char SUB_STR_DARKNESS_ICON[] = "*a3";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_RARE_ICON);
+const char SUB_STR_RARE_ICON[] = "*a4";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_OPTION_CARD);
+const char SUB_STR_OPTION_CARD[] = "Option Card";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_PARTNER);
+const char SUB_STR_PARTNER[] = "Partner";
 
 void SUB_drawDeckSummary(UiWindow *window) {
     char buf[72];
-    char *labels[7] = { SUB_STR_FIRE_ICON, SUB_STR_ICE_ICON, SUB_STR_NATURE_ICON, SUB_STR_DARKNESS_ICON, SUB_STR_RARE_ICON, SUB_STR_OPTION_CARD, SUB_STR_PARTNER };
+    const char *labels[7] = { SUB_STR_FIRE_ICON, SUB_STR_ICE_ICON, SUB_STR_NATURE_ICON, SUB_STR_DARKNESS_ICON, SUB_STR_RARE_ICON, SUB_STR_OPTION_CARD, SUB_STR_PARTNER };
     s32 x = window->originX;
     s32 y = window->originY;
     s32 z = window->z;
@@ -4265,16 +4266,16 @@ void SUB_drawDeckMenu(void) {
     drawTexturedSprite(6, y, &uv, 0x18, 0x7E21, 30, 0x80, -1);
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DECK_1);
+const char SUB_STR_DECK_1[] = "DECK 1";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DECK_2);
+const char SUB_STR_DECK_2[] = "DECK 2";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DECK_3);
+const char SUB_STR_DECK_3[] = "DECK 3";
 
 void SUB_runDeckMenu(void) {
     u8 dialog[0xB8];
     Rect16 rects[4];
-    char *labels[4] = { SUB_STR_HELP, SUB_STR_DECK_1, SUB_STR_DECK_2, SUB_STR_DECK_3 };
+    const char *labels[4] = { SUB_STR_HELP, SUB_STR_DECK_1, SUB_STR_DECK_2, SUB_STR_DECK_3 };
     s32 running = 1;
     s32 created = 0;
     s32 action;
@@ -4474,13 +4475,13 @@ void SUB_drawDeckEdit(void) {
     drawTexturedSprite(6, y, &uv, 0x18, 0x7E21, 30, 0x80, -1);
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_SUM);
+const char SUB_STR_SUM[] = "SUM";
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DECK_TITLE);
+const char SUB_STR_DECK_TITLE[] = "DECK";
 
 void SUB_initDeckEdit(PlayerDeck *deck) {
     Rect16 rects[7];
-    char *labels[7] = { SUB_STR_CARD_INFO, SUB_STR_DECK_1, SUB_STR_CARD_LIST, SUB_STR_SUM, SUB_STR_DECK_TITLE, SUB_STR_CARD_INFO, SUB_STR_HELP };
+    const char *labels[7] = { SUB_STR_CARD_INFO, SUB_STR_DECK_1, SUB_STR_CARD_LIST, SUB_STR_SUM, SUB_STR_DECK_TITLE, SUB_STR_CARD_INFO, SUB_STR_HELP };
     s32 i;
     s32 j;
     LINE_G3 *line;
@@ -5052,7 +5053,7 @@ void SUB_drawSlotCardInfo(UiWindow *window) {
     }
 }
 
-INCLUDE_RODATA("asm/subseg/nonmatchings/subseg", SUB_STR_DISABLE);
+const char SUB_STR_DISABLE[] = "Disable";
 
 void SUB_drawPickerList(UiWindow *window) {
     s32 unused[2]; /* unused, but it is in the original stack frame */
@@ -5088,7 +5089,7 @@ void SUB_drawPickerList(UiWindow *window) {
                 rgb = SUB_CARD_LIST_COLORS[2];
             }
             if (!usable) {
-                drawTextColored(x + 0xE3, y, SUB_STR_DISABLE, rgb, palette, z);
+                drawTextColored(x + 0xE3, y, (u8 *)SUB_STR_DISABLE, rgb, palette, z);
             } else {
                 drawTextColored(x + 0xE3, y, "Able", rgb, palette, z);
             }
@@ -5115,14 +5116,14 @@ void SUB_drawPickerList(UiWindow *window) {
             drawTextColored(x + 0x69, y, "------------------", rgb, palette, z);
         }
         if (type == 0 || !(PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x40)) {
-            drawTextColored(x + 0x20, y, SUB_STR_LV, rgb, palette, z);
-            drawTextColored(x + 0x3D, y, SUB_STR_TYPE, rgb, palette, z);
+            drawTextColored(x + 0x20, y, (u8 *)SUB_STR_LV, rgb, palette, z);
+            drawTextColored(x + 0x3D, y, (u8 *)SUB_STR_TYPE, rgb, palette, z);
         }
         sprintf(buf, SUB_FMT_CARD_NUMBER, *(s16 *)SUB_CARD_LIST[i]);
         drawTextColored(x + 10, y, buf, rgb, palette, z);
         sprintf(buf, SUB_FMT_COUNT, SUB_DECK_EDIT.deckCounts[*(s16 *)SUB_CARD_LIST[i]]);
         drawTextColored(x + 0x10F, y, buf, rgb, palette, z);
-        drawTinyTextColored(x + 0x118, y + 6, SUB_STR_CARDS, palette, rgb, z);
+        drawTinyTextColored(x + 0x118, y + 6, (u8 *)SUB_STR_CARDS, palette, rgb, z);
     }
     updateMenuCursor(&SUB_CARD_LIST_MENU);
     SUB_DECK_EDIT.cardId = *(s16 *)SUB_CARD_LIST[SUB_CARD_LIST_MENU.row];
@@ -5504,7 +5505,7 @@ void SUB_openAutoDeckMenu(void) {
     Rect16 rects[2];
     s32 flags[2] = { 8, 0x21 };
     s32 styles[2] = { 0x21, 0x31 };
-    char *labels[2] = { "AUTO DECK", SUB_STR_DECK_TITLE };
+    const char *labels[2] = { "AUTO DECK", SUB_STR_DECK_TITLE };
     s32 i;
 
     rects[0].x = 0xAB;
