@@ -199,7 +199,10 @@ s32 func_801EC9A4(s32 player, s32 slot);
 s32 func_801ECA30(s32 card, s32 player, s32 slot);
 void func_801ED65C(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 arg8, s32 arg9, s32 argA, s32 brightness, s32 z);
 typedef struct {
-    /* 0x00 */ u32 rgbc;
+    /* 0x00 */ u8 r0;
+    /* 0x01 */ u8 g0;
+    /* 0x02 */ u8 b0;
+    /* 0x03 */ u8 code;
     /* 0x04 */ u16 clut;
     /* 0x06 */ u16 tpage;
     /* 0x08 */ u8 u;
@@ -217,8 +220,7 @@ typedef struct {
     s16 x3, y3;
 } PolyF4;
 typedef struct {
-    /* 0x00 */ PolyF4 barTop;
-    /* 0x18 */ PolyF4 barBottom;
+    /* 0x00 */ PolyF4 bars[2];
     /* 0x30 */ DR_MODE barMode;
     /* 0x38 */ PolyF4 fade;
     /* 0x50 */ DR_MODE fadeMode;
@@ -231,7 +233,7 @@ typedef struct {
     s32 player;
 } ListWindow;
 typedef struct {
-    /* 0x000 */ u8 unk0[4];
+    /* 0x000 */ s16 *cursor;
     /* 0x004 */ ListWindow lists[2];
     /* 0x094 */ CursorHighlight highlights[2];
     /* 0x134 */ ListWindow frames[2];
@@ -4495,7 +4497,7 @@ void func_801ED334(Icon3D *icon, s32 z, RawPolyFT4 *pk) {
     vertices[3].vx = 20;
     vertices[3].vy = 24;
     vertices[3].vz = 0;
-    col = &icon->rgbc;
+    col = (u32 *)&icon->r0;
     if (RotAverageNclip4((s32)&vertices[0], (s32)&vertices[1], (s32)&vertices[2], (s32)&vertices[3], (s32)&sxy[0], (s32)&sxy[1],
                          (s32)&sxy[2], (s32)&sxy[3], &depthCue, &otz, &flag) <= 0) {
         otz = RotAverage4(&vertices[1], &vertices[0], &vertices[3], &vertices[2], &sxy[0], &sxy[1], &sxy[2], &sxy[3], &depthCue, &flag);
@@ -5156,14 +5158,14 @@ void func_801F0A30(void) {
     prims->fadeMode.code[0] = 0xE1000040;
     addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->fade);
     addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->fadeMode);
-    setRGB0(&prims->barTop, 0xFF, 0xFF, 0);
-    setXYWH(&prims->barTop, 160 - D_801FC454->barW, 119 - D_801FC454->barH, D_801FC454->barW * 2, 1);
-    setRGB0(&prims->barBottom, 0xFF, 0xFF, 0);
-    setXYWH(&prims->barBottom, 160 - D_801FC454->barW, D_801FC454->barH + 120, D_801FC454->barW * 2, 1);
+    setRGB0(&prims->bars[0], 0xFF, 0xFF, 0);
+    setXYWH(&prims->bars[0], 160 - D_801FC454->barW, 119 - D_801FC454->barH, D_801FC454->barW * 2, 1);
+    setRGB0(&prims->bars[1], 0xFF, 0xFF, 0);
+    setXYWH(&prims->bars[1], 160 - D_801FC454->barW, D_801FC454->barH + 120, D_801FC454->barW * 2, 1);
     setlen(&prims->barMode, 1);
     prims->barMode.code[0] = 0xE1000000;
-    addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->barTop);
-    addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->barBottom);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->bars[0]);
+    addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->bars[1]);
     addPrim(&CURRENT_FRAME_BUFFER->ot[2], &prims->barMode);
     if (D_801FC454->logoShown != 0) {
         setRGB0(&prims->logo, 0x80, 0x80, 0x80);
@@ -5212,24 +5214,278 @@ void func_801F0A30(void) {
     }
 }
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801F1AA8);
+/* moves *cur toward *target by step without overshooting */
+#define STEP_TOWARD(cur, target, step) \
+    if ((cur) < (target)) {            \
+        (cur) += (step);               \
+        if ((target) < (cur))          \
+            (cur) = (target);          \
+    } else {                           \
+        (cur) -= (step);               \
+        if ((cur) < (target))          \
+            (cur) = (target);          \
+    }
+
+#include "dcb/fade.h"
+
+extern u8 D_801FBB18[30];
+void loadDuelCardGraphics();
+void func_801F8DB4(void *ptr);
+void func_801F8DF0();
+
+/* libgte's setVector */
+#define setVector(v, _x, _y, _z) (v)->vx = (_x), (v)->vy = (_y), (v)->vz = (_z)
+
+void func_801F1AA8(s32 mode, s32 deckId) {
+    s32 i;
+    s32 j;
+    s32 frame;
+    s32 step;
+    s32 k;
+    char buf[64];
+
+    D_801FC454 = allocTaskHeapBlock(sizeof(DeckScreen));
+    waitForMusicChange();
+    if (mode != 0) {
+        loadMusicTrack(0, ((u8 *)D_8006E054)[0x70], 0x7F);
+        loadMusicTrack(1, ((u8 *)D_8006E054)[0x71], 0x64);
+    } else {
+        loadMusicTrack(0, rand() % 2 + 0x8F, 0x7F);
+        loadMusicTrack(1, rand() % 2 + 0x93, 0x64);
+    }
+    playLoadedMusic(0);
+    frame = 0;
+    func_800149B8(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
+    if (mode != 0) {
+        k = func_800471F4(deckId);
+        ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->unk9A4[k];
+        ((PlayerProfile *)PLAYER_PROFILES)[1].battleLosses = ((PlayerProfile *)PLAYER_PROFILES)->unk888[k];
+    }
+    for (i = 0; i < 2; i++) {
+        if (mode != 0) {
+            D_801FC454->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleWins;
+            D_801FC454->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].battleLosses;
+        } else {
+            D_801FC454->wins[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusWins;
+            D_801FC454->losses[i] = ((PlayerProfile *)PLAYER_PROFILES)[i].versusLosses;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[15] = (s32)&D_801FC454->prims[i];
+        initPrimByType(0xC, &D_801FC454->prims[i].intro, 1, 0);
+        initPrimByType(0xC, &D_801FC454->prims[i].logo, 1, 0);
+        initPrimByType(8, &D_801FC454->prims[i].fade, 1, 0);
+        for (j = 0; j < 2; j++) {
+            initPrimByType(8, &D_801FC454->prims[i].bars[j], 0, 0);
+        }
+    }
+    j = rand() % 2;
+    for (i = 0; i < 2; i++) {
+        D_801FC454->cards[i].code = 0x2C;
+        setRGB0(&D_801FC454->cards[i], 0x80, 0x80, 0x80);
+        k = i ^ j;
+        if (((DuelK *)D_801D8340)->tutorial) {
+            k = 1;
+        }
+        D_801FC454->cards[i].tpage = ((k * 10 + 0x180) & 0x3FF) >> 6;
+        D_801FC454->cards[i].clut = ((k + 0xFA) << 6) | 0x19;
+        D_801FC454->cards[i].u = (k * 10 + 0x180) % 64 * 4;
+        D_801FC454->cards[i].v = 0x70;
+        setVector(&D_801FC454->cards[i].pos, i * 400 - 200, 0, 0);
+        setVector(&D_801FC454->cards[i].rot, 0x2000, 0x2800 - (i << 12), 0x2000);
+        PLAYER(i)->shufflePasses = 0;
+    }
+    D_801FC454->unk770 = mode;
+    D_801FC454->deckId = deckId;
+    D_801FC454->introState = 0;
+    D_801FC454->logoShown = 0;
+    D_801FC454->logoScale = 0;
+    D_801FC454->choice = 0;
+    D_801FC454->pulse = 0;
+    D_801FC454->chosen = 0;
+    D_801FC454->timer = 0;
+    D_801FC454->barW = 0;
+    D_801FC454->barH = 0;
+    D_801FC454->cursor = (s16 *)func_801F8998(1, 0x12, 0x16, 6, 1);
+    addFrameCallback((s32)func_801F0A30);
+    step = ((DuelK *)D_801D8340)->tutorial;
+    do {
+        func_80014C08(FRAME_INTERVAL);
+        frame++;
+        for (i = 0; i < 2; i++) {
+            if (frame > 0) {
+                STEP_TOWARD(D_801FBA30[i][1], D_801FBA30[i][3], 12);
+            }
+            if (frame > 20) {
+                STEP_TOWARD(D_801FBA30[i][0], D_801FBA30[i][2], 8);
+            }
+            if (frame > 30) {
+                STEP_TOWARD(D_801FBA50[i][0], D_801FBA50[i][2], 24);
+            }
+            if (frame > 40) {
+                STEP_TOWARD(D_801FBA90[i][0], D_801FBA90[i][2], 24);
+            }
+            if (frame > 50) {
+                STEP_TOWARD(D_801FBA70[i][0], D_801FBA70[i][2], 24);
+            }
+        }
+        if (frame == 8) {
+            D_801FC454->introState = 1;
+            playSoundEffect(0x83);
+        }
+        if (frame == 26) {
+            playSoundEffect(0x8D);
+            playSoundEffect(0x8D);
+        }
+        if (frame == 30) {
+            playSoundEffect(0xA7);
+        }
+        if (frame == 40) {
+            playSoundEffect(0xA7);
+        }
+        if (frame == 50) {
+            playSoundEffect(0xA7);
+        }
+        if (frame > 70) {
+            if (D_801FC454->timer < 60) {
+                if ((D_801FC454->barH += 2) > 35) {
+                    D_801FC454->barH = 35;
+                }
+            } else {
+                if ((D_801FC454->barH -= 2) < 0) {
+                    D_801FC454->barH = 0;
+                }
+            }
+        }
+        if (frame > 20) {
+            if ((D_801FC454->barW += 16) > 160) {
+                D_801FC454->barW = 160;
+            }
+        }
+        if (D_801FC454->timer == 80) {
+            D_801FC454->introState = 1;
+            playSoundEffect(0x83);
+        }
+        if (D_801FC454->timer > 80) {
+            D_801FC454->logoShown = 1;
+            if (D_801FC454->timer < 92) {
+                D_801FC454->logoScale += 10;
+            } else {
+                if ((D_801FC454->logoScale -= 5) < 100) {
+                    D_801FC454->logoScale = 100;
+                }
+            }
+        }
+        if (frame == 80) {
+            playSoundEffect(0xA5);
+        }
+        if (D_801FC454->timer == 51) {
+            playSoundEffect(0xA5);
+        }
+        if (frame > 80) {
+            if (D_801FC454->chosen >= 2) {
+                i = D_801FC454->chosen - 2;
+                if (D_801FC454->cards[i].rot.vy != 0x2000) {
+                    if (D_801FC454->cards[i].rot.vy < 0x2000) {
+                        D_801FC454->cards[i].rot.vy += 0x40;
+                    } else {
+                        D_801FC454->cards[i].rot.vy -= 0x40;
+                    }
+                }
+                if (D_801FC454->timer >= 50) {
+                    if (step == 2) {
+                        func_801EA8B4(0x34, "It looks like I go first!");
+                        PAD_INPUT_ENABLED = 1;
+                        step = 3;
+                    }
+                    for (i = 0; i < 2; i++) {
+                        if (abs(D_801FC454->cards[i].pos.vx) >= 200) {
+                            if (D_801FC454->cards[i].pos.vx < 0) {
+                                D_801FC454->cards[i].pos.vx = -200;
+                            } else {
+                                D_801FC454->cards[i].pos.vx = 200;
+                            }
+                        } else if (D_801FC454->cards[i].pos.vx < 0) {
+                            D_801FC454->cards[i].pos.vx -= 10;
+                        } else {
+                            D_801FC454->cards[i].pos.vx += 10;
+                        }
+                    }
+                }
+            } else {
+                for (i = 0; i < 2; i++) {
+                    if (abs(D_801FC454->cards[i].pos.vx) <= 80) {
+                        if (D_801FC454->cards[i].pos.vx < 0) {
+                            D_801FC454->cards[i].pos.vx = -80;
+                        } else {
+                            D_801FC454->cards[i].pos.vx = 80;
+                        }
+                        D_801FC454->chosen = 1;
+                    } else if (D_801FC454->cards[i].pos.vx < 0) {
+                        D_801FC454->cards[i].pos.vx += 8;
+                    } else {
+                        D_801FC454->cards[i].pos.vx -= 8;
+                    }
+                }
+            }
+        }
+        if (D_801FC454->chosen == 1) {
+            if (step == 1) {
+                func_801EA8B4(0x34, "Let's decide who gets 1st Turn.\nChoose a Card with the directional\nbuttons and press the *b2 button.");
+                PAD_INPUT_ENABLED = 1;
+                step = 2;
+            }
+            if ((u16)PAD_STATES[0]->pressed & 0x2000) {
+                if (D_801FC454->choice == 0) {
+                    playSoundEffect(0xA2);
+                    D_801FC454->choice = 1;
+                }
+            }
+            if ((u16)(PAD_STATES[0]->pressed & 0x8000)) {
+                if (D_801FC454->choice == 1) {
+                    playSoundEffect(0xA2);
+                    D_801FC454->choice = 0;
+                }
+            }
+            func_801F8DF0(D_801FC454->cursor, D_801FC454->choice * 160 + 0x4F, 0x78);
+            if (PAD_STATES[0]->pressed & 0x40) {
+                playSoundEffect(0xA6);
+                D_801FC454->chosen = D_801FC454->choice + 2;
+                D_801FC454->timer = 1;
+            }
+        }
+        if (D_801FC454->timer != 0) {
+            D_801FC454->timer++;
+        }
+    } while (!DUEL_VRAM_READY || D_801FC454->timer < 181);
+    func_800149B8(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
+    func_80014C08(40);
+    if (!((DuelK *)D_801D8340)->tutorial) {
+        for (i = 0; i < 2; i++) {
+            PLAYER(i)->shufflePasses += 600;
+            shuffleOnlineDeck(i);
+        }
+        if (deckId == 0x8C) {
+            for (i = 0; i < 30; i++) {
+                PLAYER(1)->onlineDeck[i] = D_801FBB18[i] + 0x1D;
+            }
+        }
+    }
+    if (D_801FC454->cards[D_801FC454->chosen - 2].u != 0) {
+        ((u8 *)D_801D8340)[0x817] = 1;
+    } else {
+        ((u8 *)D_801D8340)[0x817] = 0;
+    }
+    removeFrameCallback((s32)func_801F0A30);
+    func_801F8DB4(D_801FC454->cursor);
+    func_80014C08(2);
+    freeHeapBlock(D_801FC454);
+    func_80014C08(2);
+}
+
 
 extern s32 D_801FC734;
 extern char D_801DE41C[]; /* "B:\\WIN\\%3.3d.ARC", still in the INCLUDE_RODATA block below */
-
-/* moves *cur toward *target by step without overshooting */
-#define STEP_TOWARD(cur, target, step)      \
-    if ((cur) < (target)) {                 \
-        (cur) += (step);                    \
-        if ((target) < (cur)) {             \
-            (cur) = (target);               \
-        }                                   \
-    } else {                                \
-        (cur) -= (step);                    \
-        if ((cur) < (target)) {             \
-            (cur) = (target);               \
-        }                                   \
-    }
 
 void func_801F2A40(s32 mode, s32 winner, s32 deckId) {
     char path[64];
@@ -7072,7 +7328,11 @@ void func_801F8DB4(void *ptr) {
     }
 }
 
-void func_801F8DF0(s16 *arg0, s16 x, s16 y) {
+void func_801F8DF0(arg0, x, y)
+    s16 *arg0;
+    s16 x;
+    s16 y;
+{
     arg0[4] = x;
     arg0[5] = y;
     func_801F8E14(arg0);
