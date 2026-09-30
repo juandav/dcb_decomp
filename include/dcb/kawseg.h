@@ -13,6 +13,7 @@
 #define setRGB1(p, _r1, _g1, _b1) (p)->r1 = _r1, (p)->g1 = _g1, (p)->b1 = _b1
 #define setRGB2(p, _r2, _g2, _b2) (p)->r2 = _r2, (p)->g2 = _g2, (p)->b2 = _b2
 #define setRGB3(p, _r3, _g3, _b3) (p)->r3 = _r3, (p)->g3 = _g3, (p)->b3 = _b3
+#define DUEL_AI ((DuelAi *)D_801D8340)
 #define CARD_SPR(c) (((CardAnim *)(D_801D833C + (c) * 36))->spr)
 
 #define setXYWH(p, _x0, _y0, _w, _h)                                                            \
@@ -196,6 +197,34 @@ typedef struct {
     /* 0x0D3C */ u16 bestDamage[0xBF][3];
     /* 0x11B6 */ u8 unk11B6[0x2774 - 0x11B6];
 } ProfileK;
+
+typedef struct {
+    s32 own;
+    s32 opponent;
+} SimDamage;
+
+typedef struct {
+    s8 outcome;
+    u8 unk1;
+    u8 wins;
+    u8 losses;
+    SimDamage damage[5][3];
+} SimCard;
+
+typedef struct {
+    s8 outcome;
+    u8 unk1;
+    u8 wins;
+    u8 losses;
+    s32 totalOwn;
+    s32 totalOpponent;
+    SimCard cards[5];
+} AttackSim;
+
+typedef struct {
+    u8 unk0[0x5C];
+    AttackSim sims[3];
+} DuelAi;
 
 typedef struct {
     /* 0x00 */ u8 unk0[0x98];
