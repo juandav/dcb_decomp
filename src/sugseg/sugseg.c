@@ -1378,7 +1378,173 @@ void func_801DFDA4(fx, cull, count, speed, otz)
     }
 }
 
-INCLUDE_ASM("asm/sugseg/nonmatchings/sugseg", func_801E05F4);
+void func_801E05F4(fx, cull, count, speed, otz)
+    Unk801DF598 *fx;
+    u8 cull;
+    s32 count;
+    s16 speed;
+    s32 otz;
+{
+    Rgb c0;
+    Rgb c1;
+    Rgb c2;
+    Rgb c3;
+    Rgb base;
+    s32 inner;
+    s32 i;
+    s32 j;
+    s32 next;
+    s32 prev;
+    s32 s;
+    s32 t;
+    s32 u;
+    s32 angle0;
+    s32 angle1;
+    s32 angle2;
+    POLY_G4 *quad;
+    DrTPage *tpage;
+
+    inner = 0;
+    if (fx->brightness != fx->prevBrightness) {
+        base.r = fx->rgb[0] * fx->brightness / 256;
+        base.g = fx->rgb[1] * fx->brightness / 256;
+        base.b = fx->rgb[2] * fx->brightness / 256;
+        if (fx->pulse == 0) {
+            c0.r = base.r;
+            c0.g = base.g;
+            c0.b = base.b;
+            c1 = c0;
+            c2 = c1;
+            c3 = c2;
+        } else {
+            angle0 = speed * fx->pulse;
+            angle1 = speed * fx->unk1C4 * fx->pulse;
+            angle2 = speed * (fx->unk1C4 + 1) * fx->pulse;
+            if (fx->unk1D2 == 0) {
+                c0.r = 0;
+                c0.g = 0;
+                c0.b = 0;
+                s = rsin(angle0 & 0x7FF);
+                c1.r = base.r * s >> 12;
+                c1.g = base.g * s >> 12;
+                c1.b = base.b * s >> 12;
+                s = rsin(angle1 & 0x7FF);
+                c2.r = base.r * s >> 12;
+                c2.g = base.g * s >> 12;
+                c2.b = base.b * s >> 12;
+                s = rsin(angle2 & 0x7FF);
+                c3.r = base.r * s >> 12;
+                c3.g = base.g * s >> 12;
+                c3.b = base.b * s >> 12;
+            } else {
+                c0.r = base.r;
+                c0.g = base.g;
+                c0.b = base.b;
+                s = rcos(angle0 & 0x7FF);
+                s = s < 0 ? -s : s;
+                c1.r = base.r * s >> 12;
+                c1.g = base.g * s >> 12;
+                c1.b = base.b * s >> 12;
+                s = rcos(angle1 & 0x7FF);
+                s = s < 0 ? -s : s;
+                c2.r = base.r * s >> 12;
+                c2.g = base.g * s >> 12;
+                c2.b = base.b * s >> 12;
+                s = rcos(angle2 & 0x7FF);
+                s = s < 0 ? -s : s;
+                c3.r = base.r * s >> 12;
+                c3.g = base.g * s >> 12;
+                c3.b = base.b * s >> 12;
+            }
+        }
+    }
+    next = 1;
+    for (i = 0; i < count; i++, next++) {
+        if (fx->brightness != fx->prevBrightness) {
+            for (j = 0; j < 2; j++) {
+                setPrimRgb0(&fx->gtris[j][i], c1.r, c1.g, c1.b);
+                setPrimRgb1(&fx->gtris[j][i], c1.r, c1.g, c1.b);
+                setPrimRgb2(&fx->gtris[j][i], c0.r, c0.g, c0.b);
+            }
+        }
+        transformAndAddPolyG3((s32)&fx->gtris[FRAME_BUFFER_INDEX][i], (s32)&fx->tpages[FRAME_BUFFER_INDEX][i],
+                              (s32)&fx->verts[next % count + 1], (s32)&fx->verts[i + 1], (s32)fx->verts, fx->semiTrans,
+                              cull, otz);
+        if (fx->unk1DC == 0) {
+            if (fx->brightness != fx->prevBrightness) {
+                for (j = 0; j < 2; j++) {
+                    setPrimRgb0(&fx->gtris[j][count + i], c3.r, c3.g, c3.b);
+                    setPrimRgb1(&fx->gtris[j][count + i], c2.r, c2.g, c2.b);
+                    setPrimRgb2(&fx->gtris[j][count + i], c2.r, c2.g, c2.b);
+                }
+            }
+            transformAndAddPolyG3((s32)&fx->gtris[FRAME_BUFFER_INDEX][count + i],
+                                  (s32)&fx->tpages[FRAME_BUFFER_INDEX][count + i],
+                                  (s32)&fx->verts[fx->vertCount - 1],
+                                  (s32)&fx->verts[fx->vertCount - count - 1 + i],
+                                  (s32)&fx->verts[fx->vertCount - count - 1 + next % count], fx->semiTrans, cull,
+                                  otz);
+            inner = count * 2;
+        } else {
+            inner = count;
+        }
+    }
+    quad = fx->gquads[FRAME_BUFFER_INDEX];
+    tpage = &fx->tpages[FRAME_BUFFER_INDEX][inner];
+    next = 1;
+    for (i = 0; i < fx->ringVertCount - inner; i++, next++, quad++, tpage++) {
+        if (fx->brightness != fx->prevBrightness) {
+            angle0 = speed * (i / count + 1) * fx->pulse;
+            angle1 = speed * (i / count + 2) * fx->pulse;
+            angle0 &= 0x7FF;
+            angle1 &= 0x7FF;
+            if (fx->pulse == 0) {
+                c0.r = base.r;
+                c0.g = base.g;
+                c0.b = base.b;
+                c1 = c0;
+            } else {
+                if (fx->unk1D2 == 0) {
+                    s = rsin(angle0);
+                    t = rsin(angle1);
+                    c0.r = base.r * s >> 12;
+                    c0.g = base.g * s >> 12;
+                    c0.b = base.b * s >> 12;
+                    c1.r = base.r * t >> 12;
+                    c1.g = base.g * t >> 12;
+                    c1.b = base.b * t >> 12;
+                } else {
+                    s = rcos(angle0);
+                    s = s < 0 ? -s : s;
+                    u = rcos(angle1);
+                    u = u < 0 ? -u : u;
+                    c0.r = base.r * s >> 12;
+                    c0.g = base.g * s >> 12;
+                    c0.b = base.b * s >> 12;
+                    c1.r = base.r * u >> 12;
+                    c1.g = base.g * u >> 12;
+                    c1.b = base.b * u >> 12;
+                }
+            }
+            for (j = 0; j < 2; j++) {
+                setPrimRgb0(&fx->gquads[j][i], c0.r, c0.g, c0.b);
+                setPrimRgb1(&fx->gquads[j][i], c0.r, c0.g, c0.b);
+                setPrimRgb2(&fx->gquads[j][i], c1.r, c1.g, c1.b);
+                setPrimRgb3(&fx->gquads[j][i], c1.r, c1.g, c1.b);
+            }
+        }
+        if (next % count == 0) {
+            prev = next - count;
+        } else {
+            prev = next;
+        }
+        transformAndAddPolyG4((s32)quad, (s32)tpage, (s32)&fx->verts[i + 1], (s32)&fx->verts[prev + 1],
+                              (s32)&fx->verts[i + 1 + count], (s32)&fx->verts[prev + 1 + count], fx->semiTrans,
+                              cull, otz);
+    }
+    fx->prevBrightness = fx->brightness;
+}
+
 
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
 void func_801E0F98(fx, cull, count, speed, otz)
