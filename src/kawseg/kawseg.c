@@ -296,6 +296,7 @@ typedef struct {
 } EffectTable;
 extern void (*D_801FC158[])(u8 *);
 void func_801F893C(CardSprite *sprite, u8 *to);
+/* SUGSEG's colour quad drawer: in KAWSEG this address is inside func_801E5710 */
 void func_801E6424(Rect16 *rect, u8 *rgb, u8 *rgb2, u8 arg3, s32 arg4, u8 arg5);
 void func_801F7128(EffectTemplate *template, u8 *fx, EffectTable *table);
 extern u8 *(*D_801FC148[])(s32, EffectTable *);
@@ -2177,7 +2178,6 @@ void func_801E4E58(s32 player) {
 
 INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E5710);
 
-INCLUDE_ASM("asm/kawseg/nonmatchings/kawseg", func_801E6424);
 
 typedef struct {
     u8 *card;
