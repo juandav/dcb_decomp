@@ -3,7 +3,6 @@
 
 #include "game.h"
 
-extern char FMT_SKILL_PATH[];
 
 void initPlayerData(void);
 void func_8002D458(void);

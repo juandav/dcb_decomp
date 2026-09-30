@@ -211,7 +211,7 @@ s32 loadSkill(s32 skillId, s32 pak) {
 
     skill = (s32)findPakChunk((Chunk *)pak, 2, skillId);
     if (skill == 0) {
-        sprintf(path, FMT_SKILL_PATH, skillId);
+        sprintf(path, "E:\\SKILL\\SKILL%d.MSD", skillId);
         skill = loadFileTagged(path, getCurrentTaskId(), 0x81);
     }
     return skill;
@@ -220,5 +220,3 @@ s32 loadSkill(s32 skillId, s32 pak) {
 void loadSkillFromDisc(s32 skillId) {
     loadSkill(skillId, 0);
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/card/player_data", FMT_SKILL_PATH);
