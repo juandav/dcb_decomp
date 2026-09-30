@@ -1735,8 +1735,8 @@ void SUB_runPartnerEquipment(s32 player, s32 parentTask, s32 viewOnly) {
                     animateWindowTo(&SUB_ARMOR_WINDOW, &SUB_ARMOR_WINDOW_RECT);
                     animateWindowTo(&SUB_EQUIPMENT_WINDOW, &SUB_EQUIPMENT_MENU.rect);
                     if (viewOnly == 0) {
-                        PLAYER_DATA(player).unk56 = getSlotPartnerIndex(0, SUB_PARTNER_SLOT);
-                        changeScrollingBackground(PLAYER_DATA(player).unk56, 0x380, 0, 0x380, 0x80);
+                        PLAYER_DATA(player).activePartner = getSlotPartnerIndex(0, SUB_PARTNER_SLOT);
+                        changeScrollingBackground(PLAYER_DATA(player).activePartner, 0x380, 0, 0x380, 0x80);
                     }
                     state = 1;
                 }

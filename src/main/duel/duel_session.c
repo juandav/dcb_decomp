@@ -151,7 +151,7 @@ void runDuel(s32 mode, s32 parent) {
     initDuelState(mode);
     startDuelScene();
     if (mode) {
-        i = PLAYER_DATA(0).unk56;
+        i = PLAYER_DATA(0).activePartner;
     } else {
         i = 7;
     }

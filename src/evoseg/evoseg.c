@@ -911,7 +911,7 @@ void EVO_runFusionCutscene(void) {
     } while (PAD_STATES[0]->pressed & 0x40);
     removeFrameCallback((s32)EVO_drawFusionBanner);
     loadSoundEffectBank(1);
-    changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->unk56, 0x380, 0, 0x380, 0x80);
+    changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
     func_800149B8(0, -1, 0, 0x400, EVO_runFusion, -1, getCurrentTaskId(), 0, 0);
 }
 
@@ -3957,7 +3957,7 @@ void EVO_loadScriptFlags(void) {
     PlayerProfile *profile;
 
     for (i = 20, bit = 0, profile = (PlayerProfile *)PLAYER_PROFILES; i < 30; i++, bit++) {
-        if ((1 << bit) & profile->unk2C) {
+        if ((1 << bit) & profile->scriptFlags) {
             EVO_SCRIPT->vars[i] = 1;
         }
     }
@@ -3971,7 +3971,7 @@ void EVO_saveScriptFlags(void) {
     bit = 0;
     while (bit < 32) {
         if (EVO_SCRIPT->vars[i] != 0) {
-            ((PlayerProfile *)PLAYER_PROFILES)->unk2C |= 1 << bit;
+            ((PlayerProfile *)PLAYER_PROFILES)->scriptFlags |= 1 << bit;
         }
         i++;
         bit++;
@@ -4761,9 +4761,9 @@ void EVO_startPartnerFusion(void) {
     removeCardFromCollection(0, EVO_FUSION.secondCard, 1);
     EVO_SPARE_CARD_COUNTS[EVO_FUSION.secondCard]--;
     profile = (PlayerProfile *)PLAYER_PROFILES;
-    profile->unk52++;
-    if ((u16)profile->unk52 >= 10000) {
-        profile->unk52 = 9999;
+    profile->fusionCardsUsed++;
+    if ((u16)profile->fusionCardsUsed >= 10000) {
+        profile->fusionCardsUsed = 9999;
     }
 }
 
@@ -4967,18 +4967,18 @@ void EVO_tickFusionResult(void) {
         } else {
             EVO_CARD_RECEIVED = 0;
         }
-        ((PlayerProfile *)PLAYER_PROFILES)->unk50++;
-        if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk50 >= 10000) {
-            ((PlayerProfile *)PLAYER_PROFILES)->unk50 = 9999;
+        ((PlayerProfile *)PLAYER_PROFILES)->fusedCards++;
+        if ((u16)((PlayerProfile *)PLAYER_PROFILES)->fusedCards >= 10000) {
+            ((PlayerProfile *)PLAYER_PROFILES)->fusedCards = 9999;
         }
-        ((PlayerProfile *)PLAYER_PROFILES)->unk52 += 2;
-        if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk52 >= 10000) {
-            ((PlayerProfile *)PLAYER_PROFILES)->unk52 = 9999;
+        ((PlayerProfile *)PLAYER_PROFILES)->fusionCardsUsed += 2;
+        if ((u16)((PlayerProfile *)PLAYER_PROFILES)->fusionCardsUsed >= 10000) {
+            ((PlayerProfile *)PLAYER_PROFILES)->fusionCardsUsed = 9999;
         }
         if (EVO_SCRIPT->vars[13] != 0) {
-            ((PlayerProfile *)PLAYER_PROFILES)->unk54++;
-            if ((u16)((PlayerProfile *)PLAYER_PROFILES)->unk54 >= 10000) {
-                ((PlayerProfile *)PLAYER_PROFILES)->unk54 = 9999;
+            ((PlayerProfile *)PLAYER_PROFILES)->fusionMutations++;
+            if ((u16)((PlayerProfile *)PLAYER_PROFILES)->fusionMutations >= 10000) {
+                ((PlayerProfile *)PLAYER_PROFILES)->fusionMutations = 9999;
             }
         }
         if (EVO_FUSION.resultKind == 1) {

@@ -1024,10 +1024,10 @@ void func_801E0988(s32 index) {
 
 void func_801E09F4(void) {
     if (D_801F4838[0]->regs[266] != 0) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk2C |= 1;
+        ((PlayerProfile *)PLAYER_PROFILES)->scriptFlags |= 1;
     }
     if (D_801F4838[0]->regs[267] != 0) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk2C |= 2;
+        ((PlayerProfile *)PLAYER_PROFILES)->scriptFlags |= 2;
     }
 }
 
@@ -2389,7 +2389,7 @@ void func_801E4D80(s32 resume) {
         do {
             func_80014C08(1);
         } while (SCROLL_BACKGROUND.shownImage != -1);
-        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->unk56, 0x380, 0, 0x380, 0x80);
+        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
     }
     func_80014C08(1);
     func_80014A00(0x19);
@@ -4411,13 +4411,13 @@ void func_801EC1D8(s32 state) {
         /* not a Rect16: GCC would share func_801E4AF4's identical constant */
         s16 rect[4] = { 0x220, 0xE1, 0x20, 1 };
 
-        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->unk56, 0x380, 0, 0x380, 0x80);
+        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
         func_80014C08(2);
         MoveImage2((Rect16 *)rect, 0x380, 0x80);
         setBackgroundScrollMode(1);
         state = 2;
     } else {
-        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->unk56, 0x380, 0, 0x380, 0x80);
+        changeScrollingBackground(((PlayerProfile *)PLAYER_PROFILES)->activePartner, 0x380, 0, 0x380, 0x80);
     }
     uv[0].x = 0;
     uv[0].y = 0;
