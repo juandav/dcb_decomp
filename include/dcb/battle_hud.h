@@ -3,8 +3,8 @@
 
 #include "game.h"
 
-#define SPRITE(c) (*(void **)(D_801D833C + (c) * 36))
-#define CARD_ANIM(c) ((CardAnim *)(D_801D833C + (c) * 36))
+#define SPRITE(c) (((CardAnim *)D_801D833C)[c].spr)
+#define CARD_ANIM(c) (&((CardAnim *)D_801D833C)[c])
 #define ANIM_SAVE(a)                   \
     (a)->x = (a)->spr->pos.vx;         \
     (a)->y = (a)->spr->pos.vy;         \
@@ -22,8 +22,6 @@
     (a)->spr->rot.vy = RY - (RY - (a)->ry) * (a)->count / (a)->total;        \
     (a)->spr->rot.vz = RZ - (RZ - (a)->rz) * (a)->count / (a)->total;        \
     (a)->spr->scale = SC - (SC - (a)->scale) * (a)->count / (a)->total
-#define SLOT(p, o) ((HudAnchor *)(D_801D83EC + (p) * 0xD8 + (o)))
-#define UNK7F8(c) ((*(Unk7F8 **)((u8 *)D_801D8340 + 0x7F8))[c])
 #define PANEL(i) (((HudPanel *)D_801D83EC)[i])
 /* D_801D83EC holds six panels per player (enum HudPanelSlot) */
 #define PLAYER_PANEL(p, slot) (&((Panel *)D_801D83EC)[(p) * 6 + (slot)])
@@ -78,7 +76,7 @@ typedef struct {
     /* 0x1E */ s16 total;
     /* 0x20 */ s16 count;
     /* 0x22 */ s8 state;
-    /* 0x23 */ s8 unk23;
+    /* 0x23 */ s8 handSlot;
 } CardAnim;
 
 extern s32 D_8006E298;

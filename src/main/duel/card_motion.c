@@ -25,21 +25,26 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
+/* Moves card sprite cardIndex to where its SPRITE_KIND state puts it. Each
+   place takes a few states: one saves the pose and starts the move, one eases
+   the sprite there (ANIM_STEP) and one holds it. 0-2: Online Deck, 3-7: hand,
+   8-10: Offline Deck, 11-15: Digimon stack, 16-20: played card, 21-25: played
+   card drawn from the Online Deck, 26-28: DP slots, 29-34: screen centre. */
 void tickCardMotion(s32 cardIndex, s32 player) {
     CardAnim *anim;
 
-    anim = (CardAnim *)(D_801D833C + cardIndex * 36);
+    anim = &((CardAnim *)D_801D833C)[cardIndex];
     anim->spr->flags |= 0x80;
     switch (SPRITE_KIND(cardIndex)) {
     case 0:
-        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x80 + player * 0xBE;
-        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x54 + player * 0xE;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_DECK)->x - 0x80 + player * 0xBE;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_DECK)->y - 0x54 + player * 0xE;
         anim->spr->pos.vz = 0;
-        UNK7F8(cardIndex).rx = 0x2000;
-        UNK7F8(cardIndex).ry = 0x2800;
-        UNK7F8(cardIndex).rz = 0x1C00;
+        DUEL->sprites[cardIndex].rot.vx = 0x2000;
+        DUEL->sprites[cardIndex].rot.vy = 0x2800;
+        DUEL->sprites[cardIndex].rot.vz = 0x1C00;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_DECK)->flags;
         anim->count = 0;
         break;
     case 1:
@@ -60,8 +65,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x90)->x - 0x80 + player * 0xBE);
-            targetY = (s16)(SLOT(player, 0x90)->y - 0x54 + player * 0xE);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_DECK)->x - 0x80 + player * 0xBE);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_DECK)->y - 0x54 + player * 0xE);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x1C00;
@@ -86,8 +91,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B);
-            targetY = (s16)(SLOT(player, 0x90)->y - 0x69 + player * 0x21);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_DECK)->x - 0x5C + player * -10 + anim->handSlot * 0x2B);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_DECK)->y - 0x69 + player * 0x21);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -120,8 +125,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B);
-            targetY = (s16)(SLOT(player, 0x90)->y - 0x61 + player * 0x11);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_DECK)->x - 0x5C + player * -10 + anim->handSlot * 0x2B);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_DECK)->y - 0x61 + player * 0x11);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -133,14 +138,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 7:
-        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x5C + player * -10 + anim->unk23 * 0x2B;
-        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x61 + player * 0x11;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_DECK)->x - 0x5C + player * -10 + anim->handSlot * 0x2B;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_DECK)->y - 0x61 + player * 0x11;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x1000;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_DECK)->flags;
         break;
     case 8:
         ANIM_SAVE(anim);
@@ -157,8 +162,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x90)->x - 0x80 + player * 0xBE);
-            targetY = (s16)(SLOT(player, 0x90)->y - 0x6C + player * 0xE);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_DECK)->x - 0x80 + player * 0xBE);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_DECK)->y - 0x6C + player * 0xE);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2400;
@@ -170,14 +175,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 10:
-        anim->spr->pos.vx = SLOT(player, 0x90)->x - 0x80 + player * 0xBE;
-        anim->spr->pos.vy = SLOT(player, 0x90)->y - 0x6C + player * 0xE;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_DECK)->x - 0x80 + player * 0xBE;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_DECK)->y - 0x6C + player * 0xE;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2400;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x90)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_DECK)->flags;
         break;
     case 11:
         ANIM_SAVE(anim);
@@ -204,8 +209,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
                     }
                     stackDepth++;
                 }
-                targetX = (s16)(SLOT(player, 0x48)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - (stackDepth * 2 + 8) * 2) * player + 8));
-                targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
+                targetX = (s16)(PLAYER_PANEL(player, HUD_STATUS)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - (stackDepth * 2 + 8) * 2) * player + 8));
+                targetY = (s16)(PLAYER_PANEL(player, HUD_STATUS)->y - 0x54);
                 rx = 0x2000;
                 ry = 0x2000;
                 rz = 0x2000;
@@ -238,8 +243,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
                     }
                     stackDepth++;
                 }
-                targetX = (s16)(SLOT(player, 0x48)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - stackDepth * 4) * player));
-                targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
+                targetX = (s16)(PLAYER_PANEL(player, HUD_STATUS)->x + (s16)(stackDepth * 2 - 0x46) + (s16)((-0x40 - stackDepth * 4) * player));
+                targetY = (s16)(PLAYER_PANEL(player, HUD_STATUS)->y - 0x54);
                 rx = 0x2000;
                 ry = 0x2000;
                 rz = 0x2000;
@@ -262,14 +267,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
                 }
                 stackDepth++;
             }
-            anim->spr->pos.vx = SLOT(player, 0x48)->x - 0x46 + stackDepth * 2 + (-0x40 - stackDepth * 4) * player;
-            anim->spr->pos.vy = SLOT(player, 0x48)->y - 0x54;
+            anim->spr->pos.vx = PLAYER_PANEL(player, HUD_STATUS)->x - 0x46 + stackDepth * 2 + (-0x40 - stackDepth * 4) * player;
+            anim->spr->pos.vy = PLAYER_PANEL(player, HUD_STATUS)->y - 0x54;
             anim->spr->pos.vz = 0;
             anim->spr->rot.vx = 0x2000;
             anim->spr->rot.vy = 0x2000;
             anim->spr->rot.vz = 0x2000;
             anim->spr->scale = 0x1000;
-            anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->flags;
+            anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_STATUS)->flags;
             break;
     }
     case 16:
@@ -292,8 +297,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
-            targetY = (s16)(SLOT(player, 0x6C)->y - 0x50 + player * -0x3E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -323,8 +328,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
-            targetY = (s16)(SLOT(player, 0x6C)->y - 0x58 + player * -0x2E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -336,14 +341,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 20:
-        anim->spr->pos.vx = SLOT(player, 0x6C)->x - player - 0x89;
-        anim->spr->pos.vy = SLOT(player, 0x6C)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PANEL_3)->x - player - 0x89;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PANEL_3)->y - player * 0x2E - 0x58;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x1000;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x6C)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_PANEL_3)->flags;
         break;
     case 22:
         if (anim->count != 0) {
@@ -354,8 +359,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
-            targetY = (s16)(SLOT(player, 0x6C)->y - 0x50 + player * -0x3E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
@@ -385,8 +390,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x6C)->x - 0x89 + player * -1);
-            targetY = (s16)(SLOT(player, 0x6C)->y - 0x58 + player * -0x2E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
@@ -398,8 +403,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 25:
-        anim->spr->pos.vx = SLOT(player, 0x6C)->x - player - 0x89;
-        anim->spr->pos.vy = SLOT(player, 0x6C)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PANEL_3)->x - player - 0x89;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PANEL_3)->y - player * 0x2E - 0x58;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2800;
@@ -415,8 +420,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(SLOT(player, 0x48)->x - 0x94 + player * 0x5D);
-            targetY = (s16)(SLOT(player, 0x48)->y - 0x54);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_STATUS)->x - 0x94 + player * 0x5D);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_STATUS)->y - 0x54);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -429,14 +434,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 28:
-        anim->spr->pos.vx = SLOT(player, 0x48)->x - 0x94 + player * 0x5D;
-        anim->spr->pos.vy = SLOT(player, 0x48)->y - 0x54;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_STATUS)->x - 0x94 + player * 0x5D;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_STATUS)->y - 0x54;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x800;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | SLOT(player, 0x48)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_STATUS)->flags;
         break;
     case 29:
         ANIM_SAVE(anim);
@@ -535,22 +540,22 @@ void renderBoardCards(void) {
             card = PLAYER(i)->digimonStack[j];
             if (card >= 0) {
                 if (!hpLabelDrawn) {
-                    ((u8 *)SPRITE(card))[0x14] = PLAYER(i)->specialty;
+                    SPRITE(card)->pal = PLAYER(i)->specialty;
                     hpLabelDrawn = 1;
                     if (SPRITE_KIND(card) < 0x1D) {
                         hpColor = PLAYER(i)->statPenalty ? 3 : 7;
                         projectCardSprite(SPRITE(card), card);
-                        z = *(s32 *)((u8 *)SPRITE(card) + 0x38);
-                        drawIcon(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 2, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30, 0,
+                        z = SPRITE(card)->z;
+                        drawIcon(SPRITE(card)->sx + 2, SPRITE(card)->sy + 30, 0,
                                       0x1A, z);
                         sprintf(text, "%4d", PLAYER(i)->displayedStats[0]);
-                        drawText(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 15, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30,
+                        drawText(SPRITE(card)->sx + 15, SPRITE(card)->sy + 30,
                                       (s32)text, hpColor, z);
                         hpLabelRect.x = 0x60;
                         hpLabelRect.y = 0xDB;
                         hpLabelRect.w = 0x26;
                         hpLabelRect.h = 0xC;
-                        drawPageSpriteColored(*(s16 *)((u8 *)SPRITE(card) + 0x34) + 1, *(s16 *)((u8 *)SPRITE(card) + 0x36) + 30,
+                        drawPageSpriteColored(SPRITE(card)->sx + 1, SPRITE(card)->sy + 30,
                                       &hpLabelRect, labelRgb, getTPage(0, 2, SYSTEM_TEX_X, SYSTEM_TEX_Y), 0xC, z);
                         hpLabelDrawn = 1;
                     }
