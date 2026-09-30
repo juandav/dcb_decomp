@@ -731,7 +731,7 @@ extern Entry *D_801EF950;
         (e)->data = (_data);              \
         (e)->subKey = (_subKey);          \
     } while (0)
-extern char D_801DE0B0[];
+extern const char D_801DE0B0[];
 void func_801EBBFC(s32 id, s32 x, s32 y, s32 subKey);
 typedef struct {
     float unk0;
@@ -1821,7 +1821,8 @@ void func_801E1D80(Unk801E1D80 *obj) {
     freeHeapBlock(obj);
 }
 
-INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF38);
+/* not referenced by any code */
+const s32 D_801DDF38 = 4;
 
 /* fills a grid of a2 x a3 cells, 4 colors each, by blending the corner colors; the kinds split it
    into 1, 2 or 4 blends around the middle color a8 */
@@ -2319,7 +2320,7 @@ void func_801E3668(ClutFade *fade, u16 stp) {
     DrawSync(0);
 }
 
-extern Rect16 D_801DDF50;
+extern const Rect16 D_801DDF50;
 
 void *func_801E38A0(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9) {
     Unk801E3C2C *fx;
@@ -3271,7 +3272,7 @@ void *func_801E6B84(s32 key, s32 *path, s32 sub, Chunk *pak) {
     return NULL;
 }
 
-INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DDF50);
+const Rect16 D_801DDF50 = { 0x30, 0x70, 0x10, 0x10 };
 
 typedef struct {
     u8 unk0[0x1A4];
@@ -5744,7 +5745,8 @@ void func_801EEE90(s32 arg, s32 parentTask) {
     func_80014A48(parentTask);
 }
 
-INCLUDE_RODATA("asm/sugseg/nonmatchings/sugseg", D_801DE0B0);
+/* the last three bytes are leftovers in the original, not zero padding */
+const char D_801DE0B0[16] = "E:\\SPRITE\\%s\0\0\xA2\xAF";
 
 /* the light matrix and colours func_801E7880 sets */
 MATRIX D_801EF25C = { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
