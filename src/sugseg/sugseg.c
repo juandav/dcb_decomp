@@ -63,22 +63,6 @@ typedef struct {
     s32 period;
 } LightMotion;
 
-typedef struct {
-    u8 unk0[0x13C];
-    u8 unk13C[0x3C];
-    POLY_FT4 *ft4[2];
-    POLY_GT4 *gt4[2];
-    u8 unk188[0x12C];
-    Rect16 uv;
-    s32 tpage;
-    s32 clut;
-    u8 unk2C4[4];
-    s32 count;
-    u8 unk2CC[4];
-    s32 state;
-    u8 unk2D4[5];
-    u8 primKind;
-} Unk801E57E0;
 void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
 void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink);
 
@@ -144,9 +128,9 @@ typedef struct {
    inner fan, and rings of quads, drawn with one of several primitive kinds */
 typedef struct {
     /* 0x000 */ u8 unk0[0x139];
-    /* 0x139 */ u8 unk139;
+    /* 0x139 */ u8 suspended;
     /* 0x13A */ u8 unk13A[2];
-    /* 0x13C */ u8 unk13C[0x20];
+    /* 0x13C */ u8 texAnim[0x20];
     /* 0x15C */ DrTPage *tpages[2];
     /* 0x164 */ POLY_F3 *tris[2];
     /* 0x16C */ POLY_F4 *quads[2];
@@ -161,28 +145,28 @@ typedef struct {
     /* 0x1A4 */ Rect16 uv;
     /* 0x1AC */ s32 tpage;
     /* 0x1B0 */ s32 clut;
-    /* 0x1B4 */ s32 unk1B4;
+    /* 0x1B4 */ s32 otz;
     /* 0x1B8 */ s32 vertCount;
     /* 0x1BC */ s32 ringVertCount;
-    /* 0x1C0 */ s32 unk1C0;
-    /* 0x1C4 */ s32 unk1C4;
-    /* 0x1C8 */ u8 unk1C8[4];
-    /* 0x1CC */ s16 unk1CC;
-    /* 0x1CE */ u8 unk1CE[2];
+    /* 0x1C0 */ s32 lineCount;
+    /* 0x1C4 */ s32 ringCount;
+    /* 0x1C8 */ s32 abr;
+    /* 0x1CC */ s16 segments;
+    /* 0x1CE */ s16 slices;
     /* 0x1D0 */ s16 pulse;
-    /* 0x1D2 */ s16 unk1D2;
+    /* 0x1D2 */ s16 pulseMode;
     /* 0x1D4 */ s16 brightness;
     /* 0x1D6 */ s16 prevBrightness;
-    /* 0x1D8 */ s16 unk1D8;
+    /* 0x1D8 */ s16 texAnimActive;
     /* 0x1DA */ u8 semiTrans;
     /* 0x1DB */ u8 kind;
-    /* 0x1DC */ u8 unk1DC;
-    /* 0x1DD */ u8 unk1DD;
-} Unk801DF598;
-void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz);
-void SUG_drawSphereF(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
-void SUG_drawSphereG(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
-void SUG_drawSphereGT(Unk801DF598 *fx, s32 cull, s32 count, s32 speed, s32 otz);
+    /* 0x1DC */ u8 openBottom;
+    /* 0x1DD */ u8 cull;
+} SphereEffect;
+void SUG_drawSphereLines(SphereEffect *fx, u8 a1, s32 n, s32 a3, s32 otz);
+void SUG_drawSphereF(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
+void SUG_drawSphereG(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
+void SUG_drawSphereGT(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 
 typedef struct {
     u8 unk0[0x5C];
@@ -238,7 +222,7 @@ typedef struct {
     s32 unk16C;
 } SpriteCommand;
 u16 func_80067644(s32 x, s32 y);
-Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
+SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
 
 typedef struct {
     s32 duration;
@@ -273,9 +257,9 @@ typedef struct {
     SVECTOR pos;
     SVECTOR v[4];
     u8 unk80;
-    u8 unk81;
-    s8 unk82;
-    s8 unk83;
+    u8 otz;
+    s8 frame;
+    s8 frameTimer;
     u16 scaleX;
     u16 scaleY;
     s8 flipX;
@@ -287,35 +271,34 @@ void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 
 typedef struct {
     u32 turn : 1;
     u32 flag1 : 1;
-    u32 flag2 : 1;
+    u32 counter : 1;
     u32 flag3 : 1;
     u32 unk4 : 28;
-} DuelFlagBits;
+} BattleFlags;
 typedef struct {
-    s32 unk0;
-    s32 value;
-    u32 unk8 : 2;
+    s32 hp;
+    s32 damage;
+    u32 attack : 2;
     u32 element : 2;
-    u32 unk8_4 : 1;
-    u32 unk8_5 : 1;
+    u32 eatUpHp : 1;
+    u32 crash : 1;
     u32 unk8_6 : 1;
     u32 unk8_7 : 25;
-} DuelistStats;
+} BattlerState;
 typedef struct {
-    DuelistStats players[2];
+    BattlerState players[2];
     union {
         u32 word;
-        DuelFlagBits bits;
+        BattleFlags bits;
     } flags;
-} DuelState;
+} BattleState;
 extern u16 SUG_HUD_TPAGE;
-extern DuelState *SUG_BATTLE;
+extern BattleState *SUG_BATTLE;
 void SUG_drawNumber(s32 x, s32 y, s32 value, u8 brightness);
 extern s16 SUG_TARGET_HP[2];
 void SUG_showEatUpHpBanner(void);
 void SUG_animateHpCounter(s32 a0);
 
-typedef Unk801DF598 Unk801E1D80;
 typedef struct {
     u8 unk0[6];
     s16 id;
@@ -360,7 +343,7 @@ typedef struct {
     u8 unkB8[4];
     s32 scale2[3];
     u8 unkC8[4];
-    s16 unkCC[3];
+    s16 scaleStep[3];
     u8 unkD2[2];
     s16 pos[3];
     u8 unkDA[2];
@@ -370,43 +353,43 @@ typedef struct {
     u8 unkEA[2];
     s16 rot2[3];
     u8 unkF2[2];
-    s16 unkF4[3];
+    s16 rotAccel[3];
     u8 unkFA[0x26];
-    s16 unk120;
-    s16 unk122;
-    s16 unk124;
-    s16 unk126;
-    s16 unk128;
-    s16 unk12A;
-    s16 unk12C;
-    s16 unk12E;
-    s16 unk130;
+    s16 moveSpeed;
+    s16 moveAccel;
+    s16 period;
+    s16 waveFreq;
+    s16 wavePhase;
+    s16 waveAmplitude;
+    s16 hitRadius;
+    s16 mode;
+    s16 speed;
     u8 unk132[5];
-    u8 unk137;
+    u8 fadeMode;
     u8 unk138[2];
-    s8 unk13A;
-    s8 unk13B;
+    s8 target;
+    s8 source;
 } EffectInit;
 typedef struct {
     u8 unk0[0x65C];
     s32 pos[3];
     s32 pos2[3];
-    s32 unk674;
-    s32 unk678;
+    s32 moveSpeed;
+    s32 moveAccel;
     s32 rot[3];
     s32 rot2[3];
-    s32 unk694[3];
+    s32 rotAccel[3];
     s32 scale[3];
     s32 scale2[3];
-    s32 unk6B8[3];
-    s32 unk6C4;
-    s32 unk6C8;
-    s32 unk6CC;
-    s32 unk6D0;
-    s32 unk6D4;
-    s32 unk6D8;
-    s32 unk6DC;
-    s32 unk6E0;
+    s32 scaleStep[3];
+    s32 hitRadius;
+    s32 period;
+    s32 fadeMode;
+    s32 speed;
+    s32 mode;
+    s32 wavePhase;
+    s32 waveAmplitude;
+    s32 waveFreq;
     s32 target;
     u8 unk6E8[0x10];
     s32 source;
@@ -449,18 +432,18 @@ void SUG_tickScreenCopyEffect(void);
 
 typedef struct {
     u8 unk0[0x139];
-    u8 unk139;
+    u8 suspended;
     u8 unk13A[2];
-    ModelData *unk13C;
-    u8 unk140[0x20];
+    ModelData *model;
+    u8 texAnim[0x20];
     ClutFade fade;
     s16 lastBrightness;
     s8 modelSlot;
     u8 unk56F;
-    s8 unk570;
-    s8 unk571;
+    s8 texAnimActive;
+    s8 active;
     s32 unk574;
-} Unk801E3C2C;
+} ModelEffect;
 extern MATRIX SUG_DEFAULT_LIGHT_MATRIX;
 extern MATRIX SUG_DEFAULT_LIGHT_COLORS;
 typedef struct {
@@ -477,30 +460,30 @@ typedef struct {
     u8 unk0[0x98];
     void *parent;
     u8 unk9C[0x10];
-    s32 unkAC[3];
+    s32 scale[3];
     u8 unkB8[4];
-    s32 unkBC[3];
+    s32 scale2[3];
     u8 unkC8[4];
-    s16 unkCC[3];
+    s16 scaleStep[3];
     u8 unkD2[2];
-    s16 unkD4[3];
+    s16 pos[3];
     u8 unkDA[2];
-    s16 unkDC[3];
+    s16 pos2[3];
     u8 unkE2[2];
-    s16 unkE4[3];
+    s16 rot[3];
     u8 unkEA[2];
-    s16 unkEC[3];
+    s16 rot2[3];
     u8 unkF2[2];
-    s16 unkF4[3];
+    s16 rotAccel[3];
     u8 unkFA[0x32];
-    s16 unk12C;
-    s16 unk12E;
-    s16 unk130;
+    s16 hitRadius;
+    s16 mode;
+    s16 speed;
     u8 unk132[5];
-    u8 unk137;
+    u8 fadeMode;
     u8 unk138[4];
-} CameraEffect;
-extern CameraEffect SUG_EFFECT_ROOT;
+} RootEffect;
+extern RootEffect SUG_EFFECT_ROOT;
 typedef struct {
     u8 unk0[0x65C];
     s32 unk65C[3];
@@ -528,7 +511,7 @@ typedef struct {
     s32 last;
     s32 count;
     s32 rows;
-} Table;
+} PosHistory;
 typedef struct {
     s32 *words;
     s16 *halves;
@@ -536,82 +519,74 @@ typedef struct {
     s32 last;
     s32 count;
     s32 rows;
-} WordTable;
-typedef struct {
-    u8 unk0[0x13C];
-    ModelData *unk13C;
-    u8 unk140[0x20];
-    ClutFade fade;
-    u8 unk56C[2];
-    s8 modelSlot;
-} Unk801E3D2C;
+} ValueHistory;
 void SUG_uploadShadedClut(ClutFade *fade, u16 stp);
 void SUG_setStageBrightness(u8 level);
 typedef struct {
     u8 unk0[0x139];
-    u8 unk139;
+    u8 suspended;
     u8 unk13A[2];
     Sprite sprite;
     s32 brightness;
     s32 active;
-} Effect;
+} SpriteEffect;
 extern MATRIX D_801DBEC0;
 void SUG_drawSprite(Sprite *sprite, s16 brightness);
 typedef struct {
     u8 unk0[0x20];
     VECTOR pos;
     SVECTOR rot;
-    s32 unk38;
+    s32 sx;
     u8 unk3C[0xF2];
-    s16 unk12E;
-    s16 unk130;
-    s16 unk132;
+    s16 mode;
+    s16 speed;
+    s16 brightness;
     u8 unk134[3];
-    u8 unk137;
-    u8 unk138;
-    u8 unk139;
+    u8 fadeMode;
+    u8 fadeState;
+    u8 suspended;
     u8 unk13A[2];
-    u8 unk13C[0x20];
-    void *unk15C;
-    DrTPage *unk160[2];
-    LineG2 *unk168[2];
-    POLY_G4 *unk170[2];
-    POLY_FT4 *unk178[2];
-    POLY_GT4 *unk180[2];
-    u8 xforms[2][0x4C];
-    Table *tables[2];
-    Short4 hist[2];
+    u8 texAnim[0x20];
+    u8 *colors;
+    DrTPage *tpages[2];
+    LineG2 *lines[2];
+    POLY_G4 *g4s[2];
+    POLY_FT4 *ft4s[2];
+    POLY_GT4 *gt4s[2];
+    u8 edges[2][0x4C];
+    PosHistory *histories[2];
+    Short4 lastPos[2];
     VECTOR prevPos[2];
     SVECTOR prevRot[2];
     u8 xform[0x4C];
     Rect16 uv;
-    s32 unk2BC;
-    s32 unk2C0;
-    s32 unk2C4;
+    s32 tpage;
+    s32 clut;
+    s32 otz;
     s32 count;
-    s32 unk2CC;
-    s32 unk2D0;
-    s16 unk2D4;
-    s16 unk2D6;
-    u8 unk2D8;
-    u8 unk2D9;
-    u8 unk2DA;
-    u8 unk2DB;
-    u8 unk2DC;
-} Unk801E5144;
-Unk801E5144 *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+    s32 blend;
+    s32 texAnimId;
+    s16 level;
+    s16 prevLevel;
+    u8 semiTrans;
+    u8 primKind;
+    u8 followMode;
+    u8 colorMode;
+    u8 primeCount;
+} TrailEffect;
+TrailEffect *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
                            s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
                            s32 a19, s32 a20);
-void SUG_setTrailColors(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3);
-void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
+void SUG_setTrailColors(TrailEffect *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3);
+void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
 void SUG_freePosHistory(void **obj);
 void SUG_freeTexAnim(u8 *obj);
 void SUG_fillGradientColors(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8);
 typedef struct {
     s32 key;
     void *data;
-} CacheEntry;
-extern CacheEntry SUG_TAM_CACHE[8];
+} TamEntry;
+extern TamEntry SUG_TAM_CACHE[8];
 typedef struct {
     s16 duration;
     u8 u;
@@ -632,13 +607,13 @@ typedef struct {
     s16 timer;
     s32 type;
     u8 *pixels;
-} Image;
+} TexAnim;
 s32 LoadImage2(Rect16 *rect, u8 *pixels);
 s32 MoveImage2(Rect16 *rect, s32 x, s32 y);
-void SUG_scrollTexAnimLeft(Image *image);
-void SUG_scrollTexAnimRight(Image *image);
-void SUG_scrollTexAnimUp(Image *image);
-void SUG_scrollTexAnimDown(Image *image);
+void SUG_scrollTexAnimLeft(TexAnim *image);
+void SUG_scrollTexAnimRight(TexAnim *image);
+void SUG_scrollTexAnimUp(TexAnim *image);
+void SUG_scrollTexAnimDown(TexAnim *image);
 typedef struct {
     s16 kind;
     u8 unk2[2];
@@ -666,26 +641,26 @@ typedef struct {
     s16 id;
     s16 active;
     s32 value;
-} Slot;
+} EffectSlot;
 typedef struct {
-    Slot slots[150];
+    EffectSlot slots[150];
     s32 modelSlots[3];
     u8 xform[0x4C];
-    s32 unk508;
+    s32 pak;
     s32 count;
-} Slots;
+} EffectSlots;
 typedef struct {
     void *script;
     void *context;
     s32 *regs;
-    Slots *slots;
-    s32 unk10;
+    EffectSlots *slots;
+    s32 waitFrames;
     s32 unk14;
-} Runner;
-Runner *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state);
-s32 SUG_tickEffectScript(Runner *runner);
-void SUG_runEffectScript(Runner *runner);
-void SUG_freeEffectEntries(Slots *slots);
+} EffectScript;
+EffectScript *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state);
+s32 SUG_tickEffectScript(EffectScript *runner);
+void SUG_runEffectScript(EffectScript *runner);
+void SUG_freeEffectEntries(EffectSlots *slots);
 typedef struct {
     u8 r;
     u8 g;
@@ -711,7 +686,7 @@ typedef struct {
 } ColorQuad;
 ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode);
 ScrollTex *SUG_createScrollTexture(Rect16 *rect, s32 depth, s32 mode, s16 speed);
-void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Slots *ctx);
+void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, EffectSlots *ctx);
 void SUG_freeEffectSlots(void *obj);
 extern s32 SUG_SCREEN_FX_FRAME;
 extern u8 SUG_SCREEN_FX_BASE_RGB[3];
@@ -729,8 +704,8 @@ typedef struct {
     s32 key;
     u8 *data;
     s32 subKey;
-} Entry;
-extern Entry *SUG_SPRITE_CACHE;
+} SpriteEntry;
+extern SpriteEntry *SUG_SPRITE_CACHE;
 #define setEntry(e, _key, _data, _subKey) \
     do {                                  \
         (e)->key = (_key);                \
@@ -740,15 +715,15 @@ extern Entry *SUG_SPRITE_CACHE;
 extern const char SUG_FMT_SPRITE_PATH[];
 void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey);
 typedef struct {
-    float unk0;
+    float pos;
     s16 target[2];
-    s16 unk8[6];
+    s16 trail[6];
     s16 flags;
-    s16 unk16;
+    s16 brightness;
     Rect16 uv;
-} Unk801EC160;
+} HudSlide;
 void SUG_fillShorts(s16 *dst, s32 count, s16 value);
-s32 SUG_tickHudSlides(Unk801EC160 *obj, s32 count, s32 state, s32 speed);
+s32 SUG_tickHudSlides(HudSlide *obj, s32 count, s32 state, s32 speed);
 void SUG_drawHudSpriteTrail(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blend, s16 *trail, s32 count);
 extern s16 SUG_CURRENT_SCRIPT;
 extern s32 SUG_SCRIPT_STATES[2];
@@ -763,12 +738,12 @@ extern s16 D_80079584;
 void SUG_orbitCamera(void);
 void SUG_showAttackBanner(s32 a0);
 
-Table *SUG_createPosHistory(s32 columns, s32 rows) {
-    Table *table;
+PosHistory *SUG_createPosHistory(s32 columns, s32 rows) {
+    PosHistory *table;
     s32 count;
     s32 i;
 
-    table = allocTaskHeapBlock(sizeof(Table));
+    table = allocTaskHeapBlock(sizeof(PosHistory));
     count = columns * rows;
     table->quads = allocTaskHeapBlock(count * sizeof(Quad));
     table->shorts = allocTaskHeapBlock(count * sizeof(Short4));
@@ -787,7 +762,7 @@ Table *SUG_createPosHistory(s32 columns, s32 rows) {
     return table;
 }
 
-void SUG_fillPosHistory(Table *table, Quad *quad, Short4 *s4) {
+void SUG_fillPosHistory(PosHistory *table, Quad *quad, Short4 *s4) {
     s32 i;
 
     for (i = 0; i < table->count; i++) {
@@ -796,7 +771,7 @@ void SUG_fillPosHistory(Table *table, Quad *quad, Short4 *s4) {
     }
 }
 
-void SUG_pushPosHistory(Table *table, Quad *quad, Short4 *s4) {
+void SUG_pushPosHistory(PosHistory *table, Quad *quad, Short4 *s4) {
     if (quad != NULL) {
         table->quads[table->head] = *quad;
     }
@@ -807,7 +782,7 @@ void SUG_pushPosHistory(Table *table, Quad *quad, Short4 *s4) {
     table->head = (table->head + 1) % table->count;
 }
 
-void SUG_getPosHistory(Table *table, s32 back, Quad *quad, Short4 *s4) {
+void SUG_getPosHistory(PosHistory *table, s32 back, Quad *quad, Short4 *s4) {
     s32 i;
 
     if (back == 0) {
@@ -838,12 +813,12 @@ void SUG_freePosHistory(void **obj) {
     freeHeapBlock(obj);
 }
 
-WordTable *SUG_createValueHistory(s32 columns, s32 rows) {
-    WordTable *table;
+ValueHistory *SUG_createValueHistory(s32 columns, s32 rows) {
+    ValueHistory *table;
     s32 count;
     s32 i;
 
-    table = allocTaskHeapBlock(sizeof(WordTable));
+    table = allocTaskHeapBlock(sizeof(ValueHistory));
     count = columns * rows;
     table->words = allocTaskHeapBlock(count * 4);
     table->halves = allocTaskHeapBlock(count * 2);
@@ -858,7 +833,7 @@ WordTable *SUG_createValueHistory(s32 columns, s32 rows) {
     return table;
 }
 
-void SUG_fillValueHistory(WordTable *table, s32 word, s16 half) {
+void SUG_fillValueHistory(ValueHistory *table, s32 word, s16 half) {
     s32 i;
 
     for (i = 0; i < table->count; i++) {
@@ -867,7 +842,7 @@ void SUG_fillValueHistory(WordTable *table, s32 word, s16 half) {
     }
 }
 
-void SUG_pushValueHistory(WordTable *table, s32 *word, s16 *half) {
+void SUG_pushValueHistory(ValueHistory *table, s32 *word, s16 *half) {
     if (word != NULL) {
         table->words[table->head] = *word;
     }
@@ -878,7 +853,7 @@ void SUG_pushValueHistory(WordTable *table, s32 *word, s16 *half) {
     table->head = (table->head + 1) % table->count;
 }
 
-void SUG_getValueHistory(WordTable *table, s32 back, s32 *word, s16 *half) {
+void SUG_getValueHistory(ValueHistory *table, s32 back, s32 *word, s16 *half) {
     s32 i;
 
     if (back == 0) {
@@ -917,9 +892,9 @@ void initPolyF4Pair();
 void initPolyG3Pair();
 void initPolyGT3Pair();
 
-Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
+SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
                            u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18) {
-    Unk801DF598 *fx;
+    SphereEffect *fx;
     s32 rings;
     s32 total;
     s32 i;
@@ -948,28 +923,28 @@ Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTem
     DrTPage *tp1;
 
     fx = allocTaskHeapBlock(0x1E0);
-    fx->unk1CC = a5;
-    *(s16 *)fx->unk1CE = a6;
+    fx->segments = a5;
+    fx->slices = a6;
     rings = (a6 - 3) / 2;
-    fx->unk1C4 = rings + 1;
+    fx->ringCount = rings + 1;
     total = (rings + 1) * a5;
     fx->vertCount = total + 2;
     fx->ringVertCount = (rings + 2) * a5;
-    fx->unk1C0 = total + rings * a5 + a5 * 2;
-    if (a12 >= 0 && SUG_startTexAnim(a12, 3, (RingEffect *)fx, fx->unk13C, a18) != 0) {
-        fx->unk1D8 = 1;
+    fx->lineCount = total + rings * a5 + a5 * 2;
+    if (a12 >= 0 && SUG_startTexAnim(a12, 3, (RingEffect *)fx, fx->texAnim, a18) != 0) {
+        fx->texAnimActive = 1;
     } else {
-        fx->unk1D8 = -1;
+        fx->texAnimActive = -1;
     }
     fx->verts = allocTaskHeapBlock(fx->vertCount * sizeof(SVECTOR));
     fx->kind = a10;
     fx->semiTrans = a8;
-    fx->unk1DC = a11;
-    *(s32 *)fx->unk1C8 = a9;
+    fx->openBottom = a11;
+    fx->abr = a9;
     fx->brightness = a0;
     SUG_setSphereColor((u8 *)fx, (Bytes4 *)color, a2, a3);
-    fx->unk1DD = a16;
-    fx->unk1B4 = a17;
+    fx->cull = a16;
+    fx->otz = a17;
     *(EffectTemplate *)fx = *template;
     initEffectObject(fx);
     for (i = 0; i < 2; i++) {
@@ -988,18 +963,18 @@ Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTem
     switch (a10) {
     case 0:
         for (i = 0; i < 2; i++) {
-            fx->lines[i] = allocTaskHeapBlock(fx->unk1C0 * sizeof(LineF2));
+            fx->lines[i] = allocTaskHeapBlock(fx->lineCount * sizeof(LineF2));
         }
         if (a8 != 0) {
             for (i = 0; i < 2; i++) {
-                fx->tpages[i] = allocTaskHeapBlock(fx->unk1C0 * sizeof(DrTPage));
+                fx->tpages[i] = allocTaskHeapBlock(fx->lineCount * sizeof(DrTPage));
             }
         }
         line0 = fx->lines[0];
         line1 = fx->lines[1];
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
-        for (i = 0; i < fx->unk1C0; i++, line0++, line1++, tp0++, tp1++) {
+        for (i = 0; i < fx->lineCount; i++, line0++, line1++, tp0++, tp1++) {
             if (a8 == 0) {
                 initLineF2Pair(line0, line1, 0, a9, 0, 0, 0, 1);
             } else {
@@ -1150,7 +1125,7 @@ Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTem
     }
     angStep = 0x1000 / a5;
     latStep = 0x1000 / a6;
-    ringStep = 0x800 / (fx->unk1C4 + 1);
+    ringStep = 0x800 / (fx->ringCount + 1);
     fx->verts[0].vx = 0;
     fx->verts[0].vy = -a7;
     fx->verts[0].vz = 0;
@@ -1158,7 +1133,7 @@ Unk801DF598 *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTem
     fx->verts[fx->vertCount - 1].vy = a7;
     fx->verts[fx->vertCount - 1].vz = 0;
     k = 1;
-    for (n = 0; n < fx->unk1C4; n++) {
+    for (n = 0; n < fx->ringCount; n++) {
         r = a7 * rsin(ringStep * (n + 1)) >> 12;
         for (j = 0; j < a5; j++, k++) {
             fx->verts[k].vx = r * rcos(angStep * j) >> 12;
@@ -1176,10 +1151,10 @@ void SUG_setSphereColor(u8 *object, Bytes4 *src, s16 x, s16 y) {
     *(s16 *)(object + 0x1D6) = -1;
 }
 
-void SUG_tickSphereEffect(Unk801DF598 *fx) {
+void SUG_tickSphereEffect(SphereEffect *fx) {
     s32 speed;
 
-    if (fx->unk139 != 0) {
+    if (fx->suspended != 0) {
         tickEffectStartDelay(fx);
         return;
     }
@@ -1191,42 +1166,42 @@ void SUG_tickSphereEffect(Unk801DF598 *fx) {
     }
     switch (fx->kind) {
     case 0:
-        if (fx->unk1D2 == 0) {
-            speed = 0x800 / fx->unk1C4;
+        if (fx->pulseMode == 0) {
+            speed = 0x800 / fx->ringCount;
         } else {
-            speed = 0x400 / fx->unk1C4;
+            speed = 0x400 / fx->ringCount;
         }
-        SUG_drawSphereLines(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereLines(fx, fx->cull, fx->segments, speed, fx->otz);
         break;
     case 8:
-        if (fx->unk1D2 == 0) {
-            speed = 0x800 / fx->unk1C4;
+        if (fx->pulseMode == 0) {
+            speed = 0x800 / fx->ringCount;
         } else {
-            speed = 0x400 / fx->unk1C4;
+            speed = 0x400 / fx->ringCount;
         }
-        SUG_drawSphereF(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereF(fx, fx->cull, fx->segments, speed, fx->otz);
         break;
     case 9:
-        if (fx->unk1D2 == 0) {
-            speed = 0x800 / (fx->unk1C4 + 1);
+        if (fx->pulseMode == 0) {
+            speed = 0x800 / (fx->ringCount + 1);
         } else {
-            speed = 0x400 / (fx->unk1C4 + 1);
+            speed = 0x400 / (fx->ringCount + 1);
         }
-        SUG_drawSphereG(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereG(fx, fx->cull, fx->segments, speed, fx->otz);
         break;
     case 13:
-        if (fx->unk1D2 == 0) {
-            speed = 0x800 / (fx->unk1C4 + 1);
+        if (fx->pulseMode == 0) {
+            speed = 0x800 / (fx->ringCount + 1);
         } else {
-            speed = 0x400 / (fx->unk1C4 + 1);
+            speed = 0x400 / (fx->ringCount + 1);
         }
-        SUG_drawSphereGT(fx, fx->unk1DD, fx->unk1CC, speed, fx->unk1B4);
+        SUG_drawSphereGT(fx, fx->cull, fx->segments, speed, fx->otz);
         break;
     }
     PopMatrix();
 }
 
-void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
+void SUG_drawSphereLines(SphereEffect *fx, u8 a1, s32 n, s32 a3, s32 otz) {
     u8 rgb[3];
     s32 i;
     s32 j;
@@ -1241,17 +1216,17 @@ void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
     for (i = 0; i < n; i++) {
         transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][i], (s32)&fx->tpages[FRAME_BUFFER_INDEX][i],
                               (s32)&fx->verts[0], (s32)&fx->verts[i + 1], fx->semiTrans, otz);
-        transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][fx->unk1C0 - n + i],
-                              (s32)&fx->tpages[FRAME_BUFFER_INDEX][fx->unk1C0 - n + i], (s32)&fx->verts[fx->vertCount - 1],
+        transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][fx->lineCount - n + i],
+                              (s32)&fx->tpages[FRAME_BUFFER_INDEX][fx->lineCount - n + i], (s32)&fx->verts[fx->vertCount - 1],
                               (s32)&fx->verts[fx->vertCount - n - 1 + i], fx->semiTrans, otz);
         if (fx->brightness != fx->prevBrightness) {
             for (k = 0; k < 2; k++) {
                 setRGB0(&fx->lines[k][i], rgb[0], rgb[1], rgb[2]);
-                setRGB0(&fx->lines[k][fx->unk1C0 - n + i], rgb[0], rgb[1], rgb[2]);
+                setRGB0(&fx->lines[k][fx->lineCount - n + i], rgb[0], rgb[1], rgb[2]);
             }
         }
     }
-    for (j = 0; j < fx->unk1C4; j++) {
+    for (j = 0; j < fx->ringCount; j++) {
         for (i = 0, v = 1; i < n; i++, v++) {
             transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][i + (j + 1) * n],
                                   (s32)&fx->tpages[FRAME_BUFFER_INDEX][i + (j + 1) * n], (s32)&fx->verts[v + j * n],
@@ -1263,13 +1238,13 @@ void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
             }
         }
     }
-    for (i = 0, v = 1; i < (fx->unk1C4 - 1) * n; i++, v++) {
-        transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][i + (fx->unk1C4 + 1) * n],
-                              (s32)&fx->tpages[FRAME_BUFFER_INDEX][i + (fx->unk1C4 + 1) * n], (s32)&fx->verts[v],
+    for (i = 0, v = 1; i < (fx->ringCount - 1) * n; i++, v++) {
+        transformAndAddLineF2((s32)&fx->lines[FRAME_BUFFER_INDEX][i + (fx->ringCount + 1) * n],
+                              (s32)&fx->tpages[FRAME_BUFFER_INDEX][i + (fx->ringCount + 1) * n], (s32)&fx->verts[v],
                               (s32)&fx->verts[v + n], fx->semiTrans, otz);
         if (fx->brightness != fx->prevBrightness) {
             for (k = 0; k < 2; k++) {
-                setRGB0(&fx->lines[k][i + (fx->unk1C4 + 1) * n], rgb[0], rgb[1], rgb[2]);
+                setRGB0(&fx->lines[k][i + (fx->ringCount + 1) * n], rgb[0], rgb[1], rgb[2]);
             }
         }
     }
@@ -1278,7 +1253,7 @@ void SUG_drawSphereLines(Unk801DF598 *fx, u8 a1, s32 n, s32 a3, s32 otz) {
 
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
 void SUG_drawSphereF(fx, cull, count, speed, otz)
-    Unk801DF598 *fx;
+    SphereEffect *fx;
     u8 cull;
     s32 count;
     s16 speed;
@@ -1313,14 +1288,14 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
         dimB = bl;
     } else {
         r = 0;
-        if (fx->unk1D2 == 0) {
+        if (fx->pulseMode == 0) {
             g = 0;
             bl = 0;
             dimR = 0;
             dimG = 0;
             dimB = 0;
         } else {
-            angle = speed * fx->unk1C4 * fx->pulse;
+            angle = speed * fx->ringCount * fx->pulse;
             r = fx->rgb[0];
             g = fx->rgb[1];
             bl = fx->rgb[2];
@@ -1347,7 +1322,7 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
         c.vz = fx->verts[next % count + 1].vz;
         transformAndAddPolyF3((s32)&fx->tris[FRAME_BUFFER_INDEX][i], (s32)&fx->tpages[FRAME_BUFFER_INDEX][i],
                               (s32)&c, (s32)&b, (s32)&a, fx->semiTrans, cull, otz);
-        if (fx->unk1DC == 0) {
+        if (fx->openBottom == 0) {
             fx->tris[FRAME_BUFFER_INDEX][count + i].r0 = dimR;
             fx->tris[FRAME_BUFFER_INDEX][count + i].g0 = dimG;
             fx->tris[FRAME_BUFFER_INDEX][count + i].b0 = dimB;
@@ -1375,7 +1350,7 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
             r = fx->rgb[0];
             g = fx->rgb[1];
             bl = fx->rgb[2];
-        } else if (fx->unk1D2 == 0) {
+        } else if (fx->pulseMode == 0) {
             sine = rsin(angle);
             r = ((fx->rgb[0] * sine) >> 12) & 0xFF;
             g = ((fx->rgb[1] * sine) >> 12) & 0xFF;
@@ -1412,7 +1387,7 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
 }
 
 void SUG_drawSphereG(fx, cull, count, speed, otz)
-    Unk801DF598 *fx;
+    SphereEffect *fx;
     u8 cull;
     s32 count;
     s16 speed;
@@ -1451,9 +1426,9 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
             c3 = c2;
         } else {
             angle0 = speed * fx->pulse;
-            angle1 = speed * fx->unk1C4 * fx->pulse;
-            angle2 = speed * (fx->unk1C4 + 1) * fx->pulse;
-            if (fx->unk1D2 == 0) {
+            angle1 = speed * fx->ringCount * fx->pulse;
+            angle2 = speed * (fx->ringCount + 1) * fx->pulse;
+            if (fx->pulseMode == 0) {
                 c0.r = 0;
                 c0.g = 0;
                 c0.b = 0;
@@ -1503,7 +1478,7 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
         transformAndAddPolyG3((s32)&fx->gtris[FRAME_BUFFER_INDEX][i], (s32)&fx->tpages[FRAME_BUFFER_INDEX][i],
                               (s32)&fx->verts[next % count + 1], (s32)&fx->verts[i + 1], (s32)fx->verts, fx->semiTrans,
                               cull, otz);
-        if (fx->unk1DC == 0) {
+        if (fx->openBottom == 0) {
             if (fx->brightness != fx->prevBrightness) {
                 for (j = 0; j < 2; j++) {
                     setPrimRgb0(&fx->gtris[j][count + i], c3.r, c3.g, c3.b);
@@ -1537,7 +1512,7 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
                 c0.b = base.b;
                 c1 = c0;
             } else {
-                if (fx->unk1D2 == 0) {
+                if (fx->pulseMode == 0) {
                     s = rsin(angle0);
                     t = rsin(angle1);
                     c0.r = base.r * s >> 12;
@@ -1581,7 +1556,7 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
 
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
 void SUG_drawSphereGT(fx, cull, count, speed, otz)
-    Unk801DF598 *fx;
+    SphereEffect *fx;
     u8 cull;
     s32 count;
     s16 speed;
@@ -1606,7 +1581,7 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
     POLY_GT4 *quad;
 
     inner = 0;
-    if (fx->unk1D8 >= 0) {
+    if (fx->texAnimActive >= 0) {
         SUG_updateSphereUvs(fx);
     }
     if (fx->brightness != fx->prevBrightness) {
@@ -1622,9 +1597,9 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
             c3 = c2;
         } else {
             angle0 = speed * fx->pulse;
-            angle1 = speed * fx->unk1C4 * fx->pulse;
-            angle2 = speed * (fx->unk1C4 + 1) * fx->pulse;
-            if (fx->unk1D2 == 0) {
+            angle1 = speed * fx->ringCount * fx->pulse;
+            angle2 = speed * (fx->ringCount + 1) * fx->pulse;
+            if (fx->pulseMode == 0) {
                 c0.r = 0;
                 c0.g = 0;
                 c0.b = 0;
@@ -1673,7 +1648,7 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
         }
         transformAndAddPolyGT3((s32)&fx->ttris[FRAME_BUFFER_INDEX][i], (s32)&fx->verts[next % count + 1],
                                (s32)&fx->verts[i + 1], (s32)fx->verts, cull, otz);
-        if (fx->unk1DC == 0) {
+        if (fx->openBottom == 0) {
             if (fx->brightness != fx->prevBrightness) {
                 for (j = 0; j < 2; j++) {
                     setPrimRgb0(&fx->ttris[j][count + i], c3.r, c3.g, c3.b);
@@ -1704,7 +1679,7 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
                 c0.b = base.b;
                 c1 = c0;
             } else {
-                if (fx->unk1D2 == 0) {
+                if (fx->pulseMode == 0) {
                     s = rsin(angle0);
                     t = rsin(angle1);
                     c0.r = base.r * s >> 12;
@@ -1748,15 +1723,15 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
     fx->prevBrightness = fx->brightness;
 }
 
-void SUG_updateSphereUvs(Unk801E1D80 *obj) {
+void SUG_updateSphereUvs(SphereEffect *obj) {
     Rect16 uv;
     POLY_GT4 *gt4;
     s32 n;
     s32 i;
     s32 skip;
 
-    n = obj->unk1CC;
-    SUG_tickTexAnim(obj->unk13C);
+    n = obj->segments;
+    SUG_tickTexAnim(obj->texAnim);
     uv = obj->uv;
     for (i = 0; i < n; i++) {
         obj->ttris[FRAME_BUFFER_INDEX][i].u0 = uv.x + uv.w;
@@ -1767,7 +1742,7 @@ void SUG_updateSphereUvs(Unk801E1D80 *obj) {
         obj->ttris[FRAME_BUFFER_INDEX][i].v2 = uv.y;
         obj->ttris[FRAME_BUFFER_INDEX][i].tpage = obj->tpage;
         obj->ttris[FRAME_BUFFER_INDEX][i].clut = obj->clut;
-        if (obj->unk1DC == 0) {
+        if (obj->openBottom == 0) {
             obj->ttris[FRAME_BUFFER_INDEX][n + i].u0 = uv.w / 2 + uv.x;
             obj->ttris[FRAME_BUFFER_INDEX][n + i].v0 = uv.y + uv.h;
             obj->ttris[FRAME_BUFFER_INDEX][n + i].u1 = uv.x;
@@ -1778,7 +1753,7 @@ void SUG_updateSphereUvs(Unk801E1D80 *obj) {
             obj->ttris[FRAME_BUFFER_INDEX][n + i].clut = obj->clut;
         }
     }
-    if (obj->unk1DC != 0) {
+    if (obj->openBottom != 0) {
         skip = n;
     } else {
         skip = n * 2;
@@ -1791,12 +1766,12 @@ void SUG_updateSphereUvs(Unk801E1D80 *obj) {
     }
 }
 
-void SUG_freeSphereEffect(Unk801E1D80 *obj) {
+void SUG_freeSphereEffect(SphereEffect *obj) {
     s32 i;
 
     freeHeapBlock(obj->verts);
-    if (obj->unk1D8 >= 0) {
-        SUG_freeTexAnim(obj->unk13C);
+    if (obj->texAnimActive >= 0) {
+        SUG_freeTexAnim(obj->texAnim);
     }
     for (i = 0; i < 2; i++) {
         if (obj->tris[i] != NULL) {
@@ -2329,11 +2304,11 @@ void SUG_uploadShadedClut(ClutFade *fade, u16 stp) {
 extern const Rect16 SUG_MODEL_CLUT_RECT;
 
 void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9) {
-    Unk801E3C2C *fx;
+    ModelEffect *fx;
     Rect16 rect;
     s32 slot;
 
-    fx = allocTaskHeapBlock(sizeof(Unk801E3C2C));
+    fx = allocTaskHeapBlock(sizeof(ModelEffect));
     for (slot = 2; slot < 23 && SCENE_3D->modelState[slot] != 0; slot++) {
     }
     if (slot >= 23 || !loadModel(slot, modelId, vramSlot, pak, 0)) {
@@ -2341,7 +2316,7 @@ void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelI
         return NULL;
     }
     fx->modelSlot = slot;
-    fx->unk13C = SCENE_3D->models[slot];
+    fx->model = SCENE_3D->models[slot];
     if (anim >= 0 && loadModelAnimation(slot, anim, 0, pak)) {
         applyAnimationFirstFrame(slot, 0);
         startModelAnimation(slot, 0, -2, a7 ^ 1);
@@ -2350,25 +2325,25 @@ void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelI
         *(EffectTemplate *)fx = *template;
         initEffectObject(fx);
         SCENE_3D->modelState[fx->modelSlot] = -1;
-        fx->unk571 = 1;
+        fx->active = 1;
     } else {
         SCENE_3D->modelState[fx->modelSlot] = 1;
-        fx->unk571 = 0;
+        fx->active = 0;
     }
     fx->unk574 = a9;
-    fx->unk13C->owner = fx;
-    if (vramSlot != 0 && a4 >= 0 && SUG_startTexAnim(a4, 0, (RingEffect *)fx->unk13C, fx->unk140, pak)) {
-        fx->unk570 = 1;
+    fx->model->owner = fx;
+    if (vramSlot != 0 && a4 >= 0 && SUG_startTexAnim(a4, 0, (RingEffect *)fx->model, fx->texAnim, pak)) {
+        fx->texAnimActive = 1;
     } else {
-        fx->unk570 = -1;
+        fx->texAnimActive = -1;
     }
     if (vramSlot != 0) {
         rect = SUG_MODEL_CLUT_RECT;
         if (fx->unk574 == 0) {
             rect.y = 0xF0;
         }
-        rect.x += ((fx->unk13C->unk26D4 / 0x10000 + 5) & 0xF) << 6;
-        rect.y += ((fx->unk13C->unk26D4 / 0x10000 + 5) >> 4) << 8;
+        rect.x += ((fx->model->unk26D4 / 0x10000 + 5) & 0xF) << 6;
+        rect.y += ((fx->model->unk26D4 / 0x10000 + 5) >> 4) << 8;
         StoreImage2(&rect, (u32 *)fx->fade.clut);
         fx->fade.rect = rect;
         fx->fade.brighten = 0;
@@ -2377,20 +2352,20 @@ void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelI
             SUG_uploadShadedClut(&fx->fade, 0x8000);
         }
     } else {
-        fx->unk13C->unk26D4 = -1;
+        fx->model->unk26D4 = -1;
     }
     fx->unk56F = a6;
     return fx;
 }
 
-void SUG_tickModelEffect(Unk801E3C2C *obj) {
-    if (obj->unk571 != 0) {
-        if (obj->unk139 != 0) {
+void SUG_tickModelEffect(ModelEffect *obj) {
+    if (obj->active != 0) {
+        if (obj->suspended != 0) {
             tickEffectStartDelay(obj);
             SCENE_3D->modelState[obj->modelSlot] = -1;
             return;
         }
-        if (obj->unk13C->unk26D4 != -1) {
+        if (obj->model->unk26D4 != -1) {
             obj->fade.level = updateEffectBrightness(obj, obj->fade.level);
             if (obj->fade.level != obj->lastBrightness) {
                 obj->lastBrightness = obj->fade.level;
@@ -2403,14 +2378,14 @@ void SUG_tickModelEffect(Unk801E3C2C *obj) {
         }
         SCENE_3D->modelState[obj->modelSlot] = 3;
     }
-    if (obj->unk570 >= 0) {
-        SUG_tickTexAnim(obj->unk140);
+    if (obj->texAnimActive >= 0) {
+        SUG_tickTexAnim(obj->texAnim);
     }
 }
 
-void SUG_freeModelEffect(Unk801E3D2C *obj) {
+void SUG_freeModelEffect(ModelEffect *obj) {
     unloadModel(obj->modelSlot);
-    if (obj->unk13C->unk26D4 != -1 && obj->fade.level != 0xFF) {
+    if (obj->model->unk26D4 != -1 && obj->fade.level != 0xFF) {
         obj->fade.level = 0xFF;
         SUG_uploadShadedClut(&obj->fade, 0x8000);
     }
@@ -2514,9 +2489,9 @@ void SUG_shadeModelClut(s32 slot, s32 target) {
 }
 
 void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey) {
-    Effect *fx;
+    SpriteEffect *fx;
 
-    fx = allocTaskHeapBlock(sizeof(Effect));
+    fx = allocTaskHeapBlock(sizeof(SpriteEffect));
     fx->sprite.flipX = flipX;
     fx->sprite.flipY = flipY;
     fx->sprite.unk8A = a5 == 0;
@@ -2533,10 +2508,10 @@ void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, 
     return fx;
 }
 
-void SUG_tickSpriteEffect(Effect *fx) {
+void SUG_tickSpriteEffect(SpriteEffect *fx) {
     PushMatrix();
     if (fx->active != 0) {
-        if (fx->unk139 != 0 || (fx->brightness = updateEffectBrightness(fx, fx->brightness)) == 0) {
+        if (fx->suspended != 0 || (fx->brightness = updateEffectBrightness(fx, fx->brightness)) == 0) {
             PopMatrix();
             tickEffectStartDelay(fx);
             return;
@@ -2554,48 +2529,48 @@ void SUG_freeSpriteEffect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-Unk801E5144 *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+TrailEffect *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
                            s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
                            s32 a19, s32 a20) {
-    Unk801E5144 *obj;
+    TrailEffect *obj;
     s32 i;
 
-    obj = allocTaskHeapBlock(sizeof(Unk801E5144));
+    obj = allocTaskHeapBlock(sizeof(TrailEffect));
     for (i = 0; i < 2; i++) {
-        obj->tables[i] = SUG_createPosHistory(count + 1, rows);
+        obj->histories[i] = SUG_createPosHistory(count + 1, rows);
     }
-    obj->unk2C0 = clut;
-    obj->unk2BC = tpage;
-    obj->unk2D8 = a12;
-    obj->unk2D9 = a14;
-    obj->unk2DB = a11;
+    obj->clut = clut;
+    obj->tpage = tpage;
+    obj->semiTrans = a12;
+    obj->primKind = a14;
+    obj->colorMode = a11;
     obj->count = count;
-    obj->unk2CC = a13;
-    obj->unk2D4 = a0;
-    obj->unk2DC = 0;
-    obj->unk2DA = a10;
+    obj->blend = a13;
+    obj->level = a0;
+    obj->primeCount = 0;
+    obj->followMode = a10;
     initTransform(obj->xform, 0, 0, 0, 0, 0, 0, 0);
     *(EffectTemplate *)obj = *template;
     initEffectObject(obj);
-    obj->unk2C4 = a19;
+    obj->otz = a19;
     obj->prevPos[1] = obj->prevPos[0] = obj->pos;
     obj->prevRot[0] = obj->rot;
     obj->prevRot[1] = obj->rot;
-    initTransform(obj->xforms[0], (s32)obj, x0, 0, 0, 0, 0, 0);
-    initTransform(obj->xforms[1], (s32)obj, x1, 0, 0, 0, 0, 0);
-    obj->unk15C = allocTaskHeapBlock(a11 ? count * 16 : 16);
+    initTransform(obj->edges[0], (s32)obj, x0, 0, 0, 0, 0, 0);
+    initTransform(obj->edges[1], (s32)obj, x1, 0, 0, 0, 0, 0);
+    obj->colors = allocTaskHeapBlock(a11 ? count * 16 : 16);
     SUG_initTrailPrims(obj, a12, a13, a14, id, uv, tpage, clut);
     SUG_setTrailColors(obj, a11, c0, c1, c2, c3);
-    obj->unk2D0 = id;
-    if (id < 100 || SUG_startTexAnim(id, 4, (RingEffect *)obj, obj->unk13C, a20) == 0) {
-        obj->unk2D0 = -1;
+    obj->texAnimId = id;
+    if (id < 100 || SUG_startTexAnim(id, 4, (RingEffect *)obj, obj->texAnim, a20) == 0) {
+        obj->texAnimId = -1;
     }
     return obj;
 }
 
-void SUG_shadeTrailPrims(Unk801E5144 *obj);
+void SUG_shadeTrailPrims(TrailEffect *obj);
 
-void SUG_tickTrailEffect(Unk801E5144 *obj) {
+void SUG_tickTrailEffect(TrailEffect *obj) {
     Short4 pos;
     Short4 b;
     Short4 c;
@@ -2612,79 +2587,79 @@ void SUG_tickTrailEffect(Unk801E5144 *obj) {
     POLY_GT4 *gt4;
 
     moved = 0;
-    if (obj->unk139 != 0) {
+    if (obj->suspended != 0) {
         tickEffectStartDelay(obj);
         return;
     }
     PushMatrix();
     tickEffectMotion((s32)obj, 0);
     PopMatrix();
-    switch (obj->unk137) {
+    switch (obj->fadeMode) {
     case 1:
-        obj->unk2D4 = obj->unk38 / 16;
-        if (obj->unk38 > 0x1000) {
-            obj->unk2D4 = 0x100 - (obj->unk38 - 0x1000) / 16;
+        obj->level = obj->sx / 16;
+        if (obj->sx > 0x1000) {
+            obj->level = 0x100 - (obj->sx - 0x1000) / 16;
         }
         break;
     case 2:
-        obj->unk2D4 += obj->unk130;
+        obj->level += obj->speed;
         break;
     case 3:
-        if (obj->unk138 == 2) {
+        if (obj->fadeState == 2) {
             break;
         }
-        if (obj->unk138 == 0) {
+        if (obj->fadeState == 0) {
             goto grow;
         }
-        obj->unk2D4 -= obj->unk130;
-        if (obj->unk2D4 < 0) {
+        obj->level -= obj->speed;
+        if (obj->level < 0) {
             /* the extra block is needed for the register allocation to match */
             do {
-                obj->unk2D4 = 0;
+                obj->level = 0;
             } while (0);
-            obj->unk138 = 2;
+            obj->fadeState = 2;
         }
         break;
     case 4:
-        if (obj->unk138 == 0) {
+        if (obj->fadeState == 0) {
         grow:
-            obj->unk2D4 += obj->unk130;
-            if (obj->unk2D4 > 0x100) {
-                obj->unk2D4 = 0x100;
-                obj->unk138 = 1;
+            obj->level += obj->speed;
+            if (obj->level > 0x100) {
+                obj->level = 0x100;
+                obj->fadeState = 1;
             }
         } else {
-            obj->unk2D4 -= obj->unk130;
-            if (obj->unk2D4 < 0) {
-                obj->unk2D4 = 0;
-                obj->unk138 = 0;
+            obj->level -= obj->speed;
+            if (obj->level < 0) {
+                obj->level = 0;
+                obj->fadeState = 0;
             }
         }
         break;
     }
-    if (obj->unk2D4 < 0) {
-        obj->unk2D4 = 0;
+    if (obj->level < 0) {
+        obj->level = 0;
     }
-    if (obj->unk2D4 > 0x100) {
-        obj->unk2D4 = 0x100;
+    if (obj->level > 0x100) {
+        obj->level = 0x100;
     }
-    if (obj->unk12E == 10) {
-        obj->unk2D4 = obj->unk132;
+    if (obj->mode == 10) {
+        obj->level = obj->brightness;
     } else {
-        obj->unk132 = obj->unk2D4;
+        obj->brightness = obj->level;
     }
-    if (obj->unk2D4 == 0) {
+    if (obj->level == 0) {
         return;
     }
     for (i = 0; i < 2; i++) {
         PushMatrix();
-        updateTransformMatrix(obj->xforms[i], 0);
+        updateTransformMatrix(obj->edges[i], 0);
         PopMatrix();
-        getTransformWorldPos(obj->xforms[i], &pos);
-        if (obj->unk2DA == 0) {
+        getTransformWorldPos(obj->edges[i], &pos);
+        if (obj->followMode == 0) {
             moved = 1;
-        } else if (obj->unk2DA == 1) {
-            if (obj->hist[i].v[0] != pos.v[0] || obj->hist[i].v[1] != pos.v[1] || obj->hist[i].v[2] != pos.v[2]) {
+        } else if (obj->followMode == 1) {
+            if (obj->lastPos[i].v[0] != pos.v[0] || obj->lastPos[i].v[1] != pos.v[1] || obj->lastPos[i].v[2] != pos.v[2]) {
                 moved = 1;
             }
         } else {
@@ -2697,111 +2672,111 @@ void SUG_tickTrailEffect(Unk801E5144 *obj) {
                 }
             } while (0);
             moved = 2;
-            delta.v[0] = obj->hist[i].v[0] - pos.v[0];
-            delta.v[1] = obj->hist[i].v[1] - pos.v[1];
-            delta.v[2] = obj->hist[i].v[2] - pos.v[2];
-            for (j = 0; j < obj->tables[i]->count; j++) {
-                obj->tables[i]->shorts[j].v[0] -= delta.v[0];
-                obj->tables[i]->shorts[j].v[1] -= delta.v[1];
-                obj->tables[i]->shorts[j].v[2] -= delta.v[2];
+            delta.v[0] = obj->lastPos[i].v[0] - pos.v[0];
+            delta.v[1] = obj->lastPos[i].v[1] - pos.v[1];
+            delta.v[2] = obj->lastPos[i].v[2] - pos.v[2];
+            for (j = 0; j < obj->histories[i]->count; j++) {
+                obj->histories[i]->shorts[j].v[0] -= delta.v[0];
+                obj->histories[i]->shorts[j].v[1] -= delta.v[1];
+                obj->histories[i]->shorts[j].v[2] -= delta.v[2];
             }
         skip:
             obj->prevPos[i] = obj->pos;
             obj->prevRot[i] = obj->rot;
         }
-        if (obj->unk2DC != 2) {
-            for (k = 0; k < obj->tables[i]->count; k++) {
-                obj->tables[i]->shorts[k] = pos;
+        if (obj->primeCount != 2) {
+            for (k = 0; k < obj->histories[i]->count; k++) {
+                obj->histories[i]->shorts[k] = pos;
             }
-            obj->hist[i] = pos;
-            obj->unk2DC++;
+            obj->lastPos[i] = pos;
+            obj->primeCount++;
         }
         if (moved == 1) {
-            SUG_pushPosHistory(obj->tables[i], NULL, &pos);
+            SUG_pushPosHistory(obj->histories[i], NULL, &pos);
         }
-        obj->hist[i] = pos;
+        obj->lastPos[i] = pos;
     }
     PushMatrix();
     updateTransformMatrix(obj->xform, 0);
     SUG_shadeTrailPrims(obj);
-    switch (obj->unk2D9) {
+    switch (obj->primKind) {
     case 1:
-        tp = obj->unk160[FRAME_BUFFER_INDEX];
-        line = obj->unk168[FRAME_BUFFER_INDEX];
+        tp = obj->tpages[FRAME_BUFFER_INDEX];
+        line = obj->lines[FRAME_BUFFER_INDEX];
         for (i = 0; i < obj->count; i++, line++, tp++) {
-            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
-            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &d);
-            transformAndAddLineG2((s32)line, (s32)tp, (s32)&pos, (s32)&d, obj->unk2D8, obj->unk2C4);
+            SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->histories[0], i + 1, NULL, &d);
+            transformAndAddLineG2((s32)line, (s32)tp, (s32)&pos, (s32)&d, obj->semiTrans, obj->otz);
         }
         break;
     case 9:
-        tp = obj->unk160[FRAME_BUFFER_INDEX];
-        g4 = obj->unk170[FRAME_BUFFER_INDEX];
+        tp = obj->tpages[FRAME_BUFFER_INDEX];
+        g4 = obj->g4s[FRAME_BUFFER_INDEX];
         for (i = 0; i < obj->count; i++, g4++, tp++) {
-            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
-            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
-            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
-            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
-            transformAndAddPolyG4((s32)g4, (s32)tp, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, obj->unk2D8, 0, obj->unk2C4);
+            SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->histories[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->histories[1], i, NULL, &b);
+            SUG_getPosHistory(obj->histories[1], i + 1, NULL, &d);
+            transformAndAddPolyG4((s32)g4, (s32)tp, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, obj->semiTrans, 0, obj->otz);
         }
         break;
     case 12:
-        ft4 = obj->unk178[FRAME_BUFFER_INDEX];
-        if (obj->unk2D0 != -1) {
-            SUG_tickTexAnim(obj->unk13C);
+        ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
+        if (obj->texAnimId != -1) {
+            SUG_tickTexAnim(obj->texAnim);
         }
         for (i = 0; i < obj->count; i++, ft4++) {
-            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
-            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
-            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
-            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->histories[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->histories[1], i, NULL, &b);
+            SUG_getPosHistory(obj->histories[1], i + 1, NULL, &d);
             setPrimQuadUvRect((u8 *)ft4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
-            transformAndAddPolyFT4((s32)ft4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
+            transformAndAddPolyFT4((s32)ft4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->otz);
         }
         break;
     case 13:
-        gt4 = obj->unk180[FRAME_BUFFER_INDEX];
-        if (obj->unk2D0 != -1) {
-            SUG_tickTexAnim(obj->unk13C);
+        gt4 = obj->gt4s[FRAME_BUFFER_INDEX];
+        if (obj->texAnimId != -1) {
+            SUG_tickTexAnim(obj->texAnim);
         }
         for (i = 0; i < obj->count; i++, gt4++) {
-            SUG_getPosHistory(obj->tables[0], i, NULL, &pos);
-            SUG_getPosHistory(obj->tables[0], i + 1, NULL, &c);
-            SUG_getPosHistory(obj->tables[1], i, NULL, &b);
-            SUG_getPosHistory(obj->tables[1], i + 1, NULL, &d);
+            SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
+            SUG_getPosHistory(obj->histories[0], i + 1, NULL, &c);
+            SUG_getPosHistory(obj->histories[1], i, NULL, &b);
+            SUG_getPosHistory(obj->histories[1], i + 1, NULL, &d);
             setPrimQuadUvRect((u8 *)gt4, obj->uv.x, obj->uv.y, obj->uv.w, obj->uv.h);
-            transformAndAddPolyGT4((s32)gt4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->unk2C4);
+            transformAndAddPolyGT4((s32)gt4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->otz);
         }
         break;
     }
     PopMatrix();
 }
 
-void SUG_freeTrailEffect(Unk801E5144 *obj) {
+void SUG_freeTrailEffect(TrailEffect *obj) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        freeHeapBlock(obj->unk168[i]);
-        freeHeapBlock(obj->unk170[i]);
-        freeHeapBlock(obj->unk178[i]);
-        freeHeapBlock(obj->unk180[i]);
-        freeHeapBlock(obj->unk160[i]);
-        SUG_freePosHistory((void **)obj->tables[i]);
+        freeHeapBlock(obj->lines[i]);
+        freeHeapBlock(obj->g4s[i]);
+        freeHeapBlock(obj->ft4s[i]);
+        freeHeapBlock(obj->gt4s[i]);
+        freeHeapBlock(obj->tpages[i]);
+        SUG_freePosHistory((void **)obj->histories[i]);
     }
-    if (obj->unk2D0 >= 0) {
-        SUG_freeTexAnim(obj->unk13C);
+    if (obj->texAnimId >= 0) {
+        SUG_freeTexAnim(obj->texAnim);
     }
-    freeHeapBlock(obj->unk15C);
+    freeHeapBlock(obj->colors);
     freeHeapBlock(obj);
 }
 
-void SUG_setTrailColors(Unk801E5144 *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3) {
-    obj->unk2DB = kind;
-    SUG_fillGradientColors(obj->unk15C, kind, 1, obj->count, c0, c1, c2, c3, 0);
-    obj->unk2D6 = -1;
+void SUG_setTrailColors(TrailEffect *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3) {
+    obj->colorMode = kind;
+    SUG_fillGradientColors(obj->colors, kind, 1, obj->count, c0, c1, c2, c3, 0);
+    obj->prevLevel = -1;
 }
 
-void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
+void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
     s32 i;
     LineG2 *line0;
     LineG2 *line1;
@@ -2815,26 +2790,26 @@ void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4
     DrTPage *tp1;
 
     for (i = 0; i < 2; i++) {
-        obj->unk160[i] = NULL;
-        obj->unk168[i] = NULL;
-        obj->unk170[i] = NULL;
-        obj->unk178[i] = NULL;
-        obj->unk180[i] = NULL;
+        obj->tpages[i] = NULL;
+        obj->lines[i] = NULL;
+        obj->g4s[i] = NULL;
+        obj->ft4s[i] = NULL;
+        obj->gt4s[i] = NULL;
     }
     switch (kind) {
     case 1:
         if (semiTrans) {
             for (i = 0; i < 2; i++) {
-                obj->unk160[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
+                obj->tpages[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
             }
         }
         for (i = 0; i < 2; i++) {
-            obj->unk168[i] = allocTaskHeapBlock(obj->count * sizeof(LineG2));
+            obj->lines[i] = allocTaskHeapBlock(obj->count * sizeof(LineG2));
         }
-        line0 = obj->unk168[0];
-        line1 = obj->unk168[1];
-        tp0 = obj->unk160[0];
-        tp1 = obj->unk160[1];
+        line0 = obj->lines[0];
+        line1 = obj->lines[1];
+        tp0 = obj->tpages[0];
+        tp1 = obj->tpages[1];
         for (i = 0; i < obj->count; i++, line0++, line1++, tp0++, tp1++) {
             if (!semiTrans) {
                 initLineG2Pair((s32 *)line0, (s32 *)line1, NULL, NULL, blend, NULL, NULL, 0, 1);
@@ -2846,16 +2821,16 @@ void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4
     case 9:
         if (semiTrans) {
             for (i = 0; i < 2; i++) {
-                obj->unk160[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
+                obj->tpages[i] = allocTaskHeapBlock(obj->count * sizeof(DrTPage));
             }
         }
         for (i = 0; i < 2; i++) {
-            obj->unk170[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_G4));
+            obj->g4s[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_G4));
         }
-        g4a = obj->unk170[0];
-        g4b = obj->unk170[1];
-        tp0 = obj->unk160[0];
-        tp1 = obj->unk160[1];
+        g4a = obj->g4s[0];
+        g4b = obj->g4s[1];
+        tp0 = obj->tpages[0];
+        tp1 = obj->tpages[1];
         for (i = 0; i < obj->count; i++, g4a++, g4b++, tp0++, tp1++) {
             if (!semiTrans) {
                 initPolyG4Pair(g4a, g4b, NULL, NULL, NULL, NULL, blend, NULL, NULL, NULL, 0, 1);
@@ -2866,10 +2841,10 @@ void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4
         break;
     case 12:
         for (i = 0; i < 2; i++) {
-            obj->unk178[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_FT4));
+            obj->ft4s[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_FT4));
         }
-        ft4a = obj->unk178[0];
-        ft4b = obj->unk178[1];
+        ft4a = obj->ft4s[0];
+        ft4b = obj->ft4s[1];
         for (i = 0; i < obj->count; i++, ft4a++, ft4b++) {
             if (!semiTrans) {
                 initPolyFT4Pair(ft4a, ft4b, NULL, tpage, clut, NULL, NULL, 0, 1);
@@ -2881,10 +2856,10 @@ void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4
         break;
     case 13:
         for (i = 0; i < 2; i++) {
-            obj->unk180[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_GT4));
+            obj->gt4s[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_GT4));
         }
-        gt4a = obj->unk180[0];
-        gt4b = obj->unk180[1];
+        gt4a = obj->gt4s[0];
+        gt4b = obj->gt4s[1];
         for (i = 0; i < obj->count; i++, gt4a++, gt4b++) {
             if (!semiTrans) {
                 initPolyGT4Pair(gt4a, gt4b, NULL, NULL, NULL, NULL, tpage, clut, uv, NULL, 0, 1);
@@ -2897,18 +2872,18 @@ void SUG_initTrailPrims(Unk801E5144 *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4
     }
 }
 
-void SUG_updateTrailUvs(Unk801E57E0 *obj) {
+void SUG_updateTrailUvs(TrailEffect *obj) {
     Rect16 uv;
     POLY_FT4 *ft4;
     POLY_GT4 *gt4;
     s32 i;
 
-    SUG_tickTexAnim(obj->unk13C);
+    SUG_tickTexAnim(obj->texAnim);
     uv = obj->uv;
-    if (obj->state != 3) {
+    if (obj->texAnimId != 3) {
         switch (obj->primKind) {
         case 12:
-            ft4 = obj->ft4[FRAME_BUFFER_INDEX];
+            ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
             SUG_setGridUvsFT4(ft4, &uv, obj->count, 1, obj->count, 0, 0, 0);
             for (i = 0; i < obj->count; i++, ft4++) {
                 ft4->tpage = obj->tpage;
@@ -2916,7 +2891,7 @@ void SUG_updateTrailUvs(Unk801E57E0 *obj) {
             }
             break;
         case 13:
-            gt4 = obj->gt4[FRAME_BUFFER_INDEX];
+            gt4 = obj->gt4s[FRAME_BUFFER_INDEX];
             SUG_setGridUvsGT4(gt4, &uv, obj->count, 1, obj->count, 0, 0, 0);
             for (i = 0; i < obj->count; i++, gt4++) {
                 gt4->tpage = obj->tpage;
@@ -2927,7 +2902,7 @@ void SUG_updateTrailUvs(Unk801E57E0 *obj) {
     } else {
         switch (obj->primKind) {
         case 12:
-            ft4 = obj->ft4[FRAME_BUFFER_INDEX];
+            ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
             for (i = 0; i < obj->count; i++, ft4++) {
                 ft4->tpage = obj->tpage;
                 ft4->clut = obj->clut;
@@ -2935,7 +2910,7 @@ void SUG_updateTrailUvs(Unk801E57E0 *obj) {
             }
             break;
         case 13:
-            gt4 = obj->gt4[FRAME_BUFFER_INDEX];
+            gt4 = obj->gt4s[FRAME_BUFFER_INDEX];
             for (i = 0; i < obj->count; i++, gt4++) {
                 gt4->tpage = obj->tpage;
                 gt4->clut = obj->clut;
@@ -2947,7 +2922,7 @@ void SUG_updateTrailUvs(Unk801E57E0 *obj) {
 }
 
 
-void SUG_shadeTrailPrims(Unk801E5144 *obj) {
+void SUG_shadeTrailPrims(TrailEffect *obj) {
     u8 c0[3];
     u8 c1[3];
     u8 c2[3];
@@ -2963,45 +2938,45 @@ void SUG_shadeTrailPrims(Unk801E5144 *obj) {
     POLY_GT4 *gt42;
     s32 i;
 
-    if (obj->unk2D4 != obj->unk2D6) {
-        switch (obj->unk2D9) {
+    if (obj->level != obj->prevLevel) {
+        switch (obj->primKind) {
         case 1:
-            line = obj->unk168[FRAME_BUFFER_INDEX];
-            line2 = obj->unk168[FRAME_BUFFER_INDEX ^ 1];
-            col = obj->unk15C;
+            line = obj->lines[FRAME_BUFFER_INDEX];
+            line2 = obj->lines[FRAME_BUFFER_INDEX ^ 1];
+            col = obj->colors;
             for (i = 0; i < obj->count; i++, line++, line2++) {
-                c0[0] = col[0] * obj->unk2D4 / 256;
-                c0[1] = col[1] * obj->unk2D4 / 256;
-                c0[2] = col[2] * obj->unk2D4 / 256;
-                c1[0] = col[4] * obj->unk2D4 / 256;
-                c1[1] = col[5] * obj->unk2D4 / 256;
-                c1[2] = col[6] * obj->unk2D4 / 256;
+                c0[0] = col[0] * obj->level / 256;
+                c0[1] = col[1] * obj->level / 256;
+                c0[2] = col[2] * obj->level / 256;
+                c1[0] = col[4] * obj->level / 256;
+                c1[1] = col[5] * obj->level / 256;
+                c1[2] = col[6] * obj->level / 256;
                 setPrimRgb0(line, c0[0], c0[1], c0[2]);
                 setPrimRgb1(line, c0[0], c0[1], c0[2]);
                 setPrimRgb0(line2, c1[0], c1[1], c1[2]);
                 setPrimRgb1(line2, c1[0], c1[1], c1[2]);
-                if (obj->unk2DB != 0) {
+                if (obj->colorMode != 0) {
                     col += 16;
                 }
             }
             break;
         case 9:
-            g4 = obj->unk170[FRAME_BUFFER_INDEX];
-            g42 = obj->unk170[FRAME_BUFFER_INDEX ^ 1];
-            col = obj->unk15C;
+            g4 = obj->g4s[FRAME_BUFFER_INDEX];
+            g42 = obj->g4s[FRAME_BUFFER_INDEX ^ 1];
+            col = obj->colors;
             for (i = 0; i < obj->count; i++, g4++, g42++) {
-                c0[0] = col[0] * obj->unk2D4 / 256;
-                c0[1] = col[1] * obj->unk2D4 / 256;
-                c0[2] = col[2] * obj->unk2D4 / 256;
-                c1[0] = col[4] * obj->unk2D4 / 256;
-                c1[1] = col[5] * obj->unk2D4 / 256;
-                c1[2] = col[6] * obj->unk2D4 / 256;
-                c2[0] = col[8] * obj->unk2D4 / 256;
-                c2[1] = col[9] * obj->unk2D4 / 256;
-                c2[2] = col[10] * obj->unk2D4 / 256;
-                c3[0] = col[12] * obj->unk2D4 / 256;
-                c3[1] = col[13] * obj->unk2D4 / 256;
-                c3[2] = col[14] * obj->unk2D4 / 256;
+                c0[0] = col[0] * obj->level / 256;
+                c0[1] = col[1] * obj->level / 256;
+                c0[2] = col[2] * obj->level / 256;
+                c1[0] = col[4] * obj->level / 256;
+                c1[1] = col[5] * obj->level / 256;
+                c1[2] = col[6] * obj->level / 256;
+                c2[0] = col[8] * obj->level / 256;
+                c2[1] = col[9] * obj->level / 256;
+                c2[2] = col[10] * obj->level / 256;
+                c3[0] = col[12] * obj->level / 256;
+                c3[1] = col[13] * obj->level / 256;
+                c3[2] = col[14] * obj->level / 256;
                 setPrimRgb0(g4, c0[0], c0[1], c0[2]);
                 setPrimRgb1(g4, c1[0], c1[1], c1[2]);
                 setPrimRgb2(g4, c2[0], c2[1], c2[2]);
@@ -3010,43 +2985,43 @@ void SUG_shadeTrailPrims(Unk801E5144 *obj) {
                 setPrimRgb1(g42, c1[0], c1[1], c1[2]);
                 setPrimRgb2(g42, c2[0], c2[1], c2[2]);
                 setPrimRgb3(g42, c3[0], c3[1], c3[2]);
-                if (obj->unk2DB != 0) {
+                if (obj->colorMode != 0) {
                     col += 16;
                 }
             }
             break;
         case 12:
-            ft4 = obj->unk178[FRAME_BUFFER_INDEX];
-            ft42 = obj->unk178[FRAME_BUFFER_INDEX ^ 1];
-            col = obj->unk15C;
+            ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
+            ft42 = obj->ft4s[FRAME_BUFFER_INDEX ^ 1];
+            col = obj->colors;
             for (i = 0; i < obj->count; i++, ft4++, ft42++) {
-                c0[0] = col[0] * obj->unk2D4 / 256;
-                c0[1] = col[1] * obj->unk2D4 / 256;
-                c0[2] = col[2] * obj->unk2D4 / 256;
+                c0[0] = col[0] * obj->level / 256;
+                c0[1] = col[1] * obj->level / 256;
+                c0[2] = col[2] * obj->level / 256;
                 setPrimRgb0(ft4, c0[0], c0[1], c0[2]);
                 setPrimRgb0(ft42, c0[0], c0[1], c0[2]);
-                if (obj->unk2DB != 0) {
+                if (obj->colorMode != 0) {
                     col += 16;
                 }
             }
             break;
         case 13:
-            gt4 = obj->unk180[FRAME_BUFFER_INDEX];
-            gt42 = obj->unk180[FRAME_BUFFER_INDEX ^ 1];
-            col = obj->unk15C;
+            gt4 = obj->gt4s[FRAME_BUFFER_INDEX];
+            gt42 = obj->gt4s[FRAME_BUFFER_INDEX ^ 1];
+            col = obj->colors;
             for (i = 0; i < obj->count; i++, gt4++, gt42++) {
-                c0[0] = col[0] * obj->unk2D4 / 256;
-                c0[1] = col[1] * obj->unk2D4 / 256;
-                c0[2] = col[2] * obj->unk2D4 / 256;
-                c1[0] = col[4] * obj->unk2D4 / 256;
-                c1[1] = col[5] * obj->unk2D4 / 256;
-                c1[2] = col[6] * obj->unk2D4 / 256;
-                c2[0] = col[8] * obj->unk2D4 / 256;
-                c2[1] = col[9] * obj->unk2D4 / 256;
-                c2[2] = col[10] * obj->unk2D4 / 256;
-                c3[0] = col[12] * obj->unk2D4 / 256;
-                c3[1] = col[13] * obj->unk2D4 / 256;
-                c3[2] = col[14] * obj->unk2D4 / 256;
+                c0[0] = col[0] * obj->level / 256;
+                c0[1] = col[1] * obj->level / 256;
+                c0[2] = col[2] * obj->level / 256;
+                c1[0] = col[4] * obj->level / 256;
+                c1[1] = col[5] * obj->level / 256;
+                c1[2] = col[6] * obj->level / 256;
+                c2[0] = col[8] * obj->level / 256;
+                c2[1] = col[9] * obj->level / 256;
+                c2[2] = col[10] * obj->level / 256;
+                c3[0] = col[12] * obj->level / 256;
+                c3[1] = col[13] * obj->level / 256;
+                c3[2] = col[14] * obj->level / 256;
                 setPrimRgb0(gt4, c0[0], c0[1], c0[2]);
                 setPrimRgb1(gt4, c1[0], c1[1], c1[2]);
                 setPrimRgb2(gt4, c2[0], c2[1], c2[2]);
@@ -3055,13 +3030,13 @@ void SUG_shadeTrailPrims(Unk801E5144 *obj) {
                 setPrimRgb1(gt42, c1[0], c1[1], c1[2]);
                 setPrimRgb2(gt42, c2[0], c2[1], c2[2]);
                 setPrimRgb3(gt42, c3[0], c3[1], c3[2]);
-                if (obj->unk2DB != 0) {
+                if (obj->colorMode != 0) {
                     col += 16;
                 }
             }
             break;
         }
-        obj->unk2D6 = obj->unk2D4;
+        obj->prevLevel = obj->level;
     }
 }
 
@@ -3280,13 +3255,6 @@ void *SUG_loadTamFile(s32 key, s32 *path, s32 sub, Chunk *pak) {
 
 const Rect16 SUG_MODEL_CLUT_RECT = { 0x30, 0x70, 0x10, 0x10 };
 
-typedef struct {
-    u8 unk0[0x1A4];
-    Rect16 uv;
-    s32 tpage;
-    u8 unk1B0[0x2B];
-    u8 type;
-} Unk801E6C78;
 
 s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
     Rect16 *uv;
@@ -3298,7 +3266,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
     s16 n;
     ModelData *model;
     RingEffect *ring;
-    Unk801E6C78 *other;
+    SphereEffect *other;
 
     uv = NULL;
     slot = 0;
@@ -3316,7 +3284,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
             if (model->id > 1000) {
                 n = model->id / 10;
                 sprintf(path, "M:\\HDF%d\\%d_%d.tam", n, n, id);
-                if (((Unk801E3C2C *)model->owner)->unk574 == 0) {
+                if (((ModelEffect *)model->owner)->unk574 == 0) {
                     y = 0x80;
                 }
                 sub = model->id;
@@ -3337,8 +3305,8 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         }
         break;
     case 3:
-        other = (Unk801E6C78 *)obj;
-        if (other->type == 0xD) {
+        other = (SphereEffect *)obj;
+        if (other->kind == 0xD) {
             uv = &other->uv;
             y = uv->y;
             dx = uv->x / 4;
@@ -3347,39 +3315,39 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         }
         break;
     case 4:
-        if (((Unk801E5144 *)obj)->unk2D9 == 12 || ((Unk801E5144 *)obj)->unk2D9 == 13) {
-            uv = &((Unk801E5144 *)obj)->uv;
+        if (((TrailEffect *)obj)->primKind == 12 || ((TrailEffect *)obj)->primKind == 13) {
+            uv = &((TrailEffect *)obj)->uv;
             y = uv->y;
-            slot = ((Unk801E5144 *)obj)->unk2BC;
+            slot = ((TrailEffect *)obj)->tpage;
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
     }
     if (slot != 0) {
-        ((Image *)arg3)->timer = 0;
-        ((Image *)arg3)->frame = 0;
-        ((Image *)arg3)->rect.x = (slot & 0xF) << 6;
-        ((Image *)arg3)->rect.y = ((slot >> 4) << 8) + y;
+        ((TexAnim *)arg3)->timer = 0;
+        ((TexAnim *)arg3)->frame = 0;
+        ((TexAnim *)arg3)->rect.x = (slot & 0xF) << 6;
+        ((TexAnim *)arg3)->rect.y = ((slot >> 4) << 8) + y;
         if (id >= 4) {
-            ((Image *)arg3)->header = SUG_loadTamFile(id, (s32 *)path, sub, (Chunk *)pak);
-            if (((Image *)arg3)->header == NULL) {
+            ((TexAnim *)arg3)->header = SUG_loadTamFile(id, (s32 *)path, sub, (Chunk *)pak);
+            if (((TexAnim *)arg3)->header == NULL) {
                 return 0;
             }
-            ((Image *)arg3)->frames = (AnimFrame *)(((Image *)arg3)->header + 1);
-            ((Image *)arg3)->rect.w = ((Image *)arg3)->header->w;
-            ((Image *)arg3)->rect.h = ((Image *)arg3)->header->h;
-            ((Image *)arg3)->pixels = NULL;
+            ((TexAnim *)arg3)->frames = (AnimFrame *)(((TexAnim *)arg3)->header + 1);
+            ((TexAnim *)arg3)->rect.w = ((TexAnim *)arg3)->header->w;
+            ((TexAnim *)arg3)->rect.h = ((TexAnim *)arg3)->header->h;
+            ((TexAnim *)arg3)->pixels = NULL;
         } else {
-            ((Image *)arg3)->rect.w = (uv->w + 1) / 4;
-            ((Image *)arg3)->rect.h = uv->h + 1;
-            ((Image *)arg3)->pixels = allocTaskHeapBlock(((Image *)arg3)->rect.w * 2 * ((Image *)arg3)->rect.h + 4);
-            StoreImage(&((Image *)arg3)->rect, ((Image *)arg3)->pixels);
+            ((TexAnim *)arg3)->rect.w = (uv->w + 1) / 4;
+            ((TexAnim *)arg3)->rect.h = uv->h + 1;
+            ((TexAnim *)arg3)->pixels = allocTaskHeapBlock(((TexAnim *)arg3)->rect.w * 2 * ((TexAnim *)arg3)->rect.h + 4);
+            StoreImage(&((TexAnim *)arg3)->rect, ((TexAnim *)arg3)->pixels);
             DrawSync(0);
         }
-        ((Image *)arg3)->dst = (s16 *)uv;
-        ((Image *)arg3)->type = id;
-        if (!(((Image *)arg3)->header->loop & 1)) {
-            ((Image *)arg3)->rect.x += dx;
+        ((TexAnim *)arg3)->dst = (s16 *)uv;
+        ((TexAnim *)arg3)->type = id;
+        if (!(((TexAnim *)arg3)->header->loop & 1)) {
+            ((TexAnim *)arg3)->rect.x += dx;
         }
         return (s32)arg3;
     }
@@ -3387,7 +3355,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
 }
 
 void SUG_tickTexAnim(u8 *arg) {
-    Image *image = (Image *)arg;
+    TexAnim *image = (TexAnim *)arg;
     Rect16 rect;
 
     image->timer++;
@@ -3449,8 +3417,8 @@ void SUG_freeTexAnim(u8 *obj) {
     }
 }
 
-void SUG_scrollTexAnimLeft(Image *image) {
-    Image *self;
+void SUG_scrollTexAnimLeft(TexAnim *image) {
+    TexAnim *self;
     u8 *row;
     u8 *p;
     s8 first;
@@ -3472,8 +3440,8 @@ void SUG_scrollTexAnimLeft(Image *image) {
     DrawSync(0);
 }
 
-void SUG_scrollTexAnimRight(Image *image) {
-    Image *self;
+void SUG_scrollTexAnimRight(TexAnim *image) {
+    TexAnim *self;
     u8 *row;
     u8 *p;
     s8 first;
@@ -3496,7 +3464,7 @@ void SUG_scrollTexAnimRight(Image *image) {
     DrawSync(0);
 }
 
-void SUG_scrollTexAnimUp(Image *image) {
+void SUG_scrollTexAnimUp(TexAnim *image) {
     Rect16 top;
     Rect16 bottom;
     s32 shift;
@@ -3517,7 +3485,7 @@ void SUG_scrollTexAnimUp(Image *image) {
     }
 }
 
-void SUG_scrollTexAnimDown(Image *image) {
+void SUG_scrollTexAnimDown(TexAnim *image) {
     Rect16 top;
     Rect16 bottom;
     s32 shift;
@@ -3631,7 +3599,7 @@ typedef struct Xform {
 } Xform;
 void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
 
-void SUG_detachEffectToWorld(Slots *slots, s32 id, EffectCommand *cmd) {
+void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectCommand *cmd) {
     SVECTOR v;
     SVECTOR unused;
     VECTOR out;
@@ -3757,59 +3725,59 @@ s32 SUG_loadEffectPak(s32 id) {
 }
 
 void SUG_initEffectRoot(void) {
-    CameraEffect fx;
+    RootEffect fx;
 
-    fx.unkD4[0] = 100;
-    fx.unkD4[1] = -150;
-    fx.unkD4[2] = 9000;
-    fx.unkDC[0] = 100;
-    fx.unkDC[1] = -150;
-    fx.unkDC[2] = 9000;
-    fx.unkE4[0] = 160;
-    fx.unkE4[1] = 5800;
-    fx.unkE4[2] = 0;
-    fx.unkEC[0] = 0;
-    fx.unkEC[1] = 0;
-    fx.unkEC[2] = 0;
-    fx.unkF4[0] = 0;
-    fx.unkF4[1] = 0;
-    fx.unkF4[2] = 0;
-    fx.unkAC[0] = 0x1000;
-    fx.unkAC[1] = 0x1000;
-    fx.unkAC[2] = 0x1000;
-    fx.unkBC[0] = 0x1000;
-    fx.unkBC[1] = 0x1000;
-    fx.unkBC[2] = 0x1000;
-    fx.unkCC[0] = 0;
-    fx.unkCC[1] = 0;
-    fx.unkCC[2] = 0;
-    fx.unk137 = 0;
-    fx.unk130 = 0;
-    fx.unk12C = 0x80;
+    fx.pos[0] = 100;
+    fx.pos[1] = -150;
+    fx.pos[2] = 9000;
+    fx.pos2[0] = 100;
+    fx.pos2[1] = -150;
+    fx.pos2[2] = 9000;
+    fx.rot[0] = 160;
+    fx.rot[1] = 5800;
+    fx.rot[2] = 0;
+    fx.rot2[0] = 0;
+    fx.rot2[1] = 0;
+    fx.rot2[2] = 0;
+    fx.rotAccel[0] = 0;
+    fx.rotAccel[1] = 0;
+    fx.rotAccel[2] = 0;
+    fx.scale[0] = 0x1000;
+    fx.scale[1] = 0x1000;
+    fx.scale[2] = 0x1000;
+    fx.scale2[0] = 0x1000;
+    fx.scale2[1] = 0x1000;
+    fx.scale2[2] = 0x1000;
+    fx.scaleStep[0] = 0;
+    fx.scaleStep[1] = 0;
+    fx.scaleStep[2] = 0;
+    fx.fadeMode = 0;
+    fx.speed = 0;
+    fx.hitRadius = 0x80;
     fx.parent = SCENE_3D->unk78;
-    fx.unk12E = 0;
+    fx.mode = 0;
     SUG_EFFECT_ROOT = fx;
     initEffectObject(&SUG_EFFECT_ROOT);
 }
 
-void SUG_initEffectSlots(Runner *obj) {
+void SUG_initEffectSlots(EffectScript *obj) {
     s32 i;
 
-    obj->slots = allocTaskHeapBlock(sizeof(Slots));
+    obj->slots = allocTaskHeapBlock(sizeof(EffectSlots));
     for (i = 0; i < 150; i++) {
         obj->slots->slots[i].id = -1;
         obj->slots->slots[i].active = 0;
         obj->slots->slots[i].value = 0;
     }
-    obj->slots->count = obj->unk10 = 0;
+    obj->slots->count = obj->waitFrames = 0;
     obj->unk14 = 0;
-    obj->slots->unk508 = 0;
+    obj->slots->pak = 0;
 }
 
 extern void (*SUG_EFFECT_TICK_FUNCS[])(u8 *value);
 
-s32 SUG_tickEffectScript(Runner *runner) {
-    Slots *slots;
+s32 SUG_tickEffectScript(EffectScript *runner) {
+    EffectSlots *slots;
     void (*fn)(u8 *);
     s32 i;
 
@@ -3849,11 +3817,11 @@ typedef struct {
 /* takes a third argument, but this caller does not set it */
 void SUG_setEffectParams();
 void SUG_getEffectWorldPos(void *xform, u8 *obj);
-void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, Slots *slots);
+void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, EffectSlots *slots);
 void SUG_startScreenCopyEffect(u8 *obj, s32 clearColor);
 
-void SUG_runEffectScript(Runner *runner) {
-    Slots *slots;
+void SUG_runEffectScript(EffectScript *runner) {
+    EffectSlots *slots;
     s32 *regs;
     s32 result;
     s32 anim;
@@ -3866,8 +3834,8 @@ void SUG_runEffectScript(Runner *runner) {
     s32 i;
 
     slots = runner->slots;
-    if (runner->unk10 != 0) {
-        runner->unk10--;
+    if (runner->waitFrames != 0) {
+        runner->waitFrames--;
         return;
     }
     regs = runner->regs;
@@ -3901,7 +3869,7 @@ void SUG_runEffectScript(Runner *runner) {
                     D_800795A8 = 1;
                     break;
                 case 6:
-                    SUG_uploadEffectTim((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->unk508);
+                    SUG_uploadEffectTim((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->pak);
                     break;
                 case 7:
                     pauseModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
@@ -3922,7 +3890,7 @@ void SUG_runEffectScript(Runner *runner) {
                 switch (((Script *)runner->context)->eventArg) {
                 case 0:
                     if ((s16)((Script *)runner->context)->params[0] >= 0) {
-                        SUG_uploadTimFile((s16)((Script *)runner->context)->params[0], (Chunk *)slots->unk508);
+                        SUG_uploadTimFile((s16)((Script *)runner->context)->params[0], (Chunk *)slots->pak);
                     }
                     break;
                 case 1:
@@ -3965,7 +3933,7 @@ void SUG_runEffectScript(Runner *runner) {
                         }
                         runner->unk14 = 1;
                     }
-                    runner->unk10 = (s16)((Script *)runner->context)->params[0] - 1;
+                    runner->waitFrames = (s16)((Script *)runner->context)->params[0] - 1;
                     return;
                 case 13:
                     SUG_getEffectWorldPos((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (u8 *)regs);
@@ -4012,7 +3980,7 @@ void SUG_runEffectScript(Runner *runner) {
                     SUG_getEffectParams((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 1);
                     break;
                 case 16:
-                    slots->unk508 = SUG_loadEffectPak((s16)((Script *)runner->context)->params[0]);
+                    slots->pak = SUG_loadEffectPak((s16)((Script *)runner->context)->params[0]);
                     break;
                 case 17:
                     SUG_detachEffectToWorld(slots, (s16)((Script *)runner->context)->params[0], (EffectCommand *)regs);
@@ -4034,7 +4002,7 @@ void SUG_runEffectScript(Runner *runner) {
                     SUG_createEffectEntry((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1], (s32)regs, slots);
                     break;
                 case 5:
-                    ((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value)->unk12E = ((Script *)runner->context)->params[1];
+                    ((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value)->mode = ((Script *)runner->context)->params[1];
                     break;
                 case 4:
                     regs[1] = computeVectorAngle((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1]);
@@ -4055,7 +4023,7 @@ void SUG_runEffectScript(Runner *runner) {
                     tpage = (s16)((Script *)runner->context)->params[1];
                     vramY = ((tpage & 0x10) << 4) + ((s16)((Script *)runner->context)->params[2] << 7);
                     SUG_loadSprite((s16)((Script *)runner->context)->params[0], (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
-                                  slots->unk508);
+                                  slots->pak);
                 }
                 break;
             }
@@ -4089,30 +4057,30 @@ void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live) {
     cmd->pos2[0] = fx->pos2[0];
     cmd->pos2[1] = fx->pos2[1];
     cmd->pos2[2] = fx->pos2[2];
-    cmd->unk674 = fx->unk120;
-    cmd->unk678 = fx->unk122;
+    cmd->moveSpeed = fx->moveSpeed;
+    cmd->moveAccel = fx->moveAccel;
     cmd->rot2[0] = fx->rot2[0];
     cmd->rot2[1] = fx->rot2[1];
     cmd->rot2[2] = fx->rot2[2];
-    cmd->unk694[0] = fx->unkF4[0];
-    cmd->unk694[1] = fx->unkF4[1];
-    cmd->unk694[2] = fx->unkF4[2];
+    cmd->rotAccel[0] = fx->rotAccel[0];
+    cmd->rotAccel[1] = fx->rotAccel[1];
+    cmd->rotAccel[2] = fx->rotAccel[2];
     cmd->scale2[0] = fx->scale2[0];
     cmd->scale2[1] = fx->scale2[1];
     cmd->scale2[2] = fx->scale2[2];
-    cmd->unk6B8[0] = fx->unkCC[0];
-    cmd->unk6B8[1] = fx->unkCC[1];
-    cmd->unk6B8[2] = fx->unkCC[2];
-    cmd->unk6C4 = fx->unk12C;
-    cmd->unk6C8 = fx->unk124;
-    cmd->unk6CC = fx->unk137;
-    cmd->unk6D0 = fx->unk130;
-    cmd->unk6D8 = fx->unk128;
-    cmd->unk6DC = fx->unk12A;
-    cmd->unk6E0 = fx->unk126;
-    cmd->unk6D4 = fx->unk12E;
-    cmd->source = fx->unk13B;
-    cmd->target = fx->unk13A;
+    cmd->scaleStep[0] = fx->scaleStep[0];
+    cmd->scaleStep[1] = fx->scaleStep[1];
+    cmd->scaleStep[2] = fx->scaleStep[2];
+    cmd->hitRadius = fx->hitRadius;
+    cmd->period = fx->period;
+    cmd->fadeMode = fx->fadeMode;
+    cmd->speed = fx->speed;
+    cmd->wavePhase = fx->wavePhase;
+    cmd->waveAmplitude = fx->waveAmplitude;
+    cmd->waveFreq = fx->waveFreq;
+    cmd->mode = fx->mode;
+    cmd->source = fx->source;
+    cmd->target = fx->target;
 }
 
 void SUG_setEffectParams(EffectInit *fx, EffectCommand *cmd, void *ctx) {
@@ -4122,34 +4090,34 @@ void SUG_setEffectParams(EffectInit *fx, EffectCommand *cmd, void *ctx) {
     fx->pos2[0] = cmd->pos2[0];
     fx->pos2[1] = cmd->pos2[1];
     fx->pos2[2] = cmd->pos2[2];
-    fx->unk120 = cmd->unk674;
-    fx->unk122 = cmd->unk678;
+    fx->moveSpeed = cmd->moveSpeed;
+    fx->moveAccel = cmd->moveAccel;
     fx->rot[0] = cmd->rot[0];
     fx->rot[1] = cmd->rot[1];
     fx->rot[2] = cmd->rot[2];
     fx->rot2[0] = cmd->rot2[0];
     fx->rot2[1] = cmd->rot2[1];
     fx->rot2[2] = cmd->rot2[2];
-    fx->unkF4[0] = cmd->unk694[0];
-    fx->unkF4[1] = cmd->unk694[1];
-    fx->unkF4[2] = cmd->unk694[2];
+    fx->rotAccel[0] = cmd->rotAccel[0];
+    fx->rotAccel[1] = cmd->rotAccel[1];
+    fx->rotAccel[2] = cmd->rotAccel[2];
     fx->scale[0] = cmd->scale[0];
     fx->scale[1] = cmd->scale[1];
     fx->scale[2] = cmd->scale[2];
     fx->scale2[0] = cmd->scale2[0];
     fx->scale2[1] = cmd->scale2[1];
     fx->scale2[2] = cmd->scale2[2];
-    fx->unkCC[0] = cmd->unk6B8[0];
-    fx->unkCC[1] = cmd->unk6B8[1];
-    fx->unkCC[2] = cmd->unk6B8[2];
-    fx->unk12C = cmd->unk6C4;
-    fx->unk124 = cmd->unk6C8;
-    fx->unk137 = cmd->unk6CC;
-    fx->unk130 = cmd->unk6D0;
-    fx->unk128 = cmd->unk6D8;
-    fx->unk12A = cmd->unk6DC;
-    fx->unk126 = cmd->unk6E0;
-    fx->unk12E = cmd->unk6D4;
+    fx->scaleStep[0] = cmd->scaleStep[0];
+    fx->scaleStep[1] = cmd->scaleStep[1];
+    fx->scaleStep[2] = cmd->scaleStep[2];
+    fx->hitRadius = cmd->hitRadius;
+    fx->period = cmd->period;
+    fx->fadeMode = cmd->fadeMode;
+    fx->speed = cmd->speed;
+    fx->wavePhase = cmd->wavePhase;
+    fx->waveAmplitude = cmd->waveAmplitude;
+    fx->waveFreq = cmd->waveFreq;
+    fx->mode = cmd->mode;
 }
 
 void SUG_getEffectWorldPos(void *xform, u8 *obj) {
@@ -4161,7 +4129,7 @@ void SUG_getEffectWorldPos(void *xform, u8 *obj) {
     *(s32 *)(obj + 0x664) = pos.vz;
 }
 
-void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Slots *ctx) {
+void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, EffectSlots *ctx) {
     SUG_setEffectParams((EffectInit *)template, cmd, ctx);
     ((u8 *)template)[0x13B] = cmd->source;
     ((u8 *)template)[0x13A] = cmd->target;
@@ -4171,7 +4139,7 @@ void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Slot
         if (cmd->source == -1) {
             template->data[0x26] = ctx->slots[cmd->target].value;
         } else {
-            template->data[0x26] = (s32)((Unk801E3C2C *)ctx->slots[-cmd->source - 2].value)->unk13C->unk22B0[cmd->target];
+            template->data[0x26] = (s32)((ModelEffect *)ctx->slots[-cmd->source - 2].value)->model->unk22B0[cmd->target];
         }
     } else {
         template->data[0x26] = (s32)((ModelData *)SCENE_3D->models[ctx->modelSlots[cmd->source]])->unk22B0[cmd->target];
@@ -4206,7 +4174,7 @@ void SUG_createScrollTextureFromParams(u8 *a, u8 *b) {
     SUG_createScrollTexture(&rect, *(s32 *)(a + 0x70), *(s32 *)(a + 0x120), *(s16 *)(a + 0x80));
 }
 
-void SUG_createSphereFromParams(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createSphereFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     u8 color[3];
     Rect16 uv;
     EffectTemplate template;
@@ -4239,10 +4207,10 @@ void SUG_createSphereFromParams(SpriteCommand *cmd, Slots *ctx) {
     tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createSphereEffect(cmd->unkEC, color, cmd->unk68, cmd->unk6C, &template, cmd->unk64, cmd->unk60, cmd->unkF8, cmd->unk74, cmd->abr,
                   cmd->unk12C, cmd->unk5C, cmd->unk130, &uv, tpage, func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
-                  cmd->unk138, cmd->unk13C, ctx->unk508);
+                  cmd->unk138, cmd->unk13C, ctx->pak);
 }
 
-void SUG_createTrailFromParams(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createTrailFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     Bytes4 c0;
     Bytes4 c1;
     Bytes4 c2;
@@ -4287,10 +4255,10 @@ void SUG_createTrailFromParams(SpriteCommand *cmd, Slots *ctx) {
     tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createTrailEffect(cmd->unkEC, &c0, &c1, &c2, &c3, &template, cmd->unk168, cmd->unk16C, cmd->unk5C, cmd->unk118, cmd->unk120,
                   cmd->unk6C, cmd->unk74, cmd->abr, cmd->unk12C, cmd->unk130, &uv, tpage,
-                  func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk13C, ctx->unk508);
+                  func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk13C, ctx->pak);
 }
 
-void SUG_createRingFromParams(SpriteCommand *cmd, Slots *ctx) {
+void SUG_createRingFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     Bytes4 inner;
     Bytes4 mid;
     Bytes4 outer;
@@ -4332,10 +4300,10 @@ void SUG_createRingFromParams(SpriteCommand *cmd, Slots *ctx) {
     createRingEffect(cmd->unkEC, &inner, &mid, &outer, &template, cmd->unk5C, cmd->unk74, cmd->abr, cmd->unk12C, cmd->innerRadius,
                      cmd->outerRadius, cmd->midPercent, cmd->innerZ, cmd->outerZ, (Bytes8 *)&uv, tpage,
                      func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk130, cmd->u1, cmd->unk138, cmd->unk13C,
-                     ctx->unk508);
+                     ctx->pak);
 }
 
-EffectTemplate *SUG_createEffectObjectFromParams(EffectCommand *cmd, Slots *ctx) {
+EffectTemplate *SUG_createEffectObjectFromParams(EffectCommand *cmd, EffectSlots *ctx) {
     EffectTemplate template;
 
     SUG_initEffectFromParams(&template, cmd, ctx);
@@ -4348,7 +4316,7 @@ void SUG_createModelEffectFromParams(u8 *obj, u8 *b) {
     Entry16 *entry;
 
     template = &buf;
-    SUG_initEffectFromParams(template, (EffectCommand *)obj, (Slots *)b);
+    SUG_initEffectFromParams(template, (EffectCommand *)obj, (EffectSlots *)b);
     entry = *(Entry16 **)(obj + 0x6F0);
     if (entry != NULL) {
         entry += *(s32 *)(b + 0x4B0);
@@ -4365,7 +4333,7 @@ void SUG_createSpriteEffectFromParams(u8 *obj, u8 *b) {
     template = NULL;
     if (*(s32 *)(obj + 0x6F0) != 0) {
         template = &buf;
-        SUG_initEffectFromParams(template, (EffectCommand *)obj, (Slots *)b);
+        SUG_initEffectFromParams(template, (EffectCommand *)obj, (EffectSlots *)b);
     }
     SUG_createSpriteEffect(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x71C), *(s32 *)(obj + 0x720),
                   *(s32 *)(obj + 0x724), *(s32 *)(obj + 0x728), *(s32 *)(obj + 0x13C), *(s32 *)(b + 0x508));
@@ -4412,9 +4380,9 @@ void SUG_freeFadeRect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-extern s32 (*SUG_EFFECT_CREATE_FUNCS[])(s32 arg, Slots *slots);
+extern s32 (*SUG_EFFECT_CREATE_FUNCS[])(s32 arg, EffectSlots *slots);
 
-void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, Slots *slots) {
+void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, EffectSlots *slots) {
     if (SUG_EFFECT_CREATE_FUNCS[kind] != NULL) {
         slots->slots[index].id = kind;
         slots->slots[index].active = 0;
@@ -4428,7 +4396,7 @@ void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, Slots *slots) {
 
 extern void (*SUG_EFFECT_FREE_FUNCS[])(s32 value);
 
-void SUG_freeEffectEntries(Slots *slots) {
+void SUG_freeEffectEntries(EffectSlots *slots) {
     void (*fn)(s32);
     s32 i;
 
@@ -4448,10 +4416,10 @@ void SUG_freeEffectEntries(Slots *slots) {
     }
 }
 
-Runner *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state) {
-    Runner *runner;
+EffectScript *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state) {
+    EffectScript *runner;
 
-    runner = allocTaskHeapBlock(sizeof(Runner));
+    runner = allocTaskHeapBlock(sizeof(EffectScript));
     runner->script = script;
     runner->context = createScriptContext(script);
     runner->regs = allocScriptRegisters(0x1CC);
@@ -4474,19 +4442,19 @@ Runner *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state) {
     return runner;
 }
 
-void SUG_freeEffectScript(Runner *runner) {
+void SUG_freeEffectScript(EffectScript *runner) {
     SUG_freeEffectSlots(runner->slots);
     freeScriptContext(runner->context, runner->regs);
-    if ((void *)runner->slots->unk508 != NULL) {
-        freeHeapBlock((void *)runner->slots->unk508);
+    if ((void *)runner->slots->pak != NULL) {
+        freeHeapBlock((void *)runner->slots->pak);
     }
     freeHeapBlock(runner);
 }
 
-s32 SUG_pauseEffectScript(Runner *runner, s32 *state) {
+s32 SUG_pauseEffectScript(EffectScript *runner, s32 *state) {
     if (*state != 3) {
         *state = 1;
-        truncatePakTextures((Chunk *)runner->slots->unk508);
+        truncatePakTextures((Chunk *)runner->slots->pak);
         do {
             func_80014C08(FRAME_INTERVAL);
         } while (*state == 1);
@@ -4494,7 +4462,7 @@ s32 SUG_pauseEffectScript(Runner *runner, s32 *state) {
 }
 
 void SUG_runEffectScriptTask(void *script, s32 slot, s32 a2, s32 *state) {
-    Runner *obj;
+    EffectScript *obj;
     s32 prev;
     s32 running;
 
@@ -4688,9 +4656,9 @@ void SUG_updateScreenCopyQuads(void) {
     }
 }
 
-Entry *SUG_findSpriteEntry(s32 key, s32 subKey) {
-    Entry *entry;
-    Entry *free;
+SpriteEntry *SUG_findSpriteEntry(s32 key, s32 subKey) {
+    SpriteEntry *entry;
+    SpriteEntry *free;
     s32 i;
 
     entry = SUG_SPRITE_CACHE;
@@ -4790,11 +4758,11 @@ void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 
         sprite->pos.vx = x;
         sprite->pos.vy = y;
         sprite->pos.vz = z;
-        sprite->unk82 = 0;
-        sprite->unk83 = -1;
+        sprite->frame = 0;
+        sprite->frameTimer = -1;
         sprite->scaleX = scaleX;
         sprite->scaleY = scaleY;
-        sprite->unk81 = a7;
+        sprite->otz = a7;
         SUG_setSpriteFrameVerts(sprite, 0);
         sprite->v[0].vz = sprite->v[1].vz = sprite->v[2].vz = sprite->v[3].vz = 0;
     }
@@ -4812,20 +4780,20 @@ void SUG_drawSprite(Sprite *sprite, s16 brightness) {
 
     poly = &sprite->polys[FRAME_BUFFER_INDEX];
     m = (MATRIX *)0x1F800008;
-    if (sprite->unk82 < 0) {
+    if (sprite->frame < 0) {
         return;
     }
-    frame = &sprite->frames[sprite->unk82];
-    if (++sprite->unk83 >= frame->duration) {
-        if (++sprite->unk82 >= ((SpriteSheet *)sprite->tex)->frameCount) {
-            if ((sprite->unk82 = ((SpriteSheet *)sprite->tex)->loopFrame) < 0) {
-                sprite->unk82 = -8;
+    frame = &sprite->frames[sprite->frame];
+    if (++sprite->frameTimer >= frame->duration) {
+        if (++sprite->frame >= ((SpriteSheet *)sprite->tex)->frameCount) {
+            if ((sprite->frame = ((SpriteSheet *)sprite->tex)->loopFrame) < 0) {
+                sprite->frame = -8;
                 return;
             }
         }
-        sprite->unk83 -= frame->duration;
-        SUG_setSpriteFrameVerts(sprite, sprite->unk82);
-        frame = &sprite->frames[sprite->unk82];
+        sprite->frameTimer -= frame->duration;
+        SUG_setSpriteFrameVerts(sprite, sprite->frame);
+        frame = &sprite->frames[sprite->frame];
     }
     gte_ldv0(&sprite->pos);
     gte_rtv0tr();
@@ -4834,8 +4802,8 @@ void SUG_drawSprite(Sprite *sprite, s16 brightness) {
     gte_SetTransMatrix(m);
     otz = RotAverage4(&sprite->v[0], &sprite->v[1], &sprite->v[2], &sprite->v[3], (s32 *)&poly->x0, (s32 *)&poly->x1,
                       (s32 *)&poly->x2, (s32 *)&poly->x3, &p, &flag);
-    if (sprite->unk81 != 0) {
-        otz = sprite->unk81;
+    if (sprite->otz != 0) {
+        otz = sprite->otz;
     }
     if (otz < 0x1000) {
         poly->r0 = poly->g0 = poly->b0 = frame->shade * brightness / 256;
@@ -4867,7 +4835,7 @@ void SUG_drawSprite(Sprite *sprite, s16 brightness) {
 void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
     char path[20];
     s32 task;
-    Entry *entry;
+    SpriteEntry *entry;
     u8 *data;
     u8 *copy;
     u32 *tims;
@@ -5001,20 +4969,20 @@ void SUG_drawHudSpriteTrail(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 o
     }
 }
 
-void SUG_initHudSlide(Unk801EC160 *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
-    obj->unk0 = a1;
+void SUG_initHudSlide(HudSlide *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
+    obj->pos = a1;
     obj->target[0] = a2;
     obj->target[1] = a3;
     obj->flags = flags;
     if (flags & 2) {
-        SUG_fillShorts(obj->unk8, 6, a1);
+        SUG_fillShorts(obj->trail, 6, a1);
     }
-    obj->unk16 = 0x80;
+    obj->brightness = 0x80;
 }
 
 /* old-style definition: the callers pass an int, the byte is read here */
 s32 SUG_tickHudSlides(obj, count, state, speed)
-    Unk801EC160 *obj;
+    HudSlide *obj;
     s32 count;
     s32 state;
     s8 speed;
@@ -5028,24 +4996,24 @@ s32 SUG_tickHudSlides(obj, count, state, speed)
         switch (state) {
         case 0:
         case 1:
-            obj->unk0 = (obj->target[state] - obj->unk0) / (8 >> state) + obj->unk0;
-            if (ABS((s16)obj->unk0 - obj->target[state]) < 2) {
+            obj->pos = (obj->target[state] - obj->pos) / (8 >> state) + obj->pos;
+            if (ABS((s16)obj->pos - obj->target[state]) < 2) {
                 settled++;
             }
             break;
         case 2:
             if (obj->flags & 1) {
-                if (obj->unk16 <= 0) {
-                    obj->unk0 = (340.0f - obj->unk0) * 0.125f + obj->unk0;
-                    if (ABS((s16)obj->unk0 - obj->target[state]) < 2) {
+                if (obj->brightness <= 0) {
+                    obj->pos = (340.0f - obj->pos) * 0.125f + obj->pos;
+                    if (ABS((s16)obj->pos - obj->target[state]) < 2) {
                         state = 3;
                     }
                 } else {
-                    obj->unk16--;
+                    obj->brightness--;
                 }
             } else {
-                obj->unk16 -= speed;
-                if (obj->unk16 <= 0) {
+                obj->brightness -= speed;
+                if (obj->brightness <= 0) {
                     state = 3;
                 }
             }
@@ -5118,7 +5086,7 @@ void SUG_runDamagePopupTask(s32 side) {
     for (; i < 150; i++) {
         func_80014C08(FRAME_INTERVAL);
         drawTexturedSprite(15, 0xAE, &uv0, SUG_HUD_TPAGE, 0x1568, 1, brightness[0], 1);
-        SUG_drawNumber(0x1F, 0xC1, SUG_BATTLE->players[side].value, brightness[1]);
+        SUG_drawNumber(0x1F, 0xC1, SUG_BATTLE->players[side].damage, brightness[1]);
         drawTexturedSprite(0x3F, 0xD9, &uv1, SUG_HUD_TPAGE, 0x1569, 1, brightness[2], 1);
         if (i < 20) {
             brightness[0] = i * 8;
@@ -5162,80 +5130,80 @@ void SUG_animateHpCounter(s32 side) {
     if (step < 0) {
         step = 0;
     }
-    step = (SUG_BATTLE->players[side].unk0 - step) / 40;
-    if (step == 0 && SUG_TARGET_HP[side] != SUG_BATTLE->players[side].unk0) {
-        if (SUG_BATTLE->players[side].unk0 < SUG_TARGET_HP[side]) {
+    step = (SUG_BATTLE->players[side].hp - step) / 40;
+    if (step == 0 && SUG_TARGET_HP[side] != SUG_BATTLE->players[side].hp) {
+        if (SUG_BATTLE->players[side].hp < SUG_TARGET_HP[side]) {
             step = -1;
         } else {
             step = 1;
         }
-        count = SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0 < 0 ? -(SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0)
-                                                                         : SUG_TARGET_HP[side] - SUG_BATTLE->players[side].unk0;
+        count = SUG_TARGET_HP[side] - SUG_BATTLE->players[side].hp < 0 ? -(SUG_TARGET_HP[side] - SUG_BATTLE->players[side].hp)
+                                                                         : SUG_TARGET_HP[side] - SUG_BATTLE->players[side].hp;
     }
     do {
         func_80014C08(FRAME_INTERVAL);
         model = SCENE_3D->models[side];
         if (model->unk2208 >= 0 && model->unk2200 >= minFrame) {
-            if ((SUG_BATTLE->players[side].unk0 -= step) < 0) {
-                SUG_BATTLE->players[side].unk0 = 0;
+            if ((SUG_BATTLE->players[side].hp -= step) < 0) {
+                SUG_BATTLE->players[side].hp = 0;
                 break;
             }
             count--;
         }
-        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].unk0, 0x80);
+        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].hp, 0x80);
         drawTexturedSprite(0x78, 0x10, &uv, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, 0x80, 1);
     } while (count > 0);
     if (SUG_TARGET_HP[side] > 0) {
-        SUG_BATTLE->players[side].unk0 = SUG_TARGET_HP[side];
+        SUG_BATTLE->players[side].hp = SUG_TARGET_HP[side];
     } else {
-        SUG_BATTLE->players[side].unk0 = 0;
+        SUG_BATTLE->players[side].hp = 0;
     }
     for (b = 0x80; b >= 0; b -= 4) {
         func_80014C08(FRAME_INTERVAL);
-        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].unk0, b);
+        SUG_drawNumber(0xA8, 0x10, SUG_BATTLE->players[side].hp, b);
         drawTexturedSprite(0x78, 0x10, &uv, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, b, 1);
     }
 }
 
 void SUG_showAttackLabel(s32 side) {
-    Unk801EC160 obj;
-    Unk801EC160 obj2;
+    HudSlide obj;
+    HudSlide obj2;
     Rect16 uv2;
     s32 state;
     s32 alt;
     s32 both;
 
     state = 0;
-    alt = SUG_BATTLE->players[side].unk8_5;
+    alt = SUG_BATTLE->players[side].crash;
     both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
     SUG_initHudSlide(&obj, 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
     obj.uv.x = 0;
     obj.uv.y = 0x88;
     obj.uv.w = 0xA0;
     obj.uv.h = 0x10;
-    obj.unk16 = 0x5A;
+    obj.brightness = 0x5A;
     SUG_initHudSlide(&obj2, -0x40, 0x32, 0x30, 2);
     obj2.uv.x = alt * 64;
     obj2.uv.y = 0x58;
     obj2.uv.w = 0x40;
     obj2.uv.h = 0x20;
-    uv2.x = SUG_BATTLE->players[side].unk8 * 24 + 0xA0;
+    uv2.x = SUG_BATTLE->players[side].attack * 24 + 0xA0;
     uv2.y = 0xA0;
     uv2.w = 0x18;
     uv2.h = 0x10;
     do {
         func_80014C08(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&obj, ((SUG_BATTLE->flags.word >> 2) & 1) + 1, state, 2);
-        SUG_drawHudSpriteTrail((s16)obj.unk0, 0xA2, &obj.uv, SUG_HUD_TPAGE, getClut(0x280, 0x53), 1, 0x80, 1, obj.unk8, 1);
+        SUG_drawHudSpriteTrail((s16)obj.pos, 0xA2, &obj.uv, SUG_HUD_TPAGE, getClut(0x280, 0x53), 1, 0x80, 1, obj.trail, 1);
         if (both) {
-            SUG_drawHudSpriteTrail((s16)obj2.unk0, 0x92, &obj2.uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, 0x80, 0, obj2.unk8, 6);
+            SUG_drawHudSpriteTrail((s16)obj2.pos, 0x92, &obj2.uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, 0x80, 0, obj2.trail, 6);
         }
-        drawTexturedSprite((s16)obj.unk0 + 6, 0xA2, &uv2, SUG_HUD_TPAGE, SUG_BATTLE->players[side].unk8 | 0x14A8, 0, 0x80, 1);
+        drawTexturedSprite((s16)obj.pos + 6, 0xA2, &uv2, SUG_HUD_TPAGE, SUG_BATTLE->players[side].attack | 0x14A8, 0, 0x80, 1);
     } while (state != 2);
 }
 
 void SUG_showAttackBanner(s32 side) {
-    Unk801EC160 banners[5];
+    HudSlide banners[5];
     Rect16 unused; /* unused, but it sizes the frame */
     Rect16 uv0;
     Rect16 uv1;
@@ -5273,11 +5241,11 @@ void SUG_showAttackBanner(s32 side) {
     uv0.y = 0xA8;
     uv0.w = 0x28;
     uv0.h = 0x18;
-    uv1.x = SUG_BATTLE->players[side].unk8 * 24 + 0xA0;
+    uv1.x = SUG_BATTLE->players[side].attack * 24 + 0xA0;
     uv1.y = 0xA0;
     uv1.w = 0x18;
     uv1.h = 0x10;
-    alt = SUG_BATTLE->players[side].unk8_5;
+    alt = SUG_BATTLE->players[side].crash;
     both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
     if (!((SUG_BATTLE->flags.word >> 2) & 1)) {
         SUG_initHudSlide(&banners[1], 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
@@ -5296,7 +5264,7 @@ void SUG_showAttackBanner(s32 side) {
     }
     if (SUG_BATTLE->players[side].unk8_6) {
         c = count++;
-        SUG_initHudSlide(&banners[c], banners[1].unk0 + 160.0f, banners[1].target[0] + 0xA0, banners[1].target[1] + 0xA0, 2);
+        SUG_initHudSlide(&banners[c], banners[1].pos + 160.0f, banners[1].target[0] + 0xA0, banners[1].target[1] + 0xA0, 2);
         setRECT(&banners[c].uv, 0xE8, 0xA0, 0x18, 0x20);
     }
     banners[1].uv.x = 0;
@@ -5309,37 +5277,37 @@ void SUG_showAttackBanner(s32 side) {
     if (b >= 0) {
         setRECT(&banners[b].uv, 0, 0x98, 0x9F, 0x10);
     }
-    banners[1].unk16 = 0x5A;
+    banners[1].brightness = 0x5A;
     do {
         func_80014C08(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&banners[0], count, state, side < 0 ? 1 : 2);
         if (!flipped) {
-            SUG_drawHudSpriteTrail((s16)banners[0].unk0, 0xB4, &banners[0].uv, SUG_HUD_TPAGE, 0x1428, 1, banners[0].unk16, 0, banners[0].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[0].pos, 0xB4, &banners[0].uv, SUG_HUD_TPAGE, 0x1428, 1, banners[0].brightness, 0, banners[0].trail, 6);
         } else {
-            SUG_drawHudSpriteTrail((s16)banners[0].unk0, 0xC2, &banners[0].uv, SUG_HUD_TPAGE, 0x146A, 1, banners[0].unk16, 0, banners[0].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[0].pos, 0xC2, &banners[0].uv, SUG_HUD_TPAGE, 0x146A, 1, banners[0].brightness, 0, banners[0].trail, 6);
         }
-        SUG_drawHudSpriteTrail((s16)banners[1].unk0, 0xA2, &banners[1].uv, SUG_HUD_TPAGE, 0x14E8, 1, banners[1].unk16, 1, banners[1].unk8, 1);
+        SUG_drawHudSpriteTrail((s16)banners[1].pos, 0xA2, &banners[1].uv, SUG_HUD_TPAGE, 0x14E8, 1, banners[1].brightness, 1, banners[1].trail, 1);
         if (a >= 0) {
-            SUG_drawHudSpriteTrail((s16)banners[a].unk0, 0x92, &banners[a].uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, banners[a].unk16, 0, banners[a].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[a].pos, 0x92, &banners[a].uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, banners[a].brightness, 0, banners[a].trail, 6);
         }
         if (b >= 0) {
-            SUG_drawHudSpriteTrail((s16)banners[b].unk0, 0xA2, &banners[b].uv, SUG_HUD_TPAGE, 0x14E9, 1, banners[b].unk16, 0, banners[b].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[b].pos, 0xA2, &banners[b].uv, SUG_HUD_TPAGE, 0x14E9, 1, banners[b].brightness, 0, banners[b].trail, 6);
         } else {
-            drawTexturedSprite((s16)banners[1].unk0 + 6, 0xA2, &uv1, SUG_HUD_TPAGE, SUG_BATTLE->players[side].unk8 | 0x14A8, 0, banners[1].unk16, 1);
+            drawTexturedSprite((s16)banners[1].pos + 6, 0xA2, &uv1, SUG_HUD_TPAGE, SUG_BATTLE->players[side].attack | 0x14A8, 0, banners[1].brightness, 1);
         }
         if (c >= 0) {
-            SUG_drawHudSpriteTrail((s16)banners[c].unk0, 0x98, &banners[c].uv, SUG_HUD_TPAGE, 0x14EA, 1, banners[c].unk16, 0, banners[c].unk8, 6);
+            SUG_drawHudSpriteTrail((s16)banners[c].pos, 0x98, &banners[c].uv, SUG_HUD_TPAGE, 0x14EA, 1, banners[c].brightness, 0, banners[c].trail, 6);
         }
-        drawTexturedSprite(0x10, 0x10, &uv0, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, banners[0].unk16, 1);
+        drawTexturedSprite(0x10, 0x10, &uv0, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, banners[0].brightness, 1);
     } while (state != 3);
     SUG_BATTLE->flags.word &= ~2;
     SUG_BATTLE->flags.word &= ~4;
 }
 
 void SUG_showHpBanner(s32 side) {
-    Unk801EC160 bar;
-    Unk801EC160 icon;
-    Unk801EC160 num;
+    HudSlide bar;
+    HudSlide icon;
+    HudSlide num;
     s32 unused[8];
     s32 state;
 
@@ -5359,11 +5327,11 @@ void SUG_showHpBanner(s32 side) {
     do {
         func_80014C08(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&bar, 3, state, 2);
-        SUG_drawHudSpriteTrail((s16)bar.unk0, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.unk16, 0, bar.unk8, 6);
-        SUG_drawHudSpriteTrail(10, (s16)icon.unk0, &icon.uv, SUG_HUD_TPAGE,
-                      getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1, icon.unk16, 0,
-                      icon.unk8, 6);
-        SUG_drawNumber(0xA8, (s16)num.unk0, SUG_BATTLE->players[side].unk0, num.unk16);
+        SUG_drawHudSpriteTrail((s16)bar.pos, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.brightness, 0, bar.trail, 6);
+        SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE,
+                      getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1, icon.brightness, 0,
+                      icon.trail, 6);
+        SUG_drawNumber(0xA8, (s16)num.pos, SUG_BATTLE->players[side].hp, num.brightness);
         if (((ModelData *)SCENE_3D->models[side])->unk2208 < 0) {
             playModelAnimation(side, 0);
         }
@@ -5372,8 +5340,8 @@ void SUG_showHpBanner(s32 side) {
 }
 
 void SUG_showWinnerBanner(s32 side) {
-    Unk801EC160 banner;
-    Unk801EC160 icon;
+    HudSlide banner;
+    HudSlide icon;
     s32 state;
 
     state = 0;
@@ -5390,14 +5358,14 @@ void SUG_showWinnerBanner(s32 side) {
     do {
         func_80014C08(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&banner, 2, state, 2);
-        SUG_drawHudSpriteTrail((s16)banner.unk0, 0xB4, &banner.uv, SUG_HUD_TPAGE, 0x14EB, 1, 0x80, 0, banner.unk8, 6);
-        SUG_drawHudSpriteTrail(10, (s16)icon.unk0, &icon.uv, SUG_HUD_TPAGE, getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1,
-                      0x80, 0, icon.unk8, 6);
+        SUG_drawHudSpriteTrail((s16)banner.pos, 0xB4, &banner.uv, SUG_HUD_TPAGE, 0x14EB, 1, 0x80, 0, banner.trail, 6);
+        SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE, getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1,
+                      0x80, 0, icon.trail, 6);
     } while (state != 3);
 }
 
 void SUG_showEatUpHpBanner(void) {
-    Unk801EC160 obj;
+    HudSlide obj;
     Rect16 unused;
     s32 state;
 
@@ -5407,11 +5375,11 @@ void SUG_showEatUpHpBanner(void) {
     obj.uv.y = 0x78;
     obj.uv.w = 0x60;
     obj.uv.h = 0x18;
-    obj.unk16 = 0x20;
+    obj.brightness = 0x20;
     do {
         func_80014C08(FRAME_INTERVAL);
         state = SUG_tickHudSlides(&obj, 1, state, 2);
-        SUG_drawHudSpriteTrail((s16)obj.unk0, 0xB4, &obj.uv, SUG_HUD_TPAGE, 0x146B, 1, 0x80, 0, obj.unk8, 6);
+        SUG_drawHudSpriteTrail((s16)obj.pos, 0xB4, &obj.uv, SUG_HUD_TPAGE, 0x146B, 1, 0x80, 0, obj.trail, 6);
     } while (state != 3);
 }
 
@@ -5423,8 +5391,8 @@ void SUG_placeBattleModels(void) {
     ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn])->rotY = 0;
     ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn ^ 1])->x = -750;
     ((ModelData *)scene->models[SUG_BATTLE->flags.bits.turn ^ 1])->rotY = 0x800;
-    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].unk0 - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].value;
-    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn ^ 1] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].unk0 - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].value;
+    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].hp - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].damage;
+    SUG_TARGET_HP[SUG_BATTLE->flags.bits.turn ^ 1] = SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn ^ 1].hp - SUG_BATTLE->players[SUG_BATTLE->flags.bits.turn].damage;
     scene->modelState[0] = -1;
     SCENE_3D->modelState[1] = -1;
 }
@@ -5523,12 +5491,12 @@ void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 sw
     if (fn != NULL) {
         fn(SUG_ACTIVE_MODEL);
     }
-    if (fn == SUG_showAttackBanner && SUG_BATTLE->players[SUG_ACTIVE_MODEL].unk8_5) {
+    if (fn == SUG_showAttackBanner && SUG_BATTLE->players[SUG_ACTIVE_MODEL].crash) {
         func_80014C08(30);
         SUG_TARGET_HP[SUG_ACTIVE_MODEL] = 10;
         SUG_animateHpCounter(~SUG_ACTIVE_MODEL);
-        if (!SUG_BATTLE->flags.bits.flag2) {
-            SUG_TARGET_HP[SUG_ACTIVE_MODEL] -= SUG_BATTLE->players[(s16)(SUG_ACTIVE_MODEL ^ 1)].value;
+        if (!SUG_BATTLE->flags.bits.counter) {
+            SUG_TARGET_HP[SUG_ACTIVE_MODEL] -= SUG_BATTLE->players[(s16)(SUG_ACTIVE_MODEL ^ 1)].damage;
         }
     }
     if (SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] == 1) {
@@ -5553,14 +5521,14 @@ void SUG_playBattleExchange(void) {
     s32 other;
     s32 winner;
     s32 hp;
-    DuelFlagBits flags;
+    BattleFlags flags;
 
     winner = -1;
     flags = SUG_BATTLE->flags.bits;
     first = flags.turn ^ (flags.flag1 | flags.flag3);
-    other = first ^ flags.flag2;
+    other = first ^ flags.counter;
     second = first ^ 1;
-    if (SUG_BATTLE->players[other].value == 0) {
+    if (SUG_BATTLE->players[other].damage == 0) {
         other ^= 1;
     }
     SUG_SCRIPT_STATES[SUG_CURRENT_SCRIPT] = -1;
@@ -5592,23 +5560,23 @@ void SUG_playBattleExchange(void) {
     do {
         func_80014C08(FRAME_INTERVAL);
     } while (SUG_SCRIPT_STATES[0] != 1);
-    if (SUG_BATTLE->flags.bits.flag2) {
-        SUG_playSoloAnimation(first, SUG_BATTLE->players[first].unk8 + 1);
+    if (SUG_BATTLE->flags.bits.counter) {
+        SUG_playSoloAnimation(first, SUG_BATTLE->players[first].attack + 1);
         SUG_showAttackLabel(first);
-    } else if (SUG_BATTLE->players[first].value == 0) {
+    } else if (SUG_BATTLE->players[first].damage == 0) {
         SUG_playNoDamageTurn(first);
     } else {
         FADE_TARGET = D_8006DF80;
         SUG_playAttackTurn(second, 1, SUG_SKILL_SCRIPTS[first * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
-        hp = SUG_BATTLE->players[second].unk0;
+        hp = SUG_BATTLE->players[second].hp;
         SUG_playAttackTurn(second, 0, SUG_SKILL_SCRIPTS[second * 2], SUG_animateHpCounter, 1);
         applyAnimationFirstFrame(first, 0);
         playModelAnimation(first, 0);
         do {
             func_80014C08(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[second])->unk2208 >= 0);
-        if (SUG_BATTLE->players[first].unk8_4) {
+        if (SUG_BATTLE->players[first].eatUpHp) {
             SUG_applyEatUpHp(first, hp);
         }
         if (SUG_TARGET_HP[second] <= 0) {
@@ -5617,20 +5585,20 @@ void SUG_playBattleExchange(void) {
         playModelAnimation(second, 0);
         func_80014C08(20);
     }
-    if (SUG_BATTLE->players[second].value == 0) {
+    if (SUG_BATTLE->players[second].damage == 0) {
         SUG_playNoDamageTurn(second);
     } else {
         FADE_TARGET = D_8006DF80;
         SUG_playAttackTurn(first, 1, SUG_SKILL_SCRIPTS[second * 2 + 1], SUG_showAttackBanner, 1);
         FADE_TARGET = 0xFF;
-        hp = SUG_BATTLE->players[first].unk0;
+        hp = SUG_BATTLE->players[first].hp;
         SUG_playAttackTurn(second, 0, NULL, SUG_animateHpCounter, 1);
         applyAnimationFirstFrame(second, 0);
         playModelAnimation(second, 0);
         do {
             func_80014C08(FRAME_INTERVAL);
         } while (((ModelData *)SCENE_3D->models[first])->unk2208 >= 0);
-        if (SUG_BATTLE->players[second].unk8_4) {
+        if (SUG_BATTLE->players[second].eatUpHp) {
             SUG_applyEatUpHp(second, hp);
         } else {
             if (SUG_TARGET_HP[first] <= 0) {
@@ -5688,15 +5656,15 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
         func_80014C08(FRAME_INTERVAL);
     }
     state = 2;
-    if (SUG_BATTLE->players[side].value < amount) {
-        amount = SUG_BATTLE->players[side].value;
+    if (SUG_BATTLE->players[side].damage < amount) {
+        amount = SUG_BATTLE->players[side].damage;
     }
-    SUG_TARGET_HP[side] = SUG_BATTLE->players[side].unk0 + amount;
+    SUG_TARGET_HP[side] = SUG_BATTLE->players[side].hp + amount;
     if (SUG_TARGET_HP[side] >= 0x2707) {
         SUG_TARGET_HP[side] = 0x2706;
     }
     SUG_animateHpCounter(~side);
-    SUG_TARGET_HP[side] -= SUG_BATTLE->players[side ^ 1].value;
+    SUG_TARGET_HP[side] -= SUG_BATTLE->players[side ^ 1].damage;
     while (state != 0) {
         func_80014C08(FRAME_INTERVAL);
     }
@@ -5710,19 +5678,19 @@ void SUG_playNoDamageTurn(s32 model) {
     SUG_showAttackBanner(~model);
 }
 
-extern DuelState SUG_BATTLE_STATE;
+extern BattleState SUG_BATTLE_STATE;
 
 void SUG_runPolygonBattle(s32 arg, s32 parentTask) {
     s32 i;
 
     SUG_BATTLE = &SUG_BATTLE_STATE;
     SUG_BATTLE_STATE.flags.bits.flag1 = PLAYER((s8)(DUEL->turnPlayer ^ 1))->unk178_8;
-    SUG_BATTLE_STATE.flags.bits.flag2 = PLAYER(0)->counter | PLAYER(1)->counter;
+    SUG_BATTLE_STATE.flags.bits.counter = PLAYER(0)->counter | PLAYER(1)->counter;
     SUG_BATTLE_STATE.flags.bits.flag3 = PLAYER(DUEL->turnPlayer)->unk178_7;
     SUG_BATTLE_STATE.flags.bits.turn = DUEL->turnPlayer;
     for (i = 0; i < 2; i++) {
-        SUG_BATTLE->players[i].unk0 = PLAYER(i)->unk158;
-        SUG_BATTLE->players[i].value = PLAYER(i ^ 1)->damageTaken;
+        SUG_BATTLE->players[i].hp = PLAYER(i)->unk158;
+        SUG_BATTLE->players[i].damage = PLAYER(i ^ 1)->damageTaken;
         switch (PLAYER(i)->controller) {
         case 0:
         case 2:
@@ -5735,12 +5703,12 @@ void SUG_runPolygonBattle(s32 arg, s32 parentTask) {
             SUG_BATTLE->players[i].element = 1;
             break;
         }
-        SUG_BATTLE->players[i].unk8 = PLAYER(i)->usedAttack;
-        SUG_BATTLE->players[i].unk8_4 = PLAYER(i)->eatUpHp;
-        SUG_BATTLE->players[i].unk8_5 = PLAYER(i)->crash;
+        SUG_BATTLE->players[i].attack = PLAYER(i)->usedAttack;
+        SUG_BATTLE->players[i].eatUpHp = PLAYER(i)->eatUpHp;
+        SUG_BATTLE->players[i].crash = PLAYER(i)->crash;
         SUG_BATTLE->players[i].unk8_6 = PLAYER(i)->unk178_13;
-        SUG_SKILL_SCRIPTS[i * 2] = (void *)DUEL_DIGIMON_MODELS[i].attackModels[SUG_BATTLE->players[i].unk8];
-        SUG_SKILL_SCRIPTS[i * 2 + 1] = (void *)DUEL_DIGIMON_MODELS[i].unk14[SUG_BATTLE->players[i].unk8];
+        SUG_SKILL_SCRIPTS[i * 2] = (void *)DUEL_DIGIMON_MODELS[i].attackModels[SUG_BATTLE->players[i].attack];
+        SUG_SKILL_SCRIPTS[i * 2 + 1] = (void *)DUEL_DIGIMON_MODELS[i].unk14[SUG_BATTLE->players[i].attack];
     }
     SUG_initBattleScene();
     SUG_playBattleExchange();
@@ -5762,7 +5730,7 @@ s16 SUG_SCREEN_FX_ANGLE = 0;
 
 /* per effect slot kind: the functions that update, create and free it */
 typedef void (*SlotUpdate)(u8 *value);
-typedef s32 (*SlotCreate)(s32 arg, Slots *slots);
+typedef s32 (*SlotCreate)(s32 arg, EffectSlots *slots);
 typedef void (*SlotFree)(s32 value);
 
 SlotUpdate SUG_EFFECT_TICK_FUNCS[18] = {
@@ -5837,7 +5805,7 @@ s32 D_801EF388 = 1;
 u16 SUG_HUD_TPAGE = 10;
 ClutFade SUG_STAGE_CLUT = { { 0 } };
 u8 D_801EF79C[4] = { 0 };
-CacheEntry SUG_TAM_CACHE[8] = { { 0 } };
+TamEntry SUG_TAM_CACHE[8] = { { 0 } };
 s32 SUG_SCREEN_FX_X = 0;
 s32 SUG_SCREEN_FX_Y = 0;
 float SUG_SCREEN_FX_STEP_X = 0;
@@ -5848,15 +5816,15 @@ s32 SUG_SCREEN_FX_FRAME = 0;
 s32 SUG_SCREEN_FX_MOTION = 0;
 u8 SUG_SCREEN_FX_BASE_RGB[3] = { 0 };
 u8 SUG_SCREEN_FX_RGB_STEP[3] = { 0 };
-CameraEffect SUG_EFFECT_ROOT = { { 0 } };
+RootEffect SUG_EFFECT_ROOT = { { 0 } };
 u8 D_801EF944[12] = { 0 };
-Entry *SUG_SPRITE_CACHE = NULL;
+SpriteEntry *SUG_SPRITE_CACHE = NULL;
 u8 D_801EF954[4] = { 0 };
-DuelState *SUG_BATTLE = NULL;
+BattleState *SUG_BATTLE = NULL;
 u8 D_801EF95C[12] = { 0 };
 void *SUG_SKILL_SCRIPTS[4] = { NULL };
 s32 SUG_SCRIPT_STATES[2] = { 0 };
 u8 D_801EF980[4] = { 0 };
 s32 SUG_PREV_MODEL = 0;
-DuelState SUG_BATTLE_STATE = { { { 0 } } };
+BattleState SUG_BATTLE_STATE = { { { 0 } } };
 s16 SUG_TARGET_HP[2] = { 0 };
