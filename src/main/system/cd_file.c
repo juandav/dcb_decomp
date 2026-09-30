@@ -9,7 +9,7 @@ FileEntry ROOT_DIRECTORY_ENTRY = { 0 };
 
 void initDiscDrive(void) {
     u8 cdMode[8];
-    DiscFileSlot *handle;
+    CdFile *file;
     s32 i;
 
     ResetCallback();
@@ -25,9 +25,9 @@ void initDiscDrive(void) {
     }
     VSync(4);
     func_8005A344(0);
-    handle = DISC_FILES;
-    for (i = 3; i >= 0; i--, handle++) {
-        handle->openMode = 0;
+    file = DISC_FILES;
+    for (i = 3; i >= 0; i--, file++) {
+        file->openMode = 0;
     }
     DRIVE_DIRECTORY_CACHED = 0;
 }
@@ -79,6 +79,7 @@ FileEntry *findDirectoryEntryOnDisc(CdFile *file, char *name, s32 key) {
                 return 0;
             }
             if (entry->key == key) {
+                /* the 16-byte names are compared a word at a time */
                 for (i = 0; i < 4; i++) {
                     if (entry->name[i] != *(s32 *)(name + (i << 2))) {
                         break;
@@ -130,9 +131,9 @@ CdFile *openDiscFile(s8 *path, s32 openMode) {
     s32 ch;
 
 retry:
-    file = (CdFile *)DISC_FILES;
+    file = DISC_FILES;
     for (i = 3; i >= 0; i--, file++) {
-        if (file->unk0 == 0) {
+        if (file->openMode == 0) {
             break;
         }
     }
@@ -245,23 +246,23 @@ end:
         if ((file->remaining = file->size = entry->size) == 0) {
             goto retry;
         }
-        file->unk0 = openMode;
+        file->openMode = openMode;
     }
     return file;
 }
 
 s32 closeDiscFile(CdFile *file) {
-    file->unk0 = 0;
+    file->openMode = 0;
     return func_8005A364(0, 0) == 5;
 }
 
 int closeAllDiscFiles(void) {
-    DiscFileSlot *handle = DISC_FILES;
+    CdFile *file = DISC_FILES;
     int i;
 
-    for (i = 3; i >= 0; i--, handle++) {
-        if (handle->openMode > 0) {
-            handle->openMode = 0;
+    for (i = 3; i >= 0; i--, file++) {
+        if (file->openMode > 0) {
+            file->openMode = 0;
         }
     }
     return func_8005A364(0, 0) == 5;
