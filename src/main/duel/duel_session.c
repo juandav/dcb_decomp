@@ -118,7 +118,7 @@ void renderDuelFrame(void) {
         if (DUEL->ringMode != -1) {
             KAW_renderRing();
         }
-        KAW_drawHandHints(D_801D83D1);
+        KAW_drawHandHints(MSG_BAR_PLAYER_LABEL);
     }
 }
 

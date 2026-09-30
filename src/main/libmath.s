@@ -13,7 +13,8 @@
  * middle of the code around each call; and __divdf3 and __muldf3 save $ra
  * at 4($sp) of a 0x18 frame, where GCC puts it at the top.
  *
- * The two exception hooks, func_80026C70 and func_80026D30, are compiled,
+ * The two exception hooks, raiseSoftFloatException and
+ * raiseSoftFloatUnimplemented, are compiled,
  * but not by any GCC the game or PsyQ were built with (2.7.2, 2.8.x and
  * 2.95.2 at any -O): $fp points at the caller's $sp, the saves go upwards
  * from 8($sp) with $ra lowest, moves are `addu $s0,$zero,$a0`, and the
@@ -44,7 +45,7 @@ endlabel __subdf3
 
 glabel __adddf3
     addu       $t8, $ra, $zero
-    jal        func_80025874
+    jal        addDoubleCore
      nop
     addu       $v1, $a1, $zero
     jr         $t8
@@ -53,7 +54,7 @@ glabel __adddf3
     xor        $a3, $a3, $at
 endlabel __adddf3
 
-glabel func_80025874
+glabel addDoubleCore
     lui        $t6, (0x200000 >> 16)
     sll        $v0, $a1, 1
     addu       $t7, $t6, $v0
@@ -149,7 +150,7 @@ glabel func_80025874
     sw         $ra, 0x4($sp)
     addiu      $a0, $zero, 0x280
     addu       $a1, $t8, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      sw        $t8, 0x8($sp)
     lw         $t8, 0x8($sp)
     lw         $ra, 0x4($sp)
@@ -271,7 +272,7 @@ glabel func_80025874
     sw         $ra, 0x4($sp)
     addiu      $a0, $zero, 0x800
     addu       $a1, $t8, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      sw        $t8, 0x8($sp)
     lw         $t8, 0x8($sp)
     lw         $ra, 0x4($sp)
@@ -283,7 +284,7 @@ glabel func_80025874
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x4($sp)
     addu       $a0, $t8, $zero
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      sw        $t8, 0x8($sp)
     lw         $t8, 0x8($sp)
     lw         $ra, 0x4($sp)
@@ -293,12 +294,12 @@ glabel func_80025874
     and        $a1, $a3, $a1
     b          .L80025AD4
      addiu     $a0, $zero, 0x0
-endlabel func_80025874
+endlabel addDoubleCore
 
 glabel __divdf3
     addiu      $sp, $sp, -0x18
     sw         $ra, 0x4($sp)
-    jal        func_80025C00
+    jal        divDoubleCore
      nop
     lw         $ra, 0x4($sp)
     addiu      $sp, $sp, 0x18
@@ -307,7 +308,7 @@ glabel __divdf3
      addu      $v0, $a0, $zero
 endlabel __divdf3
 
-glabel func_80025C00
+glabel divDoubleCore
     xor        $t9, $a3, $a1
     lui        $t6, (0x200000 >> 16)
     srl        $t9, $t9, 31
@@ -432,7 +433,7 @@ glabel func_80025C00
      nop
     sw         $ra, 0xC($sp)
     lw         $a1, 0x4($sp)
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x280
     lw         $ra, 0xC($sp)
     bgtz       $v0, .L80025DBC
@@ -466,7 +467,7 @@ glabel func_80025C00
     sw         $t9, 0x8($sp)
     sw         $ra, 0xC($sp)
     lw         $a1, 0x4($sp)
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x400
     lw         $ra, 0xC($sp)
     bgtz       $v0, .L80025DBC
@@ -493,7 +494,7 @@ glabel func_80025C00
   .L80025EAC:
     sw         $ra, 0xC($sp)
     lw         $a1, 0x4($sp)
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0xC($sp)
     bgtz       $v0, .L80025DBC
@@ -502,16 +503,16 @@ glabel func_80025C00
   .L80025ECC:
     sw         $ra, 0xC($sp)
     lw         $a0, 0x4($sp)
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      nop
     lw         $ra, 0xC($sp)
-endlabel func_80025C00
+endlabel divDoubleCore
     nop
 
 glabel __muldf3
     addiu      $sp, $sp, -0x18
     sw         $ra, 0x4($sp)
-    jal        func_80025F08
+    jal        mulDoubleCore
      nop
     lw         $ra, 0x4($sp)
     addiu      $sp, $sp, 0x18
@@ -520,7 +521,7 @@ glabel __muldf3
      addu      $v0, $a0, $zero
 endlabel __muldf3
 
-glabel func_80025F08
+glabel mulDoubleCore
     xor        $t9, $a3, $a1
     lui        $t6, (0x200000 >> 16)
     srl        $t9, $t9, 31
@@ -599,7 +600,7 @@ glabel func_80025F08
      nop
     sw         $ra, 0xC($sp)
     lw         $a1, 0x4($sp)
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x280
     lw         $ra, 0xC($sp)
     bgtz       $v0, .L80026010
@@ -643,7 +644,7 @@ glabel func_80025F08
   .L800260C4:
     sw         $ra, 0xC($sp)
     lw         $a1, 0x4($sp)
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0xC($sp)
     bgtz       $v0, .L80026010
@@ -654,7 +655,7 @@ glabel func_80025F08
   .L800260EC:
     sw         $ra, 0xC($sp)
     lw         $a0, 0x4($sp)
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      nop
     lw         $ra, 0xC($sp)
     b          .L80026010
@@ -669,7 +670,7 @@ glabel func_80025F08
     or         $a1, $a1, $t9
     b          .L80026010
      addiu     $a0, $zero, 0x0
-endlabel func_80025F08
+endlabel mulDoubleCore
 
 glabel __cmpdf2
     addu       $t8, $a0, $zero
@@ -759,6 +760,8 @@ glabel __cmpdf2
      nop
     b          .L800261F8
      nop
+  /* the C entry of __floatsidf: returns the double in $v0/$v1 */
+  alabel intToDouble
     addu       $t8, $ra, $zero
     jal        __floatsidf
      nop
@@ -861,7 +864,7 @@ glabel __fixdfsi
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L80026384
@@ -871,7 +874,7 @@ glabel __fixdfsi
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L80026384
@@ -882,7 +885,7 @@ glabel __fixdfsi
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L80026384
@@ -1040,7 +1043,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x280
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L800266C8
@@ -1117,7 +1120,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L800266C8
@@ -1128,7 +1131,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a0, $ra, $zero
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      nop
     lw         $ra, 0x8($sp)
     b          .L800266C8
@@ -1204,7 +1207,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x280
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L8002686C
@@ -1240,7 +1243,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L8002686C
@@ -1251,7 +1254,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a0, $ra, $zero
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      nop
     lw         $ra, 0x8($sp)
     b          .L8002686C
@@ -1260,7 +1263,7 @@ glabel __subsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x400
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L8002686C
@@ -1320,7 +1323,7 @@ glabel __mulsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x280
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L80026A0C
@@ -1353,7 +1356,7 @@ glabel __mulsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a1, $ra, $zero
-    jal        func_80026C70
+    jal        raiseSoftFloatException
      addiu     $a0, $zero, 0x800
     lw         $ra, 0x8($sp)
     bgtz       $v0, .L80026A0C
@@ -1364,7 +1367,7 @@ glabel __mulsf3
     addiu      $sp, $sp, -0xC
     sw         $ra, 0x8($sp)
     addu       $a0, $ra, $zero
-    jal        func_80026D30
+    jal        raiseSoftFloatUnimplemented
      nop
     lw         $ra, 0x8($sp)
     b          .L80026A0C
@@ -1445,19 +1448,19 @@ glabel __mulsf3
 endlabel __mulsf3
 
 /* 2^31, for __fixunsdfsi */
-dlabel D_80026BDC
+dlabel TWO_POW_31
     .double 2147483648.0
-enddlabel D_80026BDC
+enddlabel TWO_POW_31
 
 glabel __fixunsdfsi
     addiu      $sp, $sp, -0x24
     sw         $ra, 0xC($sp)
     sw         $s1, 0x10($sp)
     sw         $s0, 0x14($sp)
-    lui        $a2, %hi(D_80026BDC)
-    lw         $a2, %lo(D_80026BDC)($a2)
-    lui        $a3, %hi(D_80026BDC + 0x4)
-    lw         $a3, %lo(D_80026BDC + 0x4)($a3)
+    lui        $a2, %hi(TWO_POW_31)
+    lw         $a2, %lo(TWO_POW_31)($a2)
+    lui        $a3, %hi(TWO_POW_31 + 0x4)
+    lw         $a3, %lo(TWO_POW_31 + 0x4)($a3)
     addu       $s0, $zero, $a0
     jal        __cmpdf2
      addu      $s1, $zero, $a1
@@ -1469,10 +1472,10 @@ glabel __fixunsdfsi
     j          .L80026C5C
      nop
   .L80026C2C:
-    lui        $a2, %hi(D_80026BDC)
-    lw         $a2, %lo(D_80026BDC)($a2)
-    lui        $a3, %hi(D_80026BDC + 0x4)
-    lw         $a3, %lo(D_80026BDC + 0x4)($a3)
+    lui        $a2, %hi(TWO_POW_31)
+    lw         $a2, %lo(TWO_POW_31)($a2)
+    lui        $a3, %hi(TWO_POW_31 + 0x4)
+    lw         $a3, %lo(TWO_POW_31 + 0x4)($a3)
     addu       $a0, $zero, $s0
     jal        __subdf3
      addu      $a1, $zero, $s1
@@ -1489,7 +1492,7 @@ glabel __fixunsdfsi
      addiu     $sp, $sp, 0x24
 endlabel __fixunsdfsi
 
-glabel func_80026C70
+glabel raiseSoftFloatException
     addiu      $sp, $sp, -0x20
     sw         $ra, 0x8($sp)
     sw         $fp, 0xC($sp)
@@ -1497,14 +1500,14 @@ glabel func_80026C70
     sw         $s0, 0x14($sp)
     addu       $s0, $zero, $a0
     addiu      $fp, $sp, 0x20
-    lui        $a0, %hi(D_801D6A80)
-    addiu      $a0, $a0, %lo(D_801D6A80)
+    lui        $a0, %hi(SOFT_FLOAT_TRAP_INFO)
+    addiu      $a0, $a0, %lo(SOFT_FLOAT_TRAP_INFO)
     addu       $s1, $zero, $a1
     addiu      $sp, $sp, -0x8
-    jal        func_80026D84
+    jal        handleSoftFloatTrap
      sll       $v0, $s0, 5
-    lui        $a0, %hi(D_801D6A90)
-    addiu      $a0, $a0, %lo(D_801D6A90)
+    lui        $a0, %hi(SOFT_FLOAT_STATUS)
+    addiu      $a0, $a0, %lo(SOFT_FLOAT_STATUS)
     lw         $a2, 0x0($a0)
     sra        $v1, $s0, 5
     or         $v0, $v0, $v1
@@ -1523,9 +1526,9 @@ glabel func_80026C70
     sw         $v1, 0x4($a0)
     sw         $s1, -0x4($a0)
     addiu      $sp, $sp, -0x8
-    jal        func_80026D84
+    jal        handleSoftFloatTrap
      addiu     $a0, $a0, -0xC
-    jal        func_80026D84
+    jal        handleSoftFloatTrap
      addiu     $a0, $zero, 0x200
     addiu      $v0, $zero, 0x1
     j          .L80026D14
@@ -1540,11 +1543,11 @@ glabel func_80026C70
     lw         $s0, 0x14($sp)
     jr         $ra
      addiu     $sp, $sp, 0x20
-endlabel func_80026C70
+endlabel raiseSoftFloatException
 
-glabel func_80026D30
-    lui        $v0, %hi(D_801D6A90)
-    addiu      $v0, $v0, %lo(D_801D6A90)
+glabel raiseSoftFloatUnimplemented
+    lui        $v0, %hi(SOFT_FLOAT_STATUS)
+    addiu      $v0, $v0, %lo(SOFT_FLOAT_STATUS)
     addiu      $sp, $sp, -0x18
     sw         $ra, 0x8($sp)
     sw         $fp, 0xC($sp)
@@ -1556,7 +1559,7 @@ glabel func_80026D30
     sw         $v1, 0x4($v0)
     sw         $a0, -0x4($v0)
     addiu      $sp, $sp, -0x8
-    jal        func_80026D84
+    jal        handleSoftFloatTrap
      addiu     $a0, $zero, 0x200
     addiu      $sp, $sp, 0x8
     addiu      $sp, $fp, -0x18
@@ -1564,4 +1567,4 @@ glabel func_80026D30
     lw         $fp, 0xC($sp)
     jr         $ra
      addiu     $sp, $sp, 0x18
-endlabel func_80026D30
+endlabel raiseSoftFloatUnimplemented

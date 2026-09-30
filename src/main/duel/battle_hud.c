@@ -437,7 +437,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             panel->clut = getClut(784, player * 8 + 0x1F0);
         }
         isOpponent = DUEL->turnPlayer != player;
-        func_80044504(panel->x + 0xA7, panel->y + 0x32, isOpponent, 0x80, z);
+        drawTurnSideBadge(panel->x + 0xA7, panel->y + 0x32, isOpponent, 0x80, z);
         break;
     }
 }

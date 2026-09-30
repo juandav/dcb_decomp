@@ -170,8 +170,9 @@ void transferSlotVabBody(SndSlot *slot, s32 vabBody, s32 vab) {
     }
 }
 
-void func_8002B3DC(void) {
+/* two functions left empty, which nothing calls */
+void emptySoundFunction1(void) {
 }
 
-void func_8002B3E4(void) {
+void emptySoundFunction2(void) {
 }

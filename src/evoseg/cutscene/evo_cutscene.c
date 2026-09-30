@@ -204,7 +204,7 @@ typedef union {
     LINE_F4 line;
 } EvoPacket;
 
-extern s16 D_80079584;
+extern s16 CAMERA_TARGET_MODEL;
 extern _GsFCALL GsFCALL4;
 extern u16 EVO_BANNER_CLUT[16];
 extern s8 EVO_BANNER_FADE;
@@ -314,7 +314,7 @@ void EVO_showFusedDigimon(s32 id) {
     waitFrames(2);
     waitFrames(20);
     setModelAnimationPose(0, 0);
-    D_80079584 = 0;
+    CAMERA_TARGET_MODEL = 0;
     waitFrames(1);
     SCENE_3D->modelState[0] = 1;
     playModelAnimation(0, 0);
@@ -447,7 +447,7 @@ void EVO_runShatterTask(s32 parentTask) {
             SCENE_3D->modelState[1] = 1;
             applyAnimationFirstFrame(1, 0);
             startModelAnimation(1, 0, -2, 0);
-            D_80079584 = 1;
+            CAMERA_TARGET_MODEL = 1;
             waitFrames(5);
             setScreenFadeParams(1, 1, 8);
             EVO_CUTSCENE_STEP = 3;
@@ -469,7 +469,7 @@ void EVO_shatterFusionModels(s32 unused) {
     models[0] = loadDigimonModelPak(0, EVO_CUTSCENE_MODELS[0], 1, 1);
     models[1] = loadDigimonModelPak(1, EVO_CUTSCENE_MODELS[1], 1, 1);
     EVO_placeFusionModels();
-    D_80079584 = 0;
+    CAMERA_TARGET_MODEL = 0;
     waitFrames(20);
     EVO_SCREEN_FLASH.on = 0;
     playSoundEffect(0x8D);

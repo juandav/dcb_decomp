@@ -86,7 +86,7 @@ extern s8 EVO_EFFECT_SPRITE_1;
 extern s8 EVO_EFFECT_SPRITE_2;
 extern EvoFx EVO_EFFECT_ROOT;
 extern void (*EVO_EFFECT_FREE_FUNCS[])(EvoFx *);
-extern u8 D_800795A8;
+extern u8 CLEAR_BG_ON_DRAW;
 
 void func_801F893C(void *sprite, Color *color);
 void func_801F8928(void *sprite);
@@ -399,10 +399,10 @@ void EVO_runEffectScript(EvoEffectScript *loader) {
                     SCREEN_COPY_MODE = 0;
                     break;
                 case 4:
-                    D_800795A8 = 0;
+                    CLEAR_BG_ON_DRAW = 0;
                     break;
                 case 5:
-                    D_800795A8 = 1;
+                    CLEAR_BG_ON_DRAW = 1;
                     break;
                 case 6:
                     EVO_setZonePosition(EVO_EFFECT_SPRITE_1, (EvoObject *)vars);

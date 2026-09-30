@@ -52,7 +52,8 @@ enum HudPanelSlot {
 typedef struct {
     /* 0x00 */ u8 rgb[4];
     /* 0x04 */ s16 clut;
-    /* 0x06 */ u8 unk6[6];
+    /* 0x06 */ s16 tpage;
+    /* 0x08 */ u8 uv[4]; /* its rect in the texture page (as KAWSEG sets it) */
     /* 0x0C */ u8 flags;
     /* 0x0D */ u8 state;
     /* 0x0E */ u8 unkE[2];

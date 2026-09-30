@@ -233,15 +233,15 @@ glabel exitTask
     sw         $fp, 0x98($k1)
     bnez       $t1, .L80014CC8
      sw        $ra, 0x9C($k1)
-    lui        $t0, %hi(D_80014CA0)
-    addiu      $t0, $t0, %lo(D_80014CA0)
+    lui        $t0, %hi(waitFramesResume)
+    addiu      $t0, $t0, %lo(waitFramesResume)
     sw         $t0, 0xA0($k1)
     sw         $a0, 0x4($k1)
     addiu      $t0, $zero, -0x8000
     sh         $t0, 0x2($k1)
     j          .L80014CB4
      nop
-  alabel D_80014CA0
+  alabel waitFramesResume
     lui        $k1, %hi(CURRENT_TASK)
     lw         $k1, %lo(CURRENT_TASK)($k1)
     nop

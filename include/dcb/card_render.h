@@ -12,7 +12,7 @@ void drawCardArtPlaceholder(s32 x, s32 y, s32 z, s32 index, CardSprite *cardSpri
 void renderPhaseBanner(void);
 void renderStatusMessage(s32 brightness);
 void renderHelpBar(s32 brightness);
-void func_80044504(s32 x, s32 y, s32 n, s32 brightness, s32 z);
+void drawTurnSideBadge(s32 x, s32 y, s32 side, s32 brightness, s32 z);
 void drawWinMarker(s32 x, s32 y, s32 z);
 void resetCardPolyCount(void);
 void projectCardSprite(CardSprite *sprite, s32 spriteIndex);

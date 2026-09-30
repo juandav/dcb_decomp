@@ -77,7 +77,7 @@ extern s8 KAW_EFFECT_CARD;
 extern s8 KAW_EFFECT_TARGET_CARD;
 extern void (*KAW_EFFECT_FREE_FUNCS[])(u8 *);
 extern EffectObject KAW_EFFECT_ROOT;
-extern u8 D_800795A8;
+extern u8 CLEAR_BG_ON_DRAW;
 
 /* SUGSEG's colour quad drawer: in KAWSEG this address is inside KAW_chooseSupportCard */
 void func_801E6424(Rect16 *rect, u8 *rgb, u8 *rgb2, u8 arg3, s32 arg4, u8 arg5);
@@ -234,10 +234,10 @@ void KAW_runEffectScript(EffectTable *table) {
                     SCREEN_COPY_MODE = 0;
                     break;
                 case 4:
-                    D_800795A8 = 0;
+                    CLEAR_BG_ON_DRAW = 0;
                     break;
                 case 5:
-                    D_800795A8 = 1;
+                    CLEAR_BG_ON_DRAW = 1;
                     break;
                 case 6:
                     KAW_getCardPosition(KAW_EFFECT_CARD, (u8 *)vars);

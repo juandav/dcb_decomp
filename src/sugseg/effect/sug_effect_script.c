@@ -132,7 +132,7 @@ typedef s32 (*SlotCreate)(s32 arg, EffectSlots *slots);
 typedef void (*SlotFree)(s32 value);
 
 extern RootEffect SUG_EFFECT_ROOT;
-extern u8 D_800795A8;
+extern u8 CLEAR_BG_ON_DRAW;
 
 u16 GetClut(s32 x, s32 y);
 void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
@@ -469,10 +469,10 @@ void SUG_runEffectScript(EffectScript *runner) {
                     SCREEN_COPY_EFFECT.b = 0xA8;
                     break;
                 case 4:
-                    D_800795A8 = 0;
+                    CLEAR_BG_ON_DRAW = 0;
                     break;
                 case 5:
-                    D_800795A8 = 1;
+                    CLEAR_BG_ON_DRAW = 1;
                     break;
                 case 6:
                     SUG_uploadEffectTim(PARAMS, slots->modelSlots[0] << 8, (Chunk *)slots->pak);
@@ -547,7 +547,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                 case 14:
                     switch (PARAM(0)) {
                     case 2:
-                        D_80079584 = -1;
+                        CAMERA_TARGET_MODEL = -1;
                         SCENE_3D->modelState[0] = SCENE_3D->modelState[1] = 1;
                         break;
                     case 0:
@@ -569,7 +569,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                             *(s16 *)((u8 *)dst + 0x42) += *(s16 *)(prev + 0xC);
                             *(s16 *)((u8 *)dst + 0x52) += *(s16 *)(prev + 0x10);
                         } else {
-                            D_80079584 = slots->modelSlots[PARAMS->source];
+                            CAMERA_TARGET_MODEL = slots->modelSlots[PARAMS->source];
                         }
                         SCENE_3D->modelState[CAMERA->targetModel] = 1;
                         SCENE_3D->modelState[(s16)(CAMERA->targetModel ^ 1)] = -1;

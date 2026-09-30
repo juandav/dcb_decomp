@@ -128,19 +128,19 @@ void runDuelTurnLoop(void) {
             break;
         case 3:
             DUEL->awaitingInput = 0;
-            D_801D83D7 = 0;
+            MSG_BAR_NEXT2 = 0;
             if (getActiveDigimonCard(ME) >= 0) {
                 DUEL->step = 4;
             } else if (checkHandHasDigimonCard(ME) != 0) {
                 if (countOnlineDeckCards(ME) == 0) {
-                    D_801D83D4 = 2;
+                    MSG_BAR_NEXT = 2;
                     sprintf(message, "There are no more Cards, so %s loses!", PLAYER(ME)->name);
                     initDialog((u8 *)&DUEL_DIALOG, message, 0);
                     runDuelMessageWindow();
                     DUEL->winner = ME ^ 1;
                     DUEL->step = 0x26;
                 } else {
-                    D_801D83D4 = 1;
+                    MSG_BAR_NEXT = 1;
                     if (PLAYER(ME)->controller != 1) {
                         initDialog((u8 *)&DUEL_DIALOG, "Redrawing Cards because there are\nno Digimon Cards.", 0);
                         runDuelMessageWindow();
@@ -215,7 +215,7 @@ void runDuelTurnLoop(void) {
             break;
         case 7:
             DUEL->awaitingInput = 1;
-            D_801D83D7 = 8;
+            MSG_BAR_NEXT2 = 8;
             if (DUEL->returnStep != 0x19) {
                 KAW_openCardSelect(DUEL->viewPlayer);
             }
@@ -247,7 +247,7 @@ void runDuelTurnLoop(void) {
                     DUEL->step = 0xA;
                 }
             } else {
-                D_801D83D4 = 4;
+                MSG_BAR_NEXT = 4;
                 if (PLAYER(ME)->controller == 1) {
                     DUEL->cpuPlayer = ME;
                     DUEL->cpuRequest = 2;
@@ -282,9 +282,9 @@ void runDuelTurnLoop(void) {
         case 9:
             DUEL->awaitingInput = 1;
             if (countOnlineDeckCards(ME) != 0) {
-                D_801D83D7 = 5;
+                MSG_BAR_NEXT2 = 5;
             } else {
-                D_801D83D7 = 3;
+                MSG_BAR_NEXT2 = 3;
             }
             if (KAW_tickCardCursor(ME, 1) == 0) {
                 if (PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].type == 0) {
@@ -295,7 +295,7 @@ void runDuelTurnLoop(void) {
                     i = findPartnerSlot(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
                     if (i != -1) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
-                            D_801D83D4 = 5;
+                            MSG_BAR_NEXT = 5;
                             initDialog((u8 *)&DUEL_DIALOG, "Do you want to Armor Digivolve?", 1);
                             runDuelMessageWindow();
                             switch (CHOICE) {
@@ -492,7 +492,7 @@ void runDuelTurnLoop(void) {
             break;
         case 16:
             DUEL->awaitingInput = 0;
-            D_801D83D4 = 9;
+            MSG_BAR_NEXT = 9;
             devolveOutcome = 0;
             if (KAW_checkAnyDigivolve(ME) == 0) {
                 option = (DigivolveCardData *)PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
@@ -597,7 +597,7 @@ void runDuelTurnLoop(void) {
                     i = 0;
                 }
             } else {
-                D_801D83D7 = 6;
+                MSG_BAR_NEXT2 = 6;
                 i = KAW_tickCardCursor(ME, 6);
                 if (i != 0) {
                     if (PAD_STATES[ME]->pressed & PAD_CIRCLE) {
@@ -797,7 +797,7 @@ void runDuelTurnLoop(void) {
             break;
         case 25:
             DUEL->awaitingInput = 1;
-            D_801D83D7 = 2;
+            MSG_BAR_NEXT2 = 2;
             for (i = 0; i < 2; i++) {
                 if (PLAYER(i)->controller == 1) {
                     if (DUEL->cpuRequest == 0 && PLAYER(i)->attackChoice == 3) {
@@ -878,7 +878,7 @@ void runDuelTurnLoop(void) {
             break;
         case 27:
             DUEL->awaitingInput = 1;
-            D_801D83D7 = 7;
+            MSG_BAR_NEXT2 = 7;
             if (KAW_tickCardCursor(OPP, 4) == 0) {
                 i = PLAYER(OPP)->hand[DUEL->cursorSlot];
                 handSlot = DUEL->cursorSlot;
@@ -905,7 +905,7 @@ void runDuelTurnLoop(void) {
             break;
         case 28:
             DUEL->awaitingInput = 0;
-            D_801D83D7 = 0;
+            MSG_BAR_NEXT2 = 0;
             runDialogForPad(&DUEL_DIALOG, PLAYER(OPP)->controller & 1);
             switch (CHOICE) {
             case 0:
@@ -962,7 +962,7 @@ void runDuelTurnLoop(void) {
             break;
         case 30:
             DUEL->awaitingInput = 1;
-            D_801D83D7 = 7;
+            MSG_BAR_NEXT2 = 7;
             if (KAW_tickCardCursor(ME, 4) == 0) {
                 i = PLAYER(ME)->hand[DUEL->cursorSlot];
                 handSlot = DUEL->cursorSlot;
@@ -989,7 +989,7 @@ void runDuelTurnLoop(void) {
             break;
         case 31:
             DUEL->awaitingInput = 0;
-            D_801D83D7 = 0;
+            MSG_BAR_NEXT2 = 0;
             runDuelMessageWindow();
             switch (CHOICE) {
             case 0:
@@ -1027,7 +1027,7 @@ void runDuelTurnLoop(void) {
             break;
         case 33:
             DUEL->awaitingInput = 0;
-            D_801D83D4 = 0x11;
+            MSG_BAR_NEXT = 0x11;
             DUEL->step++;
             break;
         case 34:
@@ -1210,7 +1210,7 @@ void runDuelTurnLoop(void) {
             break;
         case 37:
             DUEL->awaitingInput = 0;
-            D_801D83D1 = PLAYER(ME)->controller;
+            MSG_BAR_PLAYER_LABEL = PLAYER(ME)->controller;
             DUEL->step++;
             for (i = 0; i < 2; i++) {
                 PLAYER(i)->stats[1] = PLAYER(i)->baseAttackPowers[0];

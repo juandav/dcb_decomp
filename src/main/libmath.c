@@ -1,6 +1,7 @@
 /*
- * The end of the soft-float library: an empty function and a double square
- * root, both compiled. The arithmetic before them is hand-written assembly,
+ * The end of the soft-float library: the trap handler the exception hooks
+ * call, left empty, and a double square root by Newton's method, both
+ * compiled. The arithmetic before them is hand-written assembly,
  * in libmath.s.
  */
 #include "common.h"
@@ -9,10 +10,10 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 
-void func_80026D84(void) {
+void handleSoftFloatTrap(void) {
 }
 
-double func_80026D8C(double x) {
+double sqrtDouble(double x) {
     double r;
     double s;
 

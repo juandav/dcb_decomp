@@ -34,8 +34,8 @@ void setReverbType(s32 reverbType);
 s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr);
 void transferSlotVabBody(SndSlot *slot, s32 vabBody, s32 vab);
 void setInstantVoiceRelease(void);
-void func_8002B3DC(void);
-void func_8002B3E4(void);
+void emptySoundFunction1(void);
+void emptySoundFunction2(void);
 void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume);
 
 #endif /* DCB_SOUND_H */

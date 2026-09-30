@@ -67,7 +67,7 @@ extern UiWindow OPEN_PLAYER_NAME_WINDOW;
 extern UiWindow OPEN_IMAGE_WINDOW;
 extern POLY_FT4 OPEN_TITLE_PART_PRIMS[2][40];
 extern u16 OPEN_WHITE_CLUT[256];
-extern s16 D_80079584;
+extern s16 CAMERA_TARGET_MODEL;
 
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims);
 
@@ -527,7 +527,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
     done = 0;
     OPEN_startSceneTasks();
     loadDigimonModelPak(0, 0xEB, 0, 1);
-    D_80079584 = 0;
+    CAMERA_TARGET_MODEL = 0;
     addFrameCallback((s32)OPEN_drawIntroScreen);
     playMenuSound(3);
     model = 0;

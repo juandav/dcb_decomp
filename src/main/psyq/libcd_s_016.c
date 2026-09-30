@@ -42,7 +42,7 @@ int CdControlB(u_char com, u_char *param, u_char *result) {
 
 OBJECT_END(1);
 
-int func_8005A784(CdlATV *vol) {
+int CdMix(CdlATV *vol) {
     CD_vol(vol);
     return 1;
 }

@@ -6,7 +6,7 @@
 extern s32 SUG_CAMERA_SPIN;
 extern s32 D_801EF384;
 extern s32 D_801EF388;
-extern u16 D_80079586;
+extern u16 CAMERA_TARGET_PITCH;
 
 void SUG_resetCameraPos(void) {
     CAMERA->posZ = 0;
@@ -37,7 +37,7 @@ void SUG_orbitCamera(void) {
         outStep = -1;
         inStep = -16;
     }
-    angle = D_80079586 & 0xFFF;
+    angle = CAMERA_TARGET_PITCH & 0xFFF;
     if (max < angle || angle < min) {
         CAMERA->targetPitch += outStep * speed;
     } else {

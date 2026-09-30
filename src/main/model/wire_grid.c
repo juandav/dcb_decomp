@@ -24,7 +24,7 @@
 
 s32 GRID_VISIBLE = 1;
 u8 GRID_PULSE_PHASE = 0;
-u8 D_8006DF8C[12] = { 0 };
+u8 UNUSED_GRID_BYTES[12] = { 0 };
 
 void renderWireGrid(FrameBuffer *buffer, s32 bufferIndex) {
     LINE_F2 *line;

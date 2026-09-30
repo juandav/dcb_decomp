@@ -90,7 +90,8 @@ void fadeOutMusic(s32 step) {
     }
 }
 
-void func_8002B850(void) {
+/* left empty; nothing calls it */
+void emptyMusicFunction(void) {
 }
 
 void playLoadedMusic(s32 slotIndex) {
