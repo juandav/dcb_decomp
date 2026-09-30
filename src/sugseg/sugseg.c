@@ -26,12 +26,36 @@
 #include "dcb/angle.h"
 #include "gte.h"
 
+/* a texture animation (.tam): frames of UVs, or a scroll, played on a VRAM rect */
+typedef struct {
+    s16 duration;
+    u8 u;
+    u8 v;
+} AnimFrame;
+typedef struct {
+    u8 count;
+    u8 loop; /* bit 0: copy the frames in VRAM instead of moving the UVs; the rest: the frame to loop to */
+    u8 w;
+    u8 h;
+} AnimHeader;
+typedef struct {
+    /* 0x00 */ Rect16 rect;
+    /* 0x08 */ s16 *dst; /* the UVs it animates */
+    /* 0x0C */ AnimHeader *header;
+    /* 0x10 */ AnimFrame *frames;
+    /* 0x14 */ s16 frame;
+    /* 0x16 */ s16 timer;
+    /* 0x18 */ s32 type; /* 0-3: scroll left, right, up, down; else play the frames */
+    /* 0x1C */ u8 *pixels;
+} TexAnim;
+
 /* main's createRingEffect, renderRingEffect and freeRingEffect call these three
    through their addresses (func_801E6C78, func_801E7020, func_801E72D4 in game.h) */
-s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak);
-void SUG_tickTexAnim(u8 *arg);
-void SUG_freeTexAnim(u8 *obj);
+s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak);
+void SUG_tickTexAnim(TexAnim *anim);
+void SUG_freeTexAnim(TexAnim *anim);
 
+#define CAMERA ((Graphics *)&GRAPHICS)
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
 
@@ -130,7 +154,7 @@ typedef struct {
     /* 0x000 */ u8 unk0[0x139];
     /* 0x139 */ u8 suspended;
     /* 0x13A */ u8 unk13A[2];
-    /* 0x13C */ u8 texAnim[0x20];
+    /* 0x13C */ TexAnim texAnim;
     /* 0x15C */ DrTPage *tpages[2];
     /* 0x164 */ POLY_F3 *tris[2];
     /* 0x16C */ POLY_F4 *quads[2];
@@ -163,66 +187,129 @@ typedef struct {
     /* 0x1DC */ u8 openBottom;
     /* 0x1DD */ u8 cull;
 } SphereEffect;
-void SUG_drawSphereLines(SphereEffect *fx, u8 a1, s32 n, s32 a3, s32 otz);
+void SUG_drawSphereLines(SphereEffect *fx, u8 cull, s32 n, s32 speed, s32 otz);
 void SUG_drawSphereF(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_drawSphereG(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_drawSphereGT(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 
+/* The effect script's registers (0x1CC words, allocScriptRegisters) as the
+   effect commands read them: SUG_EFFECT_CREATE_FUNCS[kind] builds an effect
+   from them, and SUG_setEffectParams copies the motion ones (0x65C-0x6E8) to
+   it. A register below 0x1A0 means different things for different kinds; the
+   comments say which. */
 typedef struct {
-    u8 unk0[0x5C];
-    s32 unk5C;
-    s32 unk60;
-    s32 unk64;
-    s32 unk68;
-    s32 unk6C;
-    s32 texMode;
-    s32 unk74;
-    s32 abr;
-    u8 unk7C[0x28];
-    s32 r;
-    s32 g;
-    s32 b;
-    s32 midR;
-    s32 midG;
-    s32 midB;
-    s32 outerR;
-    s32 outerG;
-    s32 outerB;
-    s32 lastR;
-    s32 lastG;
-    s32 lastB;
-    u8 unkD4[0x18];
-    s32 unkEC;
-    u8 unkF0[8];
-    s32 unkF8;
-    u8 unkFC[8];
-    s32 innerRadius;
-    s32 outerRadius;
-    s32 innerZ;
-    s32 outerZ;
-    s32 midPercent;
-    s32 unk118;
-    u8 unk11C[4];
-    s32 unk120;
-    u8 unk124[4];
-    s32 u1;
-    s32 unk12C;
-    s32 unk130;
-    u8 unk134[4];
-    s32 unk138;
-    s32 unk13C;
-    u8 unk140[0x10];
-    s32 texX;
-    s32 texY;
-    s32 texW;
-    s32 texH;
-    s32 clutX;
-    s32 clutY;
-    s32 unk168;
-    s32 unk16C;
-} SpriteCommand;
+    /* 0x000 */ u8 unk0[0x5C];
+    /* 0x05C */ s32 count; /* ring segments, trail length, sphere: 1 = open at the bottom */
+    /* 0x060 */ s32 slices;
+    /* 0x064 */ s32 segments;
+    /* 0x068 */ s32 pulse;
+    /* 0x06C */ s32 pulseMode; /* the trail's colour mode */
+    /* 0x070 */ s32 texDepth;
+    /* 0x074 */ s32 semiTrans;
+    /* 0x078 */ s32 abr;
+    /* 0x07C */ u8 unk7C[4];
+    /* 0x080 */ s32 rate; /* the fade rect's colour step, the scroll texture's speed */
+    /* 0x084 */ s32 x;
+    /* 0x088 */ s32 y;
+    /* 0x08C */ u8 unk8C[0x18];
+    /* 0x0A4 */ s32 r0;
+    /* 0x0A8 */ s32 g0;
+    /* 0x0AC */ s32 b0;
+    /* 0x0B0 */ s32 r1;
+    /* 0x0B4 */ s32 g1;
+    /* 0x0B8 */ s32 b1;
+    /* 0x0BC */ s32 r2;
+    /* 0x0C0 */ s32 g2;
+    /* 0x0C4 */ s32 b2;
+    /* 0x0C8 */ s32 r3;
+    /* 0x0CC */ s32 g3;
+    /* 0x0D0 */ s32 b3;
+    /* 0x0D4 */ u8 unkD4[0x10];
+    /* 0x0E4 */ s32 hold; /* frames the screen copy stays still */
+    /* 0x0E8 */ u8 unkE8[4];
+    /* 0x0EC */ s32 brightness;
+    /* 0x0F0 */ u8 unkF0[8];
+    /* 0x0F8 */ s32 radius;
+    /* 0x0FC */ u8 unkFC[8];
+    /* 0x104 */ s32 innerRadius;
+    /* 0x108 */ s32 outerRadius;
+    /* 0x10C */ s32 innerZ;
+    /* 0x110 */ s32 outerZ;
+    /* 0x114 */ s32 midPercent;
+    /* 0x118 */ s32 rows; /* trail history rows; the screen copy's fade time */
+    /* 0x11C */ u8 unk11C[4];
+    /* 0x120 */ s32 variant; /* fade rect and scroll texture mode, the trail's follow mode */
+    /* 0x124 */ u8 unk124[4];
+    /* 0x128 */ s32 flags;
+    /* 0x12C */ s32 primKind;
+    /* 0x130 */ u32 texAnimId;
+    /* 0x134 */ u8 unk134[4];
+    /* 0x138 */ s32 cull;
+    /* 0x13C */ union {
+        s32 w;
+        u8 b;
+        s16 h;
+    } otz;
+    /* 0x140 */ s32 rectX;
+    /* 0x144 */ s32 rectY;
+    /* 0x148 */ s32 rectW;
+    /* 0x14C */ s32 rectH;
+    /* 0x150 */ s32 texX;
+    /* 0x154 */ s32 texY;
+    /* 0x158 */ s32 texW;
+    /* 0x15C */ s32 texH;
+    /* 0x160 */ s32 clutX;
+    /* 0x164 */ s32 clutY;
+    /* 0x168 */ s32 edgeX0; /* where the trail's two edges sit */
+    /* 0x16C */ s32 edgeX1;
+    /* 0x170 */ u8 unk170[0x20];
+    /* 0x190 */ s32 pattern;
+    /* 0x194 */ s32 zOffset;
+    /* 0x198 */ s32 spin;
+    /* 0x19C */ s32 kind;
+    /* 0x1A0 */ u8 unk1A0[0x4BC];
+    /* a light motion reads pos and pos2 as where the light moves from and to, rot
+       as its light, period and duration, and scale and scale2 as its colour */
+    /* 0x65C */ s32 pos[3];
+    /* 0x668 */ s32 pos2[3];
+    /* 0x674 */ s32 moveSpeed;
+    /* 0x678 */ s32 moveAccel;
+    /* 0x67C */ s32 rot[3];
+    /* 0x688 */ s32 rot2[3];
+    /* 0x694 */ s32 rotAccel[3];
+    /* 0x6A0 */ s32 scale[3];
+    /* 0x6AC */ s32 scale2[3];
+    /* 0x6B8 */ s32 scaleStep[3];
+    /* 0x6C4 */ s32 hitRadius;
+    /* 0x6C8 */ s32 period;
+    /* 0x6CC */ s32 fadeMode;
+    /* 0x6D0 */ s32 speed;
+    /* 0x6D4 */ s32 mode;
+    /* 0x6D8 */ s32 wavePhase;
+    /* 0x6DC */ s32 waveAmplitude;
+    /* 0x6E0 */ s32 waveFreq;
+    /* 0x6E4 */ s32 target; /* the bone it hangs from (the effect slot if source is -1); < 0: the script's root */
+    /* 0x6E8 */ s32 id; /* model id, sprite key */
+    /* 0x6EC */ s32 anim;
+    /* 0x6F0 */ s32 vramEntries; /* model: its VRAM slot table; sprite: nonzero if it moves */
+    /* 0x6F4 */ s32 modelTexAnimId;
+    /* 0x6F8 */ s32 source; /* the model: an index into modelSlots, -1 an effect slot, -2 - n model effect n */
+    /* 0x6FC */ s32 spreadY;
+    /* 0x700 */ s32 spreadX;
+    /* 0x704 */ s32 length;
+    /* 0x708 */ s32 frames;
+    /* 0x70C */ s32 speedRange;
+    /* 0x710 */ s32 reverse;
+    /* 0x714 */ s32 streakCount;
+    /* 0x718 */ s32 endLength;
+    /* 0x71C */ s32 flipX;
+    /* 0x720 */ s32 flipY;
+    /* 0x724 */ s32 unk724;
+    /* 0x728 */ s32 useOrigin;
+    /* 0x72C */ s32 allBones; /* 0: animate only the model's root */
+} EffectParams;
 u16 func_80067644(s32 x, s32 y);
-SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8, u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18);
+SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 pulseMode, EffectTemplate *template, s16 segments, s16 slices, s32 radius, u8 semiTrans, u8 abr, u8 primKind, u8 openBottom, s16 texAnimId, Rect16 *uv, s32 tpage, s32 clut, u8 cull, s32 otz, s32 pak);
 
 typedef struct {
     s32 duration;
@@ -267,7 +354,7 @@ typedef struct {
     u8 unk8A;
     s8 useOrigin;
 } Sprite;
-void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey);
+void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 otz, s32 useOrigin, s32 subKey);
 typedef struct {
     u32 turn : 1;
     u32 flag1 : 1;
@@ -371,63 +458,10 @@ typedef struct {
     s8 source;
 } EffectInit;
 typedef struct {
-    u8 unk0[0x65C];
-    s32 pos[3];
-    s32 pos2[3];
-    s32 moveSpeed;
-    s32 moveAccel;
-    s32 rot[3];
-    s32 rot2[3];
-    s32 rotAccel[3];
-    s32 scale[3];
-    s32 scale2[3];
-    s32 scaleStep[3];
-    s32 hitRadius;
-    s32 period;
-    s32 fadeMode;
-    s32 speed;
-    s32 mode;
-    s32 wavePhase;
-    s32 waveAmplitude;
-    s32 waveFreq;
-    s32 target;
-    u8 unk6E8[0x10];
-    s32 source;
-} EffectCommand;
-typedef struct {
     s32 v[4];
 } Entry16;
-void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9);
-void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey);
-typedef struct {
-    u8 unk0[0x74];
-    s32 semi;
-    u8 unk78[0x2C];
-    s32 fromR;
-    s32 fromG;
-    s32 fromB;
-    s32 toR;
-    s32 toG;
-    s32 toB;
-    u8 unkBC[0x6C];
-    s32 flags;
-    u8 unk12C[0x10];
-    s32 fixedOtz;
-    u8 unk140[0x50];
-    s32 pattern;
-    s32 zOffset;
-    s32 spin;
-    s32 kind;
-    u8 unk1A0[0x55C];
-    s32 spreadY;
-    s32 spreadX;
-    s32 length;
-    s32 frames;
-    s32 speedRange;
-    s32 reverse;
-    s32 count;
-    s32 endLength;
-} StreakCommand;
+void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 texAnimId, s32 vramSlot, u8 a6, s32 allBones, s32 pak, s32 a9);
+void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 otz, s32 subKey);
 void SUG_tickScreenCopyEffect(void);
 
 typedef struct {
@@ -435,7 +469,7 @@ typedef struct {
     u8 suspended;
     u8 unk13A[2];
     ModelData *model;
-    u8 texAnim[0x20];
+    TexAnim texAnim;
     ClutFade fade;
     s16 lastBrightness;
     s8 modelSlot;
@@ -446,16 +480,6 @@ typedef struct {
 } ModelEffect;
 extern MATRIX SUG_DEFAULT_LIGHT_MATRIX;
 extern MATRIX SUG_DEFAULT_LIGHT_COLORS;
-typedef struct {
-    u8 unk0[0x130];
-    u32 animId;
-    u8 unk134[0x1C];
-    s32 pixelX;
-    s32 pixelY;
-    u8 unk158[8];
-    s32 clutX;
-    s32 clutY;
-} Unk801E8168;
 typedef struct {
     u8 unk0[0x98];
     void *parent;
@@ -484,18 +508,6 @@ typedef struct {
     u8 unk138[4];
 } RootEffect;
 extern RootEffect SUG_EFFECT_ROOT;
-typedef struct {
-    u8 unk0[0x65C];
-    s32 unk65C[3];
-    s32 unk668[3];
-    u8 unk674[8];
-    s32 unk67C;
-    s32 unk680;
-    s32 unk684;
-    u8 unk688[0x18];
-    s32 unk6A0[3];
-    s32 unk6AC[3];
-} Unk801E9FE0;
 LightMotion *SUG_createLightMotion(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration);
 
 typedef struct {
@@ -546,7 +558,7 @@ typedef struct {
     u8 fadeState;
     u8 suspended;
     u8 unk13A[2];
-    u8 texAnim[0x20];
+    TexAnim texAnim;
     u8 *colors;
     DrTPage *tpages[2];
     LineG2 *lines[2];
@@ -574,69 +586,40 @@ typedef struct {
     u8 colorMode;
     u8 primeCount;
 } TrailEffect;
-TrailEffect *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
-                           s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
-                           s32 a19, s32 a20);
+TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+                           s32 count, s16 rows, u8 followMode, u8 colorMode, u8 semiTrans, u8 blend, u8 primKind, s32 texAnimId, Rect16 *uv, s32 tpage, s32 clut,
+                           s32 otz, s32 pak);
 void SUG_setTrailColors(TrailEffect *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3);
-void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut);
+void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 texAnimId, Rect16 *uv, s32 tpage, s32 clut);
 void SUG_freePosHistory(void **obj);
-void SUG_freeTexAnim(u8 *obj);
 void SUG_fillGradientColors(void *a0, s32 a1, s32 a2, s32 a3, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, Bytes4 *a8);
 typedef struct {
     s32 key;
     void *data;
 } TamEntry;
 extern TamEntry SUG_TAM_CACHE[8];
-typedef struct {
-    s16 duration;
-    u8 u;
-    u8 v;
-} AnimFrame;
-typedef struct {
-    u8 count;
-    u8 loop;
-    u8 w;
-    u8 h;
-} AnimHeader;
-typedef struct {
-    Rect16 rect;
-    s16 *dst;
-    AnimHeader *header;
-    AnimFrame *frames;
-    s16 frame;
-    s16 timer;
-    s32 type;
-    u8 *pixels;
-} TexAnim;
 s32 LoadImage2(Rect16 *rect, u8 *pixels);
 s32 MoveImage2(Rect16 *rect, s32 x, s32 y);
 void SUG_scrollTexAnimLeft(TexAnim *image);
 void SUG_scrollTexAnimRight(TexAnim *image);
 void SUG_scrollTexAnimUp(TexAnim *image);
 void SUG_scrollTexAnimDown(TexAnim *image);
-typedef struct {
-    s16 kind;
-    u8 unk2[2];
-    u8 *source;
-} Unk801E7BEC;
-typedef struct {
-    u8 unk0[0x13C];
-    s32 value;
-} Unk801E7BEC_Dst;
-typedef struct {
-    s16 kind;
-    u8 unk2[2];
-    u8 *target;
-} Unk801E7C94;
-typedef union {
-    s32 w;
-    u8 b;
-    s16 h;
-} Value;
-typedef struct {
-    u8 unk0[0x13C];
-    Value value;
-} Unk801E7C94_Src;
+/* the kinds of effect an effect script creates: the index into
+   SUG_EFFECT_TICK_FUNCS, SUG_EFFECT_CREATE_FUNCS and SUG_EFFECT_FREE_FUNCS.
+   From EFFECT_SPHERE on they all start with an EffectObject */
+enum {
+    EFFECT_FADE_RECT = 0,
+    EFFECT_SCROLL_TEXTURE = 1,
+    EFFECT_LIGHT_MOTION = 3,
+    EFFECT_SPHERE = 10,
+    EFFECT_TRAIL = 12,
+    EFFECT_RING = 13,
+    EFFECT_OBJECT = 14,
+    EFFECT_MODEL = 15,
+    EFFECT_SPRITE = 16,
+    EFFECT_STREAKS = 17,
+};
+/* one effect a script created: its kind and the effect itself */
 typedef struct {
     s16 id;
     s16 active;
@@ -684,9 +667,9 @@ typedef struct {
     u8 visible;
     u8 mode;
 } ColorQuad;
-ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode);
+ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 step, u8 mode);
 ScrollTex *SUG_createScrollTexture(Rect16 *rect, s32 depth, s32 mode, s16 speed);
-void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, EffectSlots *ctx);
+void SUG_initEffectFromParams(EffectTemplate *template, EffectParams *cmd, EffectSlots *ctx);
 void SUG_freeEffectSlots(void *obj);
 extern s32 SUG_SCREEN_FX_FRAME;
 extern u8 SUG_SCREEN_FX_BASE_RGB[3];
@@ -884,7 +867,7 @@ void SUG_freeValueHistory(void **obj) {
     freeHeapBlock(obj);
 }
 
-void SUG_setSphereColor(u8 *object, Bytes4 *src, s16 x, s16 y);
+void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode);
 /* called with one argument more than their definitions take (a trailing 1) */
 void initLineF2Pair();
 void initPolyF3Pair();
@@ -892,8 +875,8 @@ void initPolyF4Pair();
 void initPolyG3Pair();
 void initPolyGT3Pair();
 
-SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTemplate *template, s16 a5, s16 a6, s32 a7, u8 a8,
-                           u8 a9, u8 a10, u8 a11, s16 a12, Rect16 *uv, s32 tpage, s32 clut, u8 a16, s32 a17, s32 a18) {
+SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 pulseMode, EffectTemplate *template, s16 segments, s16 slices, s32 radius, u8 semiTrans,
+                           u8 abr, u8 primKind, u8 openBottom, s16 texAnimId, Rect16 *uv, s32 tpage, s32 clut, u8 cull, s32 otz, s32 pak) {
     SphereEffect *fx;
     s32 rings;
     s32 total;
@@ -923,28 +906,28 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
     DrTPage *tp1;
 
     fx = allocTaskHeapBlock(0x1E0);
-    fx->segments = a5;
-    fx->slices = a6;
-    rings = (a6 - 3) / 2;
+    fx->segments = segments;
+    fx->slices = slices;
+    rings = (slices - 3) / 2;
     fx->ringCount = rings + 1;
-    total = (rings + 1) * a5;
+    total = (rings + 1) * segments;
     fx->vertCount = total + 2;
-    fx->ringVertCount = (rings + 2) * a5;
-    fx->lineCount = total + rings * a5 + a5 * 2;
-    if (a12 >= 0 && SUG_startTexAnim(a12, 3, (RingEffect *)fx, fx->texAnim, a18) != 0) {
+    fx->ringVertCount = (rings + 2) * segments;
+    fx->lineCount = total + rings * segments + segments * 2;
+    if (texAnimId >= 0 && SUG_startTexAnim(texAnimId, 3, (RingEffect *)fx, &fx->texAnim, pak) != 0) {
         fx->texAnimActive = 1;
     } else {
         fx->texAnimActive = -1;
     }
     fx->verts = allocTaskHeapBlock(fx->vertCount * sizeof(SVECTOR));
-    fx->kind = a10;
-    fx->semiTrans = a8;
-    fx->openBottom = a11;
-    fx->abr = a9;
-    fx->brightness = a0;
-    SUG_setSphereColor((u8 *)fx, (Bytes4 *)color, a2, a3);
-    fx->cull = a16;
-    fx->otz = a17;
+    fx->kind = primKind;
+    fx->semiTrans = semiTrans;
+    fx->openBottom = openBottom;
+    fx->abr = abr;
+    fx->brightness = brightness;
+    SUG_setSphereColor(fx, (Bytes4 *)color, pulse, pulseMode);
+    fx->cull = cull;
+    fx->otz = otz;
     *(EffectTemplate *)fx = *template;
     initEffectObject(fx);
     for (i = 0; i < 2; i++) {
@@ -957,15 +940,15 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         fx->lines[i] = NULL;
         fx->tpages[i] = NULL;
     }
-    if (a11 != 0) {
+    if (openBottom != 0) {
         fx->ringVertCount /= 2;
     }
-    switch (a10) {
+    switch (primKind) {
     case 0:
         for (i = 0; i < 2; i++) {
             fx->lines[i] = allocTaskHeapBlock(fx->lineCount * sizeof(LineF2));
         }
-        if (a8 != 0) {
+        if (semiTrans != 0) {
             for (i = 0; i < 2; i++) {
                 fx->tpages[i] = allocTaskHeapBlock(fx->lineCount * sizeof(DrTPage));
             }
@@ -975,23 +958,23 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
         for (i = 0; i < fx->lineCount; i++, line0++, line1++, tp0++, tp1++) {
-            if (a8 == 0) {
-                initLineF2Pair(line0, line1, 0, a9, 0, 0, 0, 1);
+            if (semiTrans == 0) {
+                initLineF2Pair(line0, line1, 0, abr, 0, 0, 0, 1);
             } else {
-                initLineF2Pair(line0, line1, 0, a9, tp0, tp1, 1, 1);
+                initLineF2Pair(line0, line1, 0, abr, tp0, tp1, 1, 1);
             }
         }
         break;
     case 8:
-        if (a8 != 0) {
+        if (semiTrans != 0) {
             for (i = 0; i < 2; i++) {
                 fx->tpages[i] = allocTaskHeapBlock(fx->ringVertCount * sizeof(DrTPage));
             }
         }
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
-        n = a5;
-        if (a11 == 0) {
+        n = segments;
+        if (openBottom == 0) {
             n *= 2;
         }
         for (i = 0; i < 2; i++) {
@@ -1000,10 +983,10 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         tri0 = fx->tris[0];
         tri1 = fx->tris[1];
         for (i = 0; i < n; i++, tri0++, tri1++, tp0++, tp1++) {
-            if (a8 == 0) {
-                initPolyF3Pair(tri0, tri1, 0, a9, 0, 0, 0, 1);
+            if (semiTrans == 0) {
+                initPolyF3Pair(tri0, tri1, 0, abr, 0, 0, 0, 1);
             } else {
-                initPolyF3Pair(tri0, tri1, 0, a9, tp0, tp1, 1, 1);
+                initPolyF3Pair(tri0, tri1, 0, abr, tp0, tp1, 1, 1);
             }
         }
         if (fx->ringVertCount - n > 0) {
@@ -1013,24 +996,24 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
             quad0 = fx->quads[0];
             quad1 = fx->quads[1];
             for (i = 0; i < fx->ringVertCount - n; i++, quad0++, quad1++, tp0++, tp1++) {
-                if (a8 == 0) {
-                    initPolyF4Pair(quad0, quad1, 0, a9, 0, 0, 0, 0, 1);
+                if (semiTrans == 0) {
+                    initPolyF4Pair(quad0, quad1, 0, abr, 0, 0, 0, 0, 1);
                 } else {
-                    initPolyF4Pair(quad0, quad1, 0, a9, tp0, tp1, 0, 1, 1);
+                    initPolyF4Pair(quad0, quad1, 0, abr, tp0, tp1, 0, 1, 1);
                 }
             }
         }
         break;
     case 9:
-        if (a8 != 0) {
+        if (semiTrans != 0) {
             for (i = 0; i < 2; i++) {
                 fx->tpages[i] = allocTaskHeapBlock(fx->ringVertCount * sizeof(DrTPage));
             }
         }
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
-        n = a5;
-        if (a11 == 0) {
+        n = segments;
+        if (openBottom == 0) {
             n *= 2;
         }
         for (i = 0; i < 2; i++) {
@@ -1039,10 +1022,10 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         gtri0 = fx->gtris[0];
         gtri1 = fx->gtris[1];
         for (i = 0; i < n; i++, gtri0++, gtri1++, tp0++, tp1++) {
-            if (a8 == 0) {
-                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, a9, 0, 0, 0, 1);
+            if (semiTrans == 0) {
+                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, abr, 0, 0, 0, 1);
             } else {
-                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, a9, tp0, tp1, 1, 1);
+                initPolyG3Pair(gtri0, gtri1, 0, 0, 0, abr, tp0, tp1, 1, 1);
             }
         }
         if (fx->ringVertCount - n > 0) {
@@ -1052,17 +1035,17 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
             gquad0 = fx->gquads[0];
             gquad1 = fx->gquads[1];
             for (i = 0; i < fx->ringVertCount - n; i++, gquad0++, gquad1++, tp0++, tp1++) {
-                if (a8 == 0) {
-                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, a9, 0, 0, 0, 0, 1);
+                if (semiTrans == 0) {
+                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, abr, 0, 0, 0, 0, 1);
                 } else {
-                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, a9, tp0, tp1, 0, 1, 1);
+                    initPolyG4Pair(gquad0, gquad1, 0, 0, 0, 0, abr, tp0, tp1, 0, 1, 1);
                 }
             }
         }
         break;
     case 13:
-        n = a5;
-        if (a11 == 0) {
+        n = segments;
+        if (openBottom == 0) {
             n *= 2;
         }
         for (i = 0; i < 2; i++) {
@@ -1071,12 +1054,12 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         ttri0 = fx->ttris[0];
         ttri1 = fx->ttris[1];
         for (i = 0; i < n; i++, ttri0++, ttri1++) {
-            if (a8 == 0) {
+            if (semiTrans == 0) {
                 initPolyGT3Pair(ttri0, ttri1, 0, 0, 0, tpage, clut, 0, 0, 0, 1);
             } else {
                 initPolyGT3Pair(ttri0, ttri1, 0, 0, 0, tpage, clut, 0, 0, 1, 1);
             }
-            if (i / a5 == 0) {
+            if (i / segments == 0) {
                 ttri0->u0 = uv->x + uv->w;
                 ttri0->v0 = uv->y + uv->h;
                 ttri0->u1 = uv->x;
@@ -1111,7 +1094,7 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
             tquad0 = fx->tquads[0];
             tquad1 = fx->tquads[1];
             for (i = 0; i < fx->ringVertCount - n; i++, tquad0++, tquad1++) {
-                if (a8 == 0) {
+                if (semiTrans == 0) {
                     initPolyGT4Pair(tquad0, tquad1, 0, 0, 0, 0, tpage, clut, uv, 0, 0, 1);
                 } else {
                     initPolyGT4Pair(tquad0, tquad1, 0, 0, 0, 0, tpage, clut, uv, 0, 1, 1);
@@ -1123,32 +1106,32 @@ SphereEffect *SUG_createSphereEffect(s16 a0, u8 *color, s16 a2, s16 a3, EffectTe
         fx->clut = clut;
         break;
     }
-    angStep = 0x1000 / a5;
-    latStep = 0x1000 / a6;
+    angStep = 0x1000 / segments;
+    latStep = 0x1000 / slices;
     ringStep = 0x800 / (fx->ringCount + 1);
     fx->verts[0].vx = 0;
-    fx->verts[0].vy = -a7;
+    fx->verts[0].vy = -radius;
     fx->verts[0].vz = 0;
     fx->verts[fx->vertCount - 1].vx = 0;
-    fx->verts[fx->vertCount - 1].vy = a7;
+    fx->verts[fx->vertCount - 1].vy = radius;
     fx->verts[fx->vertCount - 1].vz = 0;
     k = 1;
     for (n = 0; n < fx->ringCount; n++) {
-        r = a7 * rsin(ringStep * (n + 1)) >> 12;
-        for (j = 0; j < a5; j++, k++) {
+        r = radius * rsin(ringStep * (n + 1)) >> 12;
+        for (j = 0; j < segments; j++, k++) {
             fx->verts[k].vx = r * rcos(angStep * j) >> 12;
             fx->verts[k].vz = r * rsin(angStep * j) >> 12;
-            fx->verts[k].vy = -(a7 * rcos(latStep * (n + 1))) >> 12;
+            fx->verts[k].vy = -(radius * rcos(latStep * (n + 1))) >> 12;
         }
     }
     return fx;
 }
 
-void SUG_setSphereColor(u8 *object, Bytes4 *src, s16 x, s16 y) {
-    *(Bytes4 *)(object + 0x1A0) = *src;
-    *(s16 *)(object + 0x1D0) = x;
-    *(s16 *)(object + 0x1D2) = y;
-    *(s16 *)(object + 0x1D6) = -1;
+void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode) {
+    *(Bytes4 *)fx->rgb = *rgb;
+    fx->pulse = pulse;
+    fx->pulseMode = pulseMode;
+    fx->prevBrightness = -1; /* make the next tick recolour the prims */
 }
 
 void SUG_tickSphereEffect(SphereEffect *fx) {
@@ -1201,7 +1184,7 @@ void SUG_tickSphereEffect(SphereEffect *fx) {
     PopMatrix();
 }
 
-void SUG_drawSphereLines(SphereEffect *fx, u8 a1, s32 n, s32 a3, s32 otz) {
+void SUG_drawSphereLines(SphereEffect *fx, u8 cull, s32 n, s32 speed, s32 otz) {
     u8 rgb[3];
     s32 i;
     s32 j;
@@ -1731,7 +1714,7 @@ void SUG_updateSphereUvs(SphereEffect *obj) {
     s32 skip;
 
     n = obj->segments;
-    SUG_tickTexAnim(obj->texAnim);
+    SUG_tickTexAnim(&obj->texAnim);
     uv = obj->uv;
     for (i = 0; i < n; i++) {
         obj->ttris[FRAME_BUFFER_INDEX][i].u0 = uv.x + uv.w;
@@ -1771,7 +1754,7 @@ void SUG_freeSphereEffect(SphereEffect *obj) {
 
     freeHeapBlock(obj->verts);
     if (obj->texAnimActive >= 0) {
-        SUG_freeTexAnim(obj->texAnim);
+        SUG_freeTexAnim(&obj->texAnim);
     }
     for (i = 0; i < 2; i++) {
         if (obj->tris[i] != NULL) {
@@ -2303,7 +2286,7 @@ void SUG_uploadShadedClut(ClutFade *fade, u16 stp) {
 
 extern const Rect16 SUG_MODEL_CLUT_RECT;
 
-void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 a4, s32 vramSlot, u8 a6, s32 a7, s32 pak, s32 a9) {
+void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelId, s32 anim, s32 texAnimId, s32 vramSlot, u8 a6, s32 allBones, s32 pak, s32 a9) {
     ModelEffect *fx;
     Rect16 rect;
     s32 slot;
@@ -2319,7 +2302,7 @@ void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelI
     fx->model = SCENE_3D->models[slot];
     if (anim >= 0 && loadModelAnimation(slot, anim, 0, pak)) {
         applyAnimationFirstFrame(slot, 0);
-        startModelAnimation(slot, 0, -2, a7 ^ 1);
+        startModelAnimation(slot, 0, -2, allBones ^ 1);
     }
     if (template != NULL) {
         *(EffectTemplate *)fx = *template;
@@ -2332,7 +2315,7 @@ void *SUG_createModelEffect(s16 brightness, EffectTemplate *template, s32 modelI
     }
     fx->unk574 = a9;
     fx->model->owner = fx;
-    if (vramSlot != 0 && a4 >= 0 && SUG_startTexAnim(a4, 0, (RingEffect *)fx->model, fx->texAnim, pak)) {
+    if (vramSlot != 0 && texAnimId >= 0 && SUG_startTexAnim(texAnimId, 0, (RingEffect *)fx->model, &fx->texAnim, pak)) {
         fx->texAnimActive = 1;
     } else {
         fx->texAnimActive = -1;
@@ -2379,7 +2362,7 @@ void SUG_tickModelEffect(ModelEffect *obj) {
         SCENE_3D->modelState[obj->modelSlot] = 3;
     }
     if (obj->texAnimActive >= 0) {
-        SUG_tickTexAnim(obj->texAnim);
+        SUG_tickTexAnim(&obj->texAnim);
     }
 }
 
@@ -2488,14 +2471,14 @@ void SUG_shadeModelClut(s32 slot, s32 target) {
     }
 }
 
-void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 a7, s32 subKey) {
+void *SUG_createSpriteEffect(s32 brightness, EffectTemplate *template, s32 key, s32 flipX, s32 flipY, s32 a5, s32 useOrigin, s32 otz, s32 subKey) {
     SpriteEffect *fx;
 
     fx = allocTaskHeapBlock(sizeof(SpriteEffect));
     fx->sprite.flipX = flipX;
     fx->sprite.flipY = flipY;
     fx->sprite.unk8A = a5 == 0;
-    SUG_initSprite(&fx->sprite, key, 4, 4, 0, 0, 0, a7, useOrigin, subKey);
+    SUG_initSprite(&fx->sprite, key, 4, 4, 0, 0, 0, otz, useOrigin, subKey);
     fx->brightness = brightness;
     if (template != NULL) {
         *(EffectTemplate *)fx = *template;
@@ -2529,9 +2512,9 @@ void SUG_freeSpriteEffect(void *ptr) {
     freeHeapBlock(ptr);
 }
 
-TrailEffect *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
-                           s32 count, s16 rows, u8 a10, u8 a11, u8 a12, u8 a13, u8 a14, s32 id, Rect16 *uv, s32 tpage, s32 clut,
-                           s32 a19, s32 a20) {
+TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+                           s32 count, s16 rows, u8 followMode, u8 colorMode, u8 semiTrans, u8 blend, u8 primKind, s32 texAnimId, Rect16 *uv, s32 tpage, s32 clut,
+                           s32 otz, s32 pak) {
     TrailEffect *obj;
     s32 i;
 
@@ -2541,28 +2524,28 @@ TrailEffect *SUG_createTrailEffect(s16 a0, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, B
     }
     obj->clut = clut;
     obj->tpage = tpage;
-    obj->semiTrans = a12;
-    obj->primKind = a14;
-    obj->colorMode = a11;
+    obj->semiTrans = semiTrans;
+    obj->primKind = primKind;
+    obj->colorMode = colorMode;
     obj->count = count;
-    obj->blend = a13;
-    obj->level = a0;
+    obj->blend = blend;
+    obj->level = brightness;
     obj->primeCount = 0;
-    obj->followMode = a10;
+    obj->followMode = followMode;
     initTransform(obj->xform, 0, 0, 0, 0, 0, 0, 0);
     *(EffectTemplate *)obj = *template;
     initEffectObject(obj);
-    obj->otz = a19;
+    obj->otz = otz;
     obj->prevPos[1] = obj->prevPos[0] = obj->pos;
     obj->prevRot[0] = obj->rot;
     obj->prevRot[1] = obj->rot;
     initTransform(obj->edges[0], (s32)obj, x0, 0, 0, 0, 0, 0);
     initTransform(obj->edges[1], (s32)obj, x1, 0, 0, 0, 0, 0);
-    obj->colors = allocTaskHeapBlock(a11 ? count * 16 : 16);
-    SUG_initTrailPrims(obj, a12, a13, a14, id, uv, tpage, clut);
-    SUG_setTrailColors(obj, a11, c0, c1, c2, c3);
-    obj->texAnimId = id;
-    if (id < 100 || SUG_startTexAnim(id, 4, (RingEffect *)obj, obj->texAnim, a20) == 0) {
+    obj->colors = allocTaskHeapBlock(colorMode ? count * 16 : 16);
+    SUG_initTrailPrims(obj, semiTrans, blend, primKind, texAnimId, uv, tpage, clut);
+    SUG_setTrailColors(obj, colorMode, c0, c1, c2, c3);
+    obj->texAnimId = texAnimId;
+    if (texAnimId < 100 || SUG_startTexAnim(texAnimId, 4, (RingEffect *)obj, &obj->texAnim, pak) == 0) {
         obj->texAnimId = -1;
     }
     return obj;
@@ -2723,7 +2706,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
     case 12:
         ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
         if (obj->texAnimId != -1) {
-            SUG_tickTexAnim(obj->texAnim);
+            SUG_tickTexAnim(&obj->texAnim);
         }
         for (i = 0; i < obj->count; i++, ft4++) {
             SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
@@ -2737,7 +2720,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
     case 13:
         gt4 = obj->gt4s[FRAME_BUFFER_INDEX];
         if (obj->texAnimId != -1) {
-            SUG_tickTexAnim(obj->texAnim);
+            SUG_tickTexAnim(&obj->texAnim);
         }
         for (i = 0; i < obj->count; i++, gt4++) {
             SUG_getPosHistory(obj->histories[0], i, NULL, &pos);
@@ -2764,7 +2747,7 @@ void SUG_freeTrailEffect(TrailEffect *obj) {
         SUG_freePosHistory((void **)obj->histories[i]);
     }
     if (obj->texAnimId >= 0) {
-        SUG_freeTexAnim(obj->texAnim);
+        SUG_freeTexAnim(&obj->texAnim);
     }
     freeHeapBlock(obj->colors);
     freeHeapBlock(obj);
@@ -2776,7 +2759,7 @@ void SUG_setTrailColors(TrailEffect *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes
     obj->prevLevel = -1;
 }
 
-void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 a4, Rect16 *uv, s32 tpage, s32 clut) {
+void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 texAnimId, Rect16 *uv, s32 tpage, s32 clut) {
     s32 i;
     LineG2 *line0;
     LineG2 *line1;
@@ -2878,7 +2861,7 @@ void SUG_updateTrailUvs(TrailEffect *obj) {
     POLY_GT4 *gt4;
     s32 i;
 
-    SUG_tickTexAnim(obj->texAnim);
+    SUG_tickTexAnim(&obj->texAnim);
     uv = obj->uv;
     if (obj->texAnimId != 3) {
         switch (obj->primKind) {
@@ -3043,14 +3026,14 @@ void SUG_shadeTrailPrims(TrailEffect *obj) {
 /* called with one argument more than the executable's prototype (dcb/prim_pair.h) */
 void initPolyF4Pair();
 
-ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 a4, u8 mode) {
+ColorQuad *SUG_createFadeRect(Rect16 *rect, Color *color, Color *color2, u8 blend, s16 step, u8 mode) {
     ColorQuad *quad;
 
     quad = allocTaskHeapBlock(sizeof(ColorQuad));
     initPolyF4Pair(&quad->poly[0], &quad->poly[1], color, blend, quad->tpage[0], quad->tpage[1], rect, 1, 1);
     quad->color = *color;
     quad->color2 = *color2;
-    quad->step = a4;
+    quad->step = step;
     quad->mode = mode;
     if (mode < 2 || mode == 3) {
         quad->visible = 1;
@@ -3256,7 +3239,7 @@ void *SUG_loadTamFile(s32 key, s32 *path, s32 sub, Chunk *pak) {
 const Rect16 SUG_MODEL_CLUT_RECT = { 0x30, 0x70, 0x10, 0x10 };
 
 
-s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
+s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak) {
     Rect16 *uv;
     s32 slot;
     u8 y;
@@ -3278,7 +3261,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
     sub = id;
     switch (kind) {
     case 0:
-        model = (ModelData *)obj;
+        model = (ModelData *)owner;
         if (model != NULL) {
             slot = model->unk26D4 / 0x10000 + 5;
             if (model->id > 1000) {
@@ -3295,7 +3278,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         }
         break;
     case 1:
-        ring = obj;
+        ring = owner;
         if (ring->type == 0xD) {
             uv = (Rect16 *)&ring->texCoords;
             y = uv->y;
@@ -3305,7 +3288,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         }
         break;
     case 3:
-        other = (SphereEffect *)obj;
+        other = (SphereEffect *)owner;
         if (other->kind == 0xD) {
             uv = &other->uv;
             y = uv->y;
@@ -3315,84 +3298,83 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *obj, u8 *arg3, s32 pak) {
         }
         break;
     case 4:
-        if (((TrailEffect *)obj)->primKind == 12 || ((TrailEffect *)obj)->primKind == 13) {
-            uv = &((TrailEffect *)obj)->uv;
+        if (((TrailEffect *)owner)->primKind == 12 || ((TrailEffect *)owner)->primKind == 13) {
+            uv = &((TrailEffect *)owner)->uv;
             y = uv->y;
-            slot = ((TrailEffect *)obj)->tpage;
+            slot = ((TrailEffect *)owner)->tpage;
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
     }
     if (slot != 0) {
-        ((TexAnim *)arg3)->timer = 0;
-        ((TexAnim *)arg3)->frame = 0;
-        ((TexAnim *)arg3)->rect.x = (slot & 0xF) << 6;
-        ((TexAnim *)arg3)->rect.y = ((slot >> 4) << 8) + y;
+        anim->timer = 0;
+        anim->frame = 0;
+        anim->rect.x = (slot & 0xF) << 6;
+        anim->rect.y = ((slot >> 4) << 8) + y;
         if (id >= 4) {
-            ((TexAnim *)arg3)->header = SUG_loadTamFile(id, (s32 *)path, sub, (Chunk *)pak);
-            if (((TexAnim *)arg3)->header == NULL) {
+            anim->header = SUG_loadTamFile(id, (s32 *)path, sub, (Chunk *)pak);
+            if (anim->header == NULL) {
                 return 0;
             }
-            ((TexAnim *)arg3)->frames = (AnimFrame *)(((TexAnim *)arg3)->header + 1);
-            ((TexAnim *)arg3)->rect.w = ((TexAnim *)arg3)->header->w;
-            ((TexAnim *)arg3)->rect.h = ((TexAnim *)arg3)->header->h;
-            ((TexAnim *)arg3)->pixels = NULL;
+            anim->frames = (AnimFrame *)(anim->header + 1);
+            anim->rect.w = anim->header->w;
+            anim->rect.h = anim->header->h;
+            anim->pixels = NULL;
         } else {
-            ((TexAnim *)arg3)->rect.w = (uv->w + 1) / 4;
-            ((TexAnim *)arg3)->rect.h = uv->h + 1;
-            ((TexAnim *)arg3)->pixels = allocTaskHeapBlock(((TexAnim *)arg3)->rect.w * 2 * ((TexAnim *)arg3)->rect.h + 4);
-            StoreImage(&((TexAnim *)arg3)->rect, ((TexAnim *)arg3)->pixels);
+            anim->rect.w = (uv->w + 1) / 4;
+            anim->rect.h = uv->h + 1;
+            anim->pixels = allocTaskHeapBlock(anim->rect.w * 2 * anim->rect.h + 4);
+            StoreImage(&anim->rect, anim->pixels);
             DrawSync(0);
         }
-        ((TexAnim *)arg3)->dst = (s16 *)uv;
-        ((TexAnim *)arg3)->type = id;
-        if (!(((TexAnim *)arg3)->header->loop & 1)) {
-            ((TexAnim *)arg3)->rect.x += dx;
+        anim->dst = (s16 *)uv;
+        anim->type = id;
+        if (!(anim->header->loop & 1)) {
+            anim->rect.x += dx;
         }
-        return (s32)arg3;
+        return (s32)anim;
     }
     return 0;
 }
 
-void SUG_tickTexAnim(u8 *arg) {
-    TexAnim *image = (TexAnim *)arg;
+void SUG_tickTexAnim(TexAnim *anim) {
     Rect16 rect;
 
-    image->timer++;
-    switch (image->type) {
+    anim->timer++;
+    switch (anim->type) {
     case 0:
-        SUG_scrollTexAnimLeft(image);
+        SUG_scrollTexAnimLeft(anim);
         return;
     case 1:
-        SUG_scrollTexAnimRight(image);
+        SUG_scrollTexAnimRight(anim);
         return;
     case 2:
-        SUG_scrollTexAnimUp(image);
+        SUG_scrollTexAnimUp(anim);
         return;
     case 3:
-        SUG_scrollTexAnimDown(image);
+        SUG_scrollTexAnimDown(anim);
         return;
     }
-    if (image->timer < image->frames[image->frame].duration) {
+    if (anim->timer < anim->frames[anim->frame].duration) {
         return;
     }
-    image->timer = 0;
-    image->frame++;
-    if (image->frame >= image->header->count) {
-        image->frame = image->header->loop >> 1;
-        if (image->frame == 0x7F) {
-            image->frame--;
+    anim->timer = 0;
+    anim->frame++;
+    if (anim->frame >= anim->header->count) {
+        anim->frame = anim->header->loop >> 1;
+        if (anim->frame == 0x7F) {
+            anim->frame--;
         }
     }
-    if (!(image->header->loop & 1)) {
-        image->dst[0] = image->frames[image->frame].u + ((image->rect.x * 4) & 0xFF);
-        image->dst[1] = (image->rect.y & 0xFF) + image->frames[image->frame].v;
+    if (!(anim->header->loop & 1)) {
+        anim->dst[0] = anim->frames[anim->frame].u + ((anim->rect.x * 4) & 0xFF);
+        anim->dst[1] = (anim->rect.y & 0xFF) + anim->frames[anim->frame].v;
     } else {
-        rect.x = image->frames[image->frame].u + image->rect.x;
-        rect.y = image->frames[image->frame].v + image->rect.y;
-        rect.w = image->rect.w;
-        rect.h = image->rect.h;
-        MoveImage2(&rect, image->rect.x + image->frames[0].u, image->rect.y + image->frames[0].v);
+        rect.x = anim->frames[anim->frame].u + anim->rect.x;
+        rect.y = anim->frames[anim->frame].v + anim->rect.y;
+        rect.w = anim->rect.w;
+        rect.h = anim->rect.h;
+        MoveImage2(&rect, anim->rect.x + anim->frames[0].u, anim->rect.y + anim->frames[0].v);
         DrawSync(0);
     }
 }
@@ -3409,11 +3391,11 @@ void SUG_freeTamCache(void) {
     }
 }
 
-void SUG_freeTexAnim(u8 *obj) {
-    void *ptr = *(void **)(obj + 0x1C);
+void SUG_freeTexAnim(TexAnim *anim) {
+    void *pixels = anim->pixels;
 
-    if (ptr != NULL) {
-        freeHeapBlock(ptr);
+    if (pixels != NULL) {
+        freeHeapBlock(pixels);
     }
 }
 
@@ -3552,54 +3534,56 @@ void SUG_freeLightMotion(void *obj) {
     freeHeapBlock(obj);
 }
 
-void SUG_getEffectOtz(Unk801E7BEC *cmd, Unk801E7BEC_Dst *dst) {
-    switch (cmd->kind) {
-    case 10:
-        dst->value = *(s32 *)(cmd->source + 0x1B4);
+/* copy the ordering table depth an effect is drawn at to or from the otz
+   register */
+void SUG_getEffectOtz(EffectSlot *slot, EffectParams *params) {
+    switch (slot->id) {
+    case EFFECT_SPHERE:
+        params->otz.w = ((SphereEffect *)slot->value)->otz;
         break;
-    case 12:
-        dst->value = *(s32 *)(cmd->source + 0x2C4);
+    case EFFECT_TRAIL:
+        params->otz.w = ((TrailEffect *)slot->value)->otz;
         break;
-    case 13:
-        dst->value = *(s32 *)(cmd->source + 0x194);
+    case EFFECT_RING:
+        params->otz.w = ((RingEffect *)slot->value)->fixedOtz;
         break;
-    case 16:
-        dst->value = cmd->source[0x1BD];
+    case EFFECT_SPRITE:
+        params->otz.w = ((SpriteEffect *)slot->value)->sprite.otz;
         break;
-    case 17:
-        dst->value = *(s16 *)(cmd->source + 0x154);
-        break;
-    }
-}
-
-void SUG_setEffectOtz(Unk801E7C94 *cmd, Unk801E7C94_Src *src) {
-    switch (cmd->kind) {
-    case 10:
-        *(s32 *)(cmd->target + 0x1B4) = src->value.w;
-        break;
-    case 12:
-        *(s32 *)(cmd->target + 0x2C4) = src->value.w;
-        break;
-    case 13:
-        *(s32 *)(cmd->target + 0x194) = src->value.w;
-        break;
-    case 16:
-        cmd->target[0x1BD] = src->value.b;
-        break;
-    case 17:
-        *(s16 *)(cmd->target + 0x154) = src->value.h;
+    case EFFECT_STREAKS:
+        params->otz.w = ((StreakParticles *)slot->value)->fixedOtz;
         break;
     }
 }
 
-void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live);
+void SUG_setEffectOtz(EffectSlot *slot, EffectParams *params) {
+    switch (slot->id) {
+    case EFFECT_SPHERE:
+        ((SphereEffect *)slot->value)->otz = params->otz.w;
+        break;
+    case EFFECT_TRAIL:
+        ((TrailEffect *)slot->value)->otz = params->otz.w;
+        break;
+    case EFFECT_RING:
+        ((RingEffect *)slot->value)->fixedOtz = params->otz.w;
+        break;
+    case EFFECT_SPRITE:
+        ((SpriteEffect *)slot->value)->sprite.otz = params->otz.b;
+        break;
+    case EFFECT_STREAKS:
+        ((StreakParticles *)slot->value)->fixedOtz = params->otz.h;
+        break;
+    }
+}
+
+void SUG_getEffectParams(EffectInit *fx, EffectParams *cmd, s32 live);
 typedef struct Xform {
     u8 unk0[0x48];
     struct Xform *parent;
 } Xform;
 void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
 
-void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectCommand *cmd) {
+void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
     SVECTOR v;
     SVECTOR unused;
     VECTOR out;
@@ -3671,21 +3655,21 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectCommand *cmd) {
     initEffectObject((void *)slots->slots[id].value);
 }
 
-void SUG_uploadEffectTim(Unk801E8168 *obj, s32 dy, Chunk *pak) {
+void SUG_uploadEffectTim(EffectParams *params, s32 dy, Chunk *pak) {
     char path[32];
     u32 *tim;
     s32 loaded = 0;
 
-    tim = findPakChunk(pak, 5, obj->animId);
+    tim = findPakChunk(pak, 5, params->texAnimId);
     if (tim == NULL) {
-        sprintf(path, "E:\\ANM\\%d_%d.TIM", obj->animId / 10, obj->animId % 10);
+        sprintf(path, "E:\\ANM\\%d_%d.TIM", params->texAnimId / 10, params->texAnimId % 10);
         tim = (u32 *)loadFile(path, getCurrentTaskId());
         loaded = 1;
         if (tim == NULL) {
             return;
         }
     }
-    uploadTim(tim, obj->pixelX, obj->pixelY + dy, obj->clutX, obj->clutY + dy);
+    uploadTim(tim, params->texX, params->texY + dy, params->clutX, params->clutY + dy);
     DrawSync(0);
     if (loaded) {
         freeHeapBlock(tim);
@@ -3794,9 +3778,10 @@ s32 SUG_tickEffectScript(EffectScript *runner) {
             fn = SUG_EFFECT_TICK_FUNCS[slots->slots[i].id];
             if (fn != NULL) {
                 fn((u8 *)slots->slots[i].value);
-                if (slots->slots[i].id >= 10) {
-                    runner->regs[i + 107] = *(s32 *)(slots->slots[i].value + 0x118);
-                    runner->regs[i + 257] = *(s32 *)(slots->slots[i].value + 0x11C);
+                /* let the script see how each 3D effect's motion is going */
+                if (slots->slots[i].id >= EFFECT_SPHERE) {
+                    runner->regs[i + 107] = ((EffectObject *)slots->slots[i].value)->state;
+                    runner->regs[i + 257] = ((EffectObject *)slots->slots[i].value)->flag;
                 }
             }
         }
@@ -3816,9 +3801,14 @@ typedef struct {
 } BoneChannels;
 /* takes a third argument, but this caller does not set it */
 void SUG_setEffectParams();
-void SUG_getEffectWorldPos(void *xform, u8 *obj);
+void SUG_getEffectWorldPos(void *xform, EffectParams *params);
 void SUG_createEffectEntry(s32 index, s32 kind, s32 arg, EffectSlots *slots);
-void SUG_startScreenCopyEffect(u8 *obj, s32 clearColor);
+void SUG_startScreenCopyEffect(EffectParams *params, s32 clearColor);
+
+/* the running script, its n-th operand and its registers as EffectParams */
+#define SCRIPT ((Script *)runner->context)
+#define PARAM(n) ((s16)SCRIPT->params[n])
+#define PARAMS ((EffectParams *)regs)
 
 void SUG_runEffectScript(EffectScript *runner) {
     EffectSlots *slots;
@@ -3842,13 +3832,13 @@ void SUG_runEffectScript(EffectScript *runner) {
     do {
         result = runScriptToNextEvent(runner->context, regs);
         if (result == 1) {
-            switch (((Script *)runner->context)->eventOp) {
+            switch (SCRIPT->eventOp) {
             case 10:
-                switch (((Script *)runner->context)->eventArg) {
-                case 0:
-                    SUG_getEffectParams((EffectInit *)&SUG_EFFECT_ROOT, (EffectCommand *)regs, 0);
+                switch (SCRIPT->eventArg) {
+                case 0: /* read the root's motion into the registers */
+                    SUG_getEffectParams((EffectInit *)&SUG_EFFECT_ROOT, PARAMS, 0);
                     break;
-                case 1:
+                case 1: /* move the root as the registers say */
                     SUG_setEffectParams(&SUG_EFFECT_ROOT, regs);
                     restartEffectMotion((u8 *)&SUG_EFFECT_ROOT);
                     break;
@@ -3869,87 +3859,87 @@ void SUG_runEffectScript(EffectScript *runner) {
                     D_800795A8 = 1;
                     break;
                 case 6:
-                    SUG_uploadEffectTim((Unk801E8168 *)regs, slots->modelSlots[0] << 8, (Chunk *)slots->pak);
+                    SUG_uploadEffectTim(PARAMS, slots->modelSlots[0] << 8, (Chunk *)slots->pak);
                     break;
                 case 7:
-                    pauseModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
+                    pauseModelAnimation(slots->modelSlots[PARAMS->source]);
                     break;
                 case 8:
-                    resumeModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source]);
+                    resumeModelAnimation(slots->modelSlots[PARAMS->source]);
                     break;
-                case 9:
-                    ((EffectCommand *)regs)->rot[1] = -computeVectorAngle(((EffectCommand *)regs)->pos[0] - ((EffectCommand *)regs)->pos2[0],
-                                                                          ((EffectCommand *)regs)->pos2[2] - ((EffectCommand *)regs)->pos[2]);
+                case 9: /* turn to face from pos to pos2 */
+                    PARAMS->rot[1] = -computeVectorAngle(PARAMS->pos[0] - PARAMS->pos2[0], PARAMS->pos2[2] - PARAMS->pos[2]);
                     break;
                 case 10:
-                    SUG_startScreenCopyEffect((u8 *)regs, 0);
+                    SUG_startScreenCopyEffect(PARAMS, 0);
                     break;
                 }
                 break;
             case 11:
-                switch (((Script *)runner->context)->eventArg) {
+                switch (SCRIPT->eventArg) {
                 case 0:
-                    if ((s16)((Script *)runner->context)->params[0] >= 0) {
-                        SUG_uploadTimFile((s16)((Script *)runner->context)->params[0], (Chunk *)slots->pak);
+                    if (PARAM(0) >= 0) {
+                        SUG_uploadTimFile(PARAM(0), (Chunk *)slots->pak);
                     }
                     break;
                 case 1:
-                    setModelAnimationPose(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
+                    setModelAnimationPose(slots->modelSlots[PARAMS->source], PARAM(0));
                     break;
                 case 2:
-                    anim = (s16)((Script *)runner->context)->params[0];
-                    if (anim == 4 && SUG_TARGET_HP[slots->modelSlots[((EffectCommand *)regs)->source]] <= 0) {
+                    /* a model whose HP ran out plays animation 5 instead of 4 */
+                    anim = PARAM(0);
+                    if (anim == 4 && SUG_TARGET_HP[slots->modelSlots[PARAMS->source]] <= 0) {
                         anim = 5;
                     }
-                    playModelAnimation(slots->modelSlots[((EffectCommand *)regs)->source], anim);
+                    playModelAnimation(slots->modelSlots[PARAMS->source], anim);
                     break;
                 case 3:
-                    playSoundEffect((s16)((Script *)runner->context)->params[0]);
+                    playSoundEffect(PARAM(0));
                     break;
                 case 5:
-                    SUG_getEffectOtz((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
-                    SUG_getEffectParams((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 0);
+                    SUG_getEffectOtz(&slots->slots[PARAM(0)], PARAMS);
+                    SUG_getEffectParams((EffectInit *)slots->slots[PARAM(0)].value, PARAMS, 0);
                     break;
                 case 6:
-                    SUG_initEffectFromParams((EffectTemplate *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, slots);
-                    initEffectObject((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value);
-                    SUG_setEffectOtz((Unk801E7C94 *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7C94_Src *)regs);
+                    SUG_initEffectFromParams((EffectTemplate *)slots->slots[PARAM(0)].value, PARAMS, slots);
+                    initEffectObject((void *)slots->slots[PARAM(0)].value);
+                    SUG_setEffectOtz(&slots->slots[PARAM(0)], PARAMS);
                     break;
                 case 7:
-                    stopSoundVoice(((Script *)runner->context)->params[0]);
+                    stopSoundVoice(SCRIPT->params[0]);
                     break;
                 case 8:
-                    if (slots->slots[(s16)((Script *)runner->context)->params[0]].value != 0) {
-                        slots->slots[(s16)((Script *)runner->context)->params[0]].active = 1;
+                    if (slots->slots[PARAM(0)].value != 0) {
+                        slots->slots[PARAM(0)].active = 1;
                     }
                     break;
                 case 9:
-                    slots->slots[(s16)((Script *)runner->context)->params[0]].active = 0;
+                    slots->slots[PARAM(0)].active = 0;
                     break;
-                case 10:
+                case 10: /* wait PARAM(0) frames */
                     if (runner->unk14 == 0) {
                         if (runner->regs[0] != -1) {
                             break;
                         }
                         runner->unk14 = 1;
                     }
-                    runner->waitFrames = (s16)((Script *)runner->context)->params[0] - 1;
+                    runner->waitFrames = PARAM(0) - 1;
                     return;
-                case 13:
-                    SUG_getEffectWorldPos((void *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (u8 *)regs);
+                case 13: /* read where an effect is in the world */
+                    SUG_getEffectWorldPos((void *)slots->slots[PARAM(0)].value, PARAMS);
                     break;
                 case 14:
-                    switch ((s16)((Script *)runner->context)->params[0]) {
+                    switch (PARAM(0)) {
                     case 2:
                         D_80079584 = -1;
                         SCENE_3D->modelState[0] = SCENE_3D->modelState[1] = 1;
                         break;
                     case 0:
-                        if (((Graphics *)&GRAPHICS)->targetModel > 0
-                            && *(s16 *)((u8 *)SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel] + 6) > 1000) {
-                            prev = SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel];
-                            ((Graphics *)&GRAPHICS)->targetModel = slots->modelSlots[((EffectCommand *)regs)->source];
-                            next = SCENE_3D->models[((Graphics *)&GRAPHICS)->targetModel];
+                        if (CAMERA->targetModel > 0
+                            && *(s16 *)((u8 *)SCENE_3D->models[CAMERA->targetModel] + 6) > 1000) {
+                            prev = SCENE_3D->models[CAMERA->targetModel];
+                            CAMERA->targetModel = slots->modelSlots[PARAMS->source];
+                            next = SCENE_3D->models[CAMERA->targetModel];
                             src = (BoneChannels *)(prev + 0xD80) + *(s16 *)(prev + 4);
                             dst = (BoneChannels *)(next + 0xD80) + *(s16 *)(next + 4);
                             for (i = 0; i < 3; i++) {
@@ -3963,66 +3953,66 @@ void SUG_runEffectScript(EffectScript *runner) {
                             *(s16 *)((u8 *)dst + 0x42) += *(s16 *)(prev + 0xC);
                             *(s16 *)((u8 *)dst + 0x52) += *(s16 *)(prev + 0x10);
                         } else {
-                            D_80079584 = slots->modelSlots[((EffectCommand *)regs)->source];
+                            D_80079584 = slots->modelSlots[PARAMS->source];
                         }
-                        SCENE_3D->modelState[((Graphics *)&GRAPHICS)->targetModel] = 1;
-                        SCENE_3D->modelState[(s16)(((Graphics *)&GRAPHICS)->targetModel ^ 1)] = -1;
-                        *(s16 *)((Graphics *)&GRAPHICS)->pad96 = 0;
+                        SCENE_3D->modelState[CAMERA->targetModel] = 1;
+                        SCENE_3D->modelState[(s16)(CAMERA->targetModel ^ 1)] = -1;
+                        *(s16 *)CAMERA->pad96 = 0;
                         break;
                     case 1:
-                        ((Graphics *)&GRAPHICS)->targetModel = (s8)((u8 *)slots->slots[((EffectCommand *)regs)->source].value)[0x56E];
-                        *(s16 *)((Graphics *)&GRAPHICS)->pad96 = slots->modelSlots[0];
+                        CAMERA->targetModel = ((ModelEffect *)slots->slots[PARAMS->source].value)->modelSlot;
+                        *(s16 *)CAMERA->pad96 = slots->modelSlots[0];
                         break;
                     }
                     break;
                 case 15:
-                    SUG_getEffectOtz((Unk801E7BEC *)&slots->slots[(s16)((Script *)runner->context)->params[0]], (Unk801E7BEC_Dst *)regs);
-                    SUG_getEffectParams((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value, (EffectCommand *)regs, 1);
+                    SUG_getEffectOtz(&slots->slots[PARAM(0)], PARAMS);
+                    SUG_getEffectParams((EffectInit *)slots->slots[PARAM(0)].value, PARAMS, 1);
                     break;
                 case 16:
-                    slots->pak = SUG_loadEffectPak((s16)((Script *)runner->context)->params[0]);
+                    slots->pak = SUG_loadEffectPak(PARAM(0));
                     break;
                 case 17:
-                    SUG_detachEffectToWorld(slots, (s16)((Script *)runner->context)->params[0], (EffectCommand *)regs);
+                    SUG_detachEffectToWorld(slots, PARAM(0), PARAMS);
                     break;
                 case 18:
-                    SUG_startScreenCopyEffect((u8 *)regs, regs[30]);
-                    if ((SCREEN_COPY_EFFECT.mode = ((Script *)runner->context)->params[0]) >= 2) {
-                        SCREEN_COPY_EFFECT.abr = regs[30];
+                    SUG_startScreenCopyEffect(PARAMS, PARAMS->abr);
+                    if ((SCREEN_COPY_EFFECT.mode = SCRIPT->params[0]) >= 2) {
+                        SCREEN_COPY_EFFECT.abr = PARAMS->abr;
                     }
                     break;
                 case 19:
-                    SUG_shadeModelClut(slots->modelSlots[((EffectCommand *)regs)->source], (s16)((Script *)runner->context)->params[0]);
+                    SUG_shadeModelClut(slots->modelSlots[PARAMS->source], PARAM(0));
                     break;
                 }
                 break;
             case 12:
-                switch (((Script *)runner->context)->eventArg) {
-                case 0:
-                    SUG_createEffectEntry((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1], (s32)regs, slots);
+                switch (SCRIPT->eventArg) {
+                case 0: /* create effect kind PARAM(1) in slot PARAM(0) */
+                    SUG_createEffectEntry(PARAM(0), PARAM(1), (s32)regs, slots);
                     break;
                 case 5:
-                    ((EffectInit *)slots->slots[(s16)((Script *)runner->context)->params[0]].value)->mode = ((Script *)runner->context)->params[1];
+                    ((EffectInit *)slots->slots[PARAM(0)].value)->mode = SCRIPT->params[1];
                     break;
                 case 4:
-                    regs[1] = computeVectorAngle((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1]);
+                    regs[1] = computeVectorAngle(PARAM(0), PARAM(1));
                     break;
                 case 1:
-                    regs[1] = rsin((s16)((Script *)runner->context)->params[1]) * (s16)((Script *)runner->context)->params[0] / 4096;
+                    regs[1] = rsin(PARAM(1)) * PARAM(0) / 4096;
                     break;
                 case 2:
-                    regs[1] = rcos((s16)((Script *)runner->context)->params[1]) * (s16)((Script *)runner->context)->params[0] / 4096;
+                    regs[1] = rcos(PARAM(1)) * PARAM(0) / 4096;
                     break;
                 case 3:
-                    playSoundEffectOnVoice((s16)((Script *)runner->context)->params[0], (s16)((Script *)runner->context)->params[1]);
+                    playSoundEffectOnVoice(PARAM(0), PARAM(1));
                     break;
                 }
                 break;
             case 13:
-                if (((Script *)runner->context)->eventArg == 0) {
-                    tpage = (s16)((Script *)runner->context)->params[1];
-                    vramY = ((tpage & 0x10) << 4) + ((s16)((Script *)runner->context)->params[2] << 7);
-                    SUG_loadSprite((s16)((Script *)runner->context)->params[0], (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
+                if (SCRIPT->eventArg == 0) {
+                    tpage = PARAM(1);
+                    vramY = ((tpage & 0x10) << 4) + (PARAM(2) << 7);
+                    SUG_loadSprite(PARAM(0), (tpage & 0xF) << 6, vramY + (slots->modelSlots[0] << 8),
                                   slots->pak);
                 }
                 break;
@@ -4032,7 +4022,11 @@ void SUG_runEffectScript(EffectScript *runner) {
     } while (result != 0);
 }
 
-void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live) {
+#undef SCRIPT
+#undef PARAM
+#undef PARAMS
+
+void SUG_getEffectParams(EffectInit *fx, EffectParams *cmd, s32 live) {
     if (live == 0) {
         cmd->pos[0] = fx->pos[0];
         cmd->pos[1] = fx->pos[1];
@@ -4083,7 +4077,7 @@ void SUG_getEffectParams(EffectInit *fx, EffectCommand *cmd, s32 live) {
     cmd->target = fx->target;
 }
 
-void SUG_setEffectParams(EffectInit *fx, EffectCommand *cmd, void *ctx) {
+void SUG_setEffectParams(EffectInit *fx, EffectParams *cmd, void *ctx) {
     fx->pos[0] = cmd->pos[0];
     fx->pos[1] = cmd->pos[1];
     fx->pos[2] = cmd->pos[2];
@@ -4120,19 +4114,19 @@ void SUG_setEffectParams(EffectInit *fx, EffectCommand *cmd, void *ctx) {
     fx->mode = cmd->mode;
 }
 
-void SUG_getEffectWorldPos(void *xform, u8 *obj) {
+void SUG_getEffectWorldPos(void *xform, EffectParams *params) {
     SVECTOR pos;
 
     getTransformWorldPos(xform, &pos);
-    *(s32 *)(obj + 0x65C) = pos.vx;
-    *(s32 *)(obj + 0x660) = pos.vy;
-    *(s32 *)(obj + 0x664) = pos.vz;
+    params->pos[0] = pos.vx;
+    params->pos[1] = pos.vy;
+    params->pos[2] = pos.vz;
 }
 
-void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, EffectSlots *ctx) {
+void SUG_initEffectFromParams(EffectTemplate *template, EffectParams *cmd, EffectSlots *ctx) {
     SUG_setEffectParams((EffectInit *)template, cmd, ctx);
-    ((u8 *)template)[0x13B] = cmd->source;
-    ((u8 *)template)[0x13A] = cmd->target;
+    ((EffectInit *)template)->source = cmd->source;
+    ((EffectInit *)template)->target = cmd->target;
     if (cmd->target < 0) {
         template->data[0x26] = (s32)ctx->xform;
     } else if (cmd->source < 0) {
@@ -4146,35 +4140,36 @@ void SUG_initEffectFromParams(EffectTemplate *template, EffectCommand *cmd, Effe
     }
 }
 
-void SUG_createFadeRectFromParams(u8 *obj) {
+void SUG_createFadeRectFromParams(EffectParams *params) {
     Rect16 rect;
     Color from;
     Color to;
 
-    rect.x = *(s32 *)(obj + 0x140);
-    rect.y = *(s32 *)(obj + 0x144);
-    rect.w = *(s32 *)(obj + 0x148);
-    rect.h = *(s32 *)(obj + 0x14C);
-    from.r = *(s32 *)(obj + 0xA4);
-    from.g = *(s32 *)(obj + 0xA8);
-    from.b = *(s32 *)(obj + 0xAC);
-    to.r = *(s32 *)(obj + 0xB0);
-    to.g = *(s32 *)(obj + 0xB4);
-    to.b = *(s32 *)(obj + 0xB8);
-    SUG_createFadeRect(&rect, &from, &to, *(s32 *)(obj + 0x78), *(s32 *)(obj + 0x80), *(s32 *)(obj + 0x120));
+    rect.x = params->rectX;
+    rect.y = params->rectY;
+    rect.w = params->rectW;
+    rect.h = params->rectH;
+    from.r = params->r0;
+    from.g = params->g0;
+    from.b = params->b0;
+    to.r = params->r1;
+    to.g = params->g1;
+    to.b = params->b1;
+    SUG_createFadeRect(&rect, &from, &to, params->abr, params->rate, params->variant);
 }
 
-void SUG_createScrollTextureFromParams(u8 *a, u8 *b) {
+void SUG_createScrollTextureFromParams(EffectParams *params, EffectSlots *ctx) {
     Rect16 rect;
 
-    rect.x = *(s32 *)(a + 0x150);
-    rect.y = *(s32 *)(a + 0x154) + *(s32 *)(b + 0x4B0) * 256;
-    rect.w = *(s32 *)(a + 0x158);
-    rect.h = *(s32 *)(a + 0x15C);
-    SUG_createScrollTexture(&rect, *(s32 *)(a + 0x70), *(s32 *)(a + 0x120), *(s16 *)(a + 0x80));
+    /* the texture sits in the VRAM rows of the first model */
+    rect.x = params->texX;
+    rect.y = params->texY + ctx->modelSlots[0] * 256;
+    rect.w = params->texW;
+    rect.h = params->texH;
+    SUG_createScrollTexture(&rect, params->texDepth, params->variant, params->rate);
 }
 
-void SUG_createSphereFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
+void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
     u8 color[3];
     Rect16 uv;
     EffectTemplate template;
@@ -4184,15 +4179,15 @@ void SUG_createSphereFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     s16 u;
     s32 v;
 
-    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
-    color[0] = cmd->r;
-    color[1] = cmd->g;
-    color[2] = cmd->b;
+    SUG_initEffectFromParams(&template, cmd, ctx);
+    color[0] = cmd->r0;
+    color[1] = cmd->g0;
+    color[2] = cmd->b0;
     x = cmd->texX;
     u = x & 0x3F;
     y = (ctx->modelSlots[0] << 8) + cmd->texY;
     v = y & 0xFF;
-    switch (cmd->texMode) {
+    switch (cmd->texDepth) {
     case 0:
         u <<= 2;
         break;
@@ -4204,13 +4199,13 @@ void SUG_createSphereFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     uv.y = v;
     uv.w = cmd->texW;
     uv.h = cmd->texH;
-    tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
-    SUG_createSphereEffect(cmd->unkEC, color, cmd->unk68, cmd->unk6C, &template, cmd->unk64, cmd->unk60, cmd->unkF8, cmd->unk74, cmd->abr,
-                  cmd->unk12C, cmd->unk5C, cmd->unk130, &uv, tpage, func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
-                  cmd->unk138, cmd->unk13C, ctx->pak);
+    tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
+    SUG_createSphereEffect(cmd->brightness, color, cmd->pulse, cmd->pulseMode, &template, cmd->segments, cmd->slices, cmd->radius, cmd->semiTrans, cmd->abr,
+                  cmd->primKind, cmd->count, cmd->texAnimId, &uv, tpage, func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
+                  cmd->cull, cmd->otz.w, ctx->pak);
 }
 
-void SUG_createTrailFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
+void SUG_createTrailFromParams(EffectParams *cmd, EffectSlots *ctx) {
     Bytes4 c0;
     Bytes4 c1;
     Bytes4 c2;
@@ -4223,24 +4218,24 @@ void SUG_createTrailFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     s16 u;
     s32 v;
 
-    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
-    c0.b[0] = cmd->r;
-    c0.b[1] = cmd->g;
-    c0.b[2] = cmd->b;
-    c1.b[0] = cmd->midR;
-    c1.b[1] = cmd->midG;
-    c1.b[2] = cmd->midB;
-    c2.b[0] = cmd->outerR;
-    c2.b[1] = cmd->outerG;
-    c2.b[2] = cmd->outerB;
-    c3.b[0] = cmd->lastR;
-    c3.b[1] = cmd->lastG;
-    c3.b[2] = cmd->lastB;
+    SUG_initEffectFromParams(&template, cmd, ctx);
+    c0.b[0] = cmd->r0;
+    c0.b[1] = cmd->g0;
+    c0.b[2] = cmd->b0;
+    c1.b[0] = cmd->r1;
+    c1.b[1] = cmd->g1;
+    c1.b[2] = cmd->b1;
+    c2.b[0] = cmd->r2;
+    c2.b[1] = cmd->g2;
+    c2.b[2] = cmd->b2;
+    c3.b[0] = cmd->r3;
+    c3.b[1] = cmd->g3;
+    c3.b[2] = cmd->b3;
     x = cmd->texX;
     u = x & 0x3F;
     y = (ctx->modelSlots[0] << 8) + cmd->texY;
     v = y & 0xFF;
-    switch (cmd->texMode) {
+    switch (cmd->texDepth) {
     case 0:
         u <<= 2;
         break;
@@ -4252,13 +4247,13 @@ void SUG_createTrailFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     uv.y = v;
     uv.w = cmd->texW;
     uv.h = cmd->texH;
-    tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
-    SUG_createTrailEffect(cmd->unkEC, &c0, &c1, &c2, &c3, &template, cmd->unk168, cmd->unk16C, cmd->unk5C, cmd->unk118, cmd->unk120,
-                  cmd->unk6C, cmd->unk74, cmd->abr, cmd->unk12C, cmd->unk130, &uv, tpage,
-                  func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk13C, ctx->pak);
+    tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
+    SUG_createTrailEffect(cmd->brightness, &c0, &c1, &c2, &c3, &template, cmd->edgeX0, cmd->edgeX1, cmd->count, cmd->rows, cmd->variant,
+                  cmd->pulseMode, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->texAnimId, &uv, tpage,
+                  func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->otz.w, ctx->pak);
 }
 
-void SUG_createRingFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
+void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
     Bytes4 inner;
     Bytes4 mid;
     Bytes4 outer;
@@ -4270,21 +4265,21 @@ void SUG_createRingFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     s16 u;
     s32 v;
 
-    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
-    inner.b[0] = cmd->r;
-    inner.b[1] = cmd->g;
-    inner.b[2] = cmd->b;
-    mid.b[0] = cmd->midR;
-    mid.b[1] = cmd->midG;
-    mid.b[2] = cmd->midB;
-    outer.b[0] = cmd->outerR;
-    outer.b[1] = cmd->outerG;
-    outer.b[2] = cmd->outerB;
+    SUG_initEffectFromParams(&template, cmd, ctx);
+    inner.b[0] = cmd->r0;
+    inner.b[1] = cmd->g0;
+    inner.b[2] = cmd->b0;
+    mid.b[0] = cmd->r1;
+    mid.b[1] = cmd->g1;
+    mid.b[2] = cmd->b1;
+    outer.b[0] = cmd->r2;
+    outer.b[1] = cmd->g2;
+    outer.b[2] = cmd->b2;
     x = cmd->texX;
     u = x & 0x3F;
     y = (ctx->modelSlots[0] << 8) + cmd->texY;
     v = y & 0xFF;
-    switch (cmd->texMode) {
+    switch (cmd->texDepth) {
     case 0:
         u <<= 2;
         break;
@@ -4296,84 +4291,84 @@ void SUG_createRingFromParams(SpriteCommand *cmd, EffectSlots *ctx) {
     uv.y = v;
     uv.w = cmd->texW;
     uv.h = cmd->texH;
-    tpage = GetTPage(cmd->texMode, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
-    createRingEffect(cmd->unkEC, &inner, &mid, &outer, &template, cmd->unk5C, cmd->unk74, cmd->abr, cmd->unk12C, cmd->innerRadius,
+    tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
+    createRingEffect(cmd->brightness, &inner, &mid, &outer, &template, cmd->count, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->innerRadius,
                      cmd->outerRadius, cmd->midPercent, cmd->innerZ, cmd->outerZ, (Bytes8 *)&uv, tpage,
-                     func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->unk130, cmd->u1, cmd->unk138, cmd->unk13C,
+                     func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->texAnimId, cmd->flags, cmd->cull, cmd->otz.w,
                      ctx->pak);
 }
 
-EffectTemplate *SUG_createEffectObjectFromParams(EffectCommand *cmd, EffectSlots *ctx) {
+EffectTemplate *SUG_createEffectObjectFromParams(EffectParams *cmd, EffectSlots *ctx) {
     EffectTemplate template;
 
     SUG_initEffectFromParams(&template, cmd, ctx);
     return cloneEffectObject(&template);
 }
 
-void SUG_createModelEffectFromParams(u8 *obj, u8 *b) {
+void SUG_createModelEffectFromParams(EffectParams *params, EffectSlots *ctx) {
     EffectTemplate buf;
     EffectTemplate *template;
     Entry16 *entry;
 
     template = &buf;
-    SUG_initEffectFromParams(template, (EffectCommand *)obj, (EffectSlots *)b);
-    entry = *(Entry16 **)(obj + 0x6F0);
+    SUG_initEffectFromParams(template, params, ctx);
+    entry = (Entry16 *)params->vramEntries;
     if (entry != NULL) {
-        entry += *(s32 *)(b + 0x4B0);
+        entry += ctx->modelSlots[0];
     }
-    SUG_createModelEffect(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x6EC), *(s32 *)(obj + 0x6F4), (s32)entry,
-                  *(s32 *)(obj + 0x128), *(s32 *)(obj + 0x72C), *(s32 *)(b + 0x508), *(s32 *)(b + 0x4B8));
+    SUG_createModelEffect(params->brightness, template, params->id, params->anim, params->modelTexAnimId, (s32)entry,
+                  params->flags, params->allBones, ctx->pak, ctx->modelSlots[2]);
 }
 
-void SUG_createSpriteEffectFromParams(u8 *obj, u8 *b) {
+void SUG_createSpriteEffectFromParams(EffectParams *params, EffectSlots *ctx) {
     EffectTemplate buf;
     EffectTemplate *template;
     SVECTOR unused;
 
     template = NULL;
-    if (*(s32 *)(obj + 0x6F0) != 0) {
+    if (params->vramEntries != 0) {
         template = &buf;
-        SUG_initEffectFromParams(template, (EffectCommand *)obj, (EffectSlots *)b);
+        SUG_initEffectFromParams(template, params, ctx);
     }
-    SUG_createSpriteEffect(*(s32 *)(obj + 0xEC), template, *(s32 *)(obj + 0x6E8), *(s32 *)(obj + 0x71C), *(s32 *)(obj + 0x720),
-                  *(s32 *)(obj + 0x724), *(s32 *)(obj + 0x728), *(s32 *)(obj + 0x13C), *(s32 *)(b + 0x508));
+    SUG_createSpriteEffect(params->brightness, template, params->id, params->flipX, params->flipY,
+                  params->unk724, params->useOrigin, params->otz.w, ctx->pak);
 }
 
-void SUG_createStreaksFromParams(StreakCommand *cmd, void *ctx) {
+void SUG_createStreaksFromParams(EffectParams *cmd, void *ctx) {
     EffectTemplate template;
     u8 from[3];
     u8 to[3];
 
-    from[0] = cmd->fromR;
-    from[1] = cmd->fromG;
-    from[2] = cmd->fromB;
-    to[0] = cmd->toR;
-    to[1] = cmd->toG;
-    to[2] = cmd->toB;
-    SUG_initEffectFromParams(&template, (EffectCommand *)cmd, ctx);
+    from[0] = cmd->r0;
+    from[1] = cmd->g0;
+    from[2] = cmd->b0;
+    to[0] = cmd->r1;
+    to[1] = cmd->g1;
+    to[2] = cmd->b1;
+    SUG_initEffectFromParams(&template, cmd, ctx);
     createStreakParticles(from, to, &template, cmd->spreadX, cmd->spreadY, cmd->length, cmd->endLength, cmd->frames, cmd->speedRange,
-                          cmd->reverse, cmd->count, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semi, cmd->flags, cmd->fixedOtz);
+                          cmd->reverse, cmd->streakCount, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semiTrans, cmd->flags, cmd->otz.w);
 }
 
-void SUG_createLightMotionFromParams(Unk801E9FE0 *obj) {
+void SUG_createLightMotionFromParams(EffectParams *params) {
     VECTOR a;
     VECTOR b;
     VECTOR c;
     VECTOR d;
 
-    a.vx = obj->unk65C[0];
-    a.vy = obj->unk65C[1];
-    a.vz = obj->unk65C[2];
-    b.vx = obj->unk668[0];
-    b.vy = obj->unk668[1];
-    b.vz = obj->unk668[2];
-    c.vx = obj->unk6A0[0];
-    c.vy = obj->unk6A0[1];
-    c.vz = obj->unk6A0[2];
-    d.vx = obj->unk6AC[0];
-    d.vy = obj->unk6AC[1];
-    d.vz = obj->unk6AC[2];
-    SUG_createLightMotion(&a, &b, &c, &d, obj->unk67C, obj->unk680, obj->unk684);
+    a.vx = params->pos[0];
+    a.vy = params->pos[1];
+    a.vz = params->pos[2];
+    b.vx = params->pos2[0];
+    b.vy = params->pos2[1];
+    b.vz = params->pos2[2];
+    c.vx = params->scale[0];
+    c.vy = params->scale[1];
+    c.vz = params->scale[2];
+    d.vx = params->scale2[0];
+    d.vy = params->scale2[1];
+    d.vz = params->scale2[2];
+    SUG_createLightMotion(&a, &b, &c, &d, params->rot[0], params->rot[1], params->rot[2]);
 }
 
 void SUG_freeFadeRect(void *ptr) {
@@ -4550,20 +4545,20 @@ void SUG_stepScreenCopyFade(void) {
     SUG_SCREEN_FX_FRAME++;
 }
 
-void SUG_startScreenCopyEffect(u8 *obj, s32 clearColor) {
+void SUG_startScreenCopyEffect(EffectParams *params, s32 clearColor) {
     SUG_SCREEN_FX_FRAME = 0;
     SUG_SCREEN_FX_ANGLE = SUG_SCREEN_FX_Y = 0;
-    SUG_SCREEN_FX_MOTION = *(s32 *)(obj + 0x6D4);
+    SUG_SCREEN_FX_MOTION = params->mode;
     SUG_SCREEN_FX_PHASE = 1;
-    SUG_SCREEN_FX_HOLD = *(s32 *)(obj + 0xE4);
-    SUG_SCREEN_FX_FADE_TIME = *(s32 *)(obj + 0x118);
+    SUG_SCREEN_FX_HOLD = params->hold;
+    SUG_SCREEN_FX_FADE_TIME = params->rows;
     SCREEN_COPY_EFFECT.mode = 1;
     if (clearColor) {
         SCREEN_COPY_EFFECT.r = 0;
         SCREEN_COPY_EFFECT.g = 0;
         SCREEN_COPY_EFFECT.b = 0;
     }
-    SUG_startScreenCopyFade(*(s32 *)(obj + 0xA4), *(s32 *)(obj + 0xA8), *(s32 *)(obj + 0xAC), *(s32 *)(obj + 0x84), *(s32 *)(obj + 0x88));
+    SUG_startScreenCopyFade(params->r0, params->g0, params->b0, params->x, params->y);
 }
 
 extern s16 D_800794E8;
@@ -4749,10 +4744,10 @@ void SUG_setSpriteFrameVerts(Sprite *sprite, s32 frame) {
 
 void SUG_initSpritePolys(Sprite *sprite);
 
-void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 a7, s32 useOrigin, s32 subKey) {
+void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 otz, s32 useOrigin, s32 subKey) {
     sprite->tex = SUG_findSpriteEntry(key, subKey)->data;
     if (sprite->tex != NULL) {
-        sprite->frames = (SpriteFrame *)(sprite->tex + 0x10);
+        sprite->frames = (SpriteFrame *)(sprite->tex + sizeof(SpriteSheet));
         SUG_initSpritePolys(sprite);
         sprite->useOrigin = useOrigin;
         sprite->pos.vx = x;
@@ -4762,7 +4757,7 @@ void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 
         sprite->frameTimer = -1;
         sprite->scaleX = scaleX;
         sprite->scaleY = scaleY;
-        sprite->otz = a7;
+        sprite->otz = otz;
         SUG_setSpriteFrameVerts(sprite, 0);
         sprite->v[0].vz = sprite->v[1].vz = sprite->v[2].vz = sprite->v[3].vz = 0;
     }
@@ -4875,7 +4870,7 @@ void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
     ((SpriteSheet *)entry->data)->y += y;
     ((SpriteSheet *)entry->data)->clutX += x;
     ((SpriteSheet *)entry->data)->clutY += y;
-    frame = (SpriteFrame *)(entry->data + 0x10);
+    frame = (SpriteFrame *)(entry->data + sizeof(SpriteSheet));
     for (i = 0; i < ((SpriteSheet *)entry->data)->frameCount; i++) {
         frame->v0 += y;
         frame->v1 += y;
@@ -4883,30 +4878,29 @@ void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
     }
 }
 
-void SUG_loadSpriteFile(s32 a0, s32 a1, s32 a2) {
-    SUG_loadSprite(a0, a1, a2, 0);
+void SUG_loadSpriteFile(s32 id, s32 x, s32 y) {
+    SUG_loadSprite(id, x, y, 0);
 }
 
 void SUG_freeSprites(void) {
     freeHeapBlocksByTag(0x80);
 }
 
-void SUG_hideSprite(s8 *obj) {
-    obj[0x82] = -1;
+void SUG_hideSprite(Sprite *sprite) {
+    sprite->frame = -1;
 }
 
 void SUG_resetCameraPos(void) {
-    ((Graphics *)&GRAPHICS)->posZ = 0;
-    ((Graphics *)&GRAPHICS)->posX = 0;
-    ((Graphics *)&GRAPHICS)->unk92 = 0;
-    ((Graphics *)&GRAPHICS)->posY = -150;
+    CAMERA->posZ = 0;
+    CAMERA->posX = 0;
+    CAMERA->unk92 = 0;
+    CAMERA->posY = -150;
 }
 
 extern s32 SUG_CAMERA_SPIN;
 extern s32 D_801EF384;
 extern s32 D_801EF388;
 extern u16 D_80079586;
-#define CAMERA ((Graphics *)&GRAPHICS)
 
 void SUG_orbitCamera(void) {
     s32 speed;
@@ -4969,13 +4963,13 @@ void SUG_drawHudSpriteTrail(s32 x, s32 y, Rect16 *uv, u16 tpage, s32 clut, s32 o
     }
 }
 
-void SUG_initHudSlide(HudSlide *obj, s16 a1, s16 a2, s16 a3, s8 flags) {
-    obj->pos = a1;
-    obj->target[0] = a2;
-    obj->target[1] = a3;
+void SUG_initHudSlide(HudSlide *obj, s16 pos, s16 target0, s16 target1, s8 flags) {
+    obj->pos = pos;
+    obj->target[0] = target0;
+    obj->target[1] = target1;
     obj->flags = flags;
     if (flags & 2) {
-        SUG_fillShorts(obj->trail, 6, a1);
+        SUG_fillShorts(obj->trail, 6, pos);
     }
     obj->brightness = 0x80;
 }
@@ -5556,7 +5550,7 @@ void SUG_playBattleExchange(void) {
     SUG_playAttackTurn(other, 0, SUG_SKILL_SCRIPTS[other * 2], SUG_showHpBanner, 0);
     SUG_runCameraOrbit(0x78, 1);
     SCENE_3D->modelState[first ^ 1] = -1;
-    ((Graphics *)&GRAPHICS)->targetModel = first;
+    CAMERA->targetModel = first;
     do {
         func_80014C08(FRAME_INTERVAL);
     } while (SUG_SCRIPT_STATES[0] != 1);
