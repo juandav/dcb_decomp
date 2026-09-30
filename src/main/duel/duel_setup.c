@@ -19,10 +19,10 @@ void loadPresetDeckForPlayer(s32 player) {
     if (((SessionData *)D_8006E054)->npcDeckIndex[player] != -1) {
         deck = &presetDecks[((SessionData *)D_8006E054)->npcDeckIndex[player]];
         backupPartners(player);
-        strcpy(DUEL_PLAYERS[player] + 1, deck->name);
+        strcpy(PLAYER(player)->deckName, deck->name);
         for (i = 0; i < 30; i++) {
             cardId = deck->cards[i];
-            setCardSlotFromId(DUEL_PLAYERS[player] + 0x14 + i * 8, cardId);
+            setCardSlotFromId((u8 *)&PLAYER(player)->cards[i], cardId);
             partner = getPartnerIndex(cardId);
             if (partner >= 0) {
                 addPartner(player, partner, 0);
@@ -42,7 +42,7 @@ void initDuelPlayers(s32 isCpuDuel) {
     u16 cardId;
 
     for (i = 0; i < 2; i++) {
-        DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4);
+        DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4); /* a Player */
         PLAYER(i)->controller = (1 - isCpuDuel) * 2 + i;
         PLAYER(i)->unk0 = 1;
         for (j = 0; j < 30; j++) {
@@ -63,7 +63,7 @@ void initDuelPlayers(s32 isCpuDuel) {
         }
         PLAYER(i)->playedCard = -1;
         PLAYER(i)->wins = 0;
-        *(s32 *)(DUEL_PLAYERS[i] + 0x114) = 0;
+        PLAYER(i)->battleCard = 0;
         for (j = 0; j < 5; j++) {
             PLAYER(i)->stats[j] = 0;
             PLAYER(i)->displayedStats[j] = 0;
@@ -75,8 +75,8 @@ void initDuelPlayers(s32 isCpuDuel) {
         }
     }
     if (isCpuDuel != 0) {
-        strcpy((char *)DUEL_PLAYERS[0] + 0x1CE, (char *)PLAYER_PROFILES);
-        strcpy((char *)DUEL_PLAYERS[1] + 0x1CE, (char *)D_8006E054 + 0x57);
+        strcpy(PLAYER(0)->name, PLAYER_DATA(0).name);
+        strcpy(PLAYER(1)->name, ((SessionData *)D_8006E054)->opponentDeck.ownerName);
         if (((SessionData *)D_8006E054)->opponentDeckIndex == 0) {
             func_801EA708();
             for (i = 0; i < 2; i++) {
@@ -91,10 +91,10 @@ void initDuelPlayers(s32 isCpuDuel) {
             PLAYER(1)->unk178_24 = ((SessionData *)D_8006E054)->opponentDeck.unk64[1];
             PLAYER(1)->unk178_26 = ((SessionData *)D_8006E054)->opponentDeck.unk64[2];
             PLAYER(1)->unk178_28 = ((SessionData *)D_8006E054)->opponentDeck.unk64[3];
-            strcpy((char *)DUEL_PLAYERS[1] + 1, ((SessionData *)D_8006E054)->opponentDeck.name);
+            strcpy(PLAYER(1)->deckName, ((SessionData *)D_8006E054)->opponentDeck.name);
             for (i = 0; i < 30; i++) {
                 cardId = ((SessionData *)D_8006E054)->opponentDeck.cards[i];
-                setCardSlotFromId(DUEL_PLAYERS[1] + 0x14 + i * 8, cardId);
+                setCardSlotFromId((u8 *)&PLAYER(1)->cards[i], cardId);
                 partner = getPartnerIndex(cardId);
                 if (partner >= 0) {
                     addPartner(1, partner, 0);
@@ -107,7 +107,7 @@ void initDuelPlayers(s32 isCpuDuel) {
         }
     } else {
         for (i = 0; i < 2; i++) {
-            strcpy((char *)DUEL_PLAYERS[i] + 0x1CE, PLAYER_DATA(i).name);
+            strcpy(PLAYER(i)->name, PLAYER_DATA(i).name);
         }
     }
 }
