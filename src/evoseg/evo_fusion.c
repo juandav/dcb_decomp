@@ -327,8 +327,11 @@ void EVO_loadUnitTextures(void) {
     freeHeapBlock(pack);
 }
 
+/* defined after the table: GCC emitted the table's strings in reverse order */
+extern const char EVO_STR_NUMBER[];
+
 char *EVO_SORT_LABELS[12] = {
-    "Number",
+    (char *)EVO_STR_NUMBER,
     "*a0 Fire",
     "*a1 Ice",
     "*a2 Nature",
@@ -341,6 +344,9 @@ char *EVO_SORT_LABELS[12] = {
     "Level *e5",
     "Number of Cards that can be Fused.",
 };
+
+/* also drawCardInfo's heading */
+const char EVO_STR_NUMBER[] = "Number";
 
 Menu EVO_CARD_LIST_MENU = { 0, 0, { 0x6A, 0x2C, 0xD0, 0x6C }, 0, -1, 0, -1, 0xA, 0x61, 0x74, 0xC, 0, 301, 0x36, 1, 0, 0xC };
 Menu EVO_SORT_MENU = { 0, 0, { 0x28, 0x3C, 0xCA, 0x70 }, 0, -1, 0, -1, 0xA, 0x56, 0xC0, 0xC, 0, 12, 0, 1, 0, 0xE };
@@ -2640,7 +2646,7 @@ void EVO_drawCardInfo(UiWindow *w) {
         drawText(x, y, (s32)((DigimonCardData *)(DIGIVOLVE_CARDS + id * 0x70))->name, 7, z);
         drawIcon(x + 0x46, y + 0x1A, 0, 6, z);
     }
-    drawLargeText(x, y + 0x12, (s32)"Number", 6, z);
+    drawLargeText(x, y + 0x12, (s32)EVO_STR_NUMBER, 6, z);
     drawLargeText(x, y + 0x1E, (s32)EVO_STR_SPEC, 6, z);
     rect.x = 0;
     rect.y = 0x90;
