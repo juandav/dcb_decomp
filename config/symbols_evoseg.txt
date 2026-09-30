@@ -1,16 +1,52 @@
 // EVOSEG's own symbols
 
-// a function only reached through a pointer, which splat would join to the one before
+// functions only reached through a pointer, or never called, which splat would
+// join to the one before
 func_801DFF78 = 0x801DFF78; // type:func
 func_801DFB00 = 0x801DFB00; // type:func
 func_801DFC18 = 0x801DFC18; // type:func
 func_801DFD14 = 0x801DFD14; // type:func
 func_801E00F4 = 0x801E00F4; // type:func
+func_801E2AA8 = 0x801E2AA8; // type:func
 func_801E2E30 = 0x801E2E30; // type:func
+func_801E50BC = 0x801E50BC; // type:func
+func_801E50F8 = 0x801E50F8; // type:func
 func_801E51E4 = 0x801E51E4; // type:func
+func_801E6718 = 0x801E6718; // type:func
+func_801E67F4 = 0x801E67F4; // type:func
+func_801E68D0 = 0x801E68D0; // type:func
+func_801E69B0 = 0x801E69B0; // type:func
+func_801E6A90 = 0x801E6A90; // type:func
+func_801E6B70 = 0x801E6B70; // type:func
+func_801E6C04 = 0x801E6C04; // type:func
+func_801E6C98 = 0x801E6C98; // type:func
+func_801E6D74 = 0x801E6D74; // type:func
+func_801E6E54 = 0x801E6E54; // type:func
+func_801E6F34 = 0x801E6F34; // type:func
 func_801E6FCC = 0x801E6FCC; // type:func
 func_801E7178 = 0x801E7178; // type:func
+func_801E75B0 = 0x801E75B0; // type:func
+func_801E765C = 0x801E765C; // type:func
+func_801E7F64 = 0x801E7F64; // type:func
+func_801E89E8 = 0x801E89E8; // type:func
 func_801E89F0 = 0x801E89F0; // type:func
 func_801E8E88 = 0x801E8E88; // type:func
+func_801E9A58 = 0x801E9A58; // type:func
+func_801E9B0C = 0x801E9B0C; // type:func
 func_801E9B94 = 0x801E9B94; // type:func
+func_801E9C18 = 0x801E9C18; // type:func
+func_801EA358 = 0x801EA358; // type:func
+func_801EBE68 = 0x801EBE68; // type:func
+func_801EC434 = 0x801EC434; // type:func
+func_801EC8DC = 0x801EC8DC; // type:func
+func_801EDE18 = 0x801EDE18; // type:func
+func_801EDEF8 = 0x801EDEF8; // type:func
+func_801EE040 = 0x801EE040; // type:func
+func_801EE2B4 = 0x801EE2B4; // type:func
+func_801EF188 = 0x801EF188; // type:func
+func_801EF244 = 0x801EF244; // type:func
+func_801EF3A8 = 0x801EF3A8; // type:func
+func_801EF3DC = 0x801EF3DC; // type:func
+func_801EF474 = 0x801EF474; // type:func
+func_801EF5A8 = 0x801EF5A8; // type:func
 func_801EF7DC = 0x801EF7DC; // type:func
