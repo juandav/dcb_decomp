@@ -671,19 +671,19 @@ typedef struct {
     /* 0x0029 */ u32 unk28_12 : 1;
     /* 0x0029 */ u32 unk28_13 : 1;
     /* 0x0029 */ u32 unk28_14 : 18;
-    /* 0x002C */ s32 unk2C;
+    /* 0x002C */ s32 scriptFlags; /* bit n: EVOSEG script variable 20 + n */
     /* 0x0030 */ u8 unk30[6];
     /* 0x0036 */ u16 attackCounts[3];
     /* 0x003C */ u8 ownedAbilities[0x10];
-    /* 0x004C */ s16 unk4C;
-    /* 0x004E */ s16 unk4E;
-    /* 0x0050 */ s16 unk50;
-    /* 0x0052 */ s16 unk52;
-    /* 0x0054 */ s16 unk54;
-    /* 0x0056 */ u16 unk56;
+    /* 0x004C */ s16 cardsReceived;   /* by trade; this and the next four stop at 9999 */
+    /* 0x004E */ s16 cardsGivenAway;  /* by trade */
+    /* 0x0050 */ s16 fusedCards;      /* cards made by fusion */
+    /* 0x0052 */ s16 fusionCardsUsed; /* cards used up in fusions */
+    /* 0x0054 */ s16 fusionMutations;
+    /* 0x0056 */ u16 activePartner; /* the partner chosen last (first: the starter deck's); picks the background */
     /* 0x0058 */ u8 unk58[0x28];
     /* 0x0080 */ Partner partners[3];
-    /* 0x0848 */ s16 unk848[0x20];
+    /* 0x0848 */ s16 bonusCounts[0x20]; /* times each end-of-duel bonus was earned */
     /* 0x0888 */ u16 unk888[0x8E];
     /* 0x09A4 */ u16 unk9A4[0x8E];
     /* 0x0AC0 */ u16 opponentDeckFlags[0x9F];

@@ -527,7 +527,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
                 if (scroll + base + i * 14 <= 240) {
                     if (i != 0x1E) {
                         drawText(0x3C, scroll + base + i * 14, (s32)D_801E0C6C[i], 7, 0);
-                        sprintf(buf, "*s0%3d*s1 *c6Times", (u16)PROFILE->unk848[i]);
+                        sprintf(buf, "*s0%3d*s1 *c6Times", (u16)PROFILE->bonusCounts[i]);
                         drawText(0xDC, scroll + base + i * 14, (s32)buf, 7, 0);
                     }
                 }
@@ -541,13 +541,13 @@ void func_801DF47C(s32 arg0, s32 arg1) {
         base = D_801E0D6C[4] + 0x18;
         if (scroll + base > -0x10 && scroll + base < 0xF0) {
             drawText(0x50, scroll + base, (s32)"Cards given away.", 6, 0);
-            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->unk4E);
+            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->cardsGivenAway);
             drawText(0xB6, scroll + base, (s32)buf, 7, 0);
         }
         base = D_801E0D6C[4] + 0x2C;
         if (scroll + base > -0x10 && scroll + base < 0xF0) {
             drawText(0x50, scroll + base, (s32)"Received Cards", 6, 0);
-            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->unk4C);
+            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->cardsReceived);
             drawText(0xB6, scroll + base, (s32)buf, 7, 0);
         }
 
@@ -558,19 +558,19 @@ void func_801DF47C(s32 arg0, s32 arg1) {
         base = D_801E0D6C[5] + 0x18;
         if (scroll + base > -0x10 && scroll + base < 0xF0) {
             drawText(0x50, scroll + base, (s32)"Used Cards", 6, 0);
-            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->unk52);
+            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->fusionCardsUsed);
             drawText(0xBE, scroll + base, (s32)buf, 7, 0);
         }
         base = D_801E0D6C[5] + 0x2C;
         if (scroll + base > -0x10 && scroll + base < 0xF0) {
             drawText(0x50, scroll + base, (s32)"Fused Cards", 6, 0);
-            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->unk50);
+            sprintf(buf, "*s0%4d*s1 *c6Cards", (u16)PROFILE->fusedCards);
             drawText(0xBE, scroll + base, (s32)buf, 7, 0);
         }
         base = D_801E0D6C[5] + 0x40;
         if (scroll + base > -0x10 && scroll + base < 0xF0) {
             drawText(0x50, scroll + base, (s32)"Fusion Mutations", 6, 0);
-            sprintf(buf, "*s0%4d*s1 *c6Times", (u16)PROFILE->unk54);
+            sprintf(buf, "*s0%4d*s1 *c6Times", (u16)PROFILE->fusionMutations);
             drawText(0xBE, scroll + base, (s32)buf, 7, 0);
         }
 

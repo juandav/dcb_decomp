@@ -35,13 +35,13 @@ void func_8002D458(void) {
     ((SessionData *)D_8006E054)->unk100C->unk1A9 = 0;
     ((SessionData *)D_8006E054)->unk100C->unk1A8 = 0;
     for (i = 0; i < 12; i++) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] = 0;
+        PLAYER_DATA(0).unk23FC[i] = 0;
     }
     for (i = 0; i < 9; i++) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk242C[i] = 0;
+        PLAYER_DATA(0).unk242C[i] = 0;
     }
-    ((PlayerProfile *)PLAYER_PROFILES)->unk2C = 0;
-    ((PlayerProfile *)PLAYER_PROFILES)->unk14 = 0;
+    PLAYER_DATA(0).scriptFlags = 0;
+    PLAYER_DATA(0).unk14 = 0;
 }
 
 void resetPlayerData(void) {
@@ -52,9 +52,9 @@ void resetPlayerData(void) {
 
     profile = (PlayerProfile *)PLAYER_PROFILES;
     for (i = 0; i < 12; i++) {
-        ((PlayerProfile *)PLAYER_PROFILES)->unk23FC[i] = 0;
+        PLAYER_DATA(0).unk23FC[i] = 0;
     }
-    ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 = 0;
+    PLAYER_DATA(0).unk28_9 = 0;
     for (player = 0; player < 2; player++, profile++) {
         profile->name[0] = 0;
         profile->battleWins = 0;
@@ -72,12 +72,12 @@ void resetPlayerData(void) {
         profile->collectorRank = 0;
         profile->battleRank = 0;
         profile->profileSize = sizeof(PlayerProfile);
-        profile->unk4C = 0;
-        profile->unk4E = 0;
-        profile->unk50 = 0;
-        profile->unk52 = 0;
-        profile->unk54 = 0;
-        profile->unk56 = 0;
+        profile->cardsReceived = 0;
+        profile->cardsGivenAway = 0;
+        profile->fusedCards = 0;
+        profile->fusionCardsUsed = 0;
+        profile->fusionMutations = 0;
+        profile->activePartner = 0;
         for (i = 0; i < 3; i++) {
             profile->attackCounts[i] = 0;
         }
@@ -118,7 +118,7 @@ void resetPlayerData(void) {
             profile->unk9A4[i] = 0;
         }
         for (j = 0; j < 0x20; j++) {
-            profile->unk848[j] = 0;
+            profile->bonusCounts[j] = 0;
         }
         profile->unk20_0 = 0;
         profile->unk20_1 = 0;
@@ -126,7 +126,7 @@ void resetPlayerData(void) {
         profile->skipBattleAnimation = 0;
         profile->playTime = 0;
     }
-    strcpy(((PlayerProfile *)PLAYER_PROFILES)->name, "Player");
+    strcpy(PLAYER_DATA(0).name, "Player");
     func_8002D458();
 }
 
@@ -164,25 +164,25 @@ void renderFullscreenBackground(void) {
 }
 
 void playModelAnimation(s32 modelSlot, s32 animId) {
-    void *model;
+    Model *model;
 
     model = SCENE_3D->models[modelSlot];
     /* reload the animation data (heap tag 0x84 + slot) only for a new clip */
-    if ((*(s32 *)((s8 *)model + 0x2200)) != animId) {
+    if (model->anim.clip != animId) {
         freeHeapBlocksByTag(modelSlot + 0x84);
-        setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(((Model *)model)->pak, 1, animId), modelSlot + 0x84), animId);
+        setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(model->pak, 1, animId), modelSlot + 0x84), animId);
     }
     startModelAnimation(modelSlot, animId, -2, 0);
 }
 
 void setModelAnimationPose(s32 modelSlot, s32 animId) {
     s32 heapTag;
-    void *model;
+    Model *model;
 
     model = SCENE_3D->models[modelSlot];
     heapTag = modelSlot + 0x84;
     freeHeapBlocksByTag(heapTag);
-    setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(((Model *)model)->pak, 1, animId), heapTag), animId);
+    setModelAnimationData(model, (s32 *)decompressToHeap((s32)findPakChunk(model->pak, 1, animId), heapTag), animId);
     applyAnimationFirstFrame(modelSlot, animId);
 }
 

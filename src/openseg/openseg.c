@@ -1147,8 +1147,8 @@ void OPEN_addCardCopy(s32 player, s32 card, s32 serial) {
     }
     PLAYER_DATA(player).cardCollection[card] |= 0xC8;
     updatePlayerRanks(player);
-    if ((u16)++PLAYER_DATA(player).unk4C >= 10000) {
-        PLAYER_DATA(player).unk4C = 9999;
+    if ((u16)++PLAYER_DATA(player).cardsReceived >= 10000) {
+        PLAYER_DATA(player).cardsReceived = 9999;
     }
 }
 
@@ -1170,8 +1170,8 @@ u16 OPEN_removeCardCopy(s32 player, s32 card) {
     }
     PLAYER_DATA(player).cardCollection[card]--;
     updatePlayerRanks(player);
-    if ((u16)++PLAYER_DATA(player).unk4E >= 10000) {
-        PLAYER_DATA(player).unk4E = 9999;
+    if ((u16)++PLAYER_DATA(player).cardsGivenAway >= 10000) {
+        PLAYER_DATA(player).cardsGivenAway = 9999;
     }
     return serial;
 }
@@ -3094,8 +3094,8 @@ void OPEN_giveStarterDeck(s32 deck) {
     for (i = 0; i < 5; i++) {
         addCardToCollection(0, OPEN_STARTER_BONUS_CARDS[deck * 10 + i * 2 + rand() % 2], 1);
     }
-    PLAYER_DATA(0).unk56 = deck;
-    changeScrollingBackground(PLAYER_DATA(0).unk56, 0x380, 0, 0x380, 0x80);
+    PLAYER_DATA(0).activePartner = deck;
+    changeScrollingBackground(PLAYER_DATA(0).activePartner, 0x380, 0, 0x380, 0x80);
     func_801EBA74(deck);
     freeHeapBlock(file);
 }
