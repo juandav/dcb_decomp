@@ -75,7 +75,7 @@ libsnd_ut_rev nocse
 libspu_s_sr nocse
 libsnd_ut_rfb nocse
 libsnd_ut_sva
-libsnd_vm_aloc2
+libsnd_vm_aloc2 gcc2.8
 libsnd_func_80034be8
 libsnd_func_80034bf8
 libsnd_vm_f
