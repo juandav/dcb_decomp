@@ -109,13 +109,37 @@ def rodata_symbols(path: str) -> list:
         ]
 
 
+def asm_rodata(path: str) -> set:
+    """The names of PATH's .rodata data still included from asm (INCLUDE_RODATA)."""
+    return {name[: -len(".NON_MATCHING")] for name, _ in rodata_symbols(path) if name.endswith(".NON_MATCHING")}
+
+
+def mark_asm_rodata(path: str, names: set) -> None:
+    """Flip the first byte of each of NAMES in PATH's .rodata.
+
+    INCLUDE_RODATA copies the target's bytes, so objdiff would count them as
+    matched although they are still asm. A changed byte makes the section
+    they are in differ, and objdiff counts a data section only when all of
+    it matches: the report then shows that section as missing until its
+    data is written in C."""
+    with open(ROOT / path, "rb") as f:
+        elf = ELFFile(f)
+        rodata = elf.get_section_by_name(".rodata")
+        offsets = [rodata["sh_offset"] + value for name, value in rodata_symbols(path) if name in names]
+    blob = bytearray((ROOT / path).read_bytes())
+    for offset in offsets:
+        blob[offset] ^= 0xFF
+    (ROOT / path).write_bytes(blob)
+
+
 def name_rodata(base: str, target: str) -> None:
     """Give BASE's anonymous rodata the names TARGET has at the same offsets."""
     have = {name for name, _ in rodata_symbols(base)}
     # INCLUDE_RODATA data carries a .NON_MATCHING marker, which makes objdiff
     # leave it out of the section's compared range and cut the section
-    # short; renamed, it is compared like the rest
-    asm = {name[: -len(".NON_MATCHING")] for name in have if name.endswith(".NON_MATCHING")}
+    # short; renamed, it is compared like the rest (and mark_asm_rodata then
+    # makes sure it doesn't count as matched)
+    asm = asm_rodata(base)
     args = []
     for name in sorted(asm):
         args += ["--strip-symbol", name + ".NON_MATCHING"]
@@ -204,7 +228,9 @@ def unit(module: str, data: list) -> dict:
     (ROOT / base).parent.mkdir(parents=True, exist_ok=True)
     (ROOT / base).write_bytes((ROOT / f"build/src/{module}.c.o").read_bytes())
     pad_sections(base, target)
+    asm = asm_rodata(base)
     name_rodata(base, target)
+    mark_asm_rodata(base, asm)
     type_rodata_objects(base)
     for path in (target, base):
         for section in (".data", ".rodata"):
