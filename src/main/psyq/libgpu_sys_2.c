@@ -6,7 +6,8 @@ extern void (*D_8005B850[2])(void);
 
 extern void (*D_8006F59C[])();
 
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_8001389C);
+/* The first word of the GPU jump table (D_80076710, still in the data asm) points here */
+const char D_8001389C[] = "$Id: sys.c,v 1.140 1998/01/12 07:52:27 noda Exp yos $";
 
 extern u_long D_80076710[];
 extern short D_800767D8[3][2];
@@ -129,15 +130,14 @@ int LoadImage(RECT *rect, u_long *p) {
 }
 
 int StoreImage(RECT *rect, u_long *p) {
-    func_800649E8(D_800139D4, rect);
+    func_800649E8("StoreImage", rect);
     return D_80076750->addque(D_80076750->unk1C, rect, 8, (long)p);
 }
 
-extern char D_800139E0[];
 extern u_long D_800767F0[5];
 
 int MoveImage(RECT *rect, int x, int y) {
-    func_800649E8(D_800139E0, rect);
+    func_800649E8("MoveImage", rect);
     if (rect->w == 0 || rect->h == 0) {
         return -1;
     }
@@ -147,10 +147,6 @@ int MoveImage(RECT *rect, int x, int y) {
     return D_80076750->addque(D_80076750->unk18, D_800767F0, sizeof(D_800767F0), 0);
 }
 
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139D4);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_800139E0);
 
 extern u_long D_80076804[5];
 extern u_long D_80076818;
@@ -194,12 +190,10 @@ void DrawPrim(void *p) {
 
 void DrawOTag(u_long *p) {
     if (D_80076758.level >= 2) {
-        D_80076754(D_80013A1C, p);
+        D_80076754("DrawOTag(%08x)...\n", p);
     }
     D_80076750->addque(D_80076750->unk18, p, 0, 0);
 }
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013A1C);
 
 void func_800659C4(DR_ENV *dr, DRAWENV *env);
 
@@ -722,8 +716,6 @@ int func_80066FFC(int mode) {
 void func_80066E84(void);
 int func_80066EB8(void);
 void _GPU_ResetCallback(void);
-extern char D_800139D4[];
-extern char D_80013A1C[];
 
 int LoadImage2(RECT *rect, u_long *p) {
     func_800649E8("LoadImage2", rect);
@@ -740,7 +732,7 @@ int LoadImage2(RECT *rect, u_long *p) {
 }
 
 int StoreImage2(RECT *rect, u_long *p) {
-    func_800649E8(D_800139D4, rect);
+    func_800649E8("StoreImage", rect);
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
     while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
@@ -754,7 +746,7 @@ int StoreImage2(RECT *rect, u_long *p) {
 }
 
 int MoveImage2(RECT *rect, int x, int y) {
-    func_800649E8(D_800139E0, rect);
+    func_800649E8("MoveImage", rect);
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
     while ((*D_8007686C & 0x1000000) || !(*D_80076860 & 0x4000000)) {
@@ -775,7 +767,7 @@ int MoveImage2(RECT *rect, int x, int y) {
 
 int DrawOTag2(u_long *p) {
     if (D_80076758.level >= 2) {
-        D_80076754(D_80013A1C, p);
+        D_80076754("DrawOTag(%08x)...\n", p);
     }
     D_80076894 = VSync(-1) + 240;
     D_80076898 = 0;
