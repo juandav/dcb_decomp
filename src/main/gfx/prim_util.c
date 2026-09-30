@@ -3,6 +3,35 @@
 #include "game.h"
 #include "dcb/prim_util.h"
 
+/* the bits of a primitive's code byte */
+#define PRIM_CODE_TEXTURED 0x04
+#define PRIM_CODE_GOURAUD 0x10
+
+/* libgpu's POLY_F4 */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+} POLY_F4;
+
+/* libgpu's POLY_G3 */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+} POLY_G3;
+
+void setPolyGRgb1(POLY_G3 *poly, u8 r, u8 g, u8 b);
+void setPolyGRgb2(POLY_G3 *poly, u8 r, u8 g, u8 b);
+void setPolyF4Rect(POLY_F4 *poly, s16 x, s16 y, s16 w, s16 h);
+
 /* the size in bytes of each primitive type */
 u8 PRIM_SIZES[24] = {
     0x10, 0x14, 0x18, 0x20, 0x1C, 0x28, 0x14, 0x1C,
@@ -121,7 +150,7 @@ void stepPrimFade(u8 fadeOut, s16 step, u8 *state, u8 *prim) {
         *state = 2;
         break;
     case 2:
-        level = prim[4];
+        level = ((P_TAG *)prim)->r0;
         if (fadeOut == 0) {
             level += step;
             if (level >= 0x80) {
@@ -170,13 +199,11 @@ void initPrimByType(s32 type, void *prim, s32 semiTrans, s32 shadeTex) {
 }
 
 void setPrimRgb0(void *prim, u8 r, u8 g, u8 b) {
-    (*(u8 *)((s8 *)prim + 4)) = r;
-    (*(u8 *)((s8 *)prim + 5)) = g;
-    (*(u8 *)((s8 *)prim + 6)) = b;
+    setRGB0((P_TAG *)prim, r, g, b);
 }
 
 void setPrimRgb1(void *prim, u8 r, u8 g, u8 b) {
-    if (*((u8 *)prim + 7) & 4) {
+    if (getcode(prim) & PRIM_CODE_TEXTURED) {
         setPolyGTRgb1(prim, r, g, b);
     } else {
         setPolyGRgb1(prim, r, g, b);
@@ -184,7 +211,7 @@ void setPrimRgb1(void *prim, u8 r, u8 g, u8 b) {
 }
 
 void setPrimRgb2(void *prim, u8 r, u8 g, u8 b) {
-    if (*((u8 *)prim + 7) & 4) {
+    if (getcode(prim) & PRIM_CODE_TEXTURED) {
         setPolyGTRgb2(prim, r, g, b);
     } else {
         setPolyGRgb2(prim, r, g, b);
@@ -192,7 +219,7 @@ void setPrimRgb2(void *prim, u8 r, u8 g, u8 b) {
 }
 
 void setPrimRgb3(void *prim, u8 r, u8 g, u8 b) {
-    if (*((u8 *)prim + 7) & 4) {
+    if (getcode(prim) & PRIM_CODE_TEXTURED) {
         setPolyGT4Rgb3(prim, r, g, b);
     } else {
         setPolyG4Rgb3(prim, r, g, b);
@@ -200,189 +227,192 @@ void setPrimRgb3(void *prim, u8 r, u8 g, u8 b) {
 }
 
 void setPrimQuadColors(u8 *prim, u8 *colors) {
-    if (prim[7] & 4) {
-        setPolyGT4Colors(prim, colors);
+    if (getcode(prim) & PRIM_CODE_TEXTURED) {
+        setPolyGT4Colors((POLY_GT4 *)prim, colors);
     } else {
-        setPolyG4Colors(prim, colors);
+        setPolyG4Colors((POLY_G4 *)prim, colors);
     }
 }
 
-void setPolyGRgb1(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0xC)) = r;
-    (*(s8 *)((s8 *)poly + 0xD)) = g;
-    (*(s8 *)((s8 *)poly + 0xE)) = b;
+/* a POLY_G3 or a POLY_G4 */
+void setPolyGRgb1(POLY_G3 *poly, u8 r, u8 g, u8 b) {
+    poly->r1 = r;
+    poly->g1 = g;
+    poly->b1 = b;
 }
 
-void setPolyGTRgb1(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0x10)) = r;
-    (*(s8 *)((s8 *)poly + 0x11)) = g;
-    (*(s8 *)((s8 *)poly + 0x12)) = b;
+/* a POLY_GT3 or a POLY_GT4 */
+void setPolyGTRgb1(POLY_GT3 *poly, u8 r, u8 g, u8 b) {
+    poly->r1 = r;
+    poly->g1 = g;
+    poly->b1 = b;
 }
 
-void setPolyGRgb2(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0x14)) = r;
-    (*(s8 *)((s8 *)poly + 0x15)) = g;
-    (*(s8 *)((s8 *)poly + 0x16)) = b;
+void setPolyGRgb2(POLY_G3 *poly, u8 r, u8 g, u8 b) {
+    poly->r2 = r;
+    poly->g2 = g;
+    poly->b2 = b;
 }
 
-void setPolyGTRgb2(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0x1C)) = r;
-    (*(s8 *)((s8 *)poly + 0x1D)) = g;
-    (*(s8 *)((s8 *)poly + 0x1E)) = b;
+void setPolyGTRgb2(POLY_GT3 *poly, u8 r, u8 g, u8 b) {
+    poly->r2 = r;
+    poly->g2 = g;
+    poly->b2 = b;
 }
 
-void setPolyG4Rgb3(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0x1C)) = r;
-    (*(s8 *)((s8 *)poly + 0x1D)) = g;
-    (*(s8 *)((s8 *)poly + 0x1E)) = b;
+void setPolyG4Rgb3(POLY_G4 *poly, u8 r, u8 g, u8 b) {
+    poly->r3 = r;
+    poly->g3 = g;
+    poly->b3 = b;
 }
 
-void setPolyGT4Rgb3(void *poly, u8 r, u8 g, u8 b) {
-    (*(s8 *)((s8 *)poly + 0x28)) = r;
-    (*(s8 *)((s8 *)poly + 0x29)) = g;
-    (*(s8 *)((s8 *)poly + 0x2A)) = b;
+void setPolyGT4Rgb3(POLY_GT4 *poly, u8 r, u8 g, u8 b) {
+    poly->r3 = r;
+    poly->g3 = g;
+    poly->b3 = b;
 }
 
-void setPolyG4Colors(u8 *poly, u8 *colors) {
-    poly[0x4] = *colors++;
-    poly[0x5] = *colors++;
-    poly[0x6] = *colors++;
-    poly[0xC] = *colors++;
-    poly[0xD] = *colors++;
-    poly[0xE] = *colors++;
-    poly[0x14] = *colors++;
-    poly[0x15] = *colors++;
-    poly[0x16] = *colors++;
-    poly[0x1C] = *colors++;
-    poly[0x1D] = *colors++;
-    poly[0x1E] = *colors;
+/* colors holds the four vertex colors as r, g, b triplets */
+void setPolyG4Colors(POLY_G4 *poly, u8 *colors) {
+    poly->r0 = *colors++;
+    poly->g0 = *colors++;
+    poly->b0 = *colors++;
+    poly->r1 = *colors++;
+    poly->g1 = *colors++;
+    poly->b1 = *colors++;
+    poly->r2 = *colors++;
+    poly->g2 = *colors++;
+    poly->b2 = *colors++;
+    poly->r3 = *colors++;
+    poly->g3 = *colors++;
+    poly->b3 = *colors;
 }
 
-void setPolyGT4Colors(u8 *poly, u8 *colors) {
-    poly[0x4] = *colors++;
-    poly[0x5] = *colors++;
-    poly[0x6] = *colors++;
-    poly[0x10] = *colors++;
-    poly[0x11] = *colors++;
-    poly[0x12] = *colors++;
-    poly[0x1C] = *colors++;
-    poly[0x1D] = *colors++;
-    poly[0x1E] = *colors++;
-    poly[0x28] = *colors++;
-    poly[0x29] = *colors++;
-    poly[0x2A] = *colors;
+void setPolyGT4Colors(POLY_GT4 *poly, u8 *colors) {
+    poly->r0 = *colors++;
+    poly->g0 = *colors++;
+    poly->b0 = *colors++;
+    poly->r1 = *colors++;
+    poly->g1 = *colors++;
+    poly->b1 = *colors++;
+    poly->r2 = *colors++;
+    poly->g2 = *colors++;
+    poly->b2 = *colors++;
+    poly->r3 = *colors++;
+    poly->g3 = *colors++;
+    poly->b3 = *colors;
 }
 
 void setPrimQuadRect(void *prim, s16 x, s16 y, s16 w, s16 h) {
     s32 kind;
 
-    kind = (*(u8 *)((s8 *)prim + 7)) & 0x14;
+    kind = getcode(prim) & (PRIM_CODE_GOURAUD | PRIM_CODE_TEXTURED);
     switch (kind) {                              /* irregular */
     case 0:
         setPolyF4Rect(prim, x, y, w, (s16) (s32) h);
         return;
-    case 4:
+    case PRIM_CODE_TEXTURED:
         setPolyFT4Rect(prim, x, y, w, (s16) (s32) h);
         return;
-    case 16:
+    case PRIM_CODE_GOURAUD:
         setPolyG4Rect(prim, x, y, w, (s16) (s32) h);
         return;
-    case 20:
+    case PRIM_CODE_GOURAUD | PRIM_CODE_TEXTURED:
         setPolyGT4Rect(prim, x, y, w, (s16) (s32) h);
         return;
     }
 }
 
-void setPolyF4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 x1;
-    s32 y1;
+void setPolyF4Rect(POLY_F4 *poly, s16 x, s16 y, s16 w, s16 h) {
+    s32 right;
+    s32 bottom;
 
-    (*(s16 *)((s8 *)poly + 8)) = x;
-    (*(s16 *)((s8 *)poly + 0xA)) = y;
-    x1 = x + w;
-    (*(s16 *)((s8 *)poly + 0xC)) = x1;
-    (*(s16 *)((s8 *)poly + 0xE)) = y;
-    (*(s16 *)((s8 *)poly + 0x10)) = x;
-    y1 = y + h;
-    (*(s16 *)((s8 *)poly + 0x12)) = y1;
-    (*(s16 *)((s8 *)poly + 0x14)) = x1;
-    (*(s16 *)((s8 *)poly + 0x16)) = y1;
+    poly->x0 = x;
+    poly->y0 = y;
+    right = x + w;
+    poly->x1 = right;
+    poly->y1 = y;
+    poly->x2 = x;
+    bottom = y + h;
+    poly->y2 = bottom;
+    poly->x3 = right;
+    poly->y3 = bottom;
 }
 
-void setPolyG4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 x1;
-    s32 y1;
+void setPolyG4Rect(POLY_G4 *poly, s16 x, s16 y, s16 w, s16 h) {
+    s32 right;
+    s32 bottom;
 
-    (*(s16 *)((s8 *)poly + 8)) = x;
-    (*(s16 *)((s8 *)poly + 0xA)) = y;
-    x1 = x + w;
-    (*(s16 *)((s8 *)poly + 0x10)) = x1;
-    (*(s16 *)((s8 *)poly + 0x12)) = y;
-    (*(s16 *)((s8 *)poly + 0x18)) = x;
-    y1 = y + h;
-    (*(s16 *)((s8 *)poly + 0x1A)) = y1;
-    (*(s16 *)((s8 *)poly + 0x20)) = x1;
-    (*(s16 *)((s8 *)poly + 0x22)) = y1;
+    poly->x0 = x;
+    poly->y0 = y;
+    right = x + w;
+    poly->x1 = right;
+    poly->y1 = y;
+    poly->x2 = x;
+    bottom = y + h;
+    poly->y2 = bottom;
+    poly->x3 = right;
+    poly->y3 = bottom;
 }
 
-void setPolyFT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 x1;
-    s32 y1;
+void setPolyFT4Rect(POLY_FT4 *poly, s16 x, s16 y, s16 w, s16 h) {
+    s32 right;
+    s32 bottom;
 
-    (*(s16 *)((s8 *)poly + 8)) = x;
-    (*(s16 *)((s8 *)poly + 0xA)) = y;
-    x1 = x + w;
-    (*(s16 *)((s8 *)poly + 0x10)) = x1;
-    (*(s16 *)((s8 *)poly + 0x12)) = y;
-    (*(s16 *)((s8 *)poly + 0x18)) = x;
-    y1 = y + h;
-    (*(s16 *)((s8 *)poly + 0x1A)) = y1;
-    (*(s16 *)((s8 *)poly + 0x20)) = x1;
-    (*(s16 *)((s8 *)poly + 0x22)) = y1;
+    poly->x0 = x;
+    poly->y0 = y;
+    right = x + w;
+    poly->x1 = right;
+    poly->y1 = y;
+    poly->x2 = x;
+    bottom = y + h;
+    poly->y2 = bottom;
+    poly->x3 = right;
+    poly->y3 = bottom;
 }
 
-void setPolyGT4Rect(void *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 x1;
-    s32 y1;
+void setPolyGT4Rect(POLY_GT4 *poly, s16 x, s16 y, s16 w, s16 h) {
+    s32 right;
+    s32 bottom;
 
-    (*(s16 *)((s8 *)poly + 8)) = x;
-    (*(s16 *)((s8 *)poly + 0xA)) = y;
-    x1 = x + w;
-    (*(s16 *)((s8 *)poly + 0x14)) = x1;
-    (*(s16 *)((s8 *)poly + 0x16)) = y;
-    (*(s16 *)((s8 *)poly + 0x20)) = x;
-    y1 = y + h;
-    (*(s16 *)((s8 *)poly + 0x22)) = y1;
-    (*(s16 *)((s8 *)poly + 0x2C)) = x1;
-    (*(s16 *)((s8 *)poly + 0x2E)) = y1;
+    poly->x0 = x;
+    poly->y0 = y;
+    right = x + w;
+    poly->x1 = right;
+    poly->y1 = y;
+    poly->x2 = x;
+    bottom = y + h;
+    poly->y2 = bottom;
+    poly->x3 = right;
+    poly->y3 = bottom;
 }
 
 void setPrimQuadUvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
-    if (poly[7] & 0x10) {
-        setPolyGT4UvRect(poly, u, v, w, h);
+    if (getcode(poly) & PRIM_CODE_GOURAUD) {
+        setPolyGT4UvRect((POLY_GT4 *)poly, u, v, w, h);
     } else {
-        setPolyFT4UvRect(poly, u, v, w, h);
+        setPolyFT4UvRect((POLY_FT4 *)poly, u, v, w, h);
     }
 }
 
-void setPolyFT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
-    poly[0xC] = u;
-    poly[0xD] = v;
-    poly[0x14] = u + w;
-    poly[0x15] = v;
-    poly[0x1C] = u;
-    poly[0x1D] = v + h;
-    poly[0x24] = u + w;
-    poly[0x25] = v + h;
+void setPolyFT4UvRect(POLY_FT4 *poly, u8 u, u8 v, u8 w, u8 h) {
+    poly->u0 = u;
+    poly->v0 = v;
+    poly->u1 = u + w;
+    poly->v1 = v;
+    poly->u2 = u;
+    poly->v2 = v + h;
+    poly->u3 = u + w;
+    poly->v3 = v + h;
 }
 
-void setPolyGT4UvRect(u8 *poly, u8 u, u8 v, u8 w, u8 h) {
-    poly[0xC] = u;
-    poly[0xD] = v;
-    poly[0x18] = u + w;
-    poly[0x19] = v;
-    poly[0x24] = u;
-    poly[0x25] = v + h;
-    poly[0x30] = u + w;
-    poly[0x31] = v + h;
+void setPolyGT4UvRect(POLY_GT4 *poly, u8 u, u8 v, u8 w, u8 h) {
+    poly->u0 = u;
+    poly->v0 = v;
+    poly->u1 = u + w;
+    poly->v1 = v;
+    poly->u2 = u;
+    poly->v2 = v + h;
+    poly->u3 = u + w;
+    poly->v3 = v + h;
 }
