@@ -35,7 +35,7 @@ void runDuelTurnLoop(void) {
     s32 j;
     s32 cardId;
     s8 handSlot;
-    s8 *cardData;
+    DigivolveCardData *option;
     s32 knockedOut;
     Player *firstAttacker;
     Player *secondAttacker;
@@ -47,14 +47,20 @@ void runDuelTurnLoop(void) {
     for (;;) {
         waitDuelFrames(1);
         func_801EAB4C();
+        /* steps 1-10: Preparation Phase (draw, place a Digimon), 11-13: DP
+           slots, 14-22: Digivolve Phase, 23-36: Battle Phase, 37: end of
+           turn, 38-39: duel over */
+        /* pad bits: 0x10 triangle, 0x20 circle, 0x40 cross, 0x80 square */
         switch (DUEL->step) {
         case 0:
-            D_801D83EC[0x9D] = 1;
-            D_801D83EC[0x175] = 1;
+            PLAYER_PANEL(0, HUD_DECK)->state = 1;
+            PLAYER_PANEL(1, HUD_DECK)->state = 1;
             DUEL_MSG_BAR.next = -1;
             DUEL_MSG_BAR.next2 = -1;
             func_80014C08(0x1E);
-            if (PLAYER(1)->controller == 1 && ((u8 *)D_8006E054)[4] == 0x8C) {
+            /* against opponent 0x8C, partner cards in the player's deck move to
+               the bottom of the Online Deck and the hacking sequence plays */
+            if (PLAYER(1)->controller == 1 && ((SessionData *)D_8006E054)->opponentDeckIndex == 0x8C) {
                 for (i = 0, j = 0; i < 30; i++) {
                     if ((u32)findPartnerSlot(0, PLAYER(0)->cards[i].id) < 3) {
                         j = 1;
@@ -83,18 +89,18 @@ void runDuelTurnLoop(void) {
         case 1:
             DUEL->awaitingInput = 0;
             if (ME == 0) {
-                D_801D83EC[0xC1] = 1;
-                D_801D83EC[0x199] = 6;
+                PLAYER_PANEL(0, HUD_PANEL_5)->state = 1;
+                PLAYER_PANEL(1, HUD_PANEL_5)->state = 6;
             } else {
-                D_801D83EC[0xC1] = 6;
-                D_801D83EC[0x199] = 1;
+                PLAYER_PANEL(0, HUD_PANEL_5)->state = 6;
+                PLAYER_PANEL(1, HUD_PANEL_5)->state = 1;
             }
-            D_801D83EC[0x9D] = 1;
-            D_801D83EC[0x175] = 1;
+            PLAYER_PANEL(0, HUD_DECK)->state = 1;
+            PLAYER_PANEL(1, HUD_DECK)->state = 1;
             PLAYER(0)->attackChoice = 3;
             PLAYER(1)->attackChoice = 3;
-            DUEL->unk80A = -1;
-            DUEL->unk80E = -1;
+            DUEL->playedFromSlot = -1;
+            DUEL->dpFromSlot = -1;
             DUEL->unk81D = -1;
             DUEL->step++;
             break;
@@ -107,7 +113,7 @@ void runDuelTurnLoop(void) {
             waitDuelFrames(0x3C);
             while (1) {
             wait:
-                if (D_801D83EC[0x9D] != 4) {
+                if (PLAYER_PANEL(0, HUD_DECK)->state != 4) {
                     goto wait;
                 }
                 if (func_801EC570(ME) == -1) {
@@ -183,7 +189,7 @@ void runDuelTurnLoop(void) {
                         }
                         break;
                     case 1:
-                        PLAYER(ME)->unk110 |= 0x20;
+                        PLAYER(ME)->bonusFlags |= 0x20;
                         DUEL->step++;
                         break;
                     }
@@ -219,8 +225,8 @@ void runDuelTurnLoop(void) {
                 if (PAD_STATES[DUEL->viewPlayer]->pressed & 0x10) {
                     playSoundEffect(0xA1);
                     if (DUEL->returnStep == 0x19) {
-                        D_801D83EC[0x31] = 1;
-                        D_801D83EC[0x109] = 1;
+                        PLAYER_PANEL(0, HUD_ATTACK)->state = 1;
+                        PLAYER_PANEL(1, HUD_ATTACK)->state = 1;
                     }
                     func_801EC528(DUEL->viewPlayer);
                     DUEL->cursorSlot = -1;
@@ -254,7 +260,7 @@ void runDuelTurnLoop(void) {
                     }
                     CUR_CARD = DUEL->cpuResult;
                     func_801EA558(CUR_CARD, ME);
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     i = findPartnerSlot(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
                     if (i != -1) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
@@ -283,7 +289,7 @@ void runDuelTurnLoop(void) {
                     playSoundEffect(0xA0);
                     func_801EC528(ME);
                     func_801EA558(CUR_CARD, ME);
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     i = findPartnerSlot(ME, PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id);
                     if (i != -1) {
                         if (getSelectedArmorIndex(ME, getPartnerIndex(PLAYER(ME)->cards[(s16)(CUR_CARD % 30)].id)) != -1) {
@@ -292,9 +298,9 @@ void runDuelTurnLoop(void) {
                             runDuelMessageWindow();
                             switch (CHOICE) {
                             case 0:
-                                if (DUEL->unk80A >= 0) {
-                                    func_801EC84C(CUR_CARD, ME, DUEL->unk80A);
-                                    DUEL->unk80A = -1;
+                                if (DUEL->playedFromSlot >= 0) {
+                                    func_801EC84C(CUR_CARD, ME, DUEL->playedFromSlot);
+                                    DUEL->playedFromSlot = -1;
                                     DUEL->step = 8;
                                 } else {
                                     DUEL->step = 3;
@@ -303,7 +309,7 @@ void runDuelTurnLoop(void) {
                             case 1:
                                 func_801F6214(1, ME);
                                 armorDigivolvePartner(ME, i);
-                                PLAYER(ME)->unk110 |= 8;
+                                PLAYER(ME)->bonusFlags |= 8;
                                 func_801FA4E4(ME);
                                 DUEL->step = 0xB;
                                 break;
@@ -336,15 +342,15 @@ void runDuelTurnLoop(void) {
                 if (DUEL->tutorial != 0) {
                     func_801EA8B4(0x78, "Press \"Yes\" to go to the next Phase!");
                 } else {
-                    if (DUEL->unk80A >= 0) {
-                        func_801EC84C(CUR_CARD, ME, DUEL->unk80A);
-                        DUEL->unk80A = -1;
+                    if (DUEL->playedFromSlot >= 0) {
+                        func_801EC84C(CUR_CARD, ME, DUEL->playedFromSlot);
+                        DUEL->playedFromSlot = -1;
                     }
                     DUEL->step = 4;
                 }
                 break;
             case 1:
-                if (DUEL->unk80A >= 0) {
+                if (DUEL->playedFromSlot >= 0) {
                     func_801FA4E4(ME);
                 }
                 DUEL->step++;
@@ -354,9 +360,9 @@ void runDuelTurnLoop(void) {
         case 11:
             DUEL->awaitingInput = 0;
             if (PLAYER(ME)->controller == 1) {
-                DUEL->unk80A = -2;
-                DUEL->unk80E = -1;
-                DUEL->unk80C = -1;
+                DUEL->playedFromSlot = -2;
+                DUEL->dpFromSlot = -1;
+                DUEL->discardedFromSlot = -1;
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 3;
                 waitForCpuDecision();
@@ -366,7 +372,7 @@ void runDuelTurnLoop(void) {
                     DUEL_MSG_BAR.phase = 1;
                     DUEL_MSG_BAR.next = 7;
                     CUR_CARD = DUEL->cpuResult;
-                    DUEL->unk80A = func_801ECBCC(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801ECBCC(CUR_CARD, ME);
                     waitDuelFrames(0x78);
                     DUEL->step = 0xE;
                 }
@@ -376,9 +382,9 @@ void runDuelTurnLoop(void) {
             break;
         case 12:
             DUEL->awaitingInput = 0;
-            DUEL->unk80A = -2;
-            DUEL->unk80E = -1;
-            DUEL->unk80C = -1;
+            DUEL->playedFromSlot = -2;
+            DUEL->dpFromSlot = -1;
+            DUEL->discardedFromSlot = -1;
             if (checkHandHasDigimonCard(ME) != 0) {
                 DUEL->step = 0xE;
             } else if (countEmptyDpSlots(ME) != 0) {
@@ -397,7 +403,7 @@ void runDuelTurnLoop(void) {
                 i = PLAYER(ME)->hand[DUEL->cursorSlot];
                 if (PLAYER(ME)->cards[i % 30].type == 0) {
                     playSoundEffect(0xA0);
-                    DUEL->unk80E = func_801ECBCC(CUR_CARD, ME);
+                    DUEL->dpFromSlot = func_801ECBCC(CUR_CARD, ME);
                     DUEL->step++;
                 }
             } else if (PAD_STATES[ME]->pressed & 0x20) {
@@ -419,20 +425,20 @@ void runDuelTurnLoop(void) {
                 } else {
                     DUEL_MSG_BAR.phase = 1;
                     DUEL_MSG_BAR.next = 8;
-                    D_801D83EC[ME * 0xD8 + 0x55] = 6;
+                    PLAYER_PANEL(ME, HUD_STATUS)->state = 6;
                     waitDuelFrames(0x1E);
                     CUR_CARD = DUEL->cpuResult;
-                    DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801ECB40(CUR_CARD, ME);
                     waitDuelFrames(0x1E);
                     DUEL->step = 0x10;
                 }
             } else if (checkHandHasDigivolveCard(ME) != 0) {
-                DUEL->unk80A = -1;
+                DUEL->playedFromSlot = -1;
                 DUEL->step = 0x13;
             } else {
                 DUEL->step++;
                 func_801EC4CC(ME);
-                D_801D83EC[ME * 0xD8 + 0x55] = 6;
+                PLAYER_PANEL(ME, HUD_STATUS)->state = 6;
                 DUEL_MSG_BAR.phase = 1;
                 DUEL_MSG_BAR.next = 8;
                 DUEL_MSG_BAR.next2 = 6;
@@ -445,15 +451,15 @@ void runDuelTurnLoop(void) {
                 i = PLAYER(ME)->hand[DUEL->cursorSlot];
                 if (PLAYER(ME)->cards[i % 30].type == 2) {
                     playSoundEffect(0xA0);
-                    DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801ECB40(CUR_CARD, ME);
                     if (func_801EA374(ME) != 0) {
                         initDialog((u8 *)&D_801D8278, "This Digivolve Option has no Effect.\nDo you still want to use it?", 1);
                         runDuelMessageWindow();
                         switch (CHOICE) {
                         case 0:
                         case 2:
-                            func_801EC8E0(ME, DUEL->unk80A);
-                            DUEL->unk80A = -2;
+                            func_801EC8E0(ME, DUEL->playedFromSlot);
+                            DUEL->playedFromSlot = -2;
                             break;
                         case 1:
                             func_801EC528(ME);
@@ -469,15 +475,15 @@ void runDuelTurnLoop(void) {
                 if (PAD_STATES[ME]->pressed & 0x20) {
                     playSoundEffect(0xA0);
                     func_801EC528(ME);
-                    D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                    PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                     DUEL->step = 0x13;
                 } else if (PAD_STATES[ME]->pressed & 0x10) {
                     playSoundEffect(0xA1);
-                    if (DUEL->unk80E >= 0) {
-                        func_801ECA30(peekDpSlotTop(ME), ME, DUEL->unk80E);
-                        DUEL->unk80E = -1;
+                    if (DUEL->dpFromSlot >= 0) {
+                        func_801ECA30(peekDpSlotTop(ME), ME, DUEL->dpFromSlot);
+                        DUEL->dpFromSlot = -1;
                     }
-                    D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                    PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                     DUEL->step = 0xB;
                 }
             }
@@ -487,8 +493,8 @@ void runDuelTurnLoop(void) {
             D_801D83D4 = 9;
             devolveOutcome = 0;
             if (func_801EA374(ME) == 0) {
-                cardData = PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
-                switch (cardData[0x1A]) {
+                option = (DigivolveCardData *)PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
+                switch (option->effect) {
                 case 4:
                     initDialog((u8 *)&D_801D8278, "Current Digimon will be discarded,\ndo you still want to \"Digi-devolve\"?", 1);
                     if (PLAYER(ME)->controller != 1) {
@@ -500,9 +506,9 @@ void runDuelTurnLoop(void) {
                     case 0:
                     case 2:
                         devolveOutcome = 2;
-                        func_801EC8E0(ME, DUEL->unk80A);
-                        DUEL->unk80A = -2;
-                        D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                        func_801EC8E0(ME, DUEL->playedFromSlot);
+                        DUEL->playedFromSlot = -2;
+                        PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                         break;
                     case 1:
                         devolveOutcome = 3;
@@ -526,9 +532,9 @@ void runDuelTurnLoop(void) {
                     case 0:
                     case 2:
                         devolveOutcome = 2;
-                        func_801EC8E0(ME, DUEL->unk80A);
-                        DUEL->unk80A = -2;
-                        D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                        func_801EC8E0(ME, DUEL->playedFromSlot);
+                        DUEL->playedFromSlot = -2;
+                        PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                         break;
                     case 1:
                         devolveOutcome = 3;
@@ -543,11 +549,11 @@ void runDuelTurnLoop(void) {
                 }
             }
             if (devolveOutcome == 0 || devolveOutcome == 3) {
-                DUEL->unk80C = DUEL->unk80A;
+                DUEL->discardedFromSlot = DUEL->playedFromSlot;
                 i = takePlayedCard(ME);
-                D_801D833C[i * 0x24 + 0x22] = 8;
+                SPRITE_KIND(i) = 8;
                 discardCardToOfflineDeck(i, ME);
-                D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                 func_801EC528(ME);
             }
             switch (devolveOutcome) {
@@ -561,7 +567,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0xE;
                 break;
             case 3:
-                PLAYER(ME)->unk110 |= 0x40000000;
+                PLAYER(ME)->bonusFlags |= 0x40000000;
                 DUEL->step = 0x17;
                 break;
             }
@@ -594,51 +600,51 @@ void runDuelTurnLoop(void) {
                 if (i != 0) {
                     if (PAD_STATES[ME]->pressed & 0x20) {
                         playSoundEffect(0xA0);
-                        if (DUEL->unk80A >= 0) {
-                            func_801EC8E0(ME, DUEL->unk80A);
-                            DUEL->unk80A = -2;
+                        if (DUEL->playedFromSlot >= 0) {
+                            func_801EC8E0(ME, DUEL->playedFromSlot);
+                            DUEL->playedFromSlot = -2;
                         }
                         DUEL->step = 0x13;
                         func_801EC528(ME);
-                        D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                        PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                     } else if (PAD_STATES[ME]->pressed & 0x10) {
                         playSoundEffect(0xA1);
-                        if (DUEL->unk80A >= 0) {
-                            func_801EC8E0(ME, DUEL->unk80A);
-                            DUEL->unk80A = -2;
+                        if (DUEL->playedFromSlot >= 0) {
+                            func_801EC8E0(ME, DUEL->playedFromSlot);
+                            DUEL->playedFromSlot = -2;
                         }
                         DUEL->step = 0xE;
                         func_801EC528(ME);
-                        D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                        PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                     }
                 }
             }
             if (i == 0 && func_801E9F5C(CUR_CARD, ME) == 0) {
                 func_801EC528(ME);
-                cardData = PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
-                switch (cardData[0x1A]) {
+                option = (DigivolveCardData *)PLAYER(ME)->cards[getPlayedCard(ME) % 30].card;
+                switch (option->effect) {
                 case 0:
                     func_801F6214(3, ME);
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                     break;
                 case 1:
                     func_801F6214(4, ME);
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                     break;
                 case 2:
                     func_801F6214(5, ME);
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     break;
                 case 3:
                     func_801F6214(7, ME);
                     func_801EC608(getActiveDigimonCard(ME), ME);
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                     break;
                 case 5:
@@ -649,28 +655,28 @@ void runDuelTurnLoop(void) {
                         waitDuelFrames(0x14);
                     }
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     break;
                 case 6:
                     func_801F6214(6, ME);
                     armorDevolvePartner(ME, findArmorPartnerSlot(ME, PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].id));
                     func_801EC608(getActiveDigimonCard(ME), ME);
                     PLAYER(ME)->statPenalty = 0;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                     break;
                 }
-                PLAYER(ME)->unk110 |= 8;
+                PLAYER(ME)->bonusFlags |= 8;
                 func_801FA4E4(ME);
                 DUEL->step = 0x17;
             }
             if (DUEL->step != 0x12 && DUEL->step != 0xE && DUEL->step != 0x13) {
                 i = takePlayedCard(ME);
-                D_801D833C[i * 0x24 + 0x22] = 8;
+                SPRITE_KIND(i) = 8;
                 discardCardToOfflineDeck(i, ME);
-                D_801D83EC[ME * 0xD8 + 0x55] = 1;
+                PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
                 waitDuelFrames(0x14);
-                PLAYER(ME)->unk110 |= 0x40000000;
+                PLAYER(ME)->bonusFlags |= 0x40000000;
             }
             break;
         case 19:
@@ -686,7 +692,7 @@ void runDuelTurnLoop(void) {
                     DUEL_MSG_BAR.next = 9;
                     func_801F6214(0, ME);
                     CUR_CARD = DUEL->cpuResult;
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
                 }
             } else if (checkHandHasDigimonCard(ME) != 0) {
@@ -710,9 +716,9 @@ void runDuelTurnLoop(void) {
                 if (func_801E9F5C(PLAYER(ME)->hand[DUEL->cursorSlot], ME) == 0) {
                     func_801EC528(ME);
                     func_801F6214(0, ME);
-                    DUEL->unk80A = func_801EC7C0(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801EC7C0(CUR_CARD, ME);
                     func_801ECE24();
-                    PLAYER(ME)->unk110 |= 8;
+                    PLAYER(ME)->bonusFlags |= 8;
                     func_801FA4E4(ME);
                 }
             } else if (PAD_STATES[ME]->pressed & 0x20) {
@@ -730,7 +736,7 @@ void runDuelTurnLoop(void) {
             DUEL_MSG_BAR.phase = 1;
             DUEL_MSG_BAR.next2 = 0;
             DUEL_MSG_BAR.next = 0xA;
-            D_801D83EC[ME * 0xD8 + 0x55] = 1;
+            PLAYER_PANEL(ME, HUD_STATUS)->state = 1;
             initDialog((u8 *)&D_801D8278, "Is it OK to end the Digivolve Phase?", 1);
             runDuelMessageWindow();
             switch (CHOICE) {
@@ -738,7 +744,7 @@ void runDuelTurnLoop(void) {
             case 2:
                 if (DUEL->tutorial != 0) {
                     func_801EA8B4(0x78, "Choose \"Yes\" to go to next Phase!");
-                } else if (DUEL->unk80A == -2) {
+                } else if (DUEL->playedFromSlot == -2) {
                     DUEL->step = 0xE;
                 } else {
                     func_801ECD68();
@@ -751,7 +757,7 @@ void runDuelTurnLoop(void) {
             break;
         case 23:
             DUEL->awaitingInput = 0;
-            PLAYER(ME)->unk178_30 = 1;
+            PLAYER(ME)->hasBattled = 1;
             PLAYER(ME)->battleCard = PLAYER(ME)->cards[getActiveDigimonCard(ME) % 30].card;
             if (getActiveDigimonCard(OPP) == -1) {
                 if (PLAYER(ME)->controller != 1) {
@@ -763,8 +769,8 @@ void runDuelTurnLoop(void) {
                 }
                 DUEL->step = 0x25;
             } else {
-                DUEL->unk80A = -1;
-                DUEL->unk80E = -1;
+                DUEL->playedFromSlot = -1;
+                DUEL->dpFromSlot = -1;
                 DUEL->step++;
             }
             break;
@@ -782,8 +788,8 @@ void runDuelTurnLoop(void) {
                     }
                 }
             }
-            D_801D83EC[0x31] = 1;
-            D_801D83EC[0x109] = 1;
+            PLAYER_PANEL(0, HUD_ATTACK)->state = 1;
+            PLAYER_PANEL(1, HUD_ATTACK)->state = 1;
             func_80014C08(0x1E);
             DUEL->step++;
             break;
@@ -797,6 +803,7 @@ void runDuelTurnLoop(void) {
                         PLAYER(i)->attackChoice = DUEL->cpuResult;
                     }
                 } else if (PLAYER(i)->attackChoice == 3) {
+                    /* circle, triangle and cross pick the attack, square views the cards */
                     if (PAD_STATES[i]->pressed & 0x20) {
                         playSoundEffect(0xA0);
                         PLAYER(i)->attackChoice = 0;
@@ -809,8 +816,8 @@ void runDuelTurnLoop(void) {
                     } else if (PAD_STATES[i]->pressed & 0x80) {
                         playSoundEffect(0xA0);
                         func_801EC4CC(i);
-                        D_801D83EC[0x31] = 4;
-                        D_801D83EC[0x109] = 4;
+                        PLAYER_PANEL(0, HUD_ATTACK)->state = 4;
+                        PLAYER_PANEL(1, HUD_ATTACK)->state = 4;
                         DUEL->step = 7;
                         DUEL->returnStep = 0x19;
                         DUEL->viewPlayer = i;
@@ -820,8 +827,8 @@ void runDuelTurnLoop(void) {
             }
             if (PLAYER(0)->attackChoice != 3 && PLAYER(1)->attackChoice != 3) {
                 waitDuelFrames(0x78);
-                D_801D83EC[0x31] = 4;
-                D_801D83EC[0x109] = 4;
+                PLAYER_PANEL(0, HUD_ATTACK)->state = 4;
+                PLAYER_PANEL(1, HUD_ATTACK)->state = 4;
                 for (i = 0; i < 2; i++) {
                     PLAYER(i)->usedAttack = PLAYER(i)->attackChoice;
                     if (((PlayerProfile *)PLAYER_PROFILES)[i].attackCounts[PLAYER(i)->usedAttack] != 0xFFFF) {
@@ -836,7 +843,7 @@ void runDuelTurnLoop(void) {
             DUEL->awaitingInput = 0;
             DUEL_MSG_BAR.next = 0xD;
             DUEL_MSG_BAR.playerLabel = PLAYER(OPP)->controller;
-            D_801D83EC[OPP * 0xD8 + 0x55] = 6;
+            PLAYER_PANEL(OPP, HUD_STATUS)->state = 6;
             waitDuelFrames(0x1E);
             if (PLAYER(OPP)->controller == 1) {
                 DUEL_MSG_BAR.next2 = 0;
@@ -850,13 +857,13 @@ void runDuelTurnLoop(void) {
                 } else if (DUEL->cpuResult != -1) {
                     if (PLAYER(OPP)->cards[DUEL->cpuResult % 30].card[2] < 2) {
                         waitDuelFrames(0x3C);
-                        DUEL->unk80A = func_801ECB40(DUEL->cpuResult, OPP);
+                        DUEL->playedFromSlot = func_801ECB40(DUEL->cpuResult, OPP);
                         waitDuelFrames(0x78);
                     }
                 }
                 DUEL->step = 0x1D;
             } else {
-                DUEL->unk80A = -1;
+                DUEL->playedFromSlot = -1;
                 if (countEmptyHandSlots(OPP) == 4 && countOnlineDeckCards(OPP) == 0) {
                     initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
                     runDialogForPad(&D_801D8278, PLAYER(OPP)->controller & 1);
@@ -874,13 +881,13 @@ void runDuelTurnLoop(void) {
                 i = PLAYER(OPP)->hand[DUEL->cursorSlot];
                 handSlot = DUEL->cursorSlot;
                 if (handSlot == 4) {
-                    DUEL->unk80A = handSlot;
+                    DUEL->playedFromSlot = handSlot;
                     func_801ECAC4(OPP);
                 } else {
                     if (PLAYER(OPP)->cards[i % 30].type == 2) {
                         break;
                     }
-                    DUEL->unk80A = func_801ECB40(CUR_CARD, OPP);
+                    DUEL->playedFromSlot = func_801ECB40(CUR_CARD, OPP);
                 }
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
@@ -905,8 +912,8 @@ void runDuelTurnLoop(void) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
                     initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 } else {
-                    if (DUEL->unk80A >= 0) {
-                        func_801EC8E0(OPP, DUEL->unk80A);
+                    if (DUEL->playedFromSlot >= 0) {
+                        func_801EC8E0(OPP, DUEL->playedFromSlot);
                     }
                     DUEL->step = 0x1A;
                 }
@@ -920,7 +927,7 @@ void runDuelTurnLoop(void) {
             DUEL->awaitingInput = 0;
             DUEL_MSG_BAR.next = 0xE;
             DUEL_MSG_BAR.playerLabel = PLAYER(ME)->controller;
-            D_801D83EC[ME * 0xD8 + 0x55] = 6;
+            PLAYER_PANEL(ME, HUD_STATUS)->state = 6;
             waitDuelFrames(0x1E);
             if (PLAYER(ME)->controller == 1) {
                 DUEL_MSG_BAR.next2 = 0;
@@ -934,13 +941,13 @@ void runDuelTurnLoop(void) {
                 } else if (DUEL->cpuResult != -1) {
                     if (PLAYER(ME)->cards[DUEL->cpuResult % 30].card[2] < 2) {
                         waitDuelFrames(0x3C);
-                        DUEL->unk80A = func_801ECB40(DUEL->cpuResult, ME);
+                        DUEL->playedFromSlot = func_801ECB40(DUEL->cpuResult, ME);
                         waitDuelFrames(0x78);
                     }
                 }
                 DUEL->step = 0x20;
             } else {
-                DUEL->unk80A = -1;
+                DUEL->playedFromSlot = -1;
                 if (countEmptyHandSlots(ME) == 4 && countOnlineDeckCards(ME) == 0) {
                     initDialog((u8 *)&D_801D8278, "You have no Cards left, so\nyou can't use any Support Cards!", 0);
                     runDialogForPad(&D_801D8278, PLAYER(ME)->controller & 1);
@@ -958,13 +965,13 @@ void runDuelTurnLoop(void) {
                 i = PLAYER(ME)->hand[DUEL->cursorSlot];
                 handSlot = DUEL->cursorSlot;
                 if (handSlot == 4) {
-                    DUEL->unk80A = handSlot;
+                    DUEL->playedFromSlot = handSlot;
                     func_801ECAC4(ME);
                 } else {
                     if (PLAYER(ME)->cards[i % 30].type == 2) {
                         break;
                     }
-                    DUEL->unk80A = func_801ECB40(CUR_CARD, ME);
+                    DUEL->playedFromSlot = func_801ECB40(CUR_CARD, ME);
                 }
                 playSoundEffect(0xA0);
                 initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
@@ -989,8 +996,8 @@ void runDuelTurnLoop(void) {
                     func_801EA8B4(0x78, "Please choose \"Yes\"!");
                     initDialog((u8 *)&D_801D8278, "Do you want to use this Support Card?", 1);
                 } else {
-                    if (DUEL->unk80A >= 0) {
-                        func_801EC8E0(ME, DUEL->unk80A);
+                    if (DUEL->playedFromSlot >= 0) {
+                        func_801EC8E0(ME, DUEL->playedFromSlot);
                     }
                     DUEL->step = 0x1D;
                 }
@@ -1057,16 +1064,17 @@ void runDuelTurnLoop(void) {
                 secondAttacker = DUEL->secondAttacker;
                 j = firstAttacker->controller & 1;
                 func_80014C08(0x14);
-                if (firstAttacker->unk178_11 && !secondAttacker->unk178_6) {
+                if (firstAttacker->crash && !secondAttacker->counter) {
                     func_801F6268(0x1B, j);
                     firstAttacker->stats[0] = 10;
                 }
                 if (secondAttacker->damageTaken == 0) {
                     func_801F6268(0x1C, j);
-                } else if (firstAttacker->unk178_12) {
+                } else if (firstAttacker->eatUpHp) {
                     func_801F6268(0x1A, j);
                     i = firstAttacker->stats[0] + firstAttacker->hpGain;
                     showStatChangePopup(j, i, 0);
+                    /* HP caps at 9990; a repdigit HP (1110, 2220...) earns a bonus */
                     if (i > 9990) {
                         i = 9990;
                     }
@@ -1074,7 +1082,7 @@ void runDuelTurnLoop(void) {
                     if (i != 0 && i % 1110 == 0) {
                         func_801FB444(j, 0x1A);
                     }
-                } else if (!firstAttacker->unk178_11) {
+                } else if (!firstAttacker->crash) {
                     func_801F6268(0x18, j);
                 }
                 i = secondAttacker->stats[0] - secondAttacker->damageTaken;
@@ -1100,17 +1108,17 @@ void runDuelTurnLoop(void) {
                 }
                 func_80014C08(0x14);
                 if (secondAttacker->hpAfterBattle != 0) {
-                    if (secondAttacker->unk178_11 && firstAttacker->damageTaken != 0) {
+                    if (secondAttacker->crash && firstAttacker->damageTaken != 0) {
                         func_801F6268(0x1B, j ^ 1);
                         secondAttacker->stats[0] = 10;
                     }
                     if (firstAttacker->damageTaken == 0) {
                         func_801F6268(0x1C, j ^ 1);
-                    } else if (secondAttacker->unk178_6 || secondAttacker->unk178_12) {
-                        if (secondAttacker->unk178_6) {
+                    } else if (secondAttacker->counter || secondAttacker->eatUpHp) {
+                        if (secondAttacker->counter) {
                             func_801F6268(0x19, j ^ 1);
                         }
-                        if (secondAttacker->unk178_12) {
+                        if (secondAttacker->eatUpHp) {
                             func_801F6268(0x1A, j ^ 1);
                             i = secondAttacker->stats[0] + secondAttacker->hpGain;
                             showStatChangePopup(j ^ 1, i, 0);
@@ -1122,7 +1130,7 @@ void runDuelTurnLoop(void) {
                                 func_801FB444(j ^ 1, 0x1A);
                             }
                         }
-                    } else if (!secondAttacker->unk178_11) {
+                    } else if (!secondAttacker->crash) {
                         func_801F6268(0x18, j ^ 1);
                     }
                     i = firstAttacker->stats[0] - firstAttacker->damageTaken;
@@ -1172,20 +1180,20 @@ void runDuelTurnLoop(void) {
             DUEL->awaitingInput = 0;
             DUEL->step++;
             if (PLAYER(DUEL->winner)->wins == 2 && PLAYER(DUEL->winner ^ 1)->wins == 0) {
-                PLAYER(DUEL->winner ^ 1)->unk110 |= 0x80;
-                PLAYER(DUEL->winner)->unk110 |= 0x100;
+                PLAYER(DUEL->winner ^ 1)->bonusFlags |= 0x80;
+                PLAYER(DUEL->winner)->bonusFlags |= 0x100;
             }
             if (findArmorPartnerSlot(DUEL->winner, PLAYER(DUEL->winner)->cards[getActiveDigimonCard(DUEL->winner) % 30].id) >= 0) {
                 func_801FB444(DUEL->winner, 0xA);
-                PLAYER(DUEL->winner)->unk110 |= 0x4000;
+                PLAYER(DUEL->winner)->bonusFlags |= 0x4000;
             } else if (findPartnerSlot(DUEL->winner, PLAYER(DUEL->winner)->cards[getActiveDigimonCard(DUEL->winner) % 30].id) >= 0) {
                 func_801FB444(DUEL->winner, 0xA);
-                PLAYER(DUEL->winner)->unk110 |= 0x4000;
+                PLAYER(DUEL->winner)->bonusFlags |= 0x4000;
             }
             if (PLAYER(DUEL->winner)->wins == 3) {
                 if (PLAYER(DUEL->winner)->unk178_31) {
-                    PLAYER(DUEL->winner)->unk110 |= 0x20000;
-                    PLAYER(DUEL->winner ^ 1)->unk110 |= 0x40000;
+                    PLAYER(DUEL->winner)->bonusFlags |= 0x20000;
+                    PLAYER(DUEL->winner ^ 1)->bonusFlags |= 0x40000;
                 }
                 sprintf(message, "%d Wins, %d Losses-%s WINS!", PLAYER(DUEL->winner)->wins, PLAYER(DUEL->winner ^ 1)->wins, PLAYER(DUEL->winner)->name);
                 initDialog((u8 *)&D_801D8278, message, 0);
@@ -1208,11 +1216,11 @@ void runDuelTurnLoop(void) {
                 PLAYER(i)->stats[3] = PLAYER(i)->baseAttackPowers[2];
                 j = takePlayedCard(i);
                 if (j != -1) {
-                    D_801D833C[j * 0x24 + 0x22] = 8;
+                    SPRITE_KIND(j) = 8;
                     discardCardToOfflineDeck(j, i);
                 }
-                D_801D83EC[0x55] = 1;
-                D_801D83EC[0x12D] = 1;
+                PLAYER_PANEL(0, HUD_STATUS)->state = 1;
+                PLAYER_PANEL(1, HUD_STATUS)->state = 1;
             }
             DUEL->turnPlayer ^= 1;
             DUEL->step = 1;
