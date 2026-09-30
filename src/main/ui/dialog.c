@@ -14,80 +14,84 @@
 #include "dcb/str_util.h"
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
+#include "dcb/pad.h"
 
-void initDialog(u8 *dialog, u8 *text, u32 flags) {
+void initDialog(Dialog *dialog, u8 *text, u32 flags) {
     Rect16 r;
     s32 labelWidth;
     s32 width;
     s32 x;
     s32 centerX;
 
-    dialog[0xA4] = flags & 0xF;
-    dialog[0xB6] = flags & 0x80;
-    *(u8 **)(dialog + 0x94) = text;
+    dialog->type = flags & 0xF;
+    dialog->unkB6 = flags & 0x80;
+    dialog->text = text;
     measureText(text);
-    dialog[0xA7] = (TEXT_WIDTH + 1) / 2;
-    *(s16 *)(dialog + 0xA8) = (TEXT_WIDTH + 1) / 2 * 2 + 4;
-    *(s16 *)(dialog + 0xAA) = (TEXT_HEIGHT + 1) / 2 * 2 + 4;
-    if (dialog[0xA4] != 0) {
+    dialog->halfTextWidth = (TEXT_WIDTH + 1) / 2;
+    dialog->width = (TEXT_WIDTH + 1) / 2 * 2 + 4;
+    dialog->height = (TEXT_HEIGHT + 1) / 2 * 2 + 4;
+    if (dialog->type != 0) {
+        /* room for the row of choices */
         if (text == 0) {
-            *(s16 *)(dialog + 0xAA) = 0x10;
+            dialog->height = 0x10;
         } else {
-            *(s16 *)(dialog + 0xAA) += 0x10;
+            dialog->height += 0x10;
         }
     }
-    if (dialog[0xA4] != 2) {
-        *(char **)(dialog + 0x98) = "Yes";
-        *(char **)(dialog + 0x9C) = "No";
+    if (dialog->type != 2) {
+        dialog->yesLabel = "Yes";
+        dialog->noLabel = "No";
     }
-    *(s16 *)(dialog + 0xAE) = strlen(*(u8 **)(dialog + 0x98)) * 6;
-    *(s16 *)(dialog + 0xB2) = strlen(*(u8 **)(dialog + 0x9C)) * 6;
-    labelWidth = *(s16 *)(dialog + 0xAE);
-    if (labelWidth < *(s16 *)(dialog + 0xB2)) {
-        labelWidth = *(s16 *)(dialog + 0xB2);
+    /* the labels are 6 pixels per character */
+    dialog->yesWidth = strlen(dialog->yesLabel) * 6;
+    dialog->noWidth = strlen(dialog->noLabel) * 6;
+    labelWidth = dialog->yesWidth;
+    if (labelWidth < dialog->noWidth) {
+        labelWidth = dialog->noWidth;
     }
     labelWidth = labelWidth * 2 + 0x10;
-    if (*(s16 *)(dialog + 0xA8) < labelWidth) {
-        *(s16 *)(dialog + 0xA8) = labelWidth;
+    if (dialog->width < labelWidth) {
+        dialog->width = labelWidth;
     }
-    width = *(s16 *)(dialog + 0xA8);
+    /* centred on the 320x240 screen, the two choices either side of the middle */
+    width = dialog->width;
     x = (320 - width) / 2;
     centerX = x + width / 2;
-    *(s16 *)(dialog + 0xAC) = centerX - (*(s16 *)(dialog + 0xAE) + 4);
-    *(s16 *)(dialog + 0xB0) = centerX + 4;
+    dialog->yesX = centerX - (dialog->yesWidth + 4);
+    dialog->noX = centerX + 4;
     r.x = x;
-    r.y = (240 - *(s16 *)(dialog + 0xAA)) / 2;
-    r.w = *(s16 *)(dialog + 0xA8);
-    r.h = *(s16 *)(dialog + 0xAA);
+    r.y = (240 - dialog->height) / 2;
+    r.w = dialog->width;
+    r.h = dialog->height;
     openWindow(dialog, &r, -1, (s16 *)-1, 8, 0x77, 0x80, 8);
-    dialog[0x38] = 4;
-    if (dialog[0xA4] != 0) {
-        initCursorHighlight((CursorHighlight *)(dialog + 0x44), (Rect16 *)-1, (Bytes4 *)-1);
+    dialog->win.palette = 4;
+    if (dialog->type != 0) {
+        initCursorHighlight(&dialog->cursor, (Rect16 *)-1, (Bytes4 *)-1);
     }
-    dialog[0xA5] = 2;
-    dialog[0xA6] = 0;
-    *(s32 *)(dialog + 0xA0) = 0;
-    dialog[0xB5] = 0;
-    dialog[0xB4] = 0;
+    dialog->choice = 2;
+    dialog->pad = 0;
+    dialog->onFrame = 0;
+    dialog->cancelDisabled = 0;
+    dialog->closed = 0;
 }
 
 s8 runDialog(void *dialog) {
     func_800149B8(0, -1, 0, 0x400, &dialogTask, dialog, getCurrentTaskId(), 0, 0);
     func_80014C08(0x7FFFFFFF);
-    return (*(s8 *)((s8 *)dialog + 0xA5));
+    return ((Dialog *)dialog)->choice;
 }
 
-s32 runDialogForPad(s32 *dialog, s32 pad) {
+s32 runDialogForPad(void *dialog, s32 pad) {
     s32 task;
 
     task = getCurrentTaskId();
-    (*(s8 *)((s8 *)dialog + 0xA6)) = (s8) pad;
+    ((Dialog *)dialog)->pad = pad;
     func_800149B8(0, -1, 0, 0x400, dialogTask, dialog, task, 0, 0);
     func_80014C08(0x7FFFFFFF);
-    return (s32) (*(s8 *)((s8 *)dialog + 0xA5));
+    return ((Dialog *)dialog)->choice;
 }
 
-void dialogTask(u8 *dialog, s32 parentTask) {
+void dialogTask(Dialog *dialog, s32 parentTask) {
     Rect16 r;
     s32 x;
     s32 width;
@@ -96,96 +100,98 @@ void dialogTask(u8 *dialog, s32 parentTask) {
     s32 on;
 
     PAD_INPUT_ENABLED = 0;
-    if ((s8)dialog[0xA5] == 1) {
-        x = *(s16 *)(dialog + 0xAC);
-        width = *(s16 *)(dialog + 0xAE);
+    if (dialog->choice == 1) {
+        x = dialog->yesX;
+        width = dialog->yesWidth;
     } else {
-        x = *(s16 *)(dialog + 0xB0);
-        width = *(s16 *)(dialog + 0xB2);
+        x = dialog->noX;
+        width = dialog->noWidth;
     }
     r.x = x;
-    r.y = (240 - *(s16 *)(dialog + 0xAA)) / 2 + *(s16 *)(dialog + 0xAA) - 14;
+    r.y = (240 - dialog->height) / 2 + dialog->height - 14;
     r.w = width;
     r.h = 12;
-    setCursorHighlight((CursorHighlight *)(dialog + 0x44), &r, (Bytes4 *)-1);
+    setCursorHighlight(&dialog->cursor, &r, (Bytes4 *)-1);
     pads = PAD_STATES;
     on = 1;
     do {
         func_80014C08(FRAME_INTERVAL);
-        drawWindow((UiWindow *)dialog, drawDialogBody, 0);
-        if (*(void (**)(void))(dialog + 0xA0) != 0) {
-            (*(void (**)(void))(dialog + 0xA0))();
+        drawWindow(&dialog->win, drawDialogBody, 0);
+        if (dialog->onFrame != 0) {
+            dialog->onFrame();
         }
-        if (dialog[0xA4] != 0) {
-            if (dialog[0xB5] != 0) {
-                closeButtons = 0x40;
+        /* Cross confirms; Triangle cancels a choice unless that is disabled */
+        if (dialog->type != 0) {
+            if (dialog->cancelDisabled != 0) {
+                closeButtons = PAD_CROSS;
             } else {
-                closeButtons = 0x50;
+                closeButtons = PAD_CROSS | PAD_TRIANGLE;
             }
         } else {
-            closeButtons = 0x40;
+            closeButtons = PAD_CROSS;
         }
-        if (pads[dialog[0xA6]]->rawPressed & closeButtons) {
+        if (pads[dialog->pad]->rawPressed & closeButtons) {
             break;
         }
-    } while (dialog[0xB4] == 0);
-    if (dialog[0xB4] != 0) {
-        dialog[0xA5] = 3;
-    } else if (pads[dialog[0xA6]]->rawPressed & 0x10) {
-        dialog[0xA5] = 0;
-        dialog[0xB4] = on;
+    } while (dialog->closed == 0);
+    if (dialog->closed != 0) {
+        dialog->choice = 3;
+    } else if (pads[dialog->pad]->rawPressed & PAD_TRIANGLE) {
+        dialog->choice = 0;
+        dialog->closed = on;
         playMenuSound(0);
     } else {
-        dialog[0xB4] = on;
+        dialog->closed = on;
         playMenuSound(1);
     }
-    animateWindowTo((UiWindow *)dialog, (Rect16 *)-1);
+    /* close the window and keep drawing until the animation ends */
+    animateWindowTo(&dialog->win, (Rect16 *)-1);
     do {
         func_80014C08(FRAME_INTERVAL);
-        drawWindow((UiWindow *)dialog, drawDialogBody, 0);
-        if (*(void (**)(void))(dialog + 0xA0) != 0) {
-            (*(void (**)(void))(dialog + 0xA0))();
+        drawWindow(&dialog->win, drawDialogBody, 0);
+        if (dialog->onFrame != 0) {
+            dialog->onFrame();
         }
-    } while (*(s8 *)(dialog + 0x41) == 0);
+    } while (dialog->win.animDone == 0);
     PAD_INPUT_ENABLED = 1;
-    func_80014A48(parentTask, (s8)dialog[0xA5]);
+    func_80014A48(parentTask, dialog->choice);
     func_80014A90();
 }
 
-void drawDialogBody(u8 *dialog) {
+void drawDialogBody(Dialog *dialog) {
     Rect16 r;
     s32 x;
     s32 y;
 
-    x = *(s16 *)dialog + (*(s16 *)(dialog + 0xA8) - dialog[0xA7] * 2) / 2;
-    y = *(s16 *)(dialog + 2) + 2;
-    if (*(s32 *)(dialog + 0x94) != 0) {
-        drawText(x, y, *(s32 *)(dialog + 0x94), 7, *(s16 *)(dialog + 0x3A));
+    x = dialog->win.originX + (dialog->width - dialog->halfTextWidth * 2) / 2;
+    y = dialog->win.originY + 2;
+    if (dialog->text != 0) {
+        drawText(x, y, (s32)dialog->text, 7, dialog->win.z);
     }
-    y = *(s16 *)(dialog + 2) + *(s16 *)(dialog + 0xAA) - 0xE;
-    if (dialog[0xA4] != 0) {
-        if (dialog[0xB4] == 0) {
-            if ((PAD_STATES[dialog[0xA6]]->rawPressed & 0x8000) && (s8)dialog[0xA5] != 1) {
-                dialog[0xA5] = 1;
-                r.x = *(s16 *)(dialog + 0xAC);
+    y = dialog->win.originY + dialog->height - 0xE;
+    if (dialog->type != 0) {
+        if (dialog->closed == 0) {
+            if ((PAD_STATES[dialog->pad]->rawPressed & PAD_LEFT) && dialog->choice != 1) {
+                dialog->choice = 1;
+                r.x = dialog->yesX;
                 r.y = y;
-                r.w = *(s16 *)(dialog + 0xAE);
+                r.w = dialog->yesWidth;
                 r.h = 0xC;
-                moveCursorHighlight((CursorHighlight *)(dialog + 0x44), &r);
+                moveCursorHighlight(&dialog->cursor, &r);
                 playMenuSound(2);
             }
-            if ((PAD_STATES[dialog[0xA6]]->rawPressed & 0x2000) && (s8)dialog[0xA5] != 2) {
-                dialog[0xA5] = 2;
-                r.x = *(s16 *)(dialog + 0xB0);
+            if ((PAD_STATES[dialog->pad]->rawPressed & PAD_RIGHT) && dialog->choice != 2) {
+                dialog->choice = 2;
+                r.x = dialog->noX;
                 r.y = y;
-                r.w = *(s16 *)(dialog + 0xB2);
+                r.w = dialog->noWidth;
                 r.h = 0xC;
-                moveCursorHighlight((CursorHighlight *)(dialog + 0x44), &r);
+                moveCursorHighlight(&dialog->cursor, &r);
                 playMenuSound(2);
             }
         }
-        drawText(*(s16 *)(dialog + 0xAC), y, *(s32 *)(dialog + 0x98), 7, *(s16 *)(dialog + 0x3A));
-        drawText(*(s16 *)(dialog + 0xB0), y, *(s32 *)(dialog + 0x9C), 7, *(s16 *)(dialog + 0x3A));
-        drawCursorHighlight((CursorHighlight *)(dialog + 0x44), *(s16 *)(dialog + 0x3A));
+        drawText(dialog->yesX, y, (s32)dialog->yesLabel, 7, dialog->win.z);
+        drawText(dialog->noX, y, (s32)dialog->noLabel, 7, dialog->win.z);
+        drawCursorHighlight(&dialog->cursor, dialog->win.z);
     }
 }

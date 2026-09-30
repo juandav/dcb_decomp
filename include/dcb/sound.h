@@ -6,7 +6,7 @@
 typedef struct {
     /* 0x0 */ s16 id;
     /* 0x2 */ s16 vab;
-    /* 0x4 */ s32 unk4;
+    /* 0x4 */ s32 vabHeaderSize;
     /* 0x8 */ u8 *buf;
 } SndSlot;
 typedef struct {
@@ -21,7 +21,7 @@ typedef struct {
 } SndState;
 
 extern s32 SOUND_SEQ_ATTR_TABLE;
-extern s32 SOUND_STATE;
+extern SndState SOUND_STATE;
 extern s32 SOUND_LOAD_BUSY;
 extern s8 *SE_BANK_INFO[];
 extern s32 SFX_BASE_NOTE;
@@ -35,8 +35,8 @@ extern s16 D_801D812A;
 void initSound();
 void loadSoundEffectBank(s32 bankId);
 void setReverbType(s32 reverbType);
-s32 openSlotVabHeader(void *slot, s16 vabId, s32 spuAddr);
-void transferSlotVabBody(void *slot, s32 vabBody, s32 vab);
+s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr);
+void transferSlotVabBody(SndSlot *slot, s32 vabBody, s32 vab);
 void setInstantVoiceRelease(void);
 void func_8002B3DC(void);
 void func_8002B3E4(void);

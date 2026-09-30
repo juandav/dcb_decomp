@@ -8,6 +8,15 @@
 #define OP_MODE(p) (*(u16 *)((p) + 6))
 #define OP_VAL(p) (*(s32 *)((p) + 8))
 
+/* The header of a script file; the bytecode follows it. */
+typedef struct {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ u32 size;
+    /* 0x0C */ s32 unkC;
+    /* 0x10 */ u8 code[1];
+} ScriptData;
+
 typedef struct {
     /* 0x00 */ u8 *base;
     /* 0x04 */ u8 *start;
@@ -21,12 +30,12 @@ typedef struct {
     /* 0x24 */ s16 busy;
 } Script;
 
-void clearScriptBusy(void *script);
-void *createScriptContext(void *scriptData);
-void initScriptContext(void *scriptData, void *script);
+void clearScriptBusy(Script *script);
+Script *createScriptContext(void *scriptData);
+void initScriptContext(void *scriptData, Script *script);
 s32 *allocScriptRegisters(s32 count);
-void freeScriptContext(void *script, void *regs);
+void freeScriptContext(Script *script, s32 *regs);
 s32 runScriptToNextEvent(Script *script, s32 *regs);
-void setScriptBusy(void *script, s16 busyValue);
+void setScriptBusy(Script *script, s16 busy);
 
 #endif /* DCB_SCRIPT_H */
