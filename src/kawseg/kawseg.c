@@ -1888,7 +1888,7 @@ void func_801E3FF4(s32 player) {
                 if (PLAYER(player)->statPenalty != 0) {
                     flag = 1;
                 }
-                if (!PLAYER(player)->unk178_30 || flag != 1 || ((DuelK *)D_801D8340)->selected != NULL) {
+                if (!PLAYER(player)->hasBattled || flag != 1 || ((DuelK *)D_801D8340)->selected != NULL) {
                     break;
                 }
                 for (k = 0; k < 4; k++) {
@@ -3687,7 +3687,7 @@ s32 func_801EA558(s32 card, s32 player) {
     Player *p = (Player *)DUEL_PLAYERS[player];
 
     p->statPenalty = ((u8 *)p->cards[card % 30].card)[0x1A];
-    ((Player *)DUEL_PLAYERS[player])->unk110 &= ~0x40000000;
+    ((Player *)DUEL_PLAYERS[player])->bonusFlags &= ~0x40000000;
 }
 
 void func_801EA5F4(Player *p) {
@@ -4394,14 +4394,14 @@ s32 func_801ECC58(s32 player) {
 }
 
 s32 func_801ECD68(void) {
-    if (DUEL->unk80C >= 0) {
-        func_801EC9A4(DUEL->turnPlayer, DUEL->unk80C);
-        DUEL->unk80C = -1;
+    if (DUEL->discardedFromSlot >= 0) {
+        func_801EC9A4(DUEL->turnPlayer, DUEL->discardedFromSlot);
+        DUEL->discardedFromSlot = -1;
     }
     waitDuelFrames(30);
-    if (DUEL->unk80E >= 0) {
-        func_801ECA30(peekDpSlotTop(DUEL->turnPlayer), DUEL->turnPlayer, DUEL->unk80E);
-        DUEL->unk80E = -1;
+    if (DUEL->dpFromSlot >= 0) {
+        func_801ECA30(peekDpSlotTop(DUEL->turnPlayer), DUEL->turnPlayer, DUEL->dpFromSlot);
+        DUEL->dpFromSlot = -1;
     }
     waitDuelFrames(30);
     DUEL->step = 11;
@@ -7534,7 +7534,7 @@ s32 func_801F97F4(void) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[1], dm);
 }
 
-#define FLAGS110(p) ((Flags110 *)&PLAYER(p)->unk110)
+#define FLAGS110(p) ((Flags110 *)&PLAYER(p)->bonusFlags)
 
 void func_801F9EAC(s32 player) {
     s32 count;
@@ -7617,30 +7617,30 @@ void func_801FA30C(s32 player) {
         return;
     }
     p = (Player *)DUEL_PLAYERS[player];
-    if (((u32)p->unk110 >> 15) & 1) {
+    if (((u32)p->bonusFlags >> 15) & 1) {
         return;
     }
     switch (p->specialty) {
     case 0:
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x800000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x800000;
         break;
     case 1:
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x1000000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x1000000;
         break;
     case 2:
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x2000000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x2000000;
         break;
     case 3:
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x4000000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x4000000;
         break;
     case 4:
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x8000000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x8000000;
         break;
     }
-    flags = ((Player *)DUEL_PLAYERS[player])->unk110;
+    flags = ((Player *)DUEL_PLAYERS[player])->bonusFlags;
     if (((flags >> 23) & 1) + ((flags >> 24) & 1) + ((flags >> 25) & 1) + ((flags >> 26) & 1) + ((flags >> 27) & 1) == 5) {
         func_801FB444(player, 0x18);
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x8000;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x8000;
     }
 }
 
@@ -7655,19 +7655,19 @@ s32 func_801FA4E4(s32 player) {
     hp = PLAYER(player)->stats[0];
     if (hp != 0 && hp % 1110 == 0) {
         func_801FB444(player, 0x1A);
-        PLAYER(0)->unk110 |= 0x400;
+        PLAYER(0)->bonusFlags |= 0x400;
     }
     if (findPartnerSlot(player, PLAYER(player)->cards[card % 30].id) >= 0) {
         func_801FB444(player, 0x1C);
-        ((Flags110 *)&PLAYER(player)->unk110)->count++;
+        ((Flags110 *)&PLAYER(player)->bonusFlags)->count++;
     } else if (findArmorPartnerSlot(player, PLAYER(player)->cards[card % 30].id) >= 0) {
         func_801FB444(player, 0x1C);
-        ((Flags110 *)&PLAYER(player)->unk110)->count++;
+        ((Flags110 *)&PLAYER(player)->bonusFlags)->count++;
     }
-    if (!(((u32)PLAYER(player)->unk110 >> 30) & 1) && PLAYER(player)->digimonStack[0] >= 0 &&
+    if (!(((u32)PLAYER(player)->bonusFlags >> 30) & 1) && PLAYER(player)->digimonStack[0] >= 0 &&
         findPartnerSlot(player, PLAYER(player)->cards[PLAYER(player)->digimonStack[2] % 30].id) >= 0) {
         func_801FB444(player, 0x1D);
-        PLAYER(player)->unk110 |= 0x20000000;
+        PLAYER(player)->bonusFlags |= 0x20000000;
     }
     func_801FA30C(player);
 }
@@ -7697,11 +7697,11 @@ s32 func_801FA780(s32 player) {
     }
     if (same == 4) {
         func_801FB444(player, 8);
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x40;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x40;
     }
     if (partners == 3) {
         func_801FB444(player, 0x1B);
-        ((Player *)DUEL_PLAYERS[player])->unk110 |= 0x800;
+        ((Player *)DUEL_PLAYERS[player])->bonusFlags |= 0x800;
     }
 }
 

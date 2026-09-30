@@ -451,7 +451,7 @@ void func_801DF47C(s32 arg0, s32 arg1) {
                         strcpy(buf, ((OptionCardData *)OPTION_CARDS)[cardId - 0xBF].unk2 + 1);
                         break;
                     case 6:
-                        strcpy(buf, ((DigivolveCardData *)DIGIVOLVE_CARDS)[cardId - 0x125].unk2 + 1);
+                        strcpy(buf, ((DigivolveCardData *)DIGIVOLVE_CARDS)[cardId - 0x125].name);
                         break;
                     default:
                         if (PROFILE->cardCollection[cardId] & 0x40) {

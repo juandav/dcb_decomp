@@ -330,7 +330,7 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
-            PLAYER(player)->unk178_30 = 0;
+            PLAYER(player)->hasBattled = 0;
             return 0;
         }
     }
@@ -366,7 +366,7 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
-            PLAYER(player)->unk178_30 = 0;
+            PLAYER(player)->hasBattled = 0;
             PLAYER(player)->unk170[0] = *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10);
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[partnerSlot + 1];
             return 0;
@@ -404,7 +404,7 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
             PLAYER(player)->stats[1] = PLAYER(player)->baseAttackPowers[0];
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
-            PLAYER(player)->unk178_30 = 0;
+            PLAYER(player)->hasBattled = 0;
             *(s16 *)(*(u8 **)((u8 *)D_801D8340 + 0x7F8) + cardIndex * 60 + 0x10) = PLAYER(player)->unk170[0];
             return 0;
         }

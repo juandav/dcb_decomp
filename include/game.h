@@ -534,7 +534,7 @@ typedef struct {
     /* 0x000 */ u8 unk0[0x14];
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ u8 unk104[0xC];
-    /* 0x110 */ s32 unk110;
+    /* 0x110 */ s32 bonusFlags; /* one bit per end-of-duel bonus earned (kawseg) */
     /* 0x114 */ s8 *battleCard;
     /* 0x118 */ u8 unk118[2];
     /* 0x11A */ s16 shufflePasses;
@@ -552,12 +552,12 @@ typedef struct {
     /* 0x178 */ u32 usedAttack : 2;
     /* 0x178 */ u32 attackChoice : 2;
     /* 0x178 */ u32 shownAttack : 2;
-    /* 0x178 */ u32 unk178_6 : 1;
+    /* 0x178 */ u32 counter : 1; /* cross effect "Counter": turns the foe's attack back */
     /* 0x178 */ u32 unk178_7 : 1;
     /* 0x178 */ u32 unk178_8 : 1;
     /* 0x178 */ u32 unk178_9 : 2;
-    /* 0x178 */ u32 unk178_11 : 1;
-    /* 0x178 */ u32 unk178_12 : 1;
+    /* 0x178 */ u32 crash : 1; /* cross effect "Crash": X attack of its HP, HP to 10 */
+    /* 0x178 */ u32 eatUpHp : 1; /* cross effect "Eat-up HP": gains the damage dealt */
     /* 0x178 */ u32 unk178_13 : 2;
     /* 0x178 */ u32 statPenalty : 2;
     /* 0x178 */ u32 controller : 2;
@@ -566,7 +566,7 @@ typedef struct {
     /* 0x178 */ u32 unk178_24 : 2;
     /* 0x178 */ u32 unk178_26 : 2;
     /* 0x178 */ u32 unk178_28 : 2;
-    /* 0x178 */ u32 unk178_30 : 1;
+    /* 0x178 */ u32 hasBattled : 1; /* set at the Battle Phase, cleared by a new Digimon */
     /* 0x178 */ u32 unk178_31 : 1;
     /* 0x17C */ u8 wins;
     /* 0x17D */ s8 onlineDeck[30];
@@ -832,9 +832,11 @@ typedef struct {
     /* 0x800 */ s32 unk800;
     /* 0x804 */ s32 cpuResult;
     /* 0x808 */ s16 fade;
-    /* 0x80A */ s16 unk80A;
-    /* 0x80C */ s16 unk80C;
-    /* 0x80E */ s16 unk80E;
+    /* hand slots the cards played this turn came from, to put them back on
+       undo (-1 none; playedFromSlot 4 = drawn from the Online Deck) */
+    /* 0x80A */ s16 playedFromSlot;
+    /* 0x80C */ s16 discardedFromSlot;
+    /* 0x80E */ s16 dpFromSlot;
     /* 0x810 */ s8 state;
     /* 0x811 */ s8 loadBusy;
     /* 0x812 */ s8 stopArtLoader;
