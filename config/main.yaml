@@ -129,7 +129,10 @@ segments:
       - [0x145F0, c, model/scene3d]
       - [0x14EE0, c, model/wire_grid]
       - [0x15644, c, model/camera]
-      - [0x1603C, c, libmath]
+      # soft-float: the arithmetic is hand-written (src/main/libmath.s), the
+      # square root at the end is C
+      - [0x1603C, hasm, libmath]
+      - [0x17584, c, libmath]
       - [0x17690, c, ui/text]
       - [0x1ADB4, c, ui/str_util]
       - [0x1B5EC, c, system/sound]
