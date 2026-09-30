@@ -41,7 +41,7 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
-  # src/kawseg/kawseg.c exists
+  # the C files in src/kawseg/ exist
   create_c_files: False
 
 segments:
@@ -53,8 +53,38 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, .rodata, kawseg]
-      - [0x1F4C, c, kawseg]
-      - [0x1DA70, .data, kawseg]
+      - [0x0, .rodata, kaw_cpu]
+      - [0x84, .rodata, kaw_battle_sim]
+      - [0x264, .rodata, kaw_tutorial]
+      - [0x2C0, .rodata, kaw_hand]
+      - [0x2D8, .rodata, kaw_match_intro]
+      - [0x4E4, .rodata, kaw_result]
+      - [0x4F8, .rodata, kaw_exp]
+      - [0x15A8, .rodata, kaw_prize]
+      - [0x161C, .rodata, kaw_effect]
+      - [0x16CC, .rodata, kaw_duel_menu]
+      - [0x1C90, .rodata, kaw_hud]
+      - [0x1C94, .rodata, kaw_bonus]
+      - [0x1F4C, c, kaw_cpu]
+      - [0x8B6C, c, kaw_battle_sim]
+      - [0xC7D0, c, kaw_tutorial]
+      - [0xD3F4, c, kaw_hand]
+      - [0xF984, c, kaw_match_intro]
+      - [0x14B08, c, kaw_result]
+      - [0x15C74, c, kaw_exp]
+      - [0x17584, c, kaw_prize]
+      - [0x18238, c, kaw_effect]
+      - [0x198A8, c, kaw_duel_menu]
+      - [0x1A2C8, c, kaw_hud]
+      - [0x1BF74, c, kaw_bonus]
+      - [0x1DA70, c, kaw_bss]
+      - [0x1DA70, .data, kaw_cpu]
+      - [0x1DAF8, .data, kaw_match_intro]
+      - [0x1DC00, .data, kaw_exp]
+      - [0x1E200, .data, kaw_effect]
+      - [0x1E230, .data, kaw_duel_menu]
+      - [0x1E338, .data, kaw_hud]
+      - [0x1E3C8, .data, kaw_bonus]
+      - [0x1E4C8, .data, kaw_bss]
 
   - [0x1EAF8]
