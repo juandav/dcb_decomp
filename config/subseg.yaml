@@ -41,7 +41,7 @@ options:
 
   migrate_rodata_to_functions: True
   create_data_pads: False
-  # src/subseg/subseg.c exists
+  # the C files in src/subseg/ exist
   create_c_files: False
 
 segments:
@@ -53,8 +53,22 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, .rodata, subseg]
-      - [0x1A84, c, subseg]
-      - [0x139A0, .data, subseg]
+      - [0x0, .rodata, sub_name_entry]
+      - [0xAC, .rodata, sub_base_deck]
+      - [0xE8, .rodata, sub_partner]
+      - [0x11CC, .rodata, sub_deck_editor]
+      - [0x196C, .rodata, sub_auto_deck]
+      - [0x1A84, c, sub_name_entry]
+      - [0x30B8, c, sub_base_deck]
+      - [0x35AC, c, sub_partner]
+      - [0x7794, c, sub_deck_editor]
+      - [0x120EC, c, sub_auto_deck]
+      - [0x139A0, c, sub_bss]
+      - [0x139A0, .data, sub_name_entry]
+      - [0x139FC, .data, sub_base_deck]
+      - [0x13A28, .data, sub_partner]
+      - [0x140AC, .data, sub_deck_editor]
+      - [0x142EC, .data, sub_auto_deck]
+      - [0x143C0, .data, sub_bss]
 
   - [0x16570]
