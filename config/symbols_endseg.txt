@@ -1,4 +1,19 @@
 // ENDSEG's own symbols
+END_computeEpithet = 0x801DE80C; // type:func
+END_drawCardThumbnail = 0x801DEF8C; // type:func
+END_drawUnknownCardThumbnail = 0x801DF2BC; // type:func
+END_drawScrollHelp = 0x801DF408; // type:func
+END_runPlayerRecords = 0x801DF47C; // type:func
+END_EPITHETS = 0x801E0BB4;
+END_SPECIALTY_ICONS = 0x801E0C44;
+END_RANK_ORDINALS = 0x801E0C58;
+END_BONUS_NAMES = 0x801E0C6C;
+END_SPECIALTY_WINS = 0x801E0CEC;
+END_SPECIALTY_LOSSES = 0x801E0D0C;
+END_SPECIALTY_CARDS = 0x801E0D2C;
+END_SPECIALTY_ORDER = 0x801E0D4C;
+END_CARD_ART = 0x801E0D64;
+END_SECTION_OFFSETS = 0x801E0D6C;
 
 // Texts only referenced from the ending's tables in .data
 D_801DDF3C = 0x801DDF3C;
