@@ -1,9 +1,9 @@
 // KAWSEG's own symbols
 
-// KAW_createFadeRectFromParams calls SUGSEG's func_801E6424 (a colour quad drawer, same
+// KAW_createFadeRectFromParams calls SUGSEG's SUG_createFadeRect (a colour quad drawer, same
 // arguments as SUGSEG's own caller), but in KAWSEG that address is in the
 // middle of KAW_chooseSupportCard: a label, not a function
-func_801E6424 = 0x801E6424; // type:label
+SUG_createFadeRect = 0x801E6424; // type:label
 
 // Texts only referenced from KAWSEG's tables in .data
 D_801DE430 = 0x801DE430;

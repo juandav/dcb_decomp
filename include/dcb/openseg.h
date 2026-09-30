@@ -162,15 +162,19 @@ typedef struct {
 } POLY_F4;
 
 extern TextScroll OPEN_INTRO_TEXT;
-extern s32 D_801F4F08;
-extern s32 D_801F4F0C;
-extern s32 D_801F4F10;
-extern s32 D_801F4F14;
-extern s32 D_801F4F18;
-extern s32 D_801F4F1C;
+/* where the registration and friend screens slide their decorations
+   (OPEN_TITLE_PARTS) in: the corner art (parts 0-2), the side bar (20-21),
+   the screen frame (10-19) and the panel (the step bar, 3-5, or the
+   friend screen's list) */
+extern s32 OPEN_CORNER_X;
+extern s32 OPEN_CORNER_Y;
+extern s32 OPEN_SIDEBAR_X;
+extern s32 OPEN_SIDEBAR_Y;
+extern s32 OPEN_FRAME_X;
+extern s32 OPEN_FRAME_Y;
 extern s32 OPEN_TITLE_PART_COUNT;
-extern s32 D_801F4F00;
-extern s32 D_801F4F04;
+extern s32 OPEN_PANEL_X;
+extern s32 OPEN_PANEL_Y;
 extern MemcardScreen OPEN_MEMCARD;
 extern u8 OPEN_MEMCARD_PROGRESS;
 extern u8 OPEN_MEMCARD_MODE;

@@ -67,7 +67,8 @@ void SAI_drawPanelCover(void) {
     addPrim(&CURRENT_FRAME_BUFFER->ot[36], &SAI_AREA.coverTpages[FRAME_BUFFER_INDEX]);
 }
 
-void func_801E2D90(void) {
+/* not called by any code */
+void SAI_createPanelSprite(void) {
     Rect16 rect;
 
     rect.x = 0x180;

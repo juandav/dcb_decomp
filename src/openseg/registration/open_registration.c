@@ -60,8 +60,8 @@ typedef struct {
 extern s32 OPEN_INTRO_IMAGE;
 extern s32 OPEN_INTRO_SHOWN_IMAGE;
 extern s32 OPEN_INTRO_IMAGE_FADE;
-extern s32 D_801F4880;
-extern s32 D_801F4884;
+extern s32 OPEN_LABEL_X;
+extern s32 OPEN_LABEL_Y;
 extern UiWindow OPEN_MESSAGE_WINDOW;
 extern UiWindow OPEN_PLAYER_NAME_WINDOW;
 extern UiWindow OPEN_IMAGE_WINDOW;
@@ -368,54 +368,54 @@ void OPEN_drawIntroScreen(void) {
     drawWindow(&OPEN_PLAYER_NAME_WINDOW, OPEN_drawPlayerName, 0x19);
     drawWindow(&OPEN_MESSAGE_WINDOW, OPEN_drawIntroMessage, 0x19);
     drawWindow(&OPEN_IMAGE_WINDOW, OPEN_drawIntroImageWindow, 0x19);
-    D_801F4F0C -= 16;
-    if (D_801F4F0C < 16) {
-        D_801F4F0C = 16;
+    OPEN_CORNER_Y -= 16;
+    if (OPEN_CORNER_Y < 16) {
+        OPEN_CORNER_Y = 16;
     }
-    D_801F4F10 += 8;
-    if (D_801F4F10 > 0) {
-        D_801F4F10 = 0;
+    OPEN_SIDEBAR_X += 8;
+    if (OPEN_SIDEBAR_X > 0) {
+        OPEN_SIDEBAR_X = 0;
     }
-    D_801F4F04 += 4;
-    if (D_801F4F04 > 28) {
-        D_801F4F04 = 28;
+    OPEN_PANEL_Y += 4;
+    if (OPEN_PANEL_Y > 28) {
+        OPEN_PANEL_Y = 28;
     }
-    D_801F4880 -= 12;
-    if (D_801F4880 < 0xAA) {
-        D_801F4880 = 0xAA;
+    OPEN_LABEL_X -= 12;
+    if (OPEN_LABEL_X < 0xAA) {
+        OPEN_LABEL_X = 0xAA;
     }
-    D_801F4F1C -= 16;
-    if (D_801F4F1C < 20) {
-        D_801F4F1C = 20;
+    OPEN_FRAME_Y -= 16;
+    if (OPEN_FRAME_Y < 20) {
+        OPEN_FRAME_Y = 20;
     }
     OPEN_TITLE_PART_COUNT = 0;
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 0);
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 1);
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 2);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 0);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 1);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 2);
     for (i = 0; i < OPEN_INTRO_TEXT.step; i++) {
-        OPEN_drawTitlePart(i * 38 + D_801F4F00, D_801F4F04, 3);
+        OPEN_drawTitlePart(i * 38 + OPEN_PANEL_X, OPEN_PANEL_Y, 3);
     }
-    OPEN_drawTitlePart(D_801F4F00, D_801F4F04, 4);
-    OPEN_drawTitlePart(D_801F4F00, D_801F4F04, 5);
-    OPEN_drawTitlePart(D_801F4F00 + 0x26, D_801F4F04, 5);
-    OPEN_drawTitlePart(D_801F4F00 + 0x4C, D_801F4F04, 5);
-    OPEN_drawTitlePart(D_801F4F00 + 0x72, D_801F4F04, 5);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 10);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 11);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 12);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 13);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 14);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 15);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 16);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 17);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 18);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 19);
-    OPEN_drawTitlePart(D_801F4880, D_801F4884, 6);
-    OPEN_drawTitlePart(D_801F4880, D_801F4884, 7);
-    OPEN_drawTitlePart(D_801F4880, D_801F4884, 8);
-    OPEN_drawTitlePart(D_801F4880, D_801F4884, 9);
-    OPEN_drawTitlePart(D_801F4F10, D_801F4F14, 20);
-    OPEN_drawTitlePart(D_801F4F10, D_801F4F14, 21);
+    OPEN_drawTitlePart(OPEN_PANEL_X, OPEN_PANEL_Y, 4);
+    OPEN_drawTitlePart(OPEN_PANEL_X, OPEN_PANEL_Y, 5);
+    OPEN_drawTitlePart(OPEN_PANEL_X + 0x26, OPEN_PANEL_Y, 5);
+    OPEN_drawTitlePart(OPEN_PANEL_X + 0x4C, OPEN_PANEL_Y, 5);
+    OPEN_drawTitlePart(OPEN_PANEL_X + 0x72, OPEN_PANEL_Y, 5);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 10);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 11);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 12);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 13);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 14);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 15);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 16);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 17);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 18);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 19);
+    OPEN_drawTitlePart(OPEN_LABEL_X, OPEN_LABEL_Y, 6);
+    OPEN_drawTitlePart(OPEN_LABEL_X, OPEN_LABEL_Y, 7);
+    OPEN_drawTitlePart(OPEN_LABEL_X, OPEN_LABEL_Y, 8);
+    OPEN_drawTitlePart(OPEN_LABEL_X, OPEN_LABEL_Y, 9);
+    OPEN_drawTitlePart(OPEN_SIDEBAR_X, OPEN_SIDEBAR_Y, 20);
+    OPEN_drawTitlePart(OPEN_SIDEBAR_X, OPEN_SIDEBAR_Y, 21);
 }
 
 void OPEN_startSceneTasks(void) {
@@ -508,16 +508,16 @@ void OPEN_runUserRegistration(s32 parentTask) {
     OPEN_INTRO_IMAGE = -1;
     OPEN_INTRO_SHOWN_IMAGE = -1;
     OPEN_INTRO_IMAGE_FADE = 0;
-    D_801F4F08 = 0xC;
-    D_801F4F0C = 0xF0;
-    D_801F4F10 = -0x60;
-    D_801F4F14 = 0;
-    D_801F4F00 = 0x90;
-    D_801F4F04 = -0x14;
-    D_801F4880 = 0x140;
-    D_801F4884 = 0x32;
-    D_801F4F18 = 0xE;
-    D_801F4F1C = 0xF0;
+    OPEN_CORNER_X = 0xC;
+    OPEN_CORNER_Y = 0xF0;
+    OPEN_SIDEBAR_X = -0x60;
+    OPEN_SIDEBAR_Y = 0;
+    OPEN_PANEL_X = 0x90;
+    OPEN_PANEL_Y = -0x14;
+    OPEN_LABEL_X = 0x140;
+    OPEN_LABEL_Y = 0x32;
+    OPEN_FRAME_X = 0xE;
+    OPEN_FRAME_Y = 0xF0;
     OPEN_INTRO_TEXT.step = 0;
     OPEN_INTRO_TEXT.page = 0;
     OPEN_INTRO_TEXT.shownPage = 0;

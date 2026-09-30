@@ -68,7 +68,7 @@ void OPEN_giveStarterDeck(s32 deck) {
     }
     PLAYER_DATA(0).activePartner = deck;
     changeScrollingBackground(PLAYER_DATA(0).activePartner, 0x380, 0, 0x380, 0x80);
-    func_801EBA74(deck);
+    OPEN_setPartnerObtainedFlag(deck);
     freeHeapBlock(file);
 }
 

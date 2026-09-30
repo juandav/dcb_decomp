@@ -297,7 +297,7 @@ void EVO_showCutsceneResult(void) {
     }
 }
 
-void func_801EBE08(void) {
+void EVO_slideOutFirstTrayWithResult(void) {
     EVO_TRAYS[0].x -= 10;
     if (EVO_TRAYS[0].x < -0x58) {
         EVO_TRAYS[0].x = -0x58;

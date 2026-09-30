@@ -17,7 +17,7 @@ void SAI_setPartnerObtainedFlag(s32 index) {
     SAI_SCRIPT[0]->regs[flagIds[index]] = 1;
 }
 
-void func_801E09F4(void) {
+void SAI_copyScriptFlagsForFusion(void) {
     if (SAI_SCRIPT[0]->regs[266] != 0) {
         ((PlayerProfile *)PLAYER_PROFILES)->scriptFlags |= 1;
     }

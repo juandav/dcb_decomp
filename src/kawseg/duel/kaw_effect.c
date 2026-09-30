@@ -80,7 +80,7 @@ extern EffectObject KAW_EFFECT_ROOT;
 extern u8 CLEAR_BG_ON_DRAW;
 
 /* SUGSEG's colour quad drawer: in KAWSEG this address is inside KAW_chooseSupportCard */
-void func_801E6424(Rect16 *rect, u8 *rgb, u8 *rgb2, u8 arg3, s32 arg4, u8 arg5);
+void SUG_createFadeRect(Rect16 *rect, u8 *rgb, u8 *rgb2, u8 blend, s32 step, u8 mode);
 
 void KAW_runEffectScriptTask(void *data, s32 task);
 void KAW_initEffectFromParams(EffectTemplate *template, u8 *fx, EffectTable *table);
@@ -92,7 +92,7 @@ void KAW_createEffectEntry(s32 index, s32 kind, s32 params, EffectTable *table);
 
 /* per effect kind: what updates it each frame, creates it and frees it */
 void (*KAW_EFFECT_TICK_FUNCS[4])(u8 *) = {
-    /* SUGSEG's colour quad renderer, func_801E651C: in KAWSEG this address
+    /* SUGSEG's colour quad renderer, SUG_tickFadeRect (0x801E651C): in KAWSEG this address
        is inside KAW_chooseSupportCard, and nothing here relocates it */
     (void (*)(u8 *))0x801E651C,
     (void (*)(u8 *))renderRingEffect,
@@ -502,7 +502,7 @@ void KAW_createFadeRectFromParams(u8 *fx) {
     rgb2[0] = *(s32 *)(fx + 0xA0);
     rgb2[1] = *(s32 *)(fx + 0xA4);
     rgb2[2] = *(s32 *)(fx + 0xA8);
-    func_801E6424(&rect, rgb, rgb2, *(s32 *)(fx + 0x6C), *(s16 *)(fx + 0x70), *(s32 *)(fx + 0x110));
+    SUG_createFadeRect(&rect, rgb, rgb2, *(s32 *)(fx + 0x6C), *(s16 *)(fx + 0x70), *(s32 *)(fx + 0x110));
 }
 
 void KAW_createRingFromParams(u8 *fx, EffectTable *table) {

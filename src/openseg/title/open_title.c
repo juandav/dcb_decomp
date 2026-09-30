@@ -22,9 +22,9 @@ extern s32 OPEN_TITLE_SPIN_SIZE;
 extern s32 OPEN_TITLE_SPIN_SHADE;
 extern s32 OPEN_TITLE_STATE;
 extern s32 OPEN_TITLE_TIMER;
-extern s32 D_801F52A4;
-extern s32 D_801F52A8;
-extern s32 D_801F52AC;
+extern s32 OPEN_TITLE_BANNER_X;
+extern s32 OPEN_TITLE_LOGO_RISE;
+extern s32 OPEN_TITLE_FOOTER_SHADE;
 extern s32 D_801F52B0;
 extern s32 OPEN_PRESS_START_SHADE;
 extern s32 OPEN_PRESS_START_STEP;
@@ -33,8 +33,8 @@ extern u8 D_801F52C0[3];
 extern s32 D_801F52C4;
 extern s32 D_801F52C8;
 extern POLY_FT4 OPEN_TITLE_SPIN_QUADS[][2];
-extern POLY_F4 D_801F5250[2];
-extern DR_MODE D_801F5280[2];
+extern POLY_F4 OPEN_TITLE_BAND_QUADS[2];
+extern DR_MODE OPEN_TITLE_BAND_MODES[2];
 
 s32 OPEN_TITLE_OPTION_DIMMED[3] = { 1, 0, 1 };
 
@@ -121,34 +121,34 @@ void OPEN_drawTitleScreen(void) {
     }
     switch (OPEN_TITLE_STATE) {
     case 8:
-        D_801F52A8 += 2;
-        if (D_801F52A8 > 16) {
-            D_801F52A8 = 16;
+        OPEN_TITLE_LOGO_RISE += 2;
+        if (OPEN_TITLE_LOGO_RISE > 16) {
+            OPEN_TITLE_LOGO_RISE = 16;
         }
     case 7:
         if (OPEN_TITLE_STATE == 7) {
-            D_801F52A8 -= 2;
-            if (D_801F52A8 < 0) {
-                D_801F52A8 = 0;
+            OPEN_TITLE_LOGO_RISE -= 2;
+            if (OPEN_TITLE_LOGO_RISE < 0) {
+                OPEN_TITLE_LOGO_RISE = 0;
             }
         }
-        i = D_801F52A8 * 8;
-        initPrimByType(8, &D_801F5250[FRAME_BUFFER_INDEX], 1, 0);
-        D_801F5250[FRAME_BUFFER_INDEX].r0 = i;
-        D_801F5250[FRAME_BUFFER_INDEX].g0 = i;
-        D_801F5250[FRAME_BUFFER_INDEX].b0 = i;
-        D_801F5250[FRAME_BUFFER_INDEX].x0 = 0;
-        D_801F5250[FRAME_BUFFER_INDEX].y0 = 0x9A;
-        D_801F5250[FRAME_BUFFER_INDEX].x1 = 0x140;
-        D_801F5250[FRAME_BUFFER_INDEX].y1 = 0x9A;
-        D_801F5250[FRAME_BUFFER_INDEX].x2 = 0;
-        D_801F5250[FRAME_BUFFER_INDEX].y2 = 0xBA;
-        D_801F5250[FRAME_BUFFER_INDEX].x3 = 0x140;
-        D_801F5250[FRAME_BUFFER_INDEX].y3 = 0xBA;
-        setlen(&D_801F5280[FRAME_BUFFER_INDEX], 1);
-        D_801F5280[FRAME_BUFFER_INDEX].code[0] = _get_mode(0, 0, 0x40);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[6], &D_801F5250[FRAME_BUFFER_INDEX]);
-        addPrim(&CURRENT_FRAME_BUFFER->ot[6], &D_801F5280[FRAME_BUFFER_INDEX]);
+        i = OPEN_TITLE_LOGO_RISE * 8;
+        initPrimByType(8, &OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX], 1, 0);
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].r0 = i;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].g0 = i;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].b0 = i;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].x0 = 0;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y0 = 0x9A;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].x1 = 0x140;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y1 = 0x9A;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].x2 = 0;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y2 = 0xBA;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].x3 = 0x140;
+        OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y3 = 0xBA;
+        setlen(&OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX], 1);
+        OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX].code[0] = _get_mode(0, 0, 0x40);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[6], &OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX]);
+        addPrim(&CURRENT_FRAME_BUFFER->ot[6], &OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX]);
     case 6:
         if (OPEN_TITLE_STATE == 6) {
             if (++OPEN_TITLE_TIMER > 60) {
@@ -156,23 +156,23 @@ void OPEN_drawTitleScreen(void) {
                 OPEN_TITLE_TIMER = 0;
             }
         }
-        D_801F52AC += 4;
-        if (D_801F52AC > 0x80) {
-            D_801F52AC = 0x80;
+        OPEN_TITLE_FOOTER_SHADE += 4;
+        if (OPEN_TITLE_FOOTER_SHADE > 0x80) {
+            OPEN_TITLE_FOOTER_SHADE = 0x80;
         }
-        OPEN_drawSprite(0x20, 0xC8, 0x200, 0xA8, 0xFF, 0x20, 0x240, 0xFA, 0, 1, 1, D_801F52AC, 0xA);
-        OPEN_drawSprite(0x20, 0xC8, 0x200, 0xA8, 0xFF, 0x20, 0x250, 0xFA, 0, 1, 2, D_801F52AC, 0xA);
+        OPEN_drawSprite(0x20, 0xC8, 0x200, 0xA8, 0xFF, 0x20, 0x240, 0xFA, 0, 1, 1, OPEN_TITLE_FOOTER_SHADE, 0xA);
+        OPEN_drawSprite(0x20, 0xC8, 0x200, 0xA8, 0xFF, 0x20, 0x250, 0xFA, 0, 1, 2, OPEN_TITLE_FOOTER_SHADE, 0xA);
     case 5:
         if (OPEN_TITLE_STATE == 5) {
-            D_801F52A4 -= 20;
-            if (D_801F52A4 < 0) {
+            OPEN_TITLE_BANNER_X -= 20;
+            if (OPEN_TITLE_BANNER_X < 0) {
                 OPEN_TITLE_STATE = 6;
                 OPEN_TITLE_TIMER = 0;
-                D_801F52A4 = 0;
+                OPEN_TITLE_BANNER_X = 0;
             }
         }
-        OPEN_drawSprite(D_801F52A4, 0x78 - D_801F52A8, 0x2C0, 0, 0x100, 0x30, 0x140, 0xF8, 1, 1, 0, 0x80, 5);
-        OPEN_drawSprite(D_801F52A4 + 0x100, 0x78 - D_801F52A8, 0x340, 0, 0x40, 0x30, 0x140, 0xF8, 1, 1, 0, 0x80, 5);
+        OPEN_drawSprite(OPEN_TITLE_BANNER_X, 0x78 - OPEN_TITLE_LOGO_RISE, 0x2C0, 0, 0x100, 0x30, 0x140, 0xF8, 1, 1, 0, 0x80, 5);
+        OPEN_drawSprite(OPEN_TITLE_BANNER_X + 0x100, 0x78 - OPEN_TITLE_LOGO_RISE, 0x340, 0, 0x40, 0x30, 0x140, 0xF8, 1, 1, 0, 0x80, 5);
     case 4:
         if (OPEN_TITLE_STATE == 4) {
             OPEN_TITLE_SPIN_SHADE -= 16;
@@ -183,11 +183,11 @@ void OPEN_drawTitleScreen(void) {
             if (++OPEN_TITLE_TIMER > 60) {
                 OPEN_TITLE_STATE = 5;
                 OPEN_TITLE_TIMER = 0;
-                D_801F52A4 = 0x140;
-                D_801F52A8 = 0;
+                OPEN_TITLE_BANNER_X = 0x140;
+                OPEN_TITLE_LOGO_RISE = 0;
             }
         }
-        OPEN_drawSprite(0x20, 0x10 - D_801F52A8, 0x200, 0, 0x100, 0x88, 0x140, 0xF9, 1, 1, 0, 0x80, 0xA);
+        OPEN_drawSprite(0x20, 0x10 - OPEN_TITLE_LOGO_RISE, 0x200, 0, 0x100, 0x88, 0x140, 0xF9, 1, 1, 0, 0x80, 0xA);
     case 2:
     case 3:
         if (OPEN_TITLE_STATE == 3) {
@@ -264,7 +264,7 @@ void OPEN_runTitleScreen(s32 parentTask) {
     OPEN_TITLE_OPTION_DIMMED[choice] = 0;
     fade = 0;
     playLoadedMusic(0);
-    D_801F52AC = 0;
+    OPEN_TITLE_FOOTER_SHADE = 0;
     D_801F52B0 = 0;
     OPEN_PRESS_START_SHADE = 0x80;
     OPEN_PRESS_START_STEP = 4;
@@ -286,7 +286,7 @@ void OPEN_runTitleScreen(s32 parentTask) {
     resetPlayerData();
     addFrameCallback((s32)OPEN_drawTitleScreen);
     idle = 0;
-    D_801F52A8 = 0;
+    OPEN_TITLE_LOGO_RISE = 0;
     do {
         waitFrames(FRAME_INTERVAL);
         switch (OPEN_TITLE_STATE) {
@@ -299,8 +299,8 @@ void OPEN_runTitleScreen(s32 parentTask) {
             if (PAD_STATES[0]->pressed & 0x800) {
                 idle = 0;
                 fade = 1;
-                D_801F52A4 = 0;
-                D_801F52A8 = 0x20;
+                OPEN_TITLE_BANNER_X = 0;
+                OPEN_TITLE_LOGO_RISE = 0x20;
                 OPEN_TITLE_SPIN_SHADE = 0;
                 OPEN_TITLE_STATE = 8;
                 playMenuSound(1);

@@ -37,17 +37,17 @@ void OPEN_drawFriendMenu(void) {
     s32 clutY;
 
     if (OPEN_FRIEND_MENU_SHOWN == 1) {
-        D_801F4F00 += 8;
-        if (D_801F4F00 > 8) {
-            D_801F4F00 = 8;
+        OPEN_PANEL_X += 8;
+        if (OPEN_PANEL_X > 8) {
+            OPEN_PANEL_X = 8;
         }
     } else {
-        D_801F4F00 -= 8;
-        if (D_801F4F00 < -140) {
-            D_801F4F00 = -140;
+        OPEN_PANEL_X -= 8;
+        if (OPEN_PANEL_X < -140) {
+            OPEN_PANEL_X = -140;
         }
     }
-    OPEN_drawSprite(D_801F4F00, D_801F4F04, 0x300, 0, 0x8C, 0x96, 0x300, 0x96, 0, 1, 1, 0x80, 2);
+    OPEN_drawSprite(OPEN_PANEL_X, OPEN_PANEL_Y, 0x300, 0, 0x8C, 0x96, 0x300, 0x96, 0, 1, 1, 0x80, 2);
     same = (u16)PLAYER_DATA(0).profileId == (u16)PLAYER_DATA(1).profileId;
     if ((OPEN_TRADE_ENABLED & 3) != 3) {
         same = 1;
@@ -64,7 +64,7 @@ void OPEN_drawFriendMenu(void) {
                 clutY = 0x9A;
             }
         }
-        OPEN_drawSprite(D_801F4F00 + 0x19, D_801F4F04 + 0x16 + i * 16, 0x323, i * 16, 0x58, 0x10, 0x300, clutY, 0, 1, 0, 0x80, 2);
+        OPEN_drawSprite(OPEN_PANEL_X + 0x19, OPEN_PANEL_Y + 0x16 + i * 16, 0x323, i * 16, 0x58, 0x10, 0x300, clutY, 0, 1, 0, 0x80, 2);
     }
 }
 
@@ -124,47 +124,47 @@ void OPEN_drawFriendScreen(void) {
         drawWindow(&OPEN_PLAYER_RECORD_WINDOWS[i].window, OPEN_drawPlayerRecord, 4);
     }
     if (OPEN_FRIEND_MENU_SHOWN == 0) {
-        D_801F4F0C += 16;
-        if (D_801F4F0C > 240) {
-            D_801F4F0C = 240;
+        OPEN_CORNER_Y += 16;
+        if (OPEN_CORNER_Y > 240) {
+            OPEN_CORNER_Y = 240;
         }
-        D_801F4F10 -= 8;
-        if (D_801F4F10 < -96) {
-            D_801F4F10 -= 96;
+        OPEN_SIDEBAR_X -= 8;
+        if (OPEN_SIDEBAR_X < -96) {
+            OPEN_SIDEBAR_X -= 96;
         }
-        D_801F4F1C += 16;
-        if (D_801F4F1C > 240) {
-            D_801F4F1C = 240;
+        OPEN_FRAME_Y += 16;
+        if (OPEN_FRAME_Y > 240) {
+            OPEN_FRAME_Y = 240;
         }
     } else {
-        D_801F4F0C -= 16;
-        if (D_801F4F0C < 16) {
-            D_801F4F0C = 16;
+        OPEN_CORNER_Y -= 16;
+        if (OPEN_CORNER_Y < 16) {
+            OPEN_CORNER_Y = 16;
         }
-        D_801F4F10 += 8;
-        if (D_801F4F10 > 0) {
-            D_801F4F10 = 0;
+        OPEN_SIDEBAR_X += 8;
+        if (OPEN_SIDEBAR_X > 0) {
+            OPEN_SIDEBAR_X = 0;
         }
-        D_801F4F1C -= 16;
-        if (D_801F4F1C < 20) {
-            D_801F4F1C = 20;
+        OPEN_FRAME_Y -= 16;
+        if (OPEN_FRAME_Y < 20) {
+            OPEN_FRAME_Y = 20;
         }
     }
     OPEN_TITLE_PART_COUNT = 0;
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 0);
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 1);
-    OPEN_drawTitlePart(D_801F4F08, D_801F4F0C, 2);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 10);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 11);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 12);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 13);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 14);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 15);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 16);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 17);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 18);
-    OPEN_drawTitlePart(D_801F4F18, D_801F4F1C, 19);
-    OPEN_drawTitlePart(D_801F4F10, D_801F4F14, 21);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 0);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 1);
+    OPEN_drawTitlePart(OPEN_CORNER_X, OPEN_CORNER_Y, 2);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 10);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 11);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 12);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 13);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 14);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 15);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 16);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 17);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 18);
+    OPEN_drawTitlePart(OPEN_FRAME_X, OPEN_FRAME_Y, 19);
+    OPEN_drawTitlePart(OPEN_SIDEBAR_X, OPEN_SIDEBAR_Y, 21);
 }
 
 void OPEN_openPlayerRecordWindows(void) {
@@ -172,14 +172,14 @@ void OPEN_openPlayerRecordWindows(void) {
     Rect16 from;
     s32 i;
 
-    D_801F4F08 = 12;
-    D_801F4F0C = 240;
-    D_801F4F10 = -96;
-    D_801F4F14 = 0;
-    D_801F4F18 = 14;
-    D_801F4F1C = 240;
-    D_801F4F00 = -140;
-    D_801F4F04 = 80;
+    OPEN_CORNER_X = 12;
+    OPEN_CORNER_Y = 240;
+    OPEN_SIDEBAR_X = -96;
+    OPEN_SIDEBAR_Y = 0;
+    OPEN_FRAME_X = 14;
+    OPEN_FRAME_Y = 240;
+    OPEN_PANEL_X = -140;
+    OPEN_PANEL_Y = 80;
     OPEN_FRIEND_MENU_SHOWN = 1;
     OPEN_FRIEND_MENU_DONE = 0;
     for (i = 0; i < 2; i++) {
@@ -376,7 +376,7 @@ void OPEN_runBattleWithFriend(void) {
     }
 }
 
-s32 func_801EBA74(s32 kind) {
+s32 OPEN_setPartnerObtainedFlag(s32 kind) {
     s32 id;
     s32 word;
     s32 shift;

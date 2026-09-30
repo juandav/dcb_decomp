@@ -235,7 +235,8 @@ void SAI_runCornerIcon(s32 state) {
     } while (SAI_WORLD_MAP.iconRunning != 0);
 }
 
-void func_801EC41C(void) {
+/* not called by any code */
+void SAI_slideIconSpritesOut(void) {
     SAI_WORLD_MAP.iconSlide++;
     if (SAI_WORLD_MAP.iconSlide > 15) {
         SAI_WORLD_MAP.iconSlide = 15;
@@ -907,7 +908,7 @@ void SAI_closeMap(void) {
     }
 }
 
-void func_801EF1A8(void) {
+void SAI_deactivateMap(void) {
     SAI_MAP_ACTIVE = 0;
 }
 
@@ -920,7 +921,7 @@ void (*SAI_MAP_STATE_FUNCS[10])(void) = {
     SAI_switchRegion,
     SAI_fadeOutRegion,
     SAI_closeMap,
-    func_801EF1A8,
+    SAI_deactivateMap,
     SAI_tickMapMenu,
 };
 
@@ -1442,7 +1443,8 @@ void SAI_drawMapMenuTab(void) {
     SAI_drawSprite(SAI_SPRITES[5]);
 }
 
-void func_801F0E84(void) {
+/* not called by any code */
+void SAI_doNothingOnMap(void) {
 }
 
 void SAI_openDeckEditorFromMap(void) {

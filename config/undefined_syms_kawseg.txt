@@ -1,4 +1,4 @@
 /* addresses KAWSEG uses that none of its objects defines */
 
 /* a label inside KAW_chooseSupportCard (see config/symbols_kawseg.txt) */
-func_801E6424 = 0x801E6424;
+SUG_createFadeRect = 0x801E6424;

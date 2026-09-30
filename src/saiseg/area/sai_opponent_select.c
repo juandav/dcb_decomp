@@ -415,7 +415,8 @@ s32 SAI_slideChosenOpponentBack(void) {
     return result;
 }
 
-void func_801E7240(void) {
+/* not called by any code */
+void SAI_shrinkChosenOpponent(void) {
     Sprite3D *card;
     s16 w;
     s16 h;

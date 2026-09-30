@@ -8,7 +8,7 @@ void EVO_cancelPartnerFusion(void);
 void EVO_leaveForCutscene(void);
 void EVO_tickPartnerReward(void);
 void EVO_tickFusionResult(void);
-void func_801EBE08(void);
+void EVO_slideOutFirstTrayWithResult(void);
 void EVO_showCutsceneResult(void);
 void EVO_closeFusionResult(void);
 

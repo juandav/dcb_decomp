@@ -72,11 +72,11 @@ typedef struct {
     EvoClut clut;
     s16 prevLevel;
     s8 slot;
-    u8 unk56F;
+    u8 flags;
     s8 unk570;
     s8 active;
     u8 pad572[2];
-    s32 unk574;
+    s32 clutBank; /* 0 takes the model's CLUT from the row at y 0xF0, else 0x70 */
 } EvoModelFx;
 
 typedef void (*EvoFxFunc)(EvoFx *);
@@ -88,11 +88,13 @@ extern EvoFx EVO_EFFECT_ROOT;
 extern void (*EVO_EFFECT_FREE_FUNCS[])(EvoFx *);
 extern u8 CLEAR_BG_ON_DRAW;
 
-void func_801F893C(void *sprite, Color *color);
-void func_801F8928(void *sprite);
-void func_801F8910(void *sprite, s32 arg);
+/* KAWSEG's functions, at their KAWSEG addresses: this effect script was
+   copied from KAWSEG's (the opcodes that call them are KAWSEG's) */
+void KAW_fadeCardSprite(void *sprite, Color *color);
+void KAW_hideCardLabel(void *sprite);
+void KAW_showCardLabel(void *sprite, s32 number);
 void initPolyF4Pair();
-void EVO_playEffectScript(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void EVO_playEffectScript(s32 index, s32 player1, s32 player2, s32 mode1, s32 mode2);
 void EVO_runEffectScriptTask();
 void EVO_runEffectScript(EvoEffectScript *loader);
 void EVO_initEffectFromParams(EvoFx *fx, s32 *vars, EvoEffectScript *loader);
@@ -101,8 +103,8 @@ void EVO_setEffectParams(EvoFx *fx, EvoFxParams *params);
 void EVO_getEffectWorldPos(void *xform, EvoObject *obj);
 void EVO_createEffectEntry(s32 index, s32 kind, s32 *vars, EvoEffectScript *loader);
 
-EvoModelFx *EVO_createModelEffect(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unused, s32 vramSlot, u8 arg6,
-                          s32 loop, s32 pak, s32 arg9) {
+EvoModelFx *EVO_createModelEffect(s16 level, EvoFx *fx, s32 modelId, s32 anim, s32 unused, s32 vramSlot, u8 flags,
+                          s32 loop, s32 pak, s32 clutBank) {
     EvoModelFx *obj;
     s32 slot;
 
@@ -131,13 +133,13 @@ EvoModelFx *EVO_createModelEffect(s16 level, EvoFx *fx, s32 modelId, s32 anim, s
         SCENE_3D->modelState[obj->slot] = 1;
         obj->active = 0;
     }
-    obj->unk574 = arg9;
+    obj->clutBank = clutBank;
     obj->model->link = (s32)obj;
     obj->unk570 = -1;
     {
         Rect16 rect = { 0x30, 0x70, 0x10, 0x10 };
 
-        if (obj->unk574 == 0) {
+        if (obj->clutBank == 0) {
             rect.y = 0xF0;
         }
         rect.x += ((obj->model->tpageOffset / 0x10000 + 5) & 0xF) << 6;
@@ -151,7 +153,7 @@ EvoModelFx *EVO_createModelEffect(s16 level, EvoFx *fx, s32 modelId, s32 anim, s
             EVO_uploadShadedClut(&obj->clut, 0x8000);
         }
     }
-    obj->unk56F = arg6;
+    obj->flags = flags;
     return obj;
 }
 
@@ -268,15 +270,16 @@ void EVO_freeEffectArchive(void) {
     freeHeapBlock(EVO_EFFECT_ARCHIVE);
 }
 
-void EVO_playEffect(s32 index, s32 arg) {
-    EVO_playEffectScript(index, arg, arg, 0, 0);
+void EVO_playEffect(s32 index, s32 player) {
+    EVO_playEffectScript(index, player, player, 0, 0);
 }
 
-void func_801EE304(s32 index, s32 arg, s32 arg2) {
-    EVO_playEffectScript(index, arg, arg, arg2, arg2);
+void EVO_playCardEffect(s32 index, s32 player, s32 mode) {
+    EVO_playEffectScript(index, player, player, mode, mode);
 }
 
-void EVO_playEffectScript(s32 index, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+/* the players and modes are KAWSEG's; EVOSEG's scripts ignore them */
+void EVO_playEffectScript(s32 index, s32 player1, s32 player2, s32 mode1, s32 mode2) {
     s32 data;
 
     EVO_EFFECT_PLAYER = 0;
@@ -365,7 +368,7 @@ void EVO_setCardSpriteColor(s32 index, EvoLight *light) {
         color.r = light->r;
         color.g = light->g;
         color.b = light->b;
-        func_801F893C(SPRITE(index), &color);
+        KAW_fadeCardSprite(SPRITE(index), &color);
     }
 }
 
@@ -419,13 +422,13 @@ void EVO_runEffectScript(EvoEffectScript *loader) {
                 case 10:
                     index = EVO_EFFECT_SPRITE_1;
                     if (index >= 0) {
-                        func_801F8928(SPRITE(index));
+                        KAW_hideCardLabel(SPRITE(index));
                     }
                     break;
                 case 11:
                     index = EVO_EFFECT_SPRITE_2;
                     if (index >= 0) {
-                        func_801F8928(SPRITE(index));
+                        KAW_hideCardLabel(SPRITE(index));
                     }
                     break;
                 case 12:
@@ -500,13 +503,13 @@ void EVO_runEffectScript(EvoEffectScript *loader) {
                 case 19:
                     index = EVO_EFFECT_SPRITE_1;
                     if (index >= 0) {
-                        func_801F8910(SPRITE(index), (s16)loader->script->params[0]);
+                        KAW_showCardLabel(SPRITE(index), (s16)loader->script->params[0]);
                     }
                     break;
                 case 20:
                     index = EVO_EFFECT_SPRITE_2;
                     if (index >= 0) {
-                        func_801F8910(SPRITE(index), (s16)loader->script->params[0]);
+                        KAW_showCardLabel(SPRITE(index), (s16)loader->script->params[0]);
                     }
                     break;
                 case 21:
