@@ -66,8 +66,8 @@ typedef struct {
     /* 0xA */ s16 z;
 } HudPanelInit;
 
-extern Unk14F0 *D_801D83F8;
-extern GradPacket *D_801D83F4;
+extern Unk14F0 *CARD_POLY_PACKETS;
+extern GradPacket *CURSOR_PACKETS;
 
 void KAW_drawCursor(void *cursor);
 void KAW_renderCursor(void *cursor, s32 otz);
@@ -193,15 +193,15 @@ void KAW_drawPortraitColored(s32 x, s32 y, s32 u, s32 v, s32 frame, u16 clut, By
 s32 KAW_allocCardPolys(void) {
     s32 i;
 
-    D_801D83F8 = allocTaskHeapBlock(sizeof(Unk14F0) * 2);
+    CARD_POLY_PACKETS = allocTaskHeapBlock(sizeof(Unk14F0) * 2);
     for (i = 0; i < 2; i++) {
-        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[10] = (s32)&D_801D83F8[i];
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[10] = (s32)&CARD_POLY_PACKETS[i];
     }
     allocTaskHeapBlock(0xE10);
 }
 
 s32 KAW_freeCardPolys(void) {
-    freeHeapBlock(D_801D83F8);
+    freeHeapBlock(CARD_POLY_PACKETS);
 }
 
 void KAW_showCardLabel(CardSprite *sprite, s32 num) {
@@ -231,19 +231,19 @@ s32 KAW_createCursor(s32 mode, s32 x, s32 y, s32 d, s32 count) {
     Shape *shapes;
     u8 *rgb;
 
-    D_801D83F4 = allocTaskHeapBlock(count * sizeof(GradPacket) * 2);
+    CURSOR_PACKETS = allocTaskHeapBlock(count * sizeof(GradPacket) * 2);
     for (i = 0; i < 2; i++) {
-        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[12] = (s32)&D_801D83F4[i * count];
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[12] = (s32)&CURSOR_PACKETS[i * count];
         for (j = 0; j < count; j++) {
-            setDrawMode(&D_801D83F4[i * count + j].dm, 0, 0, GetTPage(0, 1, 0, 0));
+            setDrawMode(&CURSOR_PACKETS[i * count + j].dm, 0, 0, GetTPage(0, 1, 0, 0));
             for (k = 0; k < 8; k++) {
-                initPrimByType(9, &D_801D83F4[i * count + j].prims[k], 1, 0);
-                (D_801D83F4[i * count + j].prims + k)->r0 = 0;
-                (D_801D83F4[i * count + j].prims + k)->g0 = 0;
-                (D_801D83F4[i * count + j].prims + k)->b0 = 0;
-                (D_801D83F4[i * count + j].prims + k)->r1 = 0;
-                (D_801D83F4[i * count + j].prims + k)->g1 = 0;
-                (D_801D83F4[i * count + j].prims + k)->b1 = 0;
+                initPrimByType(9, &CURSOR_PACKETS[i * count + j].prims[k], 1, 0);
+                (CURSOR_PACKETS[i * count + j].prims + k)->r0 = 0;
+                (CURSOR_PACKETS[i * count + j].prims + k)->g0 = 0;
+                (CURSOR_PACKETS[i * count + j].prims + k)->b0 = 0;
+                (CURSOR_PACKETS[i * count + j].prims + k)->r1 = 0;
+                (CURSOR_PACKETS[i * count + j].prims + k)->g1 = 0;
+                (CURSOR_PACKETS[i * count + j].prims + k)->b1 = 0;
             }
         }
     }
@@ -335,7 +335,7 @@ void KAW_initCursorShape(Shape *shape, s32 x, s32 y, s32 d) {
 
 void KAW_freeCursor(void *ptr) {
     if (ptr != NULL) {
-        freeHeapBlock(D_801D83F4);
+        freeHeapBlock(CURSOR_PACKETS);
         freeHeapBlock(ptr);
     }
 }

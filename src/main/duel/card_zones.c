@@ -374,9 +374,9 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->hasBattled = 0;
-            /* unk170[0] keeps the base card's value for armorDevolvePartner */
-            PLAYER(player)->unk170[0] = DUEL->sprites[cardIndex].clut;
-            DUEL->sprites[cardIndex].clut = PLAYER(player)->unk170[partnerSlot + 1];
+            /* armorCluts[0] keeps the base card's CLUT for armorDevolvePartner */
+            PLAYER(player)->armorCluts[0] = DUEL->sprites[cardIndex].clut;
+            DUEL->sprites[cardIndex].clut = PLAYER(player)->armorCluts[partnerSlot + 1];
             return 0;
         }
     }
@@ -414,7 +414,7 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
             PLAYER(player)->stats[2] = PLAYER(player)->baseAttackPowers[1];
             PLAYER(player)->stats[3] = PLAYER(player)->baseAttackPowers[2];
             PLAYER(player)->hasBattled = 0;
-            DUEL->sprites[cardIndex].clut = PLAYER(player)->unk170[0];
+            DUEL->sprites[cardIndex].clut = PLAYER(player)->armorCluts[0];
             return 0;
         }
     }

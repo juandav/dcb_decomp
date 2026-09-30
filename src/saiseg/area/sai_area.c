@@ -178,8 +178,8 @@ void SAI_runArea(s32 resume) {
     SAI_SCRIPT[0]->regs = SAI_allocScriptRegisters(0x174);
     SAI_loadScriptFlags();
     SAI_SCRIPT[0]->regs[0] = 1;
-    ((SessionData *)SESSION_DATA)->unk1010[0x13] = ((SessionData *)SESSION_DATA)->unk1010[0x14] = ((SessionData *)SESSION_DATA)->unk1010[0x15] = 0;
-    ((SessionData *)SESSION_DATA)->unk1010[0x12] = 0;
+    ((SessionData *)SESSION_DATA)->deckAllowed[0] = ((SessionData *)SESSION_DATA)->deckAllowed[1] = ((SessionData *)SESSION_DATA)->deckAllowed[2] = 0;
+    ((SessionData *)SESSION_DATA)->deckRuleActive = 0;
     SAI_clearTextLines(SAI_TEXT_LINES);
     SAI_toggleMessageWindow(0);
     SAI_AREA.choiceCount = 0;

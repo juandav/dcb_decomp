@@ -76,7 +76,7 @@ void SUG_freeBattleScene(void) {
     freeHeapBlock(DB(1).scenePackets);
     SUG_freeSprites();
     SUG_freeTamCache();
-    func_80022E58();
+    unloadEffectAnimations();
     SUG_resetStageBrightness();
 }
 
@@ -290,7 +290,7 @@ void SUG_applyEatUpHp(s32 side, s32 amount) {
     state = -1;
     SCENE_3D->modelState[side] = 1;
     D_80079584 = side;
-    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, D_801D81B0, side, 0, &state);
+    spawnTask(0, 0x1F, 0, 0x2000, SUG_runEffectScriptTask, EAT_UP_HP_SKILL, side, 0, &state);
     spawnTask(0, -1, 0, 0x800, SUG_showEatUpHpBanner);
     while (state != 1) {
         waitFrames(FRAME_INTERVAL);

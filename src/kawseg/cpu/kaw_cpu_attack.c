@@ -84,7 +84,7 @@ void KAW_chooseAttack(s32 player) {
             }
         } else {
             same = 3;
-            if (PLAYER(player)->unk178_24 != 2 && (rand() & 1)) {
+            if (PLAYER(player)->cpuAttackStyle != 2 && (rand() & 1)) {
                 if (DUEL->turnPlayer == player) {
                     DUEL->cpuResult = 0;
                     if (SIM(0).totalOwn < SIM(1).totalOwn) {
@@ -152,7 +152,7 @@ void KAW_chooseAttack(s32 player) {
         }
     } else {
         same = 3;
-        if (PLAYER(player)->unk178_24 != 2 && (rand() & 1)) {
+        if (PLAYER(player)->cpuAttackStyle != 2 && (rand() & 1)) {
             if (DUEL->turnPlayer == player) {
                 DUEL->cpuResult = 0;
                 if (SIM(0).totalOwn < SIM(1).totalOwn) {
@@ -331,7 +331,7 @@ void KAW_chooseSupportCard(void) {
     }
     if (survives != 0) {
         cards = countOnlineDeckCards(self);
-        switch (PLAYER(self)->unk178_28) {
+        switch (PLAYER(self)->cpuSupportStyle) {
         case 0:
             if ((s8)PLAYER(opponent)->topCards[0] != -1) {
                 for (i = 0; i < 4; i++) {
@@ -441,7 +441,7 @@ void KAW_chooseSupportCard(void) {
         }
     } else {
         cards = countOnlineDeckCards(self);
-        switch (PLAYER(self)->unk178_28) {
+        switch (PLAYER(self)->cpuSupportStyle) {
         case 0:
             if ((s8)PLAYER(opponent)->topCards[0] != -1 && PLAYER(self)->wins != 2) {
                 for (i = 0; i < 4; i++) {

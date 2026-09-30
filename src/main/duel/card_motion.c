@@ -297,8 +297,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
-            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x50 + player * -0x3E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -328,8 +328,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
-            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x58 + player * -0x2E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2000;
             rz = 0x2000;
@@ -341,14 +341,14 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 20:
-        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PANEL_3)->x - player - 0x89;
-        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PANEL_3)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - player - 0x89;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - player * 0x2E - 0x58;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2000;
         anim->spr->rot.vz = 0x2000;
         anim->spr->scale = 0x1000;
-        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_PANEL_3)->flags;
+        anim->spr->flags = (anim->spr->flags & 0x7F) | PLAYER_PANEL(player, HUD_PLAYED_CARD)->flags;
         break;
     case 22:
         if (anim->count != 0) {
@@ -359,8 +359,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
-            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x50 + player * -0x3E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - 0x50 + player * -0x3E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
@@ -390,8 +390,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
             s16 rz;
             s16 scale;
 
-            targetX = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->x - 0x89 + player * -1);
-            targetY = (s16)(PLAYER_PANEL(player, HUD_PANEL_3)->y - 0x58 + player * -0x2E);
+            targetX = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - 0x89 + player * -1);
+            targetY = (s16)(PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - 0x58 + player * -0x2E);
             rx = 0x2000;
             ry = 0x2800;
             rz = 0x2000;
@@ -403,8 +403,8 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         }
         break;
     case 25:
-        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PANEL_3)->x - player - 0x89;
-        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PANEL_3)->y - player * 0x2E - 0x58;
+        anim->spr->pos.vx = PLAYER_PANEL(player, HUD_PLAYED_CARD)->x - player - 0x89;
+        anim->spr->pos.vy = PLAYER_PANEL(player, HUD_PLAYED_CARD)->y - player * 0x2E - 0x58;
         anim->spr->pos.vz = 0;
         anim->spr->rot.vx = 0x2000;
         anim->spr->rot.vy = 0x2800;

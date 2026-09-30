@@ -102,7 +102,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
         }
         switch (level) {
         case 0:
-            switch (PLAYER(player)->unk178_22) {
+            switch (PLAYER(player)->cpuPlaceStyle) {
             case 0:
             case 1:
                 best = 0;
@@ -176,7 +176,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
             }
         case 2:
         case 3:
-            switch (PLAYER(player)->unk178_22) {
+            switch (PLAYER(player)->cpuPlaceStyle) {
             case 0:
             case 1:
                 best = 30;
@@ -563,7 +563,7 @@ s32 KAW_chooseDpCard(s32 player) {
             }
         }
     }
-    switch (PLAYER(self)->unk178_22) {
+    switch (PLAYER(self)->cpuPlaceStyle) {
     case 0:
         if ((result = KAW_keepLowestDpBonus(ids, self, need)) >= 0) {
             return result;

@@ -653,7 +653,7 @@ void OPEN_drawMemcardOperation(UiWindow *window) {
     char text[40];
     s32 x;
 
-    sprintf(text, "Player %d : Slot %d", OPEN_MEMCARD_CARD + 1, ((SessionData *)SESSION_DATA)->unk1010[OPEN_MEMCARD_CARD * 8] + 1);
+    sprintf(text, "Player %d : Slot %d", OPEN_MEMCARD_CARD + 1, ((SessionData *)SESSION_DATA)->saveSlots[OPEN_MEMCARD_CARD][0] + 1);
     x = (0x84 - strlen(text) * 6) / 2;
     drawText(window->originX + x, window->originY + 1, (s32)text, 7, window->z);
 }
@@ -1038,13 +1038,13 @@ void OPEN_confirmPlayWithoutSaving(s32 port) {
     switch (OPEN_DIALOG.choice) {
     case 1:
         OPEN_MEMCARD_READY = 1;
-        ((SessionData *)SESSION_DATA)->unk1027 = 1;
+        ((SessionData *)SESSION_DATA)->playWithoutSaving = 1;
         exitTask();
         break;
     case 0:
     case 2:
         OPEN_MEMCARD_STATE = 1;
-        ((SessionData *)SESSION_DATA)->unk1027 = 0;
+        ((SessionData *)SESSION_DATA)->playWithoutSaving = 0;
         break;
     }
 }
@@ -1135,11 +1135,11 @@ void OPEN_selectSaveFile(s32 port) {
             OPEN_MEMCARD.ready = 1;
             OPEN_hideSaveSlots();
             OPEN_MEMCARD.state = 0x1A;
-            ((SessionData *)SESSION_DATA)->unk1027 = 1;
+            ((SessionData *)SESSION_DATA)->playWithoutSaving = 1;
             break;
         case 0:
         case 2:
-            ((SessionData *)SESSION_DATA)->unk1027 = 0;
+            ((SessionData *)SESSION_DATA)->playWithoutSaving = 0;
             if (OPEN_MEMCARD.mode == 0) {
                 OPEN_MEMCARD.message = 0x11;
             } else {

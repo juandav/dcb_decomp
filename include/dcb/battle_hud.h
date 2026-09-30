@@ -45,9 +45,9 @@ enum HudPanelSlot {
     HUD_CARD_INFO,
     HUD_ATTACK,
     HUD_STATUS,
-    HUD_PANEL_3,
+    HUD_PLAYED_CARD, /* the played card sits against it (tickCardMotion 16-20) */
     HUD_DECK,
-    HUD_PANEL_5
+    HUD_TURN_MARKER /* slides in for the player whose turn starts */
 };
 typedef struct {
     /* 0x00 */ u8 rgb[4];

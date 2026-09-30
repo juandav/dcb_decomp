@@ -328,7 +328,7 @@ void SAI_tickMapMenu(void) {
             SAI_WORLD_MAP.menuPhase = 2;
             SAI_WORLD_MAP.menuChosen = 0;
         } else if (PAD_STATES[0]->pressed & PAD_CROSS) {
-            if (((SessionData *)SESSION_DATA)->unk1027 != 1 || SAI_MAP_MENU_CURSOR != 2) {
+            if (((SessionData *)SESSION_DATA)->playWithoutSaving != 1 || SAI_MAP_MENU_CURSOR != 2) {
                 playSoundEffect(0);
                 SAI_WORLD_MAP.menuPhase = 2;
                 SAI_WORLD_MAP.menuChosen = 1;
@@ -356,7 +356,7 @@ void SAI_tickMapMenu(void) {
             SAI_SPRITES[i]->pos.vx = x + 3;
         }
         if (i != 30) {
-            if (((SessionData *)SESSION_DATA)->unk1027 == 1) {
+            if (((SessionData *)SESSION_DATA)->playWithoutSaving == 1) {
                 if (SAI_WORLD_MAP.menuCursor == i - 31) {
                     if (i == 33) {
                         SAI_SPRITES[i]->quads[0].clut = getClut(0x200, 0xF1);
@@ -620,7 +620,7 @@ void SAI_openMapMenu(void) {
     SAI_SPRITES[31] = SAI_createSprite(0x18);
     SAI_SPRITES[32] = SAI_createSprite(0x19);
     SAI_SPRITES[33] = SAI_createSprite(0x17);
-    if (((SessionData *)SESSION_DATA)->unk1027 == 1) {
+    if (((SessionData *)SESSION_DATA)->playWithoutSaving == 1) {
         SAI_SPRITES[33]->quads[0].clut = getClut(0x200, 0xF1);
         SAI_SPRITES[33]->quads[1].clut = getClut(0x200, 0xF1);
     }

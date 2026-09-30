@@ -55,7 +55,7 @@ void SAI_openChoiceMenu(s8 mode) {
 void SAI_addChoice(s8 id) {
     Rect16 rect;
 
-    if (((SessionData *)SESSION_DATA)->unk1027 == 1 && id == 15) {
+    if (((SessionData *)SESSION_DATA)->playWithoutSaving == 1 && id == 15) {
         SAI_AREA.choiceStates[SAI_AREA.choiceCount] = 2;
     }
     if (SAI_CHOICE_MODE != 0) {

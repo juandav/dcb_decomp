@@ -86,7 +86,9 @@ void unloadModelAnimations(s32 slot) {
     }
 }
 
-void func_80022E58(void) {
+/* Drops the cached animations of the models from 63 up and frees the TAM
+   files SUGSEG loaded (heap tag 0x82). */
+void unloadEffectAnimations(void) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
