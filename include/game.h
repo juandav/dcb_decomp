@@ -1147,7 +1147,7 @@ s32 func_801F6214();
 s32 func_801F6268();
 s32 func_801FA4E4();
 s32 func_801FA780();
-s32 func_801FB444();
+void func_801FB444();
 int abs(int);
 s32 func_801F8200();
 s32 func_801F8854();
