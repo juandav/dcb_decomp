@@ -1,8 +1,8 @@
 #include "psyq.h"
 
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D5C);
-
-INCLUDE_RODATA("asm/main/nonmatchings/psyq", D_80013D70);
+/* Digit tables for %X and %x/%p. */
+const char D_80013D5C[] = "0123456789ABCDEF";
+const char D_80013D70[] = "0123456789abcdef";
 
 INCLUDE_ASM("asm/main/nonmatchings/psyq", sprintf);
 
