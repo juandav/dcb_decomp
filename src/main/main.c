@@ -10,6 +10,15 @@
 
 s32 D_8006DD3C[2] = { 0, 0 };
 
+/*
+ * The memory sizes PsyQ's startup code (__SN_ENTRY_POINT) reads before it
+ * calls main(): how much RAM the machine has and how much of its top the
+ * stack gets; the heap is what lies between the end of .bss and the stack.
+ * Nothing in the game reads them.
+ */
+u32 D_8006DD44 = 0x200000; /* _ramsize: the PlayStation's 2 MB */
+u32 D_8006DD48 = 0x8000;   /* _stacksize: 32 KB */
+
 int main(void) {
     Rect16 vramRect;
 
