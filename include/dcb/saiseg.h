@@ -316,7 +316,7 @@ typedef struct {
     /* 0x1A4 */ s8 area;
     /* 0x1A5 */ u8 pad1A5;
     /* 0x1A6 */ u8 duelResult; /* 0: the player won */
-    /* 0x1A7 */ s8 unk1A7;
+    /* 0x1A7 */ s8 selectImage; /* script opcode 7: which VRAM image the opponent select picks (then unused) */
     /* 0x1A8 */ u8 location;
     /* 0x1A9 */ s8 resumeMode; /* 1: back from a duel, 2: back from the complete stats */
     /* 0x1AA */ s8 shownOpponent;

@@ -301,7 +301,7 @@ void OPEN_resetMemcardScreen(s32 port) {
     } else {
         OPEN_MEMCARD_PROGRESS = 0;
     }
-    OPEN_MEMCARD.unk540 = 0;
+    OPEN_MEMCARD.previewsRead = 0;
     OPEN_MEMCARD.cancelled = 1;
     OPEN_MEMCARD.ready = 0;
     OPEN_MEMCARD.card = port;
@@ -314,7 +314,7 @@ void OPEN_resetMemcardScreen(s32 port) {
         ((SessionView *)SESSION_DATA)->saves[port].slot = 0;
         ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
-        OPEN_MEMCARD.unk542 = 0;
+        OPEN_MEMCARD.exitAction = 0;
         break;
     case 2:
     case 4:
@@ -322,13 +322,13 @@ void OPEN_resetMemcardScreen(s32 port) {
         countSeenCards(port);
         OPEN_MEMCARD.loading = 0;
         OPEN_MEMCARD.state = 0x11;
-        OPEN_MEMCARD.unk542 = 1;
+        OPEN_MEMCARD.exitAction = 1;
         break;
     case 8:
         countSeenCards(port);
         OPEN_MEMCARD.loading = 0;
         OPEN_MEMCARD.state = 0x11;
-        OPEN_MEMCARD.unk542 = 2;
+        OPEN_MEMCARD.exitAction = 2;
         PLAYER_DATA(0).areaId = 0;
         PLAYER_DATA(0).resumeInArea = 1;
         break;
@@ -337,7 +337,7 @@ void OPEN_resetMemcardScreen(s32 port) {
         ((SessionView *)SESSION_DATA)->saves[port].slot = port;
         ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
-        OPEN_MEMCARD.unk542 = 0;
+        OPEN_MEMCARD.exitAction = 0;
         break;
     case 6:
         countSeenCards(port);
@@ -353,7 +353,7 @@ void OPEN_resetMemcardScreen(s32 port) {
         ((SessionView *)SESSION_DATA)->saves[port].slot = 0;
         ((SessionView *)SESSION_DATA)->saves[port].file = 0;
         OPEN_MEMCARD.state = 1;
-        OPEN_MEMCARD.unk542 = 0;
+        OPEN_MEMCARD.exitAction = 0;
         break;
     }
     for (i = 0; i < 2; i++) {
@@ -787,7 +787,7 @@ void OPEN_drawSaveDetails(s32 x, s32 y, s32 z) {
     drawText(x + 2, y + 14, (s32)"Card Collection", 6, z);
     sprintf(text, "%3d.%1d*w3*c6%%", collection / 10, collection % 10);
     drawText(x + 0x5B, y + 14, (s32)text, 7, z);
-    if (save->unk28_10) {
+    if (save->tradeUnlocked) {
         drawIcon(x + 0x68, y + 0x1A, 2, 11, z);
     }
     if (save->location < 16) {
@@ -1114,8 +1114,8 @@ void OPEN_selectSaveFile(s32 port) {
                     OPEN_MEMCARD.state = 4;
                 } else {
                     OPEN_MEMCARD.state = 9;
-                    if ((OPEN_MEMCARD.slots[port] + OPEN_MEMCARD.slot)->unk56 < 6) {
-                        changeScrollingBackground((OPEN_MEMCARD.slots[port] + OPEN_MEMCARD.slot)->unk56, 0x380, 0, 0x380, 0x80);
+                    if ((OPEN_MEMCARD.slots[port] + OPEN_MEMCARD.slot)->activePartner < 6) {
+                        changeScrollingBackground((OPEN_MEMCARD.slots[port] + OPEN_MEMCARD.slot)->activePartner, 0x380, 0, 0x380, 0x80);
                     }
                 }
                 OPEN_hideSaveSlots();

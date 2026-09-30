@@ -112,7 +112,7 @@ typedef struct {
     s32 *regs;
     EffectSlots *slots;
     s32 waitFrames;
-    s32 unk14;
+    s32 waitReleased; /* the first wait holds until regs[0] is -1 */
 } EffectScript;
 
 typedef struct Xform {
@@ -381,7 +381,7 @@ void SUG_initEffectSlots(EffectScript *obj) {
         obj->slots->slots[i].value = 0;
     }
     obj->slots->count = obj->waitFrames = 0;
-    obj->unk14 = 0;
+    obj->waitReleased = 0;
     obj->slots->pak = 0;
 }
 
@@ -533,11 +533,11 @@ void SUG_runEffectScript(EffectScript *runner) {
                     slots->slots[PARAM(0)].active = 0;
                     break;
                 case 10: /* wait PARAM(0) frames */
-                    if (runner->unk14 == 0) {
+                    if (runner->waitReleased == 0) {
                         if (runner->regs[0] != -1) {
                             break;
                         }
-                        runner->unk14 = 1;
+                        runner->waitReleased = 1;
                     }
                     runner->waitFrames = PARAM(0) - 1;
                     return;
@@ -751,10 +751,10 @@ void SUG_initEffectFromParams(EffectTemplate *template, EffectParams *cmd, Effec
         if (cmd->source == -1) {
             template->data[0x26] = ctx->slots[cmd->target].value;
         } else {
-            template->data[0x26] = (s32)((ModelEffect *)ctx->slots[-cmd->source - 2].value)->model->unk22B0[cmd->target];
+            template->data[0x26] = (s32)((ModelEffect *)ctx->slots[-cmd->source - 2].value)->model->boneMatrices[cmd->target];
         }
     } else {
-        template->data[0x26] = (s32)((ModelData *)SCENE_3D->models[ctx->modelSlots[cmd->source]])->unk22B0[cmd->target];
+        template->data[0x26] = (s32)((ModelData *)SCENE_3D->models[ctx->modelSlots[cmd->source]])->boneMatrices[cmd->target];
     }
 }
 

@@ -166,7 +166,7 @@ void KAW_drawDeckList(ListWindow *w) {
     z = w->window.z;
     player = w->player;
     y++;
-    if (KAW_MATCH_SCREEN->unk504[player] != 0) {
+    if (KAW_MATCH_SCREEN->deckListOpen[player] != 0) {
         decks = (PresetDeck *)(((SessionData *)SESSION_DATA)->npcDeckFile + 8);
         for (i = 0; i < KAW_DECK_LIST_MENUS[player].nrows; i++) {
             if (i < w->window.view.y / KAW_DECK_LIST_MENUS[player].rowH) {
@@ -384,7 +384,7 @@ void KAW_openDeckList(s32 player) {
     }
     KAW_DECK_LIST_MENUS[player].nrows = n;
     KAW_MATCH_SCREEN->lists[player].window.view.h = n * KAW_DECK_LIST_MENUS[player].rowH;
-    KAW_MATCH_SCREEN->unk504[player] = 1;
+    KAW_MATCH_SCREEN->deckListOpen[player] = 1;
     animateWindowTo(&KAW_MATCH_SCREEN->frames[player].window, &KAW_DECK_INFO_RECTS[player]);
     playSoundEffect(0xA3);
 }
@@ -395,7 +395,7 @@ void KAW_closeDeckList(s32 i) {
     KAW_MATCH_SCREEN->lists[i].window.scroll[3] = 0;
     KAW_MATCH_SCREEN->lists[i].window.view.y = 0;
     KAW_MATCH_SCREEN->lists[i].window.view.h = KAW_DECK_LIST_MENUS[0].rowH * 3;
-    KAW_MATCH_SCREEN->unk504[i] = 0;
+    KAW_MATCH_SCREEN->deckListOpen[i] = 0;
     animateWindowTo(&KAW_MATCH_SCREEN->frames[i].window, (Rect16 *)-1);
     playSoundEffect(0xA4);
 }
@@ -403,7 +403,7 @@ void KAW_closeDeckList(s32 i) {
 void KAW_renderDeckSelect(void) {
     drawWindow(&KAW_MATCH_SCREEN->lists[0].window, KAW_drawDeckList, 10);
     drawWindow(&KAW_MATCH_SCREEN->frames[0].window, KAW_drawDeckInfo, 10);
-    if (KAW_MATCH_SCREEN->unk770 == 0) {
+    if (KAW_MATCH_SCREEN->mode == 0) {
         drawWindow(&KAW_MATCH_SCREEN->lists[1].window, KAW_drawDeckList, 10);
         drawWindow(&KAW_MATCH_SCREEN->frames[1].window, KAW_drawDeckInfo, 10);
     }
@@ -418,9 +418,9 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
 
     KAW_MATCH_SCREEN = allocTaskHeapBlock(0x778);
     spawnTask(0, -1, 0, 0x800, KAW_loadMatchGraphics, isVersus, match, getCurrentTaskId(), 0);
-    KAW_MATCH_SCREEN->unk504[0] = 0;
-    KAW_MATCH_SCREEN->unk504[1] = 0;
-    KAW_MATCH_SCREEN->unk770 = isVersus;
+    KAW_MATCH_SCREEN->deckListOpen[0] = 0;
+    KAW_MATCH_SCREEN->deckListOpen[1] = 0;
+    KAW_MATCH_SCREEN->mode = isVersus;
     if ((DUEL->tutorial == 0 && ((SessionData *)SESSION_DATA)->npcDeckIndex[0] == -1) || isVersus == 0) {
         ((SessionData *)SESSION_DATA)->npcDeckIndex[0] = -1;
         ((SessionData *)SESSION_DATA)->npcDeckIndex[1] = -1;
@@ -459,7 +459,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
         do {
             waitFrames(FRAME_INTERVAL);
             if (!(done & 1)) {
-                if (KAW_MATCH_SCREEN->unk504[0] != 0) {
+                if (KAW_MATCH_SCREEN->deckListOpen[0] != 0) {
                     if (PAD_STATES[0]->pressed & PAD_CROSS) {
                         i = KAW_MATCH_SCREEN->deckIds[0][KAW_DECK_LIST_MENUS[0].row];
                         if (((SessionData *)SESSION_DATA)->deckRuleActive != 0) {
@@ -525,7 +525,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
                 }
             }
             if (isVersus == 0 && !(done & 2)) {
-                if (KAW_MATCH_SCREEN->unk504[1] != 0) {
+                if (KAW_MATCH_SCREEN->deckListOpen[1] != 0) {
                     if (PAD_STATES[1]->pressed & PAD_CROSS) {
                         playSoundEffect(0xA0);
                         i = KAW_MATCH_SCREEN->deckIds[1][KAW_DECK_LIST_MENUS[1].row];
@@ -772,7 +772,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
         setVector(&KAW_MATCH_SCREEN->cards[i].rot, 0x2000, 0x2800 - (i << 12), 0x2000);
         PLAYER(i)->shufflePasses = 0;
     }
-    KAW_MATCH_SCREEN->unk770 = mode;
+    KAW_MATCH_SCREEN->mode = mode;
     KAW_MATCH_SCREEN->deckId = deckId;
     KAW_MATCH_SCREEN->introState = 0;
     KAW_MATCH_SCREEN->logoShown = 0;

@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
     /* 0x000 */ UiWindow window;
     /* 0x044 */ UiWindow titleWindow;
-    /* 0x088 */ UiWindow unk88;
+    /* 0x088 */ UiWindow partsWindow; /* "DIGI-PARTS RECEIVED" */
     /* 0x0CC */ ExpWindow expWindows[3];
     /* 0x1A4 */ RankUpWindow rankWindows[3];
     /* 0x27C */ s32 progress;
@@ -144,7 +144,7 @@ typedef struct {
     /* 0x134 */ ListWindow frames[2];
     /* 0x1C4 */ u8 dialog[0xB8];
     /* 0x27C */ u16 deckIds[2][0xA2];
-    /* 0x504 */ s32 unk504[2];
+    /* 0x504 */ s32 deckListOpen[2];
     /* 0x50C */ s32 introState;
     /* 0x510 */ s32 unk510;
     /* 0x514 */ s32 introZoom;
@@ -159,7 +159,7 @@ typedef struct {
     /* 0x768 */ s32 choice;
     /* 0x76C */ s16 barW;
     /* 0x76E */ s16 barH;
-    /* 0x770 */ s16 unk770;
+    /* 0x770 */ s16 mode; /* the mode the screen was opened with; 0 also draws the second player's deck lists */
     /* 0x772 */ s16 deckId;
     /* 0x774 */ s16 chosen;
     /* 0x776 */ s16 timer;

@@ -44,9 +44,9 @@ typedef struct {
 
 typedef struct HudPanelK {
     /* 0x00 */ u8 rgb[4];
-    /* 0x04 */ s16 unk4;
-    /* 0x06 */ s16 unk6;
-    /* 0x08 */ u8 unk8[4];
+    /* 0x04 */ s16 clut;
+    /* 0x06 */ s16 tpage;
+    /* 0x08 */ u8 uv[4]; /* u, v, w, h */
     /* 0x0C */ u8 flags;
     /* 0x0D */ u8 state;
     /* 0x0E */ u8 unkE[2];
@@ -58,9 +58,9 @@ typedef struct HudPanelK {
 } HudPanelK;
 
 typedef struct {
-    /* 0x0 */ u8 unk0[4];
-    /* 0x4 */ s16 unk4;
-    /* 0x6 */ s16 unk6;
+    /* 0x0 */ u8 uv[4]; /* u, v, w, h */
+    /* 0x4 */ s16 tpage;
+    /* 0x6 */ s16 clut;
     /* 0x8 */ u8 unk8;
     /* 0x9 */ s8 parent;
     /* 0xA */ s16 z;
@@ -104,12 +104,12 @@ s32 KAW_initHudPanels(void) {
         ((HudPanelK *)HUD_PANELS)[i].rgb[2] = 0x80;
         ((HudPanelK *)HUD_PANELS)[i].x = 0;
         ((HudPanelK *)HUD_PANELS)[i].y = 0;
-        ((HudPanelK *)HUD_PANELS)[i].unk8[0] = KAW_HUD_PANEL_INITS[i].unk0[0];
-        ((HudPanelK *)HUD_PANELS)[i].unk8[1] = KAW_HUD_PANEL_INITS[i].unk0[1];
-        ((HudPanelK *)HUD_PANELS)[i].unk8[2] = KAW_HUD_PANEL_INITS[i].unk0[2];
-        ((HudPanelK *)HUD_PANELS)[i].unk8[3] = KAW_HUD_PANEL_INITS[i].unk0[3];
-        ((HudPanelK *)HUD_PANELS)[i].unk6 = KAW_HUD_PANEL_INITS[i].unk4;
-        ((HudPanelK *)HUD_PANELS)[i].unk4 = KAW_HUD_PANEL_INITS[i].unk6;
+        ((HudPanelK *)HUD_PANELS)[i].uv[0] = KAW_HUD_PANEL_INITS[i].uv[0];
+        ((HudPanelK *)HUD_PANELS)[i].uv[1] = KAW_HUD_PANEL_INITS[i].uv[1];
+        ((HudPanelK *)HUD_PANELS)[i].uv[2] = KAW_HUD_PANEL_INITS[i].uv[2];
+        ((HudPanelK *)HUD_PANELS)[i].uv[3] = KAW_HUD_PANEL_INITS[i].uv[3];
+        ((HudPanelK *)HUD_PANELS)[i].tpage = KAW_HUD_PANEL_INITS[i].tpage;
+        ((HudPanelK *)HUD_PANELS)[i].clut = KAW_HUD_PANEL_INITS[i].clut;
         ((HudPanelK *)HUD_PANELS)[i].flags = 0;
         ((HudPanelK *)HUD_PANELS)[i].state = 0;
         if (KAW_HUD_PANEL_INITS[i].parent != -1) {

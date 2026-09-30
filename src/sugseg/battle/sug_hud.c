@@ -223,7 +223,7 @@ void SUG_animateHpCounter(s32 side) {
     do {
         waitFrames(FRAME_INTERVAL);
         model = SCENE_3D->models[side];
-        if (model->unk2208 >= 0 && model->unk2200 >= minFrame) {
+        if (model->animKeyTimer >= 0 && model->animClip >= minFrame) {
             if ((SUG_BATTLE->players[side].hp -= step) < 0) {
                 SUG_BATTLE->players[side].hp = 0;
                 break;
@@ -412,7 +412,7 @@ void SUG_showHpBanner(s32 side) {
                       getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1, icon.brightness, 0,
                       icon.trail, 6);
         SUG_drawNumber(0xA8, (s16)num.pos, SUG_BATTLE->players[side].hp, num.brightness);
-        if (((ModelData *)SCENE_3D->models[side])->unk2208 < 0) {
+        if (((ModelData *)SCENE_3D->models[side])->animKeyTimer < 0) {
             playModelAnimation(side, 0);
         }
     } while (state != 3);

@@ -53,7 +53,7 @@ typedef struct {
     /* 0xA0 */ u8 unkA0[5];
     /* 0xA5 */ s8 choice;
     /* 0xA6 */ u8 unkA6[0xF];
-    /* 0xB5 */ s8 unkB5;
+    /* 0xB5 */ s8 cancelDisabled; /* Dialog.cancelDisabled */
     /* 0xB6 */ u8 unkB6[2];
 } ChoiceDialog;
 
@@ -614,7 +614,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             initDialog((u8 *)&dialog, NULL, 2);
             dialog.choice = 1;
             OPEN_INTRO_TEXT.waitInput = 0;
-            dialog.unkB5 = 1;
+            dialog.cancelDisabled = 1;
             runDialog(&dialog);
             OPEN_INTRO_TEXT.waitInput = 1;
             if (model) {
@@ -642,7 +642,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             initDialog((u8 *)&dialog, NULL, 2);
             dialog.choice = 1;
             OPEN_INTRO_TEXT.waitInput = 0;
-            dialog.unkB5 = 1;
+            dialog.cancelDisabled = 1;
             runDialog(&dialog);
             OPEN_INTRO_TEXT.waitInput = 1;
             switch (dialog.choice) {
@@ -661,7 +661,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             initDialog((u8 *)&dialog, "Sound Settings", 2);
             dialog.choice = 1;
             OPEN_INTRO_TEXT.waitInput = 0;
-            dialog.unkB5 = 1;
+            dialog.cancelDisabled = 1;
             runDialog(&dialog);
             OPEN_INTRO_TEXT.waitInput = 1;
             switch (dialog.choice) {
@@ -686,7 +686,7 @@ void OPEN_runUserRegistration(s32 parentTask) {
             initDialog((u8 *)&dialog, "Polygon Battle", 2);
             dialog.choice = 1;
             OPEN_INTRO_TEXT.waitInput = 0;
-            dialog.unkB5 = 1;
+            dialog.cancelDisabled = 1;
             runDialog(&dialog);
             OPEN_INTRO_TEXT.waitInput = 1;
             switch (dialog.choice) {

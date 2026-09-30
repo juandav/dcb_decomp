@@ -62,8 +62,8 @@ void SUG_saveStageClut(ModelData *model, s16 h) {
 
     rect = SUG_MODEL_CLUT_RECT;
     rect.h = h;
-    rect.x += ((model->unk26D4 / 0x10000 + 5) & 0xF) << 6;
-    rect.y += ((model->unk26D4 / 0x10000 + 5) >> 4) << 8;
+    rect.x += ((model->tpageOffset / 0x10000 + 5) & 0xF) << 6;
+    rect.y += ((model->tpageOffset / 0x10000 + 5) >> 4) << 8;
     StoreImage2(&rect, (u32 *)SUG_STAGE_CLUT.clut);
     SUG_STAGE_CLUT.rect = rect;
     SUG_STAGE_CLUT.brighten = 0;
