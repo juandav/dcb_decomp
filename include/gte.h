@@ -94,6 +94,17 @@
 /* Store the last lit colour (RGB2) as a word at `p` */
 #define gte_strgb(p) __asm__ volatile("swc2 $22, 0(%0)" : : "r"(p))
 
+/*
+ * Start a primitive packet at `p` from the last GTE results: SXY0 goes to
+ * p[2] and RGB0 | `code` (the colour and GPU code word) to p[1]. RGB0 is read
+ * into $8 first, so the SXY0 store covers the mfc2 delay.
+ */
+#define gte_stsxy0_rgbcode(p, code)                                                                                  \
+    __asm__ volatile("mfc2 $8, $20; swc2 $12, 8(%0); or $8, $8, %1; sw $8, 4(%0)"                                    \
+                     :                                                                                               \
+                     : "r"(p), "r"(code)                                                                             \
+                     : "$8", "memory")
+
 /* GTE commands without the nops in front (the caller keeps the pipeline safe) */
 #define gte_nop() __asm__ volatile("nop")
 #define gte_rtpt() __asm__ volatile("rtpt")
