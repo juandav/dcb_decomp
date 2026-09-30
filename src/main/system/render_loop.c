@@ -38,16 +38,17 @@ void initGraphics(void) {
 
     SetGraphDebug(0);
     InitGeom();
+    /* clear the first 1 KB of the scratchpad */
     scratchpad = (s32 *)0x1F800000;
     for (i = 0; i < 0x100; i++) {
         *scratchpad++ = 0;
     }
-    (*(s16 *)((s8 *)(&GRAPHICS) + 0)) = 0;
-    (*(s16 *)((s8 *)(&GRAPHICS) + 2)) = 0;
-    (*(s16 *)((s8 *)(&GRAPHICS) + 4)) = 0x100;
-    (*(s16 *)((s8 *)(&GRAPHICS) + 6)) = 0x100;
-    (*(s32 *)((s8 *)(&GRAPHICS) + 0x50)) = 2;
-    (*(s32 *)((s8 *)(&GRAPHICS) + 0x48)) = 0;
+    ((Graphics *)&GRAPHICS)->unk0[0] = 0;
+    ((Graphics *)&GRAPHICS)->unk0[1] = 0;
+    ((Graphics *)&GRAPHICS)->unk0[2] = 0x100;
+    ((Graphics *)&GRAPHICS)->unk0[3] = 0x100;
+    ((Graphics *)&GRAPHICS)->vblanksPerFrame = 2;
+    ((Graphics *)&GRAPHICS)->unk48 = 0;
     FRAME_INTERVAL = 1;
     initScreenCopyEffect();
 }
@@ -58,7 +59,7 @@ void runRenderLoop(void) {
     void (**callback)(FrameBuffer *, s32);
 
     gfx = (Graphics *)&GRAPHICS;
-    gfx->unk8[0] = 0;
+    gfx->frameCallbacks[0] = 0;
     VBLANK_COUNTER = 0;
     for (; gfx->unk48 <= 0; gfx->unk48++) {
         pollPads();
@@ -91,7 +92,7 @@ void runRenderLoop(void) {
         resetSpritePool();
         resetWindowPrimPool();
         if (RENDER_CALLBACKS_ENABLED != 0) {
-            for (callback = gfx->unk8; *callback != 0; callback++) {
+            for (callback = gfx->frameCallbacks; *callback != 0; callback++) {
                 (*callback)(CURRENT_FRAME_BUFFER, FRAME_BUFFER_INDEX);
             }
         }

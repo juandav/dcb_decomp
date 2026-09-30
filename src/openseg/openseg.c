@@ -696,7 +696,7 @@ void OPEN_runMovieRenderLoop(void) {
     Graphics *gfx;
 
     gfx = (Graphics *)&GRAPHICS;
-    gfx->unk8[0] = 0;
+    gfx->frameCallbacks[0] = 0;
     VBLANK_COUNTER = 0;
     SetDispMask(0);
     for (; gfx->unk48 <= 0; gfx->unk48++) {
@@ -715,7 +715,7 @@ void OPEN_runMovieRenderLoop(void) {
         pollPads();
         FRAME_BUFFER_INDEX ^= 1;
         CURRENT_FRAME_BUFFER = &gfx->buffers[FRAME_BUFFER_INDEX];
-        if (gfx->unk8[0] != 0) {
+        if (gfx->frameCallbacks[0] != 0) {
             OPEN_showMovieFrame(CURRENT_FRAME_BUFFER, FRAME_BUFFER_INDEX);
         }
         VSync(0);
