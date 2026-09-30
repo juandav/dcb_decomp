@@ -501,7 +501,7 @@ typedef struct {
 
 extern BattleState *SUG_BATTLE;
 extern s16 SUG_TARGET_HP[2];
-extern MATRIX D_801DBEC0;
+extern MATRIX GsIDMATRIX;
 extern s16 D_80079584;
 
 s32 StoreImage(Rect16 *rect, void *p);

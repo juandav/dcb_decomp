@@ -212,7 +212,7 @@ void EVO_drawShardTG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT3 *poly;
 
     prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT3 *)func_80062C44();
+    poly = (POLY_FT3 *)GsGetWorkBase();
     SetPolyFT3(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -243,14 +243,14 @@ void EVO_drawShardTG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v2.vz = vert->vz + offset.vz;
     setlen(poly, 7);
     setcode(poly, 0x24);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -268,7 +268,7 @@ void EVO_drawShardTF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT3 *poly;
 
     prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT3 *)func_80062C44();
+    poly = (POLY_FT3 *)GsGetWorkBase();
     SetPolyFT3(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -299,14 +299,14 @@ void EVO_drawShardTF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v2.vz = vert->vz + offset.vz;
     setlen(poly, 7);
     setcode(poly, 0x24);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -324,7 +324,7 @@ void EVO_drawShardTG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT4 *poly;
 
     prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT4 *)func_80062C44();
+    poly = (POLY_FT4 *)GsGetWorkBase();
     SetPolyFT4(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -361,14 +361,14 @@ void EVO_drawShardTG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v3.vz = vert->vz + offset.vz;
     setlen(poly, 9);
     setcode(poly, 0x2C);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -386,7 +386,7 @@ void EVO_drawShardTF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT4 *poly;
 
     prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT4 *)func_80062C44();
+    poly = (POLY_FT4 *)GsGetWorkBase();
     SetPolyFT4(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -423,14 +423,14 @@ void EVO_drawShardTF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v3.vz = vert->vz + offset.vz;
     setlen(poly, 9);
     setcode(poly, 0x2C);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -448,7 +448,7 @@ void EVO_drawShardTNF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT3 *poly;
 
     prim = (TmdPacketFT3 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT3 *)func_80062C44();
+    poly = (POLY_FT3 *)GsGetWorkBase();
     SetPolyFT3(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -479,14 +479,14 @@ void EVO_drawShardTNF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v2.vz = vert->vz + offset.vz;
     setlen(poly, 7);
     setcode(poly, 0x24);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -504,7 +504,7 @@ void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     POLY_FT4 *poly;
 
     prim = (TmdPacketFT4 *)EVO_SHARD_PRIM;
-    poly = (POLY_FT4 *)func_80062C44();
+    poly = (POLY_FT4 *)GsGetWorkBase();
     SetPolyFT4(poly);
     SetSemiTrans(poly, 0);
     poly->r0 = EVO_SHARD_COLOR.r;
@@ -541,14 +541,14 @@ void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v3.vz = vert->vz + offset.vz;
     setlen(poly, 9);
     setcode(poly, 0x2C);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -808,19 +808,19 @@ void EVO_drawSpark(EvoSpark *spark) {
     tip.vx = to.vx + EVO_randomRange(-80, 80);
     tip.vy = to.vy + EVO_randomRange(-80, 80);
     tip.vz = to.vz + EVO_randomRange(-80, 80);
-    poly = (PolyF3 *)func_80062C44();
+    poly = (PolyF3 *)GsGetWorkBase();
     SetPolyF3(poly);
     SetSemiTrans(poly, 1);
     shade = rand() % 128 + 10;
     poly->r0 = shade;
     poly->g0 = shade;
     poly->b0 = shade;
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     if ((u32)((RotTransPers3((s32)&tip, (s32)&from, (s32)&to, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag) >> 2) - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
     PopMatrix();
 }
@@ -839,7 +839,7 @@ void EVO_drawShardF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     PolyF4 *poly;
 
     prim = (u16 *)EVO_SHARD_PRIM;
-    poly = (PolyF4 *)func_80062C44();
+    poly = (PolyF4 *)GsGetWorkBase();
     setlen(poly, 5);
     setcode(poly, 0x28);
     SetSemiTrans(poly, 1);
@@ -867,14 +867,14 @@ void EVO_drawShardF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v3.vz = vert->vz + offset.vz;
     setlen(poly, 5);
     setcode(poly, 0x28);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -892,7 +892,7 @@ void EVO_drawShardG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     PolyG3 *poly;
 
     prim = (u16 *)EVO_SHARD_PRIM;
-    poly = (PolyG3 *)func_80062C44();
+    poly = (PolyG3 *)GsGetWorkBase();
     setlen(poly, 6);
     setcode(poly, 0x30);
     SetSemiTrans(poly, 1);
@@ -916,14 +916,14 @@ void EVO_drawShardG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v2.vz = vert->vz + offset.vz;
     setlen(poly, 6);
     setcode(poly, 0x30);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -941,7 +941,7 @@ void EVO_drawShardG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     PolyG4 *poly;
 
     prim = (u16 *)EVO_SHARD_PRIM;
-    poly = (PolyG4 *)func_80062C44();
+    poly = (PolyG4 *)GsGetWorkBase();
     setlen(poly, 8);
     setcode(poly, 0x38);
     SetSemiTrans(poly, 1);
@@ -969,14 +969,14 @@ void EVO_drawShardG4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v3.vz = vert->vz + offset.vz;
     setlen(poly, 8);
     setcode(poly, 0x38);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers4((s32)&v0, (s32)&v1, (s32)&v2, (s32)&v3, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, (s32)&poly->x3, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }
 
@@ -994,7 +994,7 @@ void EVO_drawShardF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     PolyF3 *poly;
 
     prim = (u16 *)EVO_SHARD_PRIM;
-    poly = (PolyF3 *)func_80062C44();
+    poly = (PolyF3 *)GsGetWorkBase();
     setlen(poly, 4);
     setcode(poly, 0x20);
     SetSemiTrans(poly, 1);
@@ -1018,13 +1018,13 @@ void EVO_drawShardF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     v2.vz = vert->vz + offset.vz;
     setlen(poly, 4);
     setcode(poly, 0x20);
-    SetRotMatrix((s32)&D_801DBEA0);
-    SetTransMatrix(&D_801DBEA0);
+    SetRotMatrix((s32)&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
     otz = RotTransPers3((s32)&v0, (s32)&v1, (s32)&v2, (s32)&poly->x0, (s32)&poly->x1, (s32)&poly->x2, &depthCue, &flag);
     otz >>= 2;
     if ((u32)(otz - 0x21) < 0xFDF) {
         setSemiTrans(poly, 1);
         addPrim(&CURRENT_FRAME_BUFFER->ot[otz], poly);
-        func_80062C34((long)(poly + 1));
+        GsSetWorkBase((long)(poly + 1));
     }
 }

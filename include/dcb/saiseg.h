@@ -5,7 +5,7 @@
 #include "dcb/script.h"
 #include "dcb/menu.h"
 
-#define SESSION ((SaisegSession *)((SessionData *)SESSION_DATA)->unk100C)
+#define SESSION ((SaisegSession *)((SessionData *)SESSION_DATA)->areaSession)
 
 /* what the area does each frame (AreaState.mode) */
 enum AreaMode {

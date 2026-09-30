@@ -109,7 +109,7 @@ void SAI_freeOpponentInfo(void) {
     for (i = 0; i < 4; i++) {
         SAI_freeSprite(SAI_SPRITES[i + 42]);
     }
-    *(OpponentList *)((SessionData *)SESSION_DATA)->unk100C = SAI_OPPONENTS;
+    *(OpponentList *)((SessionData *)SESSION_DATA)->areaSession = SAI_OPPONENTS;
 }
 
 void SAI_initOpponentInfo(void) {

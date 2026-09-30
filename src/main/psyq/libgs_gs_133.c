@@ -47,7 +47,7 @@ void GsGetLw(GsCOORDINATE2 *coord, MATRIX *m) {
 
 OBJECT_END(2);
 
-extern MATRIX D_801DBEA0;
+extern MATRIX GsWSMATRIX;
 
 void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m) {
     GsCOORDINATE2 *co;
@@ -89,7 +89,7 @@ void GsGetLs(GsCOORDINATE2 *coord, MATRIX *m) {
         D_801DBF00[i - 1]->workm = *m;
         D_801DBF00[i - 1]->flg = D_801DBE20;
     }
-    GsMulCoord2(&D_801DBEA0, m);
+    GsMulCoord2(&GsWSMATRIX, m);
 }
 
 OBJECT_END(2);
@@ -135,7 +135,7 @@ void GsGetLws(GsCOORDINATE2 *coord, MATRIX *lw, MATRIX *ls) {
         D_801DBF00[i - 1]->flg = D_801DBE20;
     }
     *ls = *lw;
-    GsMulCoord2(&D_801DBEA0, ls);
+    GsMulCoord2(&GsWSMATRIX, ls);
 }
 
 OBJECT_END(3);
@@ -265,8 +265,8 @@ extern u_long D_801DBFA4;
 extern long D_801DBE28;
 extern long D_801DBE2C;
 extern long D_801DBE34;
-extern PACKET *D_801DBF98;
-extern _GsFCALL D_801DBFB0;
+extern PACKET *GsOUT_PACKET_P;
+extern _GsFCALL GsFCALL4;
 
 /* the object's string table was padded to 8 bytes before the jump table */
 __asm__(".section .rodata\nD_800137FC:\n\t.asciz \"non supported code %x %x\\n\"\n\t.align 2\n\t.space 4\n\t.section .text\n");
@@ -316,105 +316,105 @@ void GsSortObject4(GsDOBJ2 *objp, GsOT *otp, int shift, u_long *scratch) {
         switch (code) {
         case 0x20:
             if (((u_short *)op)[1] & 4) {
-                D_801DBF98 = D_801DBFB0.f3g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.f3g[lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 6;
             } else {
-                D_801DBF98 = D_801DBFB0.f3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.f3[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 4;
             }
             break;
         case 0x24:
-            D_801DBF98 = D_801DBFB0.tf3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.tf3[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 6;
             break;
         case 0x30:
             if (((u_short *)op)[1] & 4) {
-                D_801DBF98 = D_801DBFB0.g3g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.g3g[lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 7;
             } else {
-                D_801DBF98 = D_801DBFB0.g3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.g3[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 5;
             }
             break;
         case 0x34:
-            D_801DBF98 = D_801DBFB0.tg3[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.tg3[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 7;
             break;
         case 0x28:
             if (((u_short *)op)[1] & 4) {
-                D_801DBF98 = D_801DBFB0.f4g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.f4g[lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 8;
             } else {
-                D_801DBF98 = D_801DBFB0.f4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.f4[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 5;
             }
             break;
         case 0x2C:
-            D_801DBF98 = D_801DBFB0.tf4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.tf4[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 8;
             break;
         case 0x38:
             if (((u_short *)op)[1] & 4) {
-                D_801DBF98 = D_801DBFB0.g4g[lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.g4g[lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 9;
             } else {
-                D_801DBF98 = D_801DBFB0.g4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+                GsOUT_PACKET_P = GsFCALL4.g4[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
                 primn -= *(u_short *)op;
                 op += *(u_short *)op * 6;
             }
             break;
         case 0x3C:
-            D_801DBF98 = D_801DBFB0.tg4[div][lmode](op, vp, np, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.tg4[div][lmode](op, vp, np, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 9;
             break;
         case 0x21:
-            D_801DBF98 = D_801DBFB0.nf3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.nf3[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 4;
             break;
         case 0x29:
-            D_801DBF98 = D_801DBFB0.nf4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.nf4[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 4;
             break;
         case 0x31:
-            D_801DBF98 = D_801DBFB0.ng3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ng3[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 6;
             break;
         case 0x25:
-            D_801DBF98 = D_801DBFB0.ntf3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ntf3[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 7;
             break;
         case 0x35:
-            D_801DBF98 = D_801DBFB0.ntg3[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ntg3[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 9;
             break;
         case 0x39:
-            D_801DBF98 = D_801DBFB0.ng4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ng4[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 7;
             break;
         case 0x2D:
-            D_801DBF98 = D_801DBFB0.ntf4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ntf4[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 8;
             break;
         case 0x3D:
-            D_801DBF98 = D_801DBFB0.ntg4[div](op, vp, D_801DBF98, *(u_short *)op, shift, otp, scratch);
+            GsOUT_PACKET_P = GsFCALL4.ntg4[div](op, vp, GsOUT_PACKET_P, *(u_short *)op, shift, otp, scratch);
             primn -= *(u_short *)op;
             op += *(u_short *)op * 11;
             break;

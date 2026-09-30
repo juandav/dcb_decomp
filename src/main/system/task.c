@@ -55,7 +55,7 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     }
     CURRENT_TASK_PRIORITY = PREEMPTED_TASK_PRIORITY = *(u16 *)&DEFERRED_TASK_PRIORITY = 0xFFFF;
     CURRENT_TASK = TASKS - 1;
-    TASK_LIST_END.status.flags = 0x8000FFFF;
+    TASK_LIST_END.status.flags = TASK_IN_USE | 0xFFFF;
     TASK_LIST_END.prev = CURRENT_TASK + 1;
     if (TASK_VSYNC_MODE != 0) {
         TASK_LIST_END.next = &TASK_LIST_END;
@@ -74,9 +74,9 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     }
     /* the main task is TASKS[0], priority 0 */
     mainTask = TASKS;
-    mainTask->status.flags = 0xA0000000;
+    mainTask->status.flags = TASK_IN_USE | TASK_CONTEXT_SAVED;
     mainTask->regs[R_EPC] = entry;
-    mainTask->regs[R_SR] = 0x4000FF04;
+    mainTask->regs[R_SR] = TASK_START_SR;
     mainTask->regs[R_A0] = a0;
     mainTask->regs[R_A1] = a1;
     mainTask->regs[R_A2] = a2;
@@ -114,7 +114,7 @@ long handleVsyncPreemption(void) {
     for (i = 39; i >= 0; i--) {
         *regs++ = *tcbRegs++;
     }
-    task->status.flags |= 0x20000000;
+    task->status.flags |= TASK_CONTEXT_SAVED;
     if ((PREEMPTED_TASK_PRIORITY = CURRENT_TASK_PRIORITY) == 0) {
         if (TASK_VSYNC_MODE == 0) {
             DEFERRED_TASK = TASKS;
@@ -235,9 +235,9 @@ s32 createTask(s32 taskId, s32 insertPos, s32 priority, s32 stackSize, s32 unuse
     for (i = 39; i >= 0; i--) {
         *dst++ = *src++;
     }
-    task->status.flags = priority | 0xA0000000;
+    task->status.flags = priority | TASK_IN_USE | TASK_CONTEXT_SAVED;
     task->regs[R_EPC] = entry;
-    task->regs[R_SR] = 0x4000FF04;
+    task->regs[R_SR] = TASK_START_SR;
     task->regs[R_A0] = a0;
     task->regs[R_A1] = a1;
     task->regs[R_A2] = a2;

@@ -5,6 +5,11 @@
 
 /* The low half of a task's flags is its priority: 0 is the main task, and
  * 0xFFFF the end of the list. */
+#define TASK_IN_USE 0x80000000        /* the slot holds a task (flags < 0) */
+#define TASK_CONTEXT_SAVED 0x20000000 /* every register is saved (a new or preempted task), not only the s registers */
+/* the Status register a task starts with: COP2 usable, every interrupt
+ * unmasked, and interrupts enabled once rfe pops the stack */
+#define TASK_START_SR 0x4000FF04
 typedef union {
     /* 0x00 */ s32 flags;
     /* 0x00 */ s16 priority;

@@ -134,7 +134,7 @@ typedef void (*SlotFree)(s32 value);
 extern RootEffect SUG_EFFECT_ROOT;
 extern u8 D_800795A8;
 
-u16 func_80067644(s32 x, s32 y);
+u16 GetClut(s32 x, s32 y);
 void GsGetLw(GsCOORDINATE2 *coord, MATRIX *out);
 void SUG_runEffectScript(EffectScript *runner);
 void SUG_freeEffectEntries(EffectSlots *slots);
@@ -232,8 +232,8 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
     PushMatrix();
     if (cmd->source >= 0) {
         SCENE_3D->root.flg = model->root.flg = 0;
-        SCENE_3D->root.coord = D_801DBEC0;
-        model->root.coord = D_801DBEC0;
+        SCENE_3D->root.coord = GsIDMATRIX;
+        model->root.coord = GsIDMATRIX;
         for (i = 0; i < model->nobj; i++, coord++) {
             coord->flg = 0;
         }
@@ -819,7 +819,7 @@ void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
     uv.h = cmd->texH;
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createSphereEffect(cmd->brightness, color, cmd->pulse, cmd->pulseMode, &template, cmd->segments, cmd->slices, cmd->radius, cmd->semiTrans, cmd->abr,
-                  cmd->primKind, cmd->count, cmd->texAnimId, &uv, tpage, func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
+                  cmd->primKind, cmd->count, cmd->texAnimId, &uv, tpage, GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
                   cmd->cull, cmd->otz.w, ctx->pak);
 }
 
@@ -868,7 +868,7 @@ void SUG_createTrailFromParams(EffectParams *cmd, EffectSlots *ctx) {
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createTrailEffect(cmd->brightness, &c0, &c1, &c2, &c3, &template, cmd->edgeX0, cmd->edgeX1, cmd->count, cmd->rows, cmd->variant,
                   cmd->pulseMode, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->texAnimId, &uv, tpage,
-                  func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->otz.w, ctx->pak);
+                  GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->otz.w, ctx->pak);
 }
 
 void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
@@ -912,7 +912,7 @@ void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     createRingEffect(cmd->brightness, &inner, &mid, &outer, &template, cmd->count, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->innerRadius,
                      cmd->outerRadius, cmd->midPercent, cmd->innerZ, cmd->outerZ, (Bytes8 *)&uv, tpage,
-                     func_80067644(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->texAnimId, cmd->flags, cmd->cull, cmd->otz.w,
+                     GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->texAnimId, cmd->flags, cmd->cull, cmd->otz.w,
                      ctx->pak);
 }
 

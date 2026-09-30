@@ -54,7 +54,7 @@ void startCpuDuel(s32 deckIndex) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    ((u8 *)((SessionData *)SESSION_DATA)->unk100C)[0x1A6] = result;
+    ((SessionData *)SESSION_DATA)->areaSession->duelResult = result;
     spawnTask(0, -1, 0, 0x1600, D_801E4D80, 0, getCurrentTaskId(), 0, 0);
 }
 

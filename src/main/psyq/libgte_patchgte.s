@@ -1,7 +1,7 @@
 /*
  * libgte PATCHGTE and the libgs GsTMDfast* packet builders that follow it:
  * _patch_gte, the exception-handler code it copies (func_8005FBB0),
- * func_8005FBE4, NormalColorCol3, func_8005FC54 and GsTMDfastF3L through
+ * NormalColorCol, NormalColorCol3, func_8005FC54 and GsTMDfastF3L through
  * GsTMDfastTG4L.
  *
  * Hand-written assembly, not compiler output:
@@ -96,7 +96,7 @@ endlabel func_8005FBB0
   alabel D_8005FBE0
     nop
 
-glabel func_8005FBE4
+glabel NormalColorCol
     lwc2       $0, 0x0($a0)
     lwc2       $1, 0x4($a0)
     lwc2       $6, 0x0($a1)
@@ -105,7 +105,7 @@ glabel func_8005FBE4
     swc2       $22, 0x0($a2)
     jr         $ra
      nop
-endlabel func_8005FBE4
+endlabel NormalColorCol
 
 glabel NormalColorCol3
     lwc2       $0, 0x0($a0)

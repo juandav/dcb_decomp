@@ -376,7 +376,7 @@ ScriptRunner *SAI_createAreaScript(void) {
     u8 unused[0x18];
     ScriptRunner *obj = allocHeapBlock(sizeof(ScriptRunner), 0x31);
 
-    obj->unk0 = *(s32 *)&((SessionData *)SESSION_DATA)->unk100C->unk0[0x190];
+    obj->unk0 = *(s32 *)&((SessionData *)SESSION_DATA)->areaSession->unk0[0x190];
     obj->script = SAI_createScriptContext((u8 *)obj->unk0);
     return obj;
 }

@@ -963,6 +963,12 @@ void drawIconColored(s32 x, s32 y, s32 iconSet, s32 icon, u8 *rgb, s32 z) {
     }
 }
 
+/*
+ * Like drawText, but the escape codes (a0 icon, b1 button, c7 palette, h/w
+ * spacing...) need no '*' in front: SUBSEG draws the attack button icons
+ * with "b0" .. "b2". Digits and two-byte characters all draw the same
+ * 12x12 tile of the system texture.
+ */
 void drawIconText(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text) {
     drawIconTextColored(x, y, palette, unused, (u8 *)&DEFAULT_TEXT_RGB, z, (u8 *)text);
 }

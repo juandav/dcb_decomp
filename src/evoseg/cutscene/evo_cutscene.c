@@ -205,7 +205,7 @@ typedef union {
 } EvoPacket;
 
 extern s16 D_80079584;
-extern _GsFCALL D_801DBFB0;
+extern _GsFCALL GsFCALL4;
 extern u16 EVO_BANNER_CLUT[16];
 extern s8 EVO_BANNER_FADE;
 extern u8 EVO_BANNER_BRIGHTNESS;
@@ -233,7 +233,7 @@ s32 RotNclip4(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, SVECTOR *v3, s32 *sxy0, s32
               s32 *otz, s32 *flag);
 
 void NormalColorCol3(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, Color *in, Color *out0, Color *out1, Color *out2);
-void func_8005FBE4(SVECTOR *n, Color *in, Color *out);
+void NormalColorCol(SVECTOR *n, Color *in, Color *out);
 void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode);
 void EVO_initShatterScene(s32 arg);
 void EVO_renderCutsceneModels();
@@ -519,7 +519,7 @@ void EVO_renderCutsceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     s32 *scratch;
 
     if (SCENE_3D_ENABLED != 0) {
-        func_80062C34((long)buffer->scenePackets);
+        GsSetWorkBase((long)buffer->scenePackets);
         colorMatrix = SCENE_LIGHT_COLORS;
         for (i = 0; i < 24; i++) {
             if (SCENE_3D->modelState[i] <= 0) {
@@ -784,7 +784,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     norm = tmd->normTop;
     nprim = tmd->nprim;
     prim = tmd->prims;
-    pk = (EvoPacket *)func_80062C44();
+    pk = (EvoPacket *)GsGetWorkBase();
     rgb.r = rgb.g = rgb.b = 0x80;
     coord = obj->coord2;
     if (coord->flg == 0) {
@@ -793,7 +793,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     }
     MulMatrix0(&D_801DBE40, &coord->workm, &m);
     SetLightMatrix(&m);
-    CompMatrix(&D_801DBEA0, &coord->workm, &m);
+    CompMatrix(&GsWSMATRIX, &coord->workm, &m);
     EVO_setGteMatrix(&m);
     for (i = 0; i < nprim; i++) {
         if ((code = prim->mode & 0x3D) == 0x2C) {
@@ -802,7 +802,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
                 if (RotNclip4(&vert[op.tf4->v0], &vert[op.tf4->v1], &vert[op.tf4->v2], &vert[op.tf4->v3],
                               (s32 *)&pk->ft4.x0, (s32 *)&pk->ft4.x1, (s32 *)&pk->ft4.x2, (s32 *)&pk->ft4.x3, &p, &otz,
                               &flag) > 0) {
-                    func_8005FBE4(&norm[op.tf4->n0], &rgb, (Color *)&pk->ft4.r0);
+                    NormalColorCol(&norm[op.tf4->n0], &rgb, (Color *)&pk->ft4.r0);
                     pk->ft4.u0 = op.tf4->tu0;
                     pk->ft4.v0 = op.tf4->tv0;
                     pk->ft4.u1 = op.tf4->tu1;
@@ -836,7 +836,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
                               &flag) > 0) {
                     NormalColorCol3(&norm[op.tg4->n0], &norm[op.tg4->n1], &norm[op.tg4->n2], &rgb, (Color *)&pk->gt4.r0,
                                     (Color *)&pk->gt4.r1, (Color *)&pk->gt4.r2);
-                    func_8005FBE4(&norm[op.tg4->n3], &rgb, (Color *)&pk->gt4.r3);
+                    NormalColorCol(&norm[op.tg4->n3], &rgb, (Color *)&pk->gt4.r3);
                     pk->gt4.u0 = op.tg4->tu0;
                     pk->gt4.v0 = op.tg4->tv0;
                     pk->gt4.u1 = op.tg4->tu1;
@@ -896,7 +896,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
             if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.tf3->v0], &vert[op.tf3->v1], &vert[op.tf3->v2], (s32 *)&pk->ft3.x0,
                               (s32 *)&pk->ft3.x1, (s32 *)&pk->ft3.x2, &p, &otz, &flag) > 0) {
-                    func_8005FBE4(&norm[op.tf3->n0], &rgb, (Color *)&pk->ft3.r0);
+                    NormalColorCol(&norm[op.tf3->n0], &rgb, (Color *)&pk->ft3.r0);
                     pk->ft3.u0 = op.tf3->tu0;
                     pk->ft3.v0 = op.tf3->tv0;
                     pk->ft3.u1 = op.tf3->tu1;
@@ -955,7 +955,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
             if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip4(&vert[op.f4->v0], &vert[op.f4->v1], &vert[op.f4->v2], &vert[op.f4->v3], (s32 *)&pk->f4.x0,
                               (s32 *)&pk->f4.x1, (s32 *)&pk->f4.x2, (s32 *)&pk->f4.x3, &p, &otz, &flag) > 0) {
-                    func_8005FBE4(&norm[op.f4->n0], &rgb, (Color *)&pk->f4.r0);
+                    NormalColorCol(&norm[op.f4->n0], &rgb, (Color *)&pk->f4.r0);
                     setlen(&pk->f4, 5);
                     setcode(&pk->f4, code);
                     otz >>= 2;
@@ -1005,7 +1005,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
                               (s32 *)&pk->g4.x1, (s32 *)&pk->g4.x2, (s32 *)&pk->g4.x3, &p, &otz, &flag) > 0) {
                     NormalColorCol3(&norm[op.g4->n0], &norm[op.g4->n1], &norm[op.g4->n2], &rgb, (Color *)&pk->g4.r0,
                                     (Color *)&pk->g4.r1, (Color *)&pk->g4.r2);
-                    func_8005FBE4(&norm[op.g4->n3], &rgb, (Color *)&pk->g4.r3);
+                    NormalColorCol(&norm[op.g4->n3], &rgb, (Color *)&pk->g4.r3);
                     setlen(&pk->g4, 8);
                     setcode(&pk->g4, code);
                     otz >>= 2;
@@ -1026,7 +1026,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
             if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.g3->v0], &vert[op.g3->v1], &vert[op.g3->v2], (s32 *)&pk->g3.x0,
                               (s32 *)&pk->g3.x1, (s32 *)&pk->g3.x2, &p, &otz, &flag) > 0) {
-                    func_8005FBE4(&norm[op.g3->n0], &rgb, (Color *)&pk->g3.r0);
+                    NormalColorCol(&norm[op.g3->n0], &rgb, (Color *)&pk->g3.r0);
                     setlen(&pk->g3, 6);
                     setcode(&pk->g3, code);
                     otz >>= 2;
@@ -1046,7 +1046,7 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
             if (EVO_DISSOLVE_PATTERN[i & 0xF] < mode) {
                 if (RotNclip3(&vert[op.f3->v0], &vert[op.f3->v1], &vert[op.f3->v2], (s32 *)&pk->f3.x0,
                               (s32 *)&pk->f3.x1, (s32 *)&pk->f3.x2, &p, &otz, &flag) > 0) {
-                    func_8005FBE4(&norm[op.f3->n0], &rgb, (Color *)&pk->f3.r0);
+                    NormalColorCol(&norm[op.f3->n0], &rgb, (Color *)&pk->f3.r0);
                     setlen(&pk->f3, 4);
                     setcode(&pk->f3, code);
                     otz >>= 2;
@@ -1063,37 +1063,37 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
             }
         }
     }
-    func_80062C34((long)pk);
+    GsSetWorkBase((long)pk);
 }
 
 void EVO_initGsSortTable(void) {
-    D_801DBFB0.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;
-    D_801DBFB0.tf3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTF3L;
-    D_801DBFB0.tf3[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTF3NL;
-    D_801DBFB0.ntf3[GsDivMODE_NDIV] = GsTMDfastTNF3;
-    D_801DBFB0.g3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastG3L;
-    D_801DBFB0.tg3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTG3L;
-    D_801DBFB0.tg3[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTG3NL;
-    D_801DBFB0.ntg3[GsDivMODE_NDIV] = GsTMDfastTNG3;
-    D_801DBFB0.f4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF4L;
-    D_801DBFB0.tf4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTF4L;
-    D_801DBFB0.tf4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTF4NL;
-    D_801DBFB0.ntf4[GsDivMODE_NDIV] = GsTMDfastTNF4;
-    D_801DBFB0.g4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastG4L;
-    D_801DBFB0.tg4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTG4L;
-    D_801DBFB0.tg4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTG4NL;
-    D_801DBFB0.ntg4[GsDivMODE_NDIV] = GsTMDfastTNG4;
-    D_801DBFB0.tf4[GsDivMODE_DIV][GsLMODE_NORMAL] = GsTMDdivTF4L;
-    D_801DBFB0.tf4[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTF4NL;
-    D_801DBFB0.tf3[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTF3NL;
-    D_801DBFB0.tg4[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTG4NL;
-    D_801DBFB0.tg3[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTG3NL;
-    D_801DBFB0.ntg4[GsDivMODE_DIV] = GsTMDdivTNG4;
-    D_801DBFB0.ntg3[GsDivMODE_DIV] = GsTMDdivTNG3;
-    D_801DBFB0.ntf4[GsDivMODE_DIV] = GsTMDdivTNF4;
-    D_801DBFB0.ntf3[GsDivMODE_DIV] = GsTMDdivTNF3;
-    D_801DBFB0.f4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastF4NL;
-    D_801DBFB0.nf4[GsDivMODE_NDIV] = GsTMDfastNF4;
+    GsFCALL4.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;
+    GsFCALL4.tf3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTF3L;
+    GsFCALL4.tf3[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTF3NL;
+    GsFCALL4.ntf3[GsDivMODE_NDIV] = GsTMDfastTNF3;
+    GsFCALL4.g3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastG3L;
+    GsFCALL4.tg3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTG3L;
+    GsFCALL4.tg3[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTG3NL;
+    GsFCALL4.ntg3[GsDivMODE_NDIV] = GsTMDfastTNG3;
+    GsFCALL4.f4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF4L;
+    GsFCALL4.tf4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTF4L;
+    GsFCALL4.tf4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTF4NL;
+    GsFCALL4.ntf4[GsDivMODE_NDIV] = GsTMDfastTNF4;
+    GsFCALL4.g4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastG4L;
+    GsFCALL4.tg4[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastTG4L;
+    GsFCALL4.tg4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastTG4NL;
+    GsFCALL4.ntg4[GsDivMODE_NDIV] = GsTMDfastTNG4;
+    GsFCALL4.tf4[GsDivMODE_DIV][GsLMODE_NORMAL] = GsTMDdivTF4L;
+    GsFCALL4.tf4[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTF4NL;
+    GsFCALL4.tf3[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTF3NL;
+    GsFCALL4.tg4[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTG4NL;
+    GsFCALL4.tg3[GsDivMODE_DIV][GsLMODE_LOFF] = GsTMDdivTG3NL;
+    GsFCALL4.ntg4[GsDivMODE_DIV] = GsTMDdivTNG4;
+    GsFCALL4.ntg3[GsDivMODE_DIV] = GsTMDdivTNG3;
+    GsFCALL4.ntf4[GsDivMODE_DIV] = GsTMDdivTNF4;
+    GsFCALL4.ntf3[GsDivMODE_DIV] = GsTMDdivTNF3;
+    GsFCALL4.f4[GsDivMODE_NDIV][GsLMODE_LOFF] = GsTMDfastF4NL;
+    GsFCALL4.nf4[GsDivMODE_NDIV] = GsTMDfastNF4;
 }
 
 void EVO_getCoordWorldMatrix(GsCOORDINATE2 *coord, MATRIX *m) {
