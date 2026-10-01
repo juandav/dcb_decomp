@@ -912,7 +912,7 @@ typedef struct {
     /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
     /* 0x001E */ u16 versusLosses;
-    /* 0x0020 */ s16 profileId; /* random */
+    /* 0x0020 */ u16 profileId; /* random */
     /* 0x0022 */ u8 area; /* where the player is: SAISEG's map is area + 1 */
     /* 0x0023 */ u8 saveCount; /* "ＳＡＶＥ回数" */
     /* 0x0024 */ s32 bits; /* the money, "所持金" */
@@ -1079,6 +1079,13 @@ typedef struct {
     /* 0x24A */ s8 state; /* MENU_STATE_HANDLERS */
     /* 0x24B */ u8 blink;
 } ChoiceMenu;
+/* where a player's profile was loaded from (the memory card screen) */
+typedef struct {
+    /* 0x0 */ u8 port;
+    /* 0x1 */ u8 file;
+    /* 0x2 */ u8 unk2[2];
+    /* 0x4 */ s32 playTime; /* the profile's when it was loaded or saved */
+} SaveLocation;
 /* jp's session block is 0x154 bytes, laid out differently: only the fields
    its matched code reads are placed */
 typedef struct {
@@ -1097,11 +1104,12 @@ typedef struct {
     /* 0x136 */ s8 stageId;
     /* 0x137 */ u8 unk137;
     /* 0x138 */ AreaSession *areaSession;
-    /* 0x13C */ u8 unk13C[0x10];
+    /* 0x13C */ SaveLocation saves[2]; /* per player */
     /* 0x14C */ u8 versusWins[2]; /* this session's, per player */
     /* 0x14E */ u8 deckChoices[2]; /* each player's saved deck in a versus duel */
     /* 0x150 */ u8 otherPad; /* 1 in VS mode: the second controller works too */
-    /* 0x151 */ u8 unk151[3];
+    /* 0x151 */ u8 noMemoryCard; /* the game was started without a memory card */
+    /* 0x152 */ u8 unk152[2];
 } SessionData;
 #elif VERSION_US || VERSION_EU
 typedef struct {
