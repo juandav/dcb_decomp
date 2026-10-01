@@ -61,3 +61,8 @@ KAWSEG_C_SRC := \
 SAISEG_C_SRC := \
 	src/saiseg/player/sai_player_data_jp.c \
 	src/saiseg/ui/sai_text_jp.c
+NISSEG_C_SRC := \
+	src/nisseg/deck/nis_deck_scene.c \
+	src/nisseg/title/nis_title.c \
+	src/nisseg/viewer/nis_model_viewer.c \
+	src/nisseg/vs/nis_vs_mode.c
