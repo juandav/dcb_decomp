@@ -64,18 +64,35 @@ BUILD = BUILD_DIR.relative_to(ROOT).as_posix()
 EXPECTED = EXPECTED_DIR.relative_to(ROOT).as_posix()
 
 
+def hand_written(binary: str) -> set:
+    """The names of BINARY's hand-written assembly: its hasm segments in any
+    version's config. A version that is still splat's assembly has them as
+    asm segments (tools/split_version.py), which aren't units either."""
+    names = set()
+    for config in ROOT.glob(f"config/*/{binary}.yaml"):
+        names |= set(re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, hasm, ([\w/]+)\]", config.read_text(), re.M))
+    return names
+
+
 def game_modules() -> list:
     """The game's modules, as (binary/path, type): its C files ("c") and the
     code still in splat's asm segments ("asm"), the executable's in ROM
     order (config/<version>/main.yaml), then each overlay's
-    (config/<version>/<overlay>.yaml)."""
+    (config/<version>/<overlay>.yaml). A module that is only data and still
+    asm (an overlay's <prefix>_bss in jp or eu) has no code segment, only
+    its data segments: it is an "asm" module too."""
     configs = ["main"] + sorted(p.stem for p in CONFIG_DIR.glob("*.yaml") if p.stem != "main")
     modules = []
     for binary in configs:
         yaml = (CONFIG_DIR / f"{binary}.yaml").read_text()
-        modules += [(f"{binary}/{m}", kind)
-                    for kind, m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, (c|asm), ([\w/]+)\]", yaml, re.M)
-                    if m not in LIBRARIES]
+        segments = re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, ([.\w]+), ([\w/]+)\]", yaml, re.M)
+        skip = LIBRARIES | hand_written(binary)
+        code = [m for kind, m in segments if kind in ("c", "asm")]
+        modules += [(f"{binary}/{m}", kind) for kind, m in segments
+                    if kind in ("c", "asm") and m not in skip]
+        data_only = [m for kind, m in segments if kind in ("rodata", "data")
+                     and m not in code and m not in skip | {UNOWNED_DATA}]
+        modules += [(f"{binary}/{m}", "asm") for m in dict.fromkeys(data_only)]
     return modules
 
 
@@ -267,12 +284,15 @@ def unit(module: str, data: list) -> dict:
     }
 
 
-def asm_unit(module: str) -> dict:
+def asm_unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, an asm segment: no base object, and a
-    target of its code with its data segments (binary/data/<name>.*)."""
+    target of its code with its data segments (binary/data/<name>.*) and the
+    data objects DATA."""
     binary, name = module.split("/", 1)
     target = f"{EXPECTED}/report/{module}.s.o"
-    link(target, [f"{EXPECTED}/asm/{module}.s.o"] + data_objects(name, binary, ("rodata", "data", "bss")))
+    code = f"{EXPECTED}/asm/{module}.s.o"
+    link(target, [p for p in [code] if (ROOT / p).exists()]
+         + data_objects(name, binary, ("rodata", "data", "bss")) + data)
     return {
         "name": module,
         "target_path": target,
@@ -289,10 +309,12 @@ def data_objects(name: str, binary: str = "main", sections: tuple = ("data", "bs
 def main() -> None:
     units = []
     for module, kind in game_modules():
+        # the game's data no module owns goes with main
+        data = data_objects(UNOWNED_DATA) if module == "main/main" else []
         if kind == "asm":
-            units.append(asm_unit(module))
+            units.append(asm_unit(module, data))
         else:
-            units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main/main" else []))
+            units.append(unit(module, data))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",
