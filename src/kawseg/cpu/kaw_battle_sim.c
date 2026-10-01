@@ -7,6 +7,8 @@
 #include "dcb/kawseg.h"
 #include "dcb/kaw_effect.h"
 #include "dcb/kaw_bonus.h"
+#include "dcb/duel_util.h"
+#include "dcb/sound_play.h"
 
 #define FLAGS178(p) (&STATS(p)->flags)
 #define STATS(p) ((PlayerStats *)PLAYER(p))
@@ -124,17 +126,297 @@ void KAW_recordBestDamage(Player *p) {
 #endif
 
 #if VERSION_JP
-/* jp: written anew around the battle log (its messages, sprintf); no C yet */
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA44C);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA464);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA488);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4A0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4B4);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4D0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4E4);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4FC);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA514);
-INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_resolveBattle);
+/* jp tells the battle in its battle log (addBattleLogLine) */
+/* the card the cursor points at, lit while the battle log talks about it */
+#define LOG_CARD (((CardCursor *)DUEL->cursor)->id)
+
+/* lights CARD's sprite up (0xFF) or back to normal (0x80) */
+#define SET_CARD_LIGHT(card, level)          \
+    CARD_SPR(card)->fade[0] = (level);       \
+    CARD_SPR(card)->fade[1] = (level);       \
+    CARD_SPR(card)->fade[2] = (level)
+
+s32 KAW_resolveBattle(s32 quiet) {
+    BattleEffect effects[6];
+    char text[64];
+    s32 i;
+    s32 k;
+    s32 player;
+    s32 card;
+    s32 result;
+    s32 shown;
+    PlayerStats *attacker;
+    PlayerStats *defender;
+    PlayerStats *tmp;
+
+    for (i = 0; i < 2; i++) {
+        STATS(i)->hpBeforeBattle = STATS(i)->stats[0];
+        STATS(i)->damageTaken = 0;
+        for (k = 0; k < 3; k++) {
+            STATS(i)->attackDamage[k] = STATS(i)->baseAttackPowers[k];
+        }
+        STATS(i)->flags.f6 = 0;
+        STATS(i)->flags.f8 = 0;
+        STATS(i)->flags.f9 = 0;
+        STATS(i)->flags.f11 = 0;
+        STATS(i)->flags.f12 = 0;
+        STATS(i)->flags.f13 = 0;
+        STATS(i)->flags.f14 = 0;
+        STATS(i)->flags.f7 = 0;
+    }
+    for (i = 0; i < 6; i++) {
+        effects[i].order = 0;
+    }
+    for (i = 0; i < 2; i++) {
+        player = DUEL->turnPlayer ^ i;
+        card = getPlayedCard(player);
+        if (card != -1) {
+            switch (PLAYER_CARDS(PLAYER(player))[card % 30].card[2]) {
+            case 0:
+                effects[i + 2].card = (u8 *)PLAYER_CARDS(PLAYER(player))[card % 30].card;
+                effects[i + 2].order = ((DigimonCardData *)effects[i + 2].card)->supportIcon;
+                break;
+            case 1:
+                effects[i].card = (u8 *)PLAYER_CARDS(PLAYER(player))[card % 30].card;
+                effects[i].order = ((OptionCardData *)effects[i].card)->supportIcon;
+                break;
+            case 2:
+                effects[i].order = -1;
+                effects[i + 2].order = -1;
+                if (!quiet) {
+                    LOG_CARD = getPlayedCard(player);
+                    DUEL->cursorSlot = 4;
+                    SET_CARD_LIGHT(getPlayedCard(player), 0xFF);
+                    clearBattleLog();
+                    addBattleLogLine(player, "オプションスロットは");
+                    addBattleLogLine(player, "進化カードなのでc2発動しません！");
+                    if (SPRITE_KIND(getPlayedCard(player)) == 0x17) {
+                        SPRITE_KIND(getPlayedCard(player)) = 0xE;
+                        waitFrames(0x10);
+                    }
+                    playSoundEffect(0x6A);
+                    waitForCpuDecision();
+                    LOG_CARD = -1;
+                    DUEL->cursorSlot = -1;
+                    SET_CARD_LIGHT(getPlayedCard(player), 0x80);
+                }
+                break;
+            }
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        player = DUEL->turnPlayer ^ i;
+        card = getActiveDigimonCard(player);
+        if (card != -1) {
+            effects[i + 4].card = (u8 *)PLAYER_CARDS(PLAYER(player))[card % 30].card;
+            effects[i + 4].order = CROSS_EFFECT_ICONS[((DigimonCardData *)effects[i + 4].card)->crossEffect];
+        }
+    }
+    for (i = 3; i > 0; i--) {
+        for (k = 0; k < 6; k++) {
+            player = DUEL->turnPlayer ^ (k % 2);
+            if (!quiet && k < 4 && effects[k].order == i && getPlayedCard(player) != -1) {
+                if (SPRITE_KIND(getPlayedCard(player)) == 0x17) {
+                    SPRITE_KIND(getPlayedCard(player)) = 0xE;
+                    waitFrames(0x10);
+                }
+                LOG_CARD = getPlayedCard(player);
+                DUEL->cursorSlot = 4;
+                SET_CARD_LIGHT(LOG_CARD, 0xFF);
+            }
+            if (effects[k].order != i) {
+                continue;
+            }
+            shown = 0;
+            clearBattleLog();
+            switch (k) {
+            case 0:
+            case 1:
+                if (!(STATS(player)->flags.f9 & 2)) {
+                    result = KAW_runSupportEffect(player, player ^ 1, (SupportCond *)(effects[k].card + 0x16),
+                                                  (SupportEffect *)(effects[k].card + 0x56), quiet);
+                    if (!quiet) {
+                        shown = 1;
+                        if (result) {
+                            sprintf(text, "c6%sカードc7はc2不発！", effects[k].card + 3);
+                            addBattleLogLine(player, text);
+                            playSoundEffect(0x6A);
+                        } else {
+                            playSoundEffect(0x67);
+                        }
+                    }
+                } else if (!quiet) {
+                    shown = 1;
+                    addBattleLogLine(player, "「ぼうがい」により");
+                    addBattleLogLine(player, "オプション攻撃はc2無効！");
+                    playSoundEffect(0x6A);
+                }
+                break;
+            case 2:
+            case 3:
+                if (!(STATS(player)->flags.f9 & 1)) {
+                    result = KAW_runSupportEffect(player, player ^ 1, (SupportCond *)(effects[k].card + 0x62),
+                                                  (SupportEffect *)(effects[k].card + 0xA2), quiet);
+                    if (!quiet) {
+                        shown = 1;
+                        if (result) {
+                            sprintf(text, "c6%sカードc7はc2不発！", effects[k].card + 3);
+                            addBattleLogLine(player, text);
+                            playSoundEffect(0x6A);
+                        } else {
+                            playSoundEffect(0x67);
+                        }
+                    }
+                } else if (!quiet) {
+                    shown = 1;
+                    addBattleLogLine(player, "「ぼうがい」により");
+                    addBattleLogLine(player, "援護攻撃はc2無効！");
+                    playSoundEffect(0x6A);
+                }
+                break;
+            case 4:
+            case 5:
+                if (STATS(player)->flags.attackChoice == 2) {
+                    if (!quiet) {
+                        shown = 1;
+                        LOG_CARD = getActiveDigimonCard(player);
+                        DUEL->cursorSlot = 4;
+                        SET_CARD_LIGHT(LOG_CARD, 0xFF);
+                        sprintf(text, "c6%sc7のb2特殊攻撃！", effects[k].card + 3);
+                        addBattleLogLine(player, text);
+                    }
+                    KAW_applyCrossEffect(player, player ^ 1, (DigimonCardData *)effects[k].card, quiet);
+                }
+                break;
+            }
+            if (shown && countBattleLogLines(player) != 0) {
+                waitForCpuDecision();
+                if (!quiet && LOG_CARD != -1) {
+                    SET_CARD_LIGHT(LOG_CARD, 0x80);
+                    LOG_CARD = -1;
+                    DUEL->cursorSlot = -1;
+                }
+            }
+        }
+    }
+    if (!quiet) {
+        for (i = 0; i < 2; i++) {
+            player = DUEL->turnPlayer ^ i;
+            if (getPlayedCard(player) != -1 && (effects[i].order | effects[i + 2].order) == 0) {
+                clearBattleLog();
+                if (SPRITE_KIND(getPlayedCard(player)) == 0x17) {
+                    SPRITE_KIND(getPlayedCard(player)) = 0xE;
+                    waitFrames(0x10);
+                }
+                LOG_CARD = getPlayedCard(player);
+                DUEL->cursorSlot = 4;
+                SET_CARD_LIGHT(getPlayedCard(player), 0xFF);
+                addBattleLogLine(player, "オプションスロットの");
+                sprintf(text, "c6%sカードc7はc2効果なし！",
+                        PLAYER_CARDS(PLAYER(player))[getPlayedCard(player) % 30].card + 3);
+                addBattleLogLine(player, text);
+                playSoundEffect(0x6A);
+                waitForCpuDecision();
+                DUEL->cursorSlot = -1;
+                SET_CARD_LIGHT(getPlayedCard(player), 0x80);
+            }
+        }
+    }
+    attacker = STATS(DUEL->turnPlayer);
+    defender = STATS((s8)(DUEL->turnPlayer ^ 1));
+    if (defender->flags.f8) {
+        if (!attacker->flags.f8) {
+            tmp = attacker;
+            attacker = defender;
+            defender = tmp;
+        } else {
+            attacker->flags.f8 = 0;
+            defender->flags.f8 = 0;
+        }
+    }
+    if (attacker->flags.f6) {
+        if (!defender->flags.f6) {
+            attacker->flags.f7 = 1;
+            attacker->flags.f8 = 0;
+            tmp = attacker;
+            attacker = defender;
+            defender = tmp;
+        } else {
+            attacker->flags.f7 = 0;
+            defender->flags.f7 = 0;
+            for (k = 0; k < 3; k++) {
+                attacker->attackDamage[k] = 0;
+                defender->attackDamage[k] = 0;
+            }
+        }
+    }
+    if (defender->flags.f6) {
+        defender->attackDamage[defender->flags.usedAttack] = attacker->attackDamage[attacker->flags.usedAttack];
+        for (i = 0; i < 3; i++) {
+            attacker->attackDamage[i] = 0;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        STATS(i)->stats[0] = STATS(i)->hpBeforeBattle;
+    }
+    if (attacker->flags.f11) {
+        if (!defender->flags.f6) {
+            attacker->attackDamage[2] = attacker->stats[0];
+        } else {
+            defender->attackDamage[defender->flags.usedAttack] = attacker->stats[0];
+        }
+        attacker->stats[0] = 10;
+    }
+    defender->damageTaken = attacker->attackDamage[attacker->flags.usedAttack];
+    if (!quiet) {
+        KAW_recordBestDamage((Player *)attacker);
+    }
+    if (attacker->flags.f12) {
+        if (defender->hpBeforeBattle <= defender->damageTaken) {
+            attacker->hpGain = defender->hpBeforeBattle;
+        } else {
+            attacker->hpGain = defender->damageTaken;
+        }
+        attacker->stats[0] += attacker->hpGain;
+        if (attacker->stats[0] > 9990) {
+            attacker->stats[0] = 9990;
+        }
+    }
+    defender->stats[0] -= defender->damageTaken;
+    if (defender->stats[0] <= 0) {
+        defender->stats[0] = 0;
+    } else {
+        if (defender->flags.f11) {
+            if (!defender->flags.f6) {
+                defender->attackDamage[2] = defender->stats[0];
+            }
+            defender->stats[0] = 10;
+        }
+        attacker->damageTaken = defender->attackDamage[defender->flags.usedAttack];
+        if (!quiet) {
+            KAW_recordBestDamage((Player *)defender);
+        }
+        if (defender->flags.f12) {
+            if (attacker->hpBeforeBattle <= attacker->damageTaken) {
+                defender->hpGain = attacker->hpBeforeBattle;
+            } else {
+                defender->hpGain = attacker->damageTaken;
+            }
+            defender->stats[0] += defender->hpGain;
+            if (defender->stats[0] > 9990) {
+                defender->stats[0] = 9990;
+            }
+        }
+        attacker->stats[0] -= attacker->damageTaken;
+        if (attacker->stats[0] <= 0) {
+            attacker->stats[0] = 0;
+        }
+    }
+    attacker->hpAfterBattle = attacker->stats[0];
+    defender->hpAfterBattle = defender->stats[0];
+    attacker->stats[0] = attacker->hpBeforeBattle;
+    defender->stats[0] = defender->hpBeforeBattle;
+}
 #elif VERSION_US || VERSION_EU
 s32 KAW_resolveBattle(s32 quiet) {
     BattleEffect effects[6];
@@ -563,57 +845,490 @@ s32 KAW_getSupportOperand(s32 self, s32 other, s32 kind, s32 value, s32 slot) {
     } while (0)
 
 #if VERSION_JP
-/* jp: written anew around the battle log (its messages, sprintf); no C yet */
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA5B8);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA5D0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA5E8);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA604);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA620);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA640);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA660);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA680);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA6A0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA6C0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA6E0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA700);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA720);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA73C);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA758);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA768);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA778);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA794);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA7B4);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA7D0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA7F0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA804);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA824);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA848);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA858);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA86C);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA890);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA8B0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA8D0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA8EC);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA90C);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA928);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA948);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA96C);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA990);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA9B4);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA9D8);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA9FC);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAA20);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAA44);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAA68);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAA84);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAAA0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAABC);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAAE0);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB04);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB18);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB38);
-INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB58);
-INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_applySupportAction);
+/* jp tells each support action in the battle log */
+/* the cards move while the log waits: the panels switch modes before and after */
+#define BEGIN_CARD_MOVES()                   \
+    waitForCpuDecision();                    \
+    PLAYER_PANEL(0, 9)->state = 4;           \
+    PLAYER_PANEL(1, 9)->state = 4;           \
+    PLAYER_PANEL(0, 3)->state = 0xD;         \
+    PLAYER_PANEL(1, 3)->state = 0xD;         \
+    waitFrames(20)
+#define END_CARD_MOVES()                     \
+    PLAYER_PANEL(0, 3)->state = 0x11;        \
+    PLAYER_PANEL(1, 3)->state = 0x11
+
+/* says there was nothing to move, and leaves */
+#define LOG_NOTHING(message)                 \
+    sprintf(text, message, 0);               \
+    addBattleLogLine(self, text);            \
+    waitForCpuDecision();                    \
+    return
+
+/* picks one of PLAYER's hand cards at random */
+#define PICK_HAND_CARD(player)                       \
+    for (j = 0, n = 0; j < 4; j++) {                 \
+        cards[n] = PLAYER(player)->hand[j];          \
+        if (cards[n] != -1) {                        \
+            n++;                                     \
+        }                                            \
+    }                                                \
+    card = cards[rand() % n]
+
+s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
+    s32 cards[4];
+    char text[72];
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 card;
+
+    switch (kind) {
+    case 0:
+        if (!quiet) {
+            sprintf(text, "c5自分c7の属性を変更！");
+            addBattleLogLine(self, text);
+        }
+        PLAYER(self)->specialty = value % 5;
+        break;
+    case 1:
+        if (!quiet) {
+            sprintf(text, "c4相手c7の属性を変更！");
+            addBattleLogLine(self, text);
+        }
+        PLAYER(other)->specialty = value % 5;
+        break;
+    case 2:
+        if (!quiet) {
+            sprintf(text, "c5自分c7のＨＰをc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(self)->hpBeforeBattle = value;
+        STATS(self)->stats[0] = value;
+        break;
+    case 3:
+        if (!quiet) {
+            sprintf(text, "c4相手c7のＨＰをc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(other)->hpBeforeBattle = value;
+        STATS(other)->stats[0] = value;
+        break;
+    case 4:
+        if (!quiet) {
+            sprintf(text, "c5自分c7のb0攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(self)->attackDamage[(kind - 4) / 2] = value;
+        STATS(self)->stats[(kind - 4) / 2 + 1] = value;
+        break;
+    case 6:
+        if (!quiet) {
+            sprintf(text, "c5自分c7のb1攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(self)->attackDamage[(kind - 4) / 2] = value;
+        STATS(self)->stats[(kind - 4) / 2 + 1] = value;
+        break;
+    case 8:
+        if (!quiet) {
+            sprintf(text, "c5自分c7のb2攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(self)->attackDamage[(kind - 4) / 2] = value;
+        STATS(self)->stats[(kind - 4) / 2 + 1] = value;
+        break;
+    case 5:
+        if (!quiet) {
+            sprintf(text, "c4相手c7のb0攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(other)->attackDamage[(kind - 5) / 2] = value;
+        STATS(other)->stats[(kind - 5) / 2 + 1] = value;
+        break;
+    case 7:
+        if (!quiet) {
+            sprintf(text, "c4相手c7のb1攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(other)->attackDamage[(kind - 5) / 2] = value;
+        STATS(other)->stats[(kind - 5) / 2 + 1] = value;
+        break;
+    case 9:
+        if (!quiet) {
+            sprintf(text, "c4相手c7のb2攻撃力をc6%dc7に！", value);
+            addBattleLogLine(self, text);
+        }
+        STATS(other)->attackDamage[(kind - 5) / 2] = value;
+        STATS(other)->stats[(kind - 5) / 2 + 1] = value;
+        break;
+    case 10:
+        if (!quiet) {
+            sprintf(text, "c5自分c7のb%d攻撃力をc6%dc7に！", slot, value);
+            addBattleLogLine(self, text);
+        }
+        STATS(self)->attackDamage[slot] = value;
+        STATS(self)->stats[slot + 1] = value;
+        break;
+    case 11:
+        if (!quiet) {
+            sprintf(text, "c4相手c7のb%d攻撃力をc6%dc7に！", slot, value);
+            addBattleLogLine(self, text);
+        }
+        STATS(other)->attackDamage[slot] = value;
+        STATS(other)->stats[slot + 1] = value;
+        break;
+    case 16:
+        if (!quiet) {
+            sprintf(text, "c5自分c7の攻撃をc6b%dc7に！", value % 3);
+            PLAYER(self)->attackChoice = value % 3;
+            addBattleLogLine(self, text);
+        }
+        PLAYER(self)->usedAttack = value % 3;
+        break;
+    case 17:
+        if (!quiet) {
+            sprintf(text, "c4相手c7の攻撃をc6b%dc7に！", value % 3);
+            PLAYER(other)->attackChoice = value % 3;
+            addBattleLogLine(self, text);
+        }
+        PLAYER(other)->usedAttack = value % 3;
+        break;
+    case 19:
+        if (!quiet) {
+            if (value != 1) {
+                sprintf(text, "%sが先攻に！", PLAYER(other)->name);
+                addBattleLogLine(self, text);
+            } else {
+                sprintf(text, "%sが後攻に！", PLAYER(other)->name);
+                addBattleLogLine(self, text);
+            }
+        }
+        FLAGS178(self)->f8 = value ^ 1;
+        break;
+    case 25:
+        KAW_SUPPORT_REGISTER = value;
+        break;
+    case 26:
+        if (!quiet) {
+            if (4 - countEmptyHandSlots(self) < value) {
+                value = 4 - countEmptyHandSlots(self);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c5自分c7の手札がなかった！");
+            }
+            sprintf(text, "c5自分c7の手札を%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && countEmptyHandSlots(self) != 4; i++) {
+                PICK_HAND_CARD(self);
+                if (removeCardFromHand(card, self) != -1) {
+                    SPRITE_KIND(card) = 6;
+                    discardCardToOfflineDeck(card, self);
+                    waitFrames(20);
+                }
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 27:
+        if (!quiet) {
+            if (4 - countEmptyHandSlots(other) < value) {
+                value = 4 - countEmptyHandSlots(other);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c4相手c7の手札がなかった！");
+            }
+            sprintf(text, "c4相手c7の手札を%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && countEmptyHandSlots(other) != 4; i++) {
+                PICK_HAND_CARD(other);
+                if (removeCardFromHand(card, other) != -1) {
+                    SPRITE_KIND(card) = 6;
+                    discardCardToOfflineDeck(card, other);
+                    waitFrames(20);
+                }
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 28:
+        value = 0;
+        if (!quiet) {
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(self)->hand[i] != -1 && PLAYER_CARDS(PLAYER(self))[PLAYER(self)->hand[i] % 30].card[2] != 0) {
+                    value++;
+                }
+            }
+            if (value == 0) {
+                addBattleLogLine(self, "c5自分c7の手札に");
+                LOG_NOTHING("オプションカードがなかった！");
+            }
+            addBattleLogLine(self, "c5自分c7の手札のオプションカード");
+            addBattleLogLine(self, "を全て捨てる！");
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(self)->hand[i] != -1 && PLAYER_CARDS(PLAYER(self))[PLAYER(self)->hand[i] % 30].card[2] != 0 &&
+                    removeCardFromHand(PLAYER(self)->hand[i], self) != -1) {
+                    SPRITE_KIND(PLAYER(self)->hand[i]) = 6;
+                    discardCardToOfflineDeck(PLAYER(self)->hand[i], self);
+                    waitFrames(20);
+                }
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 29:
+        value = 0;
+        if (!quiet) {
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(other)->hand[i] != -1 && PLAYER_CARDS(PLAYER(other))[PLAYER(other)->hand[i] % 30].card[2] != 0) {
+                    value++;
+                }
+            }
+            if (value == 0) {
+                addBattleLogLine(self, "c4相手c7の手札に");
+                LOG_NOTHING("オプションカードがなかった！");
+            }
+            addBattleLogLine(self, "c4相手c7の手札のオプションカード");
+            addBattleLogLine(self, "を全て捨てる！");
+            for (i = 0; i < 4; i++) {
+                if (PLAYER(other)->hand[i] != -1 && PLAYER_CARDS(PLAYER(other))[PLAYER(other)->hand[i] % 30].card[2] != 0 &&
+                    removeCardFromHand(PLAYER(other)->hand[i], other) != -1) {
+                    SPRITE_KIND(PLAYER(other)->hand[i]) = 6;
+                    discardCardToOfflineDeck(PLAYER(other)->hand[i], other);
+                    waitFrames(20);
+                }
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 30:
+        if (!quiet) {
+            if (4 - countEmptyHandSlots(self) < value) {
+                value = 4 - countEmptyHandSlots(self);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c5自分c7の手札がなかった！");
+            }
+            sprintf(text, "c5自分c7の手札を%d枚山札へ！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && countEmptyHandSlots(self) != 4; i++) {
+                PICK_HAND_CARD(self);
+                returnCardToOnlineDeck(card, self);
+                SPRITE_KIND(card) = 1;
+                removeCardFromHand(card, self);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 31:
+        if (!quiet) {
+            if (4 - countEmptyHandSlots(other) < value) {
+                value = 4 - countEmptyHandSlots(other);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c4相手c7の手札がなかった！");
+            }
+            sprintf(text, "c4相手c7の手札を%d枚山札へ！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && countEmptyHandSlots(other) != 4; i++) {
+                PICK_HAND_CARD(other);
+                returnCardToOnlineDeck(card, self);
+                SPRITE_KIND(card) = 1;
+                removeCardFromHand(card, other);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 32:
+        if (!quiet) {
+            if (countOnlineDeckCards(self) < value) {
+                value = countOnlineDeckCards(self);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c5自分c7の山札がなかった！");
+            }
+            sprintf(text, "c5自分c7の山札から%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekOnlineDeckTop(self)) != -1; i++) {
+                discardCardToOfflineDeck(card, self);
+                SPRITE_KIND(card) = 6;
+                drawOnlineDeckCard(self);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 33:
+        if (!quiet) {
+            if (countOnlineDeckCards(other) < value) {
+                value = countOnlineDeckCards(other);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c4相手c7の山札がなかった！");
+            }
+            sprintf(text, "c4相手c7の山札から%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekOnlineDeckTop(other)) != -1; i++) {
+                discardCardToOfflineDeck(card, other);
+                SPRITE_KIND(card) = 6;
+                drawOnlineDeckCard(other);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 34:
+        if (!quiet) {
+            if (countOfflineDeckCards(self) < value) {
+                value = countOfflineDeckCards(self);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c5自分c7の捨てカードがなかった！");
+            }
+            sprintf(text, "c5自分c7の捨て場から%d枚山札へ！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekOfflineDeckTop(self)) != -1; i++) {
+                returnCardToOnlineDeck(card, self);
+                SPRITE_KIND(card) = 1;
+                takeOfflineDeckTopCard(self);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 35:
+        if (!quiet) {
+            if (countOfflineDeckCards(other) < value) {
+                value = countOfflineDeckCards(other);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c4相手c7の捨てカードがなかった！");
+            }
+            sprintf(text, "c4相手c7の捨て場から%d枚山札へ！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekOfflineDeckTop(other)) != -1; i++) {
+                returnCardToOnlineDeck(card, other);
+                SPRITE_KIND(card) = 1;
+                takeOfflineDeckTopCard(other);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 36:
+        if (!quiet) {
+            if (9 - countEmptyDpSlots(self) < value) {
+                value = 9 - countEmptyDpSlots(self);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c5自分c7のＰＯＷカードがなかった！");
+            }
+            sprintf(text, "c5自分c7の進化置場から%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekDpSlotTop(self)) != -1; i++) {
+                discardCardToOfflineDeck(card, self);
+                SPRITE_KIND(card) = 6;
+                removeCardFromDpSlots(card, self);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 37:
+        if (!quiet) {
+            if (9 - countEmptyDpSlots(other) < value) {
+                value = 9 - countEmptyDpSlots(other);
+            }
+            if (value == 0) {
+                LOG_NOTHING("c4相手c7のＰＯＷカードがなかった！");
+            }
+            sprintf(text, "c4相手c7の進化置場から%d枚捨てる！", value);
+            addBattleLogLine(self, text);
+            BEGIN_CARD_MOVES();
+            for (i = 0; i < value && (card = peekDpSlotTop(other)) != -1; i++) {
+                discardCardToOfflineDeck(card, other);
+                SPRITE_KIND(card) = 6;
+                removeCardFromDpSlots(card, other);
+                waitFrames(20);
+            }
+            END_CARD_MOVES();
+        }
+        break;
+    case 42:
+        if (!quiet) {
+            addBattleLogLine(self, "c5自分c7の山札シャッフル！");
+            PLAYER(self)->shufflePasses = 300;
+            shuffleOnlineDeck(self);
+        }
+        break;
+    case 43:
+        if (!quiet) {
+            addBattleLogLine(self, "c4相手c7の山札シャッフル！");
+            PLAYER(other)->shufflePasses = 300;
+            shuffleOnlineDeck(other);
+        }
+        break;
+    case 44:
+        if (!quiet) {
+            addBattleLogLine(self, "c4相手c7の援護カード無効！");
+        }
+        FLAGS178(other)->f9 |= 1;
+        break;
+    case 45:
+        if (!quiet) {
+            addBattleLogLine(self, "c4相手c7のオプションスロット無効！");
+        }
+        FLAGS178(other)->f9 = 3;
+        break;
+    case 47:
+        if (!quiet) {
+            sprintf(text, "c4相手c7の攻撃をb%dからb%dに変更！",
+                    PLAYER(other)->usedAttack, (PLAYER(other)->usedAttack + 1) % 3);
+            PLAYER(other)->attackChoice = (PLAYER(other)->usedAttack + 1) % 3;
+            addBattleLogLine(self, text);
+        }
+        PLAYER(other)->usedAttack = (PLAYER(other)->usedAttack + 1) % 3;
+        break;
+    case 48:
+        if (!quiet) {
+            addBattleLogLine(self, "c5自分c7の復活！");
+        }
+        FLAGS178(self)->f14 = 1;
+        PLAYER(self)->reviveHp = value;
+        break;
+    case 51:
+        if (!quiet) {
+            addBattleLogLine(self, "c5自分c7に「すいとる」効果！");
+        }
+        FLAGS178(self)->f12 = 1;
+        break;
+    case 52:
+        if (!quiet) {
+            addBattleLogLine(self, "c5自分c7に「カウンター」効果！");
+        }
+        FLAGS178(self)->f6 = 1;
+        FLAGS178(other)->f6 = 0;
+        break;
+    case 53:
+        if (!quiet) {
+            addBattleLogLine(self, "c5自分c7に「せんせい」効果！");
+        }
+        FLAGS178(self)->f8 = 1;
+        break;
+    }
+}
 #elif VERSION_EU
 /* eu: fills fewer delay slots throughout; no C form found yet */
 INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_applySupportAction);
@@ -1034,7 +1749,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 1:
         if (!quiet) {
             /* 「せんせい」発動！！ */
-            addBattleLogLine(self, "\x81u\x82\xB9\x82\xF1\x82\xB9\x82\xA2\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「せんせい」発動！！");
             playSoundEffect(0x67);
         }
         FLAGS178(self)->f8 = 1;
@@ -1042,7 +1757,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 2:
         if (!quiet) {
             /* 「b0を０に」発動！！ */
-            addBattleLogLine(self, "\x81u" "b0\x82\xF0\x82O\x82\xC9\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「b0を０に」発動！！");
             playSoundEffect(0x67);
         }
         STATS(other)->attackDamage[0] = 0;
@@ -1051,7 +1766,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 3:
         if (!quiet) {
             /* 「b1を０に」発動！！ */
-            addBattleLogLine(self, "\x81u" "b1\x82\xF0\x82O\x82\xC9\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「b1を０に」発動！！");
             playSoundEffect(0x67);
         }
         STATS(other)->attackDamage[1] = 0;
@@ -1060,7 +1775,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 4:
         if (!quiet) {
             /* 「b2を０に」発動！！ */
-            addBattleLogLine(self, "\x81u" "b2\x82\xF0\x82O\x82\xC9\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「b2を０に」発動！！");
             playSoundEffect(0x67);
         }
         STATS(other)->attackDamage[2] = 0;
@@ -1069,7 +1784,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 5:
         if (!quiet) {
             /* 「b0カウンター」準備！ */
-            addBattleLogLine(self, "\x81u" "b0\x83J\x83\x45\x83\x93\x83^\x81[\x81v\x8F\x80\x94\xF5\x81I");
+            addBattleLogLine(self, "「b0カウンター」準備！");
             playSoundEffect(0x67);
         }
         if (PLAYER(other)->usedAttack == 0) {
@@ -1080,7 +1795,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 6:
         if (!quiet) {
             /* 「b1カウンター」準備！ */
-            addBattleLogLine(self, "\x81u" "b1\x83J\x83\x45\x83\x93\x83^\x81[\x81v\x8F\x80\x94\xF5\x81I");
+            addBattleLogLine(self, "「b1カウンター」準備！");
             playSoundEffect(0x67);
         }
         if (PLAYER(other)->usedAttack == 1) {
@@ -1091,7 +1806,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 7:
         if (!quiet) {
             /* 「b2カウンター」準備！ */
-            addBattleLogLine(self, "\x81u" "b2\x83J\x83\x45\x83\x93\x83^\x81[\x81v\x8F\x80\x94\xF5\x81I");
+            addBattleLogLine(self, "「b2カウンター」準備！");
             playSoundEffect(0x67);
         }
         if (PLAYER(other)->usedAttack == 2) {
@@ -1102,7 +1817,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 8:
         if (!quiet) {
             /* 「自爆」準備ＯＫ！ */
-            addBattleLogLine(self, "\x81u\x8E\xA9\x94\x9A\x81v\x8F\x80\x94\xF5\x82n\x82j\x81I");
+            addBattleLogLine(self, "「自爆」準備ＯＫ！");
             playSoundEffect(0x67);
         }
         FLAGS178(self)->f11 = 1;
@@ -1110,7 +1825,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 9:
         if (!quiet) {
             /* 「すいとる」発動！！ */
-            addBattleLogLine(self, "\x81u\x82\xB7\x82\xA2\x82\xC6\x82\xE9\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「すいとる」発動！！");
             playSoundEffect(0x67);
         }
         FLAGS178(self)->f12 = 1;
@@ -1118,7 +1833,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
     case 10:
         if (!quiet) {
             /* 「ぼうがい」発動！！ */
-            addBattleLogLine(self, "\x81u\x82\xDA\x82\xA4\x82\xAA\x82\xA2\x81v\x94\xAD\x93\xAE\x81I\x81I");
+            addBattleLogLine(self, "「ぼうがい」発動！！");
             playSoundEffect(0x67);
         }
         FLAGS178(other)->f9 |= 1;
@@ -1131,7 +1846,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
         if (cardData->crossEffect - 11 == PLAYER(other)->specialty) {
             if (!quiet) {
                 /* 「対a%d×３」発動！！ */
-                sprintf(text, "\x81u\x91\xCE" "a%d\x81~\x82R\x81v\x94\xAD\x93\xAE\x81I\x81I", cardData->crossEffect - 11);
+                sprintf(text, "「対a%d×３」発動！！", cardData->crossEffect - 11);
                 addBattleLogLine(self, text);
                 playSoundEffect(0x67);
             }
@@ -1140,7 +1855,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
             STATS(self)->stats[3] *= 3;
         } else if (!quiet) {
             /* 「対a%d×３」失敗！！ */
-            sprintf(text, "\x81u\x91\xCE" "a%d\x81~\x82R\x81v\x8E\xB8\x94s\x81I\x81I", cardData->crossEffect - 11);
+            sprintf(text, "「対a%d×３」失敗！！", cardData->crossEffect - 11);
             addBattleLogLine(self, text);
             playSoundEffect(0x6A);
         }

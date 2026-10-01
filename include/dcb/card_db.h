@@ -95,6 +95,9 @@ void grantPartnerAbility(s32 player, s32 ability);
 s32 canEquipPartnerAbility(s32 player, s32 slot, s32 skipSlot, s32 ability);
 s32 getPartnerAbilityState(s32 player, s32 ability);
 #if VERSION_JP
+/* jp: the battle log, up to 7 lines for each player */
+void clearBattleLog(void);
+s32 countBattleLogLines(s32 player);
 /* jp: adds TEXT to the lines PLAYER's battle log shows (up to 7) */
 void addBattleLogLine(s32 player, char *text);
 #endif
