@@ -276,7 +276,7 @@ void clearCollectionFirstObtainedFlags(s32 player) {
 
 /* returns the copies now owned, or -3 for a partner or armor card, -2 when 6
    copies were already owned, -1 when the count overflowed to 6 */
-s8 addCardToCollection(s32 player, s32 cardId, s32 count) {
+s32 addCardToCollection(s32 player, s32 cardId, s32 count) {
     s32 copy;
 
     if (cardId >= 0xAC && cardId <= 0xBE) {

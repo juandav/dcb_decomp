@@ -149,7 +149,7 @@ segments:
       - [0x2D970, c, duel/hud_panels]
       - [0x2E784, c, duel/duel_session]
       - [0x2F88C, asm, duel/duel_setup]
-      - [0x2FED8, asm, duel/card_zones]
+      - [0x2FED8, c, duel/card_zones]
       - [0x3145C, c, duel/duel_launch]
       - [0x31A2C, asm, card/card_render]
       - [0x35500, asm, card/card_db]

@@ -1,0 +1,15 @@
+/* addresses SUBSEG uses that none of its objects defines */
+
+/* from the C of the modules this version builds (tools/version_symbols.py):
+   what it calls by address, and the fields of its data that the modules
+   still in asm read by splat's names */
+D_801E1BF0 = 0x801E1BF0;
+D_801F45D4 = 0x801F45D4;
+D_801F45F2 = 0x801F45F2;
+D_801F45F4 = 0x801F45F4;
+D_801F4618 = 0x801F4618;
+D_801F461C = 0x801F461C;
+D_801F46C8 = 0x801F46C8;
+D_801F46E8 = 0x801F46E8;
+D_801F478C = 0x801F478C;
+D_801F47AC = 0x801F47AC;

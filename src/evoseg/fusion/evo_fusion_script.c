@@ -176,7 +176,7 @@ Script *EVO_createScriptContext(EvoMsd *data) {
     script->start = data->code;
     script->pc = data->code;
     script->offset = 0;
-    script->size = data->size;
+    script->size = ((EvoMsd *)script->base)->size;
     clearScriptBusy(script);
     return script;
 }

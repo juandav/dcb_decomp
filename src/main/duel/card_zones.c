@@ -16,13 +16,13 @@
 
 s32 peekOfflineDeckTop(s32 player) {
     s32 i;
-    s8 *pile;
+    Player *p;
     s32 cardIndex;
 
     i = 0;
-    pile = PLAYER(player)->offlineDeck;
+    p = PLAYER(player);
     do {
-        cardIndex = pile[i];
+        cardIndex = p->offlineDeck[i];
         if (cardIndex != -1) {
             goto end;
         }
@@ -35,17 +35,13 @@ end:
 
 s32 discardCardToOfflineDeck(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *pile;
-    s8 *entry;
 
     for (i = 29; i >= 0; i--) {
         if (PLAYER(player)->offlineDeck[i] == cardIndex) {
             return -1;
         }
-        pile = PLAYER(player)->offlineDeck;
-        entry = pile + i;
-        if (*entry == -1) {
-            *entry = cardIndex;
+        if (PLAYER(player)->offlineDeck[i] == -1) {
+            PLAYER(player)->offlineDeck[i] = cardIndex;
             return 0;
         }
     }
@@ -55,13 +51,13 @@ s32 discardCardToOfflineDeck(s32 cardIndex, s32 player) {
 s32 countOfflineDeckCards(s32 player) {
     s32 i;
     s32 count;
-    s8 *pile;
+    Player *p;
 
     i = 0;
     count = 0;
-    pile = PLAYER(player)->offlineDeck;
+    p = PLAYER(player);
     do {
-        if (pile[i] != -1) {
+        if (p->offlineDeck[i] != -1) {
             count++;
         }
         i++;
@@ -71,15 +67,11 @@ s32 countOfflineDeckCards(s32 player) {
 
 s32 takeOfflineDeckTopCard(s32 player) {
     s32 i;
-    s8 *pile;
-    s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        pile = PLAYER(player)->offlineDeck;
-        entry = pile + i;
-        if (*entry != -1) {
-            s32 cardIndex = *entry;
-            *entry = -1;
+        if (PLAYER(player)->offlineDeck[i] != -1) {
+            s32 cardIndex = PLAYER(player)->offlineDeck[i];
+            PLAYER(player)->offlineDeck[i] = -1;
             return cardIndex;
         }
     }
@@ -88,13 +80,13 @@ s32 takeOfflineDeckTopCard(s32 player) {
 
 s32 peekOnlineDeckTop(s32 player) {
     s32 i;
-    s8 *pile;
+    Player *p;
     s32 cardIndex;
 
     i = 0;
-    pile = PLAYER(player)->onlineDeck;
+    p = PLAYER(player);
     do {
-        cardIndex = pile[i];
+        cardIndex = p->onlineDeck[i];
         if (cardIndex != -1) {
             goto end;
         }
@@ -108,13 +100,13 @@ end:
 s32 countOnlineDeckCards(s32 player) {
     s32 i;
     s32 count;
-    s8 *pile;
+    Player *p;
 
     i = 0;
     count = 0;
-    pile = PLAYER(player)->onlineDeck;
+    p = PLAYER(player);
     do {
-        if (pile[i] != -1) {
+        if (p->onlineDeck[i] != -1) {
             count++;
         }
         i++;
@@ -124,15 +116,11 @@ s32 countOnlineDeckCards(s32 player) {
 
 s32 drawOnlineDeckCard(s32 player) {
     s32 i;
-    s8 *pile;
-    s8 *entry;
 
     for (i = 0; i < 30; i++) {
-        pile = PLAYER(player)->onlineDeck;
-        entry = pile + i;
-        if (*entry != -1) {
-            s32 cardIndex = *entry;
-            *entry = -1;
+        if (PLAYER(player)->onlineDeck[i] != -1) {
+            s32 cardIndex = PLAYER(player)->onlineDeck[i];
+            PLAYER(player)->onlineDeck[i] = -1;
             return cardIndex;
         }
     }
@@ -161,17 +149,13 @@ s32 takePartnerCardFromOnlineDeck(s32 player) {
 
 s32 returnCardToOnlineDeck(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *pile;
-    s8 *entry;
 
     for (i = 29; i >= 0; i--) {
         if (PLAYER(player)->onlineDeck[i] == cardIndex) {
             return -1;
         }
-        pile = PLAYER(player)->onlineDeck;
-        entry = pile + i;
-        if (*entry == -1) {
-            *entry = cardIndex;
+        if (PLAYER(player)->onlineDeck[i] == -1) {
+            PLAYER(player)->onlineDeck[i] = cardIndex;
             return 0;
         }
     }
@@ -181,13 +165,13 @@ s32 returnCardToOnlineDeck(s32 cardIndex, s32 player) {
 s32 countEmptyHandSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *hand;
+    Player *p;
 
     i = 0;
     count = 0;
-    hand = PLAYER(player)->hand;
+    p = PLAYER(player);
     do {
-        if (hand[i] == -1) {
+        if (p->hand[i] == -1) {
             count++;
         }
         i++;
@@ -197,14 +181,10 @@ s32 countEmptyHandSlots(s32 player) {
 
 s32 addCardToHand(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *hand;
-    s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        hand = PLAYER(player)->hand;
-        entry = hand + i;
-        if (*entry == -1) {
-            *entry = cardIndex;
+        if (PLAYER(player)->hand[i] == -1) {
+            PLAYER(player)->hand[i] = cardIndex;
             return i;
         }
     }
@@ -213,14 +193,10 @@ s32 addCardToHand(s32 cardIndex, s32 player) {
 
 s32 removeCardFromHand(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *hand;
-    s8 *entry;
 
     for (i = 0; i < 4; i++) {
-        hand = PLAYER(player)->hand;
-        entry = hand + i;
-        if (*entry == cardIndex) {
-            *entry = -1;
+        if (PLAYER(player)->hand[i] == cardIndex) {
+            PLAYER(player)->hand[i] = -1;
             return i;
         }
     }
@@ -277,13 +253,13 @@ s32 checkHandHasDigivolveCard(s32 player) {
 
 s32 getActiveDigimonCard(s32 player) {
     s32 i;
-    s8 *stack;
+    Player *p;
     s32 cardIndex;
 
     i = 0;
-    stack = PLAYER(player)->digimonStack;
+    p = PLAYER(player);
     do {
-        cardIndex = stack[i];
+        cardIndex = p->digimonStack[i];
         if (cardIndex != -1) {
             goto end;
         }
@@ -297,13 +273,13 @@ end:
 s32 countEmptyDigimonStackSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *stack;
+    Player *p;
 
     i = 0;
     count = 0;
-    stack = PLAYER(player)->digimonStack;
+    p = PLAYER(player);
     do {
-        if (stack[i] == -1) {
+        if (p->digimonStack[i] == -1) {
             count++;
         }
         i++;
@@ -423,14 +399,10 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
 
 s32 removeCardFromDigimonStack(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *stack;
-    s8 *entry;
 
     for (i = 0; i < 3; i++) {
-        stack = PLAYER(player)->digimonStack;
-        entry = stack + i;
-        if (*entry == cardIndex) {
-            *entry = -1;
+        if (PLAYER(player)->digimonStack[i] == cardIndex) {
+            PLAYER(player)->digimonStack[i] = -1;
             return 0;
         }
     }
@@ -460,13 +432,13 @@ s32 sumDigivolvePoints(s32 player) {
 
 s32 peekDpSlotTop(s32 player) {
     s32 i;
-    s8 *dpSlots;
+    Player *p;
     s32 cardIndex;
 
     i = 0;
-    dpSlots = PLAYER(player)->dpSlots;
+    p = PLAYER(player);
     do {
-        cardIndex = dpSlots[i];
+        cardIndex = p->dpSlots[i];
         if (cardIndex != -1) {
             goto end;
         }
@@ -480,13 +452,13 @@ end:
 s32 countEmptyDpSlots(s32 player) {
     s32 i;
     s32 count;
-    s8 *dpSlots;
+    Player *p;
 
     i = 0;
     count = 0;
-    dpSlots = PLAYER(player)->dpSlots;
+    p = PLAYER(player);
     do {
-        if (dpSlots[i] == -1) {
+        if (p->dpSlots[i] == -1) {
             count++;
         }
         i++;
@@ -496,17 +468,13 @@ s32 countEmptyDpSlots(s32 player) {
 
 s32 addCardToDpSlots(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *dpSlots;
-    s8 *entry;
 
     for (i = 7; i >= 0; i--) {
         if (PLAYER(player)->dpSlots[i] == cardIndex) {
             return -1;
         }
-        dpSlots = PLAYER(player)->dpSlots;
-        entry = dpSlots + i;
-        if (*entry == -1) {
-            *entry = cardIndex;
+        if (PLAYER(player)->dpSlots[i] == -1) {
+            PLAYER(player)->dpSlots[i] = cardIndex;
             return 0;
         }
     }
@@ -515,14 +483,10 @@ s32 addCardToDpSlots(s32 cardIndex, s32 player) {
 
 s32 removeCardFromDpSlots(s32 cardIndex, s32 player) {
     s32 i;
-    s8 *dpSlots;
-    s8 *entry;
 
     for (i = 0; i < 8; i++) {
-        dpSlots = PLAYER(player)->dpSlots;
-        entry = dpSlots + i;
-        if (*entry != -1 && *entry == cardIndex) {
-            *entry = -1;
+        if (PLAYER(player)->dpSlots[i] != -1 && PLAYER(player)->dpSlots[i] == cardIndex) {
+            PLAYER(player)->dpSlots[i] = -1;
             return 0;
         }
     }
@@ -561,7 +525,7 @@ void shuffleOnlineDeck(s32 player) {
     s32 pass;
     s32 i;
     s32 swapIndex;
-    s8 swap;
+    s32 swap;
 
     cardCount = countOnlineDeckCards(player);
     if (cardCount >= 2) {
@@ -582,7 +546,7 @@ void shuffleOfflineDeck(s32 player) {
     s32 pass;
     s32 i;
     s32 swapIndex;
-    s8 swap;
+    s32 swap;
 
     cardCount = countOfflineDeckCards(player);
     if (cardCount >= 2) {

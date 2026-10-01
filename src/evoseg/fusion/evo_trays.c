@@ -44,15 +44,19 @@ void EVO_drawTray(EvoTray *tray) {
     char text[40];
     Rect16 uv;
     POLY_FT4 *poly;
-    s32 player;
+    u8 player;
 
     poly = tray->polys[FRAME_BUFFER_INDEX];
     player = 2;
     if (tray == &EVO_TRAYS[0]) {
         player = 1;
     }
+#if VERSION_US
     /* the index is added before the field offset in the original */
     if (((EvoFusion *)((u8 *)&EVO_FUSION + player))->busy[0] == 0) {
+#elif VERSION_EU
+    if (EVO_FUSION.busy[player] == 0) {
+#endif
         bzero((Scene3D *)text, 0x21);
         sprintf(text, "TRAY%d", player);
         drawLargeText(tray->x + 16, 0x5C, (s32)text, 7, 0x1D);
