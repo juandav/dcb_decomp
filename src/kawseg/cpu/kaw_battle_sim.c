@@ -59,7 +59,7 @@ typedef struct {
     /* 0x36 */ u8 unk36[2];
     /* 0x38 */ Flags178 flags;
 } PlayerStats;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x000 */ u8 unk0[0x110];
     /* 0x110 */ s32 unk110;
@@ -95,7 +95,7 @@ void KAW_recordBestDamage(Player *p);
 /* the controller of the CPU, which keeps no profile */
 #if VERSION_JP
 #define CPU_CONTROLLER 2
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define CPU_CONTROLLER 1
 #else
 #error "untested version"
@@ -118,8 +118,9 @@ void KAW_recordBestDamage(Player *p) {
         }
     }
 }
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_US || VERSION_EU
+#else
+#error "kawseg/cpu/kaw_battle_sim: version not checked"
 #endif
 
 #if VERSION_JP
@@ -134,7 +135,7 @@ INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4E4);
 INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA4FC);
 INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EA514);
 INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_resolveBattle);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_resolveBattle(s32 quiet) {
     BattleEffect effects[6];
     u8 unused[0x88];
@@ -452,7 +453,7 @@ s32 KAW_resolveBattle(s32 quiet) {
 /* what an operand that doesn't apply reads as */
 #if VERSION_JP
 #define NO_OPERAND 2
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define NO_OPERAND -1
 #else
 #error "untested version"
@@ -543,13 +544,14 @@ s32 KAW_getSupportOperand(s32 self, s32 other, s32 kind, s32 value, s32 slot) {
         return countOfflineDeckCards(self) == 0;
     case 26:
         return KAW_SUPPORT_REGISTER;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     case 27:
         return countOnlineDeckCards(self);
     case 28:
         return countOnlineDeckCards(other);
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "kawseg/cpu/kaw_battle_sim: version not checked"
 #endif
     }
     return 0;
@@ -611,6 +613,9 @@ INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB04);
 INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB18);
 INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB38);
 INCLUDE_RODATA("kawseg/nonmatchings/cpu/kaw_battle_sim", D_801EAB58);
+INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_applySupportAction);
+#elif VERSION_EU
+/* eu: fills fewer delay slots throughout; no C form found yet */
 INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_applySupportAction);
 #elif VERSION_US
 s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
@@ -1142,7 +1147,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
         break;
     }
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 quiet) {
     u8 unused[0xB0];
     s32 card;
@@ -1389,6 +1394,10 @@ s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
     }
     return -1;
 }
+#elif VERSION_EU
+/* eu: player, dp and the card's specialty rotated by the register
+   allocator; no C form found yet (it keeps level in an s32) */
+INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_checkDigivolveTarget);
 #elif VERSION_US
 s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
     s32 specialty;
@@ -1541,7 +1550,7 @@ s32 KAW_checkAnyDigivolve(s32 player) {
     }
     return -1;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_checkAnyDigivolve(s32 player) {
     s32 i;
     u8 *data;
@@ -1581,14 +1590,15 @@ s32 KAW_setStatPenalty(s32 card, s32 player) {
     Player *p = (Player *)DUEL_PLAYERS[player];
 
     p->statPenalty = CARD_BYTE((u8 *)PLAYER_CARDS(p)[card % 30].card, attr);
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     ((Player *)DUEL_PLAYERS[player])->bonusFlags &= ~0x40000000;
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "kawseg/cpu/kaw_battle_sim: version not checked"
 #endif
 }
 
-#if VERSION_US
+#if VERSION_US || VERSION_EU
 void KAW_recordBestDamage(Player *p) {
     s32 player;
     s32 attack;
@@ -1605,6 +1615,7 @@ void KAW_recordBestDamage(Player *p) {
         }
     }
 }
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "kawseg/cpu/kaw_battle_sim: version not checked"
 #endif
