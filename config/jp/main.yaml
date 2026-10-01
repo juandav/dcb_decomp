@@ -88,8 +88,9 @@ segments:
       # drawHudPanelContents) comes next
       - [0x1028, rodata, duel/card_motion]
       - [0x11D0, .rodata, duel/hud_panels_jp]
-      # the rodata of the asm modules after hud_panels, up to duel_launch
-      - [0x1340, rodata, duel/duel_session]
+      - [0x1340, .rodata, duel/duel_session_jp]
+      # the rodata of the asm modules after duel_session, up to duel_launch
+      - [0x15A4, rodata, card/card_render]
       - [0x1738, .rodata, duel/duel_launch_jp]
       # the rodata of the asm modules after duel_launch, up to memcard
       - [0x1768, rodata, system/game_flow]
@@ -99,7 +100,6 @@ segments:
       - [0x1884, rodata, ui/dialog]
       - [0x2740, .rodata, system/game_exit]
       - [0x2768, rodata, card/card_db]
-      - [0x2768, rodata, card/card_render]
       - [0x2768, rodata, duel/battle_hud]
       - [0x2768, rodata, psyq]
       - [0x2768, rodata, ui/hacking_shell]
@@ -162,7 +162,7 @@ segments:
       - [0x27478, asm, duel/card_motion]
       # jp's hud_panels holds the eleven panels' functions and the shared one's
       - [0x2CA44, c, duel/hud_panels_jp]
-      - [0x2F79C, asm, duel/duel_session]
+      - [0x2F79C, c, duel/duel_session_jp]
       - [0x30D10, c, duel/duel_setup_jp]
       - [0x31114, c, duel/card_zones]
       # jp's card_render starts with three functions us doesn't have
@@ -199,7 +199,10 @@ segments:
       - [0x6EDF4, data, card/player_data]
       - [0x6F094, .data, model/stage]
       - [0x6F114, .data, gfx/prim_desc]
-      - [0x6F144, data, card/card_render]
+      - [0x6F144, data, duel/card_motion]
+      - [0x6F148, .data, duel/hud_panels_jp]
+      - [0x6F14C, .data, duel/duel_session_jp]
+      - [0x6F1B4, data, card/card_render]
       # card_db's word, then 8 bytes no code reads
       - [0x6F6F8, data, card/card_db]
       - [0x6F704, data, ui/hacking_shell]
