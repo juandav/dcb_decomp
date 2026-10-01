@@ -42,6 +42,7 @@ MAIN_C_SRC := \
 		sound_play.c task.c vblank.c) \
 	$(addprefix src/main/ui/, str_util.c text_jp.c window_jp.c)
 ENDSEG_C_SRC := src/endseg/title/open_movie.c
+INTSEG_C_SRC := $(addprefix src/intseg/, int_bss.c intseg.c)
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \
 		sug_sprite.c) \

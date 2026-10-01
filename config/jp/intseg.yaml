@@ -27,6 +27,8 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/jp/symbols.txt
+    # and its own
+    - config/jp/symbols_intseg.txt
   undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_intseg.txt
   undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_intseg.txt
 
@@ -38,7 +40,7 @@ options:
   ld_bss_is_noload: True
 
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/intseg/ exist
   create_c_files: False
 
 segments:
@@ -50,8 +52,10 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, rodata, intseg]
-      - [0xF74, asm, intseg]
-      - [0x7168, data, intseg]
+      - [0x0, .rodata, intseg]
+      - [0xF74, c, intseg]
+      - [0x7168, c, int_bss]
+      - [0x7168, .data, intseg]
+      - [0x75D4, .data, int_bss]
 
   - [0x774C]
