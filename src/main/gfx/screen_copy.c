@@ -77,7 +77,7 @@ void renderScreenCopyEffect(void) {
     }
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &SCREEN_COPY_EFFECT.stp[0]);
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void initScreenCopyEffect(void) {
     s32 i;
     s32 j;
@@ -153,6 +153,4 @@ void renderScreenCopyEffect(void) {
         }
     }
 }
-#else
-#error "main/gfx/screen_copy: version not checked"
 #endif

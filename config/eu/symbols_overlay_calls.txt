@@ -83,3 +83,5 @@ KAW_planDigivolveOptions = 0x801E6724; // type:func
 KAW_chooseDigivolveOption = 0x801E7400; // type:func
 KAW_chooseAttack = 0x801E7448; // type:func
 KAW_chooseSupportCard = 0x801E7CD0; // type:func
+SUG_updateScreenCopyQuads = 0x801ED394; // type:func
+SUG_runPolygonBattle = 0x801F14B4; // type:func

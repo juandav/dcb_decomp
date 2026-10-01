@@ -203,10 +203,8 @@ void runSceneCameraTask(s32 preset) {
                 camera->unk5A = viewTrans->vx - y;
                 SCENE_WORLD_ROTATION.vx = angles->vx = camera->rotX = rot.vy;
             }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             SCENE_WORLD_ROTATION.vx = angles->vx = camera->rotX = camera->pitch / 4096;
-#else
-#error "main/model/camera: version not checked"
 #endif
             SCENE_WORLD_ROTATION.vy = angles->vy = camera->rotY + yaw;
             SCENE_WORLD_ROTATION.vz = angles->vz = camera->rotZ;
@@ -224,11 +222,9 @@ void runSceneCameraTask(s32 preset) {
             viewTrans->vz += camera->distance / 4096;
             y = camera->height / 4096;
             viewTrans->vy += y;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             viewTrans->vz += camera->distance / 4096;
             viewTrans->vy += camera->height / 4096;
-#else
-#error "main/model/camera: version not checked"
 #endif
             TransMatrix(view, viewTrans);
             gte_SetTransMatrix(view);
