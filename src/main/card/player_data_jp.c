@@ -43,8 +43,8 @@ void SUB_runShop();
 void SAI_runWorldMap(); /* SAISEG's */
 void NIS_enterDeckList(); /* NISSEG's deck editor */
 s32 NIS_enterDeckName(char *text, s32 mode); /* NISSEG's text entry */
-/* NISSEG's, the menus' tasks (0x801F117C is NIS_runMenuE7CC) */
-void NIS_runMenuE7CC();
+/* NISSEG's, the menus' tasks (0x801F117C is NIS_runMainMenuTask) */
+void NIS_runMainMenuTask();
 void NIS_runMenuE7D8();
 void NIS_runMenuE7E4();
 void NIS_returnToDeckList();
@@ -83,7 +83,7 @@ typedef struct {
 
 MenuHeader MENU_HEADERS[12] = {
     { 0x35, NULL },
-    { 3, NIS_runMenuE7CC },
+    { 3, NIS_runMainMenuTask },
     { 4, NIS_runMenuE7D8 },
     { 0x18, NIS_returnToDeckList },
     { 0x19, NIS_runMenuE7E4 },

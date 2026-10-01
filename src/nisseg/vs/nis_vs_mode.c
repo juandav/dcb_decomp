@@ -29,7 +29,7 @@ void NIS_drawVsRecords(NisWindow *window);
 void NIS_runTradeBlocked(void);
 void NIS_drawTradeBlockedReason(NisWindow *window);
 void NIS_drawSameSave(NisWindow *window);
-void NIS_runMenuE7CC(void);
+void NIS_runMainMenuTask(void);
 
 void NIS_loadTimFile(char *path) {
     u32 *tims;
@@ -234,7 +234,7 @@ void NIS_runMenuE7D8(void) {
     }
 }
 
-void NIS_runMenuE7CC(void) {
+void NIS_runMainMenuTask(void) {
     NisMenu menu;
 
     openChoiceMenuFromList(&menu, MAIN_MENU, 0);
@@ -253,5 +253,5 @@ void NIS_runMainMenu(void) {
 #endif
     loadScrollingBackground(0xE, 2);
     showScrollingBackground();
-    spawnTask(0, -1, 0, 0x1000, NIS_runMenuE7CC);
+    spawnTask(0, -1, 0, 0x1000, NIS_runMainMenuTask);
 }
