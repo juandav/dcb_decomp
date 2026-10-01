@@ -756,10 +756,6 @@ void EVO_remapPartTextures(EvoPart *part, s32 enable) {
         pk = (EvoPacket *)(&(pk)->line + 1);                  \
     }
 
-#if VERSION_EU
-/* eu: s1 and s6 swapped by the register allocator; no C form found yet */
-INCLUDE_ASM("evoseg/nonmatchings/cutscene/evo_cutscene", EVO_renderDissolvingObject);
-#elif VERSION_US
 void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     Color rgb;
     MATRIX m;
@@ -787,7 +783,14 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
         TMD_P_TG4 *tg4;
         TMD_P_TNF4 *tnf4;
     } op;
+    /* the type that gives code its register in each version */
+#if VERSION_US
     s32 code;
+#elif VERSION_EU
+    s8 code;
+#else
+#error "evoseg/cutscene/evo_cutscene: version not checked"
+#endif
 
     shade = EVO_WIRE_SHADE_MIN + rand() % (EVO_WIRE_SHADE_MAX - EVO_WIRE_SHADE_MIN);
     tmd = (TmdObject *)obj->tmd;
@@ -1076,9 +1079,6 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     }
     GsSetWorkBase((long)pk);
 }
-#else
-#error "evoseg/cutscene/evo_cutscene: version not checked"
-#endif
 
 void EVO_initGsSortTable(void) {
     GsFCALL4.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;

@@ -285,15 +285,10 @@ s32 SUB_takePoolCards(CardSlot *slots, s32 row, s32 count) {
     return i;
 }
 
-#if VERSION_EU
-/* eu: comes out laid out differently throughout; not worked out yet */
-INCLUDE_RODATA("subseg/nonmatchings/deck/sub_auto_deck", D_801E22F4);
-INCLUDE_ASM("subseg/nonmatchings/deck/sub_auto_deck", SUB_buildAutoDeck);
-#elif VERSION_US
 void SUB_buildAutoDeck(PlayerDeck *deck) {
     u8 counts[8] = { 10, 10, 6, 4, 5, 12, 8, 5 };
     s16 specialty = 0;
-    s32 level = 0;
+    s16 level = 0;
     s16 *ids = NULL;
     s32 i;
     s32 j;
@@ -366,7 +361,7 @@ void SUB_buildAutoDeck(PlayerDeck *deck) {
     count = 0;
     for (i = 0; i < 5; i++) {
         if (i != SUB_AUTO_DECK_OPTIONS[2]) {
-            if (SUB_AUTO_DECK_POOLS[i * 3].count + SUB_AUTO_DECK_POOLS[i * 3 + 1].count + SUB_AUTO_DECK_POOLS[i * 3 + 2].count >= count) {
+            if (count <= SUB_AUTO_DECK_POOLS[i * 3].count + SUB_AUTO_DECK_POOLS[i * 3 + 1].count + SUB_AUTO_DECK_POOLS[i * 3 + 2].count) {
                 specialty = i;
                 count = SUB_AUTO_DECK_POOLS[i * 3].count + SUB_AUTO_DECK_POOLS[i * 3 + 1].count + SUB_AUTO_DECK_POOLS[i * 3 + 2].count;
             }
@@ -397,22 +392,17 @@ void SUB_buildAutoDeck(PlayerDeck *deck) {
         }
         n += count;
     }
-    if (n < 30) {
-        for (i = 0; i < 20 && n < 30; i++) {
-            for (j = 0; j < SUB_AUTO_DECK_POOLS[i].count; j++) {
-                if (SUB_AUTO_DECK_POOLS[i].ids[j] != -1) {
-                    setCardSlotFromId((u8 *)&deck->cards[n], SUB_AUTO_DECK_POOLS[i].ids[j]);
-                    SUB_AUTO_DECK_POOLS[i].ids[j] = -1;
-                    n++;
-                    if (n >= 30) {
-                        break;
-                    }
+    for (i = 0; i < 20 && n < 30; i++) {
+        for (j = 0; j < SUB_AUTO_DECK_POOLS[i].count; j++) {
+            if (SUB_AUTO_DECK_POOLS[i].ids[j] != -1) {
+                setCardSlotFromId((u8 *)&deck->cards[n], SUB_AUTO_DECK_POOLS[i].ids[j]);
+                SUB_AUTO_DECK_POOLS[i].ids[j] = -1;
+                n++;
+                if (n >= 30) {
+                    break;
                 }
             }
         }
     }
     linkDeckCardData(SUB_EDITOR.player, deck);
 }
-#else
-#error "subseg/deck/sub_auto_deck: version not checked"
-#endif
