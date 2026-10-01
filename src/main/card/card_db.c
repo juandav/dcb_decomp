@@ -1210,9 +1210,6 @@ u8 *PARTNER_ABILITY_TEXTS[82] = {
 };
 u8 PARTNER_START_ABILITIES[6] = { 0xA, 0xF, 0, 0x26, 0x64, 0x14 };
 
-#if VERSION_EU
-INCLUDE_ASM("main/nonmatchings/card/card_db", updatePartnerStats);
-#elif VERSION_US
 s32 updatePartnerStats(s32 player, s32 slot) {
     s32 i;
     s32 j;
@@ -1242,9 +1239,9 @@ s32 updatePartnerStats(s32 player, s32 slot) {
     }
     for (i = 0; i < 3; i++) {
         ability = PLAYER_DATA(player).partners[slot].equippedAbilities[i];
-        if (ability == -1) {
-            continue;
-        }
+        /* kept on one line: GCC 2.8.1's line notes decide where slot*83 is
+           computed */
+        if (ability == -1) continue;
         switch (PARTNER_ABILITIES[ability].type) {
         case 0:
             PLAYER_DATA(player).partners[slot].card[0].hp += PARTNER_ABILITIES[ability].value;
@@ -1298,9 +1295,8 @@ s32 updatePartnerStats(s32 player, s32 slot) {
                     PLAYER_DATA(player).partners[slot].card[1].supportText[j][n] = 0;
                 }
             }
-            j = PARTNER_ABILITIES[ability].param;
-            if (j != 0) {
-                PLAYER_DATA(player).partners[slot].card[0].supportConditions[0] = PARTNER_ABILITY_CONDITIONS[j - 1];
+            if (PARTNER_ABILITIES[ability].param != 0) {
+                PLAYER_DATA(player).partners[slot].card[0].supportConditions[0] = PARTNER_ABILITY_CONDITIONS[PARTNER_ABILITIES[ability].param - 1];
                 PLAYER_DATA(player).partners[slot].card[0].supportConditions[0].value = PARTNER_ABILITIES[ability].value;
             }
             if (PARTNER_ABILITIES[ability].actionStart != 0) {
@@ -1357,9 +1353,6 @@ s32 updatePartnerStats(s32 player, s32 slot) {
     }
     return ret;
 }
-#else
-#error "main/card/card_db: version not checked"
-#endif
 
 void equipPartnerAbility(s32 player, s32 slot, s32 abilitySlot, s32 ability) {
     if (getPartnerAbilityState(player, ability) == 1) {
