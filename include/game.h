@@ -984,6 +984,18 @@ typedef struct {
     /* 0x2 */ u8 used;
     /* 0x3 */ u8 age;
 } CardCache;
+#if VERSION_JP
+/* jp's duel state is laid out differently (cpuResult is 0x3DC bytes earlier):
+   only the fields its matched code reads are placed */
+typedef struct {
+    /* 0x000 */ u8 unk0[0x428];
+    /* 0x428 */ s32 cpuResult;
+    /* 0x42C */ u8 unk42C[0xD];
+    /* 0x439 */ s8 turnPlayer;
+    /* 0x43A */ u8 unk43A[0x44];
+    /* 0x47E */ u8 cpuPlayer;
+} Duel;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x000 */ u8 unk0[0x50];
     /* 0x050 */ Player *firstAttacker;
@@ -1032,6 +1044,7 @@ typedef struct {
     /* 0x838 */ s32 ringWidth;
     /* 0x83C */ s32 inPolygonBattle;
 } Duel;
+#endif
 typedef struct {
     s8 bg;
     u8 texAnimFrames;
