@@ -27,7 +27,7 @@ s16 KAW_REVIVE_CARDS[4] = {
 s16 KAW_RECOVERY_CARDS[6] = {
     0x1D, 0x1E, 0x6F, 0x81, 0x90, 0x92,
 };
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define VOIDING_CARD_COUNT 5
 #define PILE_EFFECT_CARD_COUNT 24
 #define REVIVE_CARD_COUNT 4
@@ -242,7 +242,7 @@ s32 KAW_isCardId(s32 id, s32 player, s32 card) {
     }
     return 0;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_isCardId(s32 id, s32 player, s32 card) {
     if (card != -1 && PLAYER_CARDS((Player *)DUEL_PLAYERS[player])[card % 30].id == id) {
         return 1;
@@ -402,7 +402,7 @@ s32 KAW_getActiveCrossEffect(s32 player) {
     deck = ((Player *)DUEL_PLAYERS[player])->deck;
     return CARD_BYTE(deck->cards[getActiveDigimonCard(player) % 30].card, crossEffect);
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_getActiveCrossEffect(s32 player) {
     Player *p;
 

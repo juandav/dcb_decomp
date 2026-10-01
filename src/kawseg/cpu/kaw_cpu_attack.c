@@ -8,7 +8,7 @@ typedef struct {
 #if VERSION_JP
     s16 own;
     s16 opponent;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     s32 own;
     s32 opponent;
 #else
@@ -24,7 +24,7 @@ typedef struct {
    jp always looks */
 #if VERSION_JP
 #define HAS_TOP_CARD(player) 1
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define HAS_TOP_CARD(player) ((s8)PLAYER(player)->topCards[0] != -1)
 #else
 #error "untested version"
@@ -40,10 +40,11 @@ void KAW_chooseAttack(s32 player) {
 
     draws = 0;
     wins = 0;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     DUEL->cpuResult = 0;
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "kawseg/cpu/kaw_cpu_attack: version not checked"
 #endif
     for (i = 0; i < 3; i++) {
         if (SIM(i).outcome == 0) {
@@ -65,7 +66,7 @@ void KAW_chooseAttack(s32 player) {
             if (i == 3) {
                 DUEL->cpuResult = 0;
             }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             for (i = 0; i < 3; i++) {
                 if (SIM(i).outcome == 0) {
                     DUEL->cpuResult = i;
@@ -91,7 +92,7 @@ void KAW_chooseAttack(s32 player) {
             /* jp divides even by a zero weight */
 #if VERSION_JP
             pick = rand() % weight;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             if (weight != 0) {
                 pick = rand() % weight;
             }
