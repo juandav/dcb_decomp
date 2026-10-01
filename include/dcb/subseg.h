@@ -99,7 +99,7 @@ typedef struct {
     s16 totalCount;
     s16 page;
     s16 showInfo;
-    s16 counts[8];
+    u16 counts[8];
     u8 unk40[0x12D];
     u8 unk16D;
     u8 unk16E[2];

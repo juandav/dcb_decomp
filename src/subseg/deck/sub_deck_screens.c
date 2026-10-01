@@ -189,7 +189,7 @@ void SUB_initCollectionStats(void) {
     SUB_COLLECTION_STATS.page = 0;
     SUB_COLLECTION_STATS.unk16D = 0;
     for (i = 0; i < 8; i++) {
-        SUB_COLLECTION_COUNTS[i] = 0;
+        SUB_COLLECTION_STATS.counts[i] = 0;
     }
     SUB_COLLECTION_STATS.totalCount = 0;
     SUB_COLLECTION_STATS.uniqueCount = 0;
@@ -211,14 +211,14 @@ void SUB_initCollectionStats(void) {
         entry = SUB_COLLECTION_STATS.lists[j];
         for (i = 0; i < 41; i++, entry++) {
             if (entry->id >= 0) {
-                SUB_COLLECTION_COUNTS[j] += entry->count;
+                SUB_COLLECTION_STATS.counts[j] += entry->count;
             } else {
                 break;
             }
         }
     }
     for (i = 0; i < 7; i++) {
-        SUB_COLLECTION_STATS.counts[7] += SUB_COLLECTION_COUNTS[i];
+        SUB_COLLECTION_STATS.counts[7] += SUB_COLLECTION_STATS.counts[i];
     }
 }
 
@@ -254,7 +254,7 @@ void SUB_runCardList(void) {
     Rect16 rects[7];
     Rect16 infoRect;
     const char *labels[7] = { SUB_STR_L1_BACK, SUB_STR_CARD_LIST, SUB_STR_HELP, SUB_STR_HELP, SUB_STR_PARTNER_TITLE, SUB_STR_HELP, SUB_STR_CARD_DATA };
-    s32 running;
+    s16 running;
     s32 i;
     s32 action;
     s32 flags;
@@ -337,7 +337,7 @@ void SUB_runCardList(void) {
         SUB_COLLECTION_STATS.lists[i] = allocTaskHeapBlock(0xA4);
     }
     SUB_initCollectionStats();
-    SUB_COLLECTION_SHOW_INFO = 0;
+    SUB_COLLECTION_STATS.showInfo = 0;
     SUB_EDITOR.slide = 0;
     SUB_EDITOR.hidden = 0;
     playMenuSound(3);
@@ -419,15 +419,15 @@ void SUB_runCardList(void) {
             }
         }
     } while (running);
-    SUB_EDITOR_HIDDEN = -1;
+    SUB_EDITOR.hidden = -1;
     waitFrames(20);
     removeFrameCallback((s32)SUB_drawCardListScreen);
     if (action == 3) {
         spawnTask(0, -1, 0, 0x1000, SUB_runDeckMenu, 0, 0, 0, 0);
     } else if (action == 4) {
-        spawnTask(0, -1, 0, 0x1000, SUB_runPartnerEquipment, SUB_EDITOR_PLAYER, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_runPartnerEquipment, SUB_EDITOR.player, 0, 0, 0);
     } else if (action == 5) {
-        SUB_EDITOR_RUNNING = 0;
+        SUB_EDITOR.running = 0;
     }
     exitTask();
 }
@@ -441,9 +441,9 @@ void SUB_drawCardCountPage(UiWindow *window) {
     CardCount *entry;
     s32 i;
 
-    if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 4) {
+    if (PAD_STATES[SUB_EDITOR.player]->pressed & 4) {
         SUB_COLLECTION_STATS.page--;
-    } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 8) {
+    } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 8) {
         SUB_COLLECTION_STATS.page++;
     }
     if (SUB_COLLECTION_STATS.page >= 8) {
@@ -502,7 +502,7 @@ void SUB_drawCardListHelp(UiWindow *window) {
     s32 z = window->z;
 
     drawText(x, y, (s32)"*b0:Edit Decks", 7, z);
-    if (SUB_COLLECTION_SHOW_INFO == 0) {
+    if (SUB_COLLECTION_STATS.showInfo == 0) {
         drawText(x + 0x66, y, (s32)"*b5:Sort", 7, z);
     } else {
         drawText(x + 0x66, y, (s32)"*b5:Sort", 8, z);
@@ -562,12 +562,12 @@ void SUB_drawSpecialtyCounts(UiWindow *window) {
     for (i = 0; i < 8; i++) {
         if (i != 7) {
             drawIcon(x + (i / 4) * 80, y + (i % 4) * 13, 0, i, z);
-            sprintf(buf, SUB_FMT_3_DIGITS, SUB_COLLECTION_COUNTS[i]);
+            sprintf(buf, SUB_FMT_3_DIGITS, SUB_COLLECTION_STATS.counts[i]);
             drawText(x + 0x10 + (i / 4) * 95, y + (i % 4) * 13, (s32)buf, 7, z);
             drawText(x + 0x25 + (i / 4) * 95, y + (i % 4) * 13, (s32)SUB_STR_CARDS, 7, z);
         } else {
             drawText(x + (i / 4) * 80 - 6, y + 0x27, (s32)SUB_STR_TOTAL, 7, z);
-            sprintf(buf, SUB_FMT_4_DIGITS, SUB_COLLECTION_COUNTS[i]);
+            sprintf(buf, SUB_FMT_4_DIGITS, SUB_COLLECTION_STATS.counts[i]);
             drawText(x + 0x19 + (i / 4) * 80, y + 0x27, (s32)buf, 7, z);
             drawText(x + 0x34 + (i / 4) * 80, y + (i % 4) * 13, (s32)SUB_STR_CARDS, 7, z);
         }
@@ -648,7 +648,7 @@ void SUB_drawCardData(UiWindow *window) {
                 break;
             case 2:
                 drawIcon(x + 0x18, y, 0, 6, z);
-                sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_COLLECTION_SELECTED_CARD));
+                sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_COLLECTION_STATS.selectedCard));
                 drawText(x + 0xFA, y, (s32)buf, 7, z);
                 drawText(x + 0x106, y, (s32)SUB_STR_CARDS, 7, z);
                 y += 0x1A;
@@ -823,12 +823,11 @@ void SUB_drawDeckMenuHelp(UiWindow *window) {
     drawMediumText(x + 8, y, (s32)":Back", 7, z);
 }
 
-const char SUB_STR_DECK_1[] = "DECK 1";
-
-const char SUB_STR_DECK_2[] = "DECK 2";
-
-const char SUB_STR_DECK_3[] = "DECK 3";
-
+#if VERSION_EU
+/* eu: the empty deck's window loads its callback before the window's
+   address, which only an unused callback variable reproduces */
+INCLUDE_ASM("subseg/nonmatchings/deck/sub_deck_screens", SUB_drawDeckMenu);
+#elif VERSION_US
 void SUB_drawDeckMenu(void) {
     Rect16 uv;
     s16 y;
@@ -859,17 +858,25 @@ void SUB_drawDeckMenu(void) {
     uv.h = 0x20;
     drawTexturedSprite(6, y, &uv, 0x18, 0x7E21, 30, 0x80, -1);
 }
+#endif
+
+const char SUB_STR_DECK_1[] = "DECK 1";
+
+const char SUB_STR_DECK_2[] = "DECK 2";
+
+const char SUB_STR_DECK_3[] = "DECK 3";
 
 void SUB_runDeckMenu(void) {
     u8 dialog[0xB8];
     Rect16 rects[4];
     const char *labels[4] = { SUB_STR_HELP, SUB_STR_DECK_1, SUB_STR_DECK_2, SUB_STR_DECK_3 };
-    s32 running = 1;
-    s32 created = 0;
-    s32 action;
+    s16 running = 1;
+    s8 created = 0;
+    s16 action;
+
     s32 i;
     s32 flags;
-    s8 result;
+    s32 result;
     s32 style;
 
     SUB_countSavedDecks();
@@ -900,29 +907,29 @@ void SUB_runDeckMenu(void) {
     addFrameCallback((s32)SUB_drawDeckMenu);
     do {
         waitFrames(1);
-        if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x10) {
+        if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x10) {
             action = 1;
-        } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x40) {
+        } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x40) {
             action = 2;
-        } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x800) {
+        } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x800) {
             action = 3;
-        } else if ((u16)PAD_STATES[SUB_EDITOR_PLAYER]->repeat & 0x1000) {
-            if (SUB_DECK_MENU_SLOT == 1) {
-                PAD_STATES[SUB_EDITOR_PLAYER]->repeatEnabled = 0;
+        } else if ((u16)PAD_STATES[SUB_EDITOR.player]->repeat & 0x1000) {
+            if (SUB_DECK_MENU.slot == 1) {
+                PAD_STATES[SUB_EDITOR.player]->repeatEnabled = 0;
             }
             action = 4;
-        } else if ((u16)PAD_STATES[SUB_EDITOR_PLAYER]->repeat & 0x4000) {
-            if (SUB_DECK_MENU_SLOT == 1) {
-                PAD_STATES[SUB_EDITOR_PLAYER]->repeatEnabled = 0;
+        } else if ((u16)PAD_STATES[SUB_EDITOR.player]->repeat & 0x4000) {
+            if (SUB_DECK_MENU.slot == 1) {
+                PAD_STATES[SUB_EDITOR.player]->repeatEnabled = 0;
             }
             action = 5;
-        } else if ((u16)PAD_STATES[SUB_EDITOR_PLAYER]->repeat & 0x2000) {
+        } else if ((u16)PAD_STATES[SUB_EDITOR.player]->repeat & 0x2000) {
             action = 6;
-        } else if ((u16)PAD_STATES[SUB_EDITOR_PLAYER]->repeat & 0x8000) {
+        } else if ((u16)PAD_STATES[SUB_EDITOR.player]->repeat & 0x8000) {
             action = 7;
-        } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x20) {
+        } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x20) {
             action = 8;
-        } else if (PAD_STATES[SUB_EDITOR_PLAYER]->pressed & 0x80) {
+        } else if (PAD_STATES[SUB_EDITOR.player]->pressed & 0x80) {
             action = 9;
         } else {
             action = 0;
@@ -934,7 +941,8 @@ void SUB_runDeckMenu(void) {
                 initDialog(dialog, (u8 *)"Do you want to create a new Deck?", 1);
                 dialog[0xA6] = SUB_EDITOR.player;
                 runDialog(dialog);
-                result = dialog[0xA5];
+                result = (s8)dialog[0xA5];
+
                 if (result != 1) {
                     break;
                 }
@@ -950,7 +958,7 @@ void SUB_runDeckMenu(void) {
         case 1:
         case 3:
             if (action == 3) {
-                if (PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].inUse == 0) {
+                if (PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse == 0) {
                     break;
                 }
                 playMenuSound(1);
@@ -1005,7 +1013,7 @@ void SUB_runDeckMenu(void) {
             break;
         }
     } while (running);
-    SUB_EDITOR_HIDDEN = -1;
+    SUB_EDITOR.hidden = -1;
     waitFrames(20);
     removeFrameCallback((s32)SUB_drawDeckMenu);
     waitFrames(1);
@@ -1018,11 +1026,11 @@ void SUB_runDeckMenu(void) {
             sprintf(PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, "NEW ");
             spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 0, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, SUB_EDITOR.player, 0);
         } else {
-            spawnTask(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT], 0, 0, 0);
+            spawnTask(0, -1, 0, 0x1000, SUB_editDeck, &PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot], 0, 0, 0);
         }
         break;
     case 3:
-        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR_PLAYER).savedDecks[SUB_DECK_MENU_SLOT].name, SUB_EDITOR_PLAYER, 0);
+        spawnTask(0, -1, 0, 0x1000, SUB_enterDeckName, 1, PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].name, SUB_EDITOR.player, 0);
         break;
     }
 }
@@ -1116,9 +1124,9 @@ void SUB_initDeckEdit(PlayerDeck *deck) {
             line++;
         }
     }
-    SUB_EDITOR_USE_DECK_COUNTS = 1;
+    SUB_EDITOR.useDeckCounts = 1;
     SUB_initCardList();
-    SUB_DECK_EDIT_MODE = 1;
+    SUB_DECK_EDIT.mode = 1;
     SUB_CARD_LIST_MENU.rect.h = 0x60;
     SUB_CARD_LIST_MENU.ox = 0x62;
     openMenu(&SUB_CARD_LIST_MENU, &SUB_PICKER_WINDOW, &SUB_CARD_LIST_CURSOR, (Bytes4 *)-1);
@@ -1256,10 +1264,10 @@ void SUB_tickDeckSlots(PlayerDeck *deck) {
     Rect16 from;
     Rect16 to;
     s16 r;
-    s16 w;
-    s16 h;
-    s16 ty;
-    s32 result;
+    s32 w;
+    s32 h;
+    s32 ty;
+    s8 result;
     s32 i;
 
     SUB_EDITOR.useDeckCounts = 1;
@@ -1422,8 +1430,12 @@ void SUB_tickDeckSlots(PlayerDeck *deck) {
 void SUB_showDeckSlots(void) {
     Rect16 from;
     Rect16 to;
-    s16 w;
-    s16 h;
+    s32 w1;
+    s32 h1;
+    s32 w2;
+    s32 h2;
+    s32 w3;
+    s32 h3;
 
     SUB_DECK_EDIT.mode = 1;
     animateWindowTo(SUB_WINDOWS, (Rect16 *)-1);
@@ -1432,34 +1444,34 @@ void SUB_showDeckSlots(void) {
     from.y = 0xAD;
     from.w = 0x36;
     from.h = 0x66;
-    w = from.w;
+    w1 = from.w;
     to.x = 0x8;
-    h = from.h;
+    h1 = from.h;
     to.y = 0x7A;
-    to.w = w;
-    to.h = h;
+    to.w = w1;
+    to.h = h1;
     animateWindowTo(&SUB_STATS_WINDOW, &to);
     from.x = 0xBF;
     from.y = 0xBB;
     from.w = 0xF2;
     from.h = 0x4A;
-    w = from.w;
+    w2 = from.w;
     to.x = 0x46;
-    h = from.h;
+    h2 = from.h;
     to.y = 0x96;
-    to.w = w;
-    to.h = h;
+    to.w = w2;
+    to.h = h2;
     animateWindowTo(&SUB_GRID_WINDOW, &to);
     from.x = 0xBF;
     from.y = 0x5C;
     from.w = 0xF2;
     from.h = 0x64;
-    w = from.w;
+    w3 = from.w;
     to.x = 0x46;
-    h = from.h;
+    h3 = from.h;
     to.y = 0x2A;
-    to.w = w;
-    to.h = h;
+    to.w = w3;
+    to.h = h3;
     animateWindowTo(&SUB_CARD_INFO_WINDOW, &to);
 }
 
@@ -1650,10 +1662,13 @@ void SUB_drawPickerList(UiWindow *window) {
     s32 z = window->z;
     s32 i;
     s32 y;
-    s32 palette;
-    s8 type;
+    u8 palette;
+
+    s32 type;
+
     u8 *rgb;
-    s32 usable;
+    s16 usable;
+
 
     for (i = 0; i < SUB_CARD_LIST_MENU.nrows; i++) {
         if (i < window->view.y / SUB_CARD_LIST_MENU.rowH) {
@@ -1726,9 +1741,9 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
     s32 slot;
     s32 i;
 
-    if (PLAYER_DATA(SUB_EDITOR.player).cardCollection[SUB_DECK_EDIT_CARD_ID] & 0x40) {
-        SUB_CARD_IMAGE_CACHE.request = SUB_DECK_EDIT_CARD_ID;
-        slot = SUB_findCachedCardImage(SUB_DECK_EDIT_CARD_ID);
+    if (PLAYER_DATA(SUB_EDITOR.player).cardCollection[SUB_DECK_EDIT.cardId] & 0x40) {
+        SUB_CARD_IMAGE_CACHE.request = SUB_DECK_EDIT.cardId;
+        slot = SUB_findCachedCardImage(SUB_DECK_EDIT.cardId);
         if (slot == -1) {
             if (++SUB_EDITOR.blink & 4) {
                 SUB_drawSprite(x + 3, y + 14, 0x7E20, 0x200, 0x100, 0x40, 0x40, 0, 0x80, slot, z);
@@ -1736,7 +1751,7 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
                 SUB_drawSprite(x + 3, y + 14, 0x7E20, 0x210, 0x100, 0x40, 0x40, 0, 0x80, -1, z);
             }
         } else {
-            SUB_EDITOR_BLINK = 0;
+            SUB_EDITOR.blink = 0;
             SUB_drawSprite(x + 3, y + 14, getClut(0, slot + 0x1F4), (slot / 4) * 32 + 0x140, (slot % 4) * 64 + 0x100, 0x40, 0x40, 1, 0x80, -1, z);
         }
         sprintf(buf, SUB_FMT_CARD_NUMBER, *(s16 *)SUB_DECK_EDIT.card);
@@ -1752,13 +1767,13 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
             drawText(x + 0xCC, y, (s32)SUB_STR_PARTNER, 6, z);
             break;
         }
-        switch (SUB_DECK_EDIT_CARD[2]) {
+        switch (SUB_DECK_EDIT.card[2]) {
         case 0:
             drawIcon(x + 0x63, y, 0, ((DigimonCardData *)SUB_DECK_EDIT.card)->attr >> 4, z);
             drawIcon(x + 0x27, y, 0, (((DigimonCardData *)SUB_DECK_EDIT.card)->attr & 0xF) + 0x10, z);
             drawText(x + 0x1B, y, (s32)SUB_STR_LV, 7, z);
             drawText(x + 0x45, y, (s32)SUB_STR_TYPE, 7, z);
-            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR_PLAYER, *(s16 *)SUB_DECK_EDIT.card));
+            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_DECK_EDIT.card));
             drawText(x + 0xFD, y, (s32)buf, 7, z);
             drawText(x + 0x109, y, (s32)SUB_STR_CARDS, 7, z);
             drawIcon(x + 0x4B, y + 12, 0, 0x1A, z);
@@ -1790,7 +1805,7 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
             break;
         case 1:
             drawIcon(x + 0x18, y, 0, 5, z);
-            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR_PLAYER, *(s16 *)SUB_DECK_EDIT.card));
+            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_DECK_EDIT.card));
             drawText(x + 0xFD, y, (s32)buf, 7, z);
             drawText(x + 0x109, y, (s32)SUB_STR_CARDS, 7, z);
             if (SUB_DECK_EDIT.card[0x8C] != 0) {
@@ -1804,7 +1819,7 @@ void SUB_drawPickerCardInfo(UiWindow *window) {
             break;
         case 2:
             drawIcon(x + 0x18, y, 0, 6, z);
-            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR_PLAYER, *(s16 *)SUB_DECK_EDIT_CARD));
+            sprintf(buf, SUB_FMT_COUNT, getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_DECK_EDIT.card));
             drawText(x + 0xFD, y, (s32)buf, 7, z);
             drawText(x + 0x109, y, (s32)SUB_STR_CARDS, 7, z);
             y += 0x1A;

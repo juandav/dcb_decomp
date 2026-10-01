@@ -313,10 +313,6 @@ void OPEN_drawNameEntry(void) {
     drawWindow(&OPEN_NAME_HELP_WINDOW, OPEN_drawNameEntryHelp, 1);
 }
 
-#if VERSION_EU
-/* eu: its loop's %hi loads and delay slots are placed differently; no C form found yet */
-INCLUDE_ASM("openseg/nonmatchings/registration/open_name_entry", OPEN_runNameEntry);
-#elif VERSION_US
 void OPEN_runNameEntry(char *name, s32 parentTask) {
     Rect16 cursor;
     Rect16 rect;
@@ -371,7 +367,15 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     initCursorHighlight(&OPEN_NAME_CARET, &rect, (Bytes4 *)-1);
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawNameEntry);
+    /* the same loop in both: each version's compiler only lays it out as the
+       original from its own form */
+#if VERSION_US
     while (1) {
+#elif VERSION_EU
+    do {
+#else
+#error "openseg/registration/open_name_entry: version not checked"
+#endif
         waitFrames(FRAME_INTERVAL);
         if (OPEN_NAME_ENTRY.state == 0) {
             continue;
@@ -392,10 +396,14 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
                 break;
             }
         }
+#if VERSION_US
         if (OPEN_NAME_ENTRY.state != 0) {
             break;
         }
     }
+#elif VERSION_EU
+    } while (OPEN_NAME_ENTRY.state == 0);
+#endif
     if (OPEN_NAME_ENTRY.state == 7) {
         strcpy(name, OPEN_NAME_ENTRY.name);
     }
@@ -407,9 +415,6 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     removeFrameCallback((s32)OPEN_drawNameEntry);
     resumeTask(parentTask);
 }
-#else
-#error "openseg/registration/open_name_entry: version not checked"
-#endif
 
 /* the last three bytes are leftovers in the original, not zero padding, and
    not the same in every version */
