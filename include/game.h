@@ -1187,7 +1187,8 @@ typedef struct {
     /* 0x004 */ u8 unk4[0x400];
     /* 0x404 */ CardCache cache[6];
     /* 0x41C */ struct CardSprite *sprites; /* the sprite of each of the 60 cards */
-    /* 0x420 */ u8 unk420[8];
+    /* 0x420 */ s32 cpuWaitFrames;
+    /* 0x424 */ s32 unk424;
     /* 0x428 */ s32 cpuResult;
     /* hand slots the cards played this turn came from (us's Duel) */
     /* 0x42C */ s16 playedFromSlot;
