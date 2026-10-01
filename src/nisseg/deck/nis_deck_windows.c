@@ -198,8 +198,6 @@ void NIS_drawCardGridHelp(NisWindow *window) {
     drawIconText(0x1A, 0xD1, 7, 1, window->z, (s32)text);
 }
 
-/* a card's details: a Digimon's level, element, HP, DP, attacks and support
-   effect, or an option card's text; and how many copies are chosen */
 /* the card in view: a Digimon's level, element, number, HP, DP, attacks
    and support effect, or an option card's text, and the copies. Matching
    it needs the text's address and NIS_DECK_EDIT's in the other's register
@@ -590,15 +588,7 @@ s32 NIS_countDeckOption(s8 deck, s32 index) {
     return count;
 }
 
-/* the deck's counts by element and level against the cards owned, its
-   total, and the Sevens in it */
-/* a deck's cards by kind and by level against the cards owned, the cards
-   in all, the Sevens cards and which of the Sevens the deck has. Matching
-   it needs the text's address worked out after the deck's name */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_windows", NIS_drawDeckSummary);
-
-/* what NIS_drawDeckSummary draws (defined after it, so that GCC switches
-   back to .rodata after the asm) */
+/* what NIS_drawDeckSummary draws */
 const Rect16 NIS_SEVENS_ICON_UV = { 0, 0xED, 0x10, 0x10 };
 const char NIS_FMT_TEXT[] = "%s";
 const char NIS_STR_CARDS_BY_KIND[] = "種類別カード枚数";
@@ -614,6 +604,75 @@ const char NIS_FMT_LEVEL_C_CARDS[] = "e4s0w-4%sw0／s0w-4%s";
 const char NIS_FMT_LEVEL_U_CARDS[] = "e5s0w-4%sw0／s0w-4%s";
 const char NIS_FMT_ALL_CARDS[] = "総カード枚数　s0w-4%s枚";
 const char NIS_FMT_SEVENS_CARDS[] = "セブンズカード　%s枚";
+
+/* a deck's cards by kind and by level against the cards owned, the cards
+   in all, the Sevens cards and which of the Sevens the deck has */
+void NIS_drawDeckSummary(s32 deck, s32 z) {
+    Rect16 uv = NIS_SEVENS_ICON_UV;
+    char text[0x20];
+    char deckCount[0x10];
+    char ownedCount[8];
+    char deckCount2[8];
+    char ownedCount2[8];
+    s32 tpage;
+    NisDeck *saved;
+    s32 group;
+    s32 x;
+    s32 i;
+
+    tpage = (u16)GetTPage(1, 0, 0x1C0, 0x100);
+    if (deck < 0) {
+        return;
+    }
+    saved = &NIS_PROFILE(0)->savedDecks[deck];
+    sprintf(text, NIS_FMT_DECK_NAME, saved->name);
+    drawIconText(0x8C, 0x36, 7, 1, z, (s32)text);
+    sprintf(text, NIS_FMT_TEXT, NIS_STR_CARDS_BY_KIND);
+    drawIconText(0x8C, 0x46, 7, 1, z, (s32)text);
+    group = deck + 1;
+    formatSjisNumber(NIS_countCards(group, 0, 0, -1), 2, deckCount);
+    sprintf(text, NIS_FMT_FIRE_CARDS, deckCount, formatSjisNumber(NIS_countCards(0, 0, 0, -1), 3, ownedCount));
+    drawIconText(0x8D, 0x52, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, 1, -1), 2, deckCount2);
+    sprintf(text, NIS_FMT_ICE_CARDS, deckCount2, formatSjisNumber(NIS_countCards(0, 0, 1, -1), 3, ownedCount2));
+    drawIconText(0xDA, 0x52, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, 2, -1), 2, deckCount);
+    sprintf(text, NIS_FMT_NATURE_CARDS, deckCount, formatSjisNumber(NIS_countCards(0, 0, 2, -1), 3, ownedCount));
+    drawIconText(0x8D, 0x5E, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, 3, -1), 2, deckCount2);
+    sprintf(text, NIS_FMT_DARKNESS_CARDS, deckCount2, formatSjisNumber(NIS_countCards(0, 0, 3, -1), 3, ownedCount2));
+    drawIconText(0xDA, 0x5E, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, 4, -1), 2, deckCount);
+    sprintf(text, NIS_FMT_RARE_CARDS, deckCount, formatSjisNumber(NIS_countCards(0, 0, 4, -1), 3, ownedCount));
+    drawIconText(0x8D, 0x6A, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 1, -1, -1), 2, deckCount2);
+    sprintf(text, NIS_FMT_OPTION_CARDS, deckCount2, formatSjisNumber(NIS_countCards(0, 1, -1, -1), 3, ownedCount2));
+    drawIconText(0xDA, 0x6A, 7, 1, z, (s32)text);
+    sprintf(text, NIS_FMT_TEXT, NIS_STR_CARDS_BY_LEVEL);
+    drawIconText(0x8C, 0x7A, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, -1, 0), 2, deckCount);
+    sprintf(text, NIS_FMT_LEVEL_R_CARDS, deckCount, formatSjisNumber(NIS_countCards(0, 0, -1, 0), 3, ownedCount));
+    drawIconText(0x8D, 0x86, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, -1, 1), 2, deckCount2);
+    sprintf(text, NIS_FMT_LEVEL_C_CARDS, deckCount2, formatSjisNumber(NIS_countCards(0, 0, -1, 1), 3, ownedCount2));
+    drawIconText(0xDA, 0x86, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(group, 0, -1, 2), 2, deckCount);
+    sprintf(text, NIS_FMT_LEVEL_U_CARDS, deckCount, formatSjisNumber(NIS_countCards(0, 0, -1, 2), 3, ownedCount));
+    drawIconText(0x8D, 0x92, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countCards(0, -1, -1, -1), 4, deckCount);
+    sprintf(text, NIS_FMT_ALL_CARDS, deckCount);
+    drawIconText(0x90, 0xA2, 7, 1, z, (s32)text);
+    formatSjisNumber(NIS_countOwnedSevens(), 3, deckCount);
+    sprintf(text, NIS_FMT_SEVENS_CARDS, deckCount);
+    drawIconText(0x8C, 0xB2, 7, 1, z, (s32)text);
+    /* the icons of the Sevens cards in the deck */
+    for (x = 0x8D, i = 0x23; i < 0x2A; i++, x += 0x11) {
+        if (NIS_countDeckOption(deck, i) != 0) {
+            drawTexturedSprite(x, 0xC2, &uv, tpage, 0x7E80, z, 0x80, -1);
+        }
+        uv.x += 0x10;
+    }
+}
 /* the names of the elements, of the Sevens' effects and of the option
    cards' kinds */
 char *NIS_ELEMENT_NAMES[5] = {
