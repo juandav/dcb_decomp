@@ -59,6 +59,9 @@ typedef struct {
     /* 0x4078 */ s32 primSlots[16];
     /* 0x40B8 */ s32 spritePool;
     /* 0x40BC */ s32 windowPrimPool;
+#if VERSION_JP
+    /* 0x40C0 */ u8 unk40C0[4]; /* jp's frame buffers are 4 bytes longer */
+#endif
 } FrameBuffer;
 typedef struct {
     s16 x;
@@ -990,7 +993,14 @@ typedef struct {
 typedef struct {
     /* 0x000 */ u8 unk0[0x428];
     /* 0x428 */ s32 cpuResult;
-    /* 0x42C */ u8 unk42C[0xD];
+    /* 0x42C */ u8 unk42C[6];
+    /* 0x432 */ s8 state;
+    /* 0x433 */ s8 loadBusy;
+    /* 0x434 */ s8 stopArtLoader;
+    /* 0x435 */ s8 stopStageTask;
+    /* 0x436 */ s8 stopCpuTask;
+    /* 0x437 */ s8 stopTurnLoop;
+    /* 0x438 */ s8 cpuRequest;
     /* 0x439 */ s8 turnPlayer;
     /* 0x43A */ u8 unk43A[0x44];
     /* 0x47E */ u8 cpuPlayer;
