@@ -2,8 +2,9 @@
 #include "game.h"
 #include "dcb/nisseg.h"
 
-/* jp's NISSEG data that starts zeroed: the trade's, the VS mode's, then the
-   deck screens'. The u8 arrays are not referenced by any code */
+/* NISSEG's data that starts zeroed: the trade's, the VS mode's, then the
+   deck screens', laid out the same in jp's and in eu's debug build. The u8
+   arrays are not referenced by any code */
 TradeWindows NIS_TRADE_WINDOWS = { 0 };
 u8 D_801FC4C0[0x10] = { 0 };
 NisCursor *NIS_TRADE_CURSOR = NULL;

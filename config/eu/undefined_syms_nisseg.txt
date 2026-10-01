@@ -3,3 +3,7 @@
 /* the "ERROR TASK" literal of NIS_addCardsToDeck, which the deck windows
    read too */
 NIS_STR_ERROR_TASK = 0x801E656C;
+
+/* the task the debug menu's MODEL TEST spawns: past NISSEG's end, in no
+   binary of the disc */
+func_801FFBE0 = 0x801FFBE0;
