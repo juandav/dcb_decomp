@@ -1093,7 +1093,10 @@ typedef struct {
     /* 0x439 */ s8 turnPlayer;
     /* 0x43A */ u8 unk43A[9];
     /* 0x443 */ s8 tutorial;
-    /* 0x444 */ u8 unk444[0x3A];
+    /* 0x444 */ u8 unk444[0x34];
+    /* 0x478 */ u8 unk478; /* the duel waits (waitDuelFrames) while this or unk479 is set */
+    /* 0x479 */ u8 unk479;
+    /* 0x47A */ u8 unk47A[4];
     /* 0x47E */ u8 cpuPlayer;
 } Duel;
 #elif VERSION_US || VERSION_EU

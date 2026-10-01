@@ -29,7 +29,8 @@ TEXT_ENCODING := cp932
 MAIN_C_SRC := \
 	src/main/main.c \
 	src/main/card/player_rank.c \
-	$(addprefix src/main/duel/, card_zones.c cpu_decision.c) \
+	$(addprefix src/main/duel/, card_zones.c cpu_decision.c \
+		duel_util_jp.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
 		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
