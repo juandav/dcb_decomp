@@ -688,6 +688,18 @@ typedef struct {
     /* 0x10C */ u16 losses;
     /* 0x10E */ u8 unk10E[2];
 } PlayerDeck;
+#if VERSION_JP
+/* jp: the deck the player beat the game with, which the ending's records show */
+typedef struct {
+    /* 0x000 */ u8 unk0;
+    /* 0x001 */ char name[0xF];
+    /* 0x010 */ CardSlot cards[30];
+    /* 0x100 */ u16 wins;
+    /* 0x102 */ u16 losses;
+    /* 0x104 */ u16 attackCounts[3];
+    /* 0x10A */ u8 unk10A[2];
+} HallOfFameDeck;
+#endif
 /* the slots of a player's DP pile */
 #if VERSION_JP
 #define DP_SLOT_COUNT 9
@@ -846,7 +858,11 @@ typedef struct {
     /* 0x0E4 */ s8 crossEffect;
     /* 0x0E5 */ u8 modelId;
     /* 0x0E6 */ s8 supportIcon;
+#if VERSION_JP
+    /* 0x0E7 */ u8 supportText[4][0x13];
+#elif VERSION_US || VERSION_EU
     /* 0x0E7 */ u8 supportText[4][0x15];
+#endif
     /* 0x13B */ u8 unk13B;
 } DigimonCardData;
 typedef struct {
@@ -883,17 +899,22 @@ typedef struct {
     /* 0x0029 */ u32 unk28_9 : 1;
     /* 0x0029 */ u32 tradeUnlocked : 1;
     /* 0x0029 */ u32 hasTraded : 1;
-    /* 0x0029 */ u32 unk28_12 : 1; /* lets the player data screen scroll */
+    /* 0x0029 */ u32 unk28_12 : 1; /* the game was beaten: the ending's records can be browsed, and the player data screen scrolls */
     /* 0x002A */ u16 attackCounts[3]; /* the attacks used, by button */
-    /* 0x0030 */ u8 unk30[0x47C - 0x30];
+    /* 0x0030 */ s16 maxAttackPowers[0x6E][3]; /* per Digimon card */
+    /* 0x02C4 */ u16 cardWins[0x6E]; /* per Digimon card */
+    /* 0x03A0 */ u16 cardLosses[0x6E];
     /* bits 0-3: copies owned of each Digimon card, of each option card, and
-       of six more cards that count with the option cards */
+       of the six Digivolve cards */
     /* 0x047C */ u8 cardCollection[0x6E];
     /* 0x04EA */ u8 optionCollection[0x2B];
-    /* 0x0515 */ u8 unk515[6];
+    /* 0x0515 */ u8 digivolveCollection[6];
     /* 0x051B */ u8 unk51B[0xF20 - 0x51B];
     /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
-    /* 0x0F48 */ u8 unkF48[0x145C - 0xF48];
+    /* 0x0F48 */ u8 unkF48[0x126C - 0xF48];
+    /* 0x126C */ HallOfFameDeck hallOfFameDeck;
+    /* 0x1378 */ s32 clearTime; /* playTime when the game was beaten */
+    /* 0x137C */ u8 unk137C[0x145C - 0x137C];
 #elif VERSION_US || VERSION_EU
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */

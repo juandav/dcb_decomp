@@ -40,8 +40,8 @@ extern void *D_801E469C;
 extern void *D_801E46C4;
 extern void *D_801E46CC;
 extern s32 *D_801E46D0;
-extern u8 *D_801E4710;
-extern u8 *D_801E4714;
+extern u8 *OPTION_CARDS;
+extern u8 *DIGIVOLVE_CARDS;
 
 void INT_introTask(void);
 s32 INT_initIntroScene(IntState *state);
@@ -1991,12 +1991,12 @@ void INT_addStarterDeck(u8 player, u8 slot, u8 color) {
             deck->cards[i].type = 1;
             deck->cards[i].id = card - 0x6E;
             ((IntProfile *)PLAYER_PROFILES)->optionCards[deck->cards[i].id]++;
-            deck->cards[i].data = D_801E4710 + deck->cards[i].id * 0xD4;
+            deck->cards[i].data = OPTION_CARDS + deck->cards[i].id * 0xD4;
         } else if (card >= 0x99 && card < 0x9F) {
             deck->cards[i].type = 2;
             deck->cards[i].id = card - 0x99;
             ((IntProfile *)PLAYER_PROFILES)->otherCards[deck->cards[i].id]++;
-            deck->cards[i].data = D_801E4714 + deck->cards[i].id * 0x62;
+            deck->cards[i].data = DIGIVOLVE_CARDS + deck->cards[i].id * 0x62;
         }
     }
     deck->valid = 1;
