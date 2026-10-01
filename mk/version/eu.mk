@@ -72,9 +72,9 @@ SUBSEG_C_SRC := \
 	src/subseg/partner/sub_partner.c \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
-	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c) \
+	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_sprite.c) \
 	$(addprefix src/sugseg/effect/, sug_effect_script.c sug_fade_rect.c \
-		sug_gradient.c sug_light_motion.c sug_model_effect.c \
+		sug_gradient.c sug_history.c sug_light_motion.c sug_model_effect.c \
 		sug_screen_copy.c sug_scroll_texture.c sug_sprite_effect.c \
-		sug_stage_fade.c sug_trail.c) \
+		sug_stage_fade.c sug_tex_anim.c sug_trail.c) \
 	src/sugseg/sug_bss.c

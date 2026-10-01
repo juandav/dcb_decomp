@@ -20,7 +20,7 @@ typedef struct {
     s32 frameCount;
 #if VERSION_JP
     u8 loopFrame;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     s8 loopFrame; /* the frame to go on from after the last, negative: hide */
 #else
 #error "untested version"
@@ -56,7 +56,7 @@ SpriteEntry *SUG_findSpriteEntry(s32 key, s32 subKey) {
     }
     return free;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 SpriteEntry *SUG_findSpriteEntry(s32 key, s32 subKey) {
     SpriteEntry *entry;
     SpriteEntry *free;
@@ -148,7 +148,7 @@ void SUG_setSpriteFrameVerts(Sprite *sprite, s32 frame) {
     sprite->v[0].vy = sprite->v[1].vy = y0;
     sprite->v[2].vy = sprite->v[3].vy = y1;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void SUG_setSpriteFrameVerts(Sprite *sprite, s32 frame) {
     SpriteFrame *f;
     s32 xs[2];
@@ -192,7 +192,7 @@ void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 
         sprite->v[0].vz = sprite->v[1].vz = sprite->v[2].vz = sprite->v[3].vz = 0;
     }
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 y, s16 z, s32 otz, s32 useOrigin, s32 subKey) {
     sprite->tex = SUG_findSpriteEntry(key, subKey)->data;
     if (sprite->tex != NULL) {
@@ -218,7 +218,7 @@ void SUG_initSprite(Sprite *sprite, s32 key, u16 scaleX, u16 scaleY, s16 x, s16 
 /* brightness: 0x100 is full in us, 0xFF in jp */
 #if VERSION_JP
 void SUG_drawSprite(Sprite *sprite, u8 brightness) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void SUG_drawSprite(Sprite *sprite, s16 brightness) {
 #else
 #error "untested version"
@@ -262,7 +262,7 @@ void SUG_drawSprite(Sprite *sprite, s16 brightness) {
     if (otz < 0x1000) {
 #if VERSION_JP
         poly->r0 = poly->g0 = poly->b0 = frame->shade * brightness / 255;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         poly->r0 = poly->g0 = poly->b0 = frame->shade * brightness / 256;
 #endif
         poly->clut = getClut(((SpriteSheet *)sprite->tex)->clutX, ((SpriteSheet *)sprite->tex)->clutY + frame->clutRow);
@@ -356,7 +356,7 @@ void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
         }
     }
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
     char path[20];
     s32 task;
@@ -411,11 +411,14 @@ void SUG_loadSprite(s32 id, s32 x, s32 y, s32 subKey) {
 #error "untested version"
 #endif
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
 #if VERSION_JP
 const char SUG_FMT_SPRITE_PATH[16] = "E:\\SPRITE\\%s\0\xDC\x33\xC0";
 #elif VERSION_US
 const char SUG_FMT_SPRITE_PATH[16] = "E:\\SPRITE\\%s\0\0\xA2\xAF";
+#elif VERSION_EU
+const char SUG_FMT_SPRITE_PATH[16] = "E:\\SPRITE\\%s\0\x94\x08";
 #else
 #error "untested version"
 #endif
