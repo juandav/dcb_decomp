@@ -447,7 +447,11 @@ typedef struct {
     VECTOR pos;
     SVECTOR rot;
     s32 sx;
+#if VERSION_JP
+    u8 unk3C[0xF6]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     u8 unk3C[0xF2];
+#endif
     s16 mode;
     s16 speed;
     s16 brightness;
@@ -475,13 +479,18 @@ typedef struct {
     s32 otz;
     s32 count;
     s32 blend;
+#if VERSION_US || VERSION_EU
     s32 texAnimId;
+#endif
     s16 level;
     s16 prevLevel;
     u8 semiTrans;
     u8 primKind;
     u8 followMode;
     u8 colorMode;
+#if VERSION_JP
+    u8 texAnimId; /* jp: always 0xFF, its trails never start a texture animation */
+#endif
     u8 primeCount;
 } TrailEffect;
 
