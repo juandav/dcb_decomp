@@ -57,10 +57,26 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
     s32 best;
     s32 count;
     s32 card;
+    s32 self;
+#if VERSION_JP
+    s32 attr;
+#elif VERSION_US
     u8 attr;
+#else
+#error "untested version"
+#endif
 
+    /* a copy of player: it only changes the register allocation */
+    self = player;
+    /* jp's Digimon levels go from 0 to 2, us's from 0 to 3 */
+#if VERSION_JP
+    for (level = 0; level < 3; level++) {
+#elif VERSION_US
     for (level = 0; level < 4; level++) {
-        if (KAW_countHandDigimonOfLevel(player, level) == 0) {
+#else
+#error "untested version"
+#endif
+        if (KAW_countHandDigimonOfLevel(self, level) == 0) {
             continue;
         }
         n = 0;
@@ -68,27 +84,32 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
             cands[i].id = -1;
         }
         for (i = 0; i < 4; i++) {
-            card = PLAYER(player)->hand[i];
+            card = PLAYER(self)->hand[i];
             if (card == -1) {
                 continue;
             }
-            if (PLAYER(player)->cards[card % 30].card[2] != 0) {
+            if (CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, type) != 0) {
                 continue;
             }
-            if (getPartnerIndex(PLAYER(player)->cards[card % 30].id) >= 0) {
+            /* a partner card goes first (jp has no partners) */
+#if VERSION_US
+            if (getPartnerIndex(PLAYER_CARDS(PLAYER(self))[card % 30].id) >= 0) {
                 return card;
             }
-            attr = (u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4;
-            if (((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF) != level) {
+#elif VERSION_EU
+#error "untested version"
+#endif
+            attr = (u8)CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, attr) >> 4;
+            if (((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, attr) & 0xF) != level) {
                 continue;
             }
             cands[n].id = card;
-            cands[n].attrCount = KAW_countHandDigimonOfSpecialty(player, attr);
-            cands[n].levelCount = KAW_countHandDigimonOfSpecialtyAndLevel(player, attr, 1);
-            cands[n].dpCost = PLAYER(player)->cards[card % 30].card[0x1B];
-            cands[n].deckCount = KAW_countDeckDigimonOfSpecialty(player, attr);
+            cands[n].attrCount = KAW_countHandDigimonOfSpecialty(self, attr);
+            cands[n].levelCount = KAW_countHandDigimonOfSpecialtyAndLevel(self, attr, 1);
+            cands[n].dpCost = CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, dpCost);
+            cands[n].deckCount = KAW_countDeckDigimonOfSpecialty(self, attr);
             for (j = 0; j < 3; j++) {
-                if ((s8)((DigimonCardData *)PLAYER(player)->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+                if ((s8)((DigimonCardData *)PLAYER_CARDS(PLAYER(self))[card % 30].card)->supportActions[j].unk0[0] != 0) {
                     cands[n].supports++;
                 }
             }
@@ -102,7 +123,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
         }
         switch (level) {
         case 0:
-            switch (PLAYER(player)->cpuPlaceStyle) {
+            switch (PLAYER(self)->cpuPlaceStyle) {
             case 0:
             case 1:
                 best = 0;
@@ -174,9 +195,16 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
             default:
                 return -1;
             }
+#if VERSION_JP
+        case 1:
+        case 2:
+#elif VERSION_US
         case 2:
         case 3:
-            switch (PLAYER(player)->cpuPlaceStyle) {
+#else
+#error "untested version"
+#endif
+            switch (PLAYER(self)->cpuPlaceStyle) {
             case 0:
             case 1:
                 best = 30;
@@ -282,7 +310,7 @@ s32 KAW_keepLowestDpBonus(s16 *cards, s32 player, s32 min) {
         s16 id = cards[i];
 
         if (id != -1) {
-            dp = PLAYER(player)->cards[id % 30].card[0x1C];
+            dp = CARD_BYTE(PLAYER_CARDS(PLAYER(player))[id % 30].card, dpBonus);
             if (dp >= min && dp < best) {
                 best = dp;
             }
@@ -291,7 +319,7 @@ s32 KAW_keepLowestDpBonus(s16 *cards, s32 player, s32 min) {
     count = 0;
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && best == PLAYER(player)->cards[card % 30].card[0x1C]) {
+        if (card != -1 && best == CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus)) {
             count++;
         }
     }
@@ -300,7 +328,7 @@ s32 KAW_keepLowestDpBonus(s16 *cards, s32 player, s32 min) {
     }
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && best != PLAYER(player)->cards[card % 30].card[0x1C]) {
+        if (card != -1 && best != CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus)) {
             cards[i] = -1;
         }
     }
@@ -323,14 +351,14 @@ s32 KAW_keepHighestDpBonus(s16 *cards, s32 player, s32 min) {
     best = -1;
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && best < PLAYER(player)->cards[card % 30].card[0x1C]) {
-            best = PLAYER(player)->cards[card % 30].card[0x1C];
+        if (card != -1 && best < CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus)) {
+            best = CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus);
         }
     }
     count = 0;
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && best == PLAYER(player)->cards[card % 30].card[0x1C]) {
+        if (card != -1 && best == CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus)) {
             count++;
         }
     }
@@ -339,7 +367,7 @@ s32 KAW_keepHighestDpBonus(s16 *cards, s32 player, s32 min) {
     }
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && best != PLAYER(player)->cards[card % 30].card[0x1C]) {
+        if (card != -1 && best != CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus)) {
             cards[i] = -1;
         }
     }
@@ -361,7 +389,7 @@ s32 KAW_keepLoneSpecialty(s16 *cards, s32 player, s32 min) {
     count = 0;
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && KAW_countHandDigimonOfSpecialty(player, (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4) == 1) {
+        if (card != -1 && KAW_countHandDigimonOfSpecialty(player, (u8)CARD_BYTE(PLAYER_CARDS((Player *)DUEL_PLAYERS[player])[card % 30].card, attr) >> 4) == 1) {
             count++;
         }
     }
@@ -370,7 +398,7 @@ s32 KAW_keepLoneSpecialty(s16 *cards, s32 player, s32 min) {
     }
     for (i = 0; i < 4; i++) {
         card = cards[i];
-        if (card != -1 && KAW_countHandDigimonOfSpecialty(player, (u8)((Player *)DUEL_PLAYERS[player])->cards[card % 30].card[0x1A] >> 4) != 1) {
+        if (card != -1 && KAW_countHandDigimonOfSpecialty(player, (u8)CARD_BYTE(PLAYER_CARDS((Player *)DUEL_PLAYERS[player])[card % 30].card, attr) >> 4) != 1) {
             cards[i] = -1;
         }
     }
@@ -394,9 +422,9 @@ s32 KAW_keepActiveLevel(s16 *cards, s32 player, s32 min) {
             u8 level;
             s16 card;
 
-            level = PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A];
+            level = CARD_BYTE(PLAYER_CARDS(PLAYER(player))[getActiveDigimonCard(player) % 30].card, attr);
             card = cards[i];
-            if ((level & 0xF) == ((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF)) {
+            if ((level & 0xF) == ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) & 0xF)) {
                 count++;
             }
         }
@@ -409,9 +437,9 @@ s32 KAW_keepActiveLevel(s16 *cards, s32 player, s32 min) {
             u8 level;
             s16 card;
 
-            level = PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A];
+            level = CARD_BYTE(PLAYER_CARDS(PLAYER(player))[getActiveDigimonCard(player) % 30].card, attr);
             card = cards[i];
-            if ((level & 0xF) != ((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF)) {
+            if ((level & 0xF) != ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) & 0xF)) {
                 cards[i] = -1;
             }
         }
@@ -434,13 +462,22 @@ s32 KAW_keepWithSupport(s16 *cards, s32 player, s32 min) {
 
     count = 0;
     for (i = 0; i < 4; i++) {
-        n = 0;
         if (cards[i] != -1) {
+            n = 0;
             for (j = 0; j < 3; j++) {
+#if VERSION_JP
+                PlayerDeck *deck = PLAYER(player)->deck;
+                s16 card = cards[i];
+
+                if ((s8)((DigimonCardData *)deck->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+#elif VERSION_US
                 Player *p = PLAYER(player);
                 s16 card = cards[i];
 
-                if ((s8)((DigimonCardData *)p->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+                if ((s8)((DigimonCardData *)PLAYER_CARDS(p)[card % 30].card)->supportActions[j].unk0[0] != 0) {
+#else
+#error "untested version"
+#endif
                     n++;
                 }
             }
@@ -453,13 +490,22 @@ s32 KAW_keepWithSupport(s16 *cards, s32 player, s32 min) {
         return -1;
     }
     for (i = 0; i < 4; i++) {
-        n = 0;
         if (cards[i] != -1) {
+            n = 0;
             for (j = 0; j < 3; j++) {
+#if VERSION_JP
+                PlayerDeck *deck = PLAYER(player)->deck;
+                s16 card = cards[i];
+
+                if ((s8)((DigimonCardData *)deck->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+#elif VERSION_US
                 Player *p = PLAYER(player);
                 s16 card = cards[i];
 
-                if ((s8)((DigimonCardData *)p->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
+                if ((s8)((DigimonCardData *)PLAYER_CARDS(p)[card % 30].card)->supportActions[j].unk0[0] != 0) {
+#else
+#error "untested version"
+#endif
                     n++;
                 }
             }
@@ -515,10 +561,16 @@ s32 KAW_chooseDpCard(s32 player) {
     if (getActiveDigimonCard(player) == -1) {
         return -1;
     }
-    if (((u8)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF) != 1) {
+    if (((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[getActiveDigimonCard(player) % 30].card, attr) & 0xF) != 1) {
         need = 50 - sumDigivolvePoints(player);
     } else {
+#if VERSION_JP
+        need = 80 - sumDigivolvePoints(player);
+#elif VERSION_US
         need = 60 - sumDigivolvePoints(player);
+#else
+#error "untested version"
+#endif
     }
     if (KAW_DUEL->selected != NULL) {
         if (KAW_DUEL->selected->kind == 1) {
@@ -532,16 +584,16 @@ s32 KAW_chooseDpCard(s32 player) {
     }
     /* a copy of player for the rest: it only changes the register allocation */
     self = player;
-    count = 0;
     if (need <= 0) {
         return -1;
     }
+    count = 0;
     for (i = 0; i < 4; i++) {
         ids[i] = PLAYER(self)->hand[i];
         if (ids[i] != -1) {
-            if (PLAYER(self)->cards[ids[i] % 30].card[2] != 0) {
+            if (CARD_BYTE(PLAYER_CARDS(PLAYER(self))[ids[i] % 30].card, type) != 0) {
                 ids[i] = -1;
-            } else if (PLAYER(self)->cards[ids[i] % 30].card[0x1C] == 0) {
+            } else if (CARD_BYTE(PLAYER_CARDS(PLAYER(self))[ids[i] % 30].card, dpBonus) == 0) {
                 ids[i] = -1;
             } else {
                 if (KAW_DUEL->selected != NULL && KAW_DUEL->selected->card == ids[i]) {
@@ -582,7 +634,7 @@ s32 KAW_chooseDpCard(s32 player) {
         }
         return KAW_pickRandomCard(ids, self);
     case 1:
-        if (((u8)PLAYER(self)->cards[getActiveDigimonCard(self) % 30].card[0x1A] & 0xF) == 0 && KAW_countHandDigimon(self) < 2) {
+        if (((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(self))[getActiveDigimonCard(self) % 30].card, attr) & 0xF) == 0 && KAW_countHandDigimon(self) < 2) {
             return -1;
         }
         if ((result = KAW_keepLowestDpBonus(ids, self, need)) >= 0) {

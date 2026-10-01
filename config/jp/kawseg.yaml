@@ -53,8 +53,8 @@ segments:
     subalign: 4
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
-      - [0x0, rodata, cpu/kaw_cpu]
-      - [0x24, rodata, cpu/kaw_cpu_digivolve]
+      - [0x0, .rodata, cpu/kaw_cpu]
+      - [0x34, rodata, cpu/kaw_cpu_digivolve]
       - [0x140, rodata, cpu/kaw_battle_sim]
       - [0x77C, rodata, duel/kaw_tutorial]
       - [0x890, rodata, ui/kaw_duel_menu]
@@ -67,8 +67,8 @@ segments:
       - [0x30F0, rodata, duel/kaw_bonus]
       - [0x30F4, rodata, ui/kaw_exp]
       - [0x3114, c, cpu/kaw_card_queries]
-      - [0x3F84, asm, cpu/kaw_cpu]
-      - [0x50FC, asm, cpu/kaw_cpu_placement]
+      - [0x3F84, c, cpu/kaw_cpu]
+      - [0x50FC, c, cpu/kaw_cpu_placement]
       - [0x6B98, asm, cpu/kaw_cpu_digivolve]
       - [0x7F70, asm, cpu/kaw_cpu_attack]
       - [0x9A20, asm, cpu/kaw_battle_sim]

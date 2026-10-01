@@ -4,8 +4,15 @@
 #include "dcb/kawseg.h"
 #include "dcb/kaw_card_queries.h"
 
+/* the bytes of a Player the battle simulations save and restore */
 typedef struct {
+#if VERSION_JP
+    s32 words[0xA4 / 4];
+#elif VERSION_US
     s32 words[0x1E4 / 4];
+#else
+#error "untested version"
+#endif
 } PlayerSnapshot;
 
 /* not referenced by any code */
@@ -53,7 +60,7 @@ s32 KAW_simulateBattles(s32 self) {
                 }
             } else {
                 played[player] = PLAYER(player)->hand[card];
-                if (played[player] < 0 || PLAYER(player)->cards[played[player] % 30].card[2] == 2) {
+                if (played[player] < 0 || CARD_BYTE(PLAYER_CARDS(PLAYER(player))[played[player] % 30].card, type) == 2) {
                     continue;
                 }
             }
@@ -65,7 +72,7 @@ s32 KAW_simulateBattles(s32 self) {
                     }
                 } else {
                     played[opponent] = PLAYER(opponent)->hand[oppCard];
-                    if (played[opponent] < 0 || PLAYER(opponent)->cards[played[opponent] % 30].card[2] == 2) {
+                    if (played[opponent] < 0 || CARD_BYTE(PLAYER_CARDS(PLAYER(opponent))[played[opponent] % 30].card, type) == 2) {
                         continue;
                     }
                 }
@@ -107,7 +114,7 @@ s32 KAW_simulateBattles(s32 self) {
     for (attack = 0; attack < 3; attack++) {
         for (card = 0; card < 5; card++) {
             if (card == 4 || (PLAYER(player)->hand[card] != -1 &&
-                              PLAYER(player)->cards[PLAYER(player)->hand[card] % 30].card[2] != 2)) {
+                              CARD_BYTE(PLAYER_CARDS(PLAYER(player))[PLAYER(player)->hand[card] % 30].card, type) != 2)) {
                 if (DUEL_AI->sims[attack].cards[card].outcome == 1) {
                     return 0;
                 }
@@ -125,7 +132,13 @@ s32 KAW_planDigivolves(s32 player) {
     s32 j;
     s32 card;
     u8 specialty;
+#if VERSION_JP
+    u8 level;
+#elif VERSION_US
     s32 level;
+#else
+#error "untested version"
+#endif
     s32 need;
     s32 other;
 
@@ -139,21 +152,29 @@ s32 KAW_planDigivolves(s32 player) {
         KAW_DUEL->slots[i].need = 100;
         KAW_DUEL->slots[i].option = -1;
         card = PLAYER(player)->hand[i];
-        if (card != -1 && PLAYER(player)->cards[card % 30].type == 0) {
+        if (card != -1 && PLAYER_CARDS(PLAYER(player))[card % 30].type == 0) {
             KAW_DUEL->slots[i].kind = 0;
             specialty = PLAYER(player)->specialty;
-            level = (u8)PLAYER(player)->cards[getActiveDigimonCard(player) % 30].card[0x1A] & 0xF;
-            need = PLAYER(player)->cards[card % 30].card[0x1B] - sumDigivolvePoints(player);
+            level = (u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[getActiveDigimonCard(player) % 30].card, attr) & 0xF;
+            need = CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpCost) - sumDigivolvePoints(player);
             if (need < 0) {
                 KAW_DUEL->slots[i].need = 0;
             } else {
                 KAW_DUEL->slots[i].need = need;
             }
-            if ((u8)PLAYER(player)->cards[card % 30].card[0x1A] >> 4 == specialty && level != 1) {
+#if VERSION_JP
+            if ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) >> 4 == specialty) {
+#elif VERSION_US
+            /* us and eu: a level-1 Digimon can't digivolve, and one of level 0
+               counts as 1 */
+            if ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) >> 4 == specialty && level != 1) {
                 if (level == 0) {
                     level = 1;
                 }
-                if (((u8)PLAYER(player)->cards[card % 30].card[0x1A] & 0xF) == level + 1) {
+#else
+#error "untested version"
+#endif
+                if (((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) & 0xF) == level + 1) {
                     if (need <= 0) {
                         KAW_DUEL->slots[i].kind = 1;
                     } else {
@@ -162,8 +183,8 @@ s32 KAW_planDigivolves(s32 player) {
                                 continue;
                             }
                             other = PLAYER(player)->hand[j];
-                            if (other != -1 && PLAYER(player)->cards[other % 30].type == 0) {
-                                if (PLAYER(player)->cards[other % 30].card[0x1C] >= need) {
+                            if (other != -1 && PLAYER_CARDS(PLAYER(player))[other % 30].type == 0) {
+                                if (CARD_BYTE(PLAYER_CARDS(PLAYER(player))[other % 30].card, dpBonus) >= need) {
                                     KAW_DUEL->slots[i].kind = 1;
                                     break;
                                 }
@@ -187,6 +208,128 @@ s32 KAW_planDigivolves(s32 player) {
     return j;
 }
 
+/* jp's digivolve options are numbered differently, and its levels count
+   from 0 */
+#if VERSION_JP
+s32 KAW_decideRedraw(s32 player) {
+    s32 self;
+    s32 opponent;
+    s32 cards;
+    s32 i;
+    s32 j;
+    s32 level;
+
+    self = player;
+    opponent = player ^ 1;
+    cards = countOnlineDeckCards(player);
+    if (cards == 0) {
+        return 0;
+    }
+    if (getActiveDigimonCard(player) == -1) {
+        if (KAW_countHandDigimon(player) == 0) {
+            return 1;
+        }
+        if (KAW_countHandDigimonOfLevel(player, 0) != 0) {
+            return 0;
+        }
+        for (i = 0; i < 6; i++) {
+            if (KAW_hasDigivolveInHand(i, self) && KAW_countHandDigimon(self) >= 2) {
+                switch (i) {
+                case 0:
+                    for (j = 1; j < 3; j++) {
+                        if (sumDigivolvePoints(self) >= j * 20 && KAW_countHandDigimonOfLevel(self, j) >= 2) {
+                            return 0;
+                        }
+                    }
+                    break;
+                case 1:
+                    if (sumDigivolvePoints(self) >= 20 && KAW_countHandDigimonOfLevel(self, 1) != 0) {
+                        return 0;
+                    }
+                    break;
+                case 3:
+                    for (j = 0; j < 5; j++) {
+                        if (KAW_countDeckDigimonOfSpecialtyAndLevel(self, j, 1) != 0 && KAW_countDeckDigimonOfSpecialtyAndLevel(self, j, 2) != 0) {
+                            return 0;
+                        }
+                    }
+                    break;
+                case 5:
+                    return 0;
+                case 2:
+                case 4:
+                    break;
+                }
+            }
+        }
+        if (KAW_countDeckDigimonOfLevel(player, 0) != 0) {
+            switch (PLAYER(player)->cpuRedrawStyle) {
+            case 0:
+                return cards >= (3 - PLAYER(player)->wins) * 3;
+            case 1:
+                return cards >= (3 - PLAYER(player)->wins) * 4;
+            case 2:
+                if (rand() % 3 == 0) {
+                    return 1;
+                }
+                return 0;
+            }
+            return 0;
+        }
+    } else {
+        for (i = 0; i < 6; i++) {
+            if (KAW_hasDigivolveInHand(i, self) && KAW_countHandDigimon(self) != 0) {
+                level = CARD_BYTE(PLAYER_CARDS(PLAYER(self))[getActiveDigimonCard(self) % 30].card, attr) & 0xF;
+                switch (i) {
+                case 0:
+                    if (KAW_countStrongerDigimonInHand(self) != 0) {
+                        return 0;
+                    }
+                    break;
+                case 1:
+                    if (KAW_countHandDigimonOfLevel(self, level + 1) != 0) {
+                        return 0;
+                    }
+                    break;
+                case 2:
+                    if (level == 0 && KAW_countHandDigimonOfLevel(self, 2) != 0) {
+                        return 0;
+                    }
+                    break;
+                case 3:
+                    if (PLAYER(self)->statPenalty == 0 &&
+                        KAW_countDeckDigimonOfSpecialtyAndLevel(self, PLAYER(self)->specialty, level + 1) != 0) {
+                        return 0;
+                    }
+                    break;
+                case 5:
+                    return 0;
+                }
+            }
+        }
+        if (PLAYER(opponent)->wins == 2
+            && (KAW_findRecoveryCardInHand(player) == 0 || (KAW_findVoidingCardInHand(opponent) != 0 && KAW_getActiveCrossEffect(opponent) == 10))
+            && KAW_simulateBattles(player) != 0) {
+            if (KAW_planDigivolves(player) == 1) {
+                return 0;
+            }
+            switch (PLAYER(player)->cpuRedrawStyle) {
+            case 0:
+                return cards >= (3 - PLAYER(player)->wins) * 3;
+            case 1:
+                return cards >= (3 - PLAYER(player)->wins) * 4;
+            case 2:
+                if (rand() % 3 == 0) {
+                    return 1;
+                }
+                return 0;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+#elif VERSION_US
 s32 KAW_decideRedraw(s32 player) {
     s32 self;
     s32 opponent;
@@ -257,7 +400,7 @@ s32 KAW_decideRedraw(s32 player) {
     } else {
         for (i = 0; i < 6; i++) {
             if (KAW_hasDigivolveInHand(i, self) && KAW_countHandDigimon(self) != 0) {
-                level = PLAYER(self)->cards[getActiveDigimonCard(self) % 30].card[0x1A] & 0xF;
+                level = CARD_BYTE(PLAYER_CARDS(PLAYER(self))[getActiveDigimonCard(self) % 30].card, attr) & 0xF;
                 switch (i) {
                 case 0:
                     j = level;
@@ -331,3 +474,6 @@ s32 KAW_decideRedraw(s32 player) {
     }
     return 0;
 }
+#else
+#error "untested version"
+#endif
