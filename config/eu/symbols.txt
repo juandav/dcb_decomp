@@ -999,3 +999,12 @@ PARTNER_CARD_IDS = 0x80070D74;
 PARTNER_ARMOR_CARD_IDS = 0x80070D7C;
 PARTNER_ABILITIES = 0x80071210;
 // end of the names from us
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+waitFrames = 0x80014DDC; // type:func
+SCREEN_COPY_MODE = 0x8007BD07;
+FRAME_INTERVAL = 0x8007BD10;
+CLEAR_BG_ON_DRAW = 0x8007BDC8;
+SCENE_3D = 0x801D926C;
+CARD_ANIMS = 0x801DAB5C;
+DUEL_STATE = 0x801DAB60;

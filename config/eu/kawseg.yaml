@@ -39,8 +39,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/kawseg/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -62,7 +63,7 @@ segments:
       - [0x4E4, rodata, ui/kaw_result]
       - [0x4F8, rodata, ui/kaw_exp]
       - [0x15A8, rodata, ui/kaw_prize]
-      - [0x161C, rodata, duel/kaw_effect]
+      - [0x161C, .rodata, duel/kaw_effect]
       - [0x16CC, rodata, ui/kaw_duel_menu]
       - [0x1C90, rodata, ui/kaw_hud]
       - [0x1C94, rodata, duel/kaw_bonus]
@@ -78,14 +79,14 @@ segments:
       - [0x142F8, asm, ui/kaw_result]
       - [0x1530C, asm, ui/kaw_exp]
       - [0x16BD8, asm, ui/kaw_prize]
-      - [0x1787C, asm, duel/kaw_effect]
+      - [0x1787C, c, duel/kaw_effect]
       - [0x18E84, asm, ui/kaw_duel_menu]
       - [0x1986C, asm, ui/kaw_hud]
       - [0x1B4E4, asm, duel/kaw_bonus]
       - [0x1CEF4, data, cpu/kaw_card_queries]
       - [0x1CF7C, data, ui/kaw_match_intro]
       - [0x1D084, data, ui/kaw_exp]
-      - [0x1D684, data, duel/kaw_effect]
+      - [0x1D684, .data, duel/kaw_effect]
       - [0x1D6B4, data, ui/kaw_duel_menu]
       - [0x1D7BC, data, ui/kaw_hud]
       - [0x1D84C, data, duel/kaw_bonus]
