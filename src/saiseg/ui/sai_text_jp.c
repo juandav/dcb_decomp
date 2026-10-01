@@ -350,8 +350,8 @@ void SAI_openDeckInfo(void) {
     }
     SAI_summarizeOwnedCards(&SAI_DECK_INFO.owned);
     i = 0;
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F645C, getCurrentTaskId());
-    D_801F7558 = waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SAI_DECK_INFO_WINDOW_DEF, getCurrentTaskId());
+    SAI_DECK_INFO_WINDOW = waitFrames(0x7FFFFFFF);
     openChoiceMenu(&SAI_UI.menu, 0x3B, 0x32, 0, 0);
     while (i < 3 && SAI_DECK_INFO.decks[i].inUse != 0) {
         addChoiceMenuItem(&SAI_UI.menu, i + 0x39, SAI_runMenu);
@@ -360,6 +360,6 @@ void SAI_openDeckInfo(void) {
     spawnTask(0, -1, 0, 0x1000, SAI_runMenu, 0, getCurrentTaskId(), 0, 0);
 }
 
-s8 func_801EDB34(void) {
+s8 SAI_getBackgroundState(void) {
     return SCROLLING_BACKGROUND->unk1BE;
 }

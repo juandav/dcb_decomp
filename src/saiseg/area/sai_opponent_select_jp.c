@@ -15,15 +15,15 @@ void SAI_drawMessageWindow(JpWindow *win);
 void SAI_drawMessageLines(JpWindow *win);
 void SAI_drawBits(JpWindow *win);
 void SAI_drawDeckInfo(JpWindow *win);
-void func_801F1440(JpWindow *win);
-void func_801F1448(JpWindow *win);
-void func_801F1590(JpWindow *win);
-void func_801F16D8(JpWindow *win);
+void SAI_ignoreWindowClose(JpWindow *win);
+void SAI_drawRightPortrait(JpWindow *win);
+void SAI_drawLeftPortrait(JpWindow *win);
+void SAI_ignorePortraitWindowClose(JpWindow *win);
 
 /* SAISEG's data that the modules before this one use: the portraits, and
    the windows they open */
 /* the portraits the panels show */
-SpriteDef D_801F6000[36] = {
+SpriteDef SAI_PORTRAIT_SPRITE_DEFS[36] = {
     { 0x7E00, 1, 0x1C0, 0x100, 0x40, 0x38 },
     { 0x7E00, 1, 0x1C0, 0x138, 0x40, 0x38 },
     { 0x7E00, 1, 0x1C0, 0x170, 0x40, 0x38 },
@@ -62,19 +62,19 @@ SpriteDef D_801F6000[36] = {
     { 0x7FC0, 1, 0x404, 0xB4, 0x40, 0x38 },
 };
 
-JpWindowDef D_801F6360 = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 0xA, 0, SAI_drawMessageWindow, func_801F1440 };
-JpWindowDef D_801F6380 = { { 0x126, 0x4F, 0, 0x10 }, { 0xE6, 0x4F, 0x40, 0x38 }, 7, 1, func_801F1448, func_801F16D8 };
-JpWindowDef D_801F63A0 = { { 0x17, 0x4F, 0, 0x10 }, { 0x17, 0x4F, 0x40, 0x38 }, 7, 0, func_801F1590, func_801F16D8 };
-JpWindowDef D_801F63C0 = { { 0x126, 0x36, 0, 0xE }, { 0xAE, 0x36, 0x78, 0xE }, 0xA, 1, SAI_drawBits, func_801F16D8 };
-JpWindowDef D_801F63E0 = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 0xA, 0, SAI_drawMessageLines, func_801F1440 };
+JpWindowDef SAI_MESSAGE_WINDOW_DEF = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 0xA, 0, SAI_drawMessageWindow, SAI_ignoreWindowClose };
+JpWindowDef SAI_RIGHT_PORTRAIT_WINDOW_DEF = { { 0x126, 0x4F, 0, 0x10 }, { 0xE6, 0x4F, 0x40, 0x38 }, 7, 1, SAI_drawRightPortrait, SAI_ignorePortraitWindowClose };
+JpWindowDef SAI_LEFT_PORTRAIT_WINDOW_DEF = { { 0x17, 0x4F, 0, 0x10 }, { 0x17, 0x4F, 0x40, 0x38 }, 7, 0, SAI_drawLeftPortrait, SAI_ignorePortraitWindowClose };
+JpWindowDef SAI_BITS_WINDOW_DEF = { { 0x126, 0x36, 0, 0xE }, { 0xAE, 0x36, 0x78, 0xE }, 0xA, 1, SAI_drawBits, SAI_ignorePortraitWindowClose };
+JpWindowDef SAI_MESSAGE_LINES_WINDOW_DEF = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 0xA, 0, SAI_drawMessageLines, SAI_ignoreWindowClose };
 
-s16 D_801F6400[46] = {
+s16 SAI_MUSIC_VOLUMES[46] = {
     0x7F, 0x7F, 0x7F, 0x73, 0x7F, 0x6E, 0x5F, 0x7F, 0x5A, 0x64, 0x78, 0x6E, 0x6E, 0x6E, 0x73, 0x69, 0x7F, 0x7F, 0x73, 0x7F, 0x7F, 0x69, 0x78, 0x73, 0x7F, 0x7F, 0x7F, 0x78, 0x73, 0x7F, 0x6E, 0x73, 0x7F, 0x73, 0x69, 0x78, 0x7F, 0x7F, 0x69, 0x78, 0x78, 0x78, 0x78, 0x7F, 0x73, 0x6E,
 };
 
-JpWindowDef D_801F645C = { { 0x122, 0x30, 0, 0xC }, { 0x86, 0x30, 0x9C, 0xAA }, 0xA, 1, SAI_drawDeckInfo, func_801F1440 };
+JpWindowDef SAI_DECK_INFO_WINDOW_DEF = { { 0x122, 0x30, 0, 0xC }, { 0x86, 0x30, 0x9C, 0xAA }, 0xA, 1, SAI_drawDeckInfo, SAI_ignoreWindowClose };
 
-void func_801F0EA8(void) {
+void SAI_returnToArea(void) {
     do {
         waitFrames(1);
     } while (SAI_STATE->unk43 != 2);
@@ -151,10 +151,10 @@ void func_801F1130(FrameBuffer *fb) {
     }
 }
 
-void func_801F1440(JpWindow *win) {
+void SAI_ignoreWindowClose(JpWindow *win) {
 }
 
-void func_801F1448(JpWindow *win) {
+void SAI_drawRightPortrait(JpWindow *win) {
     s32 i;
     u8 level;
 
@@ -177,7 +177,7 @@ void func_801F1448(JpWindow *win) {
     AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[win->z], (s32)&((VramSprite *)DB(FRAME_BUFFER_INDEX).primSlots[0])[4]);
 }
 
-void func_801F1590(JpWindow *win) {
+void SAI_drawLeftPortrait(JpWindow *win) {
     s32 i;
     u8 level;
 
@@ -200,10 +200,10 @@ void func_801F1590(JpWindow *win) {
     AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[win->z], (s32)&((VramSprite *)DB(FRAME_BUFFER_INDEX).primSlots[0])[2]);
 }
 
-void func_801F16D8(JpWindow *win) {
+void SAI_ignorePortraitWindowClose(JpWindow *win) {
 }
 
-void func_801F16E0(void) {
+void SAI_saveScriptFlags(void) {
     /* the flags bits 3 to 15 of unkF1C set in unkF1E (one byte too many in
        its string) */
     s8 order[13] = "\x01\x0D\x02\x03\x04\x05\x07\x08\x09\x0C\x0A\x0E\x06\x00" "1";
@@ -240,7 +240,7 @@ void func_801F16E0(void) {
     }
 }
 
-void func_801F18C8(void) {
+void SAI_loadScriptFlags(void) {
     s32 i;
     s32 j;
     s32 reg;

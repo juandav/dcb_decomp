@@ -14,10 +14,10 @@
 /* jp's event loop, which runs the area script's events, and the map window
    it opens and closes (sai_panel.c is us's and eu's) */
 
-extern JpWindowDef D_801F6360;
-extern JpWindowDef D_801F6380;
-extern JpWindowDef D_801F63A0;
-extern s16 D_801F6400[];
+extern JpWindowDef SAI_MESSAGE_WINDOW_DEF;
+extern JpWindowDef SAI_RIGHT_PORTRAIT_WINDOW_DEF;
+extern JpWindowDef SAI_LEFT_PORTRAIT_WINDOW_DEF;
+extern s16 SAI_MUSIC_VOLUMES[];
 extern void runWindowTask();
 extern void renderScrollingBackground();
 
@@ -40,7 +40,7 @@ void SAI_resolveOpponentDeck(void);
 void SAI_runDeckChoice(void);
 void SAI_loadCardImage(s8 slot, s32 card);
 void SAI_showLeftSprite(s32 kind);
-void func_801EDED4(s8 index, u8 value);
+void SAI_setPortraitBrightness(s8 index, u8 value);
 void func_801EDEF0(void);
 void func_801EDF7C(s8 fade);
 void func_801EE058(void);
@@ -50,13 +50,13 @@ void SAI_showRightSprite(s32 kind);
 ScriptRunner *SAI_loadAreaScript(void);
 void func_801F0F48(void);
 void func_801F1130();
-void func_801F16E0(SaiState *state);
-void func_801F18C8(void);
+void SAI_saveScriptFlags(SaiState *state);
+void SAI_loadScriptFlags(void);
 
 /* no prototype: this module passes its coordinates as ints */
 void initVramSprite();
 
-void func_801EEAD0(void);
+void SAI_runAreaScript(void);
 
 void func_801EE8F0(void) {
     SAI_STATE->unk4B = -1;
@@ -71,7 +71,7 @@ void SAI_showRightSprite(s32 kind) {
     SpriteDef *def;
     s8 i;
 
-    def = &D_801F6000[kind];
+    def = &SAI_PORTRAIT_SPRITE_DEFS[kind];
     SAI_UI.unk3B4->state = 2;
     do {
         waitFrames(FRAME_INTERVAL);
@@ -84,7 +84,7 @@ void SAI_showRightSprite(s32 kind) {
 }
 
 /* runs the area script up to its next event and does what the event says */
-void func_801EEAD0(void) {
+void SAI_runAreaScript(void) {
     Rect16 rect = { 0x180, 0x100, 0x40, 0x100 };
     s32 result;
     s32 won;
@@ -110,7 +110,7 @@ void func_801EEAD0(void) {
             case 10:
                 switch (SAI_STATE->runner->script->eventArg) {
                 case 0:
-                    spawnTask(0, -1, 0, 0x400, runWindowTask, &D_801F6360, getCurrentTaskId());
+                    spawnTask(0, -1, 0, 0x400, runWindowTask, &SAI_MESSAGE_WINDOW_DEF, getCurrentTaskId());
                     SAI_UI.unk3B0 = (JpWindow *)waitFrames(0x7FFFFFFF);
                     break;
                 case 1:
@@ -190,7 +190,7 @@ void func_801EEAD0(void) {
                     SAI_STATE->unk43 = 0;
                     state = SAI_STATE;
                     state->scriptOffset = state->runner->script->pc - state->runner->script->start;
-                    func_801F16E0(state);
+                    SAI_saveScriptFlags(state);
                     SAI_STATE->unk44 = 1;
                     freeHeapBlocksByTag(0x190);
                     waitFrames(30);
@@ -203,7 +203,7 @@ void func_801EEAD0(void) {
                     allocAreaFlags();
                     SAI_STATE->runner->regs = SAI_STATE->regs;
                     SAI_STATE->runner->script->pc = SAI_STATE->runner->script->start + SAI_STATE->scriptOffset;
-                    func_801F18C8();
+                    SAI_loadScriptFlags();
                     SAI_STATE->regs[1] = won;
                     *SAI_STATE->runner->regs = 1;
                     func_801F0F48();
@@ -264,7 +264,7 @@ void func_801EEAD0(void) {
                     return;
                 case 16:
                     openKanjiPage(0xF, 0xE7);
-                    spawnTask(0, -1, 0, 0x400, runWindowTask, &D_801F63C0, getCurrentTaskId());
+                    spawnTask(0, -1, 0, 0x400, runWindowTask, &SAI_BITS_WINDOW_DEF, getCurrentTaskId());
                     SAI_UI.unk3B8 = (JpWindow *)waitFrames(0x7FFFFFFF);
                     break;
                 case 17:
@@ -278,9 +278,9 @@ void func_801EEAD0(void) {
                     break;
                 case 19:
                     if (SAI_STATE->regs[7] == 0) {
-                        func_801EDED4(0, SAI_STATE->regs[8]);
+                        SAI_setPortraitBrightness(0, SAI_STATE->regs[8]);
                     } else {
-                        func_801EDED4(1, SAI_STATE->regs[8]);
+                        SAI_setPortraitBrightness(1, SAI_STATE->regs[8]);
                     }
                     break;
                 case 20:
@@ -337,19 +337,19 @@ void func_801EEAD0(void) {
             case 11:
                 switch (SAI_STATE->runner->script->eventArg) {
                 case 0:
-                    def = &D_801F6000[(s16)SAI_STATE->runner->script->params[0]];
+                    def = &SAI_PORTRAIT_SPRITE_DEFS[(s16)SAI_STATE->runner->script->params[0]];
                     for (i = 0; i < 2; i++) {
                         initVramSprite(DB(i).primSlots[0] + 0x80, 0xE6, 0x4F, def->clut, def->colorMode, def->vramX, def->vramY, def->width, def->height, -1);
                         ((VramSprite *)DB(i).primSlots[0])[4].sp.r0 = ((VramSprite *)DB(i).primSlots[0])[4].sp.g0 =
                             ((VramSprite *)DB(i).primSlots[0])[4].sp.b0 = SAI_UI.unk3CA;
                     }
-                    func_801EDED4(0, 0x80);
+                    SAI_setPortraitBrightness(0, 0x80);
                     if (SAI_STATE->unk48 == 0) {
                         SAI_STATE->unk48 = 1;
                         SAI_UI.unk3CC[2] = 0;
                         SAI_UI.unk3CC[0] = 0x80;
                         SAI_UI.unk3CA = 0x80;
-                        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F6380, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x600, runWindowTask, &SAI_RIGHT_PORTRAIT_WINDOW_DEF, getCurrentTaskId(), 0, 0);
                         SAI_UI.unk3B4 = (JpWindow *)waitFrames(0x7FFFFFFF);
                     } else {
                         SAI_UI.unk3B4->state = 1;
@@ -405,7 +405,7 @@ void func_801EEAD0(void) {
                     break;
                 case 9:
                     arg = (s16)SAI_STATE->runner->script->params[0];
-                    func_801EDED4(0, 0x80);
+                    SAI_setPortraitBrightness(0, 0x80);
                     spawnTask(0, -1, 0, 0x400, SAI_showRightSprite, arg, getCurrentTaskId(), 0, 0);
                     break;
                 case 10:
@@ -414,19 +414,19 @@ void func_801EEAD0(void) {
                     SAI_STATE->unk42 = PLAYER_DATA(0).area;
                     return;
                 case 11:
-                    def = &D_801F6000[(s16)SAI_STATE->runner->script->params[0]];
+                    def = &SAI_PORTRAIT_SPRITE_DEFS[(s16)SAI_STATE->runner->script->params[0]];
                     for (i = 0; i < 2; i++) {
                         initVramSprite(DB(i).primSlots[0] + 0x40, 0x17, 0x4F, def->clut, def->colorMode, def->vramX, def->vramY, def->width, def->height, -1);
                         ((VramSprite *)DB(i).primSlots[0])[2].sp.r0 = ((VramSprite *)DB(i).primSlots[0])[2].sp.g0 =
                             ((VramSprite *)DB(i).primSlots[0])[2].sp.b0 = SAI_UI.unk3CB;
                     }
-                    func_801EDED4(1, 0x80);
+                    SAI_setPortraitBrightness(1, 0x80);
                     if (SAI_STATE->unk49 == 0) {
                         SAI_STATE->unk49 = 1;
                         SAI_UI.unk3CC[3] = 0;
                         SAI_UI.unk3CC[1] = 0x80;
                         SAI_UI.unk3CB = 0x80;
-                        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F63A0, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x600, runWindowTask, &SAI_LEFT_PORTRAIT_WINDOW_DEF, getCurrentTaskId(), 0, 0);
                         SAI_UI.unk3BC = (JpWindow *)waitFrames(0x7FFFFFFF);
                     } else {
                         SAI_UI.unk3BC->state = 1;
@@ -434,7 +434,7 @@ void func_801EEAD0(void) {
                     break;
                 case 12:
                     arg = (s16)SAI_STATE->runner->script->params[0];
-                    func_801EDED4(1, 0x80);
+                    SAI_setPortraitBrightness(1, 0x80);
                     spawnTask(0, -1, 0, 0x400, SAI_showLeftSprite, arg, getCurrentTaskId(), 0, 0);
                     break;
                 case 13:
@@ -478,7 +478,7 @@ void func_801EEAD0(void) {
                     SAI_STATE->musicTrack = SAI_STATE->runner->script->params[0];
                     SAI_STATE->musicVolume = SAI_STATE->runner->script->params[1];
                     if (SAI_STATE->musicVolume < 0) {
-                        SAI_STATE->musicVolume = D_801F6400[SAI_STATE->musicTrack - 1];
+                        SAI_STATE->musicVolume = SAI_MUSIC_VOLUMES[SAI_STATE->musicTrack - 1];
                     }
                     playMusic(0, SAI_STATE->musicTrack, SAI_STATE->musicVolume);
                     break;
@@ -498,8 +498,8 @@ void func_801EEAD0(void) {
 }
 
 
-s32 func_801F02B4(void) {
+s32 SAI_stepAreaScript(void) {
     *SAI_STATE->runner->regs = 1;
-    func_801EEAD0();
+    SAI_runAreaScript();
     return *SAI_STATE->runner->regs;
 }

@@ -33,7 +33,7 @@ void uploadTim();
 
 void SAI_clearTextVram(void);
 void SAI_openDeckInfo(void);
-s8 func_801EDB34(void);
+s8 SAI_getBackgroundState(void);
 void SAI_addTextLine(s8 withBits);
 void SAI_clearTextLines(void);
 void SAI_loadMapTextures(void);
@@ -49,10 +49,10 @@ void SAI_runDeckChoice(void) {
     SAI_openDeckInfo();
     do {
         waitFrames(1);
-        func_801EDB34();
+        SAI_getBackgroundState();
     } while (SAI_STATE->regs[15] == 0);
     ((SessionData *)SESSION_DATA)->deckChoice = SAI_STATE->regs[15] - 1;
-    ((JpWindow *)D_801F7558)->state = 4;
+    ((JpWindow *)SAI_DECK_INFO_WINDOW)->state = 4;
     waitFrames(30);
     closeKanjiPage(0xF);
 }
@@ -73,7 +73,7 @@ void SAI_showLeftSprite(s32 kind) {
     SpriteDef *def;
     s8 i;
 
-    def = &D_801F6000[kind];
+    def = &SAI_PORTRAIT_SPRITE_DEFS[kind];
     SAI_UI.unk3BC->state = 2;
     do {
         waitFrames(FRAME_INTERVAL);
@@ -104,7 +104,7 @@ void SAI_tickShopRestocks(void) {
     }
 }
 
-void func_801EDED4(s8 index, u8 value) {
+void SAI_setPortraitBrightness(s8 index, u8 value) {
     SAI_UI.unk3CC[index] = value;
 }
 

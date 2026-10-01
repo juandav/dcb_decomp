@@ -29,12 +29,12 @@ void allocAreaFlags(void);
 void SAI_clearTextLines(void);
 void SAI_runMenu(void);
 void func_801EE8F0(void);
-s32 func_801F02B4(ScriptRunner *runner);
-void func_801F0EA8(void);
+s32 SAI_stepAreaScript(ScriptRunner *runner);
+void SAI_returnToArea(void);
 void func_801F0F48(void);
 void func_801F1130();
-void func_801F16E0(void);
-void func_801F18C8(void);
+void SAI_saveScriptFlags(void);
+void SAI_loadScriptFlags(void);
 void SAI_runWorldMap();
 
 void SAI_loadMapTextures(void) {
@@ -170,7 +170,7 @@ void SAI_runArea(void) {
         SAI_STATE->runner = SAI_loadAreaScript();
         allocAreaFlags();
         SAI_STATE->runner->regs = SAI_STATE->regs;
-        func_801F18C8();
+        SAI_loadScriptFlags();
         addFrameCallback((s32)func_801F1130);
         waitFrames(4);
         do {
@@ -228,11 +228,11 @@ void SAI_runArea(void) {
                 running = 0;
                 break;
             default:
-                running = func_801F02B4(SAI_STATE->runner);
+                running = SAI_stepAreaScript(SAI_STATE->runner);
                 break;
             }
         } while (running != 0);
-        func_801F16E0();
+        SAI_saveScriptFlags();
         SCROLLING_BACKGROUND->unk1BE = 2;
         func_801EE8F0();
         waitFrames(2);
@@ -246,7 +246,7 @@ void SAI_runArea(void) {
     if (SAI_STATE->unk18 == 7) {
         startAreaPakLoad();
         SAI_STATE->unk18 = 0;
-        spawnTask(0, -1, 0, 0x1000, func_801F0EA8, 0, getCurrentTaskId(), 0, 0);
+        spawnTask(0, -1, 0, 0x1000, SAI_returnToArea, 0, getCurrentTaskId(), 0, 0);
     } else if (SAI_STATE->unk18 == 8) {
         if (SAI_STATE->unk50 == 1) {
             SAI_STATE->unk18 = 0;
@@ -266,7 +266,7 @@ void SAI_runArea(void) {
             PLAYER_DATA(0).area = 0;
             SAI_STATE->unk42 = 0;
             startAreaPakLoad();
-            spawnTask(0, -1, 0, 0x1000, func_801F0EA8, 0, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1000, SAI_returnToArea, 0, getCurrentTaskId(), 0, 0);
             addFrameCallback((s32)renderScrollingBackground);
         }
     } else {
