@@ -209,7 +209,7 @@ segments:
       # in memcard)
       - [0x6EDF4, .data, card/player_rank]
       # the tables of jp's own code in player_data
-      - [0x6EE64, data, card/player_data_jp]
+      - [0x6EE64, .data, card/player_data_jp]
       - [0x6F094, .data, model/stage]
       - [0x6F114, .data, gfx/prim_desc]
       - [0x6F144, .data, duel/card_motion_jp]
