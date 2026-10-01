@@ -162,15 +162,28 @@ void runBattleAnimationMenu(void) {
     }
 }
 
-/* the option window's contents: its colour and texts, then the function.
-   jp: x, y and the colour end up in other callee-saved registers than the
-   original's; no C form found yet */
-INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80010FE4);
-INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80010FE8);
-INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011004);
-INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011020);
-INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011038);
-INCLUDE_ASM("main/nonmatchings/card/partner_level_jp", drawOptionWindow);
+/* the option window's contents: the sound and polygon battle settings */
+void drawOptionWindow(UiWindow *window) {
+    u8 rgb[4] = { 0x80, 0x80, 0x80 };
+    char lines[2][44];
+    s16 x;
+    s16 y;
+
+    x = 0x26;
+    y = 0x9D;
+    if (!((PlayerProfile *)PLAYER_PROFILES)->monoSound) {
+        sprintf(lines[0], "サウンド設定　　　ステレオ");
+    } else {
+        sprintf(lines[0], "サウンド設定　　　モノラル");
+    }
+    if (!((PlayerProfile *)PLAYER_PROFILES)->skipBattleAnimation) {
+        sprintf(lines[1], "ポリゴンバトル　　見る");
+    } else {
+        sprintf(lines[1], "ポリゴンバトル　　見ない");
+    }
+    drawIconTextColored(x, y, 7, 0, rgb, window->z, lines[0]);
+    drawIconTextColored(x, y + 14, 7, 0, rgb, window->z, lines[1]);
+}
 
 /* loads the TIMs of file path into VRAM (as loadTimFile) */
 void func_800463F0(char *path) {

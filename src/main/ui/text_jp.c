@@ -1203,6 +1203,126 @@ s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 proportional, u8 *rgb, s3
 }
 
 /* drawIconTextColored's layout without drawing: sets TEXT_WIDTH and
-   TEXT_HEIGHT and returns the width. Our C hoists TEXT_WIDTH's address out of
-   the loop, which jp's (a bigger loop then) didn't; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/ui/text_jp", measureText);
+   TEXT_HEIGHT and returns the width */
+s32 measureText(s32 proportional, u8 *text) {
+    KanjiGlyph glyph;
+    s32 x;
+    s32 y;
+    s32 startX; /* 0: drawIconTextColored's layout from x = 0 */
+    s32 lineSpacing;
+    s32 spaceWidth;
+    s32 spacing;
+    s32 found;
+    u8 *sjis;
+
+    x = 0;
+    y = 0;
+    spacing = 0;
+    startX = 0;
+    lineSpacing = 0;
+    spaceWidth = 6;
+    TEXT_WIDTH = 0;
+    TEXT_HEIGHT = 0;
+    glyph.left = 0;
+    glyph.right = 0;
+    while (*text != 0) {
+        if ((u8)(*text + 0x7F) >= 0x18) {
+            switch (*text) {
+            case 'a':
+            case 'b':
+            case 'd':
+            case 'e':
+                text += 2;
+                x += 12;
+                break;
+            case 'c':
+                text += 2;
+                break;
+            case 's':
+                text++;
+                proportional = *text++ - '0';
+                break;
+            case 'w':
+                text++;
+                if (*text == '-') {
+                    text++;
+                    spacing = '0' - *text++;
+                } else {
+                    spacing = *text++ - '0';
+                }
+                break;
+            case 'h':
+                text++;
+                if (*text == '-') {
+                    text++;
+                    lineSpacing = '0' - *text++;
+                } else {
+                    lineSpacing = *text++ - '0';
+                }
+                break;
+            case 'z':
+                text++;
+                if (spaceWidth == 6) {
+                    spaceWidth = 12;
+                } else {
+                    spaceWidth = 6;
+                }
+                break;
+            case ' ':
+                text++;
+                x += spaceWidth + spacing;
+                break;
+            case '\n':
+                text++;
+                /* no braces: they would add a note to the loop that makes
+                   GCC's loop.c hoist TEXT_WIDTH's address, which jp's
+                   doesn't */
+                if (TEXT_WIDTH < x - startX)
+                    TEXT_WIDTH = x - startX;
+                x = startX;
+                y += 13;
+                y += lineSpacing;
+                break;
+            default:
+                if (*text >= '0' && *text <= '9') {
+                    sjis = &SJIS_DIGITS[(*text - '0') * 2];
+                    found = findKanji(sjis, &glyph);
+                    if (found == -1) {
+                        found = addKanji(sjis, &glyph);
+                    }
+                    if (proportional == 0) {
+                        glyph.left = 0;
+                        glyph.right = 12;
+                    }
+                    if (found == 0) {
+                        x += glyph.right - glyph.left + spacing;
+                    } else if (found == 1) {
+                        x += glyph.right + spacing;
+                    }
+                }
+                text++;
+                break;
+            }
+        } else {
+            found = findKanji(text, &glyph);
+            if (found == -1) {
+                found = addKanji(text, &glyph);
+            }
+            if (proportional == 0) {
+                glyph.left = 0;
+                glyph.right = 12;
+            }
+            if (found == 0) {
+                x += glyph.right - glyph.left + spacing;
+            } else if (found == 1) {
+                x += glyph.right + spacing;
+            }
+            text += 2;
+        }
+    }
+    if (TEXT_WIDTH < x - startX) {
+        TEXT_WIDTH = x - startX;
+    }
+    TEXT_HEIGHT = y + 12;
+    return TEXT_WIDTH;
+}
