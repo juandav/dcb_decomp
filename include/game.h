@@ -149,7 +149,7 @@ typedef struct {
     s16 rotX;
     s16 rotY;
     s16 rotZ;
-    u8 pad5A[0x2];
+    /* 0x5A */ s16 unk5A; /* only jp's camera task sets it */
     /* 0x5C */ s32 originX; /* the negated look-at position */
     /* 0x60 */ s32 originY;
     /* 0x64 */ s32 originZ;
