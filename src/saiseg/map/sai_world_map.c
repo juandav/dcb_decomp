@@ -463,11 +463,6 @@ void SAI_drawMapAnims(s8 mode) {
     }
 }
 
-#if VERSION_EU
-/* eu: keeps &uv in s1 for the whole loop; no C form found yet */
-INCLUDE_RODATA("saiseg/nonmatchings/map/sai_world_map", D_801E11F4);
-INCLUDE_ASM("saiseg/nonmatchings/map/sai_world_map", SAI_drawRegion0Anims);
-#elif VERSION_US
 void SAI_drawRegion0Anims(void) {
     Rect16 uv[8] = {
         { 0x00, 0x00, 0x20, 0x10 },
@@ -489,9 +484,9 @@ void SAI_drawRegion0Anims(void) {
         }
         frame = SAI_MAP_ANIMS[i].timer / SAI_MAP_ANIMS[i].frameTime;
         if (i == 4) {
-            uv[4].x += uv[4].w * (frame / 3);
-            uv[4].y = (frame % 3) * uv[4].h;
-            drawTexturedSprite(SAI_MAP_ANIMS[i].x, SAI_MAP_ANIMS[i].y, &uv[4], 0x3E, 0x7C3B, 0x23, 0x80, 1);
+            uv[i].x += uv[i].w * (frame / 3);
+            uv[i].y = (frame % 3) * uv[i].h;
+            drawTexturedSprite(SAI_MAP_ANIMS[i].x, SAI_MAP_ANIMS[i].y, &uv[i], 0x3E, 0x7C3B, 0x23, 0x80, 1);
         } else {
             uv[i].y = frame * uv[i].h;
             drawTexturedSprite(SAI_MAP_ANIMS[i].x, SAI_MAP_ANIMS[i].y, &uv[i], 0x3E, 0x7C3B, 0x21, 0x80, 1);
@@ -500,9 +495,6 @@ void SAI_drawRegion0Anims(void) {
     drawTexturedSprite(0xCC, 0x74, &uv[6], 0x9B, 0x6A18, 0x21, 0x80, 1);
     drawTexturedSprite(0x8F, 0x46, &uv[7], 0x9B, 0x6A18, 0x21, 0x80, 1);
 }
-#else
-#error "saiseg/map/sai_world_map: version not checked"
-#endif
 
 void SAI_drawRegion1Anims(void) {
     Rect16 uv[4] = {

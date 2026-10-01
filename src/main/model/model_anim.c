@@ -44,13 +44,9 @@ void applyRootMotion(Model *model) {
  * the mean of this key's slope and the next one's (towards `next`), and the
  * velocity changes at a constant rate in each half of the key.
  */
-#if VERSION_JP || VERSION_EU
-/* jp and eu: the quotient of the second division lands in a2 instead of
-   v0, a register-allocation difference no C form tried reproduces */
-INCLUDE_ASM("main/nonmatchings/model/model_anim", setupRotationCurve);
-#elif VERSION_US
 void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next) {
     s32 start;
+    s32 nextDelta;
     s32 end;
     s32 slope;
     s32 endVelocity;
@@ -61,12 +57,14 @@ void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLeng
     end = to << 20;
     midVelocity = end - start;
     slope = midVelocity / length;
-    endVelocity = (((next - to) << 20) / nextLength + slope) / 2;
+    /* endVelocity first holds the next key's step */
+    endVelocity = next - to;
+    nextDelta = endVelocity << 20;
+    endVelocity = (nextDelta / nextLength + slope) / 2;
     midVelocity = slope * 2 - (endVelocity + chan->velocity) / 2;
     chan->accel0 = (midVelocity - chan->velocity) / halfLength;
     chan->accel1 = (endVelocity - midVelocity) / halfLength;
 }
-#endif
 
 /* setupRotationCurve for the channels kept << 16 */
 void setupTranslationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next) {

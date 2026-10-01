@@ -98,7 +98,7 @@ SAISEG_C_SRC := \
 		sai_sprite.c sai_text.c)
 SUBSEG_C_SRC := \
 	$(addprefix src/subseg/deck/, sub_auto_deck.c sub_base_deck.c \
-		sub_deck_editor.c sub_name_entry.c sub_sort.c) \
+		sub_deck_editor.c sub_deck_screens.c sub_name_entry.c sub_sort.c) \
 	src/subseg/partner/sub_partner.c \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
