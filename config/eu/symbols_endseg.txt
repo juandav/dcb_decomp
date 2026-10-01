@@ -1,0 +1,9 @@
+// ENDSEG's own symbols, which only its splat config reads
+
+// names from us (tools/match_versions.py --seed): the same function or datum
+END_computeEpithet = 0x801E1164; // type:func
+END_drawCardThumbnail = 0x801E18D4; // type:func
+END_drawUnknownCardThumbnail = 0x801E1C04; // type:func
+END_drawScrollHelp = 0x801E1D50; // type:func
+END_runPlayerRecords = 0x801E1DC4; // type:func
+// end of the names from us

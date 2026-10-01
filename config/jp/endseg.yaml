@@ -27,6 +27,8 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/jp/symbols.txt
+    # and its own
+    - config/jp/symbols_endseg.txt
   undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_endseg.txt
   undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_endseg.txt
 
