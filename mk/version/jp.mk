@@ -16,6 +16,9 @@ OVERLAYS := endseg intseg kawseg nisseg saiseg subseg sugseg
 # 2.95.2 (2.8.0 gives the same code): it copies a register that already
 # holds a constant where 2.95.2 loads the constant again
 GCC_VERSION := 2.8.1
+# and assembled with an ASPSX that expands div and rem with their checks for
+# a zero divisor and for overflow, as PsyQ's libraries are
+MASPSX_EXTRA := --expand-div
 
 # The source files this version builds (see mk/version/us.mk): the modules
 # that build from the same C as us's, by subsystem. The rest of every binary

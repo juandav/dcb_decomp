@@ -60,7 +60,8 @@ CPPFLAGS := $(INC) -undef -nostdinc -Wundef \
 	    -DVERSION_$(VERSION_UPPER) -DASM_DIR='"$(ASM_DIR)"'
 CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	    -fgnu-linker -Wall -Wno-unused
-MASPSXFLAGS := --aspsx-version=2.86
+# a version can add its own (MASPSX_EXTRA in mk/version/<version>.mk)
+MASPSXFLAGS := --aspsx-version=2.86 $(MASPSX_EXTRA)
 # jump tables sit where the original files put them; see tools/fix_jtbl_align.py
 ALIGN_FIX := $(PYTHON) tools/fix_jtbl_align.py
 CC1_POST := cat
