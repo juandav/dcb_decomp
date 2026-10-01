@@ -41,7 +41,7 @@ SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_gradient.c \
 		sug_effect_script.c sug_history.c sug_light_motion.c \
 		sug_model_effect_jp.c sug_scroll_texture.c sug_sphere.c \
-		sug_sprite_effect.c sug_tex_anim.c) \
+		sug_sprite_effect.c sug_tex_anim.c sug_trail.c) \
 	$(addprefix src/sugseg/model/, effect_object.c effect_prims.c \
 		streak_particles.c)
 KAWSEG_C_SRC := \

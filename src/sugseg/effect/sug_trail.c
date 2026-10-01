@@ -15,9 +15,16 @@ void SUG_setTrailColors(TrailEffect *obj, u8 kind, Bytes4 *c0, Bytes4 *c1, Bytes
 void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 texAnimId, Rect16 *uv, s32 tpage, s32 clut);
 void SUG_shadeTrailPrims(TrailEffect *obj);
 
+/* jp's trails never start a texture animation, so they take no pak */
+#if VERSION_JP
+TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
+                           s32 count, s16 rows, u8 followMode, u8 colorMode, u8 semiTrans, u8 blend, u8 primKind, u8 texAnimId, Rect16 *uv, s32 tpage, s32 clut,
+                           s32 otz) {
+#elif VERSION_US || VERSION_EU
 TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes4 *c2, Bytes4 *c3, EffectTemplate *template, s16 x0, s16 x1,
                            s32 count, s16 rows, u8 followMode, u8 colorMode, u8 semiTrans, u8 blend, u8 primKind, s32 texAnimId, Rect16 *uv, s32 tpage, s32 clut,
                            s32 otz, s32 pak) {
+#endif
     TrailEffect *obj;
     s32 i;
 
@@ -25,8 +32,12 @@ TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes
     for (i = 0; i < 2; i++) {
         obj->histories[i] = SUG_createPosHistory(count + 1, rows);
     }
+#if VERSION_JP
+    obj->texAnimId = -1;
+#elif VERSION_US || VERSION_EU
     obj->clut = clut;
     obj->tpage = tpage;
+#endif
     obj->semiTrans = semiTrans;
     obj->primKind = primKind;
     obj->colorMode = colorMode;
@@ -48,10 +59,12 @@ TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes
     obj->colors = allocTaskHeapBlock(colorMode ? count * 16 : 16);
     SUG_initTrailPrims(obj, semiTrans, blend, primKind, texAnimId, uv, tpage, clut);
     SUG_setTrailColors(obj, colorMode, c0, c1, c2, c3);
+#if VERSION_US || VERSION_EU
     obj->texAnimId = texAnimId;
     if (texAnimId < 100 || SUG_startTexAnim(texAnimId, 4, (RingEffect *)obj, &obj->texAnim, pak) == 0) {
         obj->texAnimId = -1;
     }
+#endif
     return obj;
 }
 
@@ -73,7 +86,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
 
     moved = 0;
     if (obj->suspended != 0) {
-        tickEffectStartDelay(obj);
+        TICK_START_DELAY(obj);
         return;
     }
     PushMatrix();
@@ -205,6 +218,8 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
             transformAndAddPolyG4((s32)g4, (s32)tp, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, obj->semiTrans, 0, obj->otz);
         }
         break;
+    /* jp's trails are never textured */
+#if VERSION_US || VERSION_EU
     case 12:
         ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
         if (obj->texAnimId != -1) {
@@ -233,6 +248,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
             transformAndAddPolyGT4((s32)gt4, (s32)&pos, (s32)&b, (s32)&c, (s32)&d, 0, obj->otz);
         }
         break;
+#endif
     }
     PopMatrix();
 }
@@ -248,9 +264,11 @@ void SUG_freeTrailEffect(TrailEffect *obj) {
         freeHeapBlock(obj->tpages[i]);
         SUG_freePosHistory((void **)obj->histories[i]);
     }
+#if VERSION_US || VERSION_EU
     if (obj->texAnimId >= 0) {
         SUG_freeTexAnim(&obj->texAnim);
     }
+#endif
     freeHeapBlock(obj->colors);
     freeHeapBlock(obj);
 }
@@ -324,6 +342,8 @@ void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 te
             }
         }
         break;
+    /* jp's trails are only lines and gouraud quads, never textured */
+#if VERSION_US || VERSION_EU
     case 12:
         for (i = 0; i < 2; i++) {
             obj->ft4s[i] = allocTaskHeapBlock(obj->count * sizeof(POLY_FT4));
@@ -354,9 +374,12 @@ void SUG_initTrailPrims(TrailEffect *obj, u8 semiTrans, u8 blend, u8 kind, u8 te
         }
         obj->uv = *uv;
         break;
+#endif
     }
 }
 
+/* jp's trails are never textured */
+#if VERSION_US || VERSION_EU
 void SUG_updateTrailUvs(TrailEffect *obj) {
     Rect16 uv;
     POLY_FT4 *ft4;
@@ -405,6 +428,7 @@ void SUG_updateTrailUvs(TrailEffect *obj) {
         }
     }
 }
+#endif
 
 void SUG_shadeTrailPrims(TrailEffect *obj) {
     u8 c0[3];
@@ -474,6 +498,8 @@ void SUG_shadeTrailPrims(TrailEffect *obj) {
                 }
             }
             break;
+        /* jp's trails are never textured */
+#if VERSION_US || VERSION_EU
         case 12:
             ft4 = obj->ft4s[FRAME_BUFFER_INDEX];
             ft42 = obj->ft4s[FRAME_BUFFER_INDEX ^ 1];
@@ -519,6 +545,7 @@ void SUG_shadeTrailPrims(TrailEffect *obj) {
                 }
             }
             break;
+#endif
         }
         obj->prevLevel = obj->level;
     }
