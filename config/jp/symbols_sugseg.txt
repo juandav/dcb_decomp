@@ -118,3 +118,9 @@ SUG_playNoDamageTurn = 0x801FC504; // type:func
 SUG_runPolygonBattle = 0x801FC578; // type:func
 SUG_HUD_TPAGE = 0x801FC9E8;
 // end of the names from us
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+SUG_MODEL_CLUT_RECT = 0x801EA7E8;
+SUG_TAM_CACHE = 0x801FCA40;
+SUG_FMT_SPRITE_PATH = 0x801EA8E4;
+SUG_SPRITE_CACHE = 0x801FCBC8;

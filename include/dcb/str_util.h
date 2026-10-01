@@ -17,6 +17,10 @@ s16 *formatWideNumber(s16 *buf, u8 pad, s32 value, s32 width);
 void formatWideSignedNumber(s16 *buf, s32 value, s32 width);
 s16 *formatWideOrdinal(s16 *buf, s32 rank);
 s8 *formatOrdinalUpper(s8 *buf, s32 rank);
+#if VERSION_JP
+u8 *getSjisGlyph(u8 *str);
+s32 getSjisGlyphIndex(u16 code);
+#endif
 
 #include "dcb/text.h"
 

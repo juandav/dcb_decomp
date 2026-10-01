@@ -801,3 +801,6 @@ SE0_BANK_INFO = 0x8007E5B0;
 SE1_BANK_INFO = 0x8007E5C0;
 SE2_BANK_INFO = 0x8007E5D0;
 SOUND_SEQ_ATTR_TABLE = 0x801E3008;
+getSjisGlyph = 0x80027CBC; // type:func version-only
+getSjisGlyphIndex = 0x80027D4C; // type:func version-only
+FRAME_BUFFER_INDEX = 0x80088BFC;

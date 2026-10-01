@@ -29,6 +29,8 @@ MAIN_C_SRC := \
 	$(addprefix src/main/model/, anim_control.c model_load.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, cd_file.c heap.c sound.c sound_play.c \
-		task.c)
+		task.c) \
+	src/main/ui/str_util.c
 SUGSEG_C_SRC := \
-	src/sugseg/effect/sug_history.c
+	src/sugseg/battle/sug_sprite.c \
+	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c)

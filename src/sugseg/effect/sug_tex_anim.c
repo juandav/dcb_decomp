@@ -6,6 +6,20 @@
 #include "dcb/loader.h"
 #include "dcb/task.h"
 
+/* A TAM header's loop byte: in us and eu, the frame to loop back to in bits
+   1-7 (0x7F: stay on the last one) and in bit 0 whether the frames are moved
+   in VRAM rather than scrolled through the UVs; jp's is the loop frame, and
+   moves the frames when it isn't 0 */
+#if VERSION_JP
+#define TAM_LOOP_FRAME(header) ((header)->loop)
+#define TAM_MOVES_FRAMES(header) ((header)->loop != 0)
+#elif VERSION_US
+#define TAM_LOOP_FRAME(header) ((header)->loop >> 1)
+#define TAM_MOVES_FRAMES(header) ((header)->loop & 1)
+#else
+#error "untested version"
+#endif
+
 extern TamEntry SUG_TAM_CACHE[8];
 
 s32 LoadImage2(Rect16 *rect, u8 *pixels);
@@ -57,7 +71,7 @@ void *SUG_loadTamFile(s32 key, s32 *path, s32 sub, Chunk *pak) {
 s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak) {
     Rect16 *uv;
     s32 slot;
-    u8 y;
+    s32 y;
     s32 dx;
     s32 sub;
     char path[32];
@@ -81,10 +95,19 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
             slot = model->tpageOffset / 0x10000 + 5;
             if (model->id > 1000) {
                 n = model->id / 10;
+#if VERSION_JP
+                sprintf(path, "M:\\HDF%03d\\%03d_%d.tam", n, n, id);
+                if ((u32)((u16)model->id - 4000) >= 1000) {
+                    y = 0x80;
+                }
+#elif VERSION_US
                 sprintf(path, "M:\\HDF%d\\%d_%d.tam", n, n, id);
                 if (((ModelEffect *)model->owner)->clutBank == 0) {
                     y = 0x80;
                 }
+#else
+#error "untested version"
+#endif
                 sub = model->id;
             } else {
                 sprintf(path, "M:\\HDF%03d\\%d.tam", model->id, id);
@@ -96,7 +119,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
         ring = owner;
         if (ring->type == 0xD) {
             uv = (Rect16 *)&ring->texCoords;
-            y = uv->y;
+            y = (u8)uv->y;
             dx = uv->x / 4;
             slot = ring->tpage;
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
@@ -106,20 +129,24 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
         other = (SphereEffect *)owner;
         if (other->kind == 0xD) {
             uv = &other->uv;
-            y = uv->y;
+            y = (u8)uv->y;
             dx = uv->x / 4;
             slot = other->tpage;
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
+#if VERSION_US
     case 4:
         if (((TrailEffect *)owner)->primKind == 12 || ((TrailEffect *)owner)->primKind == 13) {
             uv = &((TrailEffect *)owner)->uv;
-            y = uv->y;
+            y = (u8)uv->y;
             slot = ((TrailEffect *)owner)->tpage;
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
+#elif VERSION_EU
+#error "untested version"
+#endif
     }
     if (slot != 0) {
         anim->timer = 0;
@@ -144,7 +171,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
         }
         anim->dst = (s16 *)uv;
         anim->type = id;
-        if (!(anim->header->loop & 1)) {
+        if (!TAM_MOVES_FRAMES(anim->header)) {
             anim->rect.x += dx;
         }
         return (s32)anim;
@@ -176,12 +203,16 @@ void SUG_tickTexAnim(TexAnim *anim) {
     anim->timer = 0;
     anim->frame++;
     if (anim->frame >= anim->header->count) {
-        anim->frame = anim->header->loop >> 1;
+        anim->frame = TAM_LOOP_FRAME(anim->header);
+#if VERSION_US
         if (anim->frame == 0x7F) {
             anim->frame--;
         }
+#elif VERSION_EU
+#error "untested version"
+#endif
     }
-    if (!(anim->header->loop & 1)) {
+    if (!TAM_MOVES_FRAMES(anim->header)) {
         anim->dst[0] = anim->frames[anim->frame].u + ((anim->rect.x * 4) & 0xFF);
         anim->dst[1] = (anim->rect.y & 0xFF) + anim->frames[anim->frame].v;
     } else {
