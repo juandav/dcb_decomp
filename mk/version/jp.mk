@@ -26,7 +26,7 @@ MASPSX_EXTRA := --expand-div
 MAIN_C_SRC := \
 	src/main/duel/card_zones.c \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
-		prim_util.c tmd_sort.c transform.c vram_upload.c) \
+		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
 		model_load.c scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \

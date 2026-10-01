@@ -456,19 +456,27 @@ typedef struct {
     u32 tag;
     u32 code[2];
 } DR_STP;
+/* The screen copy effect: the last frame drawn again as sprites, or as warped
+   quads. jp's has only the sprites: there stp is at 0x60, x at 0x78, r at 0x7C */
 typedef struct {
     /* 0x000 */ ScreenSprt sprt[2][2];
+#if VERSION_US || VERSION_EU
     /* 0x060 */ POLY_FT4 poly[2][2];
+#endif
     /* 0x100 */ DR_STP stp[2];
     /* 0x118 */ s16 x;
     /* 0x11A */ s16 y;
+#if VERSION_US || VERSION_EU
     /* 0x11C */ s16 px[2][4];
     /* 0x12C */ s16 py[2][4];
+#endif
     /* 0x13C */ u8 r;
     /* 0x13D */ u8 g;
     /* 0x13E */ u8 b;
     /* 0x13F */ u8 mode;
+#if VERSION_US || VERSION_EU
     /* 0x140 */ u16 abr;
+#endif
 } Screen;
 typedef struct {
     u32 tag;
