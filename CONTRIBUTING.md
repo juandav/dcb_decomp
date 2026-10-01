@@ -75,12 +75,27 @@ Verbs: `create*` sets up and opens something, `open*` only opens it, `tick*`
 updates it once per frame, `render*`/`draw*` draws it, `init*`, `load*`,
 `get*`/`set*`, `is*`/`has*`, `add*`/`remove*`, `count*`, `find*`.
 
-Every renamed symbol also goes in `config/us/symbols.txt`, so that splat's
-disassembly of the original uses the same name and objdiff keeps pairing them.
+Every renamed symbol also goes in `config/us/symbols.txt` (an overlay's in
+`config/us/symbols_<overlay>.txt`), so that splat's disassembly of the
+original uses the same name and objdiff keeps pairing them.
 An overlay function or global that the executable uses by address keeps the
 overlay's name there too, but in `config/us/symbols_overlay_calls.txt`, which
 only the executable's splat config reads (another overlay may be loaded at
 that address), with its declaration in `include/dcb/overlay_calls.h`.
+
+The versions share their names: a function or datum is called the same in
+every version, each at its own address. `tools/match_versions.py` pairs the
+functions of jp and eu with us's and, with `--seed`, writes the us names of
+the confident pairs into `config/<version>/symbols.txt` and
+`config/<version>/symbols_<overlay>.txt`; what it can't pair surely keeps
+splat's name for now. So renames go through `tools/rename.py OLD NEW`, which
+renames in every version's symbol files, in `src/` and in `include/` at once,
+keeps an overlay's prefix and refuses a name that already exists. A rename
+made by hand has to touch every version the same way. Then
+`make VERSION=<version> regenerate` each version. The CI runs
+`tools/check_names.py`, which fails when a name in jp's or eu's symbol files
+isn't us's name in the same binary any more; a name only one version has
+(its own code) says so with `version-only` in its comment.
 
 ## Pull requests
 

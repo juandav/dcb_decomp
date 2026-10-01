@@ -6,6 +6,17 @@ on:
 permissions:
   contents: read
 jobs:
+  # Every version names its symbols as us does (tools/check_names.py). It
+  # only reads config/, so it needs no disc and runs for forks too.
+  names:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
+
+    - run: python3 tools/check_names.py
+
   build:
     # The original executable lives in a private repository that only this
     # repository's own runs can read, so builds from forks are skipped.
