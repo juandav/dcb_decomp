@@ -1094,8 +1094,8 @@ typedef struct {
 typedef struct {
     /* 0x000 */ u8 *prims; /* 0x820 bytes, half for each frame buffer */
     /* 0x004 */ struct Panel *panels; /* the duel's HUD panels (battle_hud.h) */
-    /* 0x008 */ void *unk8; /* 0x36C bytes, KAWSEG's (func_801FEC84) */
-    /* 0x00C */ void *unkC; /* 0x40 bytes, KAWSEG's card prize (func_801FDFC4) */
+    /* 0x008 */ void *unk8; /* 0x36C bytes, KAWSEG's (KAW_startTutorial) */
+    /* 0x00C */ void *unkC; /* 0x40 bytes, KAWSEG's card prize (KAW_runCardPrize) */
     /* 0x010 */ PlayerDeck opponentDeck; /* the CPU's, for the next duel */
     /* 0x11C */ s8 cpuStyle[4]; /* copied to Player.cpuPlaceStyle .. cpuSupportStyle */
     /* 0x120 */ s8 deckChoice; /* the saved deck the player takes to a duel against the CPU */
@@ -1293,7 +1293,7 @@ typedef struct {
     /* 0x441 */ s8 cursorMode;
     /* 0x442 */ u8 winner;
     /* 0x443 */ s8 tutorial;
-    /* the tutorial's message window (KAWSEG's func_801FF2C0) */
+    /* the tutorial's message window (KAWSEG's KAW_openTutorialMessage) */
     /* 0x444 */ s8 tutorialClosing;
     /* 0x445 */ s8 tutorialMessage; /* the message to show */
     /* 0x446 */ s8 tutorialShown;

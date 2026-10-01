@@ -27,11 +27,11 @@ extern void *KAW_HAND_CURSOR;
 
 /* the frame colours of KAWSEG's text windows (kaw_hand_jp.c's too) */
 CVECTOR KAW_WINDOW_FRAME_COLORS[3] = { { 0, 0, 0x30, 0 }, { 0xC0, 0xC0, 0xC0, 0 }, { 0xC0, 0xC0, 0xC0, 0 } };
-extern char D_801EB35C[]; /* kaw_match_intro's "w-1%4d" */
+extern char KAW_FMT_FOUR_DIGITS[]; /* kaw_match_intro's "w-1%4d" */
 
 /* Draws prize window index: the card's number, name and stats, and how many
    the player owns; the chosen one is bright */
-void func_801FD108(s32 index, s32 z) {
+void KAW_drawPrizeWindow(s32 index, s32 z) {
     char text[72];
     u8 rgb[4];
     PlayerDeck *deck;
@@ -76,16 +76,16 @@ void func_801FD108(s32 index, s32 z) {
         drawIconTextColored(x + 5, y, 7, 1, rgb, z, text);
         drawIconTextColored(x + 0x32, y, 7, 1, rgb, z, data->name);
         drawIconTextColored(x + 0x2C, y + 0xE, 7, 1, rgb, z, "ＨＰ");
-        sprintf(text, D_801EB35C, data->hp);
+        sprintf(text, KAW_FMT_FOUR_DIGITS, data->hp);
         drawTextColored(x + 0x3C, y + 0xE, text, rgb, 7, z);
         drawIconTextColored(x + 0x2C, y + 0x1A, 7, 1, rgb, z, "b0");
-        sprintf(text, D_801EB35C, data->attack[0].power);
+        sprintf(text, KAW_FMT_FOUR_DIGITS, data->attack[0].power);
         drawTextColored(x + 0x3C, y + 0x1A, text, rgb, 7, z);
         drawIconTextColored(x + 0x2C, y + 0x26, 7, 1, rgb, z, "b1");
-        sprintf(text, D_801EB35C, data->attack[1].power);
+        sprintf(text, KAW_FMT_FOUR_DIGITS, data->attack[1].power);
         drawTextColored(x + 0x3C, y + 0x26, text, rgb, 7, z);
         drawIconTextColored(x + 0x2C, y + 0x32, 7, 1, rgb, z, "b2");
-        sprintf(text, D_801EB35C, data->attack[2].power);
+        sprintf(text, KAW_FMT_FOUR_DIGITS, data->attack[2].power);
         drawTextColored(x + 0x3C, y + 0x32, text, rgb, 7, z);
         sprintf(text, "(%s)", CROSS_EFFECT_SHORT_NAMES[data->crossEffect]);
         drawTinyTextColored(x + 0x5A, y + 0x34, text, 7, rgb, z);
@@ -138,7 +138,7 @@ void func_801FD108(s32 index, s32 z) {
 }
 
 /* Draws the prize's message window: what the state asks or says */
-void func_801FDBF8(void) {
+void KAW_drawPrizeMessage(void) {
     char text[72];
     s32 x;
     s32 y;
@@ -182,7 +182,7 @@ void func_801FDBF8(void) {
 /* The card prize: deals three of the CPU's cards (a Digimon below 0x6C or
    an Option below 0x23), slides their windows in, lets the player take one
    or none, then slides the others out */
-void func_801FDFC4(void) {
+void KAW_runCardPrize(void) {
     s32 i;
     s32 ok;
     s32 card;
@@ -230,10 +230,10 @@ void func_801FDFC4(void) {
                     KAW_CARD_PRIZE->windows[i].x = 0x14;
                 }
             }
-            func_801FD108(i, 1);
+            KAW_drawPrizeWindow(i, 1);
             drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
         }
-        func_801FDBF8();
+        KAW_drawPrizeMessage();
         drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
     }
     do {
@@ -291,15 +291,15 @@ void func_801FDFC4(void) {
             break;
         }
         KAW_drawCursorAt(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
-        func_801FD108(KAW_CARD_PRIZE->choice, 1);
+        KAW_drawPrizeWindow(KAW_CARD_PRIZE->choice, 1);
         drawWindowFrame(&KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice], 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         for (i = 0; i < 3; i++) {
             if (KAW_CARD_PRIZE->choice != i) {
-                func_801FD108(i, 1);
+                KAW_drawPrizeWindow(i, 1);
                 drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
             }
         }
-        func_801FDBF8();
+        KAW_drawPrizeMessage();
         drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
     } while (KAW_CARD_PRIZE->state != 1 && KAW_CARD_PRIZE->state != 4);
     for (timer = 0; timer < 180; timer++) {
@@ -320,7 +320,7 @@ void func_801FDFC4(void) {
                     KAW_CARD_PRIZE->windows[i].y = 0x53;
                 }
             }
-            func_801FD108(i, 1);
+            KAW_drawPrizeWindow(i, 1);
             drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         }
         for (i = 0; i < 3; i++) {
@@ -336,14 +336,14 @@ void func_801FDFC4(void) {
                         KAW_CARD_PRIZE->windows[i].x = 0x154;
                     }
                 }
-                func_801FD108(i, 1);
+                KAW_drawPrizeWindow(i, 1);
                 drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
             }
         }
         if (KAW_CARD_PRIZE->choice != -1) {
             KAW_drawCursorAt(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
         }
-        func_801FDBF8();
+        KAW_drawPrizeMessage();
         drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         if (timer > 60 && (PAD_STATES[0]->rawPressed & PAD_CIRCLE)) {
             playSoundEffect(0xA0);
