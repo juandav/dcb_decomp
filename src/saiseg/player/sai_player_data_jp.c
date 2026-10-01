@@ -144,8 +144,10 @@ void (*SAI_KEY_ITEM_STATES[])(void) = {
 /* the ids of the events that give each item */
 const s16 SAI_KEY_ITEM_EVENTS[14] = { 0x22, 0x85, 0x27, 0x36, 0x3D, 0xBE, -1, 0x4E, 0x87, 0x74, 0xB1, 0x99, -1, 0xD5 };
 
-/* its second loop compares the item's index anew, where our C reuses the
-   index it read the item with */
+/* its second loop sign-extends i anew for the i == 13 test, where our C's
+   CSE reuses the index it read the item with: the original has a CSE
+   barrier there (an empty loop statement before the test matches, which
+   is a loop note and no code); no plain C form found yet */
 INCLUDE_ASM("saiseg/nonmatchings/player/sai_player_data_jp", SAI_findKeyItems);
 
 void SAI_runKeyItems(void) {
