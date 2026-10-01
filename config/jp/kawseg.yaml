@@ -57,7 +57,7 @@ segments:
       - [0x34, .rodata, cpu/kaw_cpu_digivolve]
       - [0x64, .rodata, cpu/kaw_battle_sim]
       - [0x9FC, .rodata, duel/kaw_hand_jp]
-      - [0xF68, rodata, ui/kaw_match_intro]
+      - [0xF68, .rodata, ui/kaw_match_intro_jp]
       - [0x1054, .rodata, ui/kaw_result_jp]
       - [0x106C, .rodata, ui/kaw_prize_jp]
       - [0x1218, rodata, duel/kaw_effect]
@@ -73,7 +73,7 @@ segments:
       - [0x7F70, c, cpu/kaw_cpu_attack]
       - [0x9A20, c, cpu/kaw_battle_sim]
       - [0xDEB4, c, duel/kaw_hand_jp]
-      - [0xFAD8, asm, ui/kaw_match_intro]
+      - [0xFAD8, c, ui/kaw_match_intro_jp]
       - [0x11C04, c, ui/kaw_result_jp]
       - [0x12D20, c, ui/kaw_prize_jp]
       # jp's kaw_hud sets the tutorial up and frees it
@@ -82,7 +82,11 @@ segments:
       - [0x151E8, .data, cpu/kaw_card_queries]
       # jp's card cursor table and help pages (no kaw_duel_menu in jp)
       - [0x15218, .data, duel/kaw_hand_jp]
-      - [0x15270, data, ui/kaw_match_intro]
+      - [0x15270, .data, ui/kaw_match_intro_jp]
+      # the data of kaw_prize_jp, kaw_hud_jp and kaw_exp_jp, still asm
+      - [0x152F0, data, ui/kaw_prize_jp]
+      - [0x152FC, data, ui/kaw_hud_jp]
+      - [0x15374, data, ui/kaw_exp_jp]
       # jp's zeroed data starts with KAW_SUPPORT_REGISTER, as us's kaw_bss
       - [0x15730, data, kaw_bss]
       - [0x15AD0, data, duel/kaw_effect]

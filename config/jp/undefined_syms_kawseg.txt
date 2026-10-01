@@ -1,5 +1,8 @@
 /* addresses KAWSEG uses that none of its objects defines */
 
+/* kaw_match_intro_jp.c's "w-1%4d", which kaw_prize_jp.c prints with too */
+D_801EB35C = 0x801EB35C;
+
 /* from the C of the modules this version builds (tools/version_symbols.py):
    what it calls by address, and the fields of its data that the modules
    still in asm read by splat's names */

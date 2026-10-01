@@ -59,8 +59,8 @@ KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_battle_sim.c kaw_card_queries.c \
 		kaw_cpu.c kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \
 	src/kawseg/duel/kaw_hand_jp.c \
-	$(addprefix src/kawseg/ui/, kaw_exp_jp.c kaw_hud_jp.c kaw_prize_jp.c \
-		kaw_result_jp.c)
+	$(addprefix src/kawseg/ui/, kaw_exp_jp.c kaw_hud_jp.c \
+		kaw_match_intro_jp.c kaw_prize_jp.c kaw_result_jp.c)
 SUBSEG_C_SRC := \
 	$(addprefix src/subseg/deck/, sub_deck_screens_jp.c \
 		sub_name_entry_jp.c) \

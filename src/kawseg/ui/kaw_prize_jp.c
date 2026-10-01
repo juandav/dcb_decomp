@@ -25,7 +25,7 @@ void func_80044790(void *cursor, s32 x, s32 y);
 /* libgpu's */
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
 
-extern void *D_801FFEB0; /* the prize's cursor */
+extern void *KAW_HAND_CURSOR;
 extern CVECTOR D_801FF6D8[];
 extern char D_801EB35C[]; /* kaw_match_intro's "w-1%4d" */
 
@@ -189,7 +189,7 @@ void func_801FDFC4(void) {
     s32 timer;
 
     ((SessionData *)SESSION_DATA)->unkC = allocPermanentHeapBlock(0x40);
-    D_801FFEB0 = func_80044334(1, 0x90, 0x22, 4, 1);
+    KAW_HAND_CURSOR = func_80044334(1, 0x90, 0x22, 4, 1);
     for (i = 0; i < 3; i++) {
         for (;;) {
             card = rand() % 30 + 30;
@@ -290,7 +290,7 @@ void func_801FDFC4(void) {
             }
             break;
         }
-        func_80044790(D_801FFEB0, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
+        func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
         func_801FD108(KAW_CARD_PRIZE->choice, 1);
         drawWindowFrame(&KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice], 0, 0, 0, 0xFF, D_801FF6D8, 1);
         for (i = 0; i < 3; i++) {
@@ -341,7 +341,7 @@ void func_801FDFC4(void) {
             }
         }
         if (KAW_CARD_PRIZE->choice != -1) {
-            func_80044790(D_801FFEB0, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
+            func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
         }
         func_801FDBF8();
         drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, D_801FF6D8, 1);
@@ -354,7 +354,7 @@ void func_801FDFC4(void) {
         func_80043374(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
                       PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].index, 1);
     }
-    func_80044758(D_801FFEB0);
+    func_80044758(KAW_HAND_CURSOR);
     freeHeapBlock(KAW_CARD_PRIZE);
     waitFrames(10);
 }
