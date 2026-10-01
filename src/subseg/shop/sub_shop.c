@@ -38,13 +38,6 @@
    (negative: spent) */
 #define AREA_FLAGS (((SessionData *)SESSION_DATA)->areaSession->flags)
 
-typedef struct {
-    /* 0x00 */ s16 price; /* in hundreds of Bits */
-    /* 0x02 */ u8 type; /* 3 */
-    /* 0x03 */ char name[0x11];
-    /* 0x14 */ char text[4][0x13]; /* "１" to "４": not shown */
-} BoosterPack;
-
 extern u8 CROSS_EFFECT_ICONS[];
 extern char *CROSS_EFFECT_NAMES[];
 extern BoosterPack BOOSTER_PACKS[];
