@@ -64,7 +64,7 @@ segments:
       - [0x50C, .rodata, battle/sug_battle]
       - [0x514, c, effect/sug_history]
       - [0xB44, c, model/effect_object]
-      - [0x25A8, asm, model/effect_prims]
+      - [0x25A8, c, model/effect_prims]
       - [0x381C, asm, effect/sug_sphere]
       - [0x71E0, asm, effect/sug_gradient]
       - [0x866C, asm, effect/sug_model_effect]
@@ -74,7 +74,7 @@ segments:
       - [0xA50C, asm, effect/sug_scroll_texture]
       - [0xAB9C, c, effect/sug_tex_anim]
       # more of us's main/model/effect_prims: the streak particles
-      - [0xB69C, asm, model/streak_particles]
+      - [0xB69C, c, model/streak_particles]
       - [0xC328, asm, effect/sug_light_motion]
       - [0xC890, asm, effect/sug_effect_script]
       - [0xE9AC, c, battle/sug_sprite]

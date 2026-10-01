@@ -26,6 +26,20 @@
 #include "dcb/transform.h"
 #include "dcb/overlay_calls.h"
 
+/* jp links the rings and the streak particles into SUGSEG as two units: its
+   wrappers src/sugseg/model/effect_prims.c and streak_particles.c each build
+   one part of this file. us builds both here. */
+#if VERSION_JP
+#define BUILD_RINGS JP_BUILD_RINGS
+#define BUILD_STREAKS JP_BUILD_STREAKS
+#elif VERSION_US
+#define BUILD_RINGS 1
+#define BUILD_STREAKS 1
+#else
+#error "untested version"
+#endif
+
+#if BUILD_RINGS
 /* per segment, the vertices at its two edge angles on the inner ring, the
    middle ring (midPercent of the way out, in radius and z) and the outer ring */
 void buildRingEffectMesh(RingEffect *ring) {
@@ -92,7 +106,7 @@ RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColo
     ring->innerZ = innerZ;
     ring->outerZ = outerZ;
     /* 6 vertices per segment: inner, middle and outer ring, at both edges */
-    ring->vertices = allocTaskHeapBlock(segments * 48);
+    ring->vertices = allocTaskHeapBlock(ring->n * 48);
     buildRingEffectMesh(ring);
     if (primType == 13) {
         ring->texCoords = *texCoords;
@@ -147,7 +161,7 @@ void renderRingEffect(RingEffect *ring) {
     s32 i;
 
     if (((EffectObject *)ring)->suspended != 0) {
-        tickEffectStartDelay(ring);
+        TICK_START_DELAY(ring);
         return;
     }
     PushMatrix();
@@ -275,7 +289,115 @@ void freeRingEffect(RingEffect *ring) {
     freeHeapBlock(ring->vertices);
     freeHeapBlock(ring);
 }
+#endif
 
+#if BUILD_STREAKS
+/* jp's streak particles have no swirl and no length step */
+#if VERSION_JP
+StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 frames, s16 speedRange, s16 reverse,
+                         s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 axisMode, s32 fixedOtz) {
+    StreakParticles *fx;
+    Particle *particle;
+    LINE_G2 *line;
+    s32 i;
+    s32 spinAngle;
+    s32 angle;
+
+    fx = allocTaskHeapBlock(sizeof(StreakParticles));
+    particle = allocTaskHeapBlock(count * sizeof(Particle));
+    spinAngle = 0;
+    fx->p = particle;
+    if (template == 0) {
+        fx->parent = SCENE_3D->viewMatrix;
+        fx->own = 0;
+    } else {
+        fx->base = *template;
+        initEffectObject(fx);
+        fx->parent = fx;
+        fx->own = 1;
+    }
+    fx->zOffset = zOffset;
+    fx->fixedOtz = fixedOtz;
+    fx->axisMode = axisMode;
+    fx->count = count;
+    fx->frame = 0;
+    fx->frames = frames;
+    fx->rgb[0] = startColor[0];
+    fx->rgb[1] = startColor[1];
+    fx->rgb[2] = startColor[2];
+    fx->drgb[0] = (endColor[0] - fx->rgb[0]) / fx->frames;
+    fx->drgb[1] = (endColor[1] - fx->rgb[1]) / fx->frames;
+    fx->drgb[2] = (endColor[2] - fx->rgb[2]) / fx->frames;
+    fx->direction = reverse == 0 ? 1 : -1;
+    fx->kind = kind;
+    for (i = 0; i < fx->count; i++, particle++) {
+        if (fx->kind == 0) {
+            line = &particle->line[0];
+            SetLineF2(line);
+            setSemiTrans(line, semi);
+            line = &particle->line[1];
+            SetLineF2(line);
+            setSemiTrans(line, semi);
+        } else {
+            line = &particle->line[0];
+            SetLineG2(line);
+            setSemiTrans(line, semi);
+            line->r0 = startColor[0];
+            line->g0 = startColor[1];
+            line->b0 = startColor[2];
+            line->r1 = endColor[0];
+            line->g1 = endColor[1];
+            line->b1 = endColor[2];
+            line++;
+            SetLineG2(line);
+            setSemiTrans(line, semi);
+            line->r0 = startColor[0];
+            line->g0 = startColor[1];
+            line->b0 = startColor[2];
+            line->r1 = endColor[0];
+            line->g1 = endColor[1];
+            line->b1 = endColor[2];
+        }
+        initTransform(particle, (s32)fx->parent, 0, 0, 0, 0, 0, 0);
+        particle->length = length;
+        particle->speed = rand() % speedRange + 1;
+        if (pattern < 3) {
+            particle->rotY = rand() % spreadX - spreadX / 2;
+            particle->rotX = rand() % spreadY - spreadY / 2;
+            particle->rotZ = 0;
+            particle->unk7A = 0;
+        } else {
+            particle->rotY = 0;
+            particle->rotX = 0;
+            particle->rotZ = 0;
+            particle->unk7A = spreadX - 0xB4;
+        }
+        particle->distance = particle->speed * frames;
+        particle->posZ = 0;
+        particle->posY = 0;
+        particle->posX = 0;
+        if (spin != 0) {
+            switch ((s16)(pattern % 3)) {
+            case 0:
+                angle = i << 12;
+                spinAngle = angle / fx->count;
+                particle->posY = spin;
+                break;
+            case 1:
+                spinAngle = rand() % 4096;
+                particle->posY = spin;
+                break;
+            case 2:
+                spinAngle = rand() % 4096;
+                particle->posY = rand() % spin;
+                break;
+            }
+            particle->rotZ = spinAngle;
+        }
+    }
+    return fx;
+}
+#elif VERSION_US
 StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz) {
     StreakParticles *fx;
@@ -395,7 +517,107 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     }
     return fx;
 }
+#else
+#error "untested version"
+#endif
 
+#if VERSION_JP
+void renderStreakParticles(StreakParticles *fx) {
+    Particle *particle;
+    LINE_G2 *line;
+    SVECTOR *vertex;
+    s32 limit;
+    s32 i;
+    s32 frame;
+    s32 length;
+    u32 otz;
+    s32 interp;
+    u8 r;
+    u8 g;
+    u8 b;
+    s32 flag;
+
+    particle = fx->p;
+    /* every particle streaks as long as the first one */
+    length = particle->length * fx->direction;
+    limit = 10000;
+    if (fx->own != 0) {
+        if (((EffectObject *)fx)->suspended != 0) {
+            TICK_START_DELAY(fx);
+            return;
+        }
+        PushMatrix();
+        tickEffectMotion((s32)fx, fx->axisMode);
+        PopMatrix();
+        /* the effect's period rounded up to whole particle cycles */
+        limit = (((EffectObject *)fx)->period + fx->frames - 1) / fx->frames * fx->frames;
+    }
+    PushMatrix();
+    if (fx->kind == 0) {
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->frame + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->posX;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->direction < 0) {
+                    vertex->vz = particle->distance - particle->speed * frame;
+                } else {
+                    vertex->vz = particle->speed * frame;
+                }
+                vertex->vz += fx->zOffset;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vz += length;
+                    otz = RotTransPers((s32)vertex, (s32)&line->r1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->fixedOtz != 0) {
+                            otz = fx->fixedOtz;
+                        }
+                        r = fx->rgb[0] + fx->drgb[0] * frame;
+                        g = fx->rgb[1] + fx->drgb[1] * frame;
+                        b = fx->rgb[2] + fx->drgb[2] * frame;
+                        line->r0 = r;
+                        line->g0 = g;
+                        line->b0 = b;
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
+                    }
+                }
+            }
+            particle++;
+        }
+    } else {
+        for (i = 0; i < fx->count; i++) {
+            frame = fx->frame + i;
+            if (frame < limit) {
+                line = &particle->line[FRAME_BUFFER_INDEX];
+                vertex = (SVECTOR *)&particle->posX;
+                frame %= fx->frames;
+                updateTransformMatrix(particle, 0);
+                if (fx->direction < 0) {
+                    vertex->vz = particle->distance - particle->speed * frame;
+                } else {
+                    vertex->vz = particle->speed * frame;
+                }
+                vertex->vz += fx->zOffset;
+                if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
+                    vertex->vz += length;
+                    otz = RotTransPers((s32)vertex, (s32)&line->x1, &interp, &flag);
+                    if (otz < 0x1000U) {
+                        if (fx->fixedOtz != 0) {
+                            otz = fx->fixedOtz;
+                        }
+                        addPrim(&CURRENT_FRAME_BUFFER->ot[otz], line);
+                    }
+                }
+            }
+            particle++;
+        }
+    }
+    fx->frame++;
+    PopMatrix();
+}
+#elif VERSION_US
 void renderStreakParticles(StreakParticles *fx) {
     Particle *particle;
     LINE_G2 *line;
@@ -417,7 +639,7 @@ void renderStreakParticles(StreakParticles *fx) {
     limit = 10000;
     if (fx->own != 0) {
         if (((EffectObject *)fx)->suspended != 0) {
-            tickEffectStartDelay(fx);
+            TICK_START_DELAY(fx);
             return;
         }
         PushMatrix();
@@ -567,8 +789,12 @@ void renderStreakParticles(StreakParticles *fx) {
     fx->frame++;
     PopMatrix();
 }
+#else
+#error "untested version"
+#endif
 
 void freeStreakParticles(StreakParticles *fx) {
     freeHeapBlock(fx->p);
     freeHeapBlock(fx);
 }
+#endif
