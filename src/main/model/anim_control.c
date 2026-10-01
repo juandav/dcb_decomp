@@ -180,8 +180,8 @@ s32 loadModelAnimation(s32 slot, s32 anim, s32 index, s32 pak) {
     return 0;
 }
 
-void loadModelAnimationFile(s32 slot, s32 anim, s32 index) {
-    loadModelAnimation(slot, anim, index, 0);
+s32 loadModelAnimationFile(s32 slot, s32 anim, s32 index) {
+    return loadModelAnimation(slot, anim, index, 0);
 }
 
 /* Poses the model on the first key of an animation and holds it there. */
