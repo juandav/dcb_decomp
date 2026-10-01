@@ -30,7 +30,15 @@ extern u8 *HELP_BAR_TEXTS[];
 extern u8 *CARD_PACK_NAMES[];
 extern s32 CARD_POLY_COUNT;
 
+#if VERSION_JP
+/* jp's return the duel's result to the caller */
+s32 startCpuDuel(void);
+s32 startVersusDuel(void);
+#elif VERSION_US || VERSION_EU
 void startCpuDuel(s32 deckIndex);
 void startVersusDuel(void);
+#else
+#error "duel_launch.h: version not checked"
+#endif
 
 #endif /* DCB_DUEL_LAUNCH_H */

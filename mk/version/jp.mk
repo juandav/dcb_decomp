@@ -30,13 +30,14 @@ MAIN_C_SRC := \
 	src/main/main.c \
 	src/main/card/player_rank.c \
 	$(addprefix src/main/duel/, card_zones.c cpu_decision.c \
-		duel_setup_jp.c duel_util_jp.c) \
-	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
-		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
+		duel_launch_jp.c duel_setup_jp.c duel_util_jp.c) \
+	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_desc.c \
+		prim_pair.c prim_util.c screen_copy.c tmd_sort.c transform.c \
+		vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
 		model_load.c scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \
-	$(addprefix src/main/system/, angle.c archive.c cd_file.c \
+	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		frame_callback.c game_exit.c heap.c loader.c memcard.c \
 		opening_movie.c pad.c render_loop.c save_checksum.c sound.c \
 		sound_play.c task.c vblank.c) \
