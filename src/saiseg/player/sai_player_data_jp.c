@@ -87,87 +87,87 @@ void SAI_scrollPlayerDataUp(void);
 /* each item's name and the three lines about it */
 char SAI_KEY_ITEM_TEXTS[14][4][0x31] = {
     {
-        "c5\x83" "f\x83W\x83\x94\x83@\x83" "C\x83X", /* c5デジヴァイス */
-        "c6\x82\xCD\x82\xB6\x82\xDC\x82\xE8\x82\xCC\x8AXc7\x82\xC5" "c4\x83o\x83o\x83\x82\x83\x93" "c7\x82\xC9\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* c6はじまりの街c7でc4ババモンc7にもらった */
-        "\x83" "f\x83W\x83\x82\x83\x93\x83\x8F\x81[\x83\x8B\x83h\x93`\x90\xE0\x82\xCC\x97" "E\x8E\xD2\x82\xCC\x82\xA0\x82\xA9\x82\xB5\x81" "B", /* デジモンワールド伝説の勇者のあかし。 */
-        "b0\x83{\x83^\x83\x93\x82\xC5\x83X\x83" "e\x81[\x83^\x83X\x95\\\x8E\xA6", /* b0ボタンでステータス表示 */
+        "c5デジヴァイス",
+        "c6はじまりの街c7でc4ババモンc7にもらった",
+        "デジモンワールド伝説の勇者のあかし。",
+        "b0ボタンでステータス表示",
     },
     {
-        "c5\x83j\x83Z\x83o\x83O\x83J\x81[\x83h", /* c5ニセバグカード */
-        "c6\x83t\x83@\x83N\x83g\x83\x8A\x83" "A\x83\x8B\x83^\x83" "E\x83\x93" "c7\x82\xC5" "c4\x83G\x83" "e\x83\x82\x83\x93" "c7\x82\xC9", /* c6ファクトリアルタウンc7でc4エテモンc7に */
-        "\x8D\xEC\x82\xC1\x82\xC4\x82\xE0\x82\xE7\x82\xC1\x82\xBD\x83o\x83O\x83J\x81[\x83h\x82\xCC\x83j\x83Z\x83\x82\x83m\x81" "B", /* 作ってもらったバグカードのニセモノ。 */
+        "c5ニセバグカード",
+        "c6ファクトリアルタウンc7でc4エテモンc7に",
+        "作ってもらったバグカードのニセモノ。",
         "", /*  */
     },
     {
-        "c5\x83j\x83Z\x83\x81\x83^\x83\x8B\x83O\x83\x8C\x83" "C\x83\x82\x83\x93\x83J\x81[\x83h", /* c5ニセメタルグレイモンカード */
-        "c6\x82\xCD\x82\xB6\x82\xDC\x82\xE8\x82\xCC\x8AXc7\x82\xC5" "c4\x83x\x83^\x83\x82\x83\x93" "c7\x82\xC9\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* c6はじまりの街c7でc4ベタモンc7にもらった */
-        "\x83\x81\x83^\x83\x8B\x83O\x83\x8C\x83" "C\x83\x82\x83\x93\x83J\x81[\x83h\x82\xCC\x83j\x83Z\x83\x82\x83m\x81" "B", /* メタルグレイモンカードのニセモノ。 */
+        "c5ニセメタルグレイモンカード",
+        "c6はじまりの街c7でc4ベタモンc7にもらった",
+        "メタルグレイモンカードのニセモノ。",
         "", /*  */
     },
     {
-        "c5\x8F\x91\x82\xAB\x92u\x82\xAB", /* c5書き置き */
-        "c6\x96\xC0\x82\xED\x82\xB8\x82\xCC\x90Xc7\x82\xC5" "c4\x83N\x83l\x83\x82\x83\x93" "c7\x82\xC9\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* c6迷わずの森c7でc4クネモンc7にもらった */
-        "c4\x83K\x83u\x83\x82\x83\x93" "c7\x82\xCC\x8F\x91\x82\xAB\x92u\x82\xAB\x81" "B\x81i\x82\xBF\x82\xE5\x82\xC1\x82\xC6\x89\xF6\x82\xB5\x82\xA2\x81" "c\x81j", /* c4ガブモンc7の書き置き。（ちょっと怪しい…） */
+        "c5書き置き",
+        "c6迷わずの森c7でc4クネモンc7にもらった",
+        "c4ガブモンc7の書き置き。（ちょっと怪しい…）",
         "", /*  */
     },
     {
-        "c5\x88\xC5\x8BM\x91\xB0\x82\xCC\x8A\xD9\x82\xCC\x83J\x83M", /* c5闇貴族の館のカギ */
-        "c6\x83I\x81[\x83o\x81[\x83" "f\x83\x8B" "c7\x82\xCC" "c4\x83o\x83P\x83\x82\x83\x93" "c7\x82\xAA" "c6\x97\xB3\x82\xCC\x96\xDA\x82\xCC\x8C\xCE" "c7\x82\xC5", /* c6オーバーデルc7のc4バケモンc7がc6竜の目の湖c7で */
-        "\x82\xC8\x82\xAD\x82\xB5\x82\xBD\x83J\x83M\x81" "Bc4\x83" "C\x83K\x83\x82\x83\x93" "c7\x82\xAA\x8F" "E\x82\xC1\x82\xC4\x82\xA2\x82\xBD\x81" "B", /* なくしたカギ。c4イガモンc7が拾っていた。 */
+        "c5闇貴族の館のカギ",
+        "c6オーバーデルc7のc4バケモンc7がc6竜の目の湖c7で",
+        "なくしたカギ。c4イガモンc7が拾っていた。",
         "", /*  */
     },
     {
-        "c5\x8C\xCE\x82\xCC\x82\xCA\x82\xB5\x82\xCC\x93J", /* c5湖のぬしの笛 */
-        "c6\x83t\x83\x8A\x81[\x83Y\x83\x89\x83\x93\x83hc7\x82\xC5" "c4\x83\x82\x83W\x83\x83\x83\x82\x83\x93" "c7\x82\xAA\x82\xAD\x82\xEA\x82\xBD", /* c6フリーズランドc7でc4モジャモンc7がくれた */
-        "\x95s\x8Ev\x8B" "c\x82\xC8\x93J\x81" "B", /* 不思議な笛。 */
+        "c5湖のぬしの笛",
+        "c6フリーズランドc7でc4モジャモンc7がくれた",
+        "不思議な笛。",
         "", /*  */
     },
     {
-        "\x83G\x83\x93\x83W\x83" "F\x83\x82\x83\x93\x83X\x83^\x83`\x83\x85\x81[", /* エンジェモンスタチュー */
-        "\x82\xA2\x82\xA2\x82\xA2\x82\xA2\x82\xA2", /* いいいいい */
-        "\x82\xA2\x82\xA2\x82\xA2\x82\xA2\x82\xA2", /* いいいいい */
-        "\x82\xA2\x82\xA2\x82\xA2\x82\xA2\x82\xA2", /* いいいいい */
+        "エンジェモンスタチュー",
+        "いいいいい",
+        "いいいいい",
+        "いいいいい",
     },
     {
-        "c5\x83I\x83" "C\x83\x8B\x83^\x83\x93\x83N", /* c5オイルタンク */
-        "c6\x83h\x83\x8A\x83\x8B\x83g\x83\x93\x83l\x83\x8B" "c7\x82\xC5" "c4\x83^\x83\x93\x83N\x83\x82\x83\x93" "c7\x82\xAA\x90Z\x82\xA9\x82\xC1\x82\xC4", /* c6ドリルトンネルc7でc4タンクモンc7が浸かって */
-        "\x82\xA2\x82\xBD\x83I\x83" "C\x83\x8B\x81" "B", /* いたオイル。 */
+        "c5オイルタンク",
+        "c6ドリルトンネルc7でc4タンクモンc7が浸かって",
+        "いたオイル。",
         "", /*  */
     },
     {
-        "c5\x83g\x83" "C\x83\x8C\x83" "b\x83g\x83y\x81[\x83p\x81[", /* c5トイレットペーパー */
-        "c6\x83t\x83@\x83N\x83g\x83\x8A\x83" "A\x83\x8B\x83^\x83" "E\x83\x93" "c7\x82\xC5" "c4\x83G\x83" "e\x83\x82\x83\x93" "c7\x82\xC9\x8D\xEC\x82\xC1\x82\xC4", /* c6ファクトリアルタウンc7でc4エテモンc7に作って */
-        "\x82\xE0\x82\xE7\x82\xC1\x82\xBD\x83g\x83" "C\x83\x8C\x83" "b\x83g\x83y\x81[\x83p\x81[\x82P\x82O\x82O\x8C\xC2\x81" "B", /* もらったトイレットペーパー１００個。 */
+        "c5トイレットペーパー",
+        "c6ファクトリアルタウンc7でc4エテモンc7に作って",
+        "もらったトイレットペーパー１００個。",
         "", /*  */
     },
     {
-        "c5\x82\xE2\x82\xC1\x82\xBD\x82\xE9\x82\xC5\x81[\x8B\xA6\x89\xEF\x89\xEF\x88\xF5\x8F\xD8", /* c5やったるでー協会会員証 */
-        "c6\x83~\x83n\x83\x89\x83V\x8ERc7\x82\xC5" "c4\x83S\x83u\x83\x8A\x83\x82\x83\x93" "c7\x82\xAA\x97\x8E\x82\xC6\x82\xB5\x82\xC4\x82\xA2\x82\xC1\x82\xBD", /* c6ミハラシ山c7でc4ゴブリモンc7が落としていった */
-        "\x82\xE2\x82\xC1\x82\xBD\x82\xE9\x82\xC5\x81[\x8B\xA6\x89\xEF\x82\xCC\x96\xBC\x97_\x89\xEF\x88\xF5\x8F\xD8\x81" "B", /* やったるでー協会の名誉会員証。 */
+        "c5やったるでー協会会員証",
+        "c6ミハラシ山c7でc4ゴブリモンc7が落としていった",
+        "やったるでー協会の名誉会員証。",
         "", /*  */
     },
     {
-        "c5\x83y\x81[\x83p\x81[\x83" "c\x83\x8A\x81[", /* c5ペーパーツリー */
-        "c6\x83~\x83X\x83" "e\x83" "B\x83" "c\x83\x8A\x81[\x83Yc7\x82\xC5" "c4\x83R\x83J\x83g\x83\x8A\x83\x82\x83\x93" "c7\x82\xC9\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* c6ミスティツリーズc7でc4コカトリモンc7にもらった */
-        "\x83g\x83" "C\x83\x8C\x83" "b\x83g\x83y\x81[\x83p\x81[\x82\xCC\x8C\xB4\x97\xBF\x81" "B", /* トイレットペーパーの原料。 */
+        "c5ペーパーツリー",
+        "c6ミスティツリーズc7でc4コカトリモンc7にもらった",
+        "トイレットペーパーの原料。",
         "", /*  */
     },
     {
-        "c5\x83Q\x83R\x83\x82\x83\x93\x8E\xCA\x90^", /* c5ゲコモン写真 */
-        "c6\x83Q\x83" "b\x83R\x81[\x8E\xBC\x92nc7\x82\xC5" "c4\x83Q\x83R\x83\x82\x83\x93" "c7\x82\xA9\x82\xE7\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* c6ゲッコー湿地c7でc4ゲコモンc7からもらった */
-        "c4\x83g\x83m\x83T\x83}\x83Q\x83R\x83\x82\x83\x93" "c7\x82\xCC\x8E\xCA\x90^", /* c4トノサマゲコモンc7の写真 */
+        "c5ゲコモン写真",
+        "c6ゲッコー湿地c7でc4ゲコモンc7からもらった",
+        "c4トノサマゲコモンc7の写真",
         "", /*  */
     },
     {
-        "\x83y\x81[\x83p\x81[\x83" "c\x83\x8A\x81[", /* ペーパーツリー */
-        "\x83~\x83X\x83" "e\x83" "B\x83" "c\x83\x8A\x81[\x83Y\x82\xC5\x83R\x83J\x83g\x83\x8A\x83\x82\x83\x93\x82\xC9\x82\xE0\x82\xE7\x82\xC1\x82\xBD", /* ミスティツリーズでコカトリモンにもらった */
-        "\x83g\x83" "C\x83\x8C\x83" "b\x83g\x83y\x81[\x83p\x81[\x82\xCC\x8C\xB4\x97\xBF\x81" "B", /* トイレットペーパーの原料。 */
+        "ペーパーツリー",
+        "ミスティツリーズでコカトリモンにもらった",
+        "トイレットペーパーの原料。",
         "", /*  */
     },
     {
-        "c5\x83O\x83\x8C\x81[\x83g\x83G\x83\x93\x83W\x83" "F\x83X\x83^\x83`\x83\x85\x81[\x81i\x95X\x91\x9C\x81j", /* c5グレートエンジェスタチュー（氷像） */
-        "c6\x83t\x83\x8A\x81[\x83Y\x83\x89\x83\x93\x83hc7\x82\xCC" "c4\x83G\x83\x93\x83W\x83" "F\x83\x82\x83\x93" "c7\x82\xAA\x91\xE5\x8E\x96\x82\xC9\x82\xB5\x82\xC4", /* c6フリーズランドc7のc4エンジェモンc7が大事にして */
-        "\x82\xA2\x82\xBD\x95X\x91\x9C\x81" "Bc4\x83I\x81[\x83K\x83\x82\x83\x93" "c7\x82\xAA\x89" "B\x82\xB5\x8E\x9D\x82\xC1\x82\xC4\x82\xA2\x82\xBD\x81" "B", /* いた氷像。c4オーガモンc7が隠し持っていた。 */
+        "c5グレートエンジェスタチュー（氷像）",
+        "c6フリーズランドc7のc4エンジェモンc7が大事にして",
+        "いた氷像。c4オーガモンc7が隠し持っていた。",
         "", /*  */
     },
 };
@@ -464,51 +464,51 @@ void SAI_drawPlayerData(JpWindow *win) {
 
     top = SAI_KEY_ITEMS.scrollY;
     y = top + 0x3B;
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x96\xBC\x91O"); /* 名前 */
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"名前");
     drawIconText(0x91, y, 7, 1, win->z, (s32)PLAYER_DATA(0).name);
     y = top + 0x4B;
     /* 所持金　　　　　　　　　d0 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x8F\x8A\x8E\x9D\x8B\xE0\x81@\x81@\x81@\x81@\x81@\x81@\x81@\x81@\x81@d0");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"所持金　　　　　　　　　d0");
     sprintf(money, "w-1%6d", PLAYER_DATA(0).bits);
     drawText(0x91, y, (s32)money, 7, win->z);
     y = top + 0x5B;
     /* バトル称号 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x83o\x83g\x83\x8B\x8F\xCC\x8D\x86");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"バトル称号");
     drawIconText(0x91, y, 7, 1, win->z, (s32)STR_TAMER_RANKS[PLAYER_DATA(0).tamerRank]);
     y = top + 0x6B;
     /* コレクト称号 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x83R\x83\x8C\x83N\x83g\x8F\xCC\x8D\x86");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"コレクト称号");
     drawIconText(0x91, y, 7, 1, win->z, (s32)STR_COLLECTOR_RANKS[PLAYER_DATA(0).collectorRank]);
     y = top + 0x7B;
     /* ２Ｐ対戦称号 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82Q\x82o\x91\xCE\x90\xED\x8F\xCC\x8D\x86");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"２Ｐ対戦称号");
     drawIconText(0x91, y, 7, 1, win->z, (s32)STR_BATTLE_RANKS[PLAYER_DATA(0).battleRank]);
     y = top + 0x8B;
     /* ＣＯＭ対戦成績 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82" "b\x82n\x82l\x91\xCE\x90\xED\x90\xAC\x90\xD1");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"ＣＯＭ対戦成績");
     sprintf(count, "w-1%3d", PLAYER_DATA(0).battleWins);
     drawText(0x98, y, (s32)count, 7, win->z);
-    drawIconText(0xAF, y, 7, 1, win->z, (s32)"\x8F\x9F"); /* 勝 */
+    drawIconText(0xAF, y, 7, 1, win->z, (s32)"勝");
     sprintf(count, "w-1%3d", PLAYER_DATA(0).battleLosses);
     drawText(0xC3, y, (s32)count, 7, win->z);
-    drawIconText(0xDB, y, 7, 1, win->z, (s32)"\x94s"); /* 敗 */
+    drawIconText(0xDB, y, 7, 1, win->z, (s32)"敗");
     y = top + 0x9B;
     /* ２Ｐ対戦成績 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82Q\x82o\x91\xCE\x90\xED\x90\xAC\x90\xD1");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"２Ｐ対戦成績");
     sprintf(count, "w-1%3d", PLAYER_DATA(0).versusWins);
     drawText(0x98, y, (s32)count, 7, win->z);
-    drawIconText(0xAF, y, 7, 1, win->z, (s32)"\x8F\x9F");
+    drawIconText(0xAF, y, 7, 1, win->z, (s32)"勝");
     sprintf(count, "w-1%3d", PLAYER_DATA(0).versusLosses);
     drawText(0xC3, y, (s32)count, 7, win->z);
-    drawIconText(0xDB, y, 7, 1, win->z, (s32)"\x94s");
+    drawIconText(0xDB, y, 7, 1, win->z, (s32)"敗");
     y = top + 0xAB;
     /* ＳＡＶＥ回数 */
-    drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82r\x82`\x82u\x82" "d\x89\xF1\x90\x94");
+    drawIconText(0x2D, y, 6, 1, win->z, (s32)"ＳＡＶＥ回数");
     sprintf(count, "w-1%3d", PLAYER_DATA(0).saveCount);
     drawText(0x98, y, (s32)count, 7, win->z);
-    drawIconText(0xAF, y, 7, 1, win->z, (s32)"\x89\xF1"); /* 回 */
+    drawIconText(0xAF, y, 7, 1, win->z, (s32)"回");
     /* 攻撃使用率 */
-    drawIconText(0x2D, top + 0xBB, 6, 1, win->z, (s32)"\x8DU\x8C\x82\x8Eg\x97p\x97\xA6");
+    drawIconText(0x2D, top + 0xBB, 6, 1, win->z, (s32)"攻撃使用率");
     y = top + 0xCB;
     total = PLAYER_DATA(0).attackCounts[2] + (PLAYER_DATA(0).attackCounts[0] + PLAYER_DATA(0).attackCounts[1]);
     for (i = 0; i < 3; i++) {
@@ -518,7 +518,7 @@ void SAI_drawPlayerData(JpWindow *win) {
             rate = 0;
         }
         /* b%d　　．w7％ */
-        sprintf(line, "b%d\x81@\x81@\x81" "Dw7\x81\x93", i);
+        sprintf(line, "b%d　　．w7％", i);
         drawIconText(0x91, y, 7, 0, win->z, (s32)line);
         sprintf(line, "w-1%3d", (u16)(rate / 10));
         drawText(0x9E, y, (s32)line, 7, 0);
