@@ -156,7 +156,9 @@ typedef struct {
 typedef struct {
     /* 0x00 */ s8 unk0;
     /* 0x01 */ s8 state;
-    /* 0x02 */ u8 unk2[0x4C];
+    /* 0x02 */ u8 unk2[0x36];
+    /* 0x38 */ CVECTOR colors[3]; /* what drawWindowFrame draws its frame with */
+    /* 0x44 */ u8 unk44[0xA];
     /* 0x4E */ s16 z;
 } JpWindow;
 

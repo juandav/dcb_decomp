@@ -181,20 +181,20 @@ void resetPlayerData(void) {
     ((SessionData *)SESSION_DATA)->otherPad = 0;
     for (k = 0; k < 7; k++) {
         for (j = 0; j < 2; j++) {
-            PLAYER_DATA(0).tickers[k].unk2 = 0;
-            PLAYER_DATA(0).tickers[k].timer = -1;
-            PLAYER_DATA(0).tickers[k].unk3 = 0;
+            PLAYER_DATA(0).shops[k].soldBits = 0;
+            PLAYER_DATA(0).shops[k].timer = -1;
+            PLAYER_DATA(0).shops[k].starterStock = 0;
             if (k < 2) {
-                PLAYER_DATA(0).tickers[k].period = 3;
+                PLAYER_DATA(0).shops[k].period = 3;
             } else {
-                PLAYER_DATA(0).tickers[k].period = 5;
+                PLAYER_DATA(0).shops[k].period = 5;
             }
             for (i = 0; i < 7; i++) {
-                PLAYER_DATA(0).tickers[k].values[i][j] = rand();
+                PLAYER_DATA(0).shops[k].seeds[i][j] = rand();
             }
         }
     }
-    PLAYER_DATA(0).tickers[0].unk3 = 1;
+    PLAYER_DATA(0).shops[0].starterStock = 1;
 }
 
 void openWindowTaskWindow(WindowTask *task) {
