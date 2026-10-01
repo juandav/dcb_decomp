@@ -45,7 +45,7 @@ u8 DP_GAIN_RGB[4] = { 0x80, 0x80, 0x80 };
     (p)->pos.vz = 0 - (0 - (p)->start.vz) * (p)->count / (p)->total
 
 /* the panel all the duel shares */
-void func_8003C244(void) {
+void tickMessageBarPanel(void) {
     Panel *panel;
 
     panel = HUD_PANEL(22);
@@ -87,7 +87,7 @@ void func_8003C244(void) {
     }
 }
 
-void func_8003C4AC(s32 player) {
+void tickShownDigimonPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 6);
@@ -127,7 +127,7 @@ void func_8003C4AC(s32 player) {
     }
 }
 
-void func_8003C738(s32 player) {
+void tickShownOptionPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 7);
@@ -167,7 +167,7 @@ void func_8003C738(s32 player) {
     }
 }
 
-void func_8003C9C4(s32 player) {
+void tickDeckNamePanel(s32 player) {
     Panel *panel;
     Panel *other;
 
@@ -322,7 +322,7 @@ void func_8003C9C4(s32 player) {
     }
 }
 
-void func_8003D338(s32 player) {
+void tickPlayerNamePanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 10);
@@ -362,7 +362,7 @@ void func_8003D338(s32 player) {
     }
 }
 
-void func_8003D5C4(s32 player) {
+void tickAttackListPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 8);
@@ -421,7 +421,7 @@ void func_8003D5C4(s32 player) {
     }
 }
 
-void func_8003D9B4(s32 player) {
+void tickBattleLogPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 9);
@@ -461,7 +461,7 @@ void func_8003D9B4(s32 player) {
     }
 }
 
-void func_8003DC28(s32 player) {
+void tickActiveDigimonPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 0);
@@ -502,7 +502,7 @@ void func_8003DC28(s32 player) {
     }
 }
 
-void func_8003DF60(s32 player) {
+void tickDpPanel(s32 player) {
     Panel *parent;
     Panel *panel;
 
@@ -641,7 +641,7 @@ void func_8003E2A4(s32 player) {
     panel->clut = GetClut(0x370, 0x1AB);
 }
 
-void func_8003E5F8(s32 player) {
+void tickCardTextPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 5);
@@ -681,7 +681,7 @@ void func_8003E5F8(s32 player) {
     }
 }
 
-void func_8003E898(s32 player) {
+void tickCardArtPanel(s32 player) {
     Panel *panel;
 
     panel = PLAYER_PANEL(player, 4);
@@ -731,19 +731,19 @@ void tickBattleHud(void) {
     s32 card;
     s32 dx;
 
-    func_8003C244();
+    tickMessageBarPanel();
     for (i = 0; i < 2; i++) {
-        func_8003C4AC(i);
-        func_8003C738(i);
-        func_8003C9C4(i);
-        func_8003D338(i);
-        func_8003D5C4(i);
-        func_8003D9B4(i);
-        func_8003DC28(i);
-        func_8003DF60(i);
+        tickShownDigimonPanel(i);
+        tickShownOptionPanel(i);
+        tickDeckNamePanel(i);
+        tickPlayerNamePanel(i);
+        tickAttackListPanel(i);
+        tickBattleLogPanel(i);
+        tickActiveDigimonPanel(i);
+        tickDpPanel(i);
         func_8003E2A4(i);
-        func_8003E5F8(i);
-        func_8003E898(i);
+        tickCardTextPanel(i);
+        tickCardArtPanel(i);
     }
     for (player = 0; player < 2; player++) {
         PLAYER(player)->stats[4] = sumDigivolvePoints(player);

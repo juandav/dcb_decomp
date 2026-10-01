@@ -26,10 +26,10 @@
    deck's record */
 
 /* the card_render functions jp's duel calls */
-void func_800425D8(s32 x, s32 y, s32 value, s32 arg3);
-void func_8004227C(s32 x, s32 y, s32 value, s32 arg3);
-void func_800428A0(s32 x, s32 y, s32 value, s32 arg3);
-void func_80042A4C(s32 x, s32 y, s32 value, s32 arg3);
+void drawButtonMarks(s32 x, s32 y, s32 value, s32 arg3);
+void drawStepMark(s32 x, s32 y, s32 value, s32 arg3);
+void drawTurnMark(s32 x, s32 y, s32 value, s32 arg3);
+void drawPlayerMark(s32 x, s32 y, s32 value, s32 arg3);
 s32 KAW_allocCardPolys(s32 count);
 void KAW_freeCardPolys(void);
 /* jp's cursor (us's KAW_createCursor, KAW_freeCursor and KAW_renderCursor) */
@@ -163,7 +163,7 @@ void teardownDuelScene(void) {
 
 /* draws the message bar's message into the shared panel, the players' names
    and wins put in */
-void func_8003F38C(s32 z) {
+void drawMessageBarPanel(s32 z) {
     char text[0x61];
     u8 *src;
     char *dst;
@@ -425,7 +425,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
                 DUEL->marks[i].shown = 1;
             }
         }
-        func_80042A4C(8, j + 0x10, DUEL->humanPlayer, 1);
+        drawPlayerMark(8, j + 0x10, DUEL->humanPlayer, 1);
         if (DUEL->marks[1].owner != DUEL->humanPlayer) {
             for (i = 0; i < 7; i++) {
                 DUEL->marks[i].shown = DUEL->marks[1].shown;
@@ -435,9 +435,9 @@ void runDuel(s32 isCpuDuel, s32 parent) {
                 DUEL->marks[i].shown = DUEL->marks[2].shown;
             }
         }
-        func_8004227C(8, j, DUEL->unk47F, 1);
-        func_800428A0(8, j + 0x10, DUEL->unk482, 1);
-        func_800425D8(8, j + 0x1E, DUEL->unk481, 1);
+        drawStepMark(8, j, DUEL->unk47F, 1);
+        drawTurnMark(8, j + 0x10, DUEL->unk482, 1);
+        drawButtonMarks(8, j + 0x1E, DUEL->unk481, 1);
         tickBattleHud();
         renderBoardCards();
         if (DUEL->cursorSlot >= 0) {
