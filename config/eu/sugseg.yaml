@@ -71,7 +71,7 @@ segments:
       - [0x8BA0, asm, effect/sug_tex_anim]
       - [0x96A4, c, effect/sug_light_motion]
       - [0x9B18, asm, effect/sug_effect_script]
-      - [0xC3C8, asm, effect/sug_screen_copy]
+      - [0xC3C8, c, effect/sug_screen_copy]
       - [0xD17C, asm, battle/sug_sprite]
       - [0xDC88, c, battle/sug_camera]
       - [0xDDAC, asm, battle/sug_hud]
@@ -79,7 +79,7 @@ segments:
       - [0x10FE0, c, sug_bss]
       - [0x10FE0, .data, effect/sug_light_motion]
       - [0x11020, .data, battle/sug_battle]
-      - [0x11024, data, effect/sug_screen_copy]
+      - [0x11024, .data, effect/sug_screen_copy]
       - [0x11028, data, effect/sug_effect_script]
       - [0x11100, .data, sug_bss]
 

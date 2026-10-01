@@ -218,8 +218,15 @@ void SAI_drawDigiPartsList(UiWindow *window) {
     }
 }
 
-/* the last byte is a leftover in the original, not zero padding */
+/* the last byte is a leftover in the original, not zero padding, and not the
+   same in every version */
+#if VERSION_US
 const char SAI_STR_GET_DIGIPARTS_LIST[20] = "GET DIGIPARTS LIST\0\x99";
+#elif VERSION_EU
+const char SAI_STR_GET_DIGIPARTS_LIST[20] = "GET DIGIPARTS LIST\0I";
+#else
+#error "saiseg/player/sai_digi_parts: version not checked"
+#endif
 
 void SAI_drawDigiPartsWindow(void) {
     drawWindow(&SAI_DIGI_PARTS_WINDOW, SAI_drawDigiPartsList, 0);
@@ -229,6 +236,10 @@ void SAI_drawDigiPartsWindow(void) {
  * Task that grants a partner ability (a Digi-Part) and shows the parts list
  * until Cross is pressed.
  */
+#if VERSION_EU
+/* eu: keeps the loads of a loop with no effect; no C form found yet */
+INCLUDE_ASM("saiseg/nonmatchings/player/sai_digi_parts", SAI_grantDigiPart);
+#elif VERSION_US
 void SAI_grantDigiPart(s32 ability, s32 task) {
     Rect16 unused; /* never used, but the original frame has room for it */
     Rect16 rect;
@@ -268,3 +279,6 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
     SAI_AREA_MODE = AREA_MODE_SCRIPT;
     resumeTask(task);
 }
+#else
+#error "saiseg/player/sai_digi_parts: version not checked"
+#endif

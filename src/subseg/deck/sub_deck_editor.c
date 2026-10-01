@@ -129,6 +129,10 @@ void SUB_initPrimBuffers(s8 keepBuffers) {
     }
 }
 
+#if VERSION_EU
+/* eu: one register fewer for the icon's position; no C form found yet */
+INCLUDE_ASM("subseg/nonmatchings/deck/sub_deck_editor", SUB_drawCardIcon);
+#elif VERSION_US
 void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
     s32 specialty = ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr >> 4;
     s32 u;
@@ -162,6 +166,9 @@ void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
     }
     SUB_drawSprite(x, y, getClut(0x240, clutY), u, v, 24, 24, 1, brightness, -1, otIndex);
 }
+#else
+#error "subseg/deck/sub_deck_editor: version not checked"
+#endif
 
 void SUB_drawSprite(s16 x, s16 y, s16 clut, s32 u, s32 v, s16 w, s16 h, s8 tp, u8 brightness, s8 abr, s32 otIndex) {
     u16 tpage = ((tp & 3) << 7) | ((abr & 3) << 5) | ((v & 0x100) >> 4) | ((u & 0x3C0) >> 6) | ((v & 0x200) << 2);

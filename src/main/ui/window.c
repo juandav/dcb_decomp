@@ -68,7 +68,7 @@ void initWindowPrimPool(s32 count) {
     WindowPrims *pool;
     WindowPrims *prims;
     s16 texWindow[4];
-    u32 tpage;
+    u16 tpage;
     s32 i;
     s32 windowIndex;
     s32 j;
@@ -201,18 +201,13 @@ void openWindow(void *winPtr, void *rectPtr, s32 fromPtr, s16 *viewPtr, s32 flag
 }
 
 void animateWindowTo(UiWindow *win, Rect16 *target) {
-    s32 dx;
-    s32 dy;
-
     if (target == (Rect16 *)-1) {
-        dx = win->cur.w / 2;
-        win->delta.x = dx;
-        dy = win->cur.h / 2;
-        win->delta.y = dy;
+        win->delta.x = win->cur.w / 2;
+        win->delta.y = win->cur.h / 2;
         win->delta.w = -win->cur.w;
         win->delta.h = -win->cur.h;
-        win->cur.x += dx;
-        win->cur.y += dy;
+        win->cur.x += win->cur.w / 2;
+        win->cur.y += win->cur.h / 2;
         win->cur.w = 0;
         win->cur.h = 0;
     } else {
@@ -364,6 +359,10 @@ void clipRectToBounds(Rect16 *rect, Rect16 *bounds) {
     }
 }
 
+#if VERSION_EU
+/* eu: divides in each branch and subtracts after the join; no C form found yet */
+INCLUDE_ASM("main/nonmatchings/ui/window", stepWindowAnimation);
+#elif VERSION_US
 s32 stepWindowAnimation(UiWindow *w) {
     s32 remaining;
     s32 dx;
@@ -417,6 +416,9 @@ s32 stepWindowAnimation(UiWindow *w) {
     }
     return w->animDone;
 }
+#else
+#error "main/ui/window: version not checked"
+#endif
 
 void drawWindowFrame(Rect16 *rect, u8 style, s32 semiTrans, s32 brightness, s32 palette, s32 z) {
     Rect16 edgeUv[4];

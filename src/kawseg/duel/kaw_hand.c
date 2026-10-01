@@ -147,6 +147,10 @@ s32 KAW_drawHandHints(s32 player) {
     }
 }
 
+#if VERSION_EU
+/* eu: other registers for the cursor distance's abs; no C form found yet */
+INCLUDE_ASM("kawseg/nonmatchings/duel/kaw_hand", KAW_tickCardCursor);
+#elif VERSION_US
 s32 KAW_tickCardCursor(s32 player, s32 mode) {
     s32 i;
     s32 p;
@@ -157,7 +161,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     s32 cy;
     s32 dist;
     s32 best;
-    s16 cur;
+    s32 cur;
     CardSprite *spr;
 
     KAW_DUEL->cursorMode = mode;
@@ -299,6 +303,9 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
     }
     return -1;
 }
+#else
+#error "kawseg/duel/kaw_hand: version not checked"
+#endif
 
 s32 KAW_openCardSelect(s32 player) {
     MSG_BAR_PLAYER_LABEL = (*(u32 *)(DUEL_PLAYERS[player] + 0x178) >> 17) & 3;

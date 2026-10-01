@@ -60,6 +60,10 @@ TextLine *SAI_allocTextLine(TextLine *line) {
 
 /* Copies a script text into a free line, expanding "*h0" to the player's name
    and "\0x22" to a quote; returns the line's index or -1 when all are used. */
+#if VERSION_EU
+/* eu: its loops rotate the other way; no C form found yet */
+INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text", SAI_addTextLine);
+#elif VERSION_US
 s32 SAI_addTextLine(u8 *src) {
     u8 *name = (u8 *)((PlayerProfile *)PLAYER_PROFILES)->name;
     TextLine *slot = SAI_allocTextLine(SAI_TEXT_LINES);
@@ -114,19 +118,37 @@ s32 SAI_addTextLine(u8 *src) {
     }
     return i;
 }
+#else
+#error "saiseg/ui/sai_text: version not checked"
+#endif
 
 s32 SAI_typeTextLine(s32 x, s32 y, TextLine *line, s32 z) {
     u8 buf[0x40];
-    u8 *dst = buf;
+    u8 *dst;
     u8 *src;
     s8 i;
-    u8 c;
+    s32 c;
 
+    /* the same pointers; each version's compiler needs its own order to
+       give them the original's registers */
+#if VERSION_US
+    dst = buf;
+#elif VERSION_EU
+    src = line->text;
+#else
+#error "saiseg/ui/sai_text: version not checked"
+#endif
     if (line->length == line->shown) {
         drawText(x, y, (s32)line, 7, z);
         return -1;
     }
+#if VERSION_US
     src = line->text;
+#elif VERSION_EU
+    dst = buf;
+#else
+#error "saiseg/ui/sai_text: version not checked"
+#endif
     for (i = 0; i < line->shown; i++) {
         *dst++ = *src++;
     }

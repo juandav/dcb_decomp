@@ -134,9 +134,9 @@ void *shrinkHeapBlock(void *ptr, s32 size) {
             if (leftover != 0 && i != 0) {
                 block->size = size;
                 block++;
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
                 blockAddr = (s32)ptr + size;
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
                 blockAddr += size;
 #endif
                 if (block->addr > 0) {
@@ -166,6 +166,10 @@ void releaseHeapBlock(void *ptr) {
 
 /* merges the block with a free neighbour on either side, then moves the rest
    of the table up over the entries that merged */
+#if VERSION_EU
+/* eu: masks ptr where us masks the equal blockAddr; no C form found yet */
+INCLUDE_ASM("main/nonmatchings/system/heap", freeHeapBlock);
+#elif VERSION_JP || VERSION_US
 s32 freeHeapBlock(void *ptr) {
     HeapBlock *block;
     HeapBlock *nextBlock;
@@ -218,6 +222,9 @@ s32 freeHeapBlock(void *ptr) {
     restoreInterrupts();
     return 0;
 }
+#else
+#error "main/system/heap: version not checked"
+#endif
 
 s32 freeHeapBlocksByTag(s32 tag) {
     HeapBlock *block;
