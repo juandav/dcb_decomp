@@ -353,9 +353,9 @@ typedef struct {
     /* 0x4 */ void (*open)();
     /* 0x8 */ void (*close)();
 } NisWindowTest;
-void func_801F8C18();
-void func_801F8D34();
-void func_801F8E10();
+void NIS_resumeParentTask();
+void NIS_initCardDetailsTest();
+void NIS_initDeckNameTest();
 /* its allocHeapBlock names the block too */
 #define NIS_ALLOC_HEAP_BLOCK(size, ownerTag, name, tag) allocNamedHeapBlock(size, ownerTag, name, tag)
 #else

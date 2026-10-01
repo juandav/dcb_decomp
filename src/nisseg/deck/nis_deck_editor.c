@@ -94,9 +94,9 @@ NisWindowDef NIS_AUTO_DECK_PORTRAIT_WINDOW = { { 0x126, 0x4F, 0, 0x10 }, { 0xE6,
 void NIS_closeDeckScene(void);
 
 NisWindowTest NIS_WINDOW_TESTS[4] = {
-    { &NIS_DECK_SUMMARY_WINDOW, func_801F8C18, NULL },
-    { &NIS_CARD_DETAILS_WINDOW, func_801F8D34, NIS_closeDeckScene },
-    { &NIS_DECK_NAME_WINDOW, func_801F8E10, NULL },
+    { &NIS_DECK_SUMMARY_WINDOW, NIS_resumeParentTask, NULL },
+    { &NIS_CARD_DETAILS_WINDOW, NIS_initCardDetailsTest, NIS_closeDeckScene },
+    { &NIS_DECK_NAME_WINDOW, NIS_initDeckNameTest, NULL },
     { &NIS_DECK_QUESTION_WINDOW, NULL, NULL },
 };
 #endif
