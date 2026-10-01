@@ -68,3 +68,15 @@ func_801F117C = 0x801F117C; // type:func
 D_801F0820 = 0x801F0820; // type:func
 NIS_enterDeckListFromMenu = 0x801FB26C; // type:func version-only
 INT_introTask = 0x801EB428; // type:func version-only
+
+// the NISSEG tasks of the menus in jp's player_data (MENU_HEADERS, MENU_ITEMS)
+NIS_runMenuE7D8 = 0x801F112C; // type:func version-only
+NIS_runMenuE7E4 = 0x801F10DC; // type:func version-only
+NIS_returnToDeckList = 0x801FB1DC; // type:func version-only
+NIS_openDeckMenu = 0x801FAB84; // type:func version-only
+NIS_runDeckKinds = 0x801FA5E0; // type:func version-only
+NIS_runCardGrid = 0x801F9F48; // type:func version-only
+NIS_enterDeckListFromVs = 0x801FB1FC; // type:func version-only
+NIS_enterDeckListForTrade = 0x801FB234; // type:func version-only
+NIS_startVsDeckSelect = 0x801F01F4; // type:func version-only
+NIS_startTrade = 0x801EB890; // type:func version-only

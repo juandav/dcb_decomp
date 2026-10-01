@@ -31,7 +31,10 @@ typedef struct {
     /* 0x14 */ s32 h;
 } WindowSpriteTexture;
 
-extern WindowSpriteTexture WINDOW_SPRITE_TEXTURES[2];
+WindowSpriteTexture WINDOW_SPRITE_TEXTURES[2] = {
+    { 0x7FF8, 0, 0x340, 0x1E4, 0x20, 0x18 },
+    { 0x7F38, 0, 0x354, 0x1BD, 0x1C, 0x18 },
+};
 
 /* the overlays' functions this module starts, while their overlay is loaded */
 void SUB_openBuyShop(void); /* SUBSEG's */
@@ -40,6 +43,24 @@ void SUB_runShop();
 void SAI_runWorldMap(); /* SAISEG's */
 void NIS_enterDeckList(); /* NISSEG's deck editor */
 s32 NIS_enterDeckName(char *text, s32 mode); /* NISSEG's text entry */
+/* NISSEG's, the menus' tasks (0x801F117C is NIS_runMenuE7CC) */
+void func_801F117C();
+void NIS_runMenuE7D8();
+void NIS_runMenuE7E4();
+void NIS_returnToDeckList();
+void NIS_openDeckMenu();
+void NIS_runDeckKinds();
+void NIS_runCardGrid();
+void NIS_enterDeckListFromVs();
+void NIS_enterDeckListForTrade();
+void NIS_startVsDeckSelect();
+void NIS_startTrade();
+/* the executable's, the menus' tasks */
+void func_80045E40();
+void func_80048EFC();
+void func_80049170();
+void func_800491D4();
+void func_80049208();
 
 s32 strcmp(const char *a, const char *b);
 
@@ -60,10 +81,77 @@ typedef struct {
     /* 0x4 */ u16 y;
 } MenuItemSheet;
 
-extern MenuHeader MENU_HEADERS[];
-extern MenuItem MENU_ITEMS[];
-extern MenuItemSheet MENU_ITEM_SHEETS[16];
-extern s32 (*MENU_STATE_HANDLERS[8])(ChoiceMenu *menu);
+MenuHeader MENU_HEADERS[12] = {
+    { 0x35, NULL },
+    { 3, func_801F117C },
+    { 4, NIS_runMenuE7D8 },
+    { 0x18, NIS_returnToDeckList },
+    { 0x19, NIS_runMenuE7E4 },
+    { 0x1A, NULL },
+    { 0x1C, NULL },
+    { 0x1D, NULL },
+    { 0x1E, NULL },
+    { -1, NIS_openDeckMenu },
+    { 6, NULL },
+    { 0x2E, NULL },
+};
+MenuItem MENU_ITEMS[27] = {
+    { 0, func_80048EFC },
+    { 1, func_800491D4 },
+    { 2, func_80049170 },
+    { 3, func_80045E40 },
+    { 6, NIS_runMenuE7E4 },
+    { 7, NIS_runMenuE7E4 },
+    { 8, NIS_enterDeckList },
+    { 9, NIS_enterDeckList },
+    { 0xA, NIS_enterDeckList },
+    { 0x17, NIS_runDeckKinds },
+    { 0x18, NULL },
+    { 0x19, NULL },
+    { 0x1A, NULL },
+    { 0x12, NIS_runCardGrid },
+    { 0x1C, NIS_runCardGrid },
+    { 0x1D, NIS_runCardGrid },
+    { 0x1E, NIS_runCardGrid },
+    { 0x1F, NIS_runCardGrid },
+    { 0x20, NIS_runCardGrid },
+    { 0x21, NIS_runCardGrid },
+    { 0x15, NIS_runCardGrid },
+    { 0x22, NIS_runCardGrid },
+    { 0x2F, NIS_enterDeckListFromVs },
+    { 0x30, NIS_enterDeckListForTrade },
+    { 0x31, NIS_startVsDeckSelect },
+    { 0x32, NIS_startTrade },
+    { 0x33, func_80049208 },
+};
+/* menus for openChoiceMenuFromList: the y, the header (MENU_HEADERS) and up
+   to ten items (MENU_ITEMS), -1 after the last; NISSEG's VS mode and deck
+   editor open them */
+s8 D_8007E7CC[12] = { 0x32, 0, 0, 1, 2, -1 };
+s8 D_8007E7D8[12] = { 0x32, 1, 4, 5, -1 };
+s8 D_8007E7E4[12] = { 0x32, 2, 6, 7, 8, -1 };
+s8 D_8007E7F0[12] = { 0x32, 3, 9, 0xA, 0xB, 0xC, -1 };
+s8 D_8007E7FC[12] = { 0x32, 9, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x15, -1 };
+s8 D_8007E808[12] = { 0x32, 0xB, 0x16, 0x17, 0x18, 0x19, 0x1A, -1 };
+MenuItemSheet MENU_ITEM_SHEETS[16] = {
+    { 9, 0x58, 0x300, 0x100 }, { 9, 0x68, 0x340, 0x100 }, { 9, 0x48, 0x200, 0x100 }, { 9, 0x50, 0x1C0, 0x100 },
+    { 9, 0x68, 0x180, 0x100 }, { 9, 0x80, 0x140, 0x100 }, { 9, 0x48, 0x294, 0x100 }, { 9, 0x50, 0x280, 0x100 },
+    { 9, 0x48, 0x19A, 0x100 }, { 9, 0x50, 0x160, 0x100 }, { 9, 0x58, 0x180, 0x1E8 }, { 9, 0x68, 0x140, 0x1EA },
+    { 9, 0x54, 0x2DA, 0x16A }, { 9, 0x66, 0x2C0, 0x16A }, { 9, 0x58, 0x15A, 0x100 }, { 9, 0x68, 0x140, 0x100 },
+};
+s32 handleMenuInput(ChoiceMenu *menu);
+s32 moveMenuCursorOut(ChoiceMenu *menu);
+s32 moveMenuCursorIn(ChoiceMenu *menu);
+s32 openMenuBar(ChoiceMenu *menu);
+s32 dropMenuItems(ChoiceMenu *menu);
+s32 gatherMenuItems(ChoiceMenu *menu);
+s32 closeMenuBar(ChoiceMenu *menu);
+s32 blinkMenuChoice(ChoiceMenu *menu);
+/* by ChoiceMenu.state */
+s32 (*MENU_STATE_HANDLERS[8])(ChoiceMenu *menu) = {
+    handleMenuInput, moveMenuCursorOut, moveMenuCursorIn, openMenuBar,
+    dropMenuItems, gatherMenuItems, closeMenuBar, blinkMenuChoice,
+};
 
 void initTexSprite(TexSprite *sprite, s16 clut, s16 x, s16 y, u16 vramX, u16 vramY, s32 w, s32 h, s32 z);
 void switchScrollingBackground(s32 image);
