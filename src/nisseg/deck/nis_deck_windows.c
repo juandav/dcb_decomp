@@ -381,9 +381,9 @@ void NIS_drawAutoDeckQuestion(NisWindow *window) {
 
 #if JP_DEBUG_BUILD
     /* the debug text shows the answers so far */
-    sprintf(D_800907F8[0], "ATR  = %d \n", NIS_DECK_EDIT.cardType);
-    sprintf(D_800907F8[1], "TYPE = %d \n", NIS_DECK_EDIT.cardIndex);
-    sprintf(D_800907F8[2], "OPT  = %d \n", NIS_DECK_EDIT.unkA);
+    sprintf(DEBUG_TEXT_LINES[0], "ATR  = %d \n", NIS_DECK_EDIT.cardType);
+    sprintf(DEBUG_TEXT_LINES[1], "TYPE = %d \n", NIS_DECK_EDIT.cardIndex);
+    sprintf(DEBUG_TEXT_LINES[2], "OPT  = %d \n", NIS_DECK_EDIT.unkA);
 #endif
     /* "Betamon:" */
     drawIconText(0x26, 0xA2, 7, 1, window->z, (s32)"c4ベタモンc7s0w4：");
@@ -494,10 +494,10 @@ void NIS_drawNameEntry(NisWindow *window) {
         KAW_drawCursor(NIS_NAME_CURSOR);
 #if JP_DEBUG_BUILD
         /* and the cursor's box */
-        sprintf(D_800907F8[0], "CURSOL_X %d", NIS_NAME_CURSOR->x);
-        sprintf(D_800907F8[1], "CURSOL_Y %d", NIS_NAME_CURSOR->y);
-        sprintf(D_800907F8[2], "CUSIZE_X %d", NIS_NAME_CURSOR->w);
-        sprintf(D_800907F8[3], "CUXIZE_Y %d", NIS_NAME_CURSOR->h);
+        sprintf(DEBUG_TEXT_LINES[0], "CURSOL_X %d", NIS_NAME_CURSOR->x);
+        sprintf(DEBUG_TEXT_LINES[1], "CURSOL_Y %d", NIS_NAME_CURSOR->y);
+        sprintf(DEBUG_TEXT_LINES[2], "CUSIZE_X %d", NIS_NAME_CURSOR->w);
+        sprintf(DEBUG_TEXT_LINES[3], "CUXIZE_Y %d", NIS_NAME_CURSOR->h);
 #endif
         for (i = 0, y = 0; i < 9; i++, y += 0xF) {
             sprintf(text, "s0%s", kana[i]);

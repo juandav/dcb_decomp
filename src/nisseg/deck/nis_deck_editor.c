@@ -368,9 +368,9 @@ s32 NIS_enterDeckName(char *name, s8 newDeck) {
         NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
 #if JP_DEBUG_BUILD
-        sprintf(D_800907F8[4], "STR %d\n", strlen(name));
-        sprintf(D_800907F8[5], "POS %d\n", newDeck);
-        sprintf(D_800907F8[6], "SIZE =  %d\n", NIS_DECK_EDIT.cardType);
+        sprintf(DEBUG_TEXT_LINES[4], "STR %d\n", strlen(name));
+        sprintf(DEBUG_TEXT_LINES[5], "POS %d\n", newDeck);
+        sprintf(DEBUG_TEXT_LINES[6], "SIZE =  %d\n", NIS_DECK_EDIT.cardType);
 #endif
         if (NIS_REPEATED() & PAD_CIRCLE) {
             blank = NIS_isNameBlank(name);
@@ -828,7 +828,7 @@ void NIS_showCard(s32 kind) {
         NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
 #if JP_DEBUG_BUILD
-        sprintf(D_800907F8[0], "FLAG = %d \n", viewer);
+        sprintf(DEBUG_TEXT_LINES[0], "FLAG = %d \n", viewer);
 #endif
         if (NIS_CARD_IMAGE.loaded) {
             continue;

@@ -299,15 +299,15 @@ extern s32 D_8008CD50;
    starts and calls func_80018F5C before each frame it waits for, all of it
    functions of its executable; jp's NISSEG does none of it */
 #if JP_DEBUG_BUILD
-void func_80014B28(s32 taskId, char *name);
+void setTaskName(s32 taskId, char *name);
 void func_80018F5C(void);
 #define NIS_DEBUG_PRINT(...) printf(__VA_ARGS__)
-#define NIS_DEBUG_NAME_TASK(taskId, name) func_80014B28(taskId, name)
+#define NIS_DEBUG_NAME_TASK(taskId, name) setTaskName(taskId, name)
 #define NIS_DEBUG_FRAME() func_80018F5C()
 void func_800184F0(s32, s32, s32);
 extern u8 D_801E46E9;
 extern s32 D_801DEBF0;
-extern char D_800907F8[8][0x40]; /* the lines of debug text it shows */
+extern char DEBUG_TEXT_LINES[8][0x40]; /* the lines of debug text it shows */
 extern const char NIS_STR_ERROR_TASK[]; /* nis_auto_deck.c's "ERROR TASK" */
 
 /* its debug menus: each item starts a task or opens a submenu (with the

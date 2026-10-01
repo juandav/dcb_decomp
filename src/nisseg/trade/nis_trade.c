@@ -125,9 +125,9 @@ void NIS_runTradeMenu(void) {
         waitFrames(FRAME_INTERVAL);
 #if JP_DEBUG_BUILD
         /* each player's offer, and the first masks */
-        sprintf(D_800907F8[0], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[0].kinds, NIS_TRADE_OFFERS[0].copies);
-        sprintf(D_800907F8[1], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[1].kinds, NIS_TRADE_OFFERS[1].copies);
-        sprintf(D_800907F8[2], "FLG.%d FLG.%d\n", NIS_TRADE_MASKS[0].digimon[0], NIS_TRADE_MASKS[2].digimon[0]);
+        sprintf(DEBUG_TEXT_LINES[0], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[0].kinds, NIS_TRADE_OFFERS[0].copies);
+        sprintf(DEBUG_TEXT_LINES[1], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[1].kinds, NIS_TRADE_OFFERS[1].copies);
+        sprintf(DEBUG_TEXT_LINES[2], "FLG.%d FLG.%d\n", NIS_TRADE_MASKS[0].digimon[0], NIS_TRADE_MASKS[2].digimon[0]);
 #endif
         if (runChoiceMenu(&menu) == 0) {
             continue;
