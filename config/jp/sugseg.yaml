@@ -68,7 +68,7 @@ segments:
       - [0x381C, c, effect/sug_sphere]
       - [0x71E0, c, effect/sug_gradient]
       - [0x866C, asm, effect/sug_model_effect]
-      - [0x8CE8, asm, effect/sug_sprite_effect]
+      - [0x8CE8, c, effect/sug_sprite_effect]
       - [0x8E98, asm, effect/sug_trail]
       - [0xA250, c, effect/sug_fade_rect]
       - [0xA50C, asm, effect/sug_scroll_texture]
