@@ -41,8 +41,8 @@ MAIN_C_SRC := \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		frame_callback.c game_exit.c heap.c loader.c memcard.c \
-		opening_movie.c pad.c render_loop.c save_checksum.c sound.c \
-		sound_play.c task.c vblank.c) \
+		memcard_screen.c opening_movie.c pad.c render_loop.c \
+		save_checksum.c sound.c sound_play.c task.c vblank.c) \
 	$(addprefix src/main/ui/, str_util.c text_jp.c window_jp.c)
 ENDSEG_C_SRC := src/endseg/endseg_jp.c src/endseg/title/open_movie.c
 INTSEG_C_SRC := $(addprefix src/intseg/, int_bss.c intseg.c)

@@ -97,10 +97,8 @@ segments:
       - [0x1768, .rodata, card/card_vram]
       - [0x17B4, .rodata, card/partner_level_jp]
       - [0x1864, .rodata, system/memcard]
-      # the rodata of the asm modules after memcard, up to battle_hud
-      - [0x1884, rodata, ui/dialog]
+      - [0x1884, .rodata, system/memcard_screen]
       - [0x2740, .rodata, system/game_exit]
-      - [0x2768, rodata, duel/battle_hud]
       - [0x2768, rodata, psyq]
       - [0x2768, rodata, ui/hacking_shell]
       - [0x3628, c, main]
@@ -188,9 +186,10 @@ segments:
       # them (from formatMemoryCard on, they were hacking_shell's range)
       - [0x36F24, c, system/memcard]
       - [0x37DB4, c, system/save_checksum]
-      # two functions of jp's own, before dialog's
-      - [0x37E50, asm, ui/dialog]
-      - [0x3879C, asm, duel/battle_hud]
+      # jp's own memory card screen (us has it in OPENSEG): one object, its
+      # rodata and data one block each. The pairing put us's dialog and
+      # battle_hud here, but none of these functions is theirs
+      - [0x37E50, c, system/memcard_screen]
       - [0x3C2B8, c, system/game_exit]
       - [0x3C66C, asm, psyq]
       - [0x5BF7C, .data, main]
@@ -211,11 +210,9 @@ segments:
       - [0x6F144, .data, duel/card_motion_jp]
       - [0x6F148, .data, duel/hud_panels_jp]
       - [0x6F14C, .data, duel/duel_session_jp]
+      # card_render's, then partner_level_jp's D_8007ED74
       - [0x6F1B4, data, card/card_render_jp]
-      # the data of the modules after card_render: partner_level's, dialog's
-      # and battle_hud's
-      - [0x6F574, data, ui/dialog]
-      - [0x6F704, data, ui/hacking_shell]
+      - [0x6F57C, .data, system/memcard_screen]
       - [0x6F744, data, psyq]
       # the game's code, from main() on: one asm range for now
       - { start: 0x779D8, type: bss, vram: 0x800871D8, name: game }
