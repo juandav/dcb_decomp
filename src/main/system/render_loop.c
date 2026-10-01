@@ -32,11 +32,31 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
+#if VERSION_JP
+/* the OT and the packet cursor of the sprites jp's scroll_bg projects into
+   the frame's 17th prim slot */
+extern u32 *D_801E46A0;
+extern s32 D_801E4698;
+#endif
+
 void initGraphics(void) {
+#if VERSION_JP
+    Rect16 vramRect = { 0, 0, 1024, 512 };
+#endif
     s32 *scratchpad;
     s32 i;
 
+#if VERSION_JP
+    /* jp resets the GPU and clears VRAM here, where us's main() does */
+    ResetGraph(0);
     SetGraphDebug(0);
+    SetDispMask(0);
+    ClearImage(&vramRect, 0, 0, 0);
+    DrawSync(0);
+    GsInitGraph(320, 240, 0, 0, 0);
+#elif VERSION_US || VERSION_EU
+    SetGraphDebug(0);
+#endif
     InitGeom();
     /* clear the first 1 KB of the scratchpad */
     scratchpad = (s32 *)0x1F800000;
@@ -87,6 +107,15 @@ void runRenderLoop(void) {
         FRAME_BUFFER_INDEX ^= 1;
         CURRENT_FRAME_BUFFER = &gfx->buffers[FRAME_BUFFER_INDEX];
         ClearOTagR(CURRENT_FRAME_BUFFER->ot, 0x1000);
+#if VERSION_JP
+        /* jp has no scrolling background here, and renders the screen copy
+           effect before the callbacks */
+        D_801E46A0 = CURRENT_FRAME_BUFFER->ot;
+        D_801E4698 = CURRENT_FRAME_BUFFER->primSlots[16];
+        resetSpritePool();
+        resetWindowPrimPool();
+        renderScreenCopyEffect();
+#elif VERSION_US || VERSION_EU
         if (SCREEN_COPY_EFFECT.mode != 0) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[0], &SCREEN_COPY_EFFECT.stp[1]);
             addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], &SCREEN_COPY_EFFECT.stp[0]);
@@ -94,12 +123,15 @@ void runRenderLoop(void) {
         renderScrollingBackground();
         resetSpritePool();
         resetWindowPrimPool();
+#endif
         if (RENDER_CALLBACKS_ENABLED != 0) {
             for (callback = gfx->frameCallbacks; *callback != 0; callback++) {
                 (*callback)(CURRENT_FRAME_BUFFER, FRAME_BUFFER_INDEX);
             }
         }
+#if VERSION_US || VERSION_EU
         renderScreenCopyEffect();
+#endif
         yieldTask();
         DrawSync(0);
         if (gfx->scene3dEnabled != 0) {
