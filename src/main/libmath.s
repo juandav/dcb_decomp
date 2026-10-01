@@ -760,17 +760,18 @@ glabel __cmpdf2
      nop
     b          .L800261F8
      nop
-  /* the C entry of __floatsidf: returns the double in $v0/$v1 */
-  alabel intToDouble
+  /* the libgcc entry, GCC's int to double conversion: returns the double in
+     $v0/$v1 */
+  alabel __floatsidf
     addu       $t8, $ra, $zero
-    jal        __floatsidf
+    jal        intToDoubleCore
      nop
     addu       $v1, $a1, $zero
     jr         $t8
      addu      $v0, $a0, $zero
 endlabel __cmpdf2
 
-glabel __floatsidf
+glabel intToDoubleCore
     sra        $t4, $a0, 31
     xor        $v1, $a0, $t4
     subu       $v1, $v1, $t4
@@ -817,7 +818,7 @@ glabel __floatsidf
     addiu      $a0, $zero, 0x0
     b          .L80026308
      addiu     $a1, $zero, 0x0
-endlabel __floatsidf
+endlabel intToDoubleCore
 
 glabel __fixdfsi
     sll        $v0, $a1, 1
