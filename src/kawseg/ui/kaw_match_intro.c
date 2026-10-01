@@ -620,10 +620,6 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     (p)->u0 = (_u0), (p)->v0 = (_v0), (p)->u1 = (_u0) + (_w), (p)->v1 = (_v0), (p)->u2 = (_u0), \
     (p)->v2 = (_v0) + (_h), (p)->u3 = (_u0) + (_w), (p)->v3 = (_v0) + (_h)
 
-#if VERSION_EU
-/* eu: keeps a pointer to the panel's second half in a register; no C form found yet */
-INCLUDE_ASM("kawseg/nonmatchings/ui/kaw_match_intro", KAW_renderVersusScreen);
-#elif VERSION_US
 void KAW_renderVersusScreen(void) {
     char buf[64];
     VersusPrims *prims;
@@ -701,23 +697,23 @@ void KAW_renderVersusScreen(void) {
         KAW_MATCH_SCREEN->pulse = i + 0x80;
     }
     i = 0;
-    KAW_drawSprite(KAW_VS_NAME_POS[0][0], KAW_VS_NAME_POS[0][1], 0x2C0, 0x1C0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D7, 0, 1, 0, 0x80, 1);
-    KAW_drawSprite(KAW_VS_PANEL_POS[0][0] - 8, KAW_VS_PANEL_POS[0][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
-    KAW_drawSprite(KAW_VS_PANEL_POS[0][0] + 0x78, KAW_VS_PANEL_POS[0][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
-    KAW_drawSprite(KAW_VS_PANEL_POS[0][0] - 0x20, KAW_VS_PANEL_POS[0][1], 0x180, 0, 0x20, 0x70, 0x180, 0xFB, 0, 0, 0, 0x80, 3);
-    KAW_drawSprite(KAW_VS_PANEL_POS[0][0] + 0x80, KAW_VS_PANEL_POS[0][1], 0x188, 0, 8, 0x70, 0x180, 0xFB, 0, 0, 0, 0x80, 3);
-    KAW_drawDeckName(KAW_VS_INNER_LINE_POS[0][0], KAW_VS_INNER_LINE_POS[0][1], (char *)DUEL_PLAYERS[i] + 1);
-    KAW_drawBattleRecord(KAW_VS_OUTER_LINE_POS[0][0], KAW_VS_OUTER_LINE_POS[0][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
-    KAW_drawSprite(KAW_VS_PANEL_POS[0][0], KAW_VS_PANEL_POS[0][1], 0x140, 0, 0x80, 0x70, 0x140, 0xFE, 1, 0, 0, 0x80, 4);
+    KAW_drawSprite(KAW_VS_NAME_POS[i][0], KAW_VS_NAME_POS[i][1], 0x2C0, 0x1C0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D7, 0, 1, 0, 0x80, 1);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] - 8, KAW_VS_PANEL_POS[i][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0x78, KAW_VS_PANEL_POS[i][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] - 0x20, KAW_VS_PANEL_POS[i][1], 0x180, 0, 0x20, 0x70, 0x180, 0xFB, 0, 0, 0, 0x80, 3);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0x80, KAW_VS_PANEL_POS[i][1], 0x188, 0, 8, 0x70, 0x180, 0xFB, 0, 0, 0, 0x80, 3);
+    KAW_drawDeckName(KAW_VS_INNER_LINE_POS[i][0], KAW_VS_INNER_LINE_POS[i][1], (char *)DUEL_PLAYERS[i] + 1);
+    KAW_drawBattleRecord(KAW_VS_OUTER_LINE_POS[i][0], KAW_VS_OUTER_LINE_POS[i][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0], KAW_VS_PANEL_POS[i][1], 0x140, 0, 0x80, 0x70, 0x140, 0xFE, 1, 0, 0, 0x80, 4);
     i = 1;
-    KAW_drawSprite(KAW_VS_NAME_POS[1][0], KAW_VS_NAME_POS[1][1], 0x2C0, 0x1E0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D8, 0, 1, 0, 0x80, 1);
-    KAW_drawSprite(KAW_VS_PANEL_POS[1][0] - 6, KAW_VS_PANEL_POS[1][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
-    KAW_drawSprite(KAW_VS_PANEL_POS[1][0] + 0x7A, KAW_VS_PANEL_POS[1][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
-    KAW_drawSprite(KAW_VS_PANEL_POS[1][0] - 8, KAW_VS_PANEL_POS[1][1], 0x18A, 0, 8, 0x70, 0x180, 0xFC, 0, 0, 0, 0x80, 3);
-    KAW_drawSprite(KAW_VS_PANEL_POS[1][0] + 0x80, KAW_VS_PANEL_POS[1][1], 0x18C, 0, 0x20, 0x70, 0x180, 0xFC, 0, 0, 0, 0x80, 3);
-    KAW_drawDeckName(KAW_VS_OUTER_LINE_POS[1][0], KAW_VS_OUTER_LINE_POS[1][1], (char *)DUEL_PLAYERS[i] + 1);
-    KAW_drawBattleRecord(KAW_VS_INNER_LINE_POS[1][0], KAW_VS_INNER_LINE_POS[1][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
-    KAW_drawSprite(KAW_VS_PANEL_POS[1][0], KAW_VS_PANEL_POS[1][1], 0x140, 0x70, 0x80, 0x70, 0x140, 0xFF, 1, 0, 0, 0x80, 4);
+    KAW_drawSprite(KAW_VS_NAME_POS[i][0], KAW_VS_NAME_POS[i][1], 0x2C0, 0x1E0, PLAYER(i)->nameWidth, 0x20, 0x2F0, 0x1D8, 0, 1, 0, 0x80, 1);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] - 6, KAW_VS_PANEL_POS[i][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0x7A, KAW_VS_PANEL_POS[i][1], 0x194, 0, 0x10, 0x70, 0x180, 0xFA, 0, 1, 1, KAW_MATCH_SCREEN->pulse, 2);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] - 8, KAW_VS_PANEL_POS[i][1], 0x18A, 0, 8, 0x70, 0x180, 0xFC, 0, 0, 0, 0x80, 3);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0] + 0x80, KAW_VS_PANEL_POS[i][1], 0x18C, 0, 0x20, 0x70, 0x180, 0xFC, 0, 0, 0, 0x80, 3);
+    KAW_drawDeckName(KAW_VS_OUTER_LINE_POS[i][0], KAW_VS_OUTER_LINE_POS[i][1], (char *)DUEL_PLAYERS[i] + 1);
+    KAW_drawBattleRecord(KAW_VS_INNER_LINE_POS[i][0], KAW_VS_INNER_LINE_POS[i][1], KAW_MATCH_SCREEN->wins[i], KAW_MATCH_SCREEN->losses[i]);
+    KAW_drawSprite(KAW_VS_PANEL_POS[i][0], KAW_VS_PANEL_POS[i][1], 0x140, 0x70, 0x80, 0x70, 0x140, 0xFF, 1, 0, 0, 0x80, 4);
     if (KAW_MATCH_SCREEN->timer > 0x20) {
         if (KAW_MATCH_SCREEN->cards[KAW_MATCH_SCREEN->chosen - 2].u != 0) {
             KAW_drawSprite(KAW_VS_PANEL_POS[0][0] + 0x4C, KAW_VS_PANEL_POS[0][1] + 0x4C, 0x1B4, 0, 0x30, 0x20, 0x190, 0xFD, 0, 1, 1, 0x80, 3);
@@ -728,9 +724,6 @@ void KAW_renderVersusScreen(void) {
         }
     }
 }
-#else
-#error "kawseg/ui/kaw_match_intro: version not checked"
-#endif
 
 /* libgte's setVector */
 #define setVector(v, _x, _y, _z) (v)->vx = (_x), (v)->vy = (_y), (v)->vz = (_z)

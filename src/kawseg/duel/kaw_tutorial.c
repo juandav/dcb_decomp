@@ -41,10 +41,6 @@ void KAW_drawTutorialText(UiWindow *window) {
     drawText(window->originX, window->originY, KAW_DUEL->tutorialScript->text, 7, window->z);
 }
 
-#if VERSION_EU
-/* eu: v0 and v1 swapped by the register allocator; no C form found yet */
-INCLUDE_ASM("kawseg/nonmatchings/duel/kaw_tutorial", KAW_showTutorialMessage);
-#elif VERSION_US
 s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     Rect16 rect;
     u8 text[200];
@@ -78,7 +74,7 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     rect.w = w * 2;
     h = (TEXT_HEIGHT + 1) / 2;
     rect.h = h * 2;
-    rect.x = (320 - rect.w) >> 1;
+    rect.x = (320 - rect.w) / 2;
     rect.y = y - rect.h / 2;
     openWindow(&KAW_TUTORIAL_WINDOW, &rect, -1, (s16 *)-1, 8, 0x15, 0x80, 8);
     KAW_TUTORIAL_WINDOW.label = (s32)"TUTORIAL";
@@ -96,9 +92,6 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     }
     PAD_INPUT_ENABLED = 0;
 }
-#else
-#error "kawseg/duel/kaw_tutorial: version not checked"
-#endif
 
 s32 KAW_tickTutorial(void) {
     s32 *vars;

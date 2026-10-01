@@ -1329,11 +1329,8 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     }
 }
-#elif VERSION_EU
-/* eu: fills fewer delay slots throughout; no C form found yet */
-INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_applySupportAction);
-#elif VERSION_US
-s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
+#elif VERSION_US || VERSION_EU
+void KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
     s32 cards[4];
     u8 unused[0x90];
     s32 i;
@@ -1569,7 +1566,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 32:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekOnlineDeckTop(self)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekOnlineDeckTop(self);
+                if (card == -1) {
+                    break;
+                }
                 discardCardToOfflineDeck(card, self);
                 drawOnlineDeckCard(self);
                 SPRITE_KIND(card) = 8;
@@ -1579,7 +1580,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 33:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekOnlineDeckTop(other)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekOnlineDeckTop(other);
+                if (card == -1) {
+                    break;
+                }
                 discardCardToOfflineDeck(card, other);
                 drawOnlineDeckCard(other);
                 SPRITE_KIND(card) = 8;
@@ -1589,7 +1594,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 34:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekOfflineDeckTop(self)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekOfflineDeckTop(self);
+                if (card == -1) {
+                    break;
+                }
                 returnCardToOnlineDeck(card, self);
                 takeOfflineDeckTopCard(self);
                 SPRITE_KIND(card) = 1;
@@ -1599,7 +1608,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 35:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekOfflineDeckTop(other)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekOfflineDeckTop(other);
+                if (card == -1) {
+                    break;
+                }
                 returnCardToOnlineDeck(card, other);
                 takeOfflineDeckTopCard(other);
                 SPRITE_KIND(card) = 1;
@@ -1609,7 +1622,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 36:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekDpSlotTop(self)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekDpSlotTop(self);
+                if (card == -1) {
+                    break;
+                }
                 discardCardToOfflineDeck(card, self);
                 removeCardFromDpSlots(card, self);
                 SPRITE_KIND(card) = 8;
@@ -1619,7 +1636,11 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
         break;
     case 37:
         if (!quiet) {
-            for (i = 0; i < value && (card = peekDpSlotTop(other)) != -1; i++) {
+            for (i = 0; i < value; i++) {
+                card = peekDpSlotTop(other);
+                if (card == -1) {
+                    break;
+                }
                 discardCardToOfflineDeck(card, other);
                 removeCardFromDpSlots(card, other);
                 SPRITE_KIND(card) = 8;
