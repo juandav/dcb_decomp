@@ -379,7 +379,7 @@ void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 row
     row = 0;
     x = 0;
     y = 0;
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++, polys++) {
         r.x = uv->x + (x >> 16);
         r.y = uv->y + (y >> 16);
         if (row == rows - 1 && shrink) {
@@ -403,7 +403,6 @@ void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 row
             r.w = cellW;
         }
         setPrimQuadUvRect((u8 *)polys, r.x, r.y, r.w + padW, r.h + padH);
-        polys++;
     }
 }
 
@@ -429,7 +428,7 @@ void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 row
     row = 0;
     accX = 0;
     accY = 0;
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++, polys++) {
         cell.x = uv->x + (accX >> 16);
         cell.y = uv->y + (accY >> 16);
         if (shrink) {
@@ -453,6 +452,5 @@ void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 row
             cell.w = cellW;
         }
         setPrimQuadUvRect((u8 *)polys, cell.x, cell.y, cell.w + padW, cell.h + padH);
-        polys++;
     }
 }

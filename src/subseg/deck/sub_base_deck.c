@@ -120,7 +120,12 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
     return selected;
 }
 
-/* the last byte is a leftover in the original, not zero padding */
+/* the last byte is a leftover in the original, not zero padding, and not
+   the same in every version */
+#if VERSION_US
 const char SUB_STR_BASE_DECK_LIST[16] = "BASE DECK LIST\0\xFE";
+#elif VERSION_EU
+const char SUB_STR_BASE_DECK_LIST[16] = "BASE DECK LIST\0%";
+#endif
 
 Menu SUB_BASE_DECK_MENU = { NULL, NULL, { 50, 40, 220, 154 }, 0, -1, 0, -1, 0xa, 0x21, 220, 12, 1, 1, 2, 1, 0, 14, 0, 0, 0 };

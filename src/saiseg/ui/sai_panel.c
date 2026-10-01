@@ -90,24 +90,25 @@ void SAI_createPanelSprite(void) {
 }
 
 s32 SAI_uncoverPanel(void) {
-    s32 value = SAI_PANEL_COVER_ALPHA;
-    s32 wasZero = value == 0;
-    s32 n = value - 8;
+    s32 wasZero = SAI_AREA.coverAlpha == 0;
+    s16 value;
 
-    if (n < 0) {
-        n = 0;
+    value = SAI_AREA.coverAlpha;
+    value -= 8;
+    if (value < 0) {
+        value = 0;
     }
-    SAI_PANEL_COVER_ALPHA = n;
+    SAI_PANEL_COVER_ALPHA = value;
     return wasZero;
 }
 
 s32 SAI_coverPanel(void) {
     s32 done;
-    s32 level;
+    s16 level;
 
     SAI_AREA.unk115 = 1;
+    done = SAI_AREA.coverAlpha == 0xFF;
     level = SAI_AREA.coverAlpha;
-    done = level == 0xFF;
     level += 8;
     if (level > 0xFF) {
         level = 0xFF;

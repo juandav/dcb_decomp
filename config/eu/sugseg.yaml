@@ -55,13 +55,13 @@ segments:
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x0, rodata, effect/sug_history]
-      - [0x4, rodata, effect/sug_gradient]
+      - [0x4, .rodata, effect/sug_gradient]
       - [0x18, rodata, effect/sug_tex_anim]
       - [0x5C, rodata, effect/sug_effect_script]
       - [0x164, rodata, battle/sug_sprite]
       - [0x188, asm, effect/sug_history]
       - [0x770, asm, effect/sug_sphere]
-      - [0x3E8C, asm, effect/sug_gradient]
+      - [0x3E8C, c, effect/sug_gradient]
       - [0x5614, c, effect/sug_model_effect]
       - [0x5D2C, c, effect/sug_stage_fade]
       - [0x6138, c, effect/sug_sprite_effect]

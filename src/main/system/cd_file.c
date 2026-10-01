@@ -5,20 +5,22 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
-/* a path's characters go to toupper as signed chars in us and eu, as they
-   are in jp */
+/* a path's characters go to toupper as they are in jp, as signed chars in
+   us and eu, and eu takes toupper's result as a signed char too */
 #if VERSION_JP
 #define TO_UPPER(ch) toupper(ch)
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
 #define TO_UPPER(ch) toupper((s8)(ch))
+#elif VERSION_EU
+#define TO_UPPER(ch) (s8)toupper((s8)(ch))
 #endif
 
 /* after reading the file's last sector: the bytes of it that are the
-   file's, worked out from what is left to read (us, eu) or taken off the
-   whole sector (jp) */
-#if VERSION_JP
+   file's, worked out from what is left to read (us) or taken off the whole
+   sector (jp, eu) */
+#if VERSION_JP || VERSION_EU
 #define TRIM_LAST_SECTOR(file) ((file)->avail += (file)->remaining)
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
 #define TRIM_LAST_SECTOR(file) ((file)->avail = (file)->remaining + 0x1000)
 #endif
 

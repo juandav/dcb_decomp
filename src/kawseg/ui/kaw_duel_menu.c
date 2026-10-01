@@ -274,7 +274,12 @@ void KAW_tickDuelMenu(void) {
     }
 }
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding,
+   and not the same in every version */
+#if VERSION_US
 const char KAW_STR_GIVE_UP[12] = "Give Up?\0\xD0\x12\x2B";
+#elif VERSION_EU
+const char KAW_STR_GIVE_UP[12] = "Give Up?\0fak";
+#endif
 
 Menu KAW_DUEL_MENU = { NULL, NULL, { 20, 40, 180, 56 }, 0, -1, 0, -1, 8, 0x16, 180, 12, 1, 4, 0, 0, 0, 14, 0, 0, 0 };
