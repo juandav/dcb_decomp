@@ -1002,7 +1002,9 @@ typedef struct {
     /* 0x437 */ s8 stopTurnLoop;
     /* 0x438 */ s8 cpuRequest;
     /* 0x439 */ s8 turnPlayer;
-    /* 0x43A */ u8 unk43A[0x44];
+    /* 0x43A */ u8 unk43A[9];
+    /* 0x443 */ s8 tutorial;
+    /* 0x444 */ u8 unk444[0x3A];
     /* 0x47E */ u8 cpuPlayer;
 } Duel;
 #elif VERSION_US || VERSION_EU

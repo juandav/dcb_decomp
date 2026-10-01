@@ -78,5 +78,9 @@ void unequipPartnerAbility(s32 player, s32 slot, s32 abilitySlot);
 void grantPartnerAbility(s32 player, s32 ability);
 s32 canEquipPartnerAbility(s32 player, s32 slot, s32 skipSlot, s32 ability);
 s32 getPartnerAbilityState(s32 player, s32 ability);
+#if VERSION_JP
+/* jp: adds TEXT to the lines PLAYER's battle log shows (up to 7) */
+void addBattleLogLine(s32 player, char *text);
+#endif
 
 #endif /* DCB_CARD_DB_H */
