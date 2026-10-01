@@ -18,8 +18,10 @@
    music PAKs number them from 200 */
 #if VERSION_JP
 #define MUSIC_CHUNK_ID(id) ((id) + 200)
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
 #define MUSIC_CHUNK_ID(id) (id)
+#else
+#error "untested version"
 #endif
 
 s32 SOUND_LOAD_BUSY = 0;
@@ -56,7 +58,7 @@ void initSound(void) {
     SOUND_STATE.cur = -1;
     loadSoundEffectBank(1);
 }
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
 void initSound(void) {
     SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
     SsSetMVol(0, 0);
@@ -75,6 +77,8 @@ void initSound(void) {
     loadSoundEffectBank(1);
     SsSetMVol(0x7F, 0x7F);
 }
+#else
+#error "untested version"
 #endif
 
 void loadSoundEffectBank(s32 bankId) {
@@ -186,8 +190,10 @@ s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr) {
 #if VERSION_JP
     /* vabId 0 is the sound effects' bank, the others music */
     vabHeader = findPakChunk((Chunk *)slot->buf, 7, vabId != 0 ? MUSIC_CHUNK_ID(slot->id) : slot->id);
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
     vabHeader = findPakChunk((Chunk *)slot->buf, 7, slot->id);
+#else
+#error "untested version"
 #endif
     if (vabHeader != 0) {
         slot->vabHeaderSize = ((Chunk *)vabHeader - 1)->size;
