@@ -42,6 +42,31 @@ extern CursorHighlight SUB_EQUIPMENT_CURSOR;
 extern s8 SUB_PARTNER_WINDOW_ANIM_DONE;
 extern s8 SUB_ARMOR_WINDOW_ANIM_DONE;
 
+void SUB_drawPartnerTab(TabWindow *window);
+
+/* The texts SUB_drawPartnerTab shares with the details windows; GCC keeps
+   one copy of each, emitted with SUB_drawPartnerTab, the first function
+   that uses them */
+#if VERSION_EU
+/* eu: SUB_drawPartnerTab is still assembly, which brings them: the
+   functions after it read them by name */
+extern const char SUB_STR_STAT[];
+extern const char SUB_STR_CROSS_EFFECT[];
+extern const char SUB_STR_RANK[];
+extern const char SUB_STR_NEXT[];
+extern const char SUB_STR_PARTNER_SUPPORT[];
+extern const char SUB_STR_NO_DATA[];
+#elif VERSION_US
+#define SUB_STR_STAT "*s0%4d"
+#define SUB_STR_CROSS_EFFECT "(%s)"
+#define SUB_STR_RANK "RANK \f\a%3d"
+#define SUB_STR_NEXT "NEXT \f\a%3d"
+#define SUB_STR_PARTNER_SUPPORT "Support Effect"
+#define SUB_STR_NO_DATA "No Data"
+#else
+#error "subseg/partner/sub_partner: version not checked"
+#endif
+
 /* the partner abilities; the code here only reads their texts */
 AbilityText SUB_ABILITY_TEXTS[128] = {
     { "HP+50.", { 3, 5, 1, 99, 3, 7, 0, 0 } },
@@ -191,7 +216,13 @@ u8 SUB_ARMOR_ICONS[6][3] = {
 };
 
 /* not referenced by any code */
+#if VERSION_EU
+s16 D_801F1FE2 = 0x380;
+#elif VERSION_US
 s16 D_801F1FE2 = 1;
+#else
+#error "subseg/partner/sub_partner: version not checked"
+#endif
 
 void SUB_drawPartnerTitle(void) {
     if (isSpritePoolFull() == 0) {
@@ -357,6 +388,16 @@ void SUB_drawArmorPortrait(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
     }
 }
 
+#if VERSION_EU
+/* eu: s0 and s1 swapped by the register allocator; no C form found yet */
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_STAT);
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_CROSS_EFFECT);
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_RANK);
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_NEXT);
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_PARTNER_SUPPORT);
+INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_NO_DATA);
+INCLUDE_ASM("subseg/nonmatchings/partner/sub_partner", SUB_drawPartnerTab);
+#elif VERSION_US
 void SUB_drawPartnerTab(TabWindow *window) {
     s32 unused[2]; /* unused, but it is in the original stack frame */
     char buf[64];
@@ -400,43 +441,43 @@ void SUB_drawPartnerTab(TabWindow *window) {
         drawTextColored(x + 0x32, y, (u8 *)PLAYER_DATA(player).partners[slot].card[0].name, rgb, 7, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].hp, PLAYER_DATA(player).partners[slot].card[0].hp);
         drawIconColored(x + 0x2C, y + 14, 0, 0x1A, rgb, z);
-        sprintf(buf, "*s0%4d", PLAYER_DATA(player).partners[slot].card[0].hp);
+        sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].hp);
         drawTextColored(x + 0x3C, y + 13, buf, rgb, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[0].power, PLAYER_DATA(player).partners[slot].card[0].attack[0].power);
         drawIconColored(x + 0x2C, y + 0x1A, 0, 7, rgb, z);
-        sprintf(buf, "*s0%4d", PLAYER_DATA(player).partners[slot].card[0].attack[0].power);
+        sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].attack[0].power);
         drawTextColored(x + 0x3C, y + 0x19, buf, rgb, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[1].power, PLAYER_DATA(player).partners[slot].card[0].attack[1].power);
         drawIconColored(x + 0x2C, y + 0x26, 0, 8, rgb, z);
-        sprintf(buf, "*s0%4d", PLAYER_DATA(player).partners[slot].card[0].attack[1].power);
+        sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].attack[1].power);
         drawTextColored(x + 0x3C, y + 0x25, buf, rgb, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[2].power, PLAYER_DATA(player).partners[slot].card[0].attack[2].power);
         drawIconColored(x + 0x2C, y + 0x32, 0, 9, rgb, z);
-        sprintf(buf, "*s0%4d", PLAYER_DATA(player).partners[slot].card[0].attack[2].power);
+        sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].attack[2].power);
         drawTextColored(x + 0x3C, y + 0x31, buf, rgb, palette, z);
         crossEffect = PLAYER_DATA(player).partners[slot].card[0].crossEffect;
         palette = 7;
         if (SUB_UNEQUIPPED_PARTNER.card[0].crossEffect != crossEffect) {
             palette = 5;
         }
-        sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[crossEffect]);
+        sprintf(buf, SUB_STR_CROSS_EFFECT, CROSS_EFFECT_SHORT_NAMES[crossEffect]);
         drawSmallTextColored(x + 0x56, y + 0x33, buf, palette, rgb, z);
         if (CROSS_EFFECT_ICONS[crossEffect] != 0) {
             drawIconColored(x + 0x95, y + 0x31, 0, CROSS_EFFECT_ICONS[crossEffect] + 0x14, rgb, z);
         }
-        sprintf(buf, "RANK \f\a%3d", (s8)PLAYER_DATA(player).partners[slot].level);
+        sprintf(buf, SUB_STR_RANK, (s8)PLAYER_DATA(player).partners[slot].level);
         drawLargeTextColored(x + 0x5C, y + 14, buf, 6, rgb, z);
         next = 0;
         if ((s8)PLAYER_DATA(player).partners[slot].level < 99) {
             next = getExpForNextLevel((s8)PLAYER_DATA(player).partners[slot].level) - (u16)PLAYER_DATA(player).partners[slot].exp;
         }
-        sprintf(buf, "NEXT \f\a%3d", next);
+        sprintf(buf, SUB_STR_NEXT, next);
         drawLargeTextColored(x + 0x5C, y + 0x18, buf, 6, rgb, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].dpBonus, PLAYER_DATA(player).partners[slot].card[0].dpBonus);
         drawIconColored(x + 0x72, y + 0x26, 0, 0x19, rgb, z);
-        sprintf(buf, "*s0%4d", PLAYER_DATA(player).partners[slot].card[0].dpBonus);
+        sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].dpBonus);
         drawTextColored(x + 0x84, y + 0x25, buf, rgb, palette, z);
-        drawTextColored(x + 0xA8, y, (u8 *)"Support Effect", rgb, 6, z);
+        drawTextColored(x + 0xA8, y, (u8 *)SUB_STR_PARTNER_SUPPORT, rgb, 6, z);
         palette = 7;
         if (changed) {
             palette = 5;
@@ -449,9 +490,12 @@ void SUB_drawPartnerTab(TabWindow *window) {
             drawTextColored(x + 0xA8, y + 0xD + i * 12, PLAYER_DATA(player).partners[slot].card[0].supportText[i], rgb, palette, z);
         }
     } else {
-        drawTextColored(x + 0x78, y + 0x18, (u8 *)"No Data", rgb, 7, z);
+        drawTextColored(x + 0x78, y + 0x18, (u8 *)SUB_STR_NO_DATA, rgb, 7, z);
     }
 }
+#else
+#error "subseg/partner/sub_partner: version not checked"
+#endif
 
 void SUB_drawArmorChange(UiWindow *window) {
     s32 x = window->originX + 1;
@@ -522,21 +566,21 @@ void SUB_drawPartnerDetails(UiWindow *window) {
     changed = updatePartnerStats(player, SUB_PARTNER_SLOT);
     SUB_drawPartnerPortrait(player, SUB_PARTNER_SLOT, x, y, 0x80, z);
     drawMediumText(x + 0x2C, y, (s32)card->name, 7, z);
-    sprintf(buf, "RANK \f\a%3d", (s8)PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].level);
+    sprintf(buf, SUB_STR_RANK, (s8)PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].level);
     drawLargeText(x + 0x2C, y + 10, (s32)buf, 6, z);
     next = 0;
     if ((s8)PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].level < 99) {
         next = getExpForNextLevel((s8)PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].level) - (u16)PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].exp;
     }
-    sprintf(buf, "NEXT \f\a%3d", next);
+    sprintf(buf, SUB_STR_NEXT, next);
     drawLargeText(x + 0x2C, y + 0x14, (s32)buf, 6, z);
     palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].hp, card->hp);
     drawIcon(x + 0x2C, y + 0x1E, 0, 0x1A, z);
-    sprintf(buf, "*s0%4d", card->hp);
+    sprintf(buf, SUB_STR_STAT, card->hp);
     drawText(x + 0x3A, y + 0x1E, (s32)buf, palette, z);
     palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].dpBonus, card->dpBonus);
     drawIcon(x + 0x2C, y + 0x2A, 0, 0x19, z);
-    sprintf(buf, "*s0%4d", card->dpBonus);
+    sprintf(buf, SUB_STR_STAT, card->dpBonus);
     drawText(x + 0x3A, y + 0x2A, (s32)buf, palette, z);
     for (i = 0; i < 3; i++) {
         if (PLAYER_DATA(player).partners[SUB_PARTNER_SLOT].unlockedArmors[i] != 0) {
@@ -546,21 +590,21 @@ void SUB_drawPartnerDetails(UiWindow *window) {
     }
     palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[0].power, card->attack[0].power);
     drawIcon(x + 0x76, y + 12, 0, 7, z);
-    sprintf(buf, "*s0%4d", card->attack[0].power);
+    sprintf(buf, SUB_STR_STAT, card->attack[0].power);
     drawText(x + 0x84, y + 12, (s32)buf, palette, z);
     palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[1].power, card->attack[1].power);
     drawIcon(x + 0x76, y + 0x18, 0, 8, z);
-    sprintf(buf, "*s0%4d", card->attack[1].power);
+    sprintf(buf, SUB_STR_STAT, card->attack[1].power);
     drawText(x + 0x84, y + 0x18, (s32)buf, palette, z);
     palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[0].attack[2].power, card->attack[2].power);
     drawIcon(x + 0x76, y + 0x24, 0, 9, z);
-    sprintf(buf, "*s0%4d", card->attack[2].power);
+    sprintf(buf, SUB_STR_STAT, card->attack[2].power);
     drawText(x + 0x84, y + 0x24, (s32)buf, palette, z);
     palette = 7;
     if (SUB_UNEQUIPPED_PARTNER.card[0].crossEffect != card->crossEffect) {
         palette = 5;
     }
-    sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
+    sprintf(buf, SUB_STR_CROSS_EFFECT, CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
     drawSmallText(x + 0x74, y + 0x30, (s32)buf, palette, z);
     if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
         drawIcon(x + 0xB2, y + 0x2E, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
@@ -617,7 +661,7 @@ void SUB_drawPartnerDetails(UiWindow *window) {
             drawText(x + 0x9E, y + 0x24, (s32)buf, palette, z);
         }
     }
-    drawText(x, y + 0x36, (s32)"Support Effect", 6, z);
+    drawText(x, y + 0x36, (s32)SUB_STR_PARTNER_SUPPORT, 6, z);
     palette = 7;
     if (changed) {
         palette = 5;
@@ -676,25 +720,25 @@ void SUB_drawArmorDetails(UiWindow *window) {
         drawIcon(x + 0x44, y + 12, 0, SUB_ARMOR_ICONS[getSlotPartnerIndex(player, SUB_PARTNER_SLOT)][getSelectedArmorIndex(player, getSlotPartnerIndex(player, SUB_PARTNER_SLOT))] + 0x1B, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[1].hp, card->hp);
         drawIcon(x, y + 0x3E, 0, 0x1A, z);
-        sprintf(buf, "*s0%4d", card->hp);
+        sprintf(buf, SUB_STR_STAT, card->hp);
         drawText(x + 0xE, y + 0x3E, (s32)buf, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[1].attack[0].power, card->attack[0].power);
         drawIcon(x, y + 0x4A, 0, 7, z);
-        sprintf(buf, "*s0%4d", card->attack[0].power);
+        sprintf(buf, SUB_STR_STAT, card->attack[0].power);
         drawText(x + 0xE, y + 0x4A, (s32)buf, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[1].attack[1].power, card->attack[1].power);
         drawIcon(x, y + 0x56, 0, 8, z);
-        sprintf(buf, "*s0%4d", card->attack[1].power);
+        sprintf(buf, SUB_STR_STAT, card->attack[1].power);
         drawText(x + 0xE, y + 0x56, (s32)buf, palette, z);
         palette = SUB_getStatPalette(SUB_UNEQUIPPED_PARTNER.card[1].attack[2].power, card->attack[2].power);
         drawIcon(x, y + 0x62, 0, 9, z);
-        sprintf(buf, "*s0%4d", card->attack[2].power);
+        sprintf(buf, SUB_STR_STAT, card->attack[2].power);
         drawText(x + 0xE, y + 0x62, (s32)buf, palette, z);
         palette = 7;
         if (SUB_UNEQUIPPED_PARTNER.card[1].crossEffect != card->crossEffect) {
             palette = 5;
         }
-        sprintf(buf, "(%s)", CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
+        sprintf(buf, SUB_STR_CROSS_EFFECT, CROSS_EFFECT_SHORT_NAMES[card->crossEffect]);
         drawSmallText(x - 2, y + 0x6E, (s32)buf, palette, z);
         if (CROSS_EFFECT_ICONS[card->crossEffect] != 0) {
             drawIcon(x + 0x3C, y + 0x6C, 0, CROSS_EFFECT_ICONS[card->crossEffect] + 0x14, z);
@@ -742,7 +786,7 @@ void SUB_drawArmorDetails(UiWindow *window) {
             }
         }
     } else {
-        drawText(x + 0x14, y + 0x4A, (s32)"No Data", 7, z);
+        drawText(x + 0x14, y + 0x4A, (s32)SUB_STR_NO_DATA, 7, z);
     }
 }
 

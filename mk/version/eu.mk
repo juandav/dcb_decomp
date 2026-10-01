@@ -30,7 +30,8 @@ MAIN_C_SRC := \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c loader.c \
 		memcard.c opening_movie.c pad.c render_loop.c save_checksum.c sort.c \
 		sound.c sound_play.c vblank.c) \
-	$(addprefix src/main/ui/, menu.c str_util.c window.c)
+	$(addprefix src/main/ui/, hacking_shell.c menu.c str_util.c window.c)
+ENDSEG_C_SRC := src/endseg/endseg.c
 EVOSEG_C_SRC := \
 	$(addprefix src/evoseg/cutscene/, evo_cutscene.c evo_shatter.c) \
 	src/evoseg/effect/evo_effect.c \
@@ -49,8 +50,8 @@ OPENSEG_C_SRC := \
 	src/openseg/friend/open_friend.c \
 	src/openseg/memcard/open_memcard.c \
 	src/openseg/open_bss.c \
-	$(addprefix src/openseg/registration/, open_registration.c \
-		open_starter.c)
+	$(addprefix src/openseg/registration/, open_name_entry.c \
+		open_registration.c open_starter.c)
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_splash.c) \
@@ -65,6 +66,7 @@ SAISEG_C_SRC := \
 SUBSEG_C_SRC := \
 	$(addprefix src/subseg/deck/, sub_auto_deck.c sub_base_deck.c \
 		sub_deck_editor.c sub_name_entry.c sub_sort.c) \
+	src/subseg/partner/sub_partner.c \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c) \

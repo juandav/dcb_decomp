@@ -39,8 +39,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/endseg/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -53,8 +54,8 @@ segments:
     subalign: 4
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
-      - [0x0, rodata, endseg]
-      - [0x8D4, asm, endseg]
-      - [0x2B8C, data, endseg]
+      - [0x0, .rodata, endseg]
+      - [0x8D4, c, endseg]
+      - [0x2B8C, .data, endseg]
 
   - [0x2D74]
