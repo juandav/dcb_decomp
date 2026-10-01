@@ -65,6 +65,19 @@ KAWSEG_C_SRC := \
 	src/kawseg/kaw_bss.c \
 	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_hud.c \
 		kaw_match_intro.c kaw_prize.c kaw_result.c)
+NISSEG_C_SRC := \
+	$(addprefix src/nisseg/deck/, nis_auto_deck.c nis_deck_scene.c) \
+	src/nisseg/title/nis_title.c \
+	src/nisseg/viewer/nis_model_viewer.c \
+	src/nisseg/vs/nis_vs_deck_select.c \
+	src/nisseg/vs/nis_vs_mode.c
+# eu's NISSEG is that Japanese debug build too, linked against the same
+# executable (config/eu/symbols_nisseg_exe.txt): its C builds as jp's, with
+# JP_DEBUG_BUILD, and is assembled with jp's ASPSX, which expands div and
+# rem with their checks (mk/version/jp.mk)
+build/eu/src/nisseg/%.c.o: CPPFLAGS += -UVERSION_EU -DVERSION_JP -DJP_DEBUG_BUILD=1
+build/eu/src/nisseg/%.c.o: TEXT_ENCODING := cp932
+build/eu/src/nisseg/%.c.o: MASPSXFLAGS += --expand-div
 OPENSEG_C_SRC := \
 	$(addprefix src/openseg/friend/, open_friend.c open_trade.c) \
 	$(addprefix src/openseg/memcard/, open_memcard.c open_save.c) \

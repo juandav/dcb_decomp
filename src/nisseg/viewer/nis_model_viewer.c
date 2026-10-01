@@ -28,8 +28,11 @@ void NIS_drawViewerMotionHelp(NisWindow *window);
 
 NisWindowDef NIS_VIEWER_CAMERA_HELP_WINDOW = { { 0x1A, 0x17, 0, 0xC }, { 0x1A, 0x17, 0x110, 0xC }, 0xA, 0, NIS_drawViewerCameraHelp, NIS_closeDeckWindow };
 NisWindowDef NIS_VIEWER_MOTION_HELP_WINDOW = { { 0x1A, 0xD0, 0, 0xC }, { 0x1A, 0xD0, 0x110, 0xC }, 0xA, 0, NIS_drawViewerMotionHelp, NIS_closeDeckWindow };
-/* not referenced by any code; a leftover value */
+#if !JP_DEBUG_BUILD
+/* not referenced by any code; a leftover value, which the debug build
+   doesn't have */
 s32 D_801FC4A4 = 0x029807D2;
+#endif
 
 void NIS_drawViewerCameraHelp(NisWindow *window) {
     char text[0x40];
@@ -56,6 +59,7 @@ void NIS_openViewerScene(void) {
     endTask(0x1B);
     spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
     loadArenaStage(-1);
+    NIS_DEBUG_PRINT("MODEL VIEW INIT PASS!!\n");
 }
 
 void NIS_closeViewerScene(void) {
@@ -66,6 +70,7 @@ void NIS_closeViewerScene(void) {
     unloadArenaStage();
     unloadAllModels();
     freeHeapBlocksByTag(0x7F);
+    NIS_DEBUG_PRINT("MODEL VIEW CLEAR!!\n");
 }
 
 void NIS_showViewerModel(void) {
@@ -100,14 +105,17 @@ void NIS_playViewerMotion(void) {
     } else if (NIS_PRESSED() & PAD_CROSS) {
         motion = 3;
     }
+    NIS_DEBUG_NAME_TASK(0, "FADE OUT");
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x20, 0);
     applyAnimationFirstFrame(0, motion);
     startModelAnimation(0, motion, -2, 0);
     waitFrames(8);
     do {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
     } while (((Model *)SCENE_3D->models[0])->anim.keyTimer >= 0);
     waitFrames(0x1E);
+    NIS_DEBUG_NAME_TASK(0, "FADE OUT");
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x20, 0);
     applyAnimationFirstFrame(0, 0);
     startModelAnimation(0, 0, -2, 0);
@@ -116,11 +124,15 @@ void NIS_playViewerMotion(void) {
 }
 
 void NIS_runViewerControls(s32 parentTask) {
+#if JP_DEBUG_BUILD
+    func_800184F0(D_801E02E1, 0x10, 1);
+#endif
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_VIEWER_CAMERA_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_VIEWER_MOTION_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.motionWindow = waitFrames(0x7FFFFFFF);
     do {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if ((NIS_HELD() & PAD_R1) && ((Graphics *)&GRAPHICS)->targetDistance > 1000) {
             ((Graphics *)&GRAPHICS)->targetDistance -= 0x19;
@@ -153,24 +165,32 @@ void NIS_runModelViewer(s32 digimonId) {
     s32 mode;
 
     scrollMode = SCROLLING_BACKGROUND->scrollMode;
+    NIS_DEBUG_PRINT("MODEL VIEW START!!\n");
     mode = scrollMode + 1;
     if (mode >= 5) {
         mode = 2;
     }
     setBackgroundScrollMode(mode);
     do {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
     } while (SCROLLING_BACKGROUND->unk1C8 != 0);
     removeFrameCallback((s32)renderScrollingBackground);
+    NIS_DEBUG_PRINT("フェードイン開始\n");
     loadSoundEffectBank(0);
     loadDigimonModelPak(0, digimonId);
+    NIS_DEBUG_NAME_TASK(0, "FADE OUT");
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x10, 0);
     NIS_showViewerModel();
     waitFrames(0x10);
+    NIS_DEBUG_PRINT("カメラタスク起動\n");
     spawnTask(0, -1, 0, 0x400, NIS_runViewerControls, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
+    NIS_DEBUG_PRINT("フェードアウト開始\n");
+    NIS_DEBUG_NAME_TASK(0, "FADE OUT");
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 0x10, 0);
     waitFrames(0x10);
+    NIS_DEBUG_PRINT("モデルデータセット\n");
     NIS_hideViewerModel();
     waitFrames(0xA);
     stopScreenFade();
@@ -178,6 +198,7 @@ void NIS_runModelViewer(s32 digimonId) {
     setBackgroundScrollMode(scrollMode);
     addFrameCallback((s32)renderScrollingBackground);
     do {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
     } while (SCROLLING_BACKGROUND->unk1C8 != 0x80);
 }

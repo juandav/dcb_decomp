@@ -6,6 +6,7 @@
 #include "dcb/vram_upload.h"
 #include "dcb/sound_play.h"
 #include "dcb/text.h"
+#include "dcb/pad.h"
 #include "dcb/nisseg.h"
 
 /* The VS mode screen: the two players' names and records, and its menu;
@@ -33,7 +34,11 @@ void NIS_runMenuE7CC(void);
 void NIS_loadTimFile(char *path) {
     u32 *tims;
 
+#if JP_DEBUG_BUILD
+    spawnTask(0, -1, 4, 0x800, loadFile, path, getCurrentTaskId());
+#else
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+#endif
     tims = (u32 *)waitFrames(0x7FFFFFFF);
     if (tims != NULL) {
         uploadTimList(tims);
@@ -54,7 +59,16 @@ void NIS_runVsMode(void) {
     NIS_SAME_SAVE = 0;
     NIS_STATE->otherPad = 1;
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
+#if JP_DEBUG_BUILD
+        /* R1 lets both players trade or not, and the debug text says which */
+        if (PAD_STATES[0]->rawPressed & PAD_R1) {
+            NIS_PROFILE(0)->tradeUnlocked = !NIS_PROFILE(0)->tradeUnlocked;
+            NIS_PROFILE(1)->tradeUnlocked = NIS_PROFILE(0)->tradeUnlocked;
+        }
+        sprintf(D_800907F8, "PUSH R1 TRADE = %d\n", NIS_PROFILE(1)->tradeUnlocked);
+#endif
         if (runChoiceMenu(&menu) == 0) {
             continue;
         }
@@ -74,6 +88,7 @@ void NIS_runVsMode(void) {
                 NIS_TRADE_BLOCKED += 2;
             }
             if (NIS_TRADE_BLOCKED != 0 || NIS_SAME_SAVE == 1) {
+                NIS_DEBUG_NAME_TASK(0, "NO TRADE");
                 spawnTask(0, -1, 0, 0x800, NIS_runTradeBlocked, 0, 0, 0, 0);
                 exitTask();
             }
@@ -91,6 +106,7 @@ void NIS_openVsWindow(NisWindowDef *def) {
     s32 window;
 
     openKanjiPage(0xF, 0x1B9);
+    NIS_DEBUG_NAME_TASK(0, "MSG_WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, def, getCurrentTaskId(), 0, 0);
     window = waitFrames(0x7FFFFFFF);
     NIS_VS_WINDOW = (NisWindow *)window;
@@ -126,6 +142,7 @@ void NIS_runTradeBlocked(void) {
     }
     NIS_openVsWindow(&def);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -177,8 +194,12 @@ void NIS_drawSameSave(NisWindow *window) {
     sprintf(lines[0], "プレイヤー１とプレイヤー２は");
     sprintf(lines[1], "同一ファイルなので");
     {
-        /* and the leftover bytes after it */
+        /* and the leftover bytes after it, not the same in the debug build */
+#if JP_DEBUG_BUILD
+        static const char cantTrade[24] = "トレードできません。\0\0\x96\r";
+#else
         static const char cantTrade[24] = "トレードできません。\0\0Wi";
+#endif
 
         sprintf(lines[2], cantTrade);
     }
@@ -192,6 +213,7 @@ void NIS_runMenuE7E4(void) {
 
     openChoiceMenuFromList(&menu, D_8007E7E4, 0);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) != 0) {
             startChoiceMenuAction(&menu);
@@ -204,6 +226,7 @@ void NIS_runMenuE7D8(void) {
 
     openChoiceMenuFromList(&menu, D_8007E7D8, 0);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) != 0) {
             startChoiceMenuAction(&menu);
@@ -216,6 +239,7 @@ void NIS_runMenuE7CC(void) {
 
     openChoiceMenuFromList(&menu, D_8007E7CC, 0);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) != 0) {
             startChoiceMenuAction(&menu);
@@ -224,6 +248,9 @@ void NIS_runMenuE7CC(void) {
 }
 
 void NIS_runMainMenu(void) {
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
     loadScrollingBackground(0xE, 2);
     showScrollingBackground();
     spawnTask(0, -1, 0, 0x1000, NIS_runMenuE7CC);

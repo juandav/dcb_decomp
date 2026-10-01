@@ -28,6 +28,8 @@ options:
   # and reads: not SLES_039.00 (see the file)
   symbol_addrs_path:
     - config/eu/symbols_nisseg_exe.txt
+    # and its own
+    - config/eu/symbols_nisseg.txt
   undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_nisseg.txt
   undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_nisseg.txt
 
@@ -55,33 +57,33 @@ segments:
       # jp's modules (config/jp/nisseg.yaml), each with its rodata and data,
       # and a debug menu jp doesn't have: its code follows the model viewer,
       # its menus sit between the trade's data and the deck editor's
-      - [0x0, rodata, title/nis_title]
+      - [0x0, .rodata, title/nis_title]
       - [0x7C, rodata, trade/nis_trade]
-      - [0x33C, rodata, vs/nis_vs_deck_select]
-      - [0x3DC, rodata, vs/nis_vs_mode]
-      - [0x580, rodata, deck/nis_auto_deck]
+      - [0x33C, .rodata, vs/nis_vs_deck_select]
+      - [0x3DC, .rodata, vs/nis_vs_mode]
+      - [0x580, .rodata, deck/nis_auto_deck]
       - [0x600, rodata, deck/nis_deck_windows]
-      - [0xDC8, rodata, deck/nis_deck_scene]
+      - [0xDC8, .rodata, deck/nis_deck_scene]
       - [0xDD0, rodata, deck/nis_deck_editor]
-      - [0xF40, rodata, viewer/nis_model_viewer]
+      - [0xF40, .rodata, viewer/nis_model_viewer]
       - [0x1038, rodata, debug/nis_debug_menu]
-      - [0x1048, asm, title/nis_title]
+      - [0x1048, c, title/nis_title]
       - [0x1858, asm, trade/nis_trade]
-      - [0x6378, asm, vs/nis_vs_deck_select]
-      - [0x6D90, asm, vs/nis_vs_mode]
-      - [0x78E0, asm, deck/nis_auto_deck]
+      - [0x6378, c, vs/nis_vs_deck_select]
+      - [0x6D90, c, vs/nis_vs_mode]
+      - [0x78E0, c, deck/nis_auto_deck]
       - [0xA3A0, asm, deck/nis_deck_windows]
-      - [0xDD34, asm, deck/nis_deck_scene]
+      - [0xDD34, c, deck/nis_deck_scene]
       - [0xE0F4, asm, deck/nis_deck_editor]
-      - [0x11E58, asm, viewer/nis_model_viewer]
+      - [0x11E58, c, viewer/nis_model_viewer]
       - [0x129E4, asm, debug/nis_debug_menu]
-      - [0x130E8, data, title/nis_title]
+      - [0x130E8, .data, title/nis_title]
       - [0x13154, data, trade/nis_trade]
       - [0x13248, data, debug/nis_debug_menu]
       - [0x133D8, data, deck/nis_deck_editor]
-      - [0x135C8, data, deck/nis_auto_deck]
+      - [0x135C8, .data, deck/nis_auto_deck]
       - [0x135F8, data, deck/nis_deck_windows]
-      - [0x13A08, data, viewer/nis_model_viewer]
+      - [0x13A08, .data, viewer/nis_model_viewer]
       - [0x13A48, data, nis_bss]
 
   - [0x13F64]
