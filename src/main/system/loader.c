@@ -8,6 +8,15 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 
+/* eu's loader still prints its debug trace */
+#if VERSION_EU
+#define LOADER_TRACE(args) printf args
+#elif VERSION_US
+#define LOADER_TRACE(args)
+#else
+#error "main/system/loader: version not checked"
+#endif
+
 s32 FILE_LOADER_BUSY = 0;
 
 void mountDriveTask(s32 path, s32 parentTask) {
@@ -48,9 +57,7 @@ s32 loadFileTagged(s32 *path, s32 parentTask, s32 heapTag) {
     s32 buf;
 
     size = 0;
-#if VERSION_EU
-    printf("GMload_heap_file2(%s)\n", path);
-#endif
+    LOADER_TRACE(("GMload_heap_file2(%s)\n", path));
     while (FILE_LOADER_BUSY != 0) {
         waitFrames(FRAME_INTERVAL);
     }
@@ -67,9 +74,7 @@ s32 loadFileTagged(s32 *path, s32 parentTask, s32 heapTag) {
             closeDiscFile(file);
         }
     }
-#if VERSION_EU
-    printf("end\n");
-#endif
+    LOADER_TRACE(("end\n"));
     LOADED_FILE_SIZE = size;
     resumeTask(parentTask, buf);
     FILE_LOADER_BUSY = 0;

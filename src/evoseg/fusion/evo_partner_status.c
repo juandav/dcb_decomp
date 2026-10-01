@@ -184,4 +184,6 @@ void EVO_drawCardInfo(UiWindow *w) {
 const char EVO_STR_SPEC[8] = "Spec.\0\x85\xA4";
 #elif VERSION_EU
 const char EVO_STR_SPEC[8] = "Spec.";
+#else
+#error "evoseg/fusion/evo_partner_status: version not checked"
 #endif

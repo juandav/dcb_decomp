@@ -126,6 +126,8 @@ s32 SUB_chooseBaseDeck(PlayerDeck *deck, s32 player) {
 const char SUB_STR_BASE_DECK_LIST[16] = "BASE DECK LIST\0\xFE";
 #elif VERSION_EU
 const char SUB_STR_BASE_DECK_LIST[16] = "BASE DECK LIST\0%";
+#else
+#error "subseg/deck/sub_base_deck: version not checked"
 #endif
 
 Menu SUB_BASE_DECK_MENU = { NULL, NULL, { 50, 40, 220, 154 }, 0, -1, 0, -1, 0xa, 0x21, 220, 12, 1, 1, 2, 1, 0, 14, 0, 0, 0 };

@@ -280,6 +280,8 @@ void KAW_tickDuelMenu(void) {
 const char KAW_STR_GIVE_UP[12] = "Give Up?\0\xD0\x12\x2B";
 #elif VERSION_EU
 const char KAW_STR_GIVE_UP[12] = "Give Up?\0fak";
+#else
+#error "kawseg/ui/kaw_duel_menu: version not checked"
 #endif
 
 Menu KAW_DUEL_MENU = { NULL, NULL, { 20, 40, 180, 56 }, 0, -1, 0, -1, 8, 0x16, 180, 12, 1, 4, 0, 0, 0, 14, 0, 0, 0 };

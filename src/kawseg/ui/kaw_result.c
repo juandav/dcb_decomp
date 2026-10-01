@@ -21,6 +21,8 @@ extern s32 KAW_RESULT_SCREEN_STATE;
 const char KAW_FMT_WIN_ARC_PATH[20] = "B:\\WIN\\%3.3d.ARC\0\x02\x24\x41";
 #elif VERSION_EU
 const char KAW_FMT_WIN_ARC_PATH[20] = "B:\\WIN\\%3.3d.ARC\0\0\0\x02";
+#else
+#error "kawseg/ui/kaw_result: version not checked"
 #endif
 
 void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {

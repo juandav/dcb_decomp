@@ -400,6 +400,8 @@ void SUB_enterDeckName(s32 mode, char *name, s32 pad) {
 const char SUB_STR_NO_DECK_NAME[36] = "A Deck Name has not been entered!\0\x0E\0";
 #elif VERSION_EU
 const char SUB_STR_NO_DECK_NAME[36] = "A Deck Name has not been entered!\0\0\x03";
+#else
+#error "subseg/deck/sub_name_entry: version not checked"
 #endif
 
 /* the characters of the name entry grid, ten to a row */
@@ -418,4 +420,7 @@ u8 SUB_NAME_ENTRY_CHARS[] =
 /* not referenced by any code, and only us has it (eu's is zero padding) */
 #if VERSION_US
 u8 D_801F1933 = 16;
+#elif VERSION_EU
+#else
+#error "subseg/deck/sub_name_entry: version not checked"
 #endif
