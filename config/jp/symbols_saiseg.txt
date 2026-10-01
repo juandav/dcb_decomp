@@ -4,8 +4,6 @@
 SAI_loadMapTextures = 0x801F0320; // type:func
 SAI_createScriptContext = 0x801F03EC; // type:func
 SAI_runArea = 0x801F0890; // type:func
-SAI_runSystemErrorHack = 0x801F331C; // type:func
-SAI_runHackingScene1 = 0x801F3580; // type:func
 // end of the names from us
 
 // jp's own names and the us names of what jp's C defines
@@ -70,3 +68,35 @@ SAI_loadMapScript = 0x801F0458; // type:func version-only
 SAI_loadAreaScript = 0x801F0504; // type:func version-only
 SAI_giveStarterCards = 0x801F0648; // type:func version-only
 SAI_resetArea = 0x801F0780; // type:func version-only
+SAI_drawSlotBits = 0x801F19A4; // type:func version-only
+SAI_drawSlotBet = 0x801F1A24; // type:func version-only
+SAI_drawSlotHelp = 0x801F1AB8; // type:func version-only
+SAI_tickSlotWindow = 0x801F1B10; // type:func version-only
+SAI_initSlotMachine = 0x801F1B18; // type:func version-only
+SAI_resetSlotMachine = 0x801F1DB4; // type:func version-only
+SAI_blinkSlotPrize = 0x801F1E38; // type:func version-only
+SAI_lightSlotWinLine = 0x801F1F7C; // type:func version-only
+SAI_lightSlotLineNumbers = 0x801F2028; // type:func version-only
+SAI_lightSlotStopButtons = 0x801F20D0; // type:func version-only
+SAI_setSlotReelSymbols = 0x801F2168; // type:func version-only
+SAI_scrollSlotReels = 0x801F2278; // type:func version-only
+SAI_lightSlotBetLines = 0x801F2398; // type:func version-only
+SAI_renderSlotMachine = 0x801F24BC; // type:func version-only
+SAI_paySlotPrize = 0x801F27D4; // type:func version-only
+SAI_judgeSlotLines = 0x801F2920; // type:func version-only
+SAI_isSlotReach = 0x801F2C38; // type:func version-only
+SAI_spinSlotReels = 0x801F2DF4; // type:func version-only
+SAI_tickSlotBet = 0x801F3168; // type:func version-only
+SAI_runSlotMachine = 0x801F331C; // type:func version-only
+SAI_SLOT_SPRITE_DEFS = 0x801F647C; // size:0x4B0 version-only
+SAI_SLOT_SPRITE_POSITIONS = 0x801F692C; // size:0x190 version-only
+SAI_SLOT_REELS = 0x801F6ABC; // size:0x5D version-only
+SAI_SLOT_BITS_WINDOW = 0x801F6B1C; // size:0x20 version-only
+SAI_SLOT_BET_WINDOW = 0x801F6B3C; // size:0x20 version-only
+SAI_SLOT_HELP_WINDOW = 0x801F6B5C; // size:0x20 version-only
+SAI_SLOT_STATES = 0x801F6B7C; // size:0x14 version-only
+SAI_SLOT_MACHINE = 0x801F7568; // size:0x50 version-only
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+func_801F3578 = 0x801F3578;
+func_801F3580 = 0x801F3580;
