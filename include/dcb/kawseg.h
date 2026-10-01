@@ -67,6 +67,15 @@ typedef struct {
     /* 0x4 */ s16 option; /* the Digivolve card that makes it possible */
 } DigivolvePlan;
 
+#if VERSION_JP
+/* jp's duel state: only the CPU's digivolve plans are known, after the
+   battle simulations (DuelAi) */
+typedef struct {
+    /* 0x000 */ u8 unk0[0x3E8];
+    /* 0x3E8 */ DigivolvePlan *selected;
+    /* 0x3EC */ DigivolvePlan slots[4];
+} DuelK;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x000 */ struct ScriptRunner *tutorialScript;
     /* 0x004 */ struct RingPrims *ringPrims;
@@ -90,6 +99,7 @@ typedef struct {
     /* 0x860 */ s16 rewardCluts[3];
     /* 0x866 */ s16 partnerCluts[3];
 } DuelK;
+#endif
 
 typedef struct ScriptRunner {
      void *data;
@@ -199,8 +209,13 @@ typedef struct {
 } ProfileK;
 
 typedef struct {
+#if VERSION_JP
+    s16 own;
+    s16 opponent;
+#elif VERSION_US || VERSION_EU
     s32 own;
     s32 opponent;
+#endif
 } SimDamage;
 
 typedef struct {
@@ -222,7 +237,11 @@ typedef struct {
 } AttackSim;
 
 typedef struct {
+#if VERSION_JP
+    u8 unk0[4];
+#elif VERSION_US || VERSION_EU
     u8 unk0[0x5C];
+#endif
     AttackSim sims[3];
 } DuelAi;
 
