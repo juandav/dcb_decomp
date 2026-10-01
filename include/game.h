@@ -633,7 +633,7 @@ typedef struct {
     /* 0x38 */ u32 unk178_13 : 2;
     /* 0x38 */ u32 statPenalty : 2;
     /* 0x38 */ u32 controller : 2;
-    /* 0x38 */ u32 unk38_19 : 2;
+    /* 0x38 */ u32 wins : 2;
     /* 0x38 */ u32 specialty : 3;
     /* 0x38 */ u32 cpuPlaceStyle : 2;
     /* 0x38 */ u32 cpuAttackStyle : 2;
