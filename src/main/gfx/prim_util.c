@@ -302,11 +302,11 @@ void setPrimQuadRect(void *prim, s16 x, s16 y, s16 w, s16 h) {
     }
 }
 
-/* the right and bottom edges that setPoly*Rect work out: jp keeps them in
-   16 bits */
-#if VERSION_JP
+/* the right and bottom edges that setPoly*Rect work out: jp and eu keep
+   them in 16 bits */
+#if VERSION_JP || VERSION_EU
 typedef s16 RectEdge;
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
 typedef s32 RectEdge;
 #endif
 

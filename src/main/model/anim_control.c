@@ -205,13 +205,13 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     /* nobj bones plus the root */
     for (i = 0; i < model->nobj + 1; i++, key++, bone++, coord++, rot++) {
         /* zero the velocity of the nine channels (j << 4: one AnimChan) */
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
         for (j = 0; j < 3; j++) {
             AnimChan *chan = &bone->ch[j];
 
             chan[0].velocity = chan[3].velocity = chan[6].velocity = 0;
         }
-#elif VERSION_US || VERSION_EU
+#elif VERSION_US
         for (j = 0, rotChan = &bone->ch[0].velocity, posChan = &bone->ch[3].velocity, scaleChan = &bone->ch[6].velocity; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }

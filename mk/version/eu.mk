@@ -27,6 +27,10 @@ MAIN_C_SRC := \
 	$(addprefix src/main/duel/, battle_hud.c card_motion.c card_zones.c \
 		cpu_decision.c duel.c duel_launch.c duel_session.c duel_setup.c \
 		duel_util.c hud_panels.c) \
+	$(addprefix src/main/gfx/, prim3d.c prim_pair.c prim_util.c transform.c \
+		vram_upload.c) \
+	src/main/model/anim_control.c \
+	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c loader.c \
 		memcard.c opening_movie.c pad.c render_loop.c save_checksum.c sort.c \
