@@ -19,7 +19,7 @@ void resetMatrixRotation(MATRIX *m) {
 /* rebuilds m's rotation from one axis of rot only: 1 keeps z, 2 keeps y,
    3 keeps x, 4 leaves no rotation and 0 leaves m untouched */
 void constrainRotationAxis(s32 axisMode, SVECTOR *rot, MATRIX *m) {
-    s32 mode;
+    u8 mode;
 
     mode = axisMode & 0xFF;
     if (mode == 0) {
@@ -66,7 +66,7 @@ void updateTransformMatrix(void *xform, s32 axisMode) {
     Transform *t = xform;
     s16 localPos[4];
     s32 flag;
-    s32 mode;
+    u8 mode;
     s32 sx;
     s32 sy;
     SVECTOR *rot;
