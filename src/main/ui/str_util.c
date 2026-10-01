@@ -323,22 +323,84 @@ s8 *formatOrdinalUpper(s8 *buf, s32 rank) {
 }
 
 #if VERSION_JP
-/* jp's own font: the Shift-JIS characters it draws, 11x11 glyphs of 0x16
-   bytes. A run of codes and the glyph its first code has: */
+/* jp's own font: the Shift-JIS characters it draws, as 12x11 glyphs of one
+   bit a pixel. Each row is two bytes, from the leftmost pixel in the first
+   byte's bit 7; the last four bits are unused. */
+#define SJIS_GLYPH_HEIGHT 11
+typedef u8 SjisGlyph[SJIS_GLYPH_HEIGHT][2];
+
+/* A run of codes and the glyph its first code has */
 typedef struct {
     u16 code;
     u16 glyph;
 } SjisGlyphRun;
 
-extern u8 SJIS_SYMBOL_GLYPHS[];         /* the glyphs of the symbols, kana and the alphabets */
-extern u8 SJIS_KANJI_GLYPHS[];         /* the glyphs of the kanji (0x889F-0x9872) */
-extern SjisGlyphRun SJIS_SYMBOL_RUNS[]; /* the runs of lead bytes 0x81-0x84 */
-extern SjisGlyphRun SJIS_KANJI_RUNS[]; /* the kanji, two runs per lead byte from 0x88 */
+/* The glyphs are the game's art, so the repository doesn't hold them: the
+   build includes them from the PNG sheets tools/font.py cuts out of the
+   executable (config/jp/fonts.txt). */
+
+/* the symbols, kana and alphabets of lead bytes 0x81-0x84 */
+SjisGlyph SJIS_SYMBOL_GLYPHS[524] = {
+#include "assets/sjis_symbol_glyphs.inc"
+};
+
+/* the kanji of JIS level 1 (0x889F-0x9872), a row of the JIS table every
+   94 glyphs */
+SjisGlyph SJIS_KANJI_GLYPHS[2965] = {
+#include "assets/sjis_kanji_glyphs.inc"
+};
+
+/* the runs of codes of SJIS_SYMBOL_GLYPHS */
+SjisGlyphRun SJIS_SYMBOL_RUNS[] = {
+    { 0x8140, 0 },   /* punctuation and symbols */
+    { 0x8180, 63 },
+    { 0x81B8, 108 }, /* set symbols */
+    { 0x81C8, 116 }, /* logic symbols */
+    { 0x81DA, 123 }, /* math symbols */
+    { 0x81F0, 138 }, /* angstrom, per mille, music signs, daggers */
+    { 0x81FC, 146 }, /* the large circle */
+    { 0x824F, 147 }, /* full-width digits */
+    { 0x8260, 157 }, /* full-width capitals */
+    { 0x8281, 183 }, /* full-width small letters */
+    { 0x829F, 209 }, /* hiragana */
+    { 0x8340, 292 }, /* katakana */
+    { 0x8380, 355 },
+    { 0x839F, 378 }, /* Greek capitals */
+    { 0x83BF, 402 }, /* Greek small letters */
+    { 0x8440, 426 }, /* Cyrillic capitals */
+    { 0x8470, 459 }, /* Cyrillic small letters */
+    { 0x8480, 474 },
+    { 0x849F, 492 }, /* box drawing */
+};
+
+/* the runs of codes of SJIS_KANJI_GLYPHS: a lead byte holds two rows of the
+   JIS table, from the trail bytes 0x40 and 0x9F. getSjisGlyphIndex takes
+   the trail bytes 0x80-0x9E, the end of the first row, from the second run,
+   counting back from 0x9F. */
+SjisGlyphRun SJIS_KANJI_RUNS[] = {
+    { 0x889F, 0 * 94 },
+    { 0x8940, 1 * 94 },  { 0x899F, 2 * 94 },
+    { 0x8A40, 3 * 94 },  { 0x8A9F, 4 * 94 },
+    { 0x8B40, 5 * 94 },  { 0x8B9F, 6 * 94 },
+    { 0x8C40, 7 * 94 },  { 0x8C9F, 8 * 94 },
+    { 0x8D40, 9 * 94 },  { 0x8D9F, 10 * 94 },
+    { 0x8E40, 11 * 94 }, { 0x8E9F, 12 * 94 },
+    { 0x8F40, 13 * 94 }, { 0x8F9F, 14 * 94 },
+    { 0x9040, 15 * 94 }, { 0x909F, 16 * 94 },
+    { 0x9140, 17 * 94 }, { 0x919F, 18 * 94 },
+    { 0x9240, 19 * 94 }, { 0x929F, 20 * 94 },
+    { 0x9340, 21 * 94 }, { 0x939F, 22 * 94 },
+    { 0x9440, 23 * 94 }, { 0x949F, 24 * 94 },
+    { 0x9540, 25 * 94 }, { 0x959F, 26 * 94 },
+    { 0x9640, 27 * 94 }, { 0x969F, 28 * 94 },
+    { 0x9740, 29 * 94 }, { 0x979F, 30 * 94 },
+    { 0x9840, 31 * 94 },
+};
 
 /* The glyph of the Shift-JIS character at str */
 u8 *getSjisGlyph(u8 *str) {
     u16 code;
-    u8 *glyphs;
+    SjisGlyph *glyphs;
 
     code = str[0] << 8 | str[1];
     if ((u16)(code - 0x8140) < 0x37F) {
@@ -348,7 +410,7 @@ u8 *getSjisGlyph(u8 *str) {
     } else {
         glyphs = SJIS_SYMBOL_GLYPHS;
     }
-    return glyphs + getSjisGlyphIndex(code) * 0x16;
+    return glyphs[getSjisGlyphIndex(code)][0];
 }
 
 /* The glyph number of a Shift-JIS code in its glyph table */

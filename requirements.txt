@@ -7,6 +7,7 @@ pyelftools
 pygfxd
 pylibyaml
 PyNaCl
+pypng
 PyYAML
 rabbitizer
 spimdisasm==1.42.4
