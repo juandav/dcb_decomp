@@ -36,7 +36,11 @@ typedef struct {
     s16 liveRot[3];
     u8 unk36[2];
     s32 liveScale[3];
+#if VERSION_JP
+    u8 unk44[0x58]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     u8 unk44[0x54];
+#endif
     void *parent;
     u8 unk9C[0x10];
     s32 scale[3];
@@ -96,6 +100,9 @@ typedef struct {
     s16 id;
     s16 active;
     s32 value;
+#if VERSION_JP
+    s32 unk8; /* jp: only SUG_initEffectSlots touches it, clearing it */
+#endif
 } EffectSlot;
 
 typedef struct {
@@ -168,6 +175,8 @@ SlotUpdate SUG_EFFECT_TICK_FUNCS[18] = {
     (SlotUpdate)renderStreakParticles,
 };
 
+/* jp's scripts can't read or set an effect's depth or detach it */
+#if VERSION_US || VERSION_EU
 /* copy the ordering table depth an effect is drawn at to or from the otz
    register */
 void SUG_getEffectOtz(EffectSlot *slot, EffectParams *params) {
@@ -268,8 +277,6 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
             }
             xform = xform->parent;
         }
-#else
-#error "sugseg/effect/sug_effect_script: version not checked"
 #endif
         for (i = n; i > 0; i--) {
             updateTransformMatrix(chain[i], 0);
@@ -295,6 +302,7 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
     SUG_initEffectFromParams((EffectTemplate *)slots->slots[id].value, cmd, slots);
     initEffectObject((void *)slots->slots[id].value);
 }
+#endif
 
 void SUG_uploadEffectTim(EffectParams *params, s32 dy, Chunk *pak) {
     char path[32];
@@ -303,14 +311,24 @@ void SUG_uploadEffectTim(EffectParams *params, s32 dy, Chunk *pak) {
 
     tim = findPakChunk(pak, 5, params->texAnimId);
     if (tim == NULL) {
+#if VERSION_JP
+        /* jp pads the file numbers with zeros */
+        sprintf(path, "E:\\ANM\\%03d_%d.TIM", params->texAnimId / 10, params->texAnimId % 10);
+#elif VERSION_US || VERSION_EU
         sprintf(path, "E:\\ANM\\%d_%d.TIM", params->texAnimId / 10, params->texAnimId % 10);
+#endif
         tim = (u32 *)loadFile(path, getCurrentTaskId());
         loaded = 1;
         if (tim == NULL) {
             return;
         }
     }
+#if VERSION_JP
+    /* jp moves only the texture down to the side's VRAM rows */
+    uploadTim(tim, params->texX, params->texY + dy, params->clutX, params->clutY);
+#elif VERSION_US || VERSION_EU
     uploadTim(tim, params->texX, params->texY + dy, params->clutX, params->clutY + dy);
+#endif
     DrawSync(0);
     if (loaded) {
         freeHeapBlock(tim);
@@ -341,7 +359,12 @@ s32 SUG_loadEffectPak(s32 id) {
     char path[32];
     s32 file;
 
+#if VERSION_JP
+    /* jp pads the file numbers with zeros */
+    sprintf(path, "E:\\%03d.PAK", id);
+#elif VERSION_US || VERSION_EU
     sprintf(path, "E:\\%d.PAK", id);
+#endif
     file = loadFileTagged((s32 *)path, getCurrentTaskId(), 0x12C);
     if (file != 0) {
         return file;
@@ -393,6 +416,9 @@ void SUG_initEffectSlots(EffectScript *obj) {
         obj->slots->slots[i].id = -1;
         obj->slots->slots[i].active = 0;
         obj->slots->slots[i].value = 0;
+#if VERSION_JP
+        obj->slots->slots[i].unk8 = 0;
+#endif
     }
     obj->slots->count = obj->waitFrames = 0;
     obj->waitReleased = 0;
@@ -471,6 +497,16 @@ void SUG_runEffectScript(EffectScript *runner) {
                     SUG_setEffectParams(&SUG_EFFECT_ROOT, regs);
                     restartEffectMotion((u8 *)&SUG_EFFECT_ROOT);
                     break;
+                /* jp turns the main screen copy on and off, the others
+                   start and stop SUGSEG's own */
+#if VERSION_JP
+                case 2:
+                    SCREEN_COPY_MODE = 1;
+                    break;
+                case 3:
+                    SCREEN_COPY_MODE = 0;
+                    break;
+#elif VERSION_US || VERSION_EU
                 case 2:
                     SCREEN_COPY_EFFECT.abr = SUG_SCREEN_FX_PHASE = 0;
                     SCREEN_COPY_EFFECT.mode = 1;
@@ -481,6 +517,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                     SCREEN_COPY_EFFECT.g = 0xA8;
                     SCREEN_COPY_EFFECT.b = 0xA8;
                     break;
+#endif
                 case 4:
                     CAMERA->buffers[0].draw.isbg = 0;
                     break;
@@ -496,12 +533,15 @@ void SUG_runEffectScript(EffectScript *runner) {
                 case 8:
                     resumeModelAnimation(slots->modelSlots[PARAMS->source]);
                     break;
+                /* jp's scripts have no commands past here */
+#if VERSION_US || VERSION_EU
                 case 9: /* turn to face from pos to pos2 */
                     PARAMS->rot[1] = -computeVectorAngle(PARAMS->pos[0] - PARAMS->pos2[0], PARAMS->pos2[2] - PARAMS->pos[2]);
                     break;
                 case 10:
                     SUG_startScreenCopyEffect(PARAMS, 0);
                     break;
+#endif
                 }
                 break;
             case 11:
@@ -511,28 +551,43 @@ void SUG_runEffectScript(EffectScript *runner) {
                         SUG_uploadTimFile(PARAM(0), (Chunk *)slots->pak);
                     }
                     break;
+                /* jp's models have their animations loaded already */
+#if VERSION_JP
+                case 1:
+                    applyAnimationFirstFrame(slots->modelSlots[PARAMS->source], PARAM(0));
+                    break;
+#elif VERSION_US || VERSION_EU
                 case 1:
                     setModelAnimationPose(slots->modelSlots[PARAMS->source], PARAM(0));
                     break;
+#endif
                 case 2:
                     /* a model whose HP ran out plays animation 5 instead of 4 */
                     anim = PARAM(0);
                     if (anim == 4 && SUG_TARGET_HP[slots->modelSlots[PARAMS->source]] <= 0) {
                         anim = 5;
                     }
+#if VERSION_JP
+                    startModelAnimation(slots->modelSlots[PARAMS->source], anim, -2, 0);
+#elif VERSION_US || VERSION_EU
                     playModelAnimation(slots->modelSlots[PARAMS->source], anim);
+#endif
                     break;
                 case 3:
                     playSoundEffect(PARAM(0));
                     break;
                 case 5:
+#if VERSION_US || VERSION_EU
                     SUG_getEffectOtz(&slots->slots[PARAM(0)], PARAMS);
+#endif
                     SUG_getEffectParams((EffectInit *)slots->slots[PARAM(0)].value, PARAMS, 0);
                     break;
                 case 6:
                     SUG_initEffectFromParams((EffectTemplate *)slots->slots[PARAM(0)].value, PARAMS, slots);
                     initEffectObject((void *)slots->slots[PARAM(0)].value);
+#if VERSION_US || VERSION_EU
                     SUG_setEffectOtz(&slots->slots[PARAM(0)], PARAMS);
+#endif
                     break;
                 case 7:
                     stopSoundVoice(SCRIPT->params[0]);
@@ -593,14 +648,20 @@ void SUG_runEffectScript(EffectScript *runner) {
                         CAMERA->targetFacedModel = slots->modelSlots[0];
                         break;
                     }
+                    /* jp has no break here: it goes on to case 15 */
+#if VERSION_US || VERSION_EU
                     break;
+#endif
                 case 15:
+#if VERSION_US || VERSION_EU
                     SUG_getEffectOtz(&slots->slots[PARAM(0)], PARAMS);
+#endif
                     SUG_getEffectParams((EffectInit *)slots->slots[PARAM(0)].value, PARAMS, 1);
                     break;
                 case 16:
                     slots->pak = SUG_loadEffectPak(PARAM(0));
                     break;
+#if VERSION_US || VERSION_EU
                 case 17:
                     SUG_detachEffectToWorld(slots, PARAM(0), PARAMS);
                     break;
@@ -613,6 +674,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                 case 19:
                     SUG_shadeModelClut(slots->modelSlots[PARAMS->source], PARAM(0));
                     break;
+#endif
                 }
                 break;
             case 12:
@@ -620,12 +682,14 @@ void SUG_runEffectScript(EffectScript *runner) {
                 case 0: /* create effect kind PARAM(1) in slot PARAM(0) */
                     SUG_createEffectEntry(PARAM(0), PARAM(1), (s32)regs, slots);
                     break;
+#if VERSION_US || VERSION_EU
                 case 5:
                     ((EffectInit *)slots->slots[PARAM(0)].value)->mode = SCRIPT->params[1];
                     break;
                 case 4:
                     regs[1] = computeVectorAngle(PARAM(0), PARAM(1));
                     break;
+#endif
                 case 1:
                     regs[1] = rsin(PARAM(1)) * PARAM(0) / 4096;
                     break;
@@ -704,8 +768,11 @@ void SUG_getEffectParams(EffectInit *fx, EffectParams *cmd, s32 live) {
     cmd->waveAmplitude = fx->waveAmplitude;
     cmd->waveFreq = fx->waveFreq;
     cmd->mode = fx->mode;
+    /* jp's effects don't keep what they hang from */
+#if VERSION_US || VERSION_EU
     cmd->source = fx->source;
     cmd->target = fx->target;
+#endif
 }
 
 void SUG_setEffectParams(EffectInit *fx, EffectParams *cmd, void *ctx) {
@@ -756,18 +823,26 @@ void SUG_getEffectWorldPos(void *xform, EffectParams *params) {
 
 void SUG_initEffectFromParams(EffectTemplate *template, EffectParams *cmd, EffectSlots *ctx) {
     SUG_setEffectParams((EffectInit *)template, cmd, ctx);
+    /* jp's effects don't keep what they hang from, and can't hang from a
+       model effect's bone */
+#if VERSION_US || VERSION_EU
     ((EffectInit *)template)->source = cmd->source;
     ((EffectInit *)template)->target = cmd->target;
+#endif
     if (cmd->target < 0) {
-        template->data[0x26] = (s32)ctx->xform;
+        ((EffectInit *)template)->parent = ctx->xform;
     } else if (cmd->source < 0) {
+#if VERSION_JP
+        ((EffectInit *)template)->parent = (void *)ctx->slots[cmd->target].value;
+#elif VERSION_US || VERSION_EU
         if (cmd->source == -1) {
-            template->data[0x26] = ctx->slots[cmd->target].value;
+            ((EffectInit *)template)->parent = (void *)ctx->slots[cmd->target].value;
         } else {
-            template->data[0x26] = (s32)((ModelEffect *)ctx->slots[-cmd->source - 2].value)->model->boneMatrices[cmd->target];
+            ((EffectInit *)template)->parent = ((ModelEffect *)ctx->slots[-cmd->source - 2].value)->model->boneMatrices[cmd->target];
         }
+#endif
     } else {
-        template->data[0x26] = (s32)((ModelData *)SCENE_3D->models[ctx->modelSlots[cmd->source]])->boneMatrices[cmd->target];
+        ((EffectInit *)template)->parent = ((ModelData *)SCENE_3D->models[ctx->modelSlots[cmd->source]])->boneMatrices[cmd->target];
     }
 }
 
@@ -799,6 +874,14 @@ void SUG_createScrollTextureFromParams(EffectParams *params, EffectSlots *ctx) {
     rect.h = params->texH;
     SUG_createScrollTexture(&rect, params->texDepth, params->variant, params->rate);
 }
+
+/* the VRAM row of an effect's CLUT: jp leaves it in the upper rows, the
+   others move it down to the side's rows with the texture */
+#if VERSION_JP
+#define EFFECT_CLUT_Y(cmd, ctx) ((cmd)->clutY)
+#elif VERSION_US || VERSION_EU
+#define EFFECT_CLUT_Y(cmd, ctx) (((ctx)->modelSlots[0] << 8) + (cmd)->clutY)
+#endif
 
 /* (u16)(v) << n, written as the two shifts GCC 2.8.1 keeps */
 #define U16_SHL(v, n) ((u32)((v) << 16) >> (16 - (n)))
@@ -835,7 +918,7 @@ void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
     uv.h = cmd->texH;
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createSphereEffect(cmd->brightness, color, cmd->pulse, cmd->pulseMode, &template, cmd->segments, cmd->slices, cmd->radius, cmd->semiTrans, cmd->abr,
-                  cmd->primKind, cmd->count, cmd->texAnimId, &uv, tpage, GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY),
+                  cmd->primKind, cmd->count, cmd->texAnimId, &uv, tpage, GetClut(cmd->clutX, EFFECT_CLUT_Y(cmd, ctx)),
                   cmd->cull, cmd->otz.w, ctx->pak);
 }
 
@@ -867,8 +950,13 @@ void SUG_createTrailFromParams(EffectParams *cmd, EffectSlots *ctx) {
     c3.b[2] = cmd->b3;
     x = cmd->texX;
     u = x & 0x3F;
+    /* jp's trails keep their texture in the rows the script names */
+#if VERSION_JP
+    v = cmd->texY & 0xFF;
+#elif VERSION_US || VERSION_EU
     y = (ctx->modelSlots[0] << 8) + cmd->texY;
     v = y & 0xFF;
+#endif
     switch (cmd->texDepth) {
     case 0:
         u = U16_SHL(u, 2);
@@ -881,10 +969,17 @@ void SUG_createTrailFromParams(EffectParams *cmd, EffectSlots *ctx) {
     uv.y = v;
     uv.w = cmd->texW;
     uv.h = cmd->texH;
+#if VERSION_JP
+    tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, cmd->texY);
+    SUG_createTrailEffect(cmd->brightness, &c0, &c1, &c2, &c3, &template, cmd->edgeX0, cmd->edgeX1, cmd->count, cmd->rows, cmd->variant,
+                  cmd->pulseMode, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->texAnimId, &uv, tpage,
+                  GetClut(cmd->clutX, cmd->clutY), cmd->otz.w);
+#elif VERSION_US || VERSION_EU
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     SUG_createTrailEffect(cmd->brightness, &c0, &c1, &c2, &c3, &template, cmd->edgeX0, cmd->edgeX1, cmd->count, cmd->rows, cmd->variant,
                   cmd->pulseMode, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->texAnimId, &uv, tpage,
-                  GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->otz.w, ctx->pak);
+                  GetClut(cmd->clutX, EFFECT_CLUT_Y(cmd, ctx)), cmd->otz.w, ctx->pak);
+#endif
 }
 
 void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
@@ -928,7 +1023,7 @@ void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
     tpage = GetTPage(cmd->texDepth, cmd->abr, cmd->texX, (ctx->modelSlots[0] << 8) + cmd->texY);
     createRingEffect(cmd->brightness, &inner, &mid, &outer, &template, cmd->count, cmd->semiTrans, cmd->abr, cmd->primKind, cmd->innerRadius,
                      cmd->outerRadius, cmd->midPercent, cmd->innerZ, cmd->outerZ, (Bytes8 *)&uv, tpage,
-                     GetClut(cmd->clutX, (ctx->modelSlots[0] << 8) + cmd->clutY), cmd->texAnimId, cmd->flags, cmd->cull, cmd->otz.w,
+                     GetClut(cmd->clutX, EFFECT_CLUT_Y(cmd, ctx)), cmd->texAnimId, cmd->flags, cmd->cull, cmd->otz.w,
                      ctx->pak);
 }
 
@@ -950,8 +1045,14 @@ void SUG_createModelEffectFromParams(EffectParams *params, EffectSlots *ctx) {
     if (entry != NULL) {
         entry += ctx->modelSlots[0];
     }
+#if VERSION_JP
+    /* jp's model effects animate all their bones and take one CLUT bank */
+    SUG_createModelEffect(params->brightness, template, params->id, params->anim, params->modelTexAnimId, (s32)entry,
+                  params->flags, ctx->pak);
+#elif VERSION_US || VERSION_EU
     SUG_createModelEffect(params->brightness, template, params->id, params->anim, params->modelTexAnimId, (s32)entry,
                   params->flags, params->allBones, ctx->pak, ctx->modelSlots[2]);
+#endif
 }
 
 void SUG_createSpriteEffectFromParams(EffectParams *params, EffectSlots *ctx) {
@@ -964,8 +1065,13 @@ void SUG_createSpriteEffectFromParams(EffectParams *params, EffectSlots *ctx) {
         template = &buf;
         SUG_initEffectFromParams(template, params, ctx);
     }
+#if VERSION_JP
+    /* jp's sprite effects can't be flipped or placed at their origin */
+    SUG_createSpriteEffect(params->brightness, template, params->id, params->otz.w, ctx->pak);
+#elif VERSION_US || VERSION_EU
     SUG_createSpriteEffect(params->brightness, template, params->id, params->flipX, params->flipY,
                   params->unk724, params->useOrigin, params->otz.w, ctx->pak);
+#endif
 }
 
 void SUG_createStreaksFromParams(EffectParams *cmd, void *ctx) {
@@ -980,8 +1086,14 @@ void SUG_createStreaksFromParams(EffectParams *cmd, void *ctx) {
     to[1] = cmd->g1;
     to[2] = cmd->b1;
     SUG_initEffectFromParams(&template, cmd, ctx);
+#if VERSION_JP
+    /* jp's streaks keep one length */
+    createStreakParticles(from, to, &template, cmd->spreadX, cmd->spreadY, cmd->length, cmd->frames, cmd->speedRange,
+                          cmd->reverse, cmd->streakCount, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semiTrans, cmd->flags, cmd->otz.w);
+#elif VERSION_US || VERSION_EU
     createStreakParticles(from, to, &template, cmd->spreadX, cmd->spreadY, cmd->length, cmd->endLength, cmd->frames, cmd->speedRange,
                           cmd->reverse, cmd->streakCount, cmd->zOffset, cmd->spin, cmd->pattern, cmd->kind, cmd->semiTrans, cmd->flags, cmd->otz.w);
+#endif
 }
 
 void SUG_createLightMotionFromParams(EffectParams *params) {
@@ -1089,7 +1201,11 @@ EffectScript *SUG_createEffectScript(void *script, s32 side, s32 a2, s32 *state)
     runner = allocTaskHeapBlock(sizeof(EffectScript));
     runner->script = script;
     runner->context = createScriptContext(script);
+#if VERSION_JP
+    runner->regs = allocScriptRegisters(0x1C6); /* jp's scripts have fewer registers */
+#elif VERSION_US || VERSION_EU
     runner->regs = allocScriptRegisters(0x1CC);
+#endif
     SUG_initEffectSlots(runner);
     runner->slots->modelSlots[0] = side;
     runner->slots->modelSlots[1] = side ^ 1;
@@ -1147,7 +1263,10 @@ void SUG_runEffectScriptTask(void *script, s32 slot, s32 a2, s32 *state) {
                 break;
             }
             running = SUG_tickEffectScript(obj);
+            /* jp's scripts have no screen copy effect */
+#if VERSION_US || VERSION_EU
             SUG_tickScreenCopyEffect();
+#endif
         } while (running != 0);
         if (prev == -2) {
             pauseModelAnimation(slot);
