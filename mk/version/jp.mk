@@ -34,6 +34,7 @@ MAIN_C_SRC := \
 		loader.c opening_movie.c save_checksum.c sound.c sound_play.c \
 		task.c) \
 	src/main/ui/str_util.c
+ENDSEG_C_SRC := src/endseg/title/open_movie.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \
 		sug_sprite.c) \
