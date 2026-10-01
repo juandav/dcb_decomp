@@ -59,7 +59,7 @@ elif psyq:
 else:
     cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
-cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -o {w}.o {w}.ms.s"
+cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -I{D} -I{D}/include -o {w}.o {D}/include/gte_macros.inc {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
 if r.returncode: print(r.stderr); sys.exit(1)
 if r.stderr.strip(): print(r.stderr.strip())
@@ -92,6 +92,10 @@ def reloc_bad(o,word,line):
     if a is None or b is None: return n!=want[0]
     if t==6: a+=(word&0xffff)-((word&0x8000)<<1)
     return a!=b
+_asm={}
+def asm_text(f):
+    if f not in _asm: _asm[f]=open(f).read()
+    return _asm[f]
 dis=subprocess.run(['mipsel-linux-gnu-objdump','-d','-z','--no-show-raw-insn',w+'.o'],capture_output=True,text=True).stdout
 mine={}
 for l in dis.splitlines():
@@ -103,14 +107,20 @@ for i,(off,name) in enumerate(syms):
     # overlays share addresses, so a name can exist in several: OVERLAY picks one
     binary=os.environ.get('OVERLAY','*')
     found=glob.glob(f'{ASM_DIR}/{binary}/*matchings/**/{name}.s',recursive=True)
+    if not found:
+        # a binary that is still one asm range (jp, eu): the function's
+        # glabel inside it
+        found=[f for f in glob.glob(f'{ASM_DIR}/{binary}/**/*.s',recursive=True)
+               if f'glabel {name}\n' in asm_text(f)]
     if not found: print(name,'?'); continue
     asm=found[0]
     ob,ovram=original(os.path.relpath(asm,ASM_DIR).split('/')[0])
-    t=open(asm).read()
-    size=int(re.search(r'nonmatching \w+, 0x([0-9A-F]+)',t).group(1),16)
+    t=asm_text(asm)
+    size=int(re.search(r'nonmatching '+name+r', 0x([0-9A-F]+)',t).group(1),16)
     addr=int(re.search(r'glabel '+name+r'\n\s+/\* [0-9A-F]+ ([0-9A-F]{8}) ',t).group(1),16)
     end=syms[i+1][0] if i+1<len(syms) else len(text)
-    body=t[t.index('glabel '+name):] if 'glabel '+name in t else t
+    body=t[t.index('glabel '+name+'\n'):]
+    body=body[:body.index('endlabel '+name+'\n')] if 'endlabel '+name+'\n' in body else body
     tl=[re.sub(r'\s+',' ',re.sub(r'.*\*/\s+','',l)).strip() for l in body.splitlines() if re.match(r'\s+/\*',l)]
     nd=0; rows=[]
     for k in range(max(size,end-off)//4):
