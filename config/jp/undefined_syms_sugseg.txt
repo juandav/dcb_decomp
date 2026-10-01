@@ -4,3 +4,4 @@
    what it calls by address, and the fields of its data that the modules
    still in asm read by splat's names */
 D_801EA7E8 = 0x801EA7E8;
+D_801FCA80 = 0x801FCA80;

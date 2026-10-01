@@ -748,6 +748,13 @@ DEFAULT_TEXT_RGB = 0x8006B854;
 NEXT_SFX_VOICE = 0x8007E5E8;
 SFX_BASE_NOTE = 0x8007E5EC;
 SFX_BASE_FINE = 0x8007E5F0;
+GRID_VISIBLE = 0x8006B840; // manual (wire_grid's first datum, as in us)
+GRAPHICS = 0x80088C00; // manual (SUGSEG's camera code reads it as us does)
+CAMERA_TARGET_MODEL = 0x80088C8C; // manual (GRAPHICS + 0x8C, as in us)
+BATTLE_START_SKILL = 0x801E4650; // manual (the polygon battle's skills, as in us)
+EAT_UP_HP_SKILL = 0x801E4654; // manual
+DUEL_DIGIMON_MODELS = 0x801E4658; // size:0x40 manual
+PAD_STATES = 0x80098F48; // manual (the pads' states, as in us)
 // end of the names from us
 
 // names from the C of the modules this version builds (tools/version_symbols.py)
