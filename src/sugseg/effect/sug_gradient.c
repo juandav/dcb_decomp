@@ -357,6 +357,8 @@ void SUG_blendCornerColors(Blend *blend, u8 *out) {
     out[2] = (blend->wy0 * bottom[2] + blend->wy1 * top[2]) / (blend->wy0 + blend->wy1);
 }
 
+/* jp has no grid UV setters */
+#if VERSION_US || VERSION_EU
 void SUG_setGridUvsFT4(POLY_FT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 rows, s16 padW, s16 padH, u8 shrink) {
     Rect16 r;
     s32 col;
@@ -454,3 +456,4 @@ void SUG_setGridUvsGT4(POLY_GT4 *polys, Rect16 *uv, s32 count, s32 cols, s32 row
         setPrimQuadUvRect((u8 *)polys, cell.x, cell.y, cell.w + padW, cell.h + padH);
     }
 }
+#endif
