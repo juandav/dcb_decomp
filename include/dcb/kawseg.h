@@ -200,6 +200,15 @@ typedef struct RingPrims {
     /* 0x308 */ POLY_G4 fades[32];
 } RingPrims;
 
+#if VERSION_JP
+/* jp keeps a profile for each of the two players (PLAYER_PROFILES points to
+   both), in another layout: only the fields its matched code reads are placed */
+typedef struct {
+    /* 0x0000 */ u8 unk0[0x30];
+    /* 0x0030 */ u16 bestDamage[0xBF][3];
+    /* 0x04AA */ u8 unk4AA[0x145C - 0x4AA];
+} ProfileK;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x0000 */ u8 unk0[0x848];
     /* 0x0848 */ u16 counts[32];
@@ -207,6 +216,7 @@ typedef struct {
     /* 0x0D3C */ u16 bestDamage[0xBF][3];
     /* 0x11B6 */ u8 unk11B6[0x2774 - 0x11B6];
 } ProfileK;
+#endif
 
 typedef struct {
 #if VERSION_JP
