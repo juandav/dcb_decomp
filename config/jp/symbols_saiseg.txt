@@ -1,0 +1,12 @@
+// SAISEG's own symbols, which only its splat config reads
+
+// names from us (tools/match_versions.py --seed): the same function or datum
+SAI_runHackingScene3 = 0x801EE734; // type:func
+SAI_loadMapTextures = 0x801F0320; // type:func
+SAI_createScriptContext = 0x801F03EC; // type:func
+SAI_loadAreaTextures = 0x801F0458; // type:func
+SAI_loadAreaPak = 0x801F0780; // type:func
+SAI_runArea = 0x801F0890; // type:func
+SAI_runSystemErrorHack = 0x801F331C; // type:func
+SAI_runHackingScene1 = 0x801F3580; // type:func
+// end of the names from us
