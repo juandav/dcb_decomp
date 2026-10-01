@@ -1355,6 +1355,7 @@ s32 _card_clear(s32);
 s32 _card_info(s32);
 s32 _card_load(s32);
 s32 _card_format(s32);
+s32 format(char *name);
 s32 open(char *, s32);
 s32 close(s32);
 s32 lseek(s32, s32, s32);
