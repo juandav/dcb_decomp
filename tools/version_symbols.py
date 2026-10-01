@@ -14,7 +14,8 @@ version's address. The names the object defines itself get the address of
 their section, where the version's config puts the module. A string or
 table that only the module's data points to gets splat's automatic name
 (D_80012345) in the binary's own symbol file, as us has them, so that
-splat labels it and the report pairs the pointers. And a field of the C's
+splat labels it and the report pairs the pointers. A datum the C defines
+under us's automatic name gets it at the version's address too. And a field of the C's
 data that a module still in asm reads by splat's name (D_80012345) gets
 its address in undefined_syms, for the link.
 
@@ -270,8 +271,16 @@ def main() -> None:
                 continue
             addr = next(iter(addrs))
             if name not in us_files:
-                if not any(name in names for names in have.values()):
-                    problems.append(f"{name} = {addr:#010x}: no us symbol file of {binary} has it")
+                if any(name in names for names in have.values()):
+                    continue
+                if AUTO_NAME.match(name) and name in defined:
+                    # a datum the C defines under us's automatic name (one
+                    # no code uses): the version's address gets the same
+                    # name, so that the report pairs it
+                    if (addr, name, "") not in add[own]:
+                        add[own].append((addr, name, ""))
+                    continue
+                problems.append(f"{name} = {addr:#010x}: no us symbol file of {binary} has it")
                 continue
             # in each of the files us has it in (a label in an overlay's
             # symbols and its address in undefined_syms for the link)
