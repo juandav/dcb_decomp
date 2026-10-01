@@ -54,7 +54,7 @@ segments:
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py);
       # jp's own objects where the code shows where they start and end
-      - [0x0, rodata, sai_data]
+      - [0x0, .rodata, sai_data_jp]
       - [0x4, .rodata, player/sai_player_data_jp]
       - [0xE0, .rodata, ui/sai_text_jp]
       - [0x28C, .rodata, ui/sai_labels_jp]
@@ -68,6 +68,8 @@ segments:
       - [0x554, .rodata, map/sai_world_map_jp]
       # jp's key items and player data screen: one object, as one table of
       # its states holds all its functions from here to the message window's
+      # the first object has no code, only the number above (as us's sai_data)
+      - [0x5A4, c, sai_data_jp]
       - [0x5A4, c, player/sai_player_data_jp]
       # jp's message window and deck screen: one object, as its rodata starts
       # with the window's glyph color and runs to the deck screen's jump table
