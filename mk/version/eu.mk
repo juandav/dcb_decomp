@@ -51,7 +51,8 @@ OPENSEG_C_SRC := \
 	src/openseg/memcard/open_memcard.c \
 	src/openseg/open_bss.c \
 	$(addprefix src/openseg/registration/, open_name_entry.c \
-		open_registration.c open_starter.c)
+		open_registration.c open_starter.c) \
+	src/openseg/title/open_movie.c
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_splash.c) \

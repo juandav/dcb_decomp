@@ -278,8 +278,8 @@ void OPEN_initMovieStream(CdLocation *loc, void (*callback)()) {
     OPEN_MOVIE_IMAGE_BUFFER = allocTaskHeapBlock(0x5A00);
     OPEN_MOVIE_FRAME = 0;
     OPEN_MOVIE_ENDED = 0;
-    callbacks[0] = (s32)OPEN_showMovieFrame;
-    callbacks[1] = 0;
+    *callbacks++ = (s32)OPEN_showMovieFrame;
+    *callbacks = 0;
     DecDCTReset(0);
     DecDCToutCallback(callback);
     StSetRing(OPEN_STREAM_RING, 0x40);
@@ -313,7 +313,7 @@ void OPEN_uploadMovieSlice(void) {
     }
     id = OPEN_DEC_ENV.imgid;
     snap = OPEN_DEC_ENV.slice;
-    OPEN_DEC_ENV.imgid = id == 0;
+    OPEN_DEC_ENV.imgid = OPEN_DEC_ENV.imgid == 0;
     OPEN_DEC_ENV.slice.x += OPEN_DEC_ENV.slice.w;
     if (OPEN_DEC_ENV.slice.x < OPEN_DEC_ENV.rect[OPEN_DEC_ENV.rectid].x + OPEN_DEC_ENV.rect[OPEN_DEC_ENV.rectid].w) {
         DecDCTout(OPEN_DEC_ENV.imgbuf[OPEN_DEC_ENV.imgid], OPEN_DEC_ENV.slice.w * OPEN_DEC_ENV.slice.h / 2);
@@ -413,14 +413,12 @@ s32 OPEN_playMovie(s32 index) {
     while (!(PAD_STATES[0]->repeat & 0x800) && OPEN_MOVIE_ENDED == 0) {
         yieldTask();
     }
-    if (!(PAD_STATES[0]->repeat & 0x860)) {
-        wait = 29;
-        do {
-            yieldTask();
-            if (PAD_STATES[0]->repeat & 0x860) {
-                break;
-            }
-        } while (--wait != -1);
+    wait = 30;
+    while (!(PAD_STATES[0]->repeat & 0x860)) {
+        if (--wait == -1) {
+            break;
+        }
+        yieldTask();
     }
     endTask(0x1F);
     OPEN_clearScreen(0, 0, 0);
