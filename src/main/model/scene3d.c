@@ -21,7 +21,13 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
+#if VERSION_US
 s32 STAGE_FADE_LEVEL = 0xFF;
+#elif VERSION_JP
+/* jp's stages have no fade level */
+#else
+#error "main/model/scene3d: version not checked"
+#endif
 
 void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     MATRIX localScreen;
@@ -47,10 +53,20 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
         packet = (u32)buffer->scenePackets;
         colorMatrix = SCENE_LIGHT_COLORS;
         for (i = 0; i < 24; i++) {
+#if VERSION_JP
+            /* jp draws a model without checking its texture page. */
+            if (SCENE_3D->modelState[i] <= 0) {
+                continue;
+            }
+            model = SCENE_3D->models[i];
+#elif VERSION_US
             model = SCENE_3D->models[i];
             if (SCENE_3D->modelState[i] <= 0 || model->tpageOffset < 0) {
                 continue;
             }
+#else
+#error "main/model/scene3d: version not checked"
+#endif
             lightMatrix = SCENE_LIGHT_MATRIX;
             gte_SetColorMatrix(&colorMatrix);
             PushMatrix();
@@ -102,18 +118,30 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
             obj = model->obj;
             for (j = 0; j < model->nobj; j++, obj++) {
                 obj->coord2->flg = 0;
-                if (obj->id != -1 && obj->tmd != NULL) {
-                    GsGetLws(obj->coord2, &model->lw[j], &localScreen);
-                    if (obj->attribute == 0) {
-                        gte_SetLightMatrix(&lightMatrix);
-                        gte_SetRotMatrix(&localScreen);
-                        gte_SetTransMatrix(&localScreen);
-                        if (obj->tmd[0] != 0) {
-                            packet = sortEnvMappedModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)otDepth);
-                        } else {
-                            packet = sortModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)otDepth);
-                        }
-                    }
+#if VERSION_JP
+                /* jp only computes the matrices of the objects it draws. */
+                if (obj->id == -1 || obj->tmd == NULL || obj->attribute != 0) {
+                    continue;
+                }
+                GsGetLws(obj->coord2, &model->lw[j], &localScreen);
+#elif VERSION_US
+                if (obj->id == -1 || obj->tmd == NULL) {
+                    continue;
+                }
+                GsGetLws(obj->coord2, &model->lw[j], &localScreen);
+                if (obj->attribute != 0) {
+                    continue;
+                }
+#else
+#error "main/model/scene3d: version not checked"
+#endif
+                gte_SetLightMatrix(&lightMatrix);
+                gte_SetRotMatrix(&localScreen);
+                gte_SetTransMatrix(&localScreen);
+                if (obj->tmd[0] != 0) {
+                    packet = sortEnvMappedModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)otDepth);
+                } else {
+                    packet = sortModelObject((u32 *)obj->tmd[5], ot + 1, packet, (void *)otDepth);
                 }
             }
             PopMatrix();
@@ -164,11 +192,25 @@ void initScene3D(s32 allocBuffers) {
     {
         MATRIX lightMatrices[2] = {
             { { { 0, 0x1800, -0x1800 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
+#if VERSION_JP
+            /* jp's two lights come from the other sides */
+            { { { 0, 0x1000, -0x5DC }, { 0, -0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
+#elif VERSION_US
             { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
+#else
+#error "main/model/scene3d: version not checked"
+#endif
         };
         MATRIX colorMatrices[2] = {
             { { { 0x800, 0, 0 }, { 0x800, 0, 0 }, { 0x800, 0, 0 } }, { 0, 0, 0 } },
+#if VERSION_JP
+            /* and the first light has a little less green */
+            { { { 0x1000, 0x5DC, 0 }, { 0xFF5, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } },
+#elif VERSION_US
             { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } },
+#else
+#error "main/model/scene3d: version not checked"
+#endif
         };
 
         SCENE_LIGHT_MATRIX = lightMatrices[1];

@@ -28,7 +28,7 @@ MAIN_C_SRC := \
 	$(addprefix src/main/gfx/, display.c prim.c prim3d.c prim_pair.c prim_util.c \
 		tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c model_anim.c model_load.c \
-		stage.c wire_grid.c) \
+		scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c cd_file.c heap.c \
 		loader.c opening_movie.c save_checksum.c sound.c sound_play.c \

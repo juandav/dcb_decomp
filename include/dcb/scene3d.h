@@ -9,7 +9,11 @@ typedef struct {
     /* 0x000 */ MATRIX m;
     /* 0x020 */ VECTOR pos;
     /* 0x030 */ SVECTOR rot;
+#if VERSION_JP
+    /* 0x038 */ u8 unk38[0x108]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     /* 0x038 */ u8 unk38[0x104];
+#endif
     /* 0x13C */ Model *model;
     /* 0x140 */ u8 unk140[0x42F];
     /* 0x56F */ u8 axisMode;

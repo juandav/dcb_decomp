@@ -65,7 +65,7 @@ segments:
       - [0x850, .rodata, script/script]
       - [0x8B0, .rodata, model/anim_control]
       - [0x8DC, .rodata, model/model_load]
-      - [0x900, rodata, model/scene3d]
+      - [0x900, .rodata, model/scene3d]
       - [0x984, rodata, model/camera]
       - [0x9B4, rodata, ui/text]
       - [0x9D8, .rodata, ui/str_util]
@@ -120,7 +120,7 @@ segments:
       - [0xE638, c, model/model_anim]
       - [0xFBF0, c, model/anim_control]
       - [0x10380, c, model/model_load]
-      - [0x10C58, asm, model/scene3d]
+      - [0x10C58, c, model/scene3d]
       - [0x1146C, c, model/wire_grid]
       - [0x11C28, asm, model/camera]
       - [0x12778, asm, libmath]
@@ -168,7 +168,9 @@ segments:
       - [0x5C040, .data, model/wire_grid]
       - [0x5C054, data, ui/text]
       - [0x6EDA0, .data, system/sound]
-      - [0x6EDF4, data, model/scene3d]
+      # scene3d has no data in jp: this starts with PLAYER_PROFILES, then
+      # player_rank's tables
+      - [0x6EDF4, data, card/player_rank]
       - [0x6F094, .data, model/stage]
       - [0x6F114, data, gfx/scroll_bg]
       - [0x6F144, data, card/card_render]
