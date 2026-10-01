@@ -1,0 +1,2 @@
+// The symbols of every binary of this version: none yet, while they are
+// all blobs

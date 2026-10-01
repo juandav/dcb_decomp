@@ -2,11 +2,16 @@
 
 -include local.mk
 
+# `make` builds everything; without this the first rule below, a PsyQ
+# object's, would be the default
+.DEFAULT_GOAL := all
+
 # The version of the game to build. Each one has its settings in
-# mk/version/<version>.mk: the executable's name, the disc and the overlays.
-# The C and the assembly see it as VERSION_<VERSION> (VERSION_US).
+# mk/version/<version>.mk: the executable's name, the disc, the overlays and
+# the source files. The C and the assembly see VERSION_US, VERSION_JP and
+# VERSION_EU, the one being built as 1 and the others as 0.
 VERSION ?= us
-VERSIONS := us
+VERSIONS := us jp eu
 ifeq ($(filter $(VERSION),$(VERSIONS)),)
 $(error unsupported VERSION $(VERSION); supported: $(VERSIONS))
 endif
@@ -46,7 +51,10 @@ OBJDIFF ?= bin/objdiff-cli-linux-x86_64
 
 INC := -Iinclude -Iexternal/psyq_headers/psyq_lib47/include
 
-CPPFLAGS := $(INC) -undef -nostdinc \
+# -DVERSION_<VERSION>: include/version.h turns it into VERSION_US,
+# VERSION_JP and VERSION_EU, each 0 or 1, for #if; -Wundef warns about an
+# #if on a name that isn't defined, such as a misspelt version
+CPPFLAGS := $(INC) -undef -nostdinc -Wundef \
 	    -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx \
 	    -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D_LANGUAGE_C -DLANGUAGE_C \
 	    -DVERSION_$(VERSION_UPPER) -DASM_DIR='"$(ASM_DIR)"'
@@ -66,7 +74,11 @@ CC1_POST := cat
 # before `j $31` into its delay slot (tools/aspsx_reorder.py). They use
 # -mhard-float: with -msoft-float the FP registers are fixed, which lowers
 # loop.c's threshold and keeps it from hoisting constants the originals hoist.
-PSYQ_OBJECTS := $(shell awk '{print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
+# A version without that list (one still built from blobs) has none.
+PSYQ_LIST := $(wildcard $(CONFIG_DIR)/psyq_objects.txt)
+PSYQ_OBJECTS := $(if $(PSYQ_LIST),$(shell awk '{print $$1}' $(PSYQ_LIST)))
+# the ones written in C, which splat reads for their INCLUDE_ASMs
+PSYQ_C := $(wildcard $(PSYQ_OBJECTS:%=src/main/psyq/%.c))
 PSYQ_OBJ := $(PSYQ_OBJECTS:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_OBJ): GCC_VERSION := 2.7.2
 # ...binary-patched into the libraries' cc1 (see tools/patch_cc1.py, from dw3)
@@ -84,7 +96,7 @@ $(PSYQ_OBJ): MASPSXFLAGS += --expand-div
 # address of a global in a register and reaches its fields from there. It
 # filled the delay slot of `j $31` itself; tools/unfill_epilogue.py undoes that
 # so ASPSX's rule applies as for the rest.
-PSYQ_GCC28 := $(shell awk '$$2 == "gcc2.8" {print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
+PSYQ_GCC28 := $(if $(PSYQ_LIST),$(shell awk '$$2 == "gcc2.8" {print $$1}' $(PSYQ_LIST)))
 PSYQ_GCC28_OBJ := $(PSYQ_GCC28:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 # That compiler never used `return` insns either (tools/sn_cc1.py).
 SN_CC1 := $(TOOLS_BUILDDIR)/cc1-2.8.1-sn
@@ -103,18 +115,27 @@ $(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
 # Others come from GCC 2.7.2 run without the second CSE pass, as all of
 # DW3's PsyQ: the first pass kept the address of a global in a register and
 # the second one would put the constant address back
-PSYQ_NOCSE := $(shell awk '$$2 == "nocse" {print $$1}' $(CONFIG_DIR)/psyq_objects.txt)
+PSYQ_NOCSE := $(if $(PSYQ_LIST),$(shell awk '$$2 == "nocse" {print $$1}' $(PSYQ_LIST)))
 PSYQ_NOCSE_OBJ := $(PSYQ_NOCSE:%=$(BUILDDIR)/src/main/psyq/%.c.s)
 $(PSYQ_NOCSE_OBJ): CC1FLAGS += -fno-rerun-cse-after-loop
+# the assembly sees every version as 0 or 1 too: .if VERSION_JP
 ASFLAGS := -EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0 $(INC) \
-	   --defsym VERSION_$(VERSION_UPPER)=1
+	   $(foreach v,$(VERSIONS),--defsym VERSION_$(shell echo $(v) | tr a-z A-Z)=$(if $(filter $(v),$(VERSION)),1,0))
+# the hand-written symbols every binary links with (a version that is still
+# blobs has none)
+UNDEFINED_SYMS := $(wildcard $(CONFIG_DIR)/undefined_syms.txt)
 LDFLAGS := -nostdlib --no-check-sections -Map $(MAP) \
 	   -T $(GENDIR)/main.ld \
-	   -T $(CONFIG_DIR)/undefined_syms.txt \
+	   $(addprefix -T ,$(UNDEFINED_SYMS)) \
 	   -T $(GENDIR)/undefined_syms_auto_main.txt \
 	   -T $(GENDIR)/undefined_funcs_auto_main.txt
 
-C_SRC := $(shell find src -name '*.c' -not -path 'src/main/psyq/*' 2> /dev/null) src/main/psyq.c
+# The source files are the ones the version lists in mk/version/<version>.mk,
+# <BINARY>_C_SRC and <BINARY>_HASM_SRC for the executable (MAIN) and each
+# overlay: nothing else under src/ is built. The PsyQ objects are assembled
+# into one psyq.c.o (see PSYQ_OBJECTS).
+BINARIES := MAIN $(shell echo $(OVERLAYS) | tr a-z A-Z)
+C_SRC := $(foreach b,$(BINARIES),$($(b)_C_SRC)) $(if $(PSYQ_OBJECTS),src/main/psyq.c)
 # Target objects for objdiff: splat's full disassembly of every C unit
 TARGET_ASM := $(C_SRC:src/%.c=$(ASM_DIR)/%.s)
 
@@ -127,7 +148,7 @@ ASM_SRC := $(filter-out $(TARGET_ASM),$(shell find $(ASM_DIR) -name '*.s' \
 # segments (src/<binary>/<name>.s; splat only writes one if it isn't there),
 # and the PsyQ objects Sony assembled (src/main/psyq/<object>.s, used in
 # place of <object>.c, see PSYQ_PARTS)
-HASM_SRC := $(shell find src -name '*.s' -not -path 'src/main/psyq/*' 2> /dev/null)
+HASM_SRC := $(foreach b,$(BINARIES),$($(b)_HASM_SRC))
 
 C_OBJ := $(C_SRC:%.c=$(BUILDDIR)/%.c.o)
 ASM_OBJ := $(ASM_SRC:%.s=$(BUILDDIR)/%.s.o)
@@ -161,7 +182,7 @@ $(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard 
 	@# a C file with no code (an overlay's data-only files, such as
 	@# <prefix>_bss.c) gets no full disassembly from splat; its target is
 	@# splat's files of its rodata and data
-	@for c in $$$$(find src/$(1) -name '*.c'); do \
+	@for c in $(filter src/$(1)/%,$(C_SRC)); do \
 		u=$$$${c#src/$(1)/}; u=$$$${u%.c}; t=$(ASM_DIR)/$(1)/$$$$u.s; \
 		if ! grep -qs '^glabel' $$$$t; then \
 			mkdir -p $$$$(dirname $$$$t); \
@@ -171,9 +192,9 @@ $(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard 
 	done
 	@touch $$@
 
-$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld $(CONFIG_DIR)/undefined_syms.txt $(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)
+$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld $(UNDEFINED_SYMS) $(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)
 	$(LD) -nostdlib --no-check-sections -Map $(BUILDDIR)/$$($(1)_NAME).map \
-		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld -T $(CONFIG_DIR)/undefined_syms.txt \
+		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld $(addprefix -T ,$(UNDEFINED_SYMS)) \
 		$(addprefix -T ,$(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)) \
 		-T $(GENDIR)/undefined_syms_auto_$(1).txt \
 		-T $(GENDIR)/undefined_funcs_auto_$(1).txt -o $$@
@@ -188,10 +209,10 @@ all: $(EXE) $(OVERLAY_BINS)
 
 # Only rerun splat when its own inputs change, never for Makefile edits
 $(GENDIR)/main.ld: .EXTRA_PREREQS :=
-$(GENDIR)/main.ld: $(CONFIG_DIR)/main.yaml $(CONFIG_DIR)/symbols.txt $(CONFIG_DIR)/symbols_overlay_calls.txt
+$(GENDIR)/main.ld: $(CONFIG_DIR)/main.yaml $(CONFIG_DIR)/symbols.txt $(wildcard $(CONFIG_DIR)/symbols_overlay_calls.txt)
 	# splat reads the INCLUDE_ASMs of the psyq segment from src/main/psyq.c;
 	# without them it files every PsyQ function under $(ASM_DIR)/main/matchings
-	grep -h '^INCLUDE_' src/main/psyq/*.c > src/main/psyq.c
+	$(if $(PSYQ_C),grep -h '^INCLUDE_' $(PSYQ_C) > src/main/psyq.c)
 	$(SPLAT) $< --disassemble-all --make-full-disasm-for-code; \
 		r=$$?; rm -f src/main/psyq.c; exit $$r
 	@touch $@
@@ -208,7 +229,7 @@ $(EXE): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 	@truncate -s %2048 $@
 
-$(ELF): $(OBJ) $(GENDIR)/main.ld $(CONFIG_DIR)/undefined_syms.txt
+$(ELF): $(OBJ) $(GENDIR)/main.ld $(UNDEFINED_SYMS)
 	$(LD) $(LDFLAGS) -o $@
 
 $(BUILDDIR)/%.c.o: %.c

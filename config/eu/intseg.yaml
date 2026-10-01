@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): INTSEG
+name: intseg
+sha1: 8af47db71a4aeab5fe9c0748c6c1a58bb4827497
+options:
+  basename: intseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/INTSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/intseg
+  asset_path: asm/eu/intseg/bin
+  src_path: src/intseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/intseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_intseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_intseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob; its calls to its own functions put it at 0x801E5FE0,
+  # not at OVERLAY_LOAD_ADDR as the other overlays
+  - name: intseg
+    type: databin
+    start: 0x0
+    vram: 0x801E5FE0
+    subalign: 4
+
+  - [0x7F28]

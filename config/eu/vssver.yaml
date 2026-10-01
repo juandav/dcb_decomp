@@ -1,0 +1,35 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): VSSVER
+name: vssver
+sha1: d0bbe1bd3eb88df512313f9075ee09eadc7faa28
+options:
+  basename: vssver
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/VSSVER.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/vssver
+  asset_path: asm/eu/vssver/bin
+  src_path: src/vssver
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/vssver.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_vssver.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_vssver.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob; not code but a Visual SourceSafe vssver.scc file
+  # that ended up in P.DRV
+  - name: vssver
+    type: databin
+    start: 0x0
+    subalign: 4
+
+  - [0x90]

@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): NISSEG
+name: nisseg
+sha1: 9fb38eea63c6a062a38ee3cab6194a49a07d6c23
+options:
+  basename: nisseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/NISSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/nisseg
+  asset_path: asm/eu/nisseg/bin
+  src_path: src/nisseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/nisseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_nisseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_nisseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob; its calls to its own functions put it at 0x801E5FE0,
+  # not at OVERLAY_LOAD_ADDR as the other overlays
+  - name: nisseg
+    type: databin
+    start: 0x0
+    vram: 0x801E5FE0
+    subalign: 4
+
+  - [0x13F64]

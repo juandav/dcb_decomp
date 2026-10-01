@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): SUBSEG
+name: subseg
+sha1: 63d5cc7994208794e8dd7d508c307c90b5b8f1da
+options:
+  basename: subseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/SUBSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/subseg
+  asset_path: asm/eu/subseg/bin
+  src_path: src/subseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/subseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_subseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_subseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: subseg
+    type: databin
+    start: 0x0
+    vram: 0x801E0890
+    subalign: 4
+
+  - [0x16200]

@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Japan (SLPS-02506): NISSEG
+name: nisseg
+sha1: ae81c2a0271c75a6b1c34ee12cbdb9c49131b0c9
+options:
+  basename: nisseg
+  # extracted from disks/jp/P.DRV by tools/extract_drv.py
+  target_path: build/jp/disks/NISSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/jp/nisseg
+  asset_path: asm/jp/nisseg/bin
+  src_path: src/nisseg
+  build_path: build/jp
+
+  ld_script_path: build/jp/generated/nisseg.ld
+
+  symbol_addrs_path:
+    - config/jp/symbols.txt
+  undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_nisseg.txt
+  undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_nisseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: nisseg
+    type: databin
+    start: 0x0
+    vram: 0x801EA3E8
+    subalign: 4
+
+  - [0x125DC]

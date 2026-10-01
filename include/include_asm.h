@@ -32,7 +32,7 @@
     )
 #endif
 
-#if INCLUDE_ASM_USE_MACRO_INC
+#if defined(INCLUDE_ASM_USE_MACRO_INC) && INCLUDE_ASM_USE_MACRO_INC
 __asm__(".include \"include/macro.inc\"\n");
 #else
 __asm__(".include \"include/labels.inc\"\n");

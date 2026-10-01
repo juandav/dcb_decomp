@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): KAWSEG
+name: kawseg
+sha1: ed2fb11106e3739ed678add83672a30af183e14b
+options:
+  basename: kawseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/KAWSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/kawseg
+  asset_path: asm/eu/kawseg/bin
+  src_path: src/kawseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/kawseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_kawseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_kawseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: kawseg
+    type: databin
+    start: 0x0
+    vram: 0x801E0890
+    subalign: 4
+
+  - [0x1DF7C]

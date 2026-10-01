@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): EVOSEG
+name: evoseg
+sha1: 85073893733acb93c36d3853ffe6c2890021522d
+options:
+  basename: evoseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/EVOSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/evoseg
+  asset_path: asm/eu/evoseg/bin
+  src_path: src/evoseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/evoseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_evoseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_evoseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: evoseg
+    type: databin
+    start: 0x0
+    vram: 0x801E0890
+    subalign: 4
+
+  - [0x175C4]
