@@ -199,9 +199,72 @@ void SAI_drawMessageLines(JpWindow *win) {
     }
 }
 
-/* it loads SESSION_DATA's address again for the Bits, where our C reuses
-   the one it loaded before */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_labels_jp", SAI_runBitsReward);
+/* the Bits a script gives: their window, the message, and the count up into
+   the player's */
+void SAI_runBitsReward(s32 unused, s32 parent) {
+    SAI_clearTextVram();
+    SAI_STATE->unk4B = 1;
+    SAI_UI.unk3C8 = SAI_STATE->unk4E;
+    showScrollingBackground();
+    openChoiceMenu(&SAI_UI.menu, (s8)SAI_UI.unk3C8, 0x32, 0, 0);
+    SAI_STATE->unk48 = 0;
+    SAI_STATE->unk49 = 0;
+    waitFrames(3);
+    addFrameCallback((s32)func_801F1130);
+    /* no Bits to give: the guard returns early, which starts the rest at a
+       label, so CSE loads SESSION_DATA's address anew as jp's does */
+    if (SAI_STATE->regs[1] == 0) {
+        resumeTask(parent);
+        return;
+    }
+    openKanjiPage(0xF, 0xE7);
+    clearKanjiPage(0xF);
+    waitFrames(3);
+    SAI_BITS_REWARD = allocHeapBlock(0x14, 0x191);
+    SAI_BITS_REWARD->step = SAI_STATE->bits / 95; /* counted up in about 95 steps */
+    SAI_BITS_REWARD->total = SAI_STATE->bits + PLAYER_DATA(0).bits;
+    if (SAI_BITS_REWARD->total > 999998) {
+        SAI_BITS_REWARD->total = 999999;
+    }
+    if (SAI_BITS_REWARD->step == 0) {
+        SAI_BITS_REWARD->step = 1;
+    }
+    SAI_BITS_REWARD->running = 1;
+    SAI_BITS_REWARD->unkC = 10;
+    SAI_BITS_REWARD->unkE = 0;
+    SAI_BITS_REWARD->unk10 = 0;
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_BITS_WINDOW_DEF, getCurrentTaskId());
+    SAI_UI.unk3B8 = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_MESSAGE_LINES_WINDOW_DEF, getCurrentTaskId());
+    SAI_BITS_REWARD->window = (JpWindow *)waitFrames(0x7FFFFFFF);
+    waitFrames(60);
+    playSoundEffect(0x18);
+    SAI_addTextLine(1);
+    SAI_UI.typing = 1;
+    do {
+        waitFrames(FRAME_INTERVAL);
+    } while (SAI_UI.typing == 1);
+    waitFrames(60);
+    PLAYER_DATA(0).bits = SAI_BITS_REWARD->total;
+    playSoundEffect(0x17);
+    do {
+        waitFrames(FRAME_INTERVAL);
+        SAI_STATE->flags++;
+        if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
+            SAI_STATE->flags = 0;
+            playSoundEffectAtVolume(0, 0x32);
+            SAI_clearTextLines();
+            SAI_BITS_REWARD->running = 0;
+        }
+    } while (SAI_BITS_REWARD->running == 1);
+    SAI_BITS_REWARD->unk10 = 0;
+    SAI_BITS_REWARD->window->state = 4;
+    SAI_UI.unk3B8->state = 4;
+    waitFrames(30);
+    freeHeapBlocksByTag(0x191);
+    closeKanjiPage(0xF);
+    resumeTask(parent);
+}
 
 void SAI_giveBits(void) {
     spawnTask(0, -1, 0, 0x1000, SAI_runBitsReward, 0, getCurrentTaskId(), 0, 0);
