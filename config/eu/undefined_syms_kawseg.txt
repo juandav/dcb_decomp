@@ -1,0 +1,4 @@
+/* addresses KAWSEG uses that none of its objects defines */
+
+/* names from the C of the modules this version builds (tools/version_symbols.py) */
+SUG_createFadeRect = 0x801E8B58;

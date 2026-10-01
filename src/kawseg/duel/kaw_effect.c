@@ -92,9 +92,13 @@ void KAW_createEffectEntry(s32 index, s32 kind, s32 params, EffectTable *table);
 
 /* per effect kind: what updates it each frame, creates it and frees it */
 void (*KAW_EFFECT_TICK_FUNCS[4])(u8 *) = {
-    /* SUGSEG's colour quad renderer, SUG_tickFadeRect (0x801E651C): in KAWSEG this address
+    /* SUGSEG's colour quad renderer, SUG_tickFadeRect: in KAWSEG this address
        is inside KAW_chooseSupportCard, and nothing here relocates it */
+#if VERSION_US
     (void (*)(u8 *))0x801E651C,
+#elif VERSION_EU
+    (void (*)(u8 *))0x801E8C60,
+#endif
     (void (*)(u8 *))renderRingEffect,
     (void (*)(u8 *))updateEffectObject,
     (void (*)(u8 *))renderStreakParticles,

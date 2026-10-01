@@ -17,6 +17,9 @@ OVERLAYS := endseg intseg kawseg nisseg saiseg subseg sugseg vssver openseg evos
 # their 117 functions, 2.95.2 only 55
 GCC_VERSION := 2.8.1
 
-# The source files this version builds (see mk/version/us.mk): none yet.
-# Every binary is splat's assembly (config/eu/*.yaml), except VSSVER: not
+# The source files this version builds (see mk/version/us.mk), the same C as
+# us's. The rest of each binary is splat's assembly, one asm segment per us
+# module (config/eu/*.yaml, tools/split_version.py), except VSSVER: not
 # code but a Visual SourceSafe file, it stays one blob, splat's databin.
+KAWSEG_C_SRC := \
+	$(addprefix src/kawseg/duel/, kaw_effect.c)
