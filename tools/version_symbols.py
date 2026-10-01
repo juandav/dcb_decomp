@@ -11,7 +11,12 @@ VERSION=<version> build/<version>/src/<module>.c.o) and from the original:
 each relocation of the object (a jal, a %hi/%lo pair, a pointer in its data)
 sits where the original has the same instruction or word, which holds the
 version's address. The names the object defines itself get the address of
-their section, where the version's config puts the module.
+their section, where the version's config puts the module. A string or
+table that only the module's data points to gets splat's automatic name
+(D_80012345) in the binary's own symbol file, as us has them, so that
+splat labels it and the report pairs the pointers. And a field of the C's
+data that a module still in asm reads by splat's name (D_80012345) gets
+its address in undefined_syms, for the link.
 
 A name goes in the version's files that have it in us (config/<v>/symbols.txt,
 symbols_<overlay>.txt, symbols_overlay_calls.txt or undefined_syms*.txt),
@@ -122,9 +127,17 @@ def addresses(version: str, source: str) -> tuple:
                     his[symtab.get_symbol(r["r_info_sym"]).name][r["r_offset"]] = True
             for r in relocs:
                 sym = symtab.get_symbol(r["r_info_sym"])
-                if not sym.name or sym["st_info"]["type"] == "STT_SECTION":
-                    continue
                 o = r["r_offset"]
+                if sym["st_info"]["type"] == "STT_SECTION":
+                    # a pointer in the data to the module's own literals: the
+                    # original's word is the address of a string splat only
+                    # labels if a name says so
+                    if (r["r_info_type"] == R_MIPS_32 and section != ".text"
+                            and sections[sym["st_shndx"]] in (".rodata", ".data") and o + 4 <= len(theirs)):
+                        found[None][struct.unpack_from("<I", theirs, o)[0]] += 1
+                    continue
+                if not sym.name:
+                    continue
                 if o + 4 > len(theirs):
                     continue
                 a = struct.unpack_from("<I", ours, o)[0]
@@ -155,7 +168,35 @@ def addresses(version: str, source: str) -> tuple:
                     their_hi = struct.unpack_from("<I", theirs, h)[0] & 0xFFFF
                     addend = (our_hi << 16) + sext16(a & 0xFFFF)
                     found[sym.name][((their_hi << 16) + sext16(b & 0xFFFF) - addend) & 0xFFFFFFFF] += 1
-    return found, problems
+        # what the object covers, and the names it defines
+        covered = [(layout[n][1], layout[n][1] + elf.get_section_by_name(n).data_size)
+                   for n in (".rodata", ".data") if n in layout and elf.get_section_by_name(n)]
+        defined = {sym.name for sym in symtab.iter_symbols()
+                   if sym.name and sym["st_shndx"] not in ("SHN_UNDEF",)}
+    return found, problems, covered, defined
+
+
+def asm_reads(version: str, binary: str, covered: list, defined: set) -> dict:
+    """{name: address} of splat's automatic names, in the binary's asm, of
+    addresses inside COVERED that the C doesn't define: a field of the C's
+    data that a module still in asm reads by its own name."""
+    config = (ROOT / "config" / version / f"{binary}.yaml").read_text()
+    c_modules = set(re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", config, re.M))
+    base = ROOT / "asm" / version / binary
+    out = {}
+    for path in base.rglob("*.s"):
+        rel = path.relative_to(base)
+        if rel.parts[0] in ("nonmatchings", "matchings"):
+            continue
+        # the C modules' own disassembly (objdiff's targets) isn't linked
+        module = re.sub(r"\.(rodata|data|bss)$", "", rel.with_suffix("").as_posix())
+        if (module[len("data/"):] if module.startswith("data/") else module) in c_modules:
+            continue
+        for name in set(re.findall(r"\b((?:[A-Z]+_)?D_([0-9A-F]{8}))\b", path.read_text())):
+            addr = int(name[1], 16)
+            if name[0] not in defined and any(lo <= addr < hi for lo, hi in covered):
+                out[name[0]] = addr
+    return out
 
 
 def main() -> None:
@@ -173,9 +214,12 @@ def main() -> None:
         by_binary[rel.parts[0]].append(source)
     for binary, sources in by_binary.items():
         found = defaultdict(lambda: defaultdict(int))
+        covered, defined = [], set()
         for source in sources:
-            f, p = addresses(args.version, source)
+            f, p, c, d = addresses(args.version, source)
             problems += p
+            covered += c
+            defined |= d
             for name, addrs in f.items():
                 for a, n in addrs.items():
                     found[name][a] += n
@@ -197,6 +241,26 @@ def main() -> None:
             for name, addr, _ in read_names(path) if path.exists() else []:
                 have[path.name][name] = addr
                 by_address[path.name][addr].add(name)
+
+        # the literals only the data points to get splat's automatic name,
+        # in the binary's own file (as in us)
+        own = "symbols.txt" if binary == "main" else f"symbols_{binary}.txt"
+        for addr in sorted(found.pop(None, {})):
+            name = f"D_{addr:08X}"
+            if any(name in names for names in have.values()) or (addr, name, "") in add[own]:
+                continue
+            others = {n for f in by_address for n in by_address[f].get(addr, ())}
+            if others:
+                continue
+            add[own].append((addr, name, ""))
+
+        # the fields of the C's data that modules still in asm read by
+        # splat's names: the link needs their addresses
+        undefined = "undefined_syms.txt" if binary == "main" else f"undefined_syms_{binary}.txt"
+        for name, addr in sorted(asm_reads(args.version, binary, covered, defined).items(),
+                                 key=lambda x: x[1]):
+            if name not in have.get(undefined, {}):
+                add[undefined].append((addr, name, ""))
 
         for name in sorted(found):
             addrs = found[name]
@@ -239,7 +303,9 @@ def main() -> None:
             path = ROOT / "config" / args.version / file
             text = path.read_text() if path.exists() else ""
             if file.startswith("undefined_syms"):
-                header = f"/* {HEADER} */"
+                header = ("/* from the C of the modules this version builds (tools/version_symbols.py):\n"
+                          "   what it calls by address, and the fields of its data that the modules\n"
+                          "   still in asm read by splat's names */")
                 if not text:
                     text = f"/* addresses {path.stem.split('_')[-1].upper() if '_syms_' in path.stem else 'the executable'} uses that none of its objects defines */\n"
             else:
