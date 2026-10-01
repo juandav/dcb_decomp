@@ -1,2 +1,7 @@
-// The symbols of every binary of this version: none yet, while they are
-// all blobs
+// The symbols of every binary of this version: only the ones splat and the
+// build need. Everything else keeps splat's automatic name for now; the names
+// will come from us.
+
+// the PS-X EXE header's entry point, PsyQ's startup, and the main() it calls
+__SN_ENTRY_POINT = 0x800554E0; // type:func
+main = 0x80014000; // type:func

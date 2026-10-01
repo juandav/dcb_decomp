@@ -155,6 +155,9 @@ ASM_OBJ := $(ASM_SRC:%.s=$(BUILDDIR)/%.s.o)
 HASM_OBJ := $(HASM_SRC:%.s=$(BUILDDIR)/%.s.o)
 TARGET_OBJ := $(TARGET_ASM:%.s=$(BUILDDIR)/%.s.o)
 OBJ := $(C_OBJ) $(ASM_OBJ) $(HASM_OBJ)
+# splat's asm segments keep their jump tables in their rodata's file, so the
+# labels those point to are global there (see jlabel in include/macro.inc)
+$(ASM_OBJ): ASFLAGS += --defsym GLOBAL_JLABELS=1
 
 # Overlays: code the game loads from P.DRV at OVERLAY_LOAD_ADDR, the end of
 # the executable's .bss. Each one has a splat config,
@@ -278,7 +281,9 @@ $(BUILDDIR)/%.s.o: %.s
 				--set-section-alignment .data=4 \
 				--set-section-alignment .bss=4 $@
 
-expected: $(TARGET_OBJ) $(C_OBJ)
+# the targets: splat's full disassembly of each C file, and the code still in
+# asm segments (with their data, which objdiff_generate.py links to them)
+expected: $(TARGET_OBJ) $(C_OBJ) $(ASM_OBJ)
 	rm -rf $(EXPECTEDDIR)
 	@mkdir -p $(EXPECTEDDIR)
 	cp -r $(BUILDDIR)/$(ASM_DIR) $(EXPECTEDDIR)/asm

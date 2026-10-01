@@ -172,8 +172,8 @@ The build handles one version of the game at a time, picked with `VERSION`
 | `VERSION` | Release | Executable | Overlays in `P.DRV` | Status |
 |---|---|---|---|---|
 | `us` | USA, SLUS-01328 | `SLUS_013.28` | `ENDSEG` `EVOSEG` `KAWSEG` `OPENSEG` `SAISEG` `SUBSEG` `SUGSEG` | matched, built from C |
-| `jp` | Japan, SLPS-02506 | `SLPS_025.06` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` | blobs: each binary is one splat `databin`, linked back as it is |
-| `eu` | Europe, SLES-03900 | `SLES_039.00` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` `VSSVER` `OPENSEG` `EVOSEG` | blobs, as `jp` |
+| `jp` | Japan, SLPS-02506 | `SLPS_025.06` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` | disassembled: splat `asm` segments, PsyQ apart, no C yet |
+| `eu` | Europe, SLES-03900 | `SLES_039.00` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` `VSSVER` `OPENSEG` `EVOSEG` | as `jp`; `VSSVER`, not code, stays a splat `databin` |
 
 Each disc goes in its own `disks/<version>/`, extracted the same way as the
 USA one; the build reads the executable and `P.DRV` from there:
@@ -201,8 +201,10 @@ generated `asm/<version>/`, `build/<version>/` and `expected/<version>/`. The
 C sees `VERSION_US`, `VERSION_JP` and `VERSION_EU`, each 0 or 1
 (`include/version.h`), and so does the assembly; CONTRIBUTING.md has the
 rules for code that differs between versions. The tools take `VERSION` from
-the environment too, us by default. The CI builds and compares all three;
-`jp` and `eu` have no units in the report yet.
+the environment too, us by default. The CI builds and compares all three.
+In `jp` and `eu` the game's code that is still splat's assembly is in the
+report as units with nothing matched yet (the PsyQ SDK is left out, as in
+`us`).
 
 ## Progress
 

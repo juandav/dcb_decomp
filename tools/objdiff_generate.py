@@ -25,6 +25,12 @@ object gets the target's names at the same offsets. objdiff compares a data
 section's bytes and relocations up to its last symbol, so the names only
 set that range; whatever the base holds there must still be identical.
 
+Code that has no C yet is one of splat's asm segments (a version that is
+still being split, such as jp and eu): each is a unit too, with no base
+object, so objdiff counts all of its code and data as unmatched. Its target
+is splat's assembly of the segment's code with the rodata, data and bss
+segments of the same name.
+
 The PsyQ SDK (src/main/psyq/) and the soft-float library (libmath.s and
 libmath.c) are Sony's and the compiler's code, not the game's: like other
 PSX decomps (jype0/dw_decomp), progress doesn't count them. Hand-written
@@ -59,14 +65,16 @@ EXPECTED = EXPECTED_DIR.relative_to(ROOT).as_posix()
 
 
 def game_modules() -> list:
-    """The game's C modules, as binary/path: the executable's in ROM order
-    (config/<version>/main.yaml), then each overlay's
+    """The game's modules, as (binary/path, type): its C files ("c") and the
+    code still in splat's asm segments ("asm"), the executable's in ROM
+    order (config/<version>/main.yaml), then each overlay's
     (config/<version>/<overlay>.yaml)."""
     configs = ["main"] + sorted(p.stem for p in CONFIG_DIR.glob("*.yaml") if p.stem != "main")
     modules = []
     for binary in configs:
         yaml = (CONFIG_DIR / f"{binary}.yaml").read_text()
-        modules += [f"{binary}/{m}" for m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, c, ([\w/]+)\]", yaml, re.M)
+        modules += [(f"{binary}/{m}", kind)
+                    for kind, m in re.findall(r"^\s*- \[0x[0-9A-Fa-f]+, (c|asm), ([\w/]+)\]", yaml, re.M)
                     if m not in LIBRARIES]
     return modules
 
@@ -259,16 +267,32 @@ def unit(module: str, data: list) -> dict:
     }
 
 
-def data_objects(name: str) -> list:
-    """splat's data objects for the data segment NAME."""
-    paths = [f"{EXPECTED}/asm/main/data/{name}.{s}.s.o" for s in ("data", "bss")]
+def asm_unit(module: str) -> dict:
+    """The objdiff unit of MODULE, an asm segment: no base object, and a
+    target of its code with its data segments (binary/data/<name>.*)."""
+    binary, name = module.split("/", 1)
+    target = f"{EXPECTED}/report/{module}.s.o"
+    link(target, [f"{EXPECTED}/asm/{module}.s.o"] + data_objects(name, binary, ("rodata", "data", "bss")))
+    return {
+        "name": module,
+        "target_path": target,
+        "metadata": {"progress_categories": ["game", "executable" if binary == "main" else "overlays"]},
+    }
+
+
+def data_objects(name: str, binary: str = "main", sections: tuple = ("data", "bss")) -> list:
+    """splat's data objects for BINARY's data segments named NAME."""
+    paths = [f"{EXPECTED}/asm/{binary}/data/{name}.{s}.s.o" for s in sections]
     return [p for p in paths if (ROOT / p).exists()]
 
 
 def main() -> None:
     units = []
-    for module in game_modules():
-        units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main/main" else []))
+    for module, kind in game_modules():
+        if kind == "asm":
+            units.append(asm_unit(module))
+        else:
+            units.append(unit(module, data_objects(UNOWNED_DATA) if module == "main/main" else []))
 
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",
