@@ -39,8 +39,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/openseg/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -59,7 +60,7 @@ segments:
       - [0xAFC, rodata, registration/open_name_entry]
       - [0xBA4, rodata, registration/open_starter]
       - [0xC14, rodata, title/open_title]
-      - [0xC70, rodata, friend/open_friend]
+      - [0xC70, .rodata, friend/open_friend]
       - [0xDF4, rodata, memcard/open_memcard]
       - [0x1A00, rodata, memcard/open_save]
       - [0x1AE8, asm, title/open_movie]
@@ -68,7 +69,7 @@ segments:
       - [0x8D8C, asm, registration/open_name_entry]
       - [0xA014, asm, registration/open_starter]
       - [0xAFD4, asm, title/open_title]
-      - [0xC510, asm, friend/open_friend]
+      - [0xC510, c, friend/open_friend]
       - [0xD764, asm, memcard/open_memcard]
       - [0x1046C, asm, memcard/open_save]
       - [0x1197C, data, title/open_movie]
