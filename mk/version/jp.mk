@@ -70,6 +70,7 @@ SAISEG_C_SRC := \
 		sai_slot_machine.c) \
 	src/saiseg/map/sai_world_map_jp.c \
 	src/saiseg/player/sai_player_data_jp.c \
+	src/saiseg/sai_bss_jp.c \
 	$(addprefix src/saiseg/ui/, sai_labels_jp.c sai_panel_jp.c sai_text_jp.c)
 NISSEG_C_SRC := \
 	src/nisseg/deck/nis_auto_deck.c \

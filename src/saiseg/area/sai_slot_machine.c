@@ -18,43 +18,6 @@
    the prize table's, the lines' and the buttons'), drawn by a frame
    callback from the 3rd prim slot. */
 
-/* where initVramSprite takes a sprite from */
-typedef struct {
-    /* 0x00 */ s32 clut;
-    /* 0x04 */ s32 colorMode;
-    /* 0x08 */ s32 vramX;
-    /* 0x0C */ s32 vramY;
-    /* 0x10 */ s32 width;
-    /* 0x14 */ s32 height;
-} SpriteDef;
-
-typedef struct {
-    s32 x;
-    s32 y;
-} Point;
-
-typedef struct {
-    /* 0x00 */ VramSprite *sprites[2]; /* one block for each frame buffer */
-    /* 0x08 */ JpWindow *betWindow;
-    /* 0x0C */ JpWindow *helpWindow;
-    /* 0x10 */ JpWindow *bitsWindow;
-    /* 0x14 */ s32 bet; /* 0 to 3 */
-    /* 0x18 */ s32 prize; /* the winning symbol, 0 for none */
-    /* 0x1C */ s32 scroll[3]; /* each reel's, 0 to 40 */
-    /* 0x28 */ s32 shownScroll[3];
-    /* 0x34 */ s16 blinkTimer;
-    /* 0x36 */ u8 lineBlinkTimer;
-    /* 0x37 */ s8 winLine; /* 1 to 5, 0 for none */
-    /* 0x38 */ s8 delay;
-    /* 0x39 */ s8 rows[4][3]; /* the reel strip's row each reel shows */
-    /* 0x45 */ s8 stopped[3]; /* how long ago each reel's button was pressed */
-    /* 0x48 */ s8 state; /* SAI_SLOT_STATES */
-    /* 0x49 */ s8 running;
-    /* 0x4A */ s8 reach; /* 1: two reels stopped, 2: and they show a line */
-    /* 0x4B */ u8 brightness; /* of the last sprites while reach is 2 */
-    /* 0x4C */ s8 dimming;
-} SlotMachine;
-
 /* the symbols on a reel strip are sprites 31 to 37 */
 #define REEL_ROWS 30 /* each reel strip's, ended by a row of -1 */
 #define REEL_ROW_HEIGHT 40
@@ -64,14 +27,104 @@ void initVramSprite();
 void runWindowTask();
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 
-extern SpriteDef SAI_SLOT_SPRITE_DEFS[50];
-extern Point SAI_SLOT_SPRITE_POSITIONS[50];
-extern s8 SAI_SLOT_REELS[REEL_ROWS + 1][3];
-extern JpWindowDef SAI_SLOT_BITS_WINDOW;
-extern JpWindowDef SAI_SLOT_BET_WINDOW;
-extern JpWindowDef SAI_SLOT_HELP_WINDOW;
-extern void (*SAI_SLOT_STATES[])(void);
-extern SlotMachine SAI_SLOT_MACHINE;
+void SAI_drawSlotBits(JpWindow *win);
+void SAI_drawSlotBet(JpWindow *win);
+void SAI_drawSlotHelp(JpWindow *win);
+void SAI_tickSlotWindow(JpWindow *win);
+void SAI_tickSlotBet(void);
+void SAI_spinSlotReels(void);
+void SAI_judgeSlotLines(void);
+void SAI_paySlotPrize(void);
+
+/* the sprites, and where they go: the background, the prize table and its
+   rows, the bet lines, the line numbers, the stop buttons, the reels'
+   rows of symbols and the last ones, which show while two reels show the
+   start of a line */
+SpriteDef SAI_SLOT_SPRITE_DEFS[50] = {
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x3A1F, 0, 0x200, 0, 0xD0, 0x88 },
+    { 0x7D00, 1, 0x240, 0, 0x48, 0x88 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x3B9F, 0, 0x1E0, 0x78, 0x50, 0x18 },
+    { 0x391F, 0, 0x1F0, 0x48, 0x20, 0x20 },
+    { 0x389F, 0, 0x1F8, 0x28, 0x20, 0x20 },
+    { 0x389F, 0, 0x1F0, 0x28, 0x20, 0x20 },
+    { 0x389F, 0, 0x1F8, 0x28, 0x20, 0x20 },
+    { 0x391F, 0, 0x1F0, 0x48, 0x20, 0x20 },
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x381F, 0, 0x1F8, 0x48, 0x10, 0x10 },
+    { 0x399F, 0, 0x1E0, 0x90, 0x28, 0x28 },
+    { 0x399F, 0, 0x1E0, 0x90, 0x28, 0x28 },
+    { 0x399F, 0, 0x1E0, 0x90, 0x28, 0x28 },
+    { 0x7CC0, 1, 0x140, 0, 0x100, 0xF0 },
+    { 0x7CC0, 1, 0x1C0, 0, 0x40, 0xF0 },
+    { 0x3DA3, 0, 0x1F0, 0, 0x38, 0x14 },
+    { 0x3DE3, 0, 0x1F0, 0x14, 0x38, 0x14 },
+    { 0x3DA3, 0, 0x1F0, 0, 0x38, 0x14 },
+    { 0x3DE3, 0, 0x1F0, 0x14, 0x38, 0x14 },
+    { 0x3DA3, 0, 0x1F0, 0, 0x38, 0x14 },
+    { 0x3DE3, 0, 0x1F0, 0x14, 0x38, 0x14 },
+    { 0x3823, 0, 0x210, 0x88, 0x38, 0x28 },
+    { 0x38E3, 0, 0x220, 0x88, 0x38, 0x28 },
+    { 0x39A3, 0, 0x220, 0xB0, 0x38, 0x28 },
+    { 0x3A63, 0, 0x230, 0x88, 0x38, 0x28 },
+    { 0x3B23, 0, 0x200, 0x88, 0x38, 0x28 },
+    { 0x3BE3, 0, 0x200, 0xB0, 0x38, 0x28 },
+    { 0x3CA3, 0, 0x210, 0xB0, 0x38, 0x28 },
+    { 0x3823, 0, 0x210, 0x88, 0x38, 0x28 },
+    { 0x3B23, 0, 0x200, 0x88, 0x38, 0x28 },
+    { 0x38E3, 0, 0x220, 0x88, 0x38, 0x28 },
+    { 0x38E3, 0, 0x220, 0x88, 0x38, 0x28 },
+    { 0x38E3, 0, 0x220, 0x88, 0x38, 0x28 },
+    { 0x3D63, 0, 0x1E0, 0, 0x38, 0x78 },
+    { 0x3D63, 0, 0x1E0, 0, 0x38, 0x78 },
+    { 0x3D63, 0, 0x1E0, 0, 0x38, 0x78 },
+    { 0x3827, 0, 0x264, 0, 8, 0x92 },
+    { 0x3827, 0, 0x266, 0, 8, 0x92 },
+    { 0x3827, 0, 0x240, 0x92, 0xB8, 8 },
+    { 0x3827, 0, 0x240, 0x9A, 0xB8, 8 },
+};
+
+Point SAI_SLOT_SPRITE_POSITIONS[50] = {
+    { 0, 0 }, { 22, 49 }, { 243, 48 }, { 240, 46 }, { 240, 65 },
+    { 240, 84 }, { 240, 103 }, { 240, 122 }, { 240, 141 }, { 240, 160 },
+    { 0, 31 }, { 0, 63 }, { 0, 103 }, { 0, 143 }, { 0, 175 },
+    { 228, 46 }, { 228, 68 }, { 228, 108 }, { 228, 149 }, { 228, 172 },
+    { 51, 176 }, { 111, 176 }, { 171, 176 }, { 0, 0 }, { 256, 0 },
+    { 42, 54 }, { 42, 154 }, { 102, 54 }, { 102, 154 }, { 162, 54 },
+    { 162, 154 }, { 42, 14 }, { 42, 54 }, { 42, 94 }, { 42, 134 },
+    { 102, 14 }, { 102, 54 }, { 102, 94 }, { 102, 134 }, { 162, 14 },
+    { 162, 54 }, { 162, 94 }, { 162, 134 }, { 42, 54 }, { 102, 54 },
+    { 162, 54 }, { 30, 41 }, { 222, 41 }, { 38, 41 }, { 38, 179 },
+};
+
+s8 SAI_SLOT_REELS[REEL_ROWS + 1][3] = {
+    { 31, 35, 37 }, { 32, 33, 36 }, { 33, 34, 35 }, { 34, 36, 34 }, { 35, 33, 33 },
+    { 36, 34, 32 }, { 37, 35, 31 }, { 31, 32, 37 }, { 32, 31, 36 }, { 33, 36, 35 },
+    { 34, 35, 34 }, { 35, 34, 33 }, { 36, 35, 32 }, { 37, 34, 31 }, { 31, 31, 37 },
+    { 32, 33, 36 }, { 33, 32, 35 }, { 34, 36, 34 }, { 35, 37, 33 }, { 36, 33, 32 },
+    { 37, 34, 31 }, { 31, 36, 37 }, { 32, 32, 36 }, { 33, 33, 35 }, { 34, 34, 34 },
+    { 35, 36, 33 }, { 36, 37, 32 }, { 37, 33, 31 }, { 31, 31, 33 }, { 32, 34, 35 },
+    { -1, -1, -1 },
+};
+
+JpWindowDef SAI_SLOT_BITS_WINDOW = { { 0x126, 0x15, 0, 0xE }, { 0xAE, 0x15, 0x78, 0xE }, 0xA, 1, SAI_drawSlotBits, SAI_tickSlotWindow };
+JpWindowDef SAI_SLOT_BET_WINDOW = { { 0x17, 0x15, 0, 0xE }, { 0x17, 0x15, 0x74, 0xE }, 0xA, 0, SAI_drawSlotBet, SAI_tickSlotWindow };
+JpWindowDef SAI_SLOT_HELP_WINDOW = { { 0x17, 0xCF, 0, 0xE }, { 0x17, 0xCF, 0x110, 0xE }, 0xA, 0, SAI_drawSlotHelp, SAI_tickSlotWindow };
+
+/* what the slot machine does each frame, by its state: bet, spin, judge
+   the lines, pay; 4 quits */
+void (*SAI_SLOT_STATES[])(void) = {
+    SAI_tickSlotBet, SAI_spinSlotReels, SAI_judgeSlotLines, SAI_paySlotPrize, NULL,
+};
 
 #define SLOT SAI_SLOT_MACHINE
 #define FB_SPRITES(fb) ((VramSprite *)(fb)->primSlots[2])

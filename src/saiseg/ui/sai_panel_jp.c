@@ -6,18 +6,6 @@
 /* jp's event loop, which runs the area script's events, and the map window
    it opens and closes (sai_panel.c is us's and eu's) */
 
-/* where initVramSprite takes a sprite from */
-typedef struct {
-    /* 0x00 */ s32 clut;
-    /* 0x04 */ s32 colorMode;
-    /* 0x08 */ s32 vramX;
-    /* 0x0C */ s32 vramY;
-    /* 0x10 */ s32 width;
-    /* 0x14 */ s32 height;
-} SpriteDef;
-
-extern SpriteDef D_801F6000[];
-
 /* no prototype: this module passes its coordinates as ints */
 void initVramSprite();
 

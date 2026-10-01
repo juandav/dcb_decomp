@@ -11,7 +11,6 @@
    SAI_summarizeDeck is 8-aligned only from the message window's rodata. The message window holds up to four lines,
    rendered into VRAM as they are added and typed out a glyph at a time */
 
-
 void func_8006689C(char *, char *, s32);
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 s32 uploadKanjiString(u8 *text, Rect16 *rect);
@@ -173,26 +172,6 @@ void SAI_resolveOpponentDeck(void) {
 
 /* the deck information screen */
 
-typedef struct {
-    /* 0x00 */ s16 specialties[5];
-    /* 0x0A */ s16 options;
-    /* 0x0C */ s16 levels[3];
-    /* 0x12 */ s16 sevens; /* the Sevens cards (option cards 0x23 to 0x29) */
-    /* 0x14 */ u8 inUse;
-    /* 0x15 */ u8 sevensHeld; /* bit n: Sevens card n is in the deck */
-    /* 0x16 */ char name[0xE];
-} DeckSummary;
-
-typedef struct {
-    /* 0x00 */ DeckSummary decks[3];
-    /* 0x6C */ DeckSummary owned; /* the cards the player owns */
-    /* 0x90 */ u8 unk90[4];
-    /* 0x94 */ s32 cardsOwned;
-} DeckInfo;
-
-extern DeckInfo SAI_DECK_INFO;
-extern s32 D_801F7558;
-extern JpWindowDef D_801F645C;
 extern JpGame *SCROLLING_BACKGROUND;
 extern void runWindowTask();
 
