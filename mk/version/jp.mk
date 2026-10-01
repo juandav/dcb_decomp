@@ -40,7 +40,7 @@ MAIN_C_SRC := \
 		frame_callback.c game_exit.c heap.c loader.c memcard.c \
 		opening_movie.c pad.c render_loop.c save_checksum.c sound.c \
 		sound_play.c task.c vblank.c) \
-	$(addprefix src/main/ui/, str_util.c window_jp.c)
+	$(addprefix src/main/ui/, str_util.c text_jp.c window_jp.c)
 ENDSEG_C_SRC := src/endseg/title/open_movie.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \

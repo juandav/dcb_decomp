@@ -55,9 +55,9 @@ extern char *D_8007E5FC[8];
 extern char *D_8007E61C[8];
 extern char *D_8007E63C[8];
 
-void func_80026318(s32, s32);
-void func_800264BC(s32);
-void func_8002645C(s32);
+void openKanjiPage(s32, s32);
+void clearKanjiPage(s32);
+void closeKanjiPage(s32);
 void func_8002B508(void *, s32, s32, s32, s32);
 void func_8002CACC(s32);
 JpIcon *func_80044334(s32, s32, s32, s32, s32);
@@ -65,7 +65,7 @@ void func_80044758(JpIcon *);
 void obtainPartner(JpIcon *);
 /* no prototype: this module passes its coordinates as ints (dcb/prim.h) */
 void initVramSprite();
-void func_80025750(s32, s32, s32, s32, s32);
+void drawScrollArrow(s32, s32, s32, s32, s32);
 
 void func_801F35CC();
 
@@ -194,8 +194,8 @@ void SAI_runKeyItems(void) {
     void (*fn)(void);
 
     SAI_KEY_ITEMS.running = 1;
-    func_80026318(0xF, 0x1E3);
-    func_800264BC(0xF);
+    openKanjiPage(0xF, 0x1E3);
+    clearKanjiPage(0xF);
     func_8002B508(buf, 0x3C, 0x32, 0, 0);
     SAI_findKeyItems();
     SAI_initKeyItemList();
@@ -219,7 +219,7 @@ void SAI_runKeyItems(void) {
     func_8002CACC(0);
     waitFrames(60);
     func_80044758(SAI_KEY_ITEMS.icon);
-    func_8002645C(0xF);
+    closeKanjiPage(0xF);
     spawnTask(0, -1, 0, 0x800, func_801F35CC, 1, 0, 0, 0);
     exitTask();
 }
@@ -382,7 +382,7 @@ void SAI_tickKeyItemInput(void) {
 
 void SAI_openPlayerData(void) {
     if (++SAI_KEY_ITEMS.timer == 60) {
-        func_800264BC(0xF);
+        clearKanjiPage(0xF);
         spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_PLAYER_DATA_WINDOW_DEF, getCurrentTaskId());
         SAI_KEY_ITEMS.dataWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
@@ -417,7 +417,7 @@ void SAI_tickPlayerDataInput(void) {
 
 void SAI_closePlayerData(void) {
     if (SAI_KEY_ITEMS.timer++ >= 60) {
-        func_800264BC(0xF);
+        clearKanjiPage(0xF);
         SAI_KEY_ITEMS.timer = 0;
         SAI_KEY_ITEMS.state = 6;
         spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
@@ -532,10 +532,10 @@ void SAI_drawPlayerData(JpWindow *win) {
         }
         if (SAI_KEY_ITEMS.unk50 > 0x20) {
             if (SAI_KEY_ITEMS.scrollY < 0) {
-                func_80025750(0x116, 0x42, 4, 5, win->z);
+                drawScrollArrow(0x116, 0x42, 4, 5, win->z);
             }
             if (SAI_KEY_ITEMS.scrollY >= -0x4F) {
-                func_80025750(0x116, 0x94, 6, 5, win->z);
+                drawScrollArrow(0x116, 0x94, 6, 5, win->z);
             }
         }
     }
@@ -559,7 +559,7 @@ void SAI_drawKeyItemList(JpWindow *win) {
             SAI_KEY_ITEMS.leftBlink = 0;
         }
         if (SAI_KEY_ITEMS.leftBlink & 0x20) {
-            func_80025750(0x1E, 0x58, 0, 5, win->z);
+            drawScrollArrow(0x1E, 0x58, 0, 5, win->z);
         }
         if (SAI_KEY_ITEMS.columns[3].item != NULL && SAI_KEY_ITEMS.columns[3].item != SAI_KEY_ITEM_LIST) {
             if (SAI_KEY_ITEMS.leftBlink != 0) {
@@ -571,7 +571,7 @@ void SAI_drawKeyItemList(JpWindow *win) {
             SAI_KEY_ITEMS.rightBlink = 0;
         }
         if (SAI_KEY_ITEMS.rightBlink & 0x20) {
-            func_80025750(0x11A, 0x58, 2, 5, win->z);
+            drawScrollArrow(0x11A, 0x58, 2, 5, win->z);
         }
         for (i = 0; i < 2; i++) {
             for (j = 0; j < 5; j++) {
