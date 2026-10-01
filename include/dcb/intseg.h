@@ -6,6 +6,10 @@
 /* INTSEG: jp's new-game intro, where Babamon asks for the player's name and
    birthday and hands over one of three starter decks */
 
+/* eu's INTSEG is a leftover of an earlier Japanese build, with debug code
+   that names the tasks it spawns and prints to a debug text buffer: eu
+   builds this C as jp's with JP_DEBUG_BUILD (include/version.h) */
+
 /* a window of jp's executable */
 typedef struct {
     /* 0x00 */ u8 unk0[0x14];

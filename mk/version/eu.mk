@@ -50,6 +50,13 @@ EVOSEG_C_SRC := \
 		evo_data.c evo_fusion.c evo_fusion_result.c evo_fusion_script.c \
 		evo_lists.c evo_partner_status.c evo_rewards.c evo_screen_flash.c \
 		evo_text.c evo_trays.c evo_type_choice.c)
+INTSEG_C_SRC := $(addprefix src/intseg/, int_bss.c intseg.c)
+# eu's INTSEG is a leftover of a Japanese build with debug code, linked
+# against that build's executable (config/eu/intseg.yaml): its C builds as
+# jp's, with jp's headers and Shift JIS text (mk/version/jp.mk), and with
+# JP_DEBUG_BUILD for the debug code (include/version.h)
+build/eu/src/intseg/%.c.o: CPPFLAGS += -UVERSION_EU -DVERSION_JP -DJP_DEBUG_BUILD=1
+build/eu/src/intseg/%.c.o: TEXT_ENCODING := cp932
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_battle_sim.c kaw_card_queries.c \
 		kaw_cpu.c kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \
