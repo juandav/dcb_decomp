@@ -1087,7 +1087,8 @@ typedef struct {
     /* 0x120 */ s8 deckChoice; /* the saved deck the player takes to a duel against the CPU */
     /* 0x121 */ s8 opponentDeckIndex; /* the deck the CPU duels with */
     /* 0x122 */ s8 tutorial; /* the next duel against the CPU is the tutorial */
-    /* 0x123 */ char opponentName[0x12];
+    /* 0x123 */ char opponentName[0x11];
+    /* 0x134 */ s8 duelMusic; /* loadDuelCardGraphics's, for the duel against the CPU */
     /* 0x135 */ s8 stageMusic; /* runDuelStageTask's arguments, for the duel against the CPU */
     /* 0x136 */ s8 stageId;
     /* 0x137 */ u8 unk137;
