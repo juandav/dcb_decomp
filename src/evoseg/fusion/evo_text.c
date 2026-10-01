@@ -31,18 +31,13 @@ EvoText *EVO_allocTextLine(EvoText *slot) {
     return NULL;
 }
 
-#if VERSION_EU
-/* eu: its loops rotate the other way; no C form found yet */
-INCLUDE_RODATA("evoseg/nonmatchings/fusion/evo_text", D_801E1CE0);
-INCLUDE_ASM("evoseg/nonmatchings/fusion/evo_text", EVO_addTextLine);
-#elif VERSION_US
 s32 EVO_addTextLine(u8 *src) {
     u8 *playerName;
     u8 *cardName;
     EvoText *t;
     u8 *dst;
     s32 i;
-    s32 end;
+    s8 end;
 
     playerName = (u8 *)PLAYER_PROFILES;
     cardName = EVO_CARDS_BY_ID[EVO_FUSION.result]->name;
@@ -62,19 +57,28 @@ s32 EVO_addTextLine(u8 *src) {
                 if (src[1] == 'h') {
                     if (src[2] == '0') {
                         src += 3;
-                        for (i = 0; i < 12 && *playerName != 0; i++) {
+                        for (i = 0; i < 12; i++) {
+                            if (*playerName == 0) {
+                                break;
+                            }
                             *dst++ = *playerName++;
                         }
                         continue;
                     } else if (src[2] == '1') {
                         src += 3;
-                        for (i = 0; i < 21 && *cardName != 0; i++) {
+                        for (i = 0; i < 21; i++) {
+                            if (*cardName == 0) {
+                                break;
+                            }
                             *dst++ = *cardName++;
                         }
                         continue;
                     } else if (src[2] == '2' || src[2] == '3') {
                         src += 3;
-                        for (i = 0; i < 21 && *cardName != 0; i++) {
+                        for (i = 0; i < 21; i++) {
+                            if (*cardName == 0) {
+                                break;
+                            }
                             if (i <= 0) {
                                 *dst++ = *cardName++;
                             } else {
@@ -126,9 +130,6 @@ s32 EVO_addTextLine(u8 *src) {
     }
     return i;
 }
-#else
-#error "evoseg/fusion/evo_text: version not checked"
-#endif
 
 const char D_801DF3B0[] = "";
 

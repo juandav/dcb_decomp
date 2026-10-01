@@ -313,10 +313,6 @@ void END_drawScrollHelp(UiWindow *window) {
  * the ending's (it scrolls by itself until Cross), 2 the one browsed by hand
  * (Start quits). parentTask is woken at the end.
  */
-#if VERSION_EU
-/* eu: loads a format string's %hi later; no C form found yet */
-INCLUDE_ASM("endseg/nonmatchings/endseg", END_runPlayerRecords);
-#elif VERSION_US
 void END_runPlayerRecords(s32 parentTask, s32 mode) {
     char buf[0x48];
     u16 comList[0x8E];
@@ -521,14 +517,16 @@ void END_runPlayerRecords(s32 parentTask, s32 mode) {
         }
         base = END_SECTION_OFFSETS[2] + 0x18;
         for (i = 0; i < comCount; i++) {
-            if (scroll + base + i * 14 >= -16) {
-                if (scroll + base + i * 14 <= 240) {
-                    idx = comList[i];
-                    drawText(0x3C, scroll + base + i * 14, (s32)(decks + idx * 0x6E + 0x4F), 7, 0);
-                    sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->comWins[idx], PROFILE->comLosses[idx]);
-                    drawText(0xC2, scroll + base + i * 14, (s32)buf, 7, 0);
-                }
+            if (scroll + base + i * 14 < -16) {
+                continue;
             }
+            if (scroll + base + i * 14 > 240) {
+                continue;
+            }
+            idx = comList[i];
+            drawText(0x3C, scroll + base + i * 14, (s32)(decks + idx * 0x6E + 0x4F), 7, 0);
+            sprintf(buf, "*s0%3d*s1 *c6Win *c7*s0%3d*s1 *c6Loss", PROFILE->comWins[idx], PROFILE->comLosses[idx]);
+            drawText(0xC2, scroll + base + i * 14, (s32)buf, 7, 0);
         }
 
         base = END_SECTION_OFFSETS[3];
@@ -685,7 +683,4 @@ void END_runPlayerRecords(s32 parentTask, s32 mode) {
     stopMusic();
     resumeTask(parentTask);
 }
-#else
-#error "endseg/endseg: version not checked"
-#endif
 

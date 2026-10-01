@@ -60,16 +60,12 @@ TextLine *SAI_allocTextLine(TextLine *line) {
 
 /* Copies a script text into a free line, expanding "*h0" to the player's name
    and "\0x22" to a quote; returns the line's index or -1 when all are used. */
-#if VERSION_EU
-/* eu: its loops rotate the other way; no C form found yet */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text", SAI_addTextLine);
-#elif VERSION_US
 s32 SAI_addTextLine(u8 *src) {
     u8 *name = (u8 *)((PlayerProfile *)PLAYER_PROFILES)->name;
     TextLine *slot = SAI_allocTextLine(SAI_TEXT_LINES);
     u8 *dst;
     s32 i;
-    s32 found;
+    s8 found;
 
     if (slot == NULL) {
         return -1;
@@ -83,7 +79,10 @@ s32 SAI_addTextLine(u8 *src) {
             if (*src == '*') {
                 if (src[1] == 'h' && src[2] == '0') {
                     src += 3;
-                    for (i = 0; i < 12 && *name != 0; i++) {
+                    for (i = 0; i < 12; i++) {
+                        if (*name == 0) {
+                            break;
+                        }
                         *dst++ = *name++;
                     }
                     continue;
@@ -118,9 +117,6 @@ s32 SAI_addTextLine(u8 *src) {
     }
     return i;
 }
-#else
-#error "saiseg/ui/sai_text: version not checked"
-#endif
 
 s32 SAI_typeTextLine(s32 x, s32 y, TextLine *line, s32 z) {
     u8 buf[0x40];
