@@ -47,6 +47,11 @@ defined, each 0 or 1; the assembly gets the same names from `--defsym`.
   `#if` around all of it: `<module>_jp.c` next to `<module>.c`, which that
   version's config names as its segment (`effect/sug_model_effect_jp`); the
   report counts it as the same unit (`sugseg/effect/sug_model_effect`).
+- Text is written as UTF-8 in the C, Japanese included: the Japanese version
+  stores it as Shift JIS, so its `.mk` sets `TEXT_ENCODING := cp932` and
+  `tools/sjis_escape.py` re-encodes the non-ASCII characters of the string
+  and character literals as octal escapes between cpp and cc1 (GCC would take
+  a trail byte of 0x5C for an escape).
 - A version that is still splat's assembly is split into us's modules by
   `tools/split_version.py <version>` (after `tools/match_versions.py
   <version>`): each module is an asm segment with its rodata and data,

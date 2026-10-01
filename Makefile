@@ -239,6 +239,7 @@ $(ELF): $(OBJ) $(GENDIR)/main.ld $(UNDEFINED_SYMS)
 $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
+	$(if $(TEXT_ENCODING),$(PYTHON) tools/sjis_escape.py $(@:.o=.i) $(@:.o=.i))
 	$(CC1) $(CC1FLAGS) -o $(@:.o=.cc1.s) $(@:.o=.i)
 	$(CC1_POST) < $(@:.o=.cc1.s) | $(MASPSX) $(MASPSXFLAGS) | $(ALIGN_FIX) $(patsubst src/%,%,$*) > $(@:.o=.s)
 	$(AS) $(ASFLAGS) -o $@ $(@:.o=.s)
