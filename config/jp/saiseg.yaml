@@ -82,10 +82,16 @@ segments:
       - [0x75BC, c, area/sai_slot_machine]
       # jp's map is walked in 3D: it takes us's world map's place
       - [0x91E4, c, map/sai_world_map_jp]
+      # the zeroed data's object, which has no code (as us's sai_bss)
+      - [0xB0D8, c, sai_bss_jp]
       - [0xB0D8, .data, player/sai_player_data_jp]
-      - [0xBC18, data, sai_data]
-      - [0xBD50, data, sai_bss]
-      - [0xCCF0, data, ui/sai_sprite]
-      - [0xD1BC, data, hacking/sai_word_input]
+      # the data of the modules before the opponent select, which they use
+      # (window definitions whose callbacks are the opponent select's), sits
+      # where only the last of them can have put it
+      - [0xBC18, .data, area/sai_opponent_select_jp]
+      - [0xC094, .data, area/sai_slot_machine]
+      - [0xC7A8, .data, map/sai_world_map_jp]
+      # the data that starts zeroed, all the modules' together
+      - [0xC9C8, .data, sai_bss_jp]
 
   - [0xD218]

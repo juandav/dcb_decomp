@@ -90,13 +90,7 @@ extern SpriteDesc *D_801E469C; /* the sprites the executable draws */
 extern s8 D_801E46D8[]; /* splitDigits' digits */
 extern u8 D_801E4990;
 
-extern SpriteDesc SAI_MAP_SPRITES[11];
-extern PrimDesc3D SAI_MAP_PLAYER;
-extern s16 SAI_MAP_PLACE_X[16];
-extern s16 SAI_MAP_PLACE_Y[16];
-extern u16 SAI_MAP_PATH_ENDS[16]; /* bit n: place n + 1 */
-extern u16 SAI_MAP_PATH_CLUTS[15];
-extern u8 SAI_MAP_NEIGHBOURS[15][4]; /* left, down, right, up */
+/* the map's data that starts zeroed (sai_bss_jp.c) */
 extern PrimDesc3D SAI_MAP_PLAYER_DRAWN;
 extern s8 SAI_MAP_LABEL_PLACE;
 extern s8 SAI_MAP_CURSOR;
@@ -119,6 +113,43 @@ void SAI_animateMapPlayer(MapScreen *map);
 s32 SAI_drawMapLabels(MapLabel *labels, s16 unused);
 s32 SAI_slideMapLabel(MapLabel *label, s8 dir);
 s16 SAI_findMapPath(u8 *path);
+void SAI_drawMapBits(JpWindow *win);
+void SAI_tickMapBitsWindow(JpWindow *win);
+
+/* not opened by any code */
+JpWindowDef SAI_MAP_BITS_WINDOW = { { 0x126, 0x36, 0, 0xE }, { 0xAE, 0x36, 0x78, 0xE }, 0xA, 1, SAI_drawMapBits, SAI_tickMapBitsWindow };
+
+/* the map's sprites (MAP_SPRITE_*) */
+SpriteDesc SAI_MAP_SPRITES[11] = {
+    { 0x90, 128, 128, 128, 0x64, 0, 0, 0x7C40, 0, 0x99, 96, 29, 224, 176 },
+    { 0x80, 128, 128, 128, 0x64, 112, 189, 0x7F79, 0, 0x1D, 0, 0, 16, 15 },
+    { 0x80, 128, 128, 128, 0x64, 128, 189, 0x7F79, 0, 0x1D, 0, 0, 14, 14 },
+    { 0x80, 128, 128, 128, 0x64, 160, 189, 0x7F79, 0, 0x1D, 0, 0, 16, 15 },
+    { 0x80, 255, 136, 24, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x80, 255, 136, 24, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x7F, 128, 128, 128, 0x66, 208, 176, 0x7C80, 0, 0xD9, 0, 0, 24, 16 },
+    { 0x80, 128, 128, 128, 0x2C, 0, 0, 0x7F38, 0x157F, 0x1E, 0, 0, 0, 0 },
+    { 0x80, 128, 128, 128, 0x64, 64, 189, 0x7F79, 0, 0x1D, 0, 0, 20, 21 },
+    { 0x80, 128, 128, 128, 0x64, 0, 212, 0x7FF8, 0, 0x1C, 0, 0, 180, 36 },
+    { 0x7F, 128, 128, 128, 0x64, 64, 229, 0x7FF8, 0, 0x1D, 0, 0, 8, 11 },
+};
+
+/* the player's figure walking on the map */
+PrimDesc3D SAI_MAP_PLAYER = { 0, 128, 128, 128, 0x2C, 0, 176, 0x7C80, 26, 40, 0x99, { 0, 0 }, { 0, 0, 448, 0 }, { 0, 0, 0, 0 }, 26, 40 };
+
+/* where each place is on the map */
+s16 SAI_MAP_PLACE_X[16] = { 105, 110, 80, 73, 46, 39, 33, 58, 75, 140, 188, 140, 183, 156, 96, 0 };
+s16 SAI_MAP_PLACE_Y[16] = { 103, 139, 114, 92, 123, 95, 63, 50, 24, 34, 64, 72, 96, 113, 65, 0 };
+/* the places each path joins, bit n for place n + 1 */
+u16 SAI_MAP_PATH_ENDS[16] = { 0x5, 0xC, 0x28, 0x60, 0xC0, 0x180, 0x300, 0x600, 0xC00, 0x2800, 0x2002, 0x3, 0x3000, 0x12, 0x4001, 0x0 };
+u16 SAI_MAP_PATH_CLUTS[15] = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+/* the place the cursor moves to from each place: left, down, right, up */
+u8 SAI_MAP_NEIGHBOURS[16][4] = {
+    { 3, 2, 12, 15 }, { 5, 0, 14, 1 }, { 4, 2, 1, 4 }, { 6, 3, 3, 8 },
+    { 6, 2, 2, 6 }, { 7, 5, 4, 7 }, { 0, 6, 8, 8 }, { 7, 7, 9, 9 },
+    { 8, 8, 10, 0 }, { 9, 12, 11, 9 }, { 12, 13, 0, 10 }, { 1, 14, 11, 10 },
+    { 14, 14, 0, 11 }, { 2, 2, 13, 12 }, { 4, 1, 12, 9 }, { 1, 0, 0, 1 },
+};
 
 #define SET_CALLBACK(f) (*CURRENT_CALLBACK_SLOT = (void (*)(void *))(f))
 

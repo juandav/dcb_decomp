@@ -7,48 +7,6 @@
 #include "dcb/text.h"
 #include "dcb/saiseg.h"
 
-/* an item: its x in the list (0x140 + 0x20 * its number) and its four lines */
-typedef struct {
-    /* 0x00 */ s32 x;
-    /* 0x04 */ char *lines[4];
-} KeyItem;
-
-/* a column of the list: where it is and the item it shows */
-typedef struct {
-    /* 0x00 */ s32 x;
-    /* 0x04 */ KeyItem *item;
-} KeyItemColumn;
-
-/* what func_80044334 creates and KAW_drawCursor (in jp, the executable's) draws */
-typedef struct {
-    /* 0x00 */ u8 unk0[8];
-    /* 0x08 */ s16 x;
-    /* 0x0A */ s16 y;
-} JpIcon;
-
-typedef struct {
-    /* 0x00 */ JpIcon *icon;
-    /* 0x04 */ KeyItemColumn columns[5];
-    /* 0x2C */ KeyItemColumn *cursor;
-    /* 0x30 */ JpWindow *listWindow;
-    /* 0x34 */ JpWindow *textWindow;
-    /* 0x38 */ JpWindow *dataWindow;
-    /* 0x3C */ void *primBlocks[2];
-    /* 0x44 */ s32 scrollX;
-    /* 0x48 */ s32 timer;
-    /* 0x4C */ s32 scrollY;
-    /* 0x50 */ s8 unk50;
-    /* 0x51 */ s8 count;
-    /* 0x52 */ s8 state;
-    /* 0x53 */ s8 leftBlink; /* the arrows blink while bit 5 is set */
-    /* 0x54 */ s8 rightBlink;
-    /* 0x55 */ s8 noItems;
-    /* 0x56 */ s8 running;
-} KeyItemScreen;
-
-extern s8 SAI_OWNED_KEY_ITEMS[14];
-extern KeyItemScreen SAI_KEY_ITEMS;
-extern KeyItem SAI_KEY_ITEM_LIST[15];
 void runWindowTask();
 extern s32 *SCROLLING_BACKGROUND;
 extern char *STR_TAMER_RANKS[8];

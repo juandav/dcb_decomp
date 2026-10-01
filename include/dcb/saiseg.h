@@ -457,6 +457,126 @@ typedef struct {
     /* 0x09 */ char text[0x43];
 } TypedLine;
 
+/* where initVramSprite takes a sprite from */
+typedef struct {
+    /* 0x00 */ s32 clut;
+    /* 0x04 */ s32 colorMode;
+    /* 0x08 */ s32 vramX;
+    /* 0x0C */ s32 vramY;
+    /* 0x10 */ s32 width;
+    /* 0x14 */ s32 height;
+} SpriteDef;
+
+/* a sprite's place on screen */
+typedef struct {
+    s32 x;
+    s32 y;
+} Point;
+
+/* an item: its x in the list (0x140 + 0x20 * its number) and its four lines */
+typedef struct {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ char *lines[4];
+} KeyItem;
+
+/* a column of the list: where it is and the item it shows */
+typedef struct {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ KeyItem *item;
+} KeyItemColumn;
+
+/* what func_80044334 creates and KAW_drawCursor (in jp, the executable's) draws */
+typedef struct {
+    /* 0x00 */ u8 unk0[8];
+    /* 0x08 */ s16 x;
+    /* 0x0A */ s16 y;
+} JpIcon;
+
+typedef struct {
+    /* 0x00 */ JpIcon *icon;
+    /* 0x04 */ KeyItemColumn columns[5];
+    /* 0x2C */ KeyItemColumn *cursor;
+    /* 0x30 */ JpWindow *listWindow;
+    /* 0x34 */ JpWindow *textWindow;
+    /* 0x38 */ JpWindow *dataWindow;
+    /* 0x3C */ void *primBlocks[2];
+    /* 0x44 */ s32 scrollX;
+    /* 0x48 */ s32 timer;
+    /* 0x4C */ s32 scrollY;
+    /* 0x50 */ s8 unk50;
+    /* 0x51 */ s8 count;
+    /* 0x52 */ s8 state;
+    /* 0x53 */ s8 leftBlink; /* the arrows blink while bit 5 is set */
+    /* 0x54 */ s8 rightBlink;
+    /* 0x55 */ s8 noItems;
+    /* 0x56 */ s8 running;
+} KeyItemScreen;
+
+/* the Bits a script gives, counted up into the player's */
+typedef struct {
+    /* 0x00 */ JpWindow *window;
+    /* 0x04 */ s32 step;
+    /* 0x08 */ s32 total;
+    /* 0x0C */ s16 unkC;
+    /* 0x0E */ s8 unkE;
+    /* 0x0F */ s8 running;
+    /* 0x10 */ s8 unk10;
+} BitsReward;
+
+/* the deck information screen */
+typedef struct {
+    /* 0x00 */ s16 specialties[5];
+    /* 0x0A */ s16 options;
+    /* 0x0C */ s16 levels[3];
+    /* 0x12 */ s16 sevens; /* the Sevens cards (option cards 0x23 to 0x29) */
+    /* 0x14 */ u8 inUse;
+    /* 0x15 */ u8 sevensHeld; /* bit n: Sevens card n is in the deck */
+    /* 0x16 */ char name[0xE];
+} DeckSummary;
+
+typedef struct {
+    /* 0x00 */ DeckSummary decks[3];
+    /* 0x6C */ DeckSummary owned; /* the cards the player owns */
+    /* 0x90 */ u8 unk90[4];
+    /* 0x94 */ s32 cardsOwned;
+} DeckInfo;
+
+/* jp's slot machine (sai_slot_machine.c) */
+typedef struct {
+    /* 0x00 */ VramSprite *sprites[2]; /* one block for each frame buffer */
+    /* 0x08 */ JpWindow *betWindow;
+    /* 0x0C */ JpWindow *helpWindow;
+    /* 0x10 */ JpWindow *bitsWindow;
+    /* 0x14 */ s32 bet; /* 0 to 3 */
+    /* 0x18 */ s32 prize; /* the winning symbol, 0 for none */
+    /* 0x1C */ s32 scroll[3]; /* each reel's, 0 to 40 */
+    /* 0x28 */ s32 shownScroll[3];
+    /* 0x34 */ s16 blinkTimer;
+    /* 0x36 */ u8 lineBlinkTimer;
+    /* 0x37 */ s8 winLine; /* 1 to 5, 0 for none */
+    /* 0x38 */ s8 delay;
+    /* 0x39 */ s8 rows[4][3]; /* the reel strip's row each reel shows */
+    /* 0x45 */ s8 stopped[3]; /* how long ago each reel's button was pressed */
+    /* 0x48 */ s8 state; /* SAI_SLOT_STATES */
+    /* 0x49 */ s8 running;
+    /* 0x4A */ s8 reach; /* 1: two reels stopped, 2: and they show a line */
+    /* 0x4B */ u8 brightness; /* of the last sprites while reach is 2 */
+    /* 0x4C */ s8 dimming;
+} SlotMachine;
+
+/* SAISEG's data that several modules share, sai_opponent_select_jp.c's */
+extern SpriteDef D_801F6000[36]; /* the portraits' */
+extern JpWindowDef D_801F63C0;
+extern JpWindowDef D_801F63E0;
+extern JpWindowDef D_801F645C;
+
+/* SAISEG's data that starts zeroed (sai_bss_jp.c) */
+extern s8 SAI_OWNED_KEY_ITEMS[14];
+extern KeyItemScreen SAI_KEY_ITEMS;
+extern KeyItem SAI_KEY_ITEM_LIST[15];
+extern BitsReward *SAI_BITS_REWARD;
+extern DeckInfo SAI_DECK_INFO;
+
 /* what SAISEG's screens share: the message window, a menu, its windows */
 typedef struct {
     /* 0x000 */ u8 unk0;
@@ -486,6 +606,8 @@ typedef struct {
 
 extern SaiUi SAI_UI;
 extern TypedText SAI_TYPED_TEXT;
+extern s32 D_801F7558;
+extern SlotMachine SAI_SLOT_MACHINE;
 #endif
 
 int MoveImage2(Rect16 *rect, int x, int y);

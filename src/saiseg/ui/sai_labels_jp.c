@@ -14,34 +14,8 @@
 /* jp's code from the deck information screen's task to the slot machine's
    (sai_labels.c is us's and eu's) */
 
-/* where initVramSprite takes a sprite from */
-typedef struct {
-    /* 0x00 */ s32 clut;
-    /* 0x04 */ s32 colorMode;
-    /* 0x08 */ s32 vramX;
-    /* 0x0C */ s32 vramY;
-    /* 0x10 */ s32 width;
-    /* 0x14 */ s32 height;
-} SpriteDef;
-
-/* the Bits a script gives, counted up into the player's */
-typedef struct {
-    /* 0x00 */ JpWindow *window;
-    /* 0x04 */ s32 step;
-    /* 0x08 */ s32 total;
-    /* 0x0C */ s16 unkC;
-    /* 0x0E */ s8 unkE;
-    /* 0x0F */ s8 running;
-    /* 0x10 */ s8 unk10;
-} BitsReward;
-
 extern JpGame *SCROLLING_BACKGROUND;
 extern Bytes4 SAI_TEXT_RGB;
-extern SpriteDef D_801F6000[];
-extern JpWindowDef D_801F63C0;
-extern JpWindowDef D_801F63E0;
-extern BitsReward *SAI_BITS_REWARD;
-extern s32 D_801F7558;
 extern void runWindowTask();
 extern void renderScrollingBackground();
 
