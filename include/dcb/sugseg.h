@@ -269,6 +269,33 @@ typedef struct {
     s8 useOrigin;
 } Sprite;
 
+#if VERSION_JP
+/* jp keeps each of the battle's flags and fields in a word of its own */
+typedef struct {
+    s32 turn;
+    s32 flag1;
+    s32 counter;
+    s32 flag3;
+} BattleFlags;
+
+typedef struct {
+    s32 hp;
+    s32 damage;
+    s32 unk8;
+    s32 attack;
+    s32 element;
+    s32 eatUpHp;
+    s32 crash;
+    s32 unk8_6;
+} BattlerState;
+
+typedef struct {
+    BattlerState players[2];
+    union {
+        BattleFlags bits;
+    } flags;
+} BattleState;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     u32 turn : 1;
     u32 flag1 : 1;
@@ -295,6 +322,7 @@ typedef struct {
         BattleFlags bits;
     } flags;
 } BattleState;
+#endif
 
 typedef struct {
     u8 unk0[6];
