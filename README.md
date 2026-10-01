@@ -1,20 +1,25 @@
 # Digimon Digital Card Battle decomp
 
-[![Code](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&label=Code)](https://decomp.dev/juandav/dcb_decomp)
-[![Data](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=data&label=Data)](https://decomp.dev/juandav/dcb_decomp)
-[![Functions](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=functions&label=Functions)](https://decomp.dev/juandav/dcb_decomp)
-[![Executable](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&category=executable&label=Executable)](https://decomp.dev/juandav/dcb_decomp?category=executable)
-[![Overlays](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&category=overlays&label=Overlays)](https://decomp.dev/juandav/dcb_decomp?category=overlays)
+| Version | Code | Data | Functions |
+|---|---|---|---|
+| 🇺🇸 USA (`SLUS_013.28`) | [![Code](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&version=SLUS_013.28&label=Code)](https://decomp.dev/juandav/dcb_decomp/SLUS_013.28) | [![Data](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=data&version=SLUS_013.28&label=Data)](https://decomp.dev/juandav/dcb_decomp/SLUS_013.28) | [![Functions](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=functions&version=SLUS_013.28&label=Functions)](https://decomp.dev/juandav/dcb_decomp/SLUS_013.28) |
+| 🇯🇵 Japan (`SLPS_025.06`) | [![Code](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&version=SLPS_025.06&label=Code)](https://decomp.dev/juandav/dcb_decomp/SLPS_025.06) | [![Data](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=data&version=SLPS_025.06&label=Data)](https://decomp.dev/juandav/dcb_decomp/SLPS_025.06) | [![Functions](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=functions&version=SLPS_025.06&label=Functions)](https://decomp.dev/juandav/dcb_decomp/SLPS_025.06) |
+| 🇪🇺 Europe (`SLES_039.00`) | [![Code](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&version=SLES_039.00&label=Code)](https://decomp.dev/juandav/dcb_decomp/SLES_039.00) | [![Data](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=data&version=SLES_039.00&label=Data)](https://decomp.dev/juandav/dcb_decomp/SLES_039.00) | [![Functions](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=functions&version=SLES_039.00&label=Functions)](https://decomp.dev/juandav/dcb_decomp/SLES_039.00) |
+
+[![Executable](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&version=SLUS_013.28&category=executable&label=USA%20executable)](https://decomp.dev/juandav/dcb_decomp/SLUS_013.28?category=executable)
+[![Overlays](https://decomp.dev/juandav/dcb_decomp.svg?mode=shield&measure=code&version=SLUS_013.28&category=overlays&label=USA%20overlays)](https://decomp.dev/juandav/dcb_decomp/SLUS_013.28?category=overlays)
 
 [![Build](https://github.com/juandav/dcb_decomp/actions/workflows/build.yaml/badge.svg)](https://github.com/juandav/dcb_decomp/actions/workflows/build.yaml)
 [![Platform](https://img.shields.io/badge/platform-PlayStation-003791)](#the-games-binaries)
-[![Version](https://img.shields.io/badge/version-SLUS--01328%20%28USA%29-blue)](#toolchain)
+[![Versions](https://img.shields.io/badge/versions-USA%20%7C%20Japan%20%7C%20Europe-blue)](#versions)
 [![Compiler](https://img.shields.io/badge/compiler-GCC%202.95.2-orange)](#toolchain)
 [![License](https://img.shields.io/github/license/juandav/dcb_decomp)](LICENSE)
 
 A matching decompilation of **Digimon Digital Card Battle** for the
 PlayStation: C source that compiles back into a byte-identical copy of the
-game's executable and of its seven overlays.
+game's executable and of its overlays. The USA version is fully matched; the
+Japanese and European versions build from the same tree and are being
+decompiled next (see [Versions](#versions)).
 
 This repository does not contain any game data. You need your own copy of the
 game to build it.
@@ -25,6 +30,8 @@ game to build it.
 Click it for the details on decomp.dev.</sub>
 
 ## Status
+
+USA version:
 
 | | Code | Data | Functions |
 |---|---|---|---|
