@@ -74,7 +74,7 @@ void INT_drawDateKeyboard(IntWindow *win);
 void INT_openNameEntry(IntState *state, u8 withDate);
 void INT_openNicknameEntry(IntState *state, u8 withDate);
 void INT_addStarterDeck(u8 player, u8 slot, u8 color);
-s8 INT_makeHeroDeck(IntState *state, u8 *deck, u8 color);
+u8 INT_makeHeroDeck(IntState *state, u8 *deck, u8 color);
 void INT_endScene3D(void);
 void INT_showHeroBoy(void);
 void INT_moveChosenStone(void);
@@ -2108,16 +2108,146 @@ void INT_loadKeyboardPage(u8 page) {
     }
 }
 
-/* the C doesn't lay out the two rarity tables' cases as the original (it
-   moved their bodies after the third deck's cards) nor allocate its registers
-   the same; its rodata comes with it */
-#if JP_DEBUG_BUILD
-INCLUDE_RODATA("intseg/nonmatchings/intseg", D_801E6F44);
-#else
-INCLUDE_RODATA("intseg/nonmatchings/intseg", D_801EB2AC);
-#endif
+/* deck[i]: the r-th of the 53 cards (then of the 60 cards) the hero deck
+   draws its third to fifth (then sixth to tenth) cards from */
+#define INT_PICK_CARD_53(r) do { \
+    if (r < 8) { \
+        deck[i] = r + 3; \
+    } else if (r >= 8 && r < 16) { \
+        deck[i] = r + 15; \
+    } else if (r >= 16 && r < 28) { \
+        deck[i] = r + 29; \
+    } else if (r >= 28 && r < 37) { \
+        deck[i] = r + 44; \
+    } else if (r >= 37 && r < 43) { \
+        deck[i] = r + 57; \
+    } else if (r >= 43 && r < 50) { \
+        deck[i] = r + 86; \
+    } else if (r >= 50 && r < 53) { \
+        deck[i] = r + 104; \
+    } \
+} while (0)
+#define INT_PICK_CARD_60(r) do { \
+    if (r < 9) { \
+        deck[i] = r + 11; \
+    } else if (r >= 9 && r < 20) { \
+        deck[i] = r + 22; \
+    } else if (r >= 20 && r < 32) { \
+        deck[i] = r + 37; \
+    } else if (r >= 32 && r < 42) { \
+        deck[i] = r + 49; \
+    } else if (r >= 42 && r < 50) { \
+        deck[i] = r + 58; \
+    } else if (r >= 50 && r < 59) { \
+        deck[i] = r + 86; \
+    } else if (r == 59) { \
+        deck[i] = 157; \
+    } \
+} while (0)
 
-INCLUDE_ASM("intseg/nonmatchings/intseg", INT_makeHeroDeck);
+/* the hero's first deck: 10 to 15 cards drawn from the birth date and the
+   names, the last ones random cards of the chosen stone's colour; returns
+   how many. The tables are statement macros: their do-while lays the
+   copies out as the original's (the bodies after the colour cases) */
+u8 INT_makeHeroDeck(IntState *state, u8 *deck, u8 color) {
+    u8 cards[15] = { 0x00, 0x01, 0x02, 0x14, 0x15, 0x16, 0x2A, 0x2B, 0x2C, 0x45, 0x46, 0x47, 0x5B, 0x5C, 0x5D };
+    s16 i;
+    u8 *date;
+    u16 year;
+    u16 month;
+    u16 day;
+    u16 nameSum;
+    u16 seed;
+    u16 r;
+    u8 count;
+
+    for (i = 0; i < 15; i++) {
+        deck[i] = 0xFF;
+    }
+    date = state->values[3];
+    year = date[0] * 1000 + date[1] * 100 + date[2] * 10 + date[3];
+    month = state->values[4][0] * 10 + state->values[4][1];
+    day = state->values[5][0] * 10 + state->values[5][1];
+    nameSum = 0;
+    date = state->values[0];
+    for (i = 0; date[i] != 0; i++) {
+        nameSum += date[i];
+    }
+    date = state->values[1];
+    for (i = 0; date[i] != 0; i++) {
+        nameSum += date[i];
+    }
+    seed = nameSum < 6 ? 6 : nameSum;
+    seed %= 6;
+    count = seed + 10;
+    for (i = 0; i < count; i++) {
+        switch (i) {
+        case 0:
+            r = (year + month + day) % 15;
+            deck[i] = cards[r];
+            break;
+        case 1:
+            seed = nameSum < 20 ? 20 : nameSum;
+            r = seed % 20;
+            if (r == 19) {
+                deck[i] = 0x99;
+            } else {
+                deck[i] = r + 0x6E;
+            }
+            break;
+        case 2:
+            r = (year + month * day) % 53;
+            INT_PICK_CARD_53(r);
+            break;
+        case 3:
+            seed = nameSum < 20 ? 20 : nameSum;
+            r = seed * 10 % 53;
+            INT_PICK_CARD_53(r);
+            break;
+        case 4:
+            r = (nameSum + year + month + day) % 53;
+            INT_PICK_CARD_53(r);
+            break;
+        case 5:
+            r = (year - month - day) % 60;
+            INT_PICK_CARD_60(r);
+            break;
+        case 6:
+            r = (year - month * day) % 60;
+            INT_PICK_CARD_60(r);
+            break;
+        case 7:
+            r = (nameSum + year + month - day) % 60;
+            INT_PICK_CARD_60(r);
+            break;
+        case 8:
+            r = (nameSum + year + month * day) % 60;
+            INT_PICK_CARD_60(r);
+            break;
+        case 9:
+            r = (nameSum + year - month + day) % 60;
+            INT_PICK_CARD_60(r);
+            break;
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+            if (color == 0) {
+                r = rand() % 17;
+                deck[i] = r + 3;
+            } else if (color == 1) {
+                r = rand() % 19;
+                deck[i] = r + 23;
+            } else if (color == 2) {
+                r = rand() % 24;
+                deck[i] = r + 45;
+            }
+            break;
+        }
+    }
+    return count;
+}
 
 void INT_addStarterDeck(u8 player, u8 slot, u8 color) {
     IntDeck *deck = &((IntProfile *)PLAYER_PROFILES)[player].decks[slot];
