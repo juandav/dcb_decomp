@@ -12,6 +12,31 @@
 #include "dcb/opening_movie.h"
 #include "dcb/sound_play.h"
 
+/* jp keeps the player profiles, the rank titles and the complete set counts
+   here (us and eu have them in memcard.c) */
+#if VERSION_JP
+s32 PLAYER_PROFILES = 0;
+void *SESSION_DATA = 0;
+
+/* the rank titles, lowest first */
+char *STR_TAMER_RANKS[8] = {
+    "かけだしテイマー", "一人前テイマー", "中級テイマー", "上級テイマー",
+    "名人テイマー", "達人テイマー", "天才テイマー", "超絶偉大無敵テイマー",
+};
+char *STR_COLLECTOR_RANKS[8] = {
+    "一般ピープル", "趣味コレクター", "こだわりコレクター", "一流コレクター",
+    "有名コレクター", "天下一コレクター", "完全無欠コレクター", "超伝説究極コレクター",
+};
+char *STR_BATTLE_RANKS[8] = {
+    "対戦ビギナー", "対戦エキスパート", "対戦スペシャリスト", "対戦マスター",
+    "対戦チャンピオン", "対戦キング", "対戦エンペラー", "対戦の神様",
+};
+u8 COMPLETE_SET_CARD_COUNTS[6] = { 0x15, 0x16, 0x1C, 0x16, 0x11, 0x31 };
+#elif VERSION_US || VERSION_EU
+#else
+#error "main/card/player_rank: version not checked"
+#endif
+
 void updatePlayerRanks(s32 player) {
     s32 specialtyCounts[6];
     s32 ownedCards;
