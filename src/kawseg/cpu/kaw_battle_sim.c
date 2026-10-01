@@ -2130,14 +2130,14 @@ s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
     }
     return -1;
 }
-#elif VERSION_EU
-/* eu: player, dp and the card's specialty rotated by the register
-   allocator; no C form found yet (it keeps level in an s32) */
-INCLUDE_ASM("kawseg/nonmatchings/cpu/kaw_battle_sim", KAW_checkDigivolveTarget);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
     s32 specialty;
+#if VERSION_US
     u8 level;
+#elif VERSION_EU
+    s32 level;
+#endif
     s32 dp;
     s32 cardSpecialty;
     s32 cardLevel;
@@ -2169,11 +2169,10 @@ s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
         if (CARD_BYTE(played->card, type) == 2) {
             p = DUEL_PLAYERS[player];
             p += (getPlayedCard(player) % 30) * sizeof(CardSlot);
-            played = PLAYER_CARDS((Player *)p);
-            switch (CARD_BYTE(played->card, attr)) {
+            switch (CARD_BYTE(PLAYER_CARDS((Player *)p)->card, attr)) {
             case 0:
                 if (level == 1) {
-                    return -1;
+                    break;
                 }
                 if (level == 0) {
                     level = 1;
@@ -2197,7 +2196,7 @@ s32 KAW_checkDigivolveTarget(s32 card, s32 player) {
                 break;
             case 2:
                 if (level == 1) {
-                    return -1;
+                    break;
                 }
                 if (level == 0) {
                     level = 1;

@@ -823,25 +823,21 @@ void SUB_drawDeckMenuHelp(UiWindow *window) {
     drawMediumText(x + 8, y, (s32)":Back", 7, z);
 }
 
-#if VERSION_EU
-/* eu: the empty deck's window loads its callback before the window's
-   address, which only an unused callback variable reproduces */
-INCLUDE_ASM("subseg/nonmatchings/deck/sub_deck_screens", SUB_drawDeckMenu);
-#elif VERSION_US
 void SUB_drawDeckMenu(void) {
     Rect16 uv;
     s16 y;
     s32 i;
 
     drawWindow(SUB_WINDOWS, SUB_drawDeckMenuHelp, 30);
-    for (i = 0; i < 3; i++) {
+    i = 0;
+    do {
         SUB_DECK_MENU.current = i;
         if (PLAYER_DATA(SUB_EDITOR.player).savedDecks[i].inUse != 0) {
             drawWindow(&SUB_LIST_WINDOWS[i], SUB_drawDeckSummary, 30);
         } else {
             drawWindow(&SUB_LIST_WINDOWS[i], SUB_drawEmptyDeck, 30);
         }
-    }
+    } while (++i < 3);
     if (SUB_EDITOR.hidden == 0) {
         if (++SUB_EDITOR.slide > 20) {
             SUB_EDITOR.slide = 20;
@@ -858,7 +854,6 @@ void SUB_drawDeckMenu(void) {
     uv.h = 0x20;
     drawTexturedSprite(6, y, &uv, 0x18, 0x7E21, 30, 0x80, -1);
 }
-#endif
 
 const char SUB_STR_DECK_1[] = "DECK 1";
 
