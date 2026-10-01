@@ -24,15 +24,16 @@ MASPSX_EXTRA := --expand-div
 # that build from the same C as us's, by subsystem. The rest of every binary
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
-	src/main/duel/card_zones.c \
+	src/main/card/player_rank.c \
+	$(addprefix src/main/duel/, card_zones.c cpu_decision.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
 		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
 		model_load.c scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \
-	$(addprefix src/main/system/, angle.c archive.c cd_file.c heap.c \
-		loader.c opening_movie.c save_checksum.c sound.c sound_play.c \
-		task.c) \
+	$(addprefix src/main/system/, angle.c archive.c cd_file.c game_exit.c \
+		heap.c loader.c opening_movie.c save_checksum.c sound.c \
+		sound_play.c task.c) \
 	src/main/ui/str_util.c
 ENDSEG_C_SRC := src/endseg/title/open_movie.c
 SUGSEG_C_SRC := \

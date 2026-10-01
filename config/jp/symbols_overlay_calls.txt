@@ -7,3 +7,16 @@
 SUG_runPolygonBattle = 0x801FC578; // type:func
 OPEN_findMovieFile = 0x801ECD00; // type:func
 OPEN_playMovie = 0x801ED718; // type:func
+END_runPlayerRecords = 0x801EB4FC; // type:func
+KAW_countHandDigivolves = 0x801ED644; // type:func
+KAW_simulateBattles = 0x801EE36C; // type:func
+KAW_planDigivolves = 0x801EEB8C; // type:func
+KAW_decideRedraw = 0x801EEF9C; // type:func
+KAW_chooseDigimonToPlace = 0x801EF5C8; // type:func
+KAW_chooseDpCard = 0x801F0AA0; // type:func
+KAW_selectDigivolvePlan = 0x801F0F80; // type:func
+KAW_chooseDigivolveTarget = 0x801F1088; // type:func
+KAW_planDigivolveOptions = 0x801F179C; // type:func
+KAW_chooseDigivolveOption = 0x801F2310; // type:func
+KAW_chooseAttack = 0x801F2358; // type:func
+KAW_chooseSupportCard = 0x801F2C6C; // type:func

@@ -784,6 +784,28 @@ typedef struct {
     /* 0x295 */ u8 unk295[3];
 } Partner;
 typedef struct {
+#if VERSION_JP
+    /* jp's profile is laid out otherwise: only the fields its C reads so far */
+    /* 0x0000 */ u8 unk0[0x18];
+    /* 0x0018 */ u16 battleWins;
+    /* 0x001A */ u8 unk1A[2];
+    /* 0x001C */ u16 versusWins;
+    /* 0x001E */ u8 unk1E[0xA];
+    /* 0x0028 */ u32 tamerRank : 3;
+    /* 0x0028 */ u32 collectorRank : 3;
+    /* 0x0028 */ u32 battleRank : 3;
+    /* 0x0029 */ u32 unk28_9 : 1;
+    /* 0x0029 */ u32 tradeUnlocked : 1;
+    /* 0x0029 */ u32 hasTraded : 1;
+    /* 0x0029 */ u32 unk28_12 : 20;
+    /* 0x002C */ u8 unk2C[0x47C - 0x2C];
+    /* bits 0-3: copies owned of each Digimon card, of each option card, and
+       of six more cards that count with the option cards */
+    /* 0x047C */ u8 cardCollection[0x6E];
+    /* 0x04EA */ u8 optionCollection[0x2B];
+    /* 0x0515 */ u8 unk515[6];
+    /* 0x051B */ u8 unk51B[0x145C - 0x51B];
+#elif VERSION_US || VERSION_EU
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */
     /* 0x000E */ u8 areaId; /* the SAISEG area the player is in */
@@ -845,6 +867,7 @@ typedef struct {
     /* 0x2768 */ s16 rewardCards[3];
     /* 0x276E */ s8 rewardResults[3];
     /* 0x2771 */ u8 unk2771[3];
+#endif
 } PlayerProfile;
 /* Where SAISEG keeps its area state while other overlays run (SAISEG's
    SaisegSession sees the whole block) */

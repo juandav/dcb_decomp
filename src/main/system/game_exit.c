@@ -30,7 +30,63 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 #include "dcb/overlay_calls.h"
+#include "dcb/battle_hud.h"
 
+#if VERSION_JP
+/* jp asks nothing before going back to the title and plays the movie from
+   ENDSEG; it loads SAISEG in every mode, but after the ending (mode 1) starts
+   a task of main's own instead of SAI_runArea */
+void quitToTitleOrPlayEnding(s32 mode) {
+    Rect16 vramRect = { 0, 0, 480, 512 };
+
+    if (mode == 0) {
+        waitFrames(10);
+        ClearImage(&vramRect, 0, 0, 0);
+        DrawSync(0);
+        waitFrames(10);
+        stopMusic();
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        waitFrames(10);
+        spawnTask(0, -1, 0, 0x800, playOpeningMovie, 1, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        resetDisplay(0x140, 0xF0, 0);
+        spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
+        waitFrames(2);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+    } else if (mode == 1) {
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x600, END_runPlayerRecords, getCurrentTaskId(), 0, 0, 0);
+        waitFrames(0x7FFFFFFF);
+        waitFrames(10);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x800, func_8004923C);
+    } else {
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x600, END_runPlayerRecords, getCurrentTaskId(), 0, 0, 0);
+        waitFrames(0x7FFFFFFF);
+        waitFrames(10);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+    }
+}
+#elif VERSION_US || VERSION_EU
 void quitToTitleOrPlayEnding(s32 mode) {
     u8 dialog[0xB8];
     Rect16 vramRect = { 0, 0, 480, 512 };
@@ -89,3 +145,6 @@ void quitToTitleOrPlayEnding(s32 mode) {
         spawnTask(0, -1, 0, 0x1600, SAI_runArea, 0, parentTask, 0, 0);
     }
 }
+#else
+#error "main/system/game_exit: version not checked"
+#endif
