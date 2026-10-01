@@ -39,7 +39,11 @@ typedef struct {
     /* 0x06C */ s32 targetX;
     /* 0x070 */ s32 targetY;
     /* 0x074 */ s32 targetZ;
+#if VERSION_JP
+    /* 0x078 */ u8 unk78[0x24]; /* jp: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     /* 0x078 */ u8 unk78[0x20];
+#endif
     /* 0x098 */ s32 parent;
     /* 0x09C */ VECTOR dir; /* unit vector from the start to the target, 0x1000 = 1.0 */
     /* 0x0AC */ s32 sx0;
