@@ -52,7 +52,11 @@ s32 KAW_allocCardPolys();
 s32 KAW_createCursor(s32, s32, s32, s32, s32);
 s32 KAW_freeHudPanels();
 s32 KAW_freeCardPolys();
+#if VERSION_JP
+s32 KAW_drawHandHints(s32 player, s32 mode);
+#elif VERSION_US || VERSION_EU
 s32 KAW_drawHandHints(s32);
+#endif
 s32 KAW_renderRing();
 void KAW_renderCursor(void *, s32);
 void KAW_uploadPartnerPortraits(u8 *archive);
@@ -83,6 +87,12 @@ void KAW_runExpScreen(void);
 void KAW_runPrizeScreen(void);
 void KAW_freeEffectArchive(void);
 void KAW_freeTutorial(void);
+#if VERSION_JP
+/* jp's: opens the card select of a player's hand, and closes it */
+void KAW_pickCardArtSlot(void);
+void func_801F8E24(s32 player);
+void func_801F8E6C(s32 player);
+#endif
 
 /* OPENSEG: the title, movies and memory card screens */
 s32 OPEN_playMovie(s32);

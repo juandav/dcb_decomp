@@ -35,3 +35,29 @@ SUB_openBuyShop = 0x801F2FFC; // type:func version-only
 func_801F35CC = 0x801F35CC; // type:func
 NIS_enterDeckName = 0x801F8230; // type:func version-only
 NIS_enterDeckList = 0x801FB1BC; // type:func version-only
+
+// the KAWSEG functions jp's turn loops call (duel_jp), and where the
+// overlays load
+KAW_resolveBattle = 0x801F3F24; // type:func
+KAW_checkDigivolveTarget = 0x801F7CEC; // type:func
+KAW_checkAnyDigivolve = 0x801F80A4; // type:func
+KAW_setStatPenalty = 0x801F8214; // type:func
+KAW_pickCardArtSlot = 0x801F829C; // type:func
+KAW_tickCardCursor = 0x801F87FC; // type:func
+func_801F8E24 = 0x801F8E24; // type:func
+func_801F8E6C = 0x801F8E6C; // type:func
+KAW_drawCardToHand = 0x801F9328; // type:func
+KAW_discardCard = 0x801F93C0; // type:func
+KAW_placeDigimonFromHand = 0x801F94F8; // type:func
+KAW_returnDigimonToHand = 0x801F9584; // type:func
+KAW_returnPlayedCard = 0x801F9618; // type:func
+KAW_returnDpCardToHand = 0x801F9768; // type:func
+KAW_playOnlineDeckTop = 0x801F97FC; // type:func
+KAW_playCardFromHand = 0x801F9878; // type:func
+KAW_chargeDpCard = 0x801F9904; // type:func
+KAW_redrawHand = 0x801F9990; // type:func
+KAW_undoDigivolve = 0x801F9A90; // type:func
+KAW_discardDpSlots = 0x801F9B3C; // type:func
+KAW_checkKnockout = 0x801F9C20; // type:func
+OVERLAY_AREA = 0x801EA3E8;
+KAW_drawHandHints = 0x801F8488; // type:func
