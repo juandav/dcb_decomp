@@ -301,13 +301,14 @@ extern s32 D_8008CD50;
 #if JP_DEBUG_BUILD
 void func_80014B28(s32 taskId, char *name);
 void func_80018F5C(void);
-#define NIS_DEBUG_PRINT(text) printf(text)
+#define NIS_DEBUG_PRINT(...) printf(__VA_ARGS__)
 #define NIS_DEBUG_NAME_TASK(taskId, name) func_80014B28(taskId, name)
 #define NIS_DEBUG_FRAME() func_80018F5C()
 void func_800184F0(s32, s32, s32);
-extern u8 D_801E02E1;
+extern u8 D_801E46E9;
 extern s32 D_801DEBF0;
-extern char D_800907F8[]; /* the debug text it shows */
+extern char D_800907F8[8][0x40]; /* the lines of debug text it shows */
+extern const char NIS_STR_ERROR_TASK[]; /* nis_auto_deck.c's "ERROR TASK" */
 
 /* its debug menus: each item starts a task or opens a submenu (with the
    executable's func_8002D15C) */
@@ -335,15 +336,19 @@ struct NisDebugMenu {
 void func_8002D15C();
 void freeScrollingBackground(void);
 void *allocNamedTaskHeapBlock(s32 size, char *name, s32 tag);
+void *allocNamedHeapBlock(s32 size, s32 ownerTag, char *name, s32 tag);
 void func_80019CE8(); /* a task that shows an error */
 void NIS_openViewerScene(void);
 void NIS_closeViewerScene(void);
 void NIS_runModelViewer(s32 digimonId);
 extern NisDebugMenu NIS_SUGANO_MENU;
+/* its allocHeapBlock names the block too */
+#define NIS_ALLOC_HEAP_BLOCK(size, ownerTag, name, tag) allocNamedHeapBlock(size, ownerTag, name, tag)
 #else
-#define NIS_DEBUG_PRINT(text)
+#define NIS_DEBUG_PRINT(...)
 #define NIS_DEBUG_NAME_TASK(taskId, name)
 #define NIS_DEBUG_FRAME()
+#define NIS_ALLOC_HEAP_BLOCK(size, ownerTag, name, tag) allocHeapBlock(size, ownerTag)
 #endif
 extern NisUiState *SCROLLING_BACKGROUND;
 extern u8 D_801E46E8; /* 1 in the trade */

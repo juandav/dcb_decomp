@@ -78,7 +78,11 @@ NisWindowDef NIS_TRADE_QUESTION_WINDOW = { { 0x1A, 0xD8, 0, 0xC }, { 0x1A, 0xD8,
 void NIS_loadTradeTimFile(char *path) {
     u32 *tims;
 
+#if JP_DEBUG_BUILD
+    spawnTask(0, -1, 4, 0x800, loadFile, path, getCurrentTaskId());
+#else
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+#endif
     tims = (u32 *)waitFrames(0x7FFFFFFF);
     if (tims != NULL) {
         uploadTimList(tims);
@@ -87,11 +91,15 @@ void NIS_loadTradeTimFile(char *path) {
 }
 
 void NIS_startTrade(void) {
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
     NIS_loadTradeTimFile("A:\\DECK.TIM");
     openKanjiPage(0xF, 0x1E3);
-    NIS_TRADE_MASKS = allocHeapBlock(sizeof(TradeMasks) * 4, 0x25A);
-    NIS_TRADE_LIST = allocHeapBlock(sizeof(TradeCardList), 0x25B);
+    NIS_TRADE_MASKS = NIS_ALLOC_HEAP_BLOCK(sizeof(TradeMasks) * 4, 0x25A, "TRADE HEAP", 6);
+    NIS_TRADE_LIST = NIS_ALLOC_HEAP_BLOCK(sizeof(TradeCardList), 0x25B, "DECK EDIT", 7);
     bzero((void *)NIS_TRADE_LIST, sizeof(TradeCardList));
+    NIS_DEBUG_NAME_TASK(0, "TRADE");
     spawnTask(0, -1, 0, 0x800, NIS_runTradeMenu, 1, 0, 0, 0);
     NIS_TRADE_OFFERS[0].kinds = 0;
     NIS_TRADE_OFFERS[0].copies = 0;
@@ -108,11 +116,19 @@ void NIS_runTradeMenu(void) {
     addChoiceMenuItem(&menu, 0x30, NIS_runTradeGrid);
     addChoiceMenuItem(&menu, 0x32, NIS_runTradeQuestion);
     addChoiceMenuItem(&menu, 0x33, NIS_runVsMode);
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_OFFERS_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_WINDOWS.offers = waitFrames(0x7FFFFFFF);
     waitFrames(0x28);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
+#if JP_DEBUG_BUILD
+        /* each player's offer, and the first masks */
+        sprintf(D_800907F8[0], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[0].kinds, NIS_TRADE_OFFERS[0].copies);
+        sprintf(D_800907F8[1], "KIND_NUM.%d TOTAL_NUM.%d\n", NIS_TRADE_OFFERS[1].kinds, NIS_TRADE_OFFERS[1].copies);
+        sprintf(D_800907F8[2], "FLG.%d FLG.%d\n", NIS_TRADE_MASKS[0].digimon[0], NIS_TRADE_MASKS[2].digimon[0]);
+#endif
         if (runChoiceMenu(&menu) == 0) {
             continue;
         }
@@ -163,15 +179,19 @@ void NIS_runTradeGrid(s32 arg) {
 
     kind = 0;
     NIS_TRADE_CURSOR = KAW_createCursor(1, 0x14, 0x18, 5, 1);
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_TITLE_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_SCREENS.titleWindow = waitFrames(0x7FFFFFFF);
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_GRID_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_WINDOWS.grid = waitFrames(0x7FFFFFFF);
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_HELP_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_WINDOWS.help = waitFrames(0x7FFFFFFF);
     waitFrames(0x28);
     while (1) {
         cursor = NIS_TRADE_LIST->cursor;
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (TRADE_PRESSED(PAD_CIRCLE)) {
             if (NIS_TRADE_LIST->count != 0) {
@@ -187,6 +207,7 @@ void NIS_runTradeGrid(s32 arg) {
                 NIS_DECK_EDIT.copies = NIS_TRADE_LIST->cards[NIS_TRADE_LIST->cursor].chosen;
                 NIS_DECK_EDIT.unkA = NIS_TRADE_LIST->cards[NIS_TRADE_LIST->cursor].owned;
                 NIS_DECK_EDIT.maxCopies = NIS_TRADE_LIST->cards[NIS_TRADE_LIST->cursor].max;
+                NIS_DEBUG_NAME_TASK(0, "DETAIL");
                 spawnTask(0, -1, 0, 0x800, NIS_showCard, kind, 0, 0, 0);
                 exitTask();
             } else {
@@ -198,6 +219,7 @@ void NIS_runTradeGrid(s32 arg) {
                 waitFrames(0x3C);
                 NIS_TRADE_OFFERS[NIS_TRADE_PLAYER].kinds = 0;
                 NIS_TRADE_OFFERS[NIS_TRADE_PLAYER].copies = 0;
+                NIS_DEBUG_NAME_TASK(0, "TEST TRADE");
                 spawnTask(0, -1, 0, 0x800, NIS_runTradeMenu, 0, 0, 0, 0);
                 exitTask();
             }
@@ -210,6 +232,7 @@ void NIS_runTradeGrid(s32 arg) {
             waitFrames(0x3C);
             NIS_TRADE_OFFERS[NIS_TRADE_PLAYER].kinds = 0;
             NIS_TRADE_OFFERS[NIS_TRADE_PLAYER].copies = 0;
+            NIS_DEBUG_NAME_TASK(0, "TEST TRADE");
             spawnTask(0, -1, 0, 0x800, NIS_runTradeMenu, 0, 0, 0, 0);
             exitTask();
         } else if (TRADE_PRESSED(PAD_TRIANGLE)) {
@@ -220,6 +243,7 @@ void NIS_runTradeGrid(s32 arg) {
             NIS_WINDOW(NIS_TRADE_WINDOWS.help)->state = 4;
             waitFrames(0x3C);
             NIS_setTradeOffer();
+            NIS_DEBUG_NAME_TASK(0, "TEST TRADE");
             spawnTask(0, -1, 0, 0x800, NIS_runTradeMenu, 0, 0, 0, 0);
             exitTask();
         }
@@ -474,9 +498,11 @@ void NIS_showTradeCard(s32 arg) {
     if (NIS_TRADE_VIEW.type == 0) {
         NIS_openTradeScene(NIS_DIGIMON_CARDS[NIS_TRADE_VIEW.index].unkD3);
     }
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_CARD_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_WINDOWS.card = waitFrames(0x7FFFFFFF);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (PAD_STATES[D_801E46E9]->rawRepeat & PAD_CROSS) {
             break;
@@ -490,6 +516,7 @@ void NIS_showTradeCard(s32 arg) {
     NIS_WINDOW(NIS_TRADE_WINDOWS.card)->state = 4;
     waitFrames(0x1E);
     NIS_closeTradeScene();
+    NIS_DEBUG_NAME_TASK(0, "SELECT");
     spawnTask(0, -1, 0, 0x800, NIS_runTradeGrid, arg, 0, 0, 0);
     exitTask();
 }
@@ -1111,9 +1138,11 @@ void NIS_runTradeQuestion(void) {
         addChoiceMenuItem(&menu, 0x35, NIS_runTradeMenu);
         addChoiceMenuItem(&menu, 0x36, NIS_runTradeMenu);
     }
+    NIS_DEBUG_NAME_TASK(0, "WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_QUESTION_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_WINDOWS.question = waitFrames(0x7FFFFFFF);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -1121,8 +1150,12 @@ void NIS_runTradeQuestion(void) {
         NIS_WINDOW(NIS_TRADE_WINDOWS.question)->state = 4;
         NIS_WINDOW(NIS_TRADE_WINDOWS.offers)->state = 4;
         waitFrames(0x1E);
-        if (menu.choice == 0) {
+        switch (menu.choice) {
+        case 0:
             NIS_exchangeOffers();
+            break;
+        case 1: /* no */
+            break;
         }
         startChoiceMenuAction(&menu);
     }
@@ -1176,3 +1209,15 @@ void NIS_drawTradeQuestion(NisWindow *window) {
     }
     drawIconText(0x1A, 0xD9, 7, 0, window->z, (s32)text);
 }
+
+#if JP_DEBUG_BUILD
+/* the debug build's test profile for a player (unused): its name, the
+   copies of every card, each with a random serial number the card's other
+   copies don't have, and a first deck of 30 random Digimon. Matching it
+   needs its last loop to work out the deck slot's address again after
+   rand(), where the C written for it keeps the one from before the call */
+/* the test profiles' names */
+const char NIS_STR_DEBUG_NAME1[] = "後藤豪太";
+const char NIS_STR_DEBUG_NAME2[] = "菅野刺激";
+INCLUDE_ASM("nisseg/nonmatchings/trade/nis_trade", NIS_makeDebugProfile);
+#endif

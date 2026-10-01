@@ -125,7 +125,7 @@ void NIS_playViewerMotion(void) {
 
 void NIS_runViewerControls(s32 parentTask) {
 #if JP_DEBUG_BUILD
-    func_800184F0(D_801E02E1, 0x10, 1);
+    func_800184F0(D_801E46E9, 0x10, 1);
 #endif
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_VIEWER_CAMERA_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);

@@ -1,5 +1,5 @@
 /* addresses NISSEG uses that none of its objects defines */
 
-/* the "ERROR TASK" literal of NIS_addCardsToDeck, which the asm of the deck
-   windows reads too */
-D_801E656C = 0x801E656C;
+/* the "ERROR TASK" literal of NIS_addCardsToDeck, which the deck windows
+   read too */
+NIS_STR_ERROR_TASK = 0x801E656C;
