@@ -54,7 +54,9 @@ void stopMusic(void) {
     endTask(0x1C);
     if (SOUND_STATE.cur >= 0) {
         SsSeqStop(SOUND_STATE.seq[SOUND_STATE.cur]);
+#if VERSION_US || VERSION_EU
         waitFrames(4);
+#endif
         SOUND_STATE.cur = -1;
     }
 }
@@ -71,7 +73,9 @@ void fadeOutMusicTask(s32 slotIndex, s32 step) {
         SsSeqGetVol(SOUND_STATE.seq[slotIndex], 0, &volL, &volR);
         if (volL == 0) {
             SsSeqStop(SOUND_STATE.seq[slotIndex]);
+#if VERSION_US || VERSION_EU
             waitFrames(4);
+#endif
             SOUND_STATE.cur = -1;
             exitTask();
         }
@@ -128,20 +132,36 @@ void changeMusicTask(s32 slotIndex, s32 trackId, s32 volume, s32 needsLoad) {
     exitTask();
 }
 
+#if VERSION_US || VERSION_EU
 void waitForMusicChange(void) {
     do {
         waitFrames(FRAME_INTERVAL);
     } while (PENDING_MUSIC_CHANGES != 0);
 }
+#endif
 
+/* us and eu wait for the music changes already under way first */
 void playMusic(s32 slotIndex, s32 trackId, s32 volume) {
     if (SOUND_STATE.slot[slotIndex].id != trackId) {
+#if VERSION_US || VERSION_EU
         waitForMusicChange();
+#endif
         spawnTask(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 1);
         return;
     }
     if (SOUND_STATE.cur != slotIndex) {
+#if VERSION_US || VERSION_EU
         waitForMusicChange();
+#endif
         spawnTask(0, -1, 0, 0x1000, &changeMusicTask, slotIndex, trackId, volume, 0);
     }
 }
+
+#if VERSION_JP
+/* jp has it after playMusic, which doesn't call it yet */
+void waitForMusicChange(void) {
+    do {
+        waitFrames(FRAME_INTERVAL);
+    } while (PENDING_MUSIC_CHANGES != 0);
+}
+#endif

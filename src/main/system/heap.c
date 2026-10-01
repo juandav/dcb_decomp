@@ -5,6 +5,13 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 
+/* the bytes the heap hands out, from HEAP_ARENA on */
+#if VERSION_JP
+#define HEAP_SIZE 0x146F00
+#elif VERSION_US || VERSION_EU
+#define HEAP_SIZE 0x148000
+#endif
+
 /* initialize: make the whole arena one free block; otherwise free every block
    a task owns, keeping the permanent ones */
 void resetHeap(s32 initialize) {
@@ -15,7 +22,7 @@ void resetHeap(s32 initialize) {
         block = HEAP_BLOCKS;
         /* free blocks keep their address without the KSEG0 bit, so they're > 0 */
         block->addr = (s32)&HEAP_ARENA & 0x3FFFFFFF;
-        block->size = 0x148000;
+        block->size = HEAP_SIZE;
         block->tag = -1;
         i = 0x3FF;
         do {
@@ -28,19 +35,12 @@ void resetHeap(s32 initialize) {
         return;
     }
     block = HEAP_BLOCKS;
-    i = 0x3FF;
-    if (block->addr != 0) {
-loop:
-        if (block->addr < 0 && block->tag >= 0) {
-            /* freeing merges entries: look at this one again */
-            if (freeHeapBlock((void *)block->addr) == 0) {
-                goto loop;
+    for (i = 0x3FF; i >= 0 && block->addr != 0; i--, block++) {
+        /* freeing merges entries: look at this one again */
+        while (block->addr < 0 && block->tag >= 0) {
+            if (freeHeapBlock((void *)block->addr) != 0) {
+                break;
             }
-        }
-        i--;
-        block++;
-        if (i >= 0 && block->addr != 0) {
-            goto loop;
         }
     }
 }
@@ -52,15 +52,10 @@ s32 getLargestFreeHeapBlock(void) {
 
     largest = 0;
     block = HEAP_BLOCKS;
-    i = 0x3FF;
-    if (HEAP_BLOCKS[0].addr != 0) {
-        do {
-            if (block->addr > 0 && largest < block->size) {
-                largest = block->size;
-            }
-            i--;
-            block++;
-        } while (i >= 0 && block->addr != 0);
+    for (i = 0x3FF; i >= 0 && block->addr != 0; i--, block++) {
+        if (block->addr > 0 && largest < block->size) {
+            largest = block->size;
+        }
     }
     return largest;
 }
@@ -80,36 +75,31 @@ void *allocHeapBlock(s32 size, s32 ownerTag) {
     }
     disableInterrupts();
     block = HEAP_BLOCKS;
-    i = 0x3FF;
-    if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
-        do {
-            if (blockAddr >= 0) {
-                freeSize = block->size;
-                if (freeSize >= size) {
-                    ptr = blockAddr | 0x80000000;
-                    block->addr = ptr;
-                    block->size = size;
-                    freeSize -= size;
-                    block->tag = ownerTag;
-                    if (freeSize != 0) {
-                        blockAddr += size;
-                        /* shift the rest of the table down one entry */
-                        shiftBlock = &HEAP_BLOCKS[0x3FF];
-                        for (i--; i > 0; i--) {
-                            *shiftBlock = shiftBlock[-1];
-                            shiftBlock--;
-                        }
-                        shiftBlock->addr = blockAddr;
-                        shiftBlock->size = freeSize;
-                        shiftBlock->tag = -1;
+    for (i = 0x3FF; i >= 0 && (blockAddr = block->addr) != 0; i--, block++) {
+        if (blockAddr >= 0) {
+            freeSize = block->size;
+            if (freeSize >= size) {
+                ptr = blockAddr | 0x80000000;
+                block->addr = ptr;
+                block->size = size;
+                freeSize -= size;
+                block->tag = ownerTag;
+                if (freeSize != 0) {
+                    blockAddr += size;
+                    /* shift the rest of the table down one entry */
+                    shiftBlock = &HEAP_BLOCKS[0x3FF];
+                    for (i--; i > 0; i--) {
+                        *shiftBlock = shiftBlock[-1];
+                        shiftBlock--;
                     }
-                    restoreInterrupts();
-                    return (void *)ptr;
+                    shiftBlock->addr = blockAddr;
+                    shiftBlock->size = freeSize;
+                    shiftBlock->tag = -1;
                 }
+                restoreInterrupts();
+                return (void *)ptr;
             }
-            i--;
-            block++;
-        } while (i >= 0 && (blockAddr = block->addr) != 0);
+        }
     }
     restoreInterrupts();
     return 0;
@@ -134,38 +124,37 @@ void *shrinkHeapBlock(void *ptr, s32 size) {
     size = (size + 3) & ~3;
     disableInterrupts();
     block = HEAP_BLOCKS;
-    i = 0x3FF;
-    if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
-        do {
-            if (blockAddr == (s32)ptr) {
-                leftover = block->size - size;
-                if (leftover < 0) {
-                    restoreInterrupts();
-                    return 0;
-                }
-                if (leftover != 0 && i != 0) {
-                    block->size = size;
-                    block++;
-                    blockAddr += size;
-                    if (block->addr > 0) {
-                        leftover += block->size;
-                    } else {
-                        block = &HEAP_BLOCKS[0x3FF];
-                        for (i--; i > 0; i--) {
-                            *block = block[-1];
-                            block--;
-                        }
-                    }
-                    block->addr = blockAddr & 0x3FFFFFFF;
-                    block->size = leftover;
-                    block->tag = -1;
-                }
+    for (i = 0x3FF; i >= 0 && (blockAddr = block->addr) != 0; i--, block++) {
+        if (blockAddr == (s32)ptr) {
+            leftover = block->size - size;
+            if (leftover < 0) {
                 restoreInterrupts();
-                return ptr;
+                return 0;
             }
-            i--;
-            block++;
-        } while (i >= 0 && (blockAddr = block->addr) != 0);
+            if (leftover != 0 && i != 0) {
+                block->size = size;
+                block++;
+#if VERSION_JP
+                blockAddr = (s32)ptr + size;
+#elif VERSION_US || VERSION_EU
+                blockAddr += size;
+#endif
+                if (block->addr > 0) {
+                    leftover += block->size;
+                } else {
+                    block = &HEAP_BLOCKS[0x3FF];
+                    for (i--; i > 0; i--) {
+                        *block = block[-1];
+                        block--;
+                    }
+                }
+                block->addr = blockAddr & 0x3FFFFFFF;
+                block->size = leftover;
+                block->tag = -1;
+            }
+            restoreInterrupts();
+            return ptr;
+        }
     }
     restoreInterrupts();
     return 0;
@@ -189,47 +178,42 @@ s32 freeHeapBlock(void *ptr) {
     }
     disableInterrupts();
     block = HEAP_BLOCKS;
-    i = 0x3FF;
-    if ((blockAddr = HEAP_BLOCKS[0].addr) != 0) {
-        do {
-            if (blockAddr == (s32)ptr) {
-                blockAddr &= 0x3FFFFFFF;
-                size = block->size;
-                nextBlock = block;
-                if (block != HEAP_BLOCKS && block[-1].addr > 0) {
-                    block--;
-                    blockAddr = block->addr;
-                    size += block->size;
-                    i++;
-                }
-                if (i > 0 && nextBlock[1].addr > 0) {
-                    if (nextBlock != block) {
-                        i--;
-                    }
-                    nextBlock++;
-                    size += nextBlock->size;
-                }
-                block->addr = blockAddr;
-                block->size = size;
-                block->tag = -1;
-                if (block != nextBlock) {
-                    for (i--; i > 0; i--) {
-                        block++;
-                        nextBlock++;
-                        *block = *nextBlock;
-                    }
-                    while (block < nextBlock) {
-                        block++;
-                        block->addr = 0;
-                        block->tag = 0;
-                    }
-                }
-                restoreInterrupts();
-                return 0;
+    for (i = 0x3FF; i >= 0 && (blockAddr = block->addr) != 0; i--, block++) {
+        if (blockAddr == (s32)ptr) {
+            blockAddr &= 0x3FFFFFFF;
+            size = block->size;
+            nextBlock = block;
+            if (block != HEAP_BLOCKS && block[-1].addr > 0) {
+                block--;
+                blockAddr = block->addr;
+                size += block->size;
+                i++;
             }
-            i--;
-            block++;
-        } while (i >= 0 && (blockAddr = block->addr) != 0);
+            if (i > 0 && nextBlock[1].addr > 0) {
+                if (nextBlock != block) {
+                    i--;
+                }
+                nextBlock++;
+                size += nextBlock->size;
+            }
+            block->addr = blockAddr;
+            block->size = size;
+            block->tag = -1;
+            if (block != nextBlock) {
+                for (i--; i > 0; i--) {
+                    block++;
+                    nextBlock++;
+                    *block = *nextBlock;
+                }
+                while (block < nextBlock) {
+                    block++;
+                    block->addr = 0;
+                    block->tag = 0;
+                }
+            }
+            restoreInterrupts();
+            return 0;
+        }
     }
     restoreInterrupts();
     return 0;
@@ -241,19 +225,12 @@ s32 freeHeapBlocksByTag(s32 tag) {
     s32 blocksLeft;
 
     block = HEAP_BLOCKS;
-    blocksLeft = 0x3FF;
-    if (HEAP_BLOCKS[0].addr != 0) {
-loop_1:
-        blockAddr = block->addr;
-        if ((blockAddr < 0) && (block->tag == tag)) {
-            if (freeHeapBlock((void *)blockAddr) == 0) {
-                goto loop_1;
+    for (blocksLeft = 0x3FF; blocksLeft >= 0 && block->addr != 0; blocksLeft--, block++) {
+        /* freeing it merges the next block into this one: look at it again */
+        while (block->addr < 0 && block->tag == tag) {
+            if (freeHeapBlock((void *)block->addr) != 0) {
+                break;
             }
-        }
-        blocksLeft--;
-        block++;
-        if ((blocksLeft >= 0) && (block->addr != 0)) {
-            goto loop_1;
         }
     }
     return 0;

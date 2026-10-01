@@ -129,7 +129,11 @@ s32 reuseLoadedModelTexture(Model *model) {
             model->prect.w = loaded->prect.w;
             model->crect.x = cx;
             model->crect.y = cy;
+#if VERSION_JP
+            model->crect.h = loaded->prect.h; /* jp copies the wrong height */
+#elif VERSION_US || VERSION_EU
             model->crect.h = loaded->crect.h;
+#endif
             model->crect.w = loaded->crect.w;
         }
         return 0;
@@ -137,7 +141,13 @@ s32 reuseLoadedModelTexture(Model *model) {
     return 1;
 }
 
+/* format (us and eu): 0 for an OMD's objects, 1 for TMDs; jp only loads
+   OMDs */
+#if VERSION_JP
+s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak) {
+#elif VERSION_US || VERSION_EU
 s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
+#endif
     char path[16];
     TIM_IMAGE tim;
     Model *model;
@@ -158,7 +168,9 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     waitFrames(FRAME_INTERVAL);
     model = SCENE_3D->models[slot] = allocHeapBlock(sizeof(Model), slot + 0x40);
     bzero(model, sizeof(Model));
+#if VERSION_US || VERSION_EU
     model->pak = (void *)pak;
+#endif
     pauseModelAnimation(slot);
     RotMatrixYXZ(&model->rot, &model->root.coord);
     model->root.flg = 0;
@@ -181,7 +193,11 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     model->clutOffset = ((((vramSlot & 0x10) << 10) | ((vramSlot & 0xF) * 4)) - 0x14) << 16;
     model->id = id;
     if (id > 1000) {
+#if VERSION_JP
+        sprintf(path, "M:\\%03d_%d.omd", id / 10, id % 10);
+#elif VERSION_US || VERSION_EU
         sprintf(path, "M:\\%d_%d.omd", id / 10, id % 10);
+#endif
     } else {
         sprintf(path, "M:\\%03d.omd", id);
     }
@@ -226,7 +242,9 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
         }
     }
 skip:
+#if VERSION_US || VERSION_EU
     StoreImage2(&model->crect, (u32 *)model->clut);
+#endif
     /* the OMD header: the TIM's name, the bone count, each bone's parent and
        position, then the objects */
     data += 0x10;
@@ -236,7 +254,9 @@ skip:
         model->parent[i] = *data++;
     }
     data = (u8 *)readModelBonePositions(model, (s32 *)data);
+#if VERSION_US || VERSION_EU
     if (format == 0) {
+#endif
         for (i = 0; i < model->nobj; i++) {
             if (i != 0) {
                 /* skip to the next "OMD0" */
@@ -247,6 +267,7 @@ skip:
             relocateOmdObjects((Tmd18 *)data);
             linkOmdObject((s32)(data + 12), &model->obj[i], i);
         }
+#if VERSION_US || VERSION_EU
     } else {
         for (i = 0; i < model->nobj; i++) {
             if (i != 0) {
@@ -259,10 +280,16 @@ skip:
             GsLinkObject4((u32)(data + 12), &model->obj[i], 0);
         }
     }
+#endif
     initModelBoneHierarchy(model);
     return 1;
 }
 
+#if VERSION_JP
+void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
+    loadModel(slot, id, vramSlot, 0);
+}
+#elif VERSION_US || VERSION_EU
 void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
     loadModel(slot, id, vramSlot, 0, 0);
 }
@@ -270,3 +297,4 @@ void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
 void loadTmdModelFromDisc(s32 slot, s32 id, s32 vramSlot) {
     loadModel(slot, id, vramSlot, 0, 1);
 }
+#endif

@@ -23,4 +23,5 @@ GCC_VERSION := 2.8.1
 MAIN_C_SRC := \
 	$(addprefix src/main/gfx/, prim3d.c prim_util.c transform.c \
 		vram_upload.c) \
-	src/main/system/task.c
+	$(addprefix src/main/model/, anim_control.c model_load.c) \
+	$(addprefix src/main/system/, cd_file.c heap.c sound_play.c task.c)
