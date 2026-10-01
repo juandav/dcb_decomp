@@ -39,6 +39,12 @@ defined, each 0 or 1; the assembly gets the same names from `--defsym`.
   has it. A file only one version has is listed only there, and a file
   whose contents differ throughout gets one copy per version instead of an
   `#if` around all of it.
+- A version that is still splat's assembly is split into us's modules by
+  `tools/split_version.py <version>` (after `tools/match_versions.py
+  <version>`): each module is an asm segment with its rodata and data,
+  under us's name, so the report has the same units. A module becomes C by
+  turning those segments into `c`, `.rodata` and `.data` in the version's
+  config and listing its file in the version's `.mk`.
 
 ## Layout
 
