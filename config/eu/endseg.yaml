@@ -52,6 +52,7 @@ segments:
     align: 4
     subalign: 4
     subsegments:
+      # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x0, rodata, endseg]
       - [0x8D4, asm, endseg]
       - [0x2B8C, data, endseg]
