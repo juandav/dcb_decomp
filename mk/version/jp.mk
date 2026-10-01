@@ -68,6 +68,7 @@ SUBSEG_C_SRC := \
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area_jp.c sai_opponent_select_jp.c \
 		sai_slot_machine.c) \
+	src/saiseg/map/sai_world_map_jp.c \
 	src/saiseg/player/sai_player_data_jp.c \
 	$(addprefix src/saiseg/ui/, sai_labels_jp.c sai_panel_jp.c sai_text_jp.c)
 NISSEG_C_SRC := \

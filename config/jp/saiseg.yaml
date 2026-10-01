@@ -65,7 +65,7 @@ segments:
       # same Bits format string (GCC merges equal strings within an object) and
       # their jump tables are 8-aligned from 0x488 and from 0x554
       - [0x488, .rodata, area/sai_slot_machine]
-      - [0x554, rodata, map/sai_world_map]
+      - [0x554, .rodata, map/sai_world_map_jp]
       # jp's key items and player data screen: one object, as one table of
       # its states holds all its functions from here to the message window's
       - [0x5A4, c, player/sai_player_data_jp]
@@ -81,7 +81,7 @@ segments:
       # (jp-only: us's SAISEG has no slot machine)
       - [0x75BC, c, area/sai_slot_machine]
       # jp's map is walked in 3D: it takes us's world map's place
-      - [0x91E4, asm, map/sai_world_map]
+      - [0x91E4, c, map/sai_world_map_jp]
       - [0xB0D8, .data, player/sai_player_data_jp]
       - [0xBC18, data, sai_data]
       - [0xBD50, data, sai_bss]
