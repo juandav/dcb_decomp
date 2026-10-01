@@ -26,6 +26,9 @@ overlay's file with "us-main" in the comment; that name is checked against
 us's executable instead:
 
     tickEffectMotion = 0x801EBFA4; // type:func us-main
+
+Likewise "us-<overlay>" for code us has in another overlay (jp's ENDSEG
+holds OPENSEG's movie player): checked against that overlay's names.
 """
 
 import re
@@ -83,7 +86,8 @@ def main():
                 if binary not in us_binaries or AUTO_NAME.match(name) or "version-only" in comment.split():
                     continue
                 checked += 1
-                home = "main" if "us-main" in comment.split() else binary
+                home = next((w[3:] for w in comment.split() if w.startswith("us-") and w[3:] in us_binaries),
+                            binary)
                 if name not in us.get(home, {}):
                     if name in where:
                         errors.append(f"{rel}:{n}: {name} is {where[name]}'s in us, not {home}'s")

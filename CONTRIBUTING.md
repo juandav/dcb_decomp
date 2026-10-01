@@ -113,7 +113,9 @@ isn't us's name in the same binary any more; a name only one version has
 links into an overlay code us has in the executable (jp's SUGSEG holds
 main's `effect_object` and `effect_prims`) gives it us's name in the
 overlay's symbol file, with `us-main` in the comment: check_names checks it
-against us's executable, and `tools/version_symbols.py` writes it so.
+against us's executable, and `tools/version_symbols.py` writes it so. Code
+us has in another overlay is marked `us-<overlay>` the same way (jp's
+ENDSEG holds OPENSEG's movie player: `us-openseg`).
 
 ## Pull requests
 
