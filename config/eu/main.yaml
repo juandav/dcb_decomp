@@ -154,7 +154,7 @@ segments:
       - [0x3145C, c, duel/duel_launch]
       - [0x31A2C, asm, card/card_render]
       - [0x35500, asm, card/card_db]
-      - [0x39190, asm, card/partner_level]
+      - [0x39190, c, card/partner_level]
       - [0x39364, asm, ui/hacking_shell]
       - [0x39C5C, asm, system/game_exit]
       - [0x39F90, asm, psyq]

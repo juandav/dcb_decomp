@@ -39,7 +39,8 @@ TrailEffect *SUG_createTrailEffect(s16 brightness, Bytes4 *c0, Bytes4 *c1, Bytes
     *(EffectTemplate *)obj = *template;
     initEffectObject(obj);
     obj->otz = otz;
-    obj->prevPos[1] = obj->prevPos[0] = obj->pos;
+    obj->prevPos[0] = obj->pos;
+    obj->prevPos[1] = obj->pos;
     obj->prevRot[0] = obj->rot;
     obj->prevRot[1] = obj->rot;
     initTransform(obj->edges[0], (s32)obj, x0, 0, 0, 0, 0, 0);

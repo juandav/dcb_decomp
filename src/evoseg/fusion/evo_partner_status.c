@@ -24,6 +24,7 @@ void EVO_drawPartnerList(UiWindow *w) {
     s32 level;
     s32 index;
     s32 next;
+    s32 labelPalette;
 
     x = w->originX;
     y = w->originY;
@@ -33,9 +34,10 @@ void EVO_drawPartnerList(UiWindow *w) {
             continue;
         }
         if (EVO_FUSION.partner == i) {
+            labelPalette = 6;
             dim = 0;
-            level = 0; /* dead store, but it keeps the branch the original has */
         } else {
+            labelPalette = 6;
             dim = 1;
         }
         level = PARTNER(i).card[0].attr >> 4;
@@ -49,15 +51,16 @@ void EVO_drawPartnerList(UiWindow *w) {
         rect.h = 40;
         drawTexturedSprite(x, y, &rect, 0x97, ((level + 0x1F8) << 6) | 0x18, z, dim ? 0x40 : 0x80, -1);
         drawTextColored(x + 0x2C, y + 2, PARTNER(i).card[0].name, EVO_TEXT_COLORS[dim].b, 8, z);
-        drawLargeTextColored(x + 0x82, y + 4, "NEXT", 6, EVO_TEXT_COLORS[dim].b, z);
-        next = 0;
+        drawLargeTextColored(x + 0x82, y + 4, "NEXT", labelPalette, EVO_TEXT_COLORS[dim].b, z);
         if ((s8)PARTNER(i).level < 99) {
             next = getExpForNextLevel((s8)PARTNER(i).level) - (u16)PARTNER(i).exp;
+        } else {
+            next = 0;
         }
         sprintf(text, "*s0%3d", next);
         drawTextColored(x + 0xB0, y + 2, text, EVO_TEXT_COLORS[dim].b, 8, z);
         y += 2;
-        drawLargeTextColored(x + 0x2C, y + 0x10, "RANK", 6, EVO_TEXT_COLORS[dim].b, z);
+        drawLargeTextColored(x + 0x2C, y + 0x10, "RANK", labelPalette, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%2d", (s8)PARTNER(i).level);
         drawTextColored(x + 0x56, y + 0xE, text, EVO_TEXT_COLORS[dim].b, 8, z);
         drawIconColored(x + 0x6C, y + 0xE, 0, 0x1A, EVO_TEXT_COLORS[dim].b, z);
@@ -72,7 +75,7 @@ void EVO_drawPartnerList(UiWindow *w) {
         drawIconColored(x + 0x9C, y + 0x1A, 0, 9, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", PARTNER(i).card[0].attack[2].power);
         drawTextColored(x + 0xAA, y + 0x1A, text, EVO_TEXT_COLORS[dim].b, 8, z);
-        drawLargeTextColored(x + 0x2C, y + 0x1C, "EXP", 6, EVO_TEXT_COLORS[dim].b, z);
+        drawLargeTextColored(x + 0x2C, y + 0x1C, "EXP", labelPalette, EVO_TEXT_COLORS[dim].b, z);
         sprintf(text, "*s0%4d", (u16)PARTNER(i).exp);
         drawTextColored(x + 0x4A, y + 0x1A, text, EVO_TEXT_COLORS[dim].b, 8, z);
         y += 0x28;
@@ -176,5 +179,9 @@ void EVO_drawCardInfo(UiWindow *w) {
     drawTexturedSprite(x + 0x60, y + 0xD, &rect, 0x97, 0x7F18, z, 0x80, -1);
 }
 
-/* the last two bytes are leftovers in the original, not zero padding */
+/* us's last two bytes are leftovers in the original, not zero padding */
+#if VERSION_US
 const char EVO_STR_SPEC[8] = "Spec.\0\x85\xA4";
+#elif VERSION_EU
+const char EVO_STR_SPEC[8] = "Spec.";
+#endif
