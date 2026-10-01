@@ -57,7 +57,7 @@ segments:
       # jp's SUGSEG holds the effect objects and rings that us has in the
       # executable (main/model/effect_object, effect_prims)
       - [0x4, .rodata, model/effect_object]
-      - [0x3E8, rodata, effect/sug_gradient]
+      - [0x3E8, .rodata, effect/sug_gradient]
       - [0x400, .rodata, effect/sug_tex_anim]
       - [0x448, rodata, effect/sug_effect_script]
       - [0x4E8, .rodata, battle/sug_sprite]
@@ -66,11 +66,11 @@ segments:
       - [0xB44, c, model/effect_object]
       - [0x25A8, c, model/effect_prims]
       - [0x381C, c, effect/sug_sphere]
-      - [0x71E0, asm, effect/sug_gradient]
+      - [0x71E0, c, effect/sug_gradient]
       - [0x866C, asm, effect/sug_model_effect]
       - [0x8CE8, asm, effect/sug_sprite_effect]
       - [0x8E98, asm, effect/sug_trail]
-      - [0xA250, asm, effect/sug_fade_rect]
+      - [0xA250, c, effect/sug_fade_rect]
       - [0xA50C, asm, effect/sug_scroll_texture]
       - [0xAB9C, c, effect/sug_tex_anim]
       # more of us's main/model/effect_prims: the streak particles
@@ -78,7 +78,7 @@ segments:
       - [0xC328, asm, effect/sug_light_motion]
       - [0xC890, asm, effect/sug_effect_script]
       - [0xE9AC, c, battle/sug_sprite]
-      - [0xF400, asm, battle/sug_camera]
+      - [0xF400, c, battle/sug_camera]
       - [0xF548, c, battle/sug_hud]
       - [0x110FC, c, battle/sug_battle]
       - [0x124D8, data, effect/sug_light_motion]

@@ -28,16 +28,17 @@ MAIN_C_SRC := \
 	$(addprefix src/main/gfx/, display.c prim.c prim3d.c prim_pair.c prim_util.c \
 		tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c model_anim.c model_load.c \
-		stage.c) \
+		stage.c wire_grid.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c cd_file.c heap.c \
 		loader.c opening_movie.c save_checksum.c sound.c sound_play.c \
 		task.c) \
 	src/main/ui/str_util.c
 SUGSEG_C_SRC := \
-	$(addprefix src/sugseg/battle/, sug_battle.c sug_hud.c sug_sprite.c) \
-	$(addprefix src/sugseg/effect/, sug_history.c sug_sphere.c \
-		sug_tex_anim.c) \
+	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \
+		sug_sprite.c) \
+	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_gradient.c sug_history.c \
+		sug_sphere.c sug_tex_anim.c) \
 	$(addprefix src/sugseg/model/, effect_object.c effect_prims.c \
 		streak_particles.c)
 KAWSEG_C_SRC := \
