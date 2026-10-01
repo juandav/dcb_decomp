@@ -19,7 +19,7 @@
    Offline Deck without the armor or the level 3 bonus checks */
 
 /* the window frame drawn around a text box */
-extern CVECTOR D_801FF6D8[];
+extern CVECTOR KAW_WINDOW_FRAME_COLORS[];
 /* frames before the Give Up prompt takes a button */
 extern s32 D_801FFB1C;
 
@@ -324,7 +324,7 @@ void func_801F8D04(s32 x, s32 y, s32 page) {
     rect.w = 0xE4;
     rect.h = 0xC4;
     drawIconText(x, y, 7, 1, 0, (s32)KAW_HELP_PAGES[page]);
-    drawWindowFrame(&rect, 0, 0, 0, 0xFF, D_801FF6D8, 0);
+    drawWindowFrame(&rect, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 0);
     x += 0xF0;
     y += 0xA8;
     rect.x = x - 2;
@@ -332,7 +332,7 @@ void func_801F8D04(s32 x, s32 y, s32 page) {
     rect.w = 0x36;
     rect.h = 0x1C;
     drawIconText(x, y, 7, 1, 0, (s32) "b0次の頁\nb2前の頁\n");
-    drawWindowFrame(&rect, 0, 0, 0, 0xFF, D_801FF6D8, 0);
+    drawWindowFrame(&rect, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 0);
 }
 
 void func_801F8E24(s32 player) {
@@ -400,7 +400,7 @@ void func_801F9144(void) {
         rect.w = 0x5E;
         rect.h = 0x1C;
         drawIconText(0x7C, 0x6C, 6, 1, 0, (s32)KAW_STR_GIVE_UP);
-        drawWindowFrame(&rect, 0, 0, 0, 0xFF, D_801FF6D8, 0);
+        drawWindowFrame(&rect, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 0);
         if (D_801FFB1C == 0) {
             if (PAD_STATES[pad]->rawPressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);

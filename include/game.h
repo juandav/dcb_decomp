@@ -1078,7 +1078,6 @@ typedef struct {
     /* 0x249 */ s8 timer;
     /* 0x24A */ s8 state; /* MENU_STATE_HANDLERS */
     /* 0x24B */ u8 blink;
-    /* 0x24C */ u8 unk24C[4];
 } ChoiceMenu;
 /* jp's session block is 0x154 bytes, laid out differently: only the fields
    its matched code reads are placed */

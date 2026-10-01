@@ -60,11 +60,9 @@ segments:
       - [0xF68, .rodata, ui/kaw_match_intro_jp]
       - [0x1054, .rodata, ui/kaw_result_jp]
       - [0x106C, .rodata, ui/kaw_prize_jp]
-      - [0x1218, rodata, duel/kaw_effect]
-      # (the tutorial's messages run on to 0x30F0)
-      - [0x30F0, rodata, duel/kaw_bonus]
-      # the tutorial decks' names
-      - [0x30F4, .rodata, ui/kaw_hud_jp]
+      # the tutorial's messages (in reverse, as GCC emits an initializer's
+      # strings), then its decks' names
+      - [0x1218, .rodata, ui/kaw_hud_jp]
       - [0x310C, .rodata, ui/kaw_exp_jp]
       - [0x3114, c, cpu/kaw_card_queries]
       - [0x3F84, c, cpu/kaw_cpu]
@@ -79,16 +77,16 @@ segments:
       # jp's kaw_hud sets the tutorial up and frees it
       - [0x1489C, c, ui/kaw_hud_jp]
       - [0x14D18, c, ui/kaw_exp_jp]
+      # the zeroed data's object, which has no code (as us's kaw_bss)
+      - [0x151E8, c, kaw_bss_jp]
       - [0x151E8, .data, cpu/kaw_card_queries]
       # jp's card cursor table and help pages (no kaw_duel_menu in jp)
       - [0x15218, .data, duel/kaw_hand_jp]
       - [0x15270, .data, ui/kaw_match_intro_jp]
-      # the data of kaw_prize_jp, kaw_hud_jp and kaw_exp_jp, still asm
-      - [0x152F0, data, ui/kaw_prize_jp]
-      - [0x152FC, data, ui/kaw_hud_jp]
-      - [0x15374, data, ui/kaw_exp_jp]
+      - [0x152F0, .data, ui/kaw_prize_jp]
+      # the tutorial's decks, message positions and messages
+      - [0x152FC, .data, ui/kaw_hud_jp]
       # jp's zeroed data starts with KAW_SUPPORT_REGISTER, as us's kaw_bss
-      - [0x15730, data, kaw_bss]
-      - [0x15AD0, data, duel/kaw_effect]
+      - [0x15730, .data, kaw_bss_jp]
 
   - [0x15AD0]

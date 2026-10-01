@@ -26,7 +26,9 @@ void func_80044790(void *cursor, s32 x, s32 y);
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
 
 extern void *KAW_HAND_CURSOR;
-extern CVECTOR D_801FF6D8[];
+
+/* the frame colours of KAWSEG's text windows (kaw_hand_jp.c's too) */
+CVECTOR KAW_WINDOW_FRAME_COLORS[3] = { { 0, 0, 0x30, 0 }, { 0xC0, 0xC0, 0xC0, 0 }, { 0xC0, 0xC0, 0xC0, 0 } };
 extern char D_801EB35C[]; /* kaw_match_intro's "w-1%4d" */
 
 /* Draws prize window index: the card's number, name and stats, and how many
@@ -231,10 +233,10 @@ void func_801FDFC4(void) {
                 }
             }
             func_801FD108(i, 1);
-            drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], D_801FF6D8, 1);
+            drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
         }
         func_801FDBF8();
-        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, D_801FF6D8, 1);
+        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
     }
     do {
         waitFrames(FRAME_INTERVAL);
@@ -292,15 +294,15 @@ void func_801FDFC4(void) {
         }
         func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
         func_801FD108(KAW_CARD_PRIZE->choice, 1);
-        drawWindowFrame(&KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice], 0, 0, 0, 0xFF, D_801FF6D8, 1);
+        drawWindowFrame(&KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice], 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         for (i = 0; i < 3; i++) {
             if (KAW_CARD_PRIZE->choice != i) {
                 func_801FD108(i, 1);
-                drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], D_801FF6D8, 1);
+                drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
             }
         }
         func_801FDBF8();
-        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, D_801FF6D8, 1);
+        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
     } while (KAW_CARD_PRIZE->state != 1 && KAW_CARD_PRIZE->state != 4);
     for (timer = 0; timer < 180; timer++) {
         waitFrames(FRAME_INTERVAL);
@@ -321,7 +323,7 @@ void func_801FDFC4(void) {
                 }
             }
             func_801FD108(i, 1);
-            drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, 0xFF, D_801FF6D8, 1);
+            drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         }
         for (i = 0; i < 3; i++) {
             if (KAW_CARD_PRIZE->choice != i) {
@@ -337,14 +339,14 @@ void func_801FDFC4(void) {
                     }
                 }
                 func_801FD108(i, 1);
-                drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], D_801FF6D8, 1);
+                drawWindowFrame(&KAW_CARD_PRIZE->windows[i], 0, 0, 0, KAW_CARD_PRIZE->brightness[i], KAW_WINDOW_FRAME_COLORS, 1);
             }
         }
         if (KAW_CARD_PRIZE->choice != -1) {
             func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
         }
         func_801FDBF8();
-        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, D_801FF6D8, 1);
+        drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         if (timer > 60 && (PAD_STATES[0]->rawPressed & PAD_CIRCLE)) {
             playSoundEffect(0xA0);
             break;
