@@ -72,8 +72,10 @@ segments:
       - [0x9D8, .rodata, ui/str_util]
       - [0xA0C, .rodata, system/sound]
       - [0xA2C, .rodata, system/opening_movie]
-      # the tamer ranks' names (us's are memcard's)
-      - [0xA4C, rodata, system/memcard]
+      # the rank names, which us has in memcard.c: jp keeps them before
+      # player_rank's rodata, apart from its memcard object (their pointers
+      # are at the start of player_data's data)
+      - [0xA4C, rodata, system/memcard_data]
       - [0xBF4, .rodata, card/player_rank]
       # jp's player_data starts right after updatePlayerRanks
       - [0xC50, rodata, card/player_data]
@@ -83,8 +85,11 @@ segments:
       - [0xDD4, rodata, gfx/scroll_bg]
       - [0xE94, rodata, duel/duel]
       - [0x1008, .rodata, duel/cpu_decision]
-      # the rodata of duel_util and of the asm modules after it, up to battle_hud
+      # the rodata of duel_util and of the asm modules after it, up to memcard
       - [0x1028, rodata, duel/duel_util]
+      - [0x1864, .rodata, system/memcard]
+      # the rodata of the asm modules after memcard, up to battle_hud
+      - [0x1884, rodata, ui/dialog]
       - [0x2740, .rodata, system/game_exit]
       - [0x2768, rodata, card/card_db]
       - [0x2768, rodata, card/card_render]
@@ -94,7 +99,6 @@ segments:
       - [0x2768, rodata, duel/hud_panels]
       - [0x2768, rodata, psyq]
       - [0x2768, rodata, system/game_flow]
-      - [0x2768, rodata, ui/dialog]
       - [0x2768, rodata, ui/hacking_shell]
       - [0x3628, c, main]
       - [0x36D0, c, system/task]
@@ -136,7 +140,8 @@ segments:
       - [0x195D8, c, card/player_rank]
       # with two functions of jp's own before initPlayerData
       - [0x19E58, asm, card/player_data]
-      - [0x1B400, asm, system/decompress]
+      # jp has no decompress module (nor its LZ/Huffman code anywhere): the
+      # functions us's split put here use player_data's strings
       - [0x1B608, asm, duel/duel_launch]
       - [0x1C20C, asm, model/effect_object]
       - [0x1D860, c, model/stage]
@@ -156,8 +161,9 @@ segments:
       - [0x34A38, asm, card/card_db]
       - [0x35A4C, asm, system/game_flow]
       - [0x365B4, asm, card/partner_level]
-      - [0x36F24, asm, system/memcard]
-      - [0x37574, asm, ui/hacking_shell]
+      # jp's memcard object holds only the memory card functions, and all of
+      # them (from formatMemoryCard on, they were hacking_shell's range)
+      - [0x36F24, c, system/memcard]
       - [0x37DB4, c, system/save_checksum]
       # two functions of jp's own, before dialog's
       - [0x37E50, asm, ui/dialog]
@@ -180,8 +186,8 @@ segments:
       - [0x6F094, .data, model/stage]
       - [0x6F114, data, gfx/scroll_bg]
       - [0x6F144, data, card/card_render]
+      # card_db's word, then 8 bytes no code reads
       - [0x6F6F8, data, card/card_db]
-      - [0x6F6FC, data, system/memcard]
       - [0x6F704, data, ui/hacking_shell]
       - [0x6F744, data, psyq]
       # the game's code, from main() on: one asm range for now
