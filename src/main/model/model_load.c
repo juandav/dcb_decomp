@@ -201,6 +201,9 @@ s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format) {
     } else {
         sprintf(path, "M:\\%03d.omd", id);
     }
+#if VERSION_EU
+    printf("%s\n", path);
+#endif
     data = findPakChunk((Chunk *)pak, 0, id);
     if (data == 0) {
         data = (u8 *)loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x40);

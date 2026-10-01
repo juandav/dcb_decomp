@@ -349,8 +349,9 @@ u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
  * buffer. A primitive is only drawn if it faces the camera, and consecutive
  * primitives of a strip are wound in opposite directions.
  */
-#if VERSION_JP
-/* jp: its register allocation needs one more saved register (fp); no C form found yet */
+#if VERSION_JP || VERSION_EU
+/* jp and eu: their register allocation needs one more saved register (fp); no
+   C form found yet */
 INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortModelPrimitives);
 #elif VERSION_US
 void sortModelPrimitives(SortWork *w) {
@@ -620,8 +621,6 @@ void sortModelPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
-#else
-#error "untested version"
 #endif
 
 u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
@@ -809,8 +808,9 @@ u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     return packet + 8;
 }
 
-#if VERSION_JP
-/* jp: packet takes s1 ahead of cursor and the scratch pointer; no C form found yet */
+#if VERSION_JP || VERSION_EU
+/* jp and eu: packet takes s1 ahead of cursor and the scratch pointer; no C
+   form found yet */
 INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortEnvMappedPrimitives);
 #elif VERSION_US
 void sortEnvMappedPrimitives(SortWork *w) {
@@ -981,6 +981,4 @@ void sortEnvMappedPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
-#else
-#error "untested version"
 #endif
