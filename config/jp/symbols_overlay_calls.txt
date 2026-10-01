@@ -5,3 +5,5 @@
 
 // names from the C of the modules this version builds (tools/version_symbols.py)
 SUG_runPolygonBattle = 0x801FC578; // type:func
+OPEN_findMovieFile = 0x801ECD00; // type:func
+OPEN_playMovie = 0x801ED718; // type:func
