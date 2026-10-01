@@ -26,4 +26,12 @@ void restartEffectMotion(void *fx);
 void tickEffectStartDelay(void *fx);
 s16 updateEffectBrightness(void *fxObj, s16 brightness);
 
+/* A suspended effect waits out its start delay in us and eu; jp's effects
+   have none, they only skip the frame */
+#if VERSION_JP
+#define TICK_START_DELAY(fx)
+#elif VERSION_US || VERSION_EU
+#define TICK_START_DELAY(fx) tickEffectStartDelay(fx)
+#endif
+
 #endif /* DCB_EFFECT_OBJECT_H */

@@ -117,6 +117,44 @@ typedef struct {
     /* 0x138 */ u8 fadeState;
     /* 0x139 */ u8 suspended;
 } EffectObject;
+#if VERSION_JP
+/* jp's streak particles are older: no swirl and no length step, so its
+   particles and their set are smaller */
+typedef struct {
+    /* 0x00 */ u8 unk0[0x30];
+    /* 0x30 */ s16 rotX;
+    /* 0x32 */ s16 rotY;
+    /* 0x34 */ s16 rotZ;
+    /* 0x36 */ u8 unk36[0x16];
+    /* 0x4C */ LINE_G2 line[2];
+    /* 0x74 */ s16 posX;
+    /* 0x76 */ s16 posY;
+    /* 0x78 */ s16 posZ;
+    /* 0x7A */ s16 unk7A;
+    /* 0x7C */ u16 length;
+    /* 0x7E */ u16 speed;
+    /* 0x80 */ u16 distance;
+    /* 0x82 */ s16 unk82;
+} Particle;
+typedef struct {
+    /* 0x000 */ EffectTemplate base;
+    /* 0x140 */ void *parent;
+    /* 0x144 */ Particle *p;
+    /* 0x148 */ u8 rgb[3];
+    /* 0x14B */ u8 unk14B;
+    /* 0x14C */ u8 drgb[3];
+    /* 0x14F */ u8 unk14F;
+    /* 0x150 */ u16 frames;
+    /* 0x152 */ s16 zOffset;
+    /* 0x154 */ u16 frame;
+    /* 0x156 */ u16 count;
+    /* 0x158 */ s16 fixedOtz;
+    /* 0x15A */ s8 direction;
+    /* 0x15B */ s8 own;
+    /* 0x15C */ u8 axisMode;
+    /* 0x15D */ s8 kind;
+} StreakParticles;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x00 */ u8 unk0[0x30];
     /* 0x30 */ s16 rotX;
@@ -154,6 +192,7 @@ typedef struct {
     /* 0x15A */ u8 axisMode;
     /* 0x15B */ s8 kind;
 } StreakParticles;
+#endif
 
 extern u8 PRIM_SIZES[];
 extern s16 ATTACK_ICON_ORIGIN_X[3];
@@ -163,7 +202,12 @@ void renderScrollingBackground(void);
 RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, EffectTemplate *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
                      s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
                      s32 w, s32 x);
+#if VERSION_JP
+StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 frames, s16 speedRange, s16 reverse,
+                         s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 axisMode, s32 fixedOtz);
+#elif VERSION_US || VERSION_EU
 StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz);
+#endif
 
 #endif /* DCB_SCROLL_BG_H */
