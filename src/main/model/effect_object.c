@@ -289,10 +289,8 @@ void restartEffectMotion(void *obj) {
     /* jp has no start delay (us's modes 91 and up) nor a mode 90 */
 #if VERSION_JP
     fx->suspended = 0;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     fx->suspended = fx->mode >= 91;
-#else
-#error "untested version"
 #endif
     fx->state = -1;
     for (i = 0; i < 3; i++) {
@@ -304,10 +302,8 @@ void restartEffectMotion(void *obj) {
     fx->t2 = 0;
 #if VERSION_JP
     if (fx->mode != 0) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     if (fx->mode != 0 && fx->mode != 90) {
-#else
-#error "untested version"
 #endif
         fx->sx = fx->sx0;
         fx->sy = fx->sy0;
@@ -360,8 +356,6 @@ void *initEffectObject(void *obj) {
     getDirectionVector((SVECTOR *)&fx->px, (SVECTOR *)&fx->px2, &fx->dir);
 #if VERSION_JP
     fx->trail = NULL;
-#elif VERSION_EU
-#error "untested version"
 #endif
     fx->unkFC = 0;
     fx->brightness = 0;
@@ -381,20 +375,16 @@ void *initEffectObject(void *obj) {
    has none of them */
 #if VERSION_JP
 #define IS_MOVING_MODE(mode) 1
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define IS_MOVING_MODE(mode) ((mode) < 90)
-#else
-#error "untested version"
 #endif
 
-/* the scale an effect stops at becomes its current one: jp copies the four
-   words as one VECTOR */
-#if VERSION_JP
+/* the scale an effect stops at becomes its current one: jp and eu copy the
+   four words as one VECTOR */
+#if VERSION_JP || VERSION_EU
 #define SET_TARGET_SCALE(fx) (*(VECTOR *)&(fx)->sxT = *(VECTOR *)&(fx)->sx)
 #elif VERSION_US
 #define SET_TARGET_SCALE(fx) ((fx)->sxT = (fx)->sx, (fx)->syT = (fx)->sy, (fx)->szT = (fx)->sz, (fx)->swT = (fx)->sw)
-#else
-#error "untested version"
 #endif
 
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
@@ -463,10 +453,8 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 56:
     case 69:
     case 82:
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     case 90:
-#elif VERSION_EU
-#error "untested version"
 #endif
         fx->posX = fx->px;
         fx->posY = fx->py;
@@ -570,8 +558,6 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 10:
         getEffectTrailEntry(fx->trail, fx->unkFC, (VECTOR *)&fx->posX, (SVECTOR *)&fx->rotX, (VECTOR *)&fx->sx, &fx->brightness);
         break;
-#elif VERSION_EU
-#error "untested version"
 #endif
     }
     if (fx->state != -1 && fx->mode != 0 && IS_MOVING_MODE(fx->mode)) {
@@ -652,8 +638,6 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
                 fx->ddrx = 0;
                 fx->ddry = 0;
                 fx->ddrz = 0;
-#elif VERSION_EU
-#error "untested version"
 #endif
             case 63:
             case 64:
@@ -772,7 +756,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
 }
 
 /* jp has no start delay */
-#if VERSION_US
+#if VERSION_US || VERSION_EU
 /* Modes >= 91 wait wavePhase frames, then run as mode - 100 */
 void tickEffectStartDelay(void *obj) {
     EffectObject *fx;
@@ -788,8 +772,6 @@ void tickEffectStartDelay(void *obj) {
         fx->mode -= 100;
     }
 }
-#elif VERSION_EU
-#error "untested version"
 #endif
 
 /*

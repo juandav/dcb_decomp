@@ -27,10 +27,6 @@ void SUG_drawSphereG(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_drawSphereGT(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode);
 
-#if VERSION_JP
-/* jp: its global register allocation differs (clut stays in fp, pulse is spilled); no C form found yet */
-INCLUDE_ASM("sugseg/nonmatchings/effect/sug_sphere", SUG_createSphereEffect);
-#elif VERSION_US
 SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 pulseMode, EffectTemplate *template, s16 segments, s16 slices, s32 radius, u8 semiTrans,
                            u8 abr, u8 primKind, u8 openBottom, s16 texAnimId, Rect16 *uv, s32 tpage, s32 clut, u8 cull, s32 otz, s32 pak) {
     SphereEffect *fx;
@@ -38,12 +34,11 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
     s32 total;
     s32 i;
     s32 n;
-    s32 j;
     s32 k;
     s32 r;
-    s32 angStep;
-    s32 latStep;
-    s32 ringStep;
+    s16 angStep;
+    s16 latStep;
+    s16 ringStep;
     LineF2 *line0;
     LineF2 *line1;
     POLY_F3 *tri0;
@@ -61,15 +56,14 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
     DrTPage *tp0;
     DrTPage *tp1;
 
-    fx = allocTaskHeapBlock(0x1E0);
+    fx = allocTaskHeapBlock(sizeof(SphereEffect));
     fx->segments = segments;
     fx->slices = slices;
-    rings = (slices - 3) / 2;
-    fx->ringCount = rings + 1;
-    total = (rings + 1) * segments;
+    rings = fx->ringCount = (slices - 3) / 2 + 1;
+    total = rings * segments;
     fx->vertCount = total + 2;
-    fx->ringVertCount = (rings + 2) * segments;
-    fx->lineCount = total + rings * segments + segments * 2;
+    fx->ringVertCount = (fx->ringCount - 1) * segments + segments * 2;
+    fx->lineCount = total + (fx->ringCount - 1) * segments + segments * 2;
     if (texAnimId >= 0 && SUG_startTexAnim(texAnimId, 3, (RingEffect *)fx, &fx->texAnim, pak) != 0) {
         fx->texAnimActive = 1;
     } else {
@@ -129,9 +123,10 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
         }
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
-        n = segments;
-        if (openBottom == 0) {
-            n *= 2;
+        if (openBottom != 0) {
+            n = segments;
+        } else {
+            n = segments * 2;
         }
         for (i = 0; i < 2; i++) {
             fx->tris[i] = allocTaskHeapBlock(n * sizeof(POLY_F3));
@@ -168,9 +163,10 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
         }
         tp0 = fx->tpages[0];
         tp1 = fx->tpages[1];
-        n = segments;
-        if (openBottom == 0) {
-            n *= 2;
+        if (openBottom != 0) {
+            n = segments;
+        } else {
+            n = segments * 2;
         }
         for (i = 0; i < 2; i++) {
             fx->gtris[i] = allocTaskHeapBlock(n * sizeof(POLY_G3));
@@ -200,9 +196,10 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
         }
         break;
     case 13:
-        n = segments;
-        if (openBottom == 0) {
-            n *= 2;
+        if (openBottom != 0) {
+            n = segments;
+        } else {
+            n = segments * 2;
         }
         for (i = 0; i < 2; i++) {
             fx->ttris[i] = allocTaskHeapBlock(n * sizeof(POLY_GT3));
@@ -274,17 +271,14 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
     k = 1;
     for (n = 0; n < fx->ringCount; n++) {
         r = radius * rsin(ringStep * (n + 1)) >> 12;
-        for (j = 0; j < segments; j++, k++) {
-            fx->verts[k].vx = r * rcos(angStep * j) >> 12;
-            fx->verts[k].vz = r * rsin(angStep * j) >> 12;
+        for (i = 0; i < segments; i++, k++) {
+            fx->verts[k].vx = r * rcos(angStep * i) >> 12;
+            fx->verts[k].vz = r * rsin(angStep * i) >> 12;
             fx->verts[k].vy = -(radius * rcos(latStep * (n + 1))) >> 12;
         }
     }
     return fx;
 }
-#else
-#error "untested version"
-#endif
 
 void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode) {
     *(Bytes4 *)fx->rgb = *rgb;
@@ -294,13 +288,11 @@ void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode)
 }
 
 void SUG_tickSphereEffect(SphereEffect *fx) {
-    /* jp narrows the speed before passing it */
-#if VERSION_JP
+    /* jp and eu narrow the speed before passing it */
+#if VERSION_JP || VERSION_EU
     s16 speed;
 #elif VERSION_US
     s32 speed;
-#else
-#error "untested version"
 #endif
 
     if (fx->suspended != 0) {
@@ -400,11 +392,6 @@ void SUG_drawSphereLines(SphereEffect *fx, u8 cull, s32 n, s32 speed, s32 otz) {
     fx->prevBrightness = fx->brightness;
 }
 
-#if VERSION_JP
-/* jp: the bottom triangles load FRAME_BUFFER_INDEX before their vertices; no C
-   form found yet */
-INCLUDE_ASM("sugseg/nonmatchings/effect/sug_sphere", SUG_drawSphereF);
-#elif VERSION_US
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
 void SUG_drawSphereF(fx, cull, count, speed, otz)
     SphereEffect *fx;
@@ -479,15 +466,17 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
             fx->tris[FRAME_BUFFER_INDEX][count + i].r0 = dimR;
             fx->tris[FRAME_BUFFER_INDEX][count + i].g0 = dimG;
             fx->tris[FRAME_BUFFER_INDEX][count + i].b0 = dimB;
+            /* unused: tpage is set again after the loop */
+            tpage = fx->tpages[FRAME_BUFFER_INDEX];
             a.vx = fx->verts[fx->vertCount - 1].vx;
             a.vy = fx->verts[fx->vertCount - 1].vy;
             a.vz = fx->verts[fx->vertCount - 1].vz;
-            b.vx = fx->verts[i + (fx->vertCount - count) - 1].vx;
-            b.vy = fx->verts[i + (fx->vertCount - count) - 1].vy;
-            b.vz = fx->verts[i + (fx->vertCount - count) - 1].vz;
-            c.vx = fx->verts[next % count + (fx->vertCount - count) - 1].vx;
-            c.vy = fx->verts[next % count + (fx->vertCount - count) - 1].vy;
-            c.vz = fx->verts[next % count + (fx->vertCount - count) - 1].vz;
+            b.vx = fx->verts[fx->vertCount - count - 1 + i].vx;
+            b.vy = fx->verts[fx->vertCount - count - 1 + i].vy;
+            b.vz = fx->verts[fx->vertCount - count - 1 + i].vz;
+            c.vx = fx->verts[fx->vertCount - count - 1 + next % count].vx;
+            c.vy = fx->verts[fx->vertCount - count - 1 + next % count].vy;
+            c.vz = fx->verts[fx->vertCount - count - 1 + next % count].vz;
             transformAndAddPolyF3((s32)&fx->tris[FRAME_BUFFER_INDEX][count + i],
                                   (s32)&fx->tpages[FRAME_BUFFER_INDEX][count + i], (s32)&a, (s32)&b, (s32)&c,
                                   fx->semiTrans, cull, otz);
@@ -528,18 +517,15 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
         b.vx = fx->verts[prev + 1].vx;
         b.vy = fx->verts[prev + 1].vy;
         b.vz = fx->verts[prev + 1].vz;
-        c.vx = fx->verts[count + i + 1].vx;
-        c.vy = fx->verts[count + i + 1].vy;
-        c.vz = fx->verts[count + i + 1].vz;
-        d.vx = fx->verts[count + prev + 1].vx;
-        d.vy = fx->verts[count + prev + 1].vy;
-        d.vz = fx->verts[count + prev + 1].vz;
+        c.vx = fx->verts[count + (i + 1)].vx;
+        c.vy = fx->verts[count + (i + 1)].vy;
+        c.vz = fx->verts[count + (i + 1)].vz;
+        d.vx = fx->verts[count + (prev + 1)].vx;
+        d.vy = fx->verts[count + (prev + 1)].vy;
+        d.vz = fx->verts[count + (prev + 1)].vz;
         transformAndAddPolyF4((s32)quad, (s32)tpage, (s32)&a, (s32)&b, (s32)&c, (s32)&d, fx->semiTrans, cull, otz);
     }
 }
-#else
-#error "untested version"
-#endif
 
 void SUG_drawSphereG(fx, cull, count, speed, otz)
     SphereEffect *fx;
