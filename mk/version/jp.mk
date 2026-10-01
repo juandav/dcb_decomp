@@ -33,7 +33,7 @@ MAIN_C_SRC := \
 		task.c) \
 	src/main/ui/str_util.c
 SUGSEG_C_SRC := \
-	$(addprefix src/sugseg/battle/, sug_hud.c sug_sprite.c) \
+	$(addprefix src/sugseg/battle/, sug_battle.c sug_hud.c sug_sprite.c) \
 	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c)
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_card_queries.c kaw_cpu.c \

@@ -6,8 +6,16 @@ __addsf3 = 0x80022CBC; // type:func
 __divsf3 = 0x80022ECC; // type:func
 
 // the battle state (manual: the pairing doesn't reach SUGSEG's bss)
+SUG_CURRENT_SCRIPT = 0x801FC9D8;
+SUG_ACTIVE_MODEL = 0x801FC9DA;
+SUG_CAMERA_SPIN = 0x801FC9DC;
+SUG_CAMERA_ORBIT_RANGE = 0x801FC9E0;
+SUG_CAMERA_YAW_SPIN = 0x801FC9E4;
 SUG_BATTLE_STATE = 0x801FC9EC;
 SUG_BATTLE = 0x801FCBD0;
+SUG_SKILL_SCRIPTS = 0x801FCBE0;
+SUG_SCRIPT_STATES = 0x801FCBF0;
+SUG_PREV_MODEL = 0x801FCBFC;
 SUG_TARGET_HP = 0x801FCC00;
 
 // names from us (tools/match_versions.py --seed): the same function or datum
@@ -123,6 +131,7 @@ SUG_freeBattleScene = 0x801FB6AC; // type:func
 SUG_runCameraOrbit = 0x801FB750; // type:func
 SUG_playAttackTurn = 0x801FB7F8; // type:func
 SUG_playBattleExchange = 0x801FBC08; // type:func
+SUG_playSoloAnimation = 0x801FC2CC; // type:func manual (the pairing missed it)
 SUG_applyEatUpHp = 0x801FC324; // type:func
 SUG_playNoDamageTurn = 0x801FC504; // type:func
 SUG_runPolygonBattle = 0x801FC578; // type:func
@@ -134,3 +143,4 @@ SUG_MODEL_CLUT_RECT = 0x801EA7E8;
 SUG_TAM_CACHE = 0x801FCA40;
 SUG_FMT_SPRITE_PATH = 0x801EA8E4;
 SUG_SPRITE_CACHE = 0x801FCBC8;
+SUG_SCREEN_FX_PHASE = 0x801FCA80;
