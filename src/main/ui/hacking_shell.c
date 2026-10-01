@@ -154,15 +154,32 @@ u8 *HACKING_SCRIPTS[4] = {
 
 /* The texts of the three message windows; GCC keeps one copy of each,
    emitted with drawHackingTerminal, the first function that uses them */
+#if VERSION_EU
+/* eu: drawHackingTerminal is still assembly, which brings them: the
+   functions after it read them by name */
+extern const char STR_HACK_SYSTEM_ERROR[];
+extern const char STR_HACK_PARTNER_MOVED[];
+extern const char STR_HACK_TAUNT[];
+#elif VERSION_US
 #define STR_HACK_SYSTEM_ERROR "         *c6SYSTEM ERROR\n*c2Illegal Sharing:*c7Unauthorized command\nwas used."
 #define STR_HACK_PARTNER_MOVED "Player's Partner Card was moved to\nthe bottom of Online Deck."
 #define STR_HACK_TAUNT "Ha ha. Isn't this interesting!"
+#else
+#error "main/ui/hacking_shell: version not checked"
+#endif
 
+#if VERSION_EU
+/* eu: shares one %hi register between globals; no C form found yet */
+INCLUDE_RODATA("main/nonmatchings/ui/hacking_shell", STR_HACK_SYSTEM_ERROR);
+INCLUDE_RODATA("main/nonmatchings/ui/hacking_shell", STR_HACK_PARTNER_MOVED);
+INCLUDE_RODATA("main/nonmatchings/ui/hacking_shell", STR_HACK_TAUNT);
+INCLUDE_ASM("main/nonmatchings/ui/hacking_shell", drawHackingTerminal);
+#elif VERSION_US
 void drawHackingTerminal(UiWindow *win) {
     Rect16 rect;
     s32 x;
     s32 y;
-    s16 z;
+    s32 z;
     u8 *script;
 
     x = win->originX + 1;
@@ -240,6 +257,9 @@ void drawHackingTerminal(UiWindow *win) {
     HACK_TEXT_CURSOR[1] = 0;
     drawMediumText(x, y, HACK_TEXT_BUFFER, 4, z);
 }
+#else
+#error "main/ui/hacking_shell: version not checked"
+#endif
 
 void drawHackErrorText(UiWindow *win) {
     drawText(win->originX, win->originY, (s32)STR_HACK_SYSTEM_ERROR, 0, win->z);

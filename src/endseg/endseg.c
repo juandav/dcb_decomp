@@ -313,6 +313,10 @@ void END_drawScrollHelp(UiWindow *window) {
  * the ending's (it scrolls by itself until Cross), 2 the one browsed by hand
  * (Start quits). parentTask is woken at the end.
  */
+#if VERSION_EU
+/* eu: loads a format string's %hi later; no C form found yet */
+INCLUDE_ASM("endseg/nonmatchings/endseg", END_runPlayerRecords);
+#elif VERSION_US
 void END_runPlayerRecords(s32 parentTask, s32 mode) {
     char buf[0x48];
     u16 comList[0x8E];
@@ -681,4 +685,7 @@ void END_runPlayerRecords(s32 parentTask, s32 mode) {
     stopMusic();
     resumeTask(parentTask);
 }
+#else
+#error "endseg/endseg: version not checked"
+#endif
 

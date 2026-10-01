@@ -30,8 +30,13 @@ u8 OPEN_NAME_ENTRY_LETTERS[] = "ABCDEabcde"
                   "          "
                   "0123456789";
 
-/* not referenced by any code */
+/* not referenced by any code, and only us has it: eu has zero padding */
+#if VERSION_US
 u8 D_801F04BF = 0xC;
+#elif VERSION_EU
+#else
+#error "openseg/registration/open_name_entry: version not checked"
+#endif
 
 /* moves a keyboard row by d, wrapping inside its page of 9 rows */
 #define WRAP_ROW(row, d) (((s16)((row) + (d)) - (d)) / 9 * 9 + ((s16)((row) + (d)) + 9) % 9)
@@ -108,7 +113,7 @@ s32 OPEN_moveNameEntryCursor(void) {
             rect.w = 12;
             rect.h = 12;
             if (OPEN_NAME_ENTRY.col >= 5) {
-                rect.x = window->rect.x - window->scroll[2] + OPEN_NAME_ENTRY.col * 17 + 15;
+                rect.x += 11;
             }
             moveCursorHighlight(&OPEN_NAME_ENTRY_CURSOR, &rect);
         }
@@ -308,6 +313,10 @@ void OPEN_drawNameEntry(void) {
     drawWindow(&OPEN_NAME_HELP_WINDOW, OPEN_drawNameEntryHelp, 1);
 }
 
+#if VERSION_EU
+/* eu: its loop's %hi loads and delay slots are placed differently; no C form found yet */
+INCLUDE_ASM("openseg/nonmatchings/registration/open_name_entry", OPEN_runNameEntry);
+#elif VERSION_US
 void OPEN_runNameEntry(char *name, s32 parentTask) {
     Rect16 cursor;
     Rect16 rect;
@@ -398,6 +407,16 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     removeFrameCallback((s32)OPEN_drawNameEntry);
     resumeTask(parentTask);
 }
+#else
+#error "openseg/registration/open_name_entry: version not checked"
+#endif
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char OPEN_STR_IS_THIS_NAME_OK[20] = "Is this name OK?\0\x18\x62\0";
+#elif VERSION_EU
+const char OPEN_STR_IS_THIS_NAME_OK[20] = "Is this name OK?\0\x67\x32\x16";
+#else
+#error "openseg/registration/open_name_entry: version not checked"
+#endif

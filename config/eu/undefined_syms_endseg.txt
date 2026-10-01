@@ -1,0 +1,7 @@
+/* addresses ENDSEG uses that none of its objects defines */
+
+/* the fields of its data that the functions still in asm read by splat's
+   names: END_SPECIALTY_WINS, _LOSSES and _CARDS [5] */
+D_801E3568 = 0x801E3568;
+D_801E3588 = 0x801E3588;
+D_801E35A8 = 0x801E35A8;
