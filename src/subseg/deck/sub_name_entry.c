@@ -119,7 +119,7 @@ s32 SUB_moveNameEntryCursor(void) {
             rect.w = 12;
             rect.h = 12;
             if (SUB_NAME_ENTRY.prevCol >= 5) {
-                rect.x = window->rect.x - window->scroll[2] + SUB_NAME_ENTRY.prevCol * 17 + 15;
+                rect.x += 11;
             }
             moveCursorHighlight(&SUB_NAME_ENTRY_CURSOR, &rect);
         }
@@ -394,8 +394,13 @@ void SUB_enterDeckName(s32 mode, char *name, s32 pad) {
     }
 }
 
-/* the last two bytes are leftovers in the original, not zero padding */
+/* the last two bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char SUB_STR_NO_DECK_NAME[36] = "A Deck Name has not been entered!\0\x0E\0";
+#elif VERSION_EU
+const char SUB_STR_NO_DECK_NAME[36] = "A Deck Name has not been entered!\0\0\x03";
+#endif
 
 /* the characters of the name entry grid, ten to a row */
 u8 SUB_NAME_ENTRY_CHARS[] =
@@ -410,5 +415,7 @@ u8 SUB_NAME_ENTRY_CHARS[] =
     "0123456789"
 ;
 
-/* not referenced by any code */
+/* not referenced by any code, and only us has it (eu's is zero padding) */
+#if VERSION_US
 u8 D_801F1933 = 16;
+#endif

@@ -59,7 +59,7 @@ segments:
     subalign: 4
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
-      - [0x800, rodata, system/cd_file]
+      - [0x800, .rodata, system/cd_file]
       - [0x808, rodata, ui/window]
       - [0x828, rodata, ui/dialog]
       - [0x830, rodata, system/pad]
@@ -100,7 +100,7 @@ segments:
       - [0x56C4, c, system/vblank]
       - [0x5738, asm, gfx/screen_copy]
       - [0x5BEC, asm, system/render_loop]
-      - [0x60E8, asm, system/cd_file]
+      - [0x60E8, c, system/cd_file]
       - [0x7174, asm, system/frame_callback]
       - [0x728C, asm, ui/window]
       - [0x9910, c, ui/menu]
@@ -160,7 +160,7 @@ segments:
       - [0x39F90, asm, psyq]
       - [0x60DA0, data, main]
       - [0x60DA8, .data, system/vblank]
-      - [0x60DAC, data, system/cd_file]
+      - [0x60DAC, .data, system/cd_file]
       - [0x60DCC, data, ui/window]
       - [0x60F4C, .data, system/loader]
       - [0x60F50, data, gfx/prim_util]

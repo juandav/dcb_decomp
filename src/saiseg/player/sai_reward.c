@@ -202,7 +202,7 @@ void SAI_drawRewardWindows(void) {
 
 void SAI_addScriptRewardCards(void) {
     s32 i;
-    s32 clearNew;
+    u8 clearNew;
     u8 flags;
 
     for (i = 0; i < 3; i++) {
@@ -225,12 +225,16 @@ void SAI_addScriptRewardCards(void) {
 }
 
 void SAI_showRewardCards(s32 fromScript) {
+#if VERSION_US
     /* the ROM keeps two stray bytes after the terminator */
     static const char path[16] = "B:\\M_CARD.ARC\0\xBB\xBB";
+#elif VERSION_EU
+    static const char path[16] = "B:\\M_CARD.ARC";
+#endif
     Rect16 rect;
     u8 *tims;
     s32 i;
-    s16 card;
+    s32 card;
 
     SAI_REWARD_SCREEN = allocPermanentHeapBlock(sizeof(RewardScreen));
     SAI_REWARD_SCREEN->showRewards = 0;

@@ -5,3 +5,4 @@
    still in asm read by splat's names */
 D_800705A8 = 0x800705A8;
 D_80010CC0 = 0x80010CC0;
+D_80010000 = 0x80010000;

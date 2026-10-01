@@ -25,7 +25,7 @@ MAIN_C_SRC := \
 	$(addprefix src/main/card/, partner_level.c player_rank.c) \
 	$(addprefix src/main/duel/, battle_hud.c card_zones.c duel_launch.c \
 		duel_session.c duel_util.c hud_panels.c) \
-	$(addprefix src/main/system/, angle.c archive.c decompress.c \
+	$(addprefix src/main/system/, angle.c archive.c cd_file.c decompress.c \
 		game_flow.c loader.c memcard.c opening_movie.c save_checksum.c sort.c \
 		sound_play.c vblank.c) \
 	src/main/ui/menu.c
@@ -37,7 +37,8 @@ EVOSEG_C_SRC := \
 		evo_type_choice.c)
 KAWSEG_C_SRC := \
 	src/kawseg/duel/kaw_effect.c \
-	$(addprefix src/kawseg/ui/, kaw_exp.c kaw_prize.c kaw_result.c)
+	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_prize.c \
+		kaw_result.c)
 OPENSEG_C_SRC := \
 	src/openseg/friend/open_friend.c \
 	src/openseg/registration/open_registration.c
@@ -45,11 +46,14 @@ SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_splash.c) \
 	src/saiseg/hacking/sai_hacking.c \
+	src/saiseg/player/sai_reward.c \
 	src/saiseg/script/sai_flags.c \
-	$(addprefix src/saiseg/ui/, sai_choice.c sai_labels.c)
-SUBSEG_C_SRC := src/subseg/deck/sub_sort.c
+	$(addprefix src/saiseg/ui/, sai_choice.c sai_labels.c sai_panel.c)
+SUBSEG_C_SRC := \
+	$(addprefix src/subseg/deck/, sub_base_deck.c sub_name_entry.c \
+		sub_sort.c)
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c) \
-	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_light_motion.c \
-		sug_model_effect.c sug_scroll_texture.c sug_sprite_effect.c \
-		sug_stage_fade.c sug_trail.c)
+	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_gradient.c \
+		sug_light_motion.c sug_model_effect.c sug_scroll_texture.c \
+		sug_sprite_effect.c sug_stage_fade.c sug_trail.c)
