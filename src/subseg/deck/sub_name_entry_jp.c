@@ -10,8 +10,8 @@
 /* not referenced by any code */
 const s32 D_801DDF38 = 8;
 
-void func_801EA908(void) {
+void SUB_ignoreShopWindowClose(void) {
 }
 
-void func_801EA910(void) {
+void SUB_ignoreViewerWindowClose(void) {
 }

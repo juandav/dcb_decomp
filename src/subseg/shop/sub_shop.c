@@ -59,8 +59,8 @@ JpCursor *KAW_createCursor(s32, s32, s32, s32, s32);
 void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s32 h);
 
 /* sub_name_entry_jp.c */
-void func_801EA908(void);
-void func_801EA910(void);
+void SUB_ignoreShopWindowClose(void);
+void SUB_ignoreViewerWindowClose(void);
 
 void SUB_runItemDetails();
 void SUB_runStockGrid();
@@ -1567,17 +1567,17 @@ PackRange SUB_PACK_RANGES[7] = {
     { 91, 3, 6, 8 }, { 0, 19, 7, 9 },  { 0, 1, 3, 1 },
 };
 
-JpWindowDesc SUB_STOCK_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawStockGrid, func_801EA908 };
-JpWindowDesc SUB_DETAILS_WINDOW = { 290, 48, 0, 12, 122, 48, 168, 170, 10, 1, SUB_drawItemDetails, func_801EA908 };
-JpWindowDesc SUB_TOTAL_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawTotal, func_801EA908 };
-JpWindowDesc SUB_BITS_WINDOW = { 290, 23, 0, 12, 170, 23, 120, 12, 10, 1, SUB_drawBits, func_801EA908 };
-JpWindowDesc SUB_STOCK_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawStockHelp, func_801EA908 };
-JpWindowDesc SUB_OPENED_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 116, 12, 10, 0, SUB_drawOpenedHelp, func_801EA908 };
-JpWindowDesc SUB_OPENED_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawOpenedGrid, func_801EA908 };
-JpWindowDesc SUB_OPENED_TITLE_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawOpenedTitle, func_801EA908 };
-JpWindowDesc SUB_PICTURE_WINDOW = { 26, 48, 0, 12, 26, 48, 84, 170, 10, 0, SUB_drawCardPicture, func_801EA908 };
-JpWindowDesc SUB_VIEWER_HELP_WINDOW = { 26, 23, 0, 12, 26, 23, 272, 12, 10, 0, SUB_drawViewerHelp, func_801EA910 };
-JpWindowDesc SUB_VIEWER_MOTION_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawViewerMotions, func_801EA910 };
+JpWindowDesc SUB_STOCK_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawStockGrid, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_DETAILS_WINDOW = { 290, 48, 0, 12, 122, 48, 168, 170, 10, 1, SUB_drawItemDetails, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_TOTAL_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawTotal, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_BITS_WINDOW = { 290, 23, 0, 12, 170, 23, 120, 12, 10, 1, SUB_drawBits, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_STOCK_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawStockHelp, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_OPENED_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 116, 12, 10, 0, SUB_drawOpenedHelp, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_OPENED_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawOpenedGrid, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_OPENED_TITLE_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawOpenedTitle, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_PICTURE_WINDOW = { 26, 48, 0, 12, 26, 48, 84, 170, 10, 0, SUB_drawCardPicture, SUB_ignoreShopWindowClose };
+JpWindowDesc SUB_VIEWER_HELP_WINDOW = { 26, 23, 0, 12, 26, 23, 272, 12, 10, 0, SUB_drawViewerHelp, SUB_ignoreViewerWindowClose };
+JpWindowDesc SUB_VIEWER_MOTION_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawViewerMotions, SUB_ignoreViewerWindowClose };
 
 /* per option card: the group SUB_listOwnedOptionsOfGroup lists it in */
 s8 SUB_OPTION_GROUPS[46] = {
