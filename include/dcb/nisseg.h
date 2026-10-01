@@ -6,7 +6,7 @@
 /* NISSEG is jp's own overlay (us and eu's NISSEG differ): the title screen,
    the card trade, the VS mode and the deck screens */
 
-/* a sprite as jp's executable draws it (func_8002DDC0): its primitive's
+/* a sprite as jp's executable draws it (drawPrimDesc): its primitive's
    tag, colour and code, then where its texture is and where it goes */
 typedef struct {
     /* 0x00 */ s32 tag;
@@ -244,8 +244,6 @@ void NIS_buildAutoDeck(void);
 void NIS_closeDeckWindow(NisWindow *window);
 
 /* jp's executable */
-void func_8002DDC0(NisSprite *sprite);
-void func_8002EA60(s32);
 void func_8002C820(s32, s32);
 void func_8002C9DC(void);
 void stopScreenFade(void);
@@ -257,7 +255,6 @@ void func_8002B188(NisMenu *menu, s32, void (*)());
 void openKanjiPage(s32, s32);
 void closeKanjiPage(s32);
 void func_8002CACC(s32);
-s16 func_8002E680(u16, void *);
 char *func_80025004(s32 value, s32 width, char *dst);
 void uploadKanjiString(char *text, Rect16 *rect);
 /* jp's KAW_drawCursor: the pairing of the versions named it obtainPartner */

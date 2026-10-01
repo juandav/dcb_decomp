@@ -11,6 +11,7 @@
 #include "dcb/model_load.h"
 #include "dcb/pad.h"
 #include "dcb/player_data.h"
+#include "dcb/prim_desc.h"
 #include "dcb/scene3d.h"
 #include "dcb/sound_play.h"
 #include "dcb/task.h"
@@ -24,10 +25,6 @@ void formatSjisNumberZeros();
 void openKanjiPage();
 void closeKanjiPage();
 void func_8002CF74();
-void func_8002DDC0();
-void func_8002E538();
-void func_8002E5B8();
-void func_8002EA60();
 s32 func_80044334();
 void func_800445FC();
 void func_80044758();
@@ -37,9 +34,6 @@ void D_800490B4();
 extern s16 CAMERA_TARGET_MODEL;
 extern s32 D_8008CD50;
 extern void *D_801E469C;
-extern void *D_801E46C4;
-extern void *D_801E46CC;
-extern s32 *D_801E46D0;
 extern u8 *OPTION_CARDS;
 extern u8 *DIGIVOLVE_CARDS;
 
@@ -364,7 +358,7 @@ void INT_introTask(void) {
     while (1) {
         waitFrames(FRAME_INTERVAL);
         D_801E469C = &INT_PROMPT_BLINK;
-        func_8002E5B8(&INT_STATE, 7, 3);
+        runCallbackSlots(&INT_STATE, 7, 3);
     }
 }
 
@@ -376,7 +370,7 @@ s32 INT_initIntroScene(IntState *state) {
 
     ClearImage(&rect, 0, 0, 0);
     if (D_8008CD50 == 0) {
-        func_8002EA60(0x40);
+        allocPrimDescPackets(0x40);
     }
     i = 0;
     pak = loadFileTagged((s32 *)"A:\\NIS.PAK", getCurrentTaskId(), 0x7F);
@@ -435,8 +429,8 @@ s32 INT_initIntroScene(IntState *state) {
     state->typedChars = 0;
     state->page = 0;
     stopScreenFade();
-    func_8002E538(7, 3);
-    D_801E46C4 = INT_openBabamonWindow;
+    clearCallbackSlots(7, 3);
+    CALLBACK_SLOTS[7] = (void (*)(void *))INT_openBabamonWindow;
 }
 
 s32 INT_func_801EB878(void) {
@@ -461,7 +455,7 @@ s32 INT_showNextPage(void *arg) {
         rect.h = 0;
         state->lineLengths[i] = uploadKanjiString(&state->lines[i], &rect);
     }
-    *D_801E46D0 = 0;
+    *CURRENT_CALLBACK_SLOT = NULL;
     return 0;
 }
 
@@ -517,7 +511,7 @@ s32 INT_runLineAction(IntState *state) {
         break;
     }
     INT_TEXT_WINDOW.draw = INT_drawTypingLines;
-    *D_801E46D0 = 0;
+    *CURRENT_CALLBACK_SLOT = NULL;
     return 0;
 }
 
@@ -529,7 +523,7 @@ s32 INT_runPageAction(IntState *state) {
         state->keyX = 0;
         state->keyY = 0;
         state->unkC0 = 0;
-        *D_801E46D0 = (s32)INT_runYesNoPrompt;
+        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runYesNoPrompt;
         return 0;
     } else if (action == 0x12) {
     } else if (action == 0x16) {
@@ -542,7 +536,7 @@ s32 INT_runPageAction(IntState *state) {
             setScreenFadeParams(1, 1, 0x40);
             waitFrames(5);
         }
-        *D_801E46D0 = (s32)INT_waitForCircle;
+        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_waitForCircle;
         return 0;
     }
     if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
@@ -611,8 +605,8 @@ s32 INT_runPageAction(IntState *state) {
             startModelAnimation(1, 2, -2, 0);
             INT_waitAnimationEnd(state->stone, 3, 0);
             state->page = 0x16;
-            D_801E46CC = INT_showNextPage;
-            *D_801E46D0 = (s32)INT_runStoneChoice;
+            CALLBACK_SLOTS[9] = (void (*)(void *))INT_showNextPage;
+            *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runStoneChoice;
             return 0;
         case 31:
             INT_addStarterDeck(0, 0, state->stone);
@@ -636,14 +630,14 @@ s32 INT_runPageAction(IntState *state) {
         }
     }
     if (++state->blinkTimer & 0x10) {
-        func_8002DDC0(D_801E469C);
+        drawPrimDesc(D_801E469C);
     }
     return 0;
 }
 
 void INT_advancePage(IntState *state) {
-    *D_801E46D0 = 0;
-    D_801E46CC = INT_showNextPage;
+    *CURRENT_CALLBACK_SLOT = NULL;
+    CALLBACK_SLOTS[9] = (void (*)(void *))INT_showNextPage;
     INT_TEXT_WINDOW.draw = INT_drawTypingLines;
 }
 
@@ -738,7 +732,7 @@ void INT_openNameEntry(IntState *state, u8 withDate) {
         state->unkC0 = 0;
     }
     waitFrames(36);
-    *D_801E46D0 = (s32)INT_runNameEntry;
+    *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runNameEntry;
 }
 
 void INT_openNicknameEntry(IntState *state, u8 withDate) {
@@ -816,7 +810,7 @@ void INT_openNicknameEntry(IntState *state, u8 withDate) {
         state->unkC0 = 0;
     }
     waitFrames(36);
-    *D_801E46D0 = (s32)INT_runNameEntry;
+    *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runNameEntry;
 }
 
 void INT_openBabamonWindow(void) {
@@ -845,7 +839,7 @@ void INT_openBabamonWindow(void) {
     INT_waitAnimationEnd(3, 3, -2);
     spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
-    *D_801E46D0 = (s32)INT_showNextPage;
+    *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_showNextPage;
 }
 
 void INT_waitAnimationEnd(s32 slot, s32 anim, s32 loopKey) {
@@ -935,7 +929,7 @@ s32 INT_waitForCircle(IntState *state) {
         return 0;
     }
     if (++state->blinkTimer & 0x10) {
-        func_8002DDC0(D_801E469C);
+        drawPrimDesc(D_801E469C);
     }
     return 0;
 }
@@ -1011,7 +1005,7 @@ s32 INT_runNameEntry(void *arg) {
                 *y = 0;
                 state->field = 3;
                 INT_KEYBOARD_WINDOW.draw = INT_drawDateKeyboard;
-                *D_801E46D0 = (s32)INT_runYearEntry;
+                *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runYearEntry;
                 return 0;
             }
         }
@@ -1058,7 +1052,7 @@ s32 INT_runNameEntry(void *arg) {
                         *y = 0;
                         state->field = 3;
                         INT_KEYBOARD_WINDOW.draw = INT_drawDateKeyboard;
-                        *D_801E46D0 = (s32)INT_runYearEntry;
+                        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runYearEntry;
                         return 0;
                     }
                 } else if (field == 2) {
@@ -1167,7 +1161,7 @@ s32 INT_runYearEntry(void *arg) {
             *x = 0;
             *y = 1;
             state->field = 4;
-            *D_801E46D0 = (s32)INT_runMonthEntry;
+            *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runMonthEntry;
         }
     } else if (PAD_STATES[0]->rawPressed & PAD_L1) {
         playSoundEffect(0);
@@ -1175,7 +1169,7 @@ s32 INT_runYearEntry(void *arg) {
         *y = 0;
         state->field = 1;
         INT_KEYBOARD_WINDOW.draw = INT_drawKeyboard;
-        *D_801E46D0 = (s32)INT_runNameEntry;
+        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runNameEntry;
     }
     if (decided == 1) {
         if (*x == 12) {
@@ -1190,7 +1184,7 @@ s32 INT_runYearEntry(void *arg) {
                     *x = 0;
                     *y = 1;
                     state->field = 4;
-                    *D_801E46D0 = (s32)INT_runMonthEntry;
+                    *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runMonthEntry;
                 }
             }
         } else if (*len < maxLen * 2) {
@@ -1301,14 +1295,14 @@ s32 INT_runMonthEntry(void *arg) {
             *x = 0;
             *y = 3;
             state->field = 5;
-            *D_801E46D0 = (s32)INT_runDayEntry;
+            *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runDayEntry;
         }
     } else if (PAD_STATES[0]->rawPressed & PAD_L1) {
         playSoundEffect(0);
         *x = 0;
         *y = 0;
         state->field = 3;
-        *D_801E46D0 = (s32)INT_runYearEntry;
+        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runYearEntry;
         return 0;
     }
     if (decided == 1) {
@@ -1333,7 +1327,7 @@ s32 INT_runMonthEntry(void *arg) {
                     *x = 0;
                     *y = 3;
                     state->field = 5;
-                    *D_801E46D0 = (s32)INT_runDayEntry;
+                    *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runDayEntry;
                 }
             }
         } else if (*len < maxLen * 2) {
@@ -1451,7 +1445,7 @@ s32 INT_runDayEntry(void *arg) {
         *x = 0;
         *y = 1;
         state->field = 4;
-        *D_801E46D0 = (s32)INT_runMonthEntry;
+        *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_runMonthEntry;
     }
     if (decided == 1) {
         if (*x == 12) {
@@ -1629,7 +1623,7 @@ void INT_drawFieldCursor(u8 col, u8 field) {
         blink->y = 0x3B;
         blink->w = 0x1A;
     }
-    func_8002DDC0(blink);
+    drawPrimDesc((PrimDesc *)blink);
 }
 
 u16 INT_getKeyValue(IntState *state) {
@@ -1757,11 +1751,11 @@ void INT_drawTypingLines(IntWindow *win) {
         if (INT_PAGES[state->page - 1].lineActions[state->typedLines - 2] != 0) {
             if (state->lineCount >= state->typedLines) {
                 INT_TEXT_WINDOW.draw = INT_drawTypedLines;
-                D_801E46C4 = INT_runLineAction;
+                CALLBACK_SLOTS[7] = (void (*)(void *))INT_runLineAction;
             } else {
                 state->typedLines = 1;
                 INT_TEXT_WINDOW.draw = INT_drawPageLines;
-                D_801E46C4 = INT_runPageAction;
+                CALLBACK_SLOTS[7] = (void (*)(void *))INT_runPageAction;
             }
             return;
         }
@@ -1770,7 +1764,7 @@ void INT_drawTypingLines(IntWindow *win) {
         state->typedChars = 0;
         state->typedLines = 1;
         INT_TEXT_WINDOW.draw = INT_drawPageLines;
-        D_801E46C4 = INT_runPageAction;
+        CALLBACK_SLOTS[7] = (void (*)(void *))INT_runPageAction;
     }
 }
 

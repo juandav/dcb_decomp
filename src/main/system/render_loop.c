@@ -33,10 +33,7 @@
 #include "dcb/window.h"
 
 #if VERSION_JP
-/* the OT and the packet cursor of the sprites jp's scroll_bg projects into
-   the frame's 17th prim slot */
-extern u32 *D_801E46A0;
-extern s32 D_801E4698;
+#include "dcb/prim_desc.h"
 #endif
 
 void initGraphics(void) {
@@ -110,8 +107,8 @@ void runRenderLoop(void) {
 #if VERSION_JP
         /* jp has no scrolling background here, and renders the screen copy
            effect before the callbacks */
-        D_801E46A0 = CURRENT_FRAME_BUFFER->ot;
-        D_801E4698 = CURRENT_FRAME_BUFFER->primSlots[16];
+        PRIM_DESC_OT = CURRENT_FRAME_BUFFER->ot;
+        PRIM_DESC_PACKETS = (u32 *)CURRENT_FRAME_BUFFER->primSlots[16];
         resetSpritePool();
         resetWindowPrimPool();
         renderScreenCopyEffect();

@@ -58,7 +58,7 @@ segments:
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x800, .rodata, system/render_loop]
-      - [0x808, rodata, system/boot]
+      - [0x808, .rodata, system/boot]
       - [0x818, .rodata, system/cd_file]
       - [0x820, .rodata, ui/window_jp]
       - [0x820, .rodata, system/pad]
@@ -79,15 +79,17 @@ segments:
       - [0xBF4, .rodata, card/player_rank]
       # jp's player_data starts right after updatePlayerRanks
       - [0xC50, rodata, card/player_data]
-      - [0xD78, rodata, duel/duel_launch]
-      - [0xD80, rodata, model/effect_object]
       - [0xD8C, .rodata, model/stage]
-      - [0xDD4, rodata, gfx/scroll_bg]
-      - [0xE94, rodata, duel/duel]
+      - [0xDD4, .rodata, gfx/prim_desc]
+      # OVERLAY_LOAD_ADDR (us has it in duel_util), then duel's strings
+      - [0xDF8, rodata, duel/duel]
       - [0x1008, .rodata, duel/cpu_decision]
       # the rodata of the asm modules after duel_util (which has none), up to
-      # memcard
+      # duel_launch
       - [0x1028, rodata, duel/card_motion]
+      - [0x1738, .rodata, duel/duel_launch_jp]
+      # the rodata of the asm modules after duel_launch, up to memcard
+      - [0x1768, rodata, system/game_flow]
       - [0x1864, .rodata, system/memcard]
       # the rodata of the asm modules after memcard, up to battle_hud
       - [0x1884, rodata, ui/dialog]
@@ -98,7 +100,6 @@ segments:
       - [0x2768, rodata, duel/duel_session]
       - [0x2768, rodata, duel/hud_panels]
       - [0x2768, rodata, psyq]
-      - [0x2768, rodata, system/game_flow]
       - [0x2768, rodata, ui/hacking_shell]
       - [0x3628, c, main]
       - [0x36D0, c, system/task]
@@ -106,7 +107,7 @@ segments:
       - [0x44CC, c, system/vblank]
       - [0x4548, c, gfx/screen_copy]
       - [0x487C, c, system/render_loop]
-      - [0x4B8C, asm, system/boot]
+      - [0x4B8C, c, system/boot]
       - [0x4D60, c, system/cd_file]
       - [0x5DE4, c, system/frame_callback]
       - [0x5F00, c, ui/window_jp]
@@ -138,14 +139,17 @@ segments:
       - [0x18EF0, c, system/opening_movie]
       - [0x18F9C, c, system/sound_play]
       - [0x195D8, c, card/player_rank]
-      # with two functions of jp's own before initPlayerData
+      # jp's player_data is one object up to stage: two functions of jp's own
+      # before initPlayerData, the overlay launchers us moved to game_flow and
+      # duel_launch (they share its strings), jp's menu window helpers, its
+      # scrolling background (A:\ADVBG.PAK, where us has scroll_bg) and, last,
+      # findDigimonCardByModelId, loadSkill and loadSkillFromDisc, as in us.
+      # jp has no decompress module (nor its LZ/Huffman code anywhere).
       - [0x19E58, asm, card/player_data]
-      # jp has no decompress module (nor its LZ/Huffman code anywhere): the
-      # functions us's split put here use player_data's strings
-      - [0x1B608, asm, duel/duel_launch]
-      - [0x1C20C, asm, model/effect_object]
       - [0x1D860, c, model/stage]
-      - [0x1E370, asm, gfx/scroll_bg]
+      # jp's own: prim descriptors drawn into the frame's 17th prim slot (the
+      # overlays use them), number digits, a callback table
+      - [0x1E370, c, gfx/prim_desc]
       - [0x1F338, asm, duel/duel]
       - [0x23048, asm, model/effect_prims]
       - [0x26D60, c, duel/cpu_decision]
@@ -161,7 +165,11 @@ segments:
       # jp's card_render starts with three functions us doesn't have
       - [0x31F5C, asm, card/card_render]
       - [0x34A38, asm, card/card_db]
-      - [0x35A4C, asm, system/game_flow]
+      # jp's startCpuDuel and startVersusDuel, then card_render's first three
+      # functions in an object of their own (jp has no game_flow object: its
+      # launchers are in player_data and in the object after this one)
+      - [0x35A4C, c, duel/duel_launch_jp]
+      - [0x35CD8, asm, system/game_flow]
       - [0x365B4, asm, card/partner_level]
       # jp's memcard object holds only the memory card functions, and all of
       # them (from formatMemoryCard on, they were hacking_shell's range)
@@ -183,10 +191,10 @@ segments:
       - [0x5C054, data, ui/text_jp]
       - [0x6EDA0, .data, system/sound]
       # PLAYER_PROFILES and COMPLETE_SET_CARD_COUNTS (us has them in
-      # memcard), then duel_launch's and effect_object's tables
+      # memcard), then the tables of jp's own code in player_data
       - [0x6EDF4, data, card/player_data]
       - [0x6F094, .data, model/stage]
-      - [0x6F114, data, gfx/scroll_bg]
+      - [0x6F114, .data, gfx/prim_desc]
       - [0x6F144, data, card/card_render]
       # card_db's word, then 8 bytes no code reads
       - [0x6F6F8, data, card/card_db]

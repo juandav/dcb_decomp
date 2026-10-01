@@ -34,6 +34,45 @@
 #include "dcb/window.h"
 #include "dcb/overlay_calls.h"
 
+#if VERSION_JP
+/* jp's main() starts the hardware itself; after the movie its title screen
+   is NISSEG's */
+void runMainTask(void) {
+    s32 mainTaskId;
+
+    mainTaskId = getCurrentTaskId();
+    killOtherTasks();
+    closeAllDiscFiles();
+    resetHeap(0);
+    initSound(mainTaskId);
+    initSystemSprites(0x3C0, 0x100, 0x3E8, 0x64);
+    initWindowPrimPool(0x20);
+    initPlayerData();
+    for (;;) {
+        killOtherTasks();
+        closeAllDiscFiles();
+        resetHeap(0);
+        waitFrames(0xA);
+        resetKanjiPages();
+        clearFramePrimSlots();
+        spawnTask(0, -1, 0, 0x800, playOpeningMovie, 2, mainTaskId);
+        waitFrames(0x7FFFFFFF);
+        OPEN_playMovie(0);
+        loadSoundEffectBank(1);
+        stopMusic();
+        resetDisplay(0x140, 0xF0, 0);
+        spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
+        waitFrames(0xA);
+        waitFrames(2);
+        spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\nisseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(2);
+        spawnTask(0xA, -1, 0, 0x800, NIS_runTitleScreen, 0, getCurrentTaskId());
+        waitFrames(0x7FFFFFFF);
+        waitFrames(0xA);
+    }
+}
+#elif VERSION_US || VERSION_EU
 void runMainTask(void) {
     s32 mainTaskId;
 
@@ -73,3 +112,6 @@ void runMainTask(void) {
         waitFrames(0xA);
     }
 }
+#else
+#error "main/system/boot: version not checked"
+#endif

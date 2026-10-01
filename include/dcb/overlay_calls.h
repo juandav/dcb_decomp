@@ -86,6 +86,10 @@ void KAW_freeTutorial(void);
 
 /* OPENSEG: the title, movies and memory card screens */
 s32 OPEN_playMovie(s32);
+#if VERSION_JP
+/* jp's title screen, in NISSEG */
+void NIS_runTitleScreen();
+#endif
 s32 OPEN_findMovieFile(char *);
 void OPEN_runMemcardScreen();
 void OPEN_runTitleScreen();

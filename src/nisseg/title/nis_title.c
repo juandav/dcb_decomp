@@ -8,6 +8,7 @@
 #include "dcb/pad.h"
 #include "dcb/fade.h"
 #include "dcb/nisseg.h"
+#include "dcb/prim_desc.h"
 
 /* NISSEG's title screen: its logo, the copyright lines and a "PRESS START"
    that pulses until Start or Circle opens the main menu; left alone it goes
@@ -76,7 +77,7 @@ void NIS_tickDebugModeSelect(s32 taskId) {
         break;
     }
     if (D_8008CD50 == 0) {
-        func_8002EA60(0x40);
+        allocPrimDescPackets(0x40);
     }
 }
 
@@ -94,7 +95,7 @@ void NIS_runTitleScreen(void) {
 
     NIS_uploadTimFile("D:\\TITLE.TIM");
     if (D_8008CD50 == 0) {
-        func_8002EA60(0x40);
+        allocPrimDescPackets(0x40);
     }
     NIS_initTitleScreen(&title);
     while (1) {
@@ -240,12 +241,12 @@ s32 NIS_tickTitleScreen(TitleScreen *title) {
         }
         break;
     }
-    func_8002DDC0(&D_801E469C[0]);
-    func_8002DDC0(&D_801E469C[1]);
-    func_8002DDC0(&D_801E469C[2]);
-    func_8002DDC0(&D_801E469C[3]);
-    func_8002DDC0(&D_801E469C[4]);
-    func_8002DDC0(&D_801E469C[5]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[0]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[1]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[2]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[3]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[4]);
+    drawPrimDesc((PrimDesc *)&D_801E469C[5]);
     return 0;
 }
 
