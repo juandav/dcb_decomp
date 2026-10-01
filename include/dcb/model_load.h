@@ -12,8 +12,14 @@ void unloadAllModels(void);
 Model *findLoadedModelById(s32 id);
 s32 reuseLoadedModelTexture(Model *model);
 void initModelBoneHierarchy(Model *model);
+#if VERSION_JP
+s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak);
+#elif VERSION_US || VERSION_EU
 s32 loadModel(s32 slot, s32 id, s32 vramSlot, s32 pak, s8 format);
+#endif
 void loadOmdModelFromDisc(s32 slot, s32 id, s32 vramSlot);
+#if VERSION_US || VERSION_EU
 void loadTmdModelFromDisc(s32 slot, s32 id, s32 vramSlot);
+#endif
 
 #endif /* DCB_MODEL_LOAD_H */

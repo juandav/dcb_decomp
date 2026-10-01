@@ -748,13 +748,8 @@ SFX_BASE_NOTE = 0x8007E5EC;
 SFX_BASE_FINE = 0x8007E5F0;
 // end of the names from us
 
-// names from us for the data of the modules that build from the shared C
-// (the relocations of their matched functions), by module
-
-// main/gfx/prim3d
+// names from the C of the modules this version builds (tools/version_symbols.py)
 CURRENT_FRAME_BUFFER = 0x80088B74;
-
-// main/gfx/prim_util
 SetSprt8 = 0x8006528C; // type:func
 SetSprt16 = 0x800652AC; // type:func
 SetSprt = 0x800652CC; // type:func
@@ -763,11 +758,7 @@ SetTile8 = 0x8006530C; // type:func
 SetTile16 = 0x8006532C; // type:func
 SetTile = 0x8006534C; // type:func
 PRIM_INIT_FUNCS = 0x8006B7CC;
-
-// main/gfx/vram_upload
 LOADED_TIM = 0x801E2E58;
-
-// main/system/task
 exitTask = 0x80013A6C; // type:func
 TASK_VSYNC_MODE = 0x800871D8;
 CURRENT_TASK = 0x800871DC;
@@ -780,3 +771,23 @@ KERNEL_TCB = 0x800872A8;
 TASK_LIST_END = 0x800872B0;
 TASKS = 0x80087370;
 TASK_GP = 0x80087400;
+SCENE_3D_ENABLED = 0x80088C4C;
+SCENE_3D = 0x801E2F1C;
+PRIM_SIZES = 0x8006B7B4;
+playMusic = 0x80028CF0; // type:func
+waitFrames = 0x80013BE4; // type:func
+MUSIC_CHANGE_BUSY = 0x8007E5E0;
+PENDING_MUSIC_CHANGES = 0x8007E5E4;
+FRAME_INTERVAL = 0x80088BF8;
+SOUND_STATE = 0x801E4608; // size:0x38
+LOADED_FILE_SIZE = 0x801E2E50;
+CdSetDebug = 0x80058D14; // type:func
+ROOT_DIRECTORY_ENTRY = 0x8006B788;
+DRIVE_DIRECTORY_CACHED = 0x80090E20;
+DRIVE_DIRECTORY = 0x80090E30;
+DRIVE_SECTOR = 0x80094E30;
+DRIVE_SIZE = 0x80094E34;
+DISC_FILES = 0x80094E38;
+resetHeap = 0x80017880; // type:func
+HEAP_BLOCKS = 0x80098F50;
+HEAP_ARENA = 0x8009BF50;

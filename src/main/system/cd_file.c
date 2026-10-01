@@ -5,6 +5,23 @@
 #include "dcb/text.h"
 #include "dcb/str_util.h"
 
+/* a path's characters go to toupper as signed chars in us and eu, as they
+   are in jp */
+#if VERSION_JP
+#define TO_UPPER(ch) toupper(ch)
+#elif VERSION_US || VERSION_EU
+#define TO_UPPER(ch) toupper((s8)(ch))
+#endif
+
+/* after reading the file's last sector: the bytes of it that are the
+   file's, worked out from what is left to read (us, eu) or taken off the
+   whole sector (jp) */
+#if VERSION_JP
+#define TRIM_LAST_SECTOR(file) ((file)->avail += (file)->remaining)
+#elif VERSION_US || VERSION_EU
+#define TRIM_LAST_SECTOR(file) ((file)->avail = (file)->remaining + 0x1000)
+#endif
+
 FileEntry ROOT_DIRECTORY_ENTRY = { 0 };
 
 void initDiscDrive(void) {
@@ -150,7 +167,7 @@ retry:
     } else {
         drivePathCursor = drivePath;
         *drivePathCursor++ = '\\';
-        *drivePathCursor++ = toupper((s8)*cursor);
+        *drivePathCursor++ = TO_UPPER(*cursor);
         cursor += 2;
         copyString((s8 *)drivePathCursor, (s8 *)".DRV;1");
         if (CdSearchFile(file->loc, drivePath) == 0) {
@@ -179,7 +196,7 @@ retry:
             case '\\':
                 goto dir;
             }
-            ((u8 *)entryName)[i] = toupper((s8)ch);
+            ((u8 *)entryName)[i] = TO_UPPER(ch);
         }
         while ((ch = *cursor++) != '.') {
             if (ch == 0) {
@@ -198,7 +215,7 @@ retry:
             if (ch == '\\') {
                 goto dir;
             }
-            extensionKey += toupper((s8)ch) << i;
+            extensionKey += TO_UPPER(ch) << i;
         }
         break;
     dir:
@@ -285,8 +302,8 @@ s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
         }
         total = chunkSize;
         file->avail -= total;
-        src = file->cur;
         size -= total;
+        src = file->cur;
         for (chunkSize = total - 4; chunkSize >= 0; chunkSize -= 4) {
             *(s32 *)dst = *(s32 *)src;
             src += 4;
@@ -336,7 +353,7 @@ s32 readDiscFile(CdFile *file, s32 size, u8 *dst) {
     file->sector += 2;
     file->avail = 0x1000;
     if ((file->remaining -= 0x1000) < 0) {
-        file->avail = file->remaining + 0x1000;
+        TRIM_LAST_SECTOR(file);
     }
     chunkSize = file->avail;
     if (chunkSize > 0) {
@@ -379,7 +396,7 @@ s32 readDiscFileByte(CdFile *file) {
         file->sector += 2;
         file->avail = 0x1000;
         if ((file->remaining -= 0x1000) < 0) {
-            file->avail = file->remaining + 0x1000;
+            TRIM_LAST_SECTOR(file);
         }
         if (file->avail <= 0) {
             return -1;
@@ -419,7 +436,7 @@ s32 readDiscFileU16(CdFile *file) {
         file->sector += 2;
         file->avail = 0x1000;
         if ((file->remaining -= 0x1000) < 0) {
-            file->avail = file->remaining + 0x1000;
+            TRIM_LAST_SECTOR(file);
         }
         if (file->avail + i < 2) {
             return -1;
@@ -466,7 +483,7 @@ s32 readDiscFileU32(CdFile *file) {
         file->sector += 2;
         file->avail = 0x1000;
         if ((file->remaining -= 0x1000) < 0) {
-            file->avail = file->remaining + 0x1000;
+            TRIM_LAST_SECTOR(file);
         }
         if (file->avail + i < 4) {
             return -1;
@@ -505,10 +522,11 @@ s8 *readDiscFileLine(s8 *line, s32 maxLength, CdFile *file) {
             break;
         }
     }
-    if (maxLength <= 0 && !(ch == -1 || ch == 0 || ch == '\n' || ch == 0x1A)) {
-        do {
+    /* skip the rest of a line that was too long */
+    if (maxLength <= 0) {
+        while (!(ch == -1 || ch == 0 || ch == '\n' || ch == 0x1A)) {
             ch = readDiscFileByte(file);
-        } while (!(ch == -1 || ch == 0 || ch == '\n' || ch == 0x1A));
+        }
     }
     *out = 0;
     if (*line == 0) {

@@ -14,6 +14,13 @@
 #include "dcb/task.h"
 #include "dcb/model_anim.h"
 
+/* the heap tag of a model slot's animations: ANIM_HEAP_TAG + slot */
+#if VERSION_JP
+#define ANIM_HEAP_TAG 0x50
+#elif VERSION_US || VERSION_EU
+#define ANIM_HEAP_TAG 0x5A
+#endif
+
 void initModelScene(void) {
     Scene3D *scene;
 
@@ -76,7 +83,7 @@ void unloadModelAnimations(s32 slot) {
     s32 i;
 
     key = ((Model *)SCENE_3D->models[slot])->id;
-    freeHeapBlocksByTag(slot + 0x5A);
+    freeHeapBlocksByTag(slot + ANIM_HEAP_TAG);
     key = (key << 8) | 0x10000000;
     for (i = 0; i < 0x20; i++) {
         if ((SCENE_3D->animCache[i].key & ~0xFF) == key) {
@@ -132,7 +139,11 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
             return 0;
         }
         if (id > 1000) {
+#if VERSION_JP
+            sprintf(path, "M:\\HDF%03d\\%03d_%d.hdf", id / 10, id / 10, id % 10);
+#elif VERSION_US || VERSION_EU
             sprintf(path, "M:\\HDF%d\\%d_%d.hdf", id / 10, id / 10, id % 10);
+#endif
             chunkSub = id;
         } else {
             sprintf(path, "M:\\HDF%03d\\%c.hdf", id, anim + 'a');
@@ -140,7 +151,7 @@ s32 loadAnimationData(s32 id, s32 anim, s32 slot, Chunk *pak) {
         }
         animData = (s32)findPakChunk(pak, 1, chunkSub);
         if (animData == 0) {
-            animData = loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x5A);
+            animData = loadFileTagged((s32 *)path, getCurrentTaskId(), slot + ANIM_HEAP_TAG);
             if (animData == 0) {
                 return 0;
             }
@@ -194,9 +205,17 @@ void applyAnimationFirstFrame(s32 slot, s32 anim) {
     /* nobj bones plus the root */
     for (i = 0; i < model->nobj + 1; i++, key++, bone++, coord++, rot++) {
         /* zero the velocity of the nine channels (j << 4: one AnimChan) */
+#if VERSION_JP
+        for (j = 0; j < 3; j++) {
+            AnimChan *chan = &bone->ch[j];
+
+            chan[0].velocity = chan[3].velocity = chan[6].velocity = 0;
+        }
+#elif VERSION_US || VERSION_EU
         for (j = 0, rotChan = &bone->ch[0].velocity, posChan = &bone->ch[3].velocity, scaleChan = &bone->ch[6].velocity; j < 3; j++) {
             *(s32 *)((u8 *)rotChan + (j << 4)) = *(s32 *)((u8 *)posChan + (j << 4)) = *(s32 *)((u8 *)scaleChan + (j << 4)) = 0;
         }
+#endif
         bone->ch[0].value = key->rx << 20;
         bone->ch[1].value = key->ry << 20;
         bone->ch[2].value = key->rz << 20;

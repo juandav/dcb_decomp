@@ -125,7 +125,11 @@ typedef struct {
     /* 0x12D */ s8 texAnimTimer;
     /* 0x12E */ s8 texAnimFrames;
     /* 0x12F */ s8 texAnimDelay;
+#if VERSION_JP
+    /* 0x130 */ u8 unk130[4]; /* jp: the fields below are 4 bytes lower */
+#elif VERSION_US || VERSION_EU
     /* 0x130 */ u8 unk130[8];
+#endif
     /* 0x138 */ s32 stageFlags;
     /* 0x13C */ void *models[24];
     /* 0x19C */ struct {
@@ -789,8 +793,10 @@ typedef struct {
     /* 0x26E0 */ s32 link;
     /* 0x26E4 */ Rect16 prect;
     /* 0x26EC */ Rect16 crect;
+#if VERSION_US || VERSION_EU
     /* 0x26F4 */ void *pak;
     /* 0x26F8 */ u8 clut[0x200];
+#endif
 } Model;
 typedef struct {
     s16 id;
