@@ -67,7 +67,7 @@ void KAW_drawCursor(JpIcon *);
 void initVramSprite();
 void drawScrollArrow(s32, s32, s32, s32, s32);
 
-void func_801F35CC();
+void SAI_runWorldMap();
 
 void SAI_findKeyItems(void);
 void SAI_initKeyItemList(void);
@@ -221,7 +221,7 @@ void SAI_runKeyItems(void) {
     waitFrames(60);
     func_80044758(SAI_KEY_ITEMS.icon);
     closeKanjiPage(0xF);
-    spawnTask(0, -1, 0, 0x800, func_801F35CC, 1, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, SAI_runWorldMap, 1, 0, 0, 0);
     exitTask();
 }
 

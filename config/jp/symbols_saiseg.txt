@@ -88,6 +88,9 @@ SAI_isSlotReach = 0x801F2C38; // type:func version-only
 SAI_spinSlotReels = 0x801F2DF4; // type:func version-only
 SAI_tickSlotBet = 0x801F3168; // type:func version-only
 SAI_runSlotMachine = 0x801F331C; // type:func version-only
+SAI_moveOnMap = 0x801F3578; // type:func version-only
+SAI_startWorldMap = 0x801F3580; // type:func version-only
+SAI_runWorldMap = 0x801F35CC; // type:func version-only
 SAI_SLOT_SPRITE_DEFS = 0x801F647C; // size:0x4B0 version-only
 SAI_SLOT_SPRITE_POSITIONS = 0x801F692C; // size:0x190 version-only
 SAI_SLOT_REELS = 0x801F6ABC; // size:0x5D version-only
@@ -127,8 +130,3 @@ SAI_MAP_CURSOR = 0x801F75F9; // size:0x1 version-only
 SAI_MAP_PLACE = 0x801F75FA; // size:0x1 version-only
 SAI_MAP_X = 0x801F75FC; // size:0x2 version-only
 SAI_MAP_Y = 0x801F75FE; // size:0x2 version-only
-
-// names from the C of the modules this version builds (tools/version_symbols.py)
-func_801F3578 = 0x801F3578;
-func_801F3580 = 0x801F3580;
-func_801F35CC = 0x801F35CC;

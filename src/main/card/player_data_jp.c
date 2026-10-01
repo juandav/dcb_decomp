@@ -37,7 +37,7 @@ extern WindowSpriteTexture WINDOW_SPRITE_TEXTURES[2];
 void SUB_openBuyShop(void); /* SUBSEG's */
 void SUB_openSellShop(void);
 void SUB_runShop();
-void func_801F35CC(); /* SAISEG's */
+void SAI_runWorldMap(); /* SAISEG's */
 void NIS_enterDeckList(); /* NISSEG's deck editor */
 s32 NIS_enterDeckName(char *text, s32 mode); /* NISSEG's text entry */
 
@@ -609,7 +609,7 @@ void returnToAreaFromDeckEditor(void) {
     waitFrames(2);
     uploadAreaPakTims();
     setBackgroundScrollMode(0);
-    spawnTask(0, -1, 0, 0x800, func_801F35CC, 1, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, SAI_runWorldMap, 1, 0, 0, 0);
     exitTask();
 }
 
