@@ -7,7 +7,7 @@
 #include "dcb/text.h"
 
 /* draws a panel's quad */
-void func_80041B5C(Panel *panel, s32 index, s32 z);
+void renderHudPanel(Panel *panel, s32 index, s32 z);
 /* the colour of the DP a card brings */
 u8 DP_GAIN_RGB[4] = { 0x80, 0x80, 0x80 };
 
@@ -801,7 +801,7 @@ void tickBattleHud(void) {
     }
     for (i = 0; i < 23; i++) {
         if (HUD_PANEL(i)->flags & 0x80) {
-            func_80041B5C(HUD_PANEL(i), i, i * 2 + 0xC9);
+            renderHudPanel(HUD_PANEL(i), i, i * 2 + 0xC9);
             drawHudPanelContents(i, i * 2 + 0xC8);
         }
     }
