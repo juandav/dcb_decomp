@@ -3,8 +3,10 @@
 
 #include "game.h"
 
-/* NISSEG is jp's own overlay (us and eu's NISSEG differ): the title screen,
-   the card trade, the VS mode and the deck screens */
+/* NISSEG, jp's overlay of the title screen, the card trade, the VS mode and
+   the deck screens. us has none; eu's is a Japanese debug build of it, with
+   debug menus, which eu builds as jp's with JP_DEBUG_BUILD (include/version.h)
+   against another executable than eu's (config/eu/symbols_nisseg_exe.txt) */
 
 /* a sprite as jp's executable draws it (drawPrimDesc): its primitive's
    tag, colour and code, then where its texture is and where it goes */
@@ -292,6 +294,57 @@ void KAW_drawCursor(NisCursor *cursor);
 void runWindowTask();
 extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
+
+/* the debug build (eu's NISSEG) prints where it is, names the tasks it
+   starts and calls func_80018F5C before each frame it waits for, all of it
+   functions of its executable; jp's NISSEG does none of it */
+#if JP_DEBUG_BUILD
+void func_80014B28(s32 taskId, char *name);
+void func_80018F5C(void);
+#define NIS_DEBUG_PRINT(text) printf(text)
+#define NIS_DEBUG_NAME_TASK(taskId, name) func_80014B28(taskId, name)
+#define NIS_DEBUG_FRAME() func_80018F5C()
+void func_800184F0(s32, s32, s32);
+extern u8 D_801E02E1;
+extern s32 D_801DEBF0;
+extern char D_800907F8[]; /* the debug text it shows */
+
+/* its debug menus: each item starts a task or opens a submenu (with the
+   executable's func_8002D15C) */
+typedef struct NisDebugMenu NisDebugMenu;
+typedef struct {
+    /* 0x00 */ void (*run)();
+    /* 0x04 */ NisDebugMenu *submenu;
+    /* 0x08 */ s32 stackSize;
+    /* 0x0C */ s32 unkC;
+    /* 0x10 */ u8 unk10;
+    /* 0x11 */ char name[15];
+} NisDebugMenuItem;
+struct NisDebugMenu {
+    /* 0x00 */ NisDebugMenuItem *items;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ void (*open)(void);
+    /* 0x0C */ s32 unkC;
+    /* 0x10 */ s16 x;
+    /* 0x12 */ s16 y;
+    /* 0x14 */ u8 count;
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ u8 unk16[2];
+    /* 0x18 */ char name[16];
+};
+void func_8002D15C();
+void freeScrollingBackground(void);
+void *allocNamedTaskHeapBlock(s32 size, char *name, s32 tag);
+void func_80019CE8(); /* a task that shows an error */
+void NIS_openViewerScene(void);
+void NIS_closeViewerScene(void);
+void NIS_runModelViewer(s32 digimonId);
+extern NisDebugMenu NIS_SUGANO_MENU;
+#else
+#define NIS_DEBUG_PRINT(text)
+#define NIS_DEBUG_NAME_TASK(taskId, name)
+#define NIS_DEBUG_FRAME()
+#endif
 extern NisUiState *SCROLLING_BACKGROUND;
 extern u8 D_801E46E8; /* 1 in the trade */
 

@@ -1,0 +1,132 @@
+// NISSEG's own symbols, which only its splat config reads: jp's names
+// (config/jp/symbols_nisseg.txt) at eu's addresses. us has no NISSEG.
+
+// title/nis_title
+NIS_TASK_OPTION = 0x801E5FE4; // size:0x7 version-only
+NIS_TASK_TRADE = 0x801E5FEC; // size:0x6 version-only
+NIS_TASK_WORLD_MAP = 0x801E5FF4; // size:0x6 version-only
+NIS_TASK_NEW_LOAD = 0x801E5FFC; // size:0x9 version-only
+NIS_TASK_VS_DECK = 0x801E6008; // size:0x8 version-only
+NIS_tickDebugModeSelect = 0x801E7028; // type:func version-only
+NIS_uploadTimFile = 0x801E7244; // type:func version-only
+NIS_runTitleScreen = 0x801E72B0; // type:func version-only
+NIS_initTitleScreen = 0x801E731C; // type:func version-only
+NIS_tickTitleScreen = 0x801E7574; // type:func version-only
+NIS_pulsePressStart = 0x801E77AC; // type:func version-only
+NIS_DEBUG_MENU_ITEMS = 0x801F90C8; // size:0x40 version-only
+NIS_DEBUG_MENU = 0x801F9108; // size:0x28 version-only
+NIS_DEBUG_MODE = 0x801F9130; // size:0x4 version-only
+NIS_startTrade = 0x801E78AC; // type:func version-only
+NIS_startVsDeckSelect = 0x801EC6E4; // type:func version-only
+NIS_runMainMenu = 0x801ED86C; // type:func version-only
+
+// debug/nis_debug_menu
+NIS_SUGANO_MENU = 0x801F9390; // size:0x28 version-only
+
+// vs/nis_vs_deck_select
+NIS_closeDeckChoice = 0x801EC358; // type:func version-only
+NIS_drawDeckChoice1 = 0x801EC360; // type:func version-only
+NIS_drawDeckChoice2 = 0x801EC520; // type:func version-only
+NIS_chooseVsDecks = 0x801EC730; // type:func version-only
+NIS_testModelViewer = 0x801ECC9C; // type:func version-only
+NIS_DECK_CHOICE_RGB = 0x801E631C; // size:0x4 version-only
+NIS_FMT_TRIANGLE_DECK = 0x801E6320; // size:0xC version-only
+NIS_STR_TRIANGLE_NONE = 0x801E632C; // size:0x8 version-only
+NIS_FMT_CIRCLE_DECK = 0x801E6334; // size:0xC version-only
+NIS_STR_CIRCLE_NONE = 0x801E6340; // size:0x8 version-only
+NIS_FMT_CROSS_DECK = 0x801E6348; // size:0xC version-only
+NIS_STR_CROSS_NONE = 0x801E6354; // size:0x8 version-only
+NIS_STR_SQUARE_RANDOM = 0x801E635C; // size:0xC version-only
+NIS_STR_CHOOSE_BY_BUTTON = 0x801E6368; // size:0x14 version-only
+
+// vs/nis_vs_mode
+NIS_loadTimFile = 0x801ECD70; // type:func version-only
+NIS_runVsMode = 0x801ECDE4; // type:func version-only
+NIS_openVsWindow = 0x801ED0C8; // type:func version-only
+NIS_closeNothing = 0x801ED150; // type:func version-only
+NIS_drawVsRecords = 0x801ED158; // type:func version-only
+NIS_runTradeBlocked = 0x801ED430; // type:func version-only
+NIS_drawTradeBlockedReason = 0x801ED554; // type:func version-only
+NIS_drawSameSave = 0x801ED68C; // type:func version-only
+NIS_runMenuE7E4 = 0x801ED764; // type:func version-only
+NIS_runMenuE7D8 = 0x801ED7BC; // type:func version-only (nothing starts it)
+NIS_runMenuE7CC = 0x801ED814; // type:func version-only
+NIS_VS_WINDOW = 0x801F9CB8; // size:0x4 version-only
+NIS_TRADE_BLOCKED = 0x801F9CC0; // size:0x1 version-only
+NIS_SAME_SAVE = 0x801F9CC1; // size:0x1 version-only
+NIS_FMT_PLAYER1 = 0x801E6414; // size:0xC version-only
+NIS_FMT_PLAYER2 = 0x801E6420; // size:0xC version-only
+NIS_FMT_STARS = 0x801E642C; // size:0x10 version-only
+NIS_FMT_DRAWS = 0x801E643C; // size:0x8 version-only
+NIS_FMT_PLAYER1_RECORD = 0x801E6444; // size:0x14 version-only
+NIS_FMT_PLAYER2_RECORD = 0x801E6458; // size:0x14 version-only
+
+// deck/nis_deck_scene
+NIS_renderDeckScene = 0x801F3D14; // type:func version-only
+NIS_openDeckScene = 0x801F3DB4; // type:func version-only
+NIS_closeDeckScene = 0x801F3F4C; // type:func version-only
+NIS_writeSceneCaption = 0x801F3FC4; // type:func version-only
+NIS_startDeckEditor = 0x801F4098; // type:func version-only
+NIS_runDeckEditor = 0x801F44CC; // type:func version-only
+NIS_DECK_SCENE_ENVS = 0x801F9CF8; // size:0x80 version-only
+NIS_DECK_SCREEN_ENVS = 0x801F9D78; // size:0x80 version-only
+NIS_DECK_SCENE_DRAWENVS = 0x801F9E78; // size:0xB8 version-only
+NIS_DECK_EDIT = 0x801F9E48; // size:0x14 version-only
+
+// viewer/nis_model_viewer
+NIS_drawViewerCameraHelp = 0x801F7E38; // type:func version-only
+NIS_drawViewerMotionHelp = 0x801F7E90; // type:func version-only
+NIS_openViewerScene = 0x801F7EE8; // type:func version-only
+NIS_closeViewerScene = 0x801F7FA0; // type:func version-only
+NIS_showViewerModel = 0x801F8004; // type:func version-only
+NIS_hideViewerModel = 0x801F80B4; // type:func version-only
+NIS_playViewerMotion = 0x801F80FC; // type:func version-only
+NIS_runViewerControls = 0x801F8340; // type:func version-only
+NIS_runModelViewer = 0x801F8798; // type:func version-only
+NIS_VIEWER_CAMERA_HELP_WINDOW = 0x801F99E8; // size:0x20 version-only
+NIS_VIEWER_MOTION_HELP_WINDOW = 0x801F9A08; // size:0x20 version-only
+NIS_DECK_SCREENS = 0x801F9CD8; // size:0x20 version-only
+
+// deck/nis_auto_deck
+NIS_closeDeckWindow = 0x801ED8C0; // type:func version-only
+NIS_getCardId = 0x801ED8C8; // type:func version-only
+NIS_countOwnedDigimon = 0x801ED910; // type:func version-only
+NIS_countOwnedOptions = 0x801ED950; // type:func version-only
+NIS_countOwnedOthers = 0x801ED990; // type:func version-only
+NIS_countOwnedCards = 0x801ED9D0; // type:func version-only
+NIS_countOwnedDigimonOf = 0x801EDA10; // type:func version-only
+NIS_countDeckDigimonOf = 0x801EDACC; // type:func version-only
+NIS_countDeckOptions = 0x801EDBC4; // type:func version-only
+NIS_countCards = 0x801EDC28; // type:func version-only
+NIS_getCardPicture = 0x801EDCC0; // type:func version-only
+NIS_countSavedDecks = 0x801EDE58; // type:func version-only
+NIS_addCardsToDeck = 0x801EDEA4; // type:func version-only
+NIS_sortCardEntries = 0x801EDFF8; // type:func version-only
+NIS_countListInDeck = 0x801EE204; // type:func version-only
+NIS_countListOwned = 0x801EE2BC; // type:func version-only
+NIS_addCardToList = 0x801EE3C4; // type:func version-only
+NIS_listDeckCards = 0x801EE4CC; // type:func version-only
+NIS_listOwnedDigimon = 0x801EE574; // type:func version-only
+NIS_listOwnedOptionsAndOthers = 0x801EE644; // type:func version-only
+NIS_listOwnedOptionsOfStyle = 0x801EE6FC; // type:func version-only
+NIS_listOwnedOthers = 0x801EE7A0; // type:func version-only
+NIS_listNewCards = 0x801EE814; // type:func version-only
+NIS_listAllCards = 0x801EE910; // type:func version-only
+NIS_buildCardList = 0x801EE99C; // type:func version-only
+NIS_countListCopies = 0x801EEAE4; // type:func version-only
+NIS_takeAllListCopies = 0x801EEB44; // type:func version-only
+NIS_takeListCopies = 0x801EEC5C; // type:func version-only
+NIS_countDeckDigimonOfLevel = 0x801EEE84; // type:func version-only
+NIS_pickSecondElement = 0x801EEF20; // type:func version-only
+NIS_countDeckFreeSlots = 0x801EF178; // type:func version-only
+NIS_takeDigimonOfLevel = 0x801EF1D8; // type:func version-only
+NIS_buildAutoDeck = 0x801EF308; // type:func version-only
+NIS_fixDeckCards = 0x801EFC1C; // type:func version-only
+NIS_dropDeckCopiesFromList = 0x801F0158; // type:func version-only
+NIS_STR_DECK_EDIT = 0x801E6590; // size:0xA version-only
+NIS_AUTO_DECK_COUNTS = 0x801E65D8; // size:0x8 version-only
+NIS_OPTION_STYLES = 0x801F95A8; // size:0x30 version-only
+NIS_DIGIMON_LEFT = 0x801F9E60; // size:0x4 version-only
+NIS_CARD_LIST = 0x801F9E68; // size:0x4 version-only
+NIS_OPTIONS_LEFT = 0x801F9E6C; // size:0x4 version-only
+NIS_OTHERS_LEFT = 0x801F9E70; // size:0x4 version-only

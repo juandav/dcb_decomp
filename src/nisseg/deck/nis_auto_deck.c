@@ -1,6 +1,7 @@
 #include "common.h"
 #include "game.h"
 #include "dcb/heap.h"
+#include "dcb/task.h"
 #include "dcb/nisseg.h"
 
 /* The deck screens' card lists and the auto deck: counting the cards a
@@ -11,6 +12,13 @@
 extern u8 *NIS_DIGIMON_LEFT;
 extern u8 *NIS_OPTIONS_LEFT;
 extern u8 *NIS_OTHERS_LEFT;
+
+#if JP_DEBUG_BUILD
+/* the debug build names what it allocates (NIS_STR_DECK_EDIT, which
+   NIS_buildAutoDeck's asm reads too) */
+extern const char NIS_STR_DECK_EDIT[];
+#define allocTaskHeapBlock(size) allocNamedTaskHeapBlock(size, NIS_STR_DECK_EDIT, 7)
+#endif
 
 void NIS_fixDeckCards(s8 deck);
 void NIS_dropDeckCopiesFromList(s32 deck, NisCardList *list, s32 count);
@@ -176,6 +184,9 @@ s32 NIS_countSavedDecks(void) {
 void NIS_addCardsToDeck(s32 type, s32 index, s32 count) {
     CardSlot *slot;
     s32 i;
+#if JP_DEBUG_BUILD
+    char text[8];
+#endif
 
     if (count == 0) {
         return;
@@ -201,6 +212,14 @@ void NIS_addCardsToDeck(s32 type, s32 index, s32 count) {
             }
         }
     }
+#if JP_DEBUG_BUILD
+    /* the deck had no room for them, or not the copies to take: "failed
+       to update the deck" */
+    sprintf(text, "FLG = %d", count);
+    NIS_DEBUG_NAME_TASK(0, "ERROR TASK");
+    spawnTask(0, -1, 0, 0x200, func_80019CE8, "デッキの内容を更新失敗", count, getCurrentTaskId(), 0);
+    waitFrames(0x7FFFFFFF);
+#endif
 }
 
 /* quicksort by card id */
@@ -380,6 +399,10 @@ void NIS_listAllCards(NisCardList *list) {
         NIS_addCardToList(list, 2, i);
     }
 }
+
+#if JP_DEBUG_BUILD
+const char NIS_STR_DECK_EDIT[] = "DECK EDIT";
+#endif
 
 /* kind 0: the deck's cards, 1-5: the Digimon of element kind - 1, 6: the
    options and others, 7-8: every card, 9: the options of a style, 10: the

@@ -76,6 +76,7 @@ s32 NIS_chooseVsDecks(void) {
     }
     openChoiceMenu(&menu, 0x3B, 0x32, 0, 0);
     do {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             if (done[i]) {
@@ -122,3 +123,25 @@ s32 NIS_chooseVsDecks(void) {
     closeKanjiPage(0xF);
     return 0;
 }
+
+#if JP_DEBUG_BUILD
+/* the debug menu's "MODEL VIEW": the model viewer on Digimon 0x73, which
+   Cross starts and Cross leaves */
+void NIS_testModelViewer(s32 arg0, s32 parentTask) {
+    loadScrollingBackground(0x50, 0);
+    showScrollingBackground();
+    NIS_openViewerScene();
+    do {
+        NIS_DEBUG_FRAME();
+        waitFrames(FRAME_INTERVAL);
+    } while (!(PAD_STATES[0]->rawRepeat & PAD_CROSS));
+    NIS_runModelViewer(0x73);
+    do {
+        NIS_DEBUG_FRAME();
+        waitFrames(FRAME_INTERVAL);
+    } while (!(PAD_STATES[0]->rawRepeat & PAD_CROSS));
+    NIS_closeViewerScene();
+    freeScrollingBackground();
+    resumeTask(parentTask);
+}
+#endif

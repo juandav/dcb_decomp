@@ -34,9 +34,37 @@ extern void D_80048EFC();
 
 const s32 D_801EA3E8 = 7;
 
+#if JP_DEBUG_BUILD
+/* the names the debug build gives the tasks the debug mode starts; nothing
+   reads the empty one */
+const char NIS_TASK_OPTION[] = "OPTION";
+const char NIS_TASK_TRADE[] = "TRADE";
+const char NIS_TASK_WORLD_MAP[] = "W_MAP";
+const char NIS_TASK_NEW_LOAD[] = "NEW_LOAD";
+const char NIS_TASK_VS_DECK[] = "VS DECK";
+const char D_801E6010[] = "";
+
+void NIS_tickDebugModeSelect(s32 taskId);
+
+/* the debug build's first menu: the debug mode and Sugano's menu */
+NisDebugMenuItem NIS_DEBUG_MENU_ITEMS[2] = {
+    { NIS_tickDebugModeSelect, NULL, 0x400, 0, 0, "TEST TASK" },
+    { func_8002D15C, &NIS_SUGANO_MENU, 0x400, 0, 0, "SUGANO MENU" },
+};
+NisDebugMenu NIS_DEBUG_MENU = { NIS_DEBUG_MENU_ITEMS, 0, NULL, 0, 0x10, 0x20, 2, 2, { 0 }, "N_MENU" };
+#endif
+
+/* the last three bytes are leftovers, not the same in the debug build */
+#if JP_DEBUG_BUILD
+s8 NIS_DEBUG_MODE[4] = { 3, 0x40, 0x42, 0x30 };
+#else
 s8 NIS_DEBUG_MODE[4] = { 3, 0x12, 0, 0x43 };
+#endif
 
 void NIS_tickDebugModeSelect(s32 taskId) {
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
     loadScrollingBackground(0xE, 2);
     showScrollingBackground();
     if (PAD_STATES[0]->rawHeld & PAD_R1) {
@@ -53,20 +81,25 @@ void NIS_tickDebugModeSelect(s32 taskId) {
     }
     switch (NIS_DEBUG_MODE[0]) {
     case 1:
+        NIS_DEBUG_NAME_TASK(0, NIS_TASK_OPTION);
         spawnTask(0, -1, 0, 0x800, func_80045E40, 1, 0, 0, 0);
         break;
     case 2:
+        NIS_DEBUG_NAME_TASK(0, NIS_TASK_TRADE);
         spawnTask(0, -1, 0, 0x800, NIS_startTrade, 1, 0, 0, 0);
         break;
     case 3:
+        NIS_DEBUG_NAME_TASK(0, NIS_TASK_WORLD_MAP);
         spawnTask(0, -1, 0, 0x800, func_80046464, 1, 0, 0, 0);
         break;
     case 4:
+        NIS_DEBUG_NAME_TASK(0, NIS_TASK_NEW_LOAD);
         spawnTask(0, -1, 0, 0x800, D_80048EFC, 1, 0, 0, 0);
         break;
     case 5:
         break;
     case 6:
+        NIS_DEBUG_NAME_TASK(0, NIS_TASK_VS_DECK);
         spawnTask(0, -1, 0, 0x800, NIS_startVsDeckSelect, 0, 0, 0, 0);
         break;
     case 7:
@@ -84,7 +117,11 @@ void NIS_tickDebugModeSelect(s32 taskId) {
 void NIS_uploadTimFile(char *path) {
     u32 *tims;
 
+#if JP_DEBUG_BUILD
+    spawnTask(0, -1, 4, 0x800, loadFile, path, getCurrentTaskId());
+#else
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+#endif
     tims = (u32 *)waitFrames(0x7FFFFFFF);
     uploadTimList(tims);
     freeHeapBlock(tims);
@@ -93,6 +130,9 @@ void NIS_uploadTimFile(char *path) {
 void NIS_runTitleScreen(void) {
     TitleScreen title;
 
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
     NIS_uploadTimFile("D:\\TITLE.TIM");
     if (D_8008CD50 == 0) {
         allocPrimDescPackets(0x40);
@@ -200,6 +240,7 @@ void NIS_initTitleScreen(TitleScreen *title) {
     title->state = 0;
     title->idleFrames = 0;
     title->fadeFrames = 0;
+    NIS_DEBUG_NAME_TASK(0, "FADE OUT");
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 0xFF, 0);
     waitFrames(2);
     setScreenFadeParams(1, 2, 8);
@@ -217,11 +258,13 @@ s32 NIS_tickTitleScreen(TitleScreen *title) {
         if (++title->idleFrames > 0x4B0) {
             title->state = 2;
             title->fadeFrames = 0;
+            NIS_DEBUG_NAME_TASK(0, "FADE OUT");
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
         } else if (PAD_STATES[0]->rawPressed & (PAD_START | PAD_CIRCLE)) {
             playSoundEffect(0);
             title->state = 3;
             title->fadeFrames = 0;
+            NIS_DEBUG_NAME_TASK(0, "FADE OUT");
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
         }
         break;
@@ -236,6 +279,8 @@ s32 NIS_tickTitleScreen(TitleScreen *title) {
         if (++title->fadeFrames >= 0x20) {
             stopScreenFade();
             playMusic(0, 4, 0x7F);
+            /* the bytes after the name are leftovers */
+            NIS_DEBUG_NAME_TASK(0, "MODE SEL\0e\b");
             spawnTask(0, -1, 0, 0x800, NIS_runMainMenu, 1, 0, 0, 0);
             exitTask();
         }
