@@ -407,7 +407,7 @@ void SAI_runOpponentInfoPanel(s32 index) {
             SAI_tickOpponentBanner();
             break;
         }
-    } while (SAI_CLOSE_PANEL == 0);
+    } while (SAI_AREA.closePanel == 0);
     do {
         waitFrames(1);
         SAI_OPPONENT_INFO->state = 4;

@@ -86,7 +86,7 @@ void SAI_clearOpponents(void) {
 
     SAI_OPPONENT_COUNT = 0;
     for (i = 0; i < 24; i++) {
-        SAI_OPPONENT_IDS[i] = -1;
+        SAI_OPPONENTS.ids[i] = -1;
     }
 }
 

@@ -365,7 +365,7 @@ void SAI_runTalkPanel(void) {
 void SAI_stepBrightness(s8 index) {
     s16 value = SAI_OPPONENTS.current[index];
 
-    if (SAI_OPPONENTS.current[index] < SAI_OPPONENTS.target[index]) {
+    if (SAI_OPPONENTS.target[index] > SAI_OPPONENTS.current[index]) {
         value += SAI_OPPONENTS.step[index];
         if (SAI_OPPONENTS.target[index] < SAI_OPPONENTS.current[index]) {
             value = SAI_OPPONENTS.target[index];
