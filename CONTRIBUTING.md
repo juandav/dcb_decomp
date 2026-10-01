@@ -58,6 +58,12 @@ defined, each 0 or 1; the assembly gets the same names from `--defsym`.
   under us's name, so the report has the same units. A module becomes C by
   turning those segments into `c`, `.rodata` and `.data` in the version's
   config and listing its file in the version's `.mk`.
+- eu's INTSEG and NISSEG aren't European: they are a Japanese debug build,
+  linked against an executable that isn't eu's. eu compiles their C as jp's
+  (`-UVERSION_EU -DVERSION_JP`, Shift JIS) with `-DJP_DEBUG_BUILD=1`, which
+  turns on the debug code (`#if JP_DEBUG_BUILD`, never `VERSION_EU`), and
+  links them against that executable's names,
+  `config/eu/symbols_<overlay>_exe.txt`, instead of the executable's.
 
 ## Layout
 
