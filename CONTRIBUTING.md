@@ -33,6 +33,12 @@ defined, each 0 or 1; the assembly gets the same names from `--defsym`.
   not `#if !VERSION_JP`, so that a version added later doesn't fall into a
   branch nobody checked for it.
 - The versions have no order: no `VERSION >= ...` or "newer than" tests.
+- Only name a version you have checked. While a module is still asm in some
+  version, its blocks name only the versions that build the module from C,
+  and end with `#else` + `#error "<module>: version not checked"` when a
+  version could fall through. Whoever moves the module to C in that version
+  adds it to the branch that matches: the Japanese and European versions are
+  both GCC 2.8.1 and often share a form that the USA version doesn't.
 - Each version lists the files it builds in `mk/version/<version>.mk`
   (`MAIN_C_SRC`, `<OVERLAY>_C_SRC`, `<BINARY>_HASM_SRC`), and the Makefile
   builds nothing else: a new file goes in the list of every version that
