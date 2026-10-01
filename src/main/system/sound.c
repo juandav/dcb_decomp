@@ -14,6 +14,14 @@
 #include "dcb/main.h"
 #include "dcb/task.h"
 
+/* The chunk number of a music track's VAB and sequence in its PAK: jp's
+   music PAKs number them from 200 */
+#if VERSION_JP
+#define MUSIC_CHUNK_ID(id) ((id) + 200)
+#elif VERSION_US || VERSION_EU
+#define MUSIC_CHUNK_ID(id) (id)
+#endif
+
 s32 SOUND_LOAD_BUSY = 0;
 extern s8 SE0_BANK_INFO[];
 extern s8 SE1_BANK_INFO[];
@@ -29,6 +37,26 @@ s32 NEXT_SFX_VOICE = 0x12;
 s32 SFX_BASE_NOTE = 0x24;
 u16 SFX_BASE_FINE = 0x3C;
 
+#if VERSION_JP
+void initSound(void) {
+    SOUND_STATE.seBank.buf = allocHeapBlock(0x2100, -2);
+    SOUND_STATE.slot[0].buf = allocHeapBlock(0x9300, -2);
+    SOUND_STATE.slot[1].buf = allocHeapBlock(0x9300, -2);
+    SsInit();
+    SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
+    SsSetTickMode(1);
+    SsStart();
+    setReverbType(1);
+    SsSetStereo();
+    SsSetMVol(0x7F, 0x7F);
+    /* nothing loaded, nothing playing */
+    SOUND_STATE.slot[1].id = 0xFF;
+    SOUND_STATE.slot[0].id = 0xFF;
+    SOUND_STATE.seBank.id = 0xFF;
+    SOUND_STATE.cur = -1;
+    loadSoundEffectBank(1);
+}
+#elif VERSION_US || VERSION_EU
 void initSound(void) {
     SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
     SsSetMVol(0, 0);
@@ -47,6 +75,7 @@ void initSound(void) {
     loadSoundEffectBank(1);
     SsSetMVol(0x7F, 0x7F);
 }
+#endif
 
 void loadSoundEffectBank(s32 bankId) {
     char name[32];
@@ -118,8 +147,8 @@ void loadMusicTrack(s32 slotIndex, s32 trackId, u8 volume) {
             freeHeapBlock(pak);
             slot->id = 0xFF;
         } else {
-            transferSlotVabBody(slot, (s32)findPakChunk((Chunk *)pak, 8, slot->id), slot->vab);
-            SOUND_STATE.data[slotIndex] = findPakChunk((Chunk *)slot->buf, 6, slot->id);
+            transferSlotVabBody(slot, (s32)findPakChunk((Chunk *)pak, 8, MUSIC_CHUNK_ID(slot->id)), slot->vab);
+            SOUND_STATE.data[slotIndex] = findPakChunk((Chunk *)slot->buf, 6, MUSIC_CHUNK_ID(slot->id));
             SOUND_STATE.seq[slotIndex] = SsSeqOpen(SOUND_STATE.data[slotIndex], slot->vab);
             freeHeapBlock(pak);
         }
@@ -154,7 +183,12 @@ void setInstantVoiceRelease(void) {
 s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr) {
     u8 *vabHeader;
 
+#if VERSION_JP
+    /* vabId 0 is the sound effects' bank, the others music */
+    vabHeader = findPakChunk((Chunk *)slot->buf, 7, vabId != 0 ? MUSIC_CHUNK_ID(slot->id) : slot->id);
+#elif VERSION_US || VERSION_EU
     vabHeader = findPakChunk((Chunk *)slot->buf, 7, slot->id);
+#endif
     if (vabHeader != 0) {
         slot->vabHeaderSize = ((Chunk *)vabHeader - 1)->size;
         if ((slot->vab = SsVabOpenHeadSticky(vabHeader, vabId, spuAddr)) != -1) {

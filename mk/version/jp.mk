@@ -24,8 +24,9 @@ MASPSX_EXTRA := --expand-div
 # that build from the same C as us's, by subsystem. The rest of every binary
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
-	$(addprefix src/main/gfx/, prim3d.c prim_util.c transform.c \
+	$(addprefix src/main/gfx/, prim3d.c prim_pair.c prim_util.c transform.c \
 		vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c model_load.c) \
 	src/main/script/script.c \
-	$(addprefix src/main/system/, cd_file.c heap.c sound_play.c task.c)
+	$(addprefix src/main/system/, cd_file.c heap.c sound.c sound_play.c \
+		task.c)
