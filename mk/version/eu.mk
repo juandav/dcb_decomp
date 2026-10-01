@@ -23,13 +23,14 @@ GCC_VERSION := 2.8.1
 # code but a Visual SourceSafe file, it stays one blob, splat's databin.
 MAIN_C_SRC := \
 	src/main/main.c \
-	$(addprefix src/main/card/, card_render.c partner_level.c \
+	$(addprefix src/main/card/, card_db.c card_render.c partner_level.c \
 		player_data.c player_rank.c) \
 	$(addprefix src/main/duel/, battle_hud.c card_motion.c card_zones.c \
 		cpu_decision.c duel.c duel_launch.c duel_session.c duel_setup.c \
 		duel_util.c hud_panels.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
-		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
+		prim_util.c screen_copy.c scroll_bg.c tmd_sort.c transform.c \
+		vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
 		model_load.c scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \

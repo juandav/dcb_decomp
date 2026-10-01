@@ -78,10 +78,8 @@ void freeScrollingBackground(void) {
 void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h) {
     s32 i;
 
-    if (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80) {
-        do {
-            waitFrames(FRAME_INTERVAL);
-        } while (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80);
+    while (SCROLL_BACKGROUND.brightness != 0 && SCROLL_BACKGROUND.brightness != 0x80) {
+        waitFrames(FRAME_INTERVAL);
     }
     if (SCROLL_BACKGROUND.brightness == 0) {
         SCROLL_BACKGROUND.shownImage = -1;
@@ -175,11 +173,22 @@ void renderScrollingBackground(void) {
             }
         }
     }
+#if VERSION_US
     addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].twin0);
     buffer = FRAME_BUFFER_INDEX;
     SCROLL_BACKGROUND.buf[buffer].x0 = -((SCROLL_BACKGROUND.scrollPos / 60) & 1);
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].y0 = 0;
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].u0 = (SCROLL_BACKGROUND.scrollPos / 60) & 0xFE;
+#elif VERSION_EU
+    /* eu reads the buffer index once for the first four */
+    buffer = FRAME_BUFFER_INDEX;
+    addPrim(&CURRENT_FRAME_BUFFER->ot[0xFFF], SCROLL_BACKGROUND.buf[buffer].twin0);
+    SCROLL_BACKGROUND.buf[buffer].x0 = -((SCROLL_BACKGROUND.scrollPos / 60) & 1);
+    SCROLL_BACKGROUND.buf[buffer].y0 = 0;
+    SCROLL_BACKGROUND.buf[buffer].u0 = (SCROLL_BACKGROUND.scrollPos / 60) & 0xFE;
+#else
+#error "main/gfx/scroll_bg: version not checked"
+#endif
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].v0 = SCROLL_BACKGROUND.scrollPos / 60;
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].r0 = SCROLL_BACKGROUND.brightness;
     SCROLL_BACKGROUND.buf[FRAME_BUFFER_INDEX].g0 = SCROLL_BACKGROUND.brightness;
