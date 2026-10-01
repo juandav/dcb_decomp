@@ -199,34 +199,116 @@ void NIS_drawCardGridHelp(NisWindow *window) {
 }
 
 /* the card in view: a Digimon's level, element, number, HP, DP, attacks
-   and support effect, or an option card's text, and the copies. Matching
-   it needs the text's address and NIS_DECK_EDIT's in the other's register
-   near the end */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_windows", NIS_drawCardDetails);
+   and support effect, or an option card's text, and the copies */
+void NIS_drawCardDetails(NisWindow *window) {
+    Rect16 pos;
+    char text[0x48];
+    char line[0x48];
+    char number[0x20];
+    NisCardData *card;
+    NisOptionData *option;
+    s32 id;
+    s32 kind;
+    s32 level;
+    s32 i;
 
-/* what NIS_drawCardDetails draws (defined after it, so that GCC switches
-   back to .rodata after the asm) */
-const char NIS_FMT_DIGIMON_CARD_LEVEL[] = "  a%dデジモンカード　Ｌｖ　e%d";
-const char NIS_FMT_ELEMENT_NUMBER[] = "  属性　%s　Ｎｏ%s";
-const char NIS_FMT_INDENTED_NAME[] = "  %s";
-const char NIS_STR_HP[] = "ＨＰ";
-const char NIS_FMT_FOUR_DIGITS[] = " w-1%4d";
-const char NIS_STR_DP_NEEDED[] = "  必進Ｐ";
-const char NIS_FMT_TWO_DIGITS[] = " w-1%2d";
-const char NIS_STR_POW[] = "ＰＯＷ";
-const char NIS_FMT_ATTACK[] = " 　b%d%s";
-const char NIS_FMT_SUPPORT_ICON_LEVEL[] = "  　%s d%d";
-const char NIS_FMT_SUPPORT_ICON[] = "  　%s";
-const char NIS_STR_SUPPORT_EFFECT[] = " 援護能力";
-const char NIS_FMT_SUPPORT_EFFECT_LEVEL[] = "援護能力 d%d";
-const char NIS_FMT_SUPPORT_LINE[] = " %s";
-const char NIS_FMT_OPTION_CARD_LEVEL[] = " a%dオプションカード d%d";
-const char NIS_FMT_OPTION_CARD[] = " a%dオプションカード";
-const char NIS_FMT_KIND_NUMBER[] = "   %s　　Ｎｏ%s";
-const char NIS_STR_COPIES_USED[] = "使用枚数";
-const char NIS_STR_COPIES_TRADED[] = "交換枚数";
-const char NIS_FMT_COPIES[] = "b%d";
-const char NIS_FMT_COPIES_OWNED[] = "c7(%d)";
+    if (NIS_DECK_EDIT.cardType == 0) {
+        card = &NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex];
+        pos.x = 0x79;
+        pos.y = 0x32;
+        pos.w = 0;
+        pos.h = 0;
+        /* "Digimon card Lv %d", "element %s No %s" */
+        sprintf(line, "  a%dデジモンカード　Ｌｖ　e%d", card->elementLevel >> 4, (card->elementLevel & 0xF) + 3);
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)line);
+        pos.y += 0x10;
+        sprintf(line, "  属性　%s　Ｎｏ%s", NIS_ELEMENT_NAMES[NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].elementLevel >> 4], formatSjisNumber(NIS_DECK_EDIT.cardIndex + 1, 3, number));
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)line);
+        pos.y += 0xC;
+        sprintf(text, "  %s", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].name);
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
+        drawIconText(pos.x + 0x64, pos.y, 7, 1, window->z, (s32)"ＨＰ");
+        sprintf(text, " w-1%4d", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].hp);
+        drawText(pos.x + 0x78, pos.y, (s32)text, 7, window->z);
+        pos.y += 0xC;
+        /* "DP needed", "POW" */
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)"  必進Ｐ");
+        sprintf(text, " w-1%2d", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].dpCost);
+        drawText(pos.x + 0x30, pos.y, (s32)text, 7, window->z);
+        drawIconText(pos.x + 0x64, pos.y, 7, 1, window->z, (s32)"ＰＯＷ");
+        sprintf(text, " w-1%4d", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].dpBonus);
+        drawText(pos.x + 0x78, pos.y, (s32)text, 7, window->z);
+        pos.y += 0xC;
+        for (i = 0; i < 3; i++, pos.y += 0xC) {
+            sprintf(text, " 　b%d%s", i, NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].attacks[i].name);
+            drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
+            sprintf(text, " w-1%4d", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].attacks[i].power);
+            drawText(pos.x + 0x78, pos.y, (s32)text, 7, window->z);
+        }
+        if (CROSS_EFFECT_ICONS[card->supportIcon] != 0) {
+            sprintf(text, "  　%s d%d", CROSS_EFFECT_NAMES[NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].supportIcon], CROSS_EFFECT_ICONS[card->supportIcon]);
+        } else {
+            sprintf(text, "  　%s", CROSS_EFFECT_NAMES[NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].supportIcon]);
+        }
+        drawIconText(pos.x + 1, pos.y, 7, 1, window->z, (s32)text);
+        pos.y += 0x10;
+        /* "support effect" */
+        if (card->supportLevel == 0) {
+            drawIconText(pos.x + 2, pos.y, 6, 1, window->z, (s32)" 援護能力");
+        } else {
+            sprintf(text, "援護能力 d%d", card->supportLevel);
+            drawIconText(pos.x + 2, pos.y, 6, 1, window->z, (s32)text);
+        }
+        pos.y += 0xC;
+        for (i = 0; i < 4; i++, pos.y += 0xC) {
+            sprintf(text, " %s", NIS_DIGIMON_CARDS[NIS_DECK_EDIT.cardIndex].supportText[i]);
+            drawIconText(pos.x - 2, pos.y, 7, 1, window->z, (s32)text);
+        }
+    } else {
+        id = NIS_getCardId(NIS_DECK_EDIT.cardType, NIS_DECK_EDIT.cardIndex);
+        kind = NIS_DECK_EDIT.cardType + 4;
+        pos.x = 0x7D;
+        pos.y = 0x36;
+        pos.w = 0;
+        pos.h = 0;
+        /* "option card" */
+        if (NIS_DECK_EDIT.cardType == 1 && (level = (option = &NIS_OPTION_CARDS[NIS_DECK_EDIT.cardIndex])->level) != 0) {
+            sprintf(text, " a%dオプションカード d%d", kind, level);
+        } else {
+            sprintf(text, " a%dオプションカード", kind);
+        }
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
+        pos.y += 0x10;
+        sprintf(text, "   %s　　Ｎｏ%s", NIS_CARD_KIND_NAMES[NIS_DECK_EDIT.cardType - 1], formatSjisNumber(id + 1, 3, number));
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
+        pos.y += 0x10;
+        drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)((NIS_DECK_EDIT.cardType == 1) ? NIS_OPTION_CARDS[NIS_DECK_EDIT.cardIndex].name : NIS_DIGIVOLVE_CARDS[NIS_DECK_EDIT.cardIndex].name));
+        pos.y += 0x18;
+        for (i = 0; i < 4; i++, pos.y += 0xC) {
+            drawIconText(pos.x + 0x18, pos.y, 7, 1, window->z, (s32)((NIS_DECK_EDIT.cardType == 1) ? NIS_OPTION_CARDS[NIS_DECK_EDIT.cardIndex].text[i] : NIS_DIGIVOLVE_CARDS[NIS_DECK_EDIT.cardIndex].text[i]));
+        }
+    }
+    /* "copies used" in the deck, or "copies traded" */
+    if (D_801E46E8 != 1) {
+        drawIconText(0xEC, 0xA6, 7, 1, window->z, (s32)"使用枚数");
+    } else {
+        drawIconText(0xEC, 0xA6, 7, 1, window->z, (s32)"交換枚数");
+    }
+    sprintf(text, "b%d", NIS_DECK_EDIT.copies);
+    /* colour 2 once the deck can take no more copies */
+    if (D_801E46E8 != 1) {
+        drawText(0xF1, 0xBA, (s32)text, (NIS_DECK_EDIT.copies >= NIS_DECK_EDIT.maxCopies || NIS_DECK_EDIT.copies >= 4) ? 2 : 8, window->z);
+    } else {
+        drawText(0xF1, 0xBA, (s32)text, (NIS_DECK_EDIT.copies >= NIS_DECK_EDIT.maxCopies) ? 2 : 8, window->z);
+    }
+    sprintf(text, "c7(%d)", NIS_DECK_EDIT.unkA);
+    drawText(0x104, 0xC6, (s32)text, 8, window->z);
+    pos.x = 0xEC;
+    pos.y = 0xA4;
+    pos.w = 0x30;
+    pos.h = 0x31;
+    drawWindowFrame(&pos, 0, 0, 1, 0xFF, (CVECTOR *)window->frame, window->z);
+}
 /* the menu of the card details: "decide the copies", "view mode", "back";
    and the card's big picture, turning over */
 void NIS_drawCardCountMenu(NisWindow *window) {
@@ -888,5 +970,5 @@ void NIS_writeCardDetails(s32 type, s32 index) {
         rect.x = 0x3C0;
     }
     rect.y = 0xE8;
-    uploadKanjiString((char *)NIS_STR_COPIES_USED, &rect);
+    uploadKanjiString("使用枚数", &rect);
 }

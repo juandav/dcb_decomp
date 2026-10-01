@@ -1100,23 +1100,126 @@ void NIS_ignoreCancel(void) {
 }
 
 /* the saved decks: the one chosen gets its menu, the free slot makes a new
-   deck; cancel goes back to where the deck screens were opened from.
-   Matching it needs the menu's count and choice, and the addresses kept
-   through the loop, in the original's registers: the C comes within 23
-   instructions of it, all register choices (permuter included) */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_runDeckList);
+   deck; cancel goes back to where the deck screens were opened from */
+void NIS_runDeckList(s32 enter) {
+    NisMenu menu;
+    Rect16 rect = { 0x180, 0x100, 0x40, 0x100 };
+    s32 result;
+    s32 i;
+    s32 count;
+    s32 choice;
+    s32 items;
+    s32 last;
+    s32 shown;
+    s32 newSlot;
 
-/* the VRAM NIS_runDeckList clears (defined after it, so that GCC switches
-   back to .rodata after the asm) */
-const Rect16 NIS_DECK_CLEAR_RECT = { 0x180, 0x100, 0x40, 0x100 };
-#if JP_DEBUG_BUILD
-/* and what the debug build's NIS_runDeckList names and prints: "swapped",
-   "initialized", "deck in use" */
-const char NIS_STR_2P_DATA[] = "2P_DATA";
-const char NIS_STR_SWAPPED[] = "入れ替え完了\n";
-const char NIS_STR_INITIALIZED[] = "初期化完了\n";
-const char NIS_FMT_DECK_IN_USE[] = "使用デッキ %d\n";
-#endif
+    D_801E46E8 = 0;
+    if (enter) {
+        playMusic(1, 0x21, 0x73);
+        if (NIS_STATE->caller->deckScreens == 3) {
+            NIS_STATE->caller->deckScreens = 4;
+            NIS_PROFILE_BACKUP = NIS_ALLOC_HEAP_BLOCK(sizeof(NisProfile), 0x10, "2P_DATA", 5);
+            *NIS_PROFILE_BACKUP = *NIS_PROFILE(0);
+            *NIS_PROFILE(0) = *NIS_PROFILE(1);
+            D_801E46E9 = 1;
+            /* "swapped" */
+            NIS_DEBUG_PRINT("入れ替え完了\n");
+        } else if (NIS_STATE->caller->deckScreens != 4) {
+            D_801E46E9 = 0;
+        }
+        openKanjiPage(0xF, 0x1B9);
+        clearKanjiPage(0xF);
+        /* "initialized" */
+        NIS_DEBUG_PRINT("初期化完了\n");
+        NIS_DECK_EDIT.deck = 0;
+        NIS_DECK_EDIT.saved = NIS_PROFILE(0)->savedDecks;
+        NIS_DECK_EDIT.cardCount = 30;
+        ClearImage(&rect, 0, 0, 0);
+        do {
+            result = NIS_loadDeckTims();
+            waitFrames(0x5A);
+        } while (result != 0);
+        spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_DECK_SUMMARY_WINDOW, getCurrentTaskId());
+        NIS_DECK_SCREENS.mainWindow = waitFrames(0x7FFFFFFF);
+    }
+    i = 0;
+    count = NIS_countSavedDecks();
+    openChoiceMenu(&menu, 0x19, 0x32, NIS_ignoreCancel, NULL);
+    for (; i < count; i++) {
+        addChoiceMenuItem(&menu, i + 0x12, NIS_openDeckMenu);
+    }
+    if (count != 3) {
+        addChoiceMenuItem(&menu, 0x15, NIS_nameNewDeck);
+    }
+    while (1) {
+        NIS_DEBUG_FRAME();
+        waitFrames(FRAME_INTERVAL);
+        result = runChoiceMenu(&menu);
+        if (result != 0) {
+            /* "deck in use" */
+            NIS_DEBUG_PRINT("使用デッキ %d\n", NIS_DECK_EDIT.deck);
+            /* cancel, or the item after the decks: the window closes */
+            if (result < 0) {
+                goto close;
+            }
+            items = menu.count;
+            choice = menu.choice;
+            last = items - 1;
+            if ((count == 3) ? items == choice : last == choice) {
+            close:
+                NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 4;
+            }
+            if (NIS_STATE->caller->deckScreens == 0 || result >= 0) {
+                startChoiceMenuAction(&menu);
+                continue;
+            }
+            waitFrames(0x5A);
+            clearKanjiPage(0xF);
+            closeKanjiPage(0xF);
+            switch (NIS_STATE->caller->deckScreens) {
+            case 1:
+                NIS_STATE->caller->deckScreens = 0;
+                NIS_DEBUG_NAME_TASK(0, NIS_STR_DECK_EDIT);
+                spawnTask(0, -1, 0, 0x800, returnToAreaFromDeckEditor, 1, getCurrentTaskId(), 0, 0);
+                break;
+            case 2:
+                NIS_STATE->caller->deckScreens = 0;
+                NIS_DEBUG_NAME_TASK(0, NIS_STR_DECK_EDIT);
+                spawnTask(0, -1, 0, 0x800, NIS_runVsMode, 1, getCurrentTaskId(), 0, 0);
+                break;
+            case 4:
+                NIS_STATE->caller->deckScreens = 0;
+                *NIS_PROFILE(1) = *NIS_PROFILE(0);
+                *NIS_PROFILE(0) = *NIS_PROFILE_BACKUP;
+                freeHeapBlocksByTag(0x10);
+                NIS_DEBUG_NAME_TASK(0, NIS_STR_DECK_EDIT);
+                spawnTask(0, -1, 0, 0x800, NIS_runVsMode, 1, getCurrentTaskId(), 0, 0);
+                break;
+            case 5:
+                NIS_STATE->caller->deckScreens = 0;
+                NIS_DEBUG_NAME_TASK(0, NIS_STR_DECK_EDIT);
+                spawnTask(0, -1, 0, 0x800, openMemcardScreenAfterDeckEdit, 1, getCurrentTaskId(), 0, 0);
+                break;
+            }
+            exitTask();
+            continue;
+        }
+        if (NIS_DECK_EDIT.deck == (choice = menu.choice)) {
+            continue;
+        }
+        /* the cursor moved: show the deck under it, or the free slot */
+        shown = menu.count;
+        newSlot = shown - 1;
+        if ((count == 3) ? choice < shown : choice < newSlot) {
+            NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 1;
+            NIS_DECK_EDIT.deck = menu.choice;
+            NIS_DECK_EDIT.saved = &NIS_PROFILE(0)->savedDecks[menu.choice];
+        } else {
+            NIS_DECK_EDIT.deck = -menu.choice;
+            NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 2;
+        }
+    }
+}
 
 void NIS_enterDeckList(void) {
     NIS_runDeckList(1);

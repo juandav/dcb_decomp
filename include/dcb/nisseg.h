@@ -309,6 +309,7 @@ extern u8 D_801E46E9;
 extern s32 D_801DEBF0;
 extern char DEBUG_TEXT_LINES[8][0x40]; /* the lines of debug text it shows */
 extern const char NIS_STR_ERROR_TASK[]; /* nis_auto_deck.c's "ERROR TASK" */
+extern const char NIS_STR_DECK_EDIT[]; /* nis_auto_deck.c's "DECK EDIT" */
 
 /* its debug menus: each item starts a task or opens a submenu (with the
    executable's func_8002D15C) */
