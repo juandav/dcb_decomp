@@ -83,7 +83,7 @@ segments:
       - [0xDD4, .rodata, gfx/prim_desc]
       # OVERLAY_LOAD_ADDR (us has it in duel_util), then duel's strings
       - [0xDF8, .rodata, duel/duel_jp]
-      - [0xF34, rodata, duel/tutorial_jp]
+      - [0xF34, .rodata, duel/tutorial_jp]
       - [0x1008, .rodata, duel/cpu_decision]
       # duel_util has no rodata: card_motion's (with battle_hud's
       # drawHudPanelContents) comes next
@@ -155,7 +155,7 @@ segments:
       - [0x1F338, c, duel/duel_jp]
       # jp's own: the tutorial duel's turn loop, with the two helpers only it
       # calls (us runs the tutorial inside runDuelTurnLoop)
-      - [0x22DE8, asm, duel/tutorial_jp]
+      - [0x22DE8, c, duel/tutorial_jp]
       - [0x26D60, c, duel/cpu_decision]
       # with a function of jp's own before duel_util's
       - [0x26F5C, c, duel/duel_util_jp]

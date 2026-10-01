@@ -32,7 +32,7 @@ MAIN_C_SRC := \
 		player_data_jp.c player_rank.c) \
 	$(addprefix src/main/duel/, card_zones.c card_motion_jp.c cpu_decision.c \
 		duel_jp.c duel_launch_jp.c duel_session_jp.c duel_setup_jp.c \
-		duel_util_jp.c hud_panels_jp.c) \
+		duel_util_jp.c hud_panels_jp.c tutorial_jp.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_desc.c \
 		prim_pair.c prim_util.c screen_copy.c tmd_sort.c transform.c \
 		vram_upload.c) \

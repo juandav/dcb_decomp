@@ -1289,7 +1289,7 @@ typedef struct {
     /* 0x446 */ s8 tutorialShown;
     /* 0x447 */ s8 tutorialVisible;
     /* 0x448 */ s8 tutorialOpen;
-    /* 0x449 */ u8 unk449;
+    /* 0x449 */ s8 unk449; /* jp: the tutorial duel's lesson, 0-3 (runTutorialTurnLoop) */
     /* 0x44A */ s8 unk44A;
     /* 0x44B */ u8 unk44B;
     /* 0x44C */ HudMark marks[7];
