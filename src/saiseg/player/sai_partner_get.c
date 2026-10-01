@@ -168,8 +168,8 @@ void SAI_runPartnerGet(s32 task) {
 
     SAI_PARTNER_LIST.count = 0;
     for (i = 0; i < 4; i++) {
-        if (SAI_PARTNER_CHOICES[i] != -1) {
-            SAI_PARTNER_CHOICE_CARDS[i] = SAI_PARTNER_CARD_IDS[SAI_PARTNER_CHOICES[i]];
+        if (SAI_AREA.partners[i] != -1) {
+            SAI_PARTNER_CHOICE_CARDS[i] = SAI_PARTNER_CARD_IDS[SAI_AREA.partners[i]];
             SAI_PARTNER_LIST.count++;
         }
     }
@@ -206,13 +206,27 @@ void SAI_runPartnerGet(s32 task) {
     playSoundEffect(3);
     addFrameCallback((s32)SAI_drawPartnerGetWindow);
     do {
+#if VERSION_US
     wait:
+#elif VERSION_EU
+        /* eu goes back with continue: even unused, the label changes its code */
+#else
+#error "saiseg/player/sai_partner_get: version not checked"
+#endif
         waitFrames(FRAME_INTERVAL);
         if (SAI_PARTNER_LIST.state == 5 && (PAD_STATES[0]->pressed & PAD_CROSS)) {
             SAI_PARTNER_LIST.state = 6;
         }
         if (SAI_PARTNER_CURSOR.done == 0) {
+            /* both go back to the wait; each version's compiler needs its
+               own form to lay the loop out as the original does */
+#if VERSION_US
             goto wait;
+#elif VERSION_EU
+            continue;
+#else
+#error "saiseg/player/sai_partner_get: version not checked"
+#endif
         }
         initDialog(dialog, "Is this Partner OK?", 1);
         runDialog(dialog);

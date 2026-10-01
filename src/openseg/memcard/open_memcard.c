@@ -17,6 +17,17 @@
 #include "dcb/openseg.h"
 #include "dcb/open_save.h"
 
+/* eu writes "slot" in lower case and MEMORY CARD in capitals */
+#if VERSION_US
+#define OPEN_TEXT_PLAYER_SLOT "Player %d : Slot %d"
+#define OPEN_TEXT_FORMAT_CARD "Format the Memory Card in Slot 1?"
+#elif VERSION_EU
+#define OPEN_TEXT_PLAYER_SLOT "Player %d : slot %d"
+#define OPEN_TEXT_FORMAT_CARD "Format the MEMORY CARD in slot 1?"
+#else
+#error "openseg/memcard/open_memcard: version not checked"
+#endif
+
 typedef struct {
     UiWindow window;
     u8 unk44[4];
@@ -358,7 +369,7 @@ void OPEN_resetMemcardScreen(s32 port) {
     }
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 3; j++) {
-            OPEN_MEMCARD_EMPTY[i][j] = 1;
+            OPEN_MEMCARD.empty[i][j] = 1;
         }
     }
     for (i = 0; i < 2; i++) {
@@ -653,7 +664,7 @@ void OPEN_drawMemcardOperation(UiWindow *window) {
     char text[40];
     s32 x;
 
-    sprintf(text, "Player %d : Slot %d", OPEN_MEMCARD_CARD + 1, ((SessionData *)SESSION_DATA)->saveSlots[OPEN_MEMCARD_CARD][0] + 1);
+    sprintf(text, OPEN_TEXT_PLAYER_SLOT, OPEN_MEMCARD_CARD + 1, ((SessionData *)SESSION_DATA)->saveSlots[OPEN_MEMCARD_CARD][0] + 1);
     x = (0x84 - strlen(text) * 6) / 2;
     drawText(window->originX + x, window->originY + 1, (s32)text, 7, window->z);
 }
@@ -817,8 +828,15 @@ void OPEN_drawSaveDetails(s32 x, s32 y, s32 z) {
     }
 }
 
-/* the last two bytes are leftovers in the original, not zero padding */
+/* the last two bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char OPEN_STR_ARENA[8] = "Arena\0\xE0\x03";
+#elif VERSION_EU
+const char OPEN_STR_ARENA[8] = "Arena\0\0\x03";
+#else
+#error "openseg/memcard/open_memcard: version not checked"
+#endif
 
 void OPEN_runMemcardPrompts(void) {
     s32 port;
@@ -837,17 +855,17 @@ void OPEN_runMemcardPrompts(void) {
                 runDialogForPad((s32 *)&OPEN_DIALOG, port);
                 switch (OPEN_DIALOG.choice) {
                 case 1:
-                    OPEN_MEMCARD_STATE = 0x17;
+                    OPEN_MEMCARD.state = 0x17;
                     break;
                 case 0:
                 case 2:
-                    OPEN_MEMCARD_STATE = 0x1B;
+                    OPEN_MEMCARD.state = 0x1B;
                     break;
                 }
             }
             break;
         case 24:
-            if (OPEN_MEMCARD_MODE != 6) {
+            if (OPEN_MEMCARD.mode != 6) {
                 OPEN_confirmOverwrite(port);
             } else {
                 OPEN_MEMCARD.state = 0x12;
@@ -857,38 +875,38 @@ void OPEN_runMemcardPrompts(void) {
             }
             break;
         case 10:
-            OPEN_MEMCARD_MESSAGE = 0x10;
+            OPEN_MEMCARD.message = 0x10;
             OPEN_selectSaveFile(port);
             break;
         case 3:
-            OPEN_MEMCARD_MESSAGE = 0x11;
+            OPEN_MEMCARD.message = 0x11;
             OPEN_selectSaveFile(port);
             break;
         case 16:
-            OPEN_MEMCARD_MESSAGE = 6;
+            OPEN_MEMCARD.message = 6;
             initDialog((u8 *)&OPEN_DIALOG, NULL, 1);
             runDialogForPad((s32 *)&OPEN_DIALOG, port);
             switch (OPEN_DIALOG.choice) {
             case 1:
-                OPEN_MEMCARD_STATE = 0x1B;
+                OPEN_MEMCARD.state = 0x1B;
                 break;
             case 0:
             case 2:
-                OPEN_MEMCARD_STATE = 1;
+                OPEN_MEMCARD.state = 1;
                 break;
             }
             break;
         case 22:
-            OPEN_MEMCARD_MESSAGE = 0x19;
+            OPEN_MEMCARD.message = 0x19;
             initDialog((u8 *)&OPEN_DIALOG, NULL, 1);
             runDialogForPad((s32 *)&OPEN_DIALOG, port);
             switch (OPEN_DIALOG.choice) {
             case 1:
-                OPEN_MEMCARD_STATE = 0x1B;
+                OPEN_MEMCARD.state = 0x1B;
                 break;
             case 0:
             case 2:
-                OPEN_MEMCARD_STATE = 0x11;
+                OPEN_MEMCARD.state = 0x11;
                 break;
             }
             break;
@@ -899,20 +917,20 @@ void OPEN_runMemcardPrompts(void) {
                     OPEN_MEMCARD.message = 4;
                     OPEN_MEMCARD.state = 2;
                 } else {
-                    OPEN_MEMCARD_STATE = 0x10;
+                    OPEN_MEMCARD.state = 0x10;
                 }
             } else if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 1;
+                OPEN_MEMCARD.state = 1;
             }
             break;
         case 19:
             if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 0x11;
+                OPEN_MEMCARD.state = 0x11;
             } else if (PAD_STATES[port]->pressed & 0x10) {
                 playMenuSound(0);
-                OPEN_MEMCARD_STATE = 0x16;
+                OPEN_MEMCARD.state = 0x16;
             }
             break;
         case 28:
@@ -922,32 +940,32 @@ void OPEN_runMemcardPrompts(void) {
                 OPEN_MEMCARD.state = 0x10;
             } else if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 1;
+                OPEN_MEMCARD.state = 1;
             }
             break;
         case 21:
             if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 0x17;
+                OPEN_MEMCARD.state = 0x17;
             }
             break;
         case 11:
             if (PAD_STATES[port]->pressed & 0x10) {
                 playMenuSound(0);
-                OPEN_MEMCARD_STATE = 0x10;
+                OPEN_MEMCARD.state = 0x10;
             } else if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 1;
+                OPEN_MEMCARD.state = 1;
             }
             break;
         case 14:
             if (PAD_STATES[port]->pressed & 0x40) {
                 playMenuSound(1);
-                OPEN_MEMCARD_STATE = 1;
+                OPEN_MEMCARD.state = 1;
             }
             break;
         case 7:
-            OPEN_MEMCARD_MESSAGE = 3;
+            OPEN_MEMCARD.message = 3;
             OPEN_confirmFormat(port);
             break;
         case 2:
@@ -973,13 +991,13 @@ void OPEN_runMemcardPrompts(void) {
             }
             break;
         case 18:
-            OPEN_MEMCARD_MESSAGE = 0xB;
+            OPEN_MEMCARD.message = 0xB;
             break;
         case 4:
-            OPEN_MEMCARD_MESSAGE = 0xE;
+            OPEN_MEMCARD.message = 0xE;
             break;
         case 9:
-            OPEN_MEMCARD_MESSAGE = 0x12;
+            OPEN_MEMCARD.message = 0x12;
             break;
         case 15:
             OPEN_MEMCARD.message = 0x13;
@@ -995,23 +1013,23 @@ void OPEN_runMemcardPrompts(void) {
             }
             break;
         case 26:
-            if (OPEN_MEMCARD_MODE == 6) {
+            if (OPEN_MEMCARD.mode == 6) {
                 port = 0;
             }
             if (PAD_STATES[port]->pressed & 0x40) {
-                OPEN_MEMCARD_READY = 1;
+                OPEN_MEMCARD.ready = 1;
             }
             break;
         case 27:
-            OPEN_MEMCARD_READY = 1;
+            OPEN_MEMCARD.ready = 1;
             break;
         case 8:
-            OPEN_MEMCARD_MESSAGE = 7;
+            OPEN_MEMCARD.message = 7;
             break;
         case 1:
             break;
         }
-    } while (OPEN_MEMCARD_READY != 1);
+    } while (OPEN_MEMCARD.ready != 1);
     waitFrames(FRAME_INTERVAL);
 }
 
@@ -1050,7 +1068,7 @@ void OPEN_confirmPlayWithoutSaving(s32 port) {
 }
 
 void OPEN_confirmFormat(s32 pad) {
-    initDialog((u8 *)&OPEN_DIALOG, "Format the Memory Card in Slot 1?", 1);
+    initDialog((u8 *)&OPEN_DIALOG, OPEN_TEXT_FORMAT_CARD, 1);
     runDialogForPad((s32 *)&OPEN_DIALOG, pad);
     switch (OPEN_DIALOG.choice) {
     case 1:
