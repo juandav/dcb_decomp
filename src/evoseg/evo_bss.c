@@ -3,8 +3,13 @@
 #include "dcb/menu.h"
 #include "dcb/evoseg.h"
 
-/* not referenced by any code */
+/* not referenced by any code; the values are leftovers, not the same in
+   every version */
+#if VERSION_US
 u32 D_801F02BC = 0xF05B2E46;
+#elif VERSION_EU
+u32 D_801F02BC = 0x0C00A1F2;
+#endif
 
 s8 EVO_BANNER_FADE = 0;
 /* not referenced by any code */
@@ -12,10 +17,17 @@ u8 D_801F02C4[4] = { 0 };
 u16 EVO_BANNER_CLUT[16] = { 0 };
 u8 EVO_BANNER_BRIGHTNESS = 0;
 /* not referenced by any code */
+#if VERSION_US
 u8 D_801F02E9 = 0x23;
 u8 D_801F02EA = 0x8F;
 u8 D_801F02EB = 0x2B;
 u8 D_801F02EC[4] = { 0x74, 0x68, 0x7F, 0xC3 };
+#elif VERSION_EU
+u8 D_801F02E9 = 0;
+u8 D_801F02EA = 0xB2;
+u8 D_801F02EB = 0x8F;
+u8 D_801F02EC[4] = { 0x5C, 0x00, 0xB1, 0x8F };
+#endif
 EvoSpark EVO_SPARKS[16] = { { { 0 } } };
 EvoColor EVO_SHARD_COLOR = { 0 };
 SVECTOR *EVO_SHARD_VERTS = 0;

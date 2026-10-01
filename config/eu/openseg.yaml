@@ -72,6 +72,7 @@ segments:
       - [0xC510, c, friend/open_friend]
       - [0xD764, asm, memcard/open_memcard]
       - [0x1046C, asm, memcard/open_save]
+      - [0x1197C, c, open_bss]
       - [0x1197C, data, title/open_movie]
       - [0x119A4, data, friend/open_trade]
       - [0x11AAC, .data, registration/open_registration]
@@ -80,6 +81,6 @@ segments:
       - [0x11F74, data, title/open_title]
       - [0x11F80, data, memcard/open_memcard]
       - [0x12270, data, memcard/open_save]
-      - [0x12280, data, open_bss]
+      - [0x12280, .data, open_bss]
 
   - [0x19C00]

@@ -54,7 +54,7 @@ segments:
     subalign: 4
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
-      - [0x0, rodata, sai_data]
+      - [0x0, .rodata, sai_data]
       - [0x358, rodata, ui/sai_text]
       - [0x3B8, .rodata, script/sai_flags]
       - [0x3E0, .rodata, ui/sai_labels]
@@ -90,7 +90,9 @@ segments:
       - [0x12984, c, player/sai_reward]
       - [0x13B28, asm, player/sai_partner_get]
       - [0x14994, asm, player/sai_digi_parts]
-      - [0x14F08, data, sai_data]
+      - [0x14F08, c, sai_bss]
+      - [0x14F08, c, sai_data]
+      - [0x14F08, .data, sai_data]
       - [0x1503C, .data, ui/sai_choice]
       - [0x1504C, data, player/sai_player_data]
       - [0x15118, .data, hacking/sai_hacking]
@@ -99,6 +101,6 @@ segments:
       - [0x156D8, data, map/sai_world_map]
       - [0x157DC, data, player/sai_partner_get]
       - [0x157E0, data, player/sai_digi_parts]
-      - [0x15DE0, data, sai_bss]
+      - [0x15DE0, .data, sai_bss]
 
   - [0x16F10]
