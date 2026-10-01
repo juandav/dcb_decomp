@@ -82,13 +82,8 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
     freeHeapBlock(buf);
 }
 
-#if VERSION_JP || VERSION_EU
-/* jp and eu: take tpage as an int and keep it apart from the bits they build
-   (another register allocation); no C form found yet */
-INCLUDE_ASM("main/nonmatchings/gfx/prim", drawTexturedSprite);
-#elif VERSION_US
 void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 otz, u8 brightness, s8 blendMode) {
-    s32 tpageBits = tpage;
+    u16 tpageBits = tpage;
 
     if (isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = x;
@@ -102,7 +97,7 @@ void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 o
         CUR_SPRT->sp.g0 = brightness;
         CUR_SPRT->sp.b0 = brightness;
         if (blendMode >= 0) {
-            tpageBits |= (blendMode & 3) << 5;
+            tpageBits = tpage | (blendMode & 3) << 5;
             setSemiTrans(&CUR_SPRT->sp, 1);
         } else {
             setSemiTrans(&CUR_SPRT->sp, 0);
@@ -113,4 +108,3 @@ void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 o
         SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
-#endif
