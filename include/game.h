@@ -753,7 +753,9 @@ typedef struct {
     /* 0x82 */ s8 dpSlots[DP_SLOT_COUNT];
     /* 0x8B */ s8 digimonStack[3];
     /* 0x8E */ s8 playedCard;
-    /* 0x8F */ char name[1];
+    /* 0x8F */ char name[0x11];
+    /* 0xA0 */ u8 unkA0;
+    /* 0xA1 */ u8 unkA1[3];
 } Player;
 #elif VERSION_US || VERSION_EU
 typedef struct {
@@ -884,7 +886,10 @@ typedef struct {
 typedef struct {
 #if VERSION_JP
     /* jp's profile is laid out otherwise: only the fields its C reads so far */
-    /* 0x0000 */ char name[0x14];
+    /* 0x0000 */ char name[0x10];
+    /* 0x0010 */ u32 monoSound : 1; /* the option screen's sound setting */
+    /* 0x0010 */ u32 skipBattleAnimation : 1; /* its polygon battle setting */
+    /* 0x0010 */ u32 unk10_2 : 30;
     /* 0x0014 */ s32 playTime;
     /* 0x0018 */ u16 battleWins;
     /* 0x001A */ u16 battleLosses;
@@ -911,7 +916,7 @@ typedef struct {
     /* 0x0515 */ u8 digivolveCollection[6];
     /* 0x051B */ u8 unk51B[0xF20 - 0x51B];
     /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
-    /* 0x0F48 */ u8 unkF48[0x126C - 0xF48];
+    /* 0x0F48 */ PlayerDeck savedDecks[3];
     /* 0x126C */ HallOfFameDeck hallOfFameDeck;
     /* 0x1378 */ s32 clearTime; /* playTime when the game was beaten */
     /* 0x137C */ u8 unk137C[0x145C - 0x137C];
@@ -992,15 +997,43 @@ typedef struct {
     /* 0x1A9 */ u8 resumeMode; /* 1: back from a duel, 2: back from the complete stats */
 } AreaSession;
 #if VERSION_JP
+/* what jp's window task (func_8002A3E0) opens: a window that grows from one
+   rect to the other, its contents drawn by draw */
+typedef struct {
+    /* 0x00 */ Rect16 from;
+    /* 0x08 */ Rect16 to;
+    /* 0x10 */ s32 frames;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ void (*draw)(void *window);
+    /* 0x1C */ void (*close)(void);
+} WindowSpec;
+/* jp's menu of choices (func_8002B508 opens it, func_8002B188 adds a choice,
+   func_8002BD58 is true once one is taken) */
+typedef struct {
+    /* 0x000 */ u8 unk0[0x23C];
+    /* 0x23C */ s32 choice;
+    /* 0x240 */ u8 unk240[8];
+    /* 0x248 */ s8 result; /* negative: cancelled */
+    /* 0x249 */ u8 unk249[7];
+} ChoiceMenu;
 /* jp's session block is 0x154 bytes, laid out differently: only the fields
    its matched code reads are placed */
 typedef struct {
     /* 0x000 */ u8 *prims; /* 0x820 bytes, half for each frame buffer */
     /* 0x004 */ struct Panel *panels; /* the duel's HUD panels (battle_hud.h) */
     /* 0x008 */ void *unk8; /* 0x36C bytes, KAWSEG's (func_801FEC84) */
-    /* 0x00C */ u8 unkC[0x12C];
+    /* 0x00C */ u8 unkC[4];
+    /* 0x010 */ PlayerDeck opponentDeck; /* the CPU's, for the next duel */
+    /* 0x11C */ s8 cpuStyle[4]; /* copied to Player.cpuPlaceStyle .. cpuSupportStyle */
+    /* 0x120 */ s8 deckChoice; /* the saved deck the player takes to a duel against the CPU */
+    /* 0x121 */ u8 unk121;
+    /* 0x122 */ s8 tutorial; /* the next duel against the CPU is the tutorial */
+    /* 0x123 */ char opponentName[0x15];
     /* 0x138 */ AreaSession *areaSession;
-    /* 0x13C */ u8 unk13C[0x18];
+    /* 0x13C */ u8 unk13C[0x10];
+    /* 0x14C */ u8 versusWins[2]; /* this session's, per player */
+    /* 0x14E */ u8 deckChoices[2]; /* each player's saved deck in a versus duel */
+    /* 0x150 */ u8 unk150[4];
 } SessionData;
 #elif VERSION_US || VERSION_EU
 typedef struct {
@@ -1170,7 +1203,13 @@ typedef struct {
     /* 0x441 */ s8 cursorMode;
     /* 0x442 */ u8 winner;
     /* 0x443 */ s8 tutorial;
-    /* 0x444 */ u8 unk444[0x33];
+    /* the tutorial's message window (KAWSEG's func_801FF2C0) */
+    /* 0x444 */ s8 tutorialClosing;
+    /* 0x445 */ s8 tutorialMessage; /* the message to show */
+    /* 0x446 */ s8 tutorialShown;
+    /* 0x447 */ s8 tutorialVisible;
+    /* 0x448 */ s8 tutorialOpen;
+    /* 0x449 */ u8 unk449[0x2E];
     /* 0x477 */ s8 menuPlayer; /* who opened the Give Up prompt or the help */
     /* 0x478 */ s8 quit; /* 1: the Give Up prompt is open; 2 + the winner once given up */
     /* 0x479 */ s8 helpOpen; /* the duel waits (waitDuelFrames) while this or quit is set */

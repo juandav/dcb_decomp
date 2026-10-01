@@ -30,7 +30,7 @@ MAIN_C_SRC := \
 	src/main/main.c \
 	src/main/card/player_rank.c \
 	$(addprefix src/main/duel/, card_zones.c cpu_decision.c \
-		duel_util_jp.c) \
+		duel_setup_jp.c duel_util_jp.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
 		prim_util.c screen_copy.c tmd_sort.c transform.c vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
@@ -56,7 +56,8 @@ KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_battle_sim.c kaw_card_queries.c \
 		kaw_cpu.c kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \
 	src/kawseg/duel/kaw_hand_jp.c \
-	$(addprefix src/kawseg/ui/, kaw_hud_jp.c kaw_result_jp.c)
+	$(addprefix src/kawseg/ui/, kaw_exp_jp.c kaw_hud_jp.c \
+		kaw_result_jp.c)
 SAISEG_C_SRC := \
 	src/saiseg/player/sai_player_data_jp.c \
 	src/saiseg/ui/sai_text_jp.c
