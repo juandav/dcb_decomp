@@ -90,6 +90,27 @@ NisWindowDef NIS_DECK_COPY_WINDOW = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x11
 NisWindowDef NIS_AUTO_DECK_WINDOW = { { 0x1A, 0xA0, 0, 0xC }, { 0x1A, 0xA0, 0x112, 0x3B }, 0xA, 0, NIS_drawAutoDeckQuestion, NIS_closeDeckWindow };
 NisWindowDef NIS_AUTO_DECK_PORTRAIT_WINDOW = { { 0x126, 0x4F, 0, 0x10 }, { 0xE6, 0x4F, 0x40, 0x38 }, 0xA, 1, NIS_drawAutoDeckPortrait, NIS_closeDeckWindow };
 
+#if JP_DEBUG_BUILD
+/* the windows the debug menu (debug/nis_debug_menu) opens one at a time:
+   what it calls before opening the window and after closing it */
+typedef struct {
+    /* 0x0 */ NisWindowDef *window;
+    /* 0x4 */ void (*open)();
+    /* 0x8 */ void (*close)();
+} NisWindowTest;
+void func_801F8C18();
+void func_801F8D34();
+void func_801F8E10();
+void NIS_closeDeckScene(void);
+
+NisWindowTest NIS_WINDOW_TESTS[4] = {
+    { &NIS_DECK_SUMMARY_WINDOW, func_801F8C18, NULL },
+    { &NIS_CARD_DETAILS_WINDOW, func_801F8D34, NIS_closeDeckScene },
+    { &NIS_DECK_NAME_WINDOW, func_801F8E10, NULL },
+    { &NIS_DECK_QUESTION_WINDOW, NULL, NULL },
+};
+#endif
+
 /* the auto deck's last question: build it? */
 void NIS_confirmAutoDeck(void) {
     NisMenu menu;
@@ -101,6 +122,7 @@ void NIS_confirmAutoDeck(void) {
     addChoiceMenuItem(&menu, 0xB, NIS_startDeckKinds);
     addChoiceMenuItem(&menu, 0xC, NIS_startDeckEditor);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -125,6 +147,7 @@ void NIS_askAutoDeckStyle(void) {
     addChoiceMenuItem(&menu, 0x25, (options >= 10) ? NIS_confirmAutoDeck : NIS_showTooFewCards);
     addChoiceMenuItem(&menu, 0x26, NIS_confirmAutoDeck);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -145,6 +168,7 @@ void NIS_askAutoDeckOptions(void) {
     addChoiceMenuItem(&menu, 0x23, NIS_askAutoDeckStyle);
     addChoiceMenuItem(&menu, 0x24, NIS_askAutoDeckStyle);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -176,6 +200,7 @@ void NIS_showTooFewCards(void) {
         NIS_AUTO_DECK_QUESTION = 0xA;
     }
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -200,7 +225,7 @@ void NIS_runDeckEditor(s32 openWindows) {
         spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_AUTO_DECK_PORTRAIT_WINDOW, getCurrentTaskId());
         NIS_DECK_SCREENS.nameWindow = waitFrames(0x7FFFFFFF);
     }
-    NIS_ROOKIE_COUNTS = allocHeapBlock(0xC, 0x19A);
+    NIS_ROOKIE_COUNTS = NIS_ALLOC_HEAP_BLOCK(0xC, 0x19A, "BTL_GOLD", 5);
     NIS_countOwnedRookies();
     openChoiceMenu(&menu, 0x1B, 0x32, (NIS_AUTO_DECK_FROM_MENU == 0) ? NIS_askAutoDeckForNew : NIS_runDeckMenu, &cursor);
     addChoiceMenuItem(&menu, 0x1C, (NIS_ROOKIE_COUNTS[0] >= 6) ? NIS_askAutoDeckOptions : NIS_showTooFewCards);
@@ -210,6 +235,7 @@ void NIS_runDeckEditor(s32 openWindows) {
     addChoiceMenuItem(&menu, 0x20, (NIS_ROOKIE_COUNTS[4] >= 6) ? NIS_askAutoDeckOptions : NIS_showTooFewCards);
     freeHeapBlocksByTag(0x19A);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         result = runChoiceMenu(&menu);
         if (result == 0) {
@@ -237,6 +263,7 @@ void NIS_askAutoDeckForNew(void) {
     addChoiceMenuItem(&menu, 0xB, NIS_runDeckEditor);
     addChoiceMenuItem(&menu, 0xC, NIS_startDeckKinds);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -245,6 +272,7 @@ void NIS_askAutoDeckForNew(void) {
         waitFrames(0x1E);
         if (menu.choice == 1) {
             cursor = -1;
+            NIS_DEBUG_PRINT("CHECK1 !!\n");
         }
         startChoiceMenuAction(&menu);
     }
@@ -285,6 +313,11 @@ void NIS_typeKana(char *name, s32 page, s32 column, s32 row, u8 erase) {
         letter[0] = name[NIS_DECK_EDIT.cardType * 2] = 0;
     }
     strcpy(NIS_TYPED_NAME, name);
+    NIS_DEBUG_PRINT("CX   = %d\n", column);
+    NIS_DEBUG_PRINT("CY   = %d\n", row);
+    NIS_DEBUG_PRINT("FT   = %d\n", page);
+    NIS_DEBUG_PRINT("NO   = %d\n", offset);
+    NIS_DEBUG_PRINT("DNUM = %d\n", NIS_DECK_EDIT.cardType);
 }
 
 /* the row the cursor goes to when it moves left onto the commands */
@@ -342,7 +375,13 @@ s32 NIS_enterDeckName(char *name, s8 newDeck) {
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_NAME_ENTRY_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
+#if JP_DEBUG_BUILD
+        sprintf(D_800907F8[4], "STR %d\n", strlen(name));
+        sprintf(D_800907F8[5], "POS %d\n", newDeck);
+        sprintf(D_800907F8[6], "SIZE =  %d\n", NIS_DECK_EDIT.cardType);
+#endif
         if (NIS_REPEATED() & PAD_CIRCLE) {
             blank = NIS_isNameBlank(name);
             if (column < 10) {
@@ -489,6 +528,7 @@ void NIS_confirmDeckCopy(void) {
     addChoiceMenuItem(&menu, 0xB, NIS_reopenDeckMenu);
     addChoiceMenuItem(&menu, 0xC, NIS_reopenDeckMenu);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -543,6 +583,7 @@ void NIS_askNewDeckAuto(void) {
     addChoiceMenuItem(&menu, 0xB, NIS_askAutoDeckForNew);
     addChoiceMenuItem(&menu, 0xC, NIS_nameNewDeck);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -557,6 +598,12 @@ void NIS_askNewDeckAuto(void) {
 }
 
 /* deletes the deck: the ones after it move up */
+#if JP_DEBUG_BUILD
+/* "command taken": a named string, since both branches that print it load
+   its %hi and objdiff can't pair them with one %lo */
+const char NIS_FMT_COMMAND_TAKEN[] = "コマンド受理 %d\n";
+#endif
+
 void NIS_deleteDeck(void) {
     NisMenu menu;
     Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
@@ -573,6 +620,7 @@ void NIS_deleteDeck(void) {
     addChoiceMenuItem(&menu, 0xB, NIS_enterDeckList);
     addChoiceMenuItem(&menu, 0xC, NIS_reopenDeckMenu);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         result = runChoiceMenu(&menu);
         if (result == 0) {
@@ -587,6 +635,7 @@ void NIS_deleteDeck(void) {
                 }
             }
         }
+        NIS_DEBUG_PRINT(NIS_FMT_COMMAND_TAKEN, result);
         NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 4;
         waitFrames(0x1E);
         startChoiceMenuAction(&menu);
@@ -610,6 +659,7 @@ void NIS_showDeckNotFull(void) {
     openChoiceMenu(&menu, 0xB, 0x32, NULL, &cursor);
     addChoiceMenuItem(&menu, 0xB, NIS_startDeckKinds);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
@@ -659,7 +709,7 @@ void NIS_initCardImage(void) {
         NIS_CARD_IMAGE.slots[i].clutY = i + 0x1FE;
     }
     for (i = 0; i < 2; i++) {
-        DB(i).primSlots[2] = (s32)(NIS_CARD_IMAGE.polys[i] = allocHeapBlock(0x78, 0x3A));
+        DB(i).primSlots[2] = (s32)(NIS_CARD_IMAGE.polys[i] = NIS_ALLOC_HEAP_BLOCK(0x78, 0x3A, "DETIAL", 2));
     }
     for (j = 0; j < 2; j++) {
         poly = NIS_CARD_IMAGE.polys[j];
@@ -673,14 +723,16 @@ void NIS_initCardImage(void) {
     NIS_CARD_IMAGE.current = NIS_CARD_IMAGE.slots;
 }
 
-/* loads the picture of the card in view, unless a slot has it */
-void NIS_loadCardImage(void) {
+/* loads the picture of the card in view, unless a slot has it; get is
+   NIS_showCard's -1, which only the debug build prints */
+void NIS_loadCardImage(s32 get) {
     char path[0x40];
     s32 id;
     s32 i;
     u32 *tim;
 
     id = NIS_getCardId(NIS_DECK_EDIT.cardType, NIS_DECK_EDIT.cardIndex);
+    NIS_DEBUG_PRINT("get = %d\n", get);
     NIS_initCardImage();
     NIS_CARD_IMAGE.turn = 0;
     NIS_CARD_IMAGE.back = 0;
@@ -700,7 +752,11 @@ void NIS_loadCardImage(void) {
         NIS_CARD_IMAGE.current->cardId = id;
         NIS_CARD_IMAGE.loaded = 1;
         sprintf(path, "B:\\L_CARD\\LC%3.3d.TIM", id);
+#if JP_DEBUG_BUILD
+        spawnTask(0, -1, 4, 0x800, loadFile, path, getCurrentTaskId());
+#else
         spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+#endif
         tim = (u32 *)waitFrames(0x7FFFFFFF);
         uploadTim(tim, NIS_CARD_IMAGE.current->x, NIS_CARD_IMAGE.current->y, NIS_CARD_IMAGE.current->clutX, NIS_CARD_IMAGE.current->clutY);
         DrawSync(0);
@@ -736,6 +792,7 @@ s32 NIS_changeCopies(s32 decrease, s32 increase, s8 *copies, s8 max) {
     }
     return 0;
 }
+
 /* the card in view: its picture, its details and the copies in the deck;
    Circle keeps the copies, Cross puts them back, Triangle shows the
    Digimon's model */
@@ -757,6 +814,10 @@ void NIS_showCard(s32 kind) {
             NIS_DECK_EDIT.savedCopies = NIS_DECK_EDIT.copies;
         }
     }
+    NIS_DEBUG_PRINT("mode = %d\n", kind);
+    NIS_DEBUG_PRINT("deck = %d\n", NIS_DECK_EDIT.deck);
+    NIS_DEBUG_PRINT("new = %d\n", NIS_DECK_EDIT.copies);
+    NIS_DEBUG_PRINT("old = %d\n", copies);
     clearKanjiPage(0xF);
     spawnTask(0, -1, 0, 0x1000, NIS_loadCardImage, -1);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_CARD_DETAILS_WINDOW, getCurrentTaskId());
@@ -774,7 +835,11 @@ void NIS_showCard(s32 kind) {
     }
     waitFrames(0x5A);
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
+#if JP_DEBUG_BUILD
+        sprintf(D_800907F8[0], "FLAG = %d \n", viewer);
+#endif
         if (NIS_CARD_IMAGE.loaded) {
             continue;
         }
@@ -794,6 +859,7 @@ void NIS_showCard(s32 kind) {
         }
         if ((NIS_PRESSED() & PAD_TRIANGLE) && NIS_DECK_EDIT.cardType == 0) {
             viewer = 1;
+            NIS_DEBUG_NAME_TASK(0, "MODEL_VIEW");
             spawnTask(0, -1, 0, 0x1000, NIS_viewCardModel, 0, getCurrentTaskId(), 0, 0);
             break;
         }
@@ -811,8 +877,11 @@ void NIS_showCard(s32 kind) {
     freeHeapBlocksByTag(0x3A);
     if (viewer == 0) {
         if (D_801E46E8 != 1) {
+            NIS_DEBUG_PRINT("CARD SELECT\n");
+            NIS_DEBUG_NAME_TASK(0, "CARD_SELECT");
             spawnTask(0, -1, 0, 0x1000, NIS_runCardGrid, kind, 0, 0, 0);
         } else {
+            NIS_DEBUG_NAME_TASK(0, "SELECT");
             spawnTask(0, -1, 0, 0x800, NIS_runTradeGrid, kind, 0, 0, 0);
         }
     }
@@ -836,6 +905,8 @@ void NIS_runCardGrid(s32 kind) {
     NIS_DECK_SCREENS.mainWindow = waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_GRID_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);
+    NIS_DEBUG_PRINT("mode = %d\n", kind);
+    NIS_DEBUG_PRINT("deck = %d\n", NIS_DECK_EDIT.deck);
     if (list->count >= NIS_GRID_CURSOR) {
         list->cursor = NIS_GRID_CURSOR;
         list->scroll = NIS_GRID_SCROLL;
@@ -853,6 +924,7 @@ void NIS_runCardGrid(s32 kind) {
         NIS_CARD_LIST->cursor = NIS_CARD_LIST->count - 1;
     }
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         if ((s8)((s8)NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck + NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].count) == 0) {
             menu.handlers[0] = NULL;
@@ -944,6 +1016,7 @@ void NIS_runDeckKinds(s32 mode) {
         NIS_DECK_SCREENS.motionWindow = waitFrames(0x7FFFFFFF);
     }
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         result = runChoiceMenu(&menu);
         if (result == 0) {
@@ -977,7 +1050,7 @@ void NIS_runDeckKinds(s32 mode) {
 void NIS_backUpDeck(void) {
     s8 i;
 
-    NIS_DECK_BACKUP = allocHeapBlock(0x3C, 0x193);
+    NIS_DECK_BACKUP = NIS_ALLOC_HEAP_BLOCK(0x3C, 0x193, "DECK_CMP", 2);
     for (i = 0; i < 30; i++) {
         NIS_DECK_BACKUP[i][0] = NIS_PROFILE(0)->savedDecks[NIS_DECK_EDIT.deck].cards[i].type;
         NIS_DECK_BACKUP[i][1] = NIS_PROFILE(0)->savedDecks[NIS_DECK_EDIT.deck].cards[i].index;
@@ -1012,6 +1085,7 @@ void NIS_runDeckMenu(s32 mode) {
         addChoiceMenuItem(&menu, 0x1B, NIS_deleteDeck);
     }
     while (1) {
+        NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);
         result = runChoiceMenu(&menu);
         if (result == 0) {
@@ -1045,6 +1119,15 @@ INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_runDeckList);
 /* the VRAM NIS_runDeckList clears (defined after it, so that GCC switches
    back to .rodata after the asm) */
 const Rect16 NIS_DECK_CLEAR_RECT = { 0x180, 0x100, 0x40, 0x100 };
+#if JP_DEBUG_BUILD
+/* and what the debug build's NIS_runDeckList names and prints: "swapped",
+   "initialized", "deck in use" */
+const char NIS_STR_2P_DATA[] = "2P_DATA";
+const char NIS_STR_SWAPPED[] = "入れ替え完了\n";
+const char NIS_STR_INITIALIZED[] = "初期化完了\n";
+const char NIS_FMT_DECK_IN_USE[] = "使用デッキ %d\n";
+#endif
+
 void NIS_enterDeckList(void) {
     NIS_runDeckList(1);
 }

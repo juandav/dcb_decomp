@@ -85,6 +85,9 @@ typedef struct {
     /* 0x4078 */ s32 primSlots[17]; /* jp has one more slot */
     /* 0x40BC */ s32 spritePool;
     /* 0x40C0 */ s32 windowPrimPool;
+#if JP_DEBUG_BUILD
+    /* 0x40C4 */ u8 unk40C4[8]; /* the debug build's are 8 bytes longer */
+#endif
 #elif VERSION_US || VERSION_EU
     /* 0x4078 */ s32 primSlots[16];
     /* 0x40B8 */ s32 spritePool;

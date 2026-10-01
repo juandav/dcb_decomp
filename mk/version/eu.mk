@@ -66,8 +66,10 @@ KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_hud.c \
 		kaw_match_intro.c kaw_prize.c kaw_result.c)
 NISSEG_C_SRC := \
-	$(addprefix src/nisseg/deck/, nis_auto_deck.c nis_deck_scene.c) \
+	$(addprefix src/nisseg/deck/, nis_auto_deck.c nis_deck_editor.c \
+		nis_deck_scene.c nis_deck_windows.c) \
 	src/nisseg/title/nis_title.c \
+	src/nisseg/trade/nis_trade.c \
 	src/nisseg/viewer/nis_model_viewer.c \
 	src/nisseg/vs/nis_vs_deck_select.c \
 	src/nisseg/vs/nis_vs_mode.c

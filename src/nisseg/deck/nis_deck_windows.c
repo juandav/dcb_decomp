@@ -379,6 +379,12 @@ void NIS_drawAutoDeckQuestion(NisWindow *window) {
     char styles[2][5] = { "攻撃", "防御" };
     char amounts[2][7] = { "多め", "少なめ" };
 
+#if JP_DEBUG_BUILD
+    /* the debug text shows the answers so far */
+    sprintf(D_800907F8[0], "ATR  = %d \n", NIS_DECK_EDIT.cardType);
+    sprintf(D_800907F8[1], "TYPE = %d \n", NIS_DECK_EDIT.cardIndex);
+    sprintf(D_800907F8[2], "OPT  = %d \n", NIS_DECK_EDIT.unkA);
+#endif
     /* "Betamon:" */
     drawIconText(0x26, 0xA2, 7, 1, window->z, (s32)"c4ベタモンc7s0w4：");
     switch (NIS_AUTO_DECK_QUESTION) {
@@ -486,6 +492,13 @@ void NIS_drawNameEntry(NisWindow *window) {
             NIS_NAME_CURSOR->y = ((i != 2) ? NIS_DECK_EDIT.unkA * 15 : commandY[NIS_DECK_EDIT.unkA]) + 0x58;
         }
         KAW_drawCursor(NIS_NAME_CURSOR);
+#if JP_DEBUG_BUILD
+        /* and the cursor's box */
+        sprintf(D_800907F8[0], "CURSOL_X %d", NIS_NAME_CURSOR->x);
+        sprintf(D_800907F8[1], "CURSOL_Y %d", NIS_NAME_CURSOR->y);
+        sprintf(D_800907F8[2], "CUSIZE_X %d", NIS_NAME_CURSOR->w);
+        sprintf(D_800907F8[3], "CUXIZE_Y %d", NIS_NAME_CURSOR->h);
+#endif
         for (i = 0, y = 0; i < 9; i++, y += 0xF) {
             sprintf(text, "s0%s", kana[i]);
             drawIconText(0x32, y + 0x52, 7, 1, window->z, (s32)text);
@@ -526,14 +539,24 @@ void NIS_drawDeckCopyQuestion(NisWindow *window) {
 s32 NIS_loadDeckTims(void) {
     u32 *tims;
 
+#if JP_DEBUG_BUILD
+    spawnTask(0, -1, 4, 0x800, loadFile, "A:\\DECK.TIM", getCurrentTaskId());
+#else
     spawnTask(0, -1, 0, 0x800, loadFile, "A:\\DECK.TIM", getCurrentTaskId());
+#endif
     tims = (u32 *)waitFrames(0x7FFFFFFF);
-    if (tims != NULL) {
-        uploadTimList(tims);
-        freeHeapBlock(tims);
-        return 0;
+    if (tims == NULL) {
+#if JP_DEBUG_BUILD
+        /* the debug build stops on an error task */
+        NIS_DEBUG_NAME_TASK(0, NIS_STR_ERROR_TASK);
+        spawnTask(0, -1, 0, 0x200, func_80019CE8, "DECK.TIM LOAD ERROR !!\n", 0, getCurrentTaskId(), 0);
+        waitFrames(0x7FFFFFFF);
+#endif
+        return 1;
     }
-    return 1;
+    uploadTimList(tims);
+    freeHeapBlock(tims);
+    return 0;
 }
 
 /* adds to the deck's card count and writes it into VRAM */

@@ -67,7 +67,7 @@ void NIS_runVsMode(void) {
             NIS_PROFILE(0)->tradeUnlocked = !NIS_PROFILE(0)->tradeUnlocked;
             NIS_PROFILE(1)->tradeUnlocked = NIS_PROFILE(0)->tradeUnlocked;
         }
-        sprintf(D_800907F8, "PUSH R1 TRADE = %d\n", NIS_PROFILE(1)->tradeUnlocked);
+        sprintf(D_800907F8[0], "PUSH R1 TRADE = %d\n", NIS_PROFILE(1)->tradeUnlocked);
 #endif
         if (runChoiceMenu(&menu) == 0) {
             continue;
