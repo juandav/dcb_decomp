@@ -17,7 +17,6 @@
 void drawSmallDigits(s32 x, s32 y, u8 *text, s32 palette, s32 z);
 void drawSmallDigitsColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 s32 convertSjisToTinyText(u8 *src, u8 *dst);
-void drawBattleLog(s32 player, s32 x, s32 y, s32 z);
 void func_80042008(s32 x, s32 y, s32 z);
 void func_80042BF4(s32 x, s32 y, s32 kind, s32 brightness, s32 z);
 void func_80042E38(s32 x, s32 y, s32 kind, s32 brightness);
