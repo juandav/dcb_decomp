@@ -28,11 +28,25 @@
 #define HUD_PANEL(i) (&((SessionData *)SESSION_DATA)->panels[i])
 #define PLAYER_PANEL(p, slot) HUD_PANEL((p) * 11 + (slot))
 
-/* jp's HUD panel: a textured quad that the duel moves around */
+/* jp's HUD panel: a textured quad that the duel moves around, in 3D */
 typedef struct Panel {
-    /* 0x00 */ u8 unk0[0x41];
+    /* 0x00 */ u8 unk0[4];
+    /* 0x04 */ u8 rgb[3];
+    /* 0x07 */ u8 code;
+    /* 0x08 */ u16 clut;
+    /* 0x0A */ u16 tpage;
+    /* 0x0C */ u8 uv[4][2];
+    /* 0x14 */ VECTOR pos;
+    /* 0x24 */ SVECTOR rot;
+    /* 0x2C */ s16 w;
+    /* 0x2E */ s16 h;
+    /* 0x30 */ VECTOR start; /* where a move started */
+    /* 0x40 */ u8 flags; /* 0x80: drawn */
     /* 0x41 */ u8 state;
-    /* 0x42 */ u8 unk42[6];
+    /* 0x42 */ u8 total; /* frames of the move */
+    /* 0x43 */ u8 count; /* frames left */
+    /* 0x44 */ s16 unk44;
+    /* 0x46 */ s16 unk46;
 } Panel;
 #elif VERSION_US || VERSION_EU
 #define PANEL(i) (((HudPanel *)HUD_PANELS)[i])

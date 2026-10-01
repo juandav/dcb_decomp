@@ -28,9 +28,9 @@ TEXT_ENCODING := cp932
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
 	src/main/main.c \
-	src/main/card/player_rank.c \
+	$(addprefix src/main/card/, partner_level_jp.c player_rank.c) \
 	$(addprefix src/main/duel/, card_zones.c cpu_decision.c \
-		duel_launch_jp.c duel_setup_jp.c duel_util_jp.c) \
+		duel_launch_jp.c duel_setup_jp.c duel_util_jp.c hud_panels_jp.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_desc.c \
 		prim_pair.c prim_util.c screen_copy.c tmd_sort.c transform.c \
 		vram_upload.c) \

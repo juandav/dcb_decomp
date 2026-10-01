@@ -754,7 +754,7 @@ typedef struct {
     /* 0x8B */ s8 digimonStack[3];
     /* 0x8E */ s8 playedCard;
     /* 0x8F */ char name[0x11];
-    /* 0xA0 */ u8 unkA0;
+    /* 0xA0 */ s8 dpGainTimer; /* frames left of the "+Np" over the DP slots */
     /* 0xA1 */ u8 unkA1[3];
 } Player;
 #elif VERSION_US || VERSION_EU
@@ -1197,7 +1197,9 @@ typedef struct {
     /* 0x438 */ s8 cpuRequest;
     /* 0x439 */ s8 turnPlayer;
     /* 0x43A */ s8 step;
-    /* 0x43B */ u8 unk43B[4];
+    /* 0x43B */ s8 returnStep;
+    /* 0x43C */ s8 viewPlayer;
+    /* 0x43D */ u8 unk43D[2];
     /* 0x43F */ u8 cursorPlayer;
     /* 0x440 */ s8 cursorSlot;
     /* 0x441 */ s8 cursorMode;
