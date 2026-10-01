@@ -92,7 +92,7 @@ segments:
       - [0x1340, .rodata, duel/duel_session_jp]
       # the rodata of the asm modules after duel_session, up to duel_launch
       - [0x15A4, rodata, card/card_render_jp]
-      - [0x172C, rodata, card/card_db_jp]
+      - [0x172C, .rodata, card/card_db_jp]
       - [0x1738, .rodata, duel/duel_launch_jp]
       - [0x1768, .rodata, card/card_vram]
       - [0x17B4, .rodata, card/partner_level_jp]
@@ -169,7 +169,7 @@ segments:
       # drawing
       - [0x31F5C, asm, card/card_render_jp]
       # jp's card_db: loading the card files and the collection
-      - [0x337CC, asm, card/card_db_jp]
+      - [0x337CC, c, card/card_db_jp]
       # jp's own: the card polys, the card sprite renderer (card_render's in
       # us) and the hand cursor (KAWSEG's in us)
       - [0x34200, c, card/card_sprite_jp]
