@@ -12,8 +12,26 @@ void hideScrollingBackground(void);
 void setBackgroundScrollMode(s8 scrollMode);
 void freeScrollingBackground(void);
 
+#if VERSION_JP
+/* jp's effect mode 10 replays transforms recorded in a ring buffer */
 typedef struct {
+    /* 0x00 */ VECTOR *pos;
+    /* 0x04 */ VECTOR *scale;
+    /* 0x08 */ SVECTOR *rot;
+    /* 0x0C */ s16 *brightness;
+    /* 0x10 */ s32 head;
+    /* 0x14 */ s32 last;
+    /* 0x18 */ s32 count;
+    /* 0x1C */ s32 rows;
+} EffectTrail;
+#endif
+
+typedef struct {
+#if VERSION_JP
+    s32 data[0x50]; /* an EffectObject: jp's has one more word */
+#elif VERSION_US || VERSION_EU
     s32 data[0x4F];
+#endif
 } EffectTemplate;
 /*
  * An effect that moves in the scene: its own transform (0x00-0x4C), the
@@ -39,10 +57,9 @@ typedef struct {
     /* 0x06C */ s32 targetX;
     /* 0x070 */ s32 targetY;
     /* 0x074 */ s32 targetZ;
-#if VERSION_JP
-    /* 0x078 */ u8 unk78[0x24]; /* jp: the fields below are 4 bytes further */
-#elif VERSION_US || VERSION_EU
     /* 0x078 */ u8 unk78[0x20];
+#if VERSION_JP
+    /* 0x098 */ EffectTrail *trail; /* jp: the fields below are 4 bytes further */
 #endif
     /* 0x098 */ s32 parent;
     /* 0x09C */ VECTOR dir; /* unit vector from the start to the target, 0x1000 = 1.0 */
