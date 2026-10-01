@@ -2,8 +2,8 @@
 // every name here is jp's own (version-only).
 
 // functions splat can't see: each follows a task that never returns
-func_801EBB64 = 0x801EBB64; // type:func
-func_801EFADC = 0x801EFADC; // type:func
+NIS_runTradeGrid = 0x801EBB64; // type:func version-only
+NIS_drawTradeOffers = 0x801EFADC; // type:func version-only
 
 // title/nis_title
 D_801EA3E8 = 0x801EA3E8; // size:0x4 version-only (a 7 nothing reads)
@@ -260,3 +260,70 @@ NIS_KANA_PAGE = 0x801FC87C; // size:0x4 version-only
 NIS_CARD_IN_VIEW = 0x801FC880; // size:0x1 version-only
 NIS_NAME_CURSOR = 0x801FC748; // size:0x4 version-only
 NIS_DECK_CLEAR_RECT = 0x801EB038; // size:0x8 version-only
+
+
+// trade/nis_trade
+NIS_loadTradeTimFile = 0x801EB81C; // type:func version-only
+NIS_runTradeMenu = 0x801EB944; // type:func version-only (player 1's cards, player 2's cards, trade, back)
+NIS_getTradeCardPicture = 0x801EC478; // type:func version-only
+NIS_getTradeCardId = 0x801EC610; // type:func version-only
+NIS_drawTradeGrid = 0x801EC658; // type:func version-only
+NIS_drawTradeTitle = 0x801ECBA4; // type:func version-only
+NIS_drawTradeGridHelp = 0x801ECCD0; // type:func version-only
+NIS_closeTradeWindow = 0x801ECD28; // type:func version-only
+NIS_doNothingInTrade = 0x801ECD30; // type:func version-only (unused)
+NIS_drawTradeCardPicture = 0x801ECD38; // type:func version-only
+NIS_keepTradeCopies = 0x801ECE3C; // type:func version-only
+NIS_showTradeCard = 0x801ECE88; // type:func version-only (unused, the trade shows its cards with NIS_showCard)
+NIS_changeTradeCopies = 0x801ED014; // type:func version-only
+NIS_writeTradeCopies = 0x801ED0F8; // type:func version-only
+NIS_openTradeScene = 0x801ED184; // type:func version-only
+NIS_renderTradeScene = 0x801ED2F4; // type:func version-only
+NIS_closeTradeScene = 0x801ED394; // type:func version-only
+NIS_drawTradeCardDetails = 0x801ED40C; // type:func version-only
+NIS_buildTradeList = 0x801EDDC8; // type:func version-only
+NIS_removeDeckCopies = 0x801EE50C; // type:func version-only
+NIS_capReceivedCopies = 0x801EE888; // type:func version-only
+NIS_limitToNewSerials = 0x801EEA9C; // type:func version-only
+NIS_findNewSerials = 0x801EECF0; // type:func version-only
+NIS_findNewCardSerials = 0x801EEE14; // type:func version-only
+NIS_exchangeOffers = 0x801EEFAC; // type:func version-only
+NIS_giveCardCopy = 0x801EF210; // type:func version-only
+NIS_countTradeOffer = 0x801EF68C; // type:func version-only
+NIS_setTradeOffer = 0x801EF860; // type:func version-only
+NIS_runTradeQuestion = 0x801EF98C; // type:func version-only
+NIS_drawTradeQuestion = 0x801EFDDC; // type:func version-only
+NIS_TRADE_TITLE_WINDOW = 0x801FBD70; // size:0x20 version-only
+NIS_TRADE_GRID_WINDOW = 0x801FBD90; // size:0x20 version-only
+NIS_TRADE_HELP_WINDOW = 0x801FBDB0; // size:0x20 version-only
+NIS_TRADE_CARD_WINDOW = 0x801FBDD0; // size:0x20 version-only
+NIS_TRADE_OFFERS_WINDOW = 0x801FBDF0; // size:0x20 version-only
+NIS_TRADE_QUESTION_WINDOW = 0x801FBE10; // size:0x20 version-only
+D_801FBE30 = 0x801FBE30; // size:0x4 version-only (0xFF00, nothing reads it)
+// the text NIS_TRADE_*_NAMES point to (string literals in the C)
+D_801EA4C8 = 0x801EA4C8; // version-only
+D_801EA4D0 = 0x801EA4D0; // version-only
+D_801EA4D8 = 0x801EA4D8; // version-only
+D_801EA4E0 = 0x801EA4E0; // version-only
+D_801EA4E8 = 0x801EA4E8; // version-only
+D_801EA4F0 = 0x801EA4F0; // version-only
+D_801EA4FC = 0x801EA4FC; // version-only
+D_801EA50C = 0x801EA50C; // version-only
+D_801EA520 = 0x801EA520; // version-only
+D_801EA52C = 0x801EA52C; // version-only
+D_801EA548 = 0x801EA548; // version-only
+D_801EA550 = 0x801EA550; // version-only
+NIS_TRADE_ELEMENT_NAMES = 0x801FBE34; // size:0x14 version-only
+NIS_TRADE_SEVENS_EFFECT_NAMES = 0x801FBE48; // size:0x14 version-only
+NIS_TRADE_KIND_NAMES = 0x801FBE5C; // size:0x8 version-only
+NIS_TRADE_WINDOWS = 0x801FC4A8; // size:0x18 version-only
+NIS_TRADE_CURSOR = 0x801FC4D0; // size:0x4 version-only
+NIS_TRADE_VIEW = 0x801FC4D8; // size:0x8 version-only
+NIS_TRADE_LIST = 0x801FC4E0; // size:0x4 version-only
+NIS_TRADE_MASKS = 0x801FC4E4; // size:0x4 version-only
+NIS_TRADE_PLAYER = 0x801FC4E8; // size:0x1 version-only
+NIS_TRADE_OFFERS = 0x801FC4F8; // size:0x74 version-only
+NIS_TRADE_SCENE_ENVS = 0x801FC578; // size:0x80 version-only
+NIS_TRADE_SCREEN_ENVS = 0x801FC5F8; // size:0x80 version-only
+NIS_TRADE_SCENE_DRAWENVS = 0x801FC678; // size:0xB8 version-only
+NIS_TRADE_SCREENS = 0x801FC730; // size:0x8 version-only

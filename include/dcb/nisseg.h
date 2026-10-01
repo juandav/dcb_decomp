@@ -71,7 +71,7 @@ typedef struct {
 } NisAttack;
 
 typedef struct {
-    /* 0x000 */ s16 id;
+    /* 0x000 */ s16 id; /* 0: no such card */
     /* 0x002 */ u8 type;
     /* 0x003 */ char name[0x11];
     /* 0x014 */ u8 elementLevel; /* the element in the high nibble, the level in the low one */
@@ -90,7 +90,8 @@ typedef struct {
 
 /* jp's option cards (OPTION_CARDS points to them) */
 typedef struct {
-    /* 0x00 */ u8 unk0[3];
+    /* 0x00 */ s16 id; /* 0: no such card */
+    /* 0x02 */ u8 unk2;
     /* 0x03 */ char name[0x12];
     /* 0x15 */ u8 unk15[0x71];
     /* 0x86 */ s8 level;
@@ -100,7 +101,8 @@ typedef struct {
 
 /* jp's Digivolve cards (DIGIVOLVE_CARDS points to them) */
 typedef struct {
-    /* 0x00 */ u8 unk0[3];
+    /* 0x00 */ s16 id; /* 0: no such card */
+    /* 0x02 */ u8 unk2;
     /* 0x03 */ char name[0x12];
     /* 0x15 */ char text[4][0x13];
     /* 0x61 */ u8 unk61;
@@ -292,6 +294,13 @@ extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
 extern NisUiState *SCROLLING_BACKGROUND;
 extern u8 D_801E46E8; /* 1 in the trade */
+
+/* the trade's window that the card screen leaves open */
+typedef struct {
+    /* 0x0 */ s32 unk0;
+    /* 0x4 */ s32 titleWindow; /* the player's name and offer */
+} NisTradeScreens;
+extern NisTradeScreens NIS_TRADE_SCREENS;
 extern u8 *OPTION_CARDS; /* as dcb/card_db.h */
 extern u8 *DIGIVOLVE_CARDS;
 #define NIS_DIGIMON_CARDS ((NisCardData *)DIGIMON_CARDS)
