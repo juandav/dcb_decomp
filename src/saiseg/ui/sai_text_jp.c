@@ -102,7 +102,7 @@ void SAI_drawMessageWindow(JpWindow *win) {
 }
 
 /* c6(%s)c7(Ｂｉｔを手に入れた！) */
-const char SAI_FMT_GOT_BITS[] = "c6(%s)c7(\x82" "a\x82\x89\x82\x94\x82\xF0\x8E\xE8\x82\xC9\x93\xFC\x82\xEA\x82\xBD\x81I)";
+const char SAI_FMT_GOT_BITS[] = "c6(%s)c7(Ｂｉｔを手に入れた！)";
 
 /* it reads SESSION_DATA's state again for the Bits, where our C reuses the
    pointer it read the event with */
