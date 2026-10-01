@@ -22,3 +22,5 @@ KAW_chooseDigivolveOption = 0x801F2310; // type:func
 KAW_chooseAttack = 0x801F2358; // type:func
 KAW_chooseSupportCard = 0x801F2C6C; // type:func
 NIS_runTitleScreen = 0x801EB2CC; // type:func version-only (NISSEG's title screen, which the executable starts)
+KAW_runResultScreen = 0x801FBFEC; // type:func
+KAW_RESULT_SCREEN_STATE = 0x801FFEB4;

@@ -682,24 +682,19 @@ typedef struct {
     /* 0x001 */ char name[0x13];
 #endif
     /* 0x014 */ CardSlot cards[30];
+#if VERSION_JP
+    /* 0x100 */ u16 wins;
+    /* 0x102 */ u16 losses;
+    /* 0x104 */ u16 attackCounts[3]; /* the attacks used, by button */
+    /* 0x10A */ u8 unk10A[2];
+#elif VERSION_US || VERSION_EU
     /* 0x104 */ s32 unk104;
     /* 0x108 */ u16 saveCount; /* times the deck was saved in this slot */
     /* 0x10A */ u16 wins;
     /* 0x10C */ u16 losses;
     /* 0x10E */ u8 unk10E[2];
-} PlayerDeck;
-#if VERSION_JP
-/* jp: the deck the player beat the game with, which the ending's records show */
-typedef struct {
-    /* 0x000 */ u8 unk0;
-    /* 0x001 */ char name[0xF];
-    /* 0x010 */ CardSlot cards[30];
-    /* 0x100 */ u16 wins;
-    /* 0x102 */ u16 losses;
-    /* 0x104 */ u16 attackCounts[3];
-    /* 0x10A */ u8 unk10A[2];
-} HallOfFameDeck;
 #endif
+} PlayerDeck;
 /* the slots of a player's DP pile */
 #if VERSION_JP
 #define DP_SLOT_COUNT 9
@@ -917,7 +912,7 @@ typedef struct {
     /* 0x051B */ u8 unk51B[0xF20 - 0x51B];
     /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
     /* 0x0F48 */ PlayerDeck savedDecks[3];
-    /* 0x126C */ HallOfFameDeck hallOfFameDeck;
+    /* 0x126C */ PlayerDeck hallOfFameDeck; /* the deck the player beat the game with, which the ending's records show */
     /* 0x1378 */ s32 clearTime; /* playTime when the game was beaten */
     /* 0x137C */ u8 unk137C[0x145C - 0x137C];
 #elif VERSION_US || VERSION_EU
@@ -1026,9 +1021,12 @@ typedef struct {
     /* 0x010 */ PlayerDeck opponentDeck; /* the CPU's, for the next duel */
     /* 0x11C */ s8 cpuStyle[4]; /* copied to Player.cpuPlaceStyle .. cpuSupportStyle */
     /* 0x120 */ s8 deckChoice; /* the saved deck the player takes to a duel against the CPU */
-    /* 0x121 */ u8 unk121;
+    /* 0x121 */ s8 opponentDeckIndex; /* the deck the CPU duels with */
     /* 0x122 */ s8 tutorial; /* the next duel against the CPU is the tutorial */
-    /* 0x123 */ char opponentName[0x15];
+    /* 0x123 */ char opponentName[0x12];
+    /* 0x135 */ s8 stageMusic; /* runDuelStageTask's arguments, for the duel against the CPU */
+    /* 0x136 */ s8 stageId;
+    /* 0x137 */ u8 unk137;
     /* 0x138 */ AreaSession *areaSession;
     /* 0x13C */ u8 unk13C[0x10];
     /* 0x14C */ u8 versusWins[2]; /* this session's, per player */
@@ -1175,6 +1173,13 @@ typedef struct {
     /* 0x3 */ u8 age;
 } CardCache;
 #if VERSION_JP
+/* a mark jp's duel draws at the screen's side */
+typedef struct {
+    /* 0x0 */ s8 owner;
+    /* 0x1 */ u8 shown;
+    /* 0x2 */ s16 x;
+    /* 0x4 */ s16 y;
+} HudMark;
 /* jp's duel state is laid out differently (cpuResult is 0x3DC bytes earlier):
    only the fields its matched code reads are placed */
 typedef struct {
@@ -1199,7 +1204,8 @@ typedef struct {
     /* 0x43A */ s8 step;
     /* 0x43B */ s8 returnStep;
     /* 0x43C */ s8 viewPlayer;
-    /* 0x43D */ u8 unk43D[2];
+    /* 0x43D */ s8 messageWanted; /* the message bar's message (duel_session's DUEL_MESSAGES) */
+    /* 0x43E */ s8 messageShown;
     /* 0x43F */ u8 cursorPlayer;
     /* 0x440 */ s8 cursorSlot;
     /* 0x441 */ s8 cursorMode;
@@ -1211,7 +1217,11 @@ typedef struct {
     /* 0x446 */ s8 tutorialShown;
     /* 0x447 */ s8 tutorialVisible;
     /* 0x448 */ s8 tutorialOpen;
-    /* 0x449 */ u8 unk449[0x2E];
+    /* 0x449 */ u8 unk449;
+    /* 0x44A */ s8 unk44A;
+    /* 0x44B */ u8 unk44B;
+    /* 0x44C */ HudMark marks[7];
+    /* 0x476 */ u8 showMarks; /* L1 or R1 toggles it */
     /* 0x477 */ s8 menuPlayer; /* who opened the Give Up prompt or the help */
     /* 0x478 */ s8 quit; /* 1: the Give Up prompt is open; 2 + the winner once given up */
     /* 0x479 */ s8 helpOpen; /* the duel waits (waitDuelFrames) while this or quit is set */
@@ -1219,8 +1229,11 @@ typedef struct {
     /* 0x47B */ u8 unk47B[2];
     /* 0x47D */ u8 artSlot;
     /* 0x47E */ u8 cpuPlayer;
-    /* 0x47F */ u8 unk47F;
-    /* 0x480 */ u8 unk480; /* the player who may open the prompts (2: none) */
+    /* 0x47F */ s8 unk47F;
+    /* 0x480 */ s8 humanPlayer; /* who plays at the controller: opens the prompts, sits at the bottom (2: nobody) */
+    /* 0x481 */ s8 unk481;
+    /* 0x482 */ s8 unk482;
+    /* 0x483 */ u8 unk483;
 } Duel;
 #elif VERSION_US || VERSION_EU
 typedef struct {

@@ -9,7 +9,7 @@
 /* draws a panel's quad */
 void func_80041B5C(Panel *panel, s32 index, s32 z);
 /* the colour of the DP a card brings */
-extern u8 D_8007E948[];
+u8 DP_GAIN_RGB[4] = { 0x80, 0x80, 0x80 };
 
 /* jp's HUD panels (hud_panels.c is us's and eu's): eleven per player and a
    shared one, each with a function that moves it by its state: placed out
@@ -795,7 +795,7 @@ void tickBattleHud(void) {
                     dx = 0x50;
                 }
                 sprintf(text, "+%dp", CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, dpBonus));
-                drawBigDigits(SPRITE(card)->sx + 10 - dx, SPRITE(card)->sy, (u8 *)text, D_8007E948, 0);
+                drawBigDigits(SPRITE(card)->sx + 10 - dx, SPRITE(card)->sy, (u8 *)text, DP_GAIN_RGB, 0);
             }
         }
     }

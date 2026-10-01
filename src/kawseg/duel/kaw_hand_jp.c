@@ -374,8 +374,8 @@ void func_801F8F68(void) {
             playSoundEffect(0xA1);
             DUEL->helpOpen = 0;
         }
-    } else if (DUEL->quit == 0 && DUEL->unk480 < 2) {
-        pad = (s8)DUEL->unk480;
+    } else if (DUEL->quit == 0 && (u8)DUEL->humanPlayer < 2) {
+        pad = DUEL->humanPlayer;
         if (PAD_STATES[pad]->rawPressed & PAD_SELECT) {
             playSoundEffect(0xA0);
             DUEL->helpOpen = 1;
@@ -404,7 +404,7 @@ void func_801F9144(void) {
         if (D_801FFB1C == 0) {
             if (PAD_STATES[pad]->rawPressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                DUEL->quit = (DUEL->unk480 + 2) ^ 1;
+                DUEL->quit = (DUEL->humanPlayer + 2) ^ 1;
                 return;
             }
             if (PAD_STATES[pad]->rawPressed & (PAD_CROSS | PAD_START)) {
@@ -414,8 +414,8 @@ void func_801F9144(void) {
         } else {
             D_801FFB1C--;
         }
-    } else if (DUEL->helpOpen == 0 && DUEL->unk480 < 2) {
-        pad = (s8)DUEL->unk480;
+    } else if (DUEL->helpOpen == 0 && (u8)DUEL->humanPlayer < 2) {
+        pad = DUEL->humanPlayer;
         if (PAD_STATES[pad]->rawPressed & PAD_START) {
             playSoundEffect(0xA0);
             DUEL->quit = 1;
