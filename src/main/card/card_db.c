@@ -413,6 +413,9 @@ void markBuildableOpponentDecks(s32 player) {
 /* picks the 3 reward cards: cards whose rewardRank falls in the pack's range
    for their specialty and level, and with the partners' rewardBonus as percent
    chance, one of them from just above that range */
+#if VERSION_EU
+INCLUDE_ASM("main/nonmatchings/card/card_db", rollRewardCards);
+#elif VERSION_US
 void rollRewardCards(s32 player, s32 pack) {
     DigimonCardData **cards;
     s16 *inRange;
@@ -514,6 +517,9 @@ void rollRewardCards(s32 player, s32 pack) {
     freeHeapBlock(inRange);
     freeHeapBlock(nearRange);
 }
+#else
+#error "main/card/card_db: version not checked"
+#endif
 
 void addRewardCardsToCollection(s32 player) {
     s32 i;
@@ -595,6 +601,7 @@ void setCardSlotFromId(u8 *out, s32 id) {
 
 s32 countDeckCardsByFilter(s32 unused, PlayerDeck *deck, s32 mask) {
     s32 count;
+    u8 type;
     s32 i;
     DigimonCardData *card;
     s32 level;
@@ -602,10 +609,12 @@ s32 countDeckCardsByFilter(s32 unused, PlayerDeck *deck, s32 mask) {
 
     count = 0;
     for (i = 0; i < 30; i++) {
-        switch (deck->cards[i].type) {
+        type = deck->cards[i].type;
+        switch (type) {
         case 0:
             card = &((DigimonCardData *)DIGIMON_CARDS)[deck->cards[i].index];
-            level = card->attr & 0xF;
+            level = card->attr;
+            level &= 0xF;
             specialty = card->attr >> 4;
             if (mask & 0x1E00) {
                 if (mask & 0x1F) {
@@ -765,8 +774,8 @@ void restorePartners(s32 player) {
 
 void refreshPartners(s32 player) {
     s32 slot;
-    u8 cardId;
-    u8 armorCardId;
+    s32 cardId;
+    s32 armorCardId;
 
     for (slot = 0; slot < 3; slot++) {
         cardId = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].cardId;
@@ -1208,6 +1217,9 @@ u8 *PARTNER_ABILITY_TEXTS[82] = {
 };
 u8 PARTNER_START_ABILITIES[6] = { 0xA, 0xF, 0, 0x26, 0x64, 0x14 };
 
+#if VERSION_EU
+INCLUDE_ASM("main/nonmatchings/card/card_db", updatePartnerStats);
+#elif VERSION_US
 s32 updatePartnerStats(s32 player, s32 slot) {
     s32 i;
     s32 j;
@@ -1352,6 +1364,9 @@ s32 updatePartnerStats(s32 player, s32 slot) {
     }
     return ret;
 }
+#else
+#error "main/card/card_db: version not checked"
+#endif
 
 void equipPartnerAbility(s32 player, s32 slot, s32 abilitySlot, s32 ability) {
     if (getPartnerAbilityState(player, ability) == 1) {
