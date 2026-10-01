@@ -520,7 +520,11 @@ typedef struct {
     u8 b[8];
 } Bytes8;
 typedef struct {
+#if VERSION_JP
+    /* 0x000 */ u8 unk0[0x140]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     /* 0x000 */ u8 unk0[0x13C];
+#endif
     /* 0x13C */ u8 texAnim[0x20];
     /* 0x15C */ u8 *tpagePrims[2];
     /* 0x164 */ u8 *prims[2];

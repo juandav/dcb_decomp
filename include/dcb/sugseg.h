@@ -77,7 +77,11 @@ typedef struct {
 /* a 3D polygon effect: a fan of `count` triangles around verts[0], an optional
    inner fan, and rings of quads, drawn with one of several primitive kinds */
 typedef struct {
+#if VERSION_JP
+    /* 0x000 */ u8 unk0[0x13D]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     /* 0x000 */ u8 unk0[0x139];
+#endif
     /* 0x139 */ u8 suspended;
     /* 0x13A */ u8 unk13A[2];
     /* 0x13C */ TexAnim texAnim;
