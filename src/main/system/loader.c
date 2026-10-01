@@ -11,7 +11,7 @@
 /* eu's loader still prints its debug trace */
 #if VERSION_EU
 #define LOADER_TRACE(args) printf args
-#elif VERSION_US
+#elif VERSION_US || VERSION_JP
 #define LOADER_TRACE(args)
 #else
 #error "main/system/loader: version not checked"
@@ -29,9 +29,12 @@ s32 loadFile(s32 path, s32 parentTask) {
     s32 buf;
 
     size = 0;
+    /* jp's loadFile doesn't wait for the loader */
+#if VERSION_US || VERSION_EU
     while (FILE_LOADER_BUSY != 0) {
         waitFrames(FRAME_INTERVAL);
     }
+#endif
     FILE_LOADER_BUSY = 1;
     file = openDiscFile((s8 *)path, 1);
     buf = 0;
