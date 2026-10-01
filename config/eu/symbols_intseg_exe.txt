@@ -1,0 +1,80 @@
+// The executable eu's INTSEG was built for. It isn't SLES_039.00: INTSEG
+// calls and reads that one where SLES_039.00 has other code (spawnTask at
+// 0x80014C3C, not 0x80014B8C), a Japanese one with debug code (it names the
+// tasks it spawns and prints to a debug text buffer). INTSEG's splat config
+// and its link read these names instead of the executable's
+// (config/eu/symbols.txt): jp's names, at that executable's addresses (jp's
+// automatic names, D_8002A3E0 and the like, keep jp's address in the name),
+// and the automatic names of what jp's executable doesn't have.
+
+func_80014B28 = 0x80014B28; // type:func
+getCurrentTaskId = 0x80014B34; // type:func
+spawnTask = 0x80014C3C; // type:func
+endTask = 0x80014C84; // type:func
+exitTask = 0x80014D14; // type:func
+waitFrames = 0x80014E8C; // type:func
+addFrameCallback = 0x800164B8; // type:func
+removeFrameCallback = 0x800164F0; // type:func
+func_800184F0 = 0x800184F0; // type:func
+func_80018F5C = 0x80018F5C; // type:func
+freeHeapBlock = 0x8001A594; // type:func
+freeHeapBlocksByTag = 0x8001A768; // type:func
+loadFile = 0x8001B36C; // type:func
+loadFileTagged = 0x8001B488; // type:func
+uploadTimList = 0x8001B84C; // type:func
+findPakChunk = 0x8001BE08; // type:func
+truncatePakTextures = 0x8001BFA0; // type:func
+stopScreenFade = 0x8001ECF8; // type:func
+setScreenFadeParams = 0x8001ED08; // type:func
+screenFadeTask = 0x8001ED3C; // type:func
+runModelAnimationTask = 0x800229A0; // type:func
+startModelAnimation = 0x80022B8C; // type:func
+loadModelAnimation = 0x80022F48; // type:func
+loadModelAnimationFile = 0x80022FB8; // type:func
+applyAnimationFirstFrame = 0x80022FD8; // type:func
+unloadAllModels = 0x8002347C; // type:func
+loadModel = 0x80023714; // type:func
+loadOmdModelFromDisc = 0x80023CD4; // type:func
+renderSceneModels = 0x80023D28; // type:func
+initScene3D = 0x800242FC; // type:func
+runSceneCameraTask = 0x8002505C; // type:func
+drawPageSpriteColored = 0x8002742C; // type:func
+uploadKanjiString = 0x80028EEC; // type:func
+formatSjisNumber = 0x80029328; // type:func
+formatSjisNumberZeros = 0x80029450; // type:func
+openKanjiPage = 0x8002A678; // type:func
+closeKanjiPage = 0x8002A890; // type:func
+playSoundEffect = 0x8002E3C8; // type:func
+stopMusic = 0x8002E5B8; // type:func
+playMusic = 0x8002E968; // type:func
+resetPlayerData = 0x8002F4F4; // type:func
+runWindowTask = 0x80030258;
+freeScrollingBackground = 0x800336A0; // type:func
+drawPrimDesc = 0x80034630; // type:func
+clearCallbackSlots = 0x80034DA8; // type:func
+runCallbackSlots = 0x80034E28; // type:func
+allocPrimDescPackets = 0x800352D8; // type:func
+func_80044334 = 0x8004B154; // type:func
+func_800445FC = 0x8004B43C; // type:func
+func_80044758 = 0x8004B598; // type:func
+func_80044790 = 0x8004B5D0; // type:func
+D_800490B4 = 0x80050378;
+ClearImage = 0x8006857C; // type:func
+bzero = 0x8006DDBC; // type:func
+rand = 0x8006DE5C; // type:func
+strcpy = 0x8006DFBC; // type:func
+sprintf = 0x8006EB3C; // type:func
+PLAYER_PROFILES = 0x80086018;
+D_800907F8 = 0x800907F8; // size:0x200
+FRAME_INTERVAL = 0x80090A80;
+CAMERA_TARGET_MODEL = 0x80090B14;
+D_8008CD50 = 0x80094BD8;
+PAD_STATES = 0x8009CE70;
+SCENE_3D = 0x801DDF84;
+D_801DEBF0 = 0x801DEBF0;
+D_801E469C = 0x801E0294;
+CALLBACK_SLOTS = 0x801E02A0; // size:0x28
+CURRENT_CALLBACK_SLOT = 0x801E02C8;
+OPTION_CARDS = 0x801E0308;
+DIGIVOLVE_CARDS = 0x801E030C;
+DIGIMON_CARDS = 0x801E0310;

@@ -37,6 +37,20 @@ extern void *D_801E469C;
 extern u8 *OPTION_CARDS;
 extern u8 *DIGIVOLVE_CARDS;
 
+#if JP_DEBUG_BUILD
+/* the debug code of the executable eu's INTSEG was built against */
+void func_80014B28();
+void func_800184F0();
+void func_80018F5C();
+extern s32 D_801DEBF0;
+/* the debug text's lines */
+extern char D_800907F8[8][0x40];
+/* names the task spawned next */
+#define NAME_TASK(name) func_80014B28(0, name)
+#else
+#define NAME_TASK(name)
+#endif
+
 void INT_introTask(void);
 s32 INT_initIntroScene(IntState *state);
 void INT_openBabamonWindow(void);
@@ -334,7 +348,11 @@ IntPage INT_PAGES[32] = {
 void INT_uploadTimFile(s32 path) {
     s32 data;
 
+#if JP_DEBUG_BUILD
+    spawnTask(0, -1, 4, 0x800, loadFile, path, getCurrentTaskId());
+#else
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
+#endif
     data = waitFrames(0x7FFFFFFF);
     if (data != 0) {
         uploadTimList((u32 *)data);
@@ -349,13 +367,23 @@ void INT_func_801EB3D8(void) {
 }
 
 void INT_startIntro(void) {
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
+    NAME_TASK("INTRO");
     spawnTask(0, -1, 0, 0x800, INT_introTask, 0, 0, 0, 0);
 }
 
 void INT_introTask(void) {
+#if JP_DEBUG_BUILD
+    D_801DEBF0 = 0;
+#endif
     INT_initIntroScene(&INT_STATE);
     stopMusic();
     while (1) {
+#if JP_DEBUG_BUILD
+        func_80018F5C();
+#endif
         waitFrames(FRAME_INTERVAL);
         D_801E469C = &INT_PROMPT_BLINK;
         runCallbackSlots(&INT_STATE, 7, 3);
@@ -531,6 +559,7 @@ s32 INT_runPageAction(IntState *state) {
         waitFrames(100);
         startModelAnimation(state->stone, 4, -2, 0);
         for (i = 0; i < 5; i++) {
+            NAME_TASK("FADE OUT");
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 1, 0x40, 0);
             waitFrames(5);
             setScreenFadeParams(1, 1, 0x40);
@@ -572,6 +601,7 @@ s32 INT_runPageAction(IntState *state) {
             INT_advancePage(state);
             break;
         case 10:
+            NAME_TASK("BOY");
             spawnTask(0, -1, 0, 0x400, INT_showHeroBoy, 0, 0, 0, 0);
             startModelAnimation(3, 7, -2, 0);
             INT_waitAnimationEnd(3, -1, -2);
@@ -618,13 +648,19 @@ s32 INT_runPageAction(IntState *state) {
         case 32:
             INT_WINDOWS[0][1] = 4;
             INT_WINDOWS[4][1] = 4;
+            NAME_TASK("FADE OUT");
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 0x10, 0);
             waitFrames(30);
             func_80044758(state->cursor);
             closeKanjiPage(0xF);
             INT_endScene3D();
             playMusic(0, 4, 0x7F);
+            NAME_TASK("NEW");
+#if JP_DEBUG_BUILD
+            spawnTask(0, -1, 4, 0x1000, D_800490B4, 0, 0, 0, 0);
+#else
             spawnTask(0, -1, 0, 0x1000, D_800490B4, 0, 0, 0, 0);
+#endif
             exitTask();
             return 0;
         }
@@ -647,10 +683,13 @@ void INT_openNameEntry(IntState *state, u8 withDate) {
 
     INT_WINDOWS[0][1] = 4;
     waitFrames(30);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[1] = (u8 *)waitFrames(0x7FFFFFFF);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_BIRTHDAY_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[2] = (u8 *)waitFrames(0x7FFFFFFF);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[3] = (u8 *)waitFrames(0x7FFFFFFF);
     state->keyX = 12;
@@ -740,8 +779,10 @@ void INT_openNicknameEntry(IntState *state, u8 withDate) {
 
     INT_WINDOWS[0][1] = 4;
     waitFrames(30);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[1] = (u8 *)waitFrames(0x7FFFFFFF);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[3] = (u8 *)waitFrames(0x7FFFFFFF);
     state->keyX = 12;
@@ -826,6 +867,7 @@ void INT_openBabamonWindow(void) {
     rect.w = 0;
     rect.h = 0;
     INT_waitAnimationEnd(3, 2, -2);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_SPEAKER_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[4] = (u8 *)waitFrames(0x7FFFFFFF);
     waitFrames(10);
@@ -837,6 +879,7 @@ void INT_openBabamonWindow(void) {
     waitFrames(4);
     uploadKanjiString("ン", &rect);
     INT_waitAnimationEnd(3, 3, -2);
+    NAME_TASK("WIN");
     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
     *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_showNextPage;
@@ -861,7 +904,8 @@ void INT_waitAnimationEnd(s32 slot, s32 anim, s32 loopKey) {
 }
 
 /* only the registers of the state and the loop counter differ (s1 and s2
-   swapped): GCC allocates the counter first */
+   swapped): GCC allocates the counter first (the permuter matches it only by
+   wrapping the action 2 case in a do {} while (0)) */
 INCLUDE_ASM("intseg/nonmatchings/intseg", INT_runYesNoPrompt);
 
 s32 INT_runStoneChoice(void *arg) {
@@ -898,6 +942,7 @@ s32 INT_runStoneChoice(void *arg) {
         INT_waitAnimationEnd(*stone, 3, 0);
     } else if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
         playSoundEffect(0);
+        NAME_TASK("MOVE");
         spawnTask(0, -1, 0, 0x400, INT_moveChosenStone, 0, 0, 0, 0);
         for (i = 0; i < 3; i++) {
             if (*stone == i) {
@@ -915,7 +960,11 @@ s32 INT_runStoneChoice(void *arg) {
         }
         startModelAnimation(3, 0xE, -2, 0);
         INT_advancePage(state);
+        return 0;
     }
+#if JP_DEBUG_BUILD
+    sprintf(D_800907F8[6], "CUR_X = %d\n", *stone);
+#endif
     return 0;
 }
 
@@ -1062,6 +1111,7 @@ s32 INT_runNameEntry(void *arg) {
                         INT_WINDOWS[3][1] = 4;
                         waitFrames(30);
                         INT_advancePage(state);
+                        NAME_TASK("WIN");
                         spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
                         INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
                         return 0;
@@ -1076,6 +1126,14 @@ s32 INT_runNameEntry(void *arg) {
             *y = 8;
         }
     }
+#if JP_DEBUG_BUILD
+    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+            kinds[6]);
+    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+    sprintf(D_800907F8[4], "%2x %2x %2x %2x %2x %2x \n", name[0], name[1], name[2], name[3], name[4], name[5]);
+#endif
     if (*x == 12) {
         func_800445FC(state->cursor, 12, 6, 4);
         func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
@@ -1195,6 +1253,13 @@ s32 INT_runYearEntry(void *arg) {
             *y = 8;
         }
     }
+#if JP_DEBUG_BUILD
+    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+            kinds[6]);
+    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+#endif
     if (*x == 12) {
         func_800445FC(state->cursor, 12, 6, 4);
         func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
@@ -1343,6 +1408,13 @@ s32 INT_runMonthEntry(void *arg) {
             *y = 8;
         }
     }
+#if JP_DEBUG_BUILD
+    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+            kinds[6]);
+    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+#endif
     if (*x == 12) {
         func_800445FC(state->cursor, 12, 6, 4);
         func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
@@ -1466,6 +1538,7 @@ s32 INT_runDayEntry(void *arg) {
                     INT_WINDOWS[3][1] = 4;
                     waitFrames(30);
                     INT_advancePage(state);
+                    NAME_TASK("WIN");
                     spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
                     INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
                     return 0;
@@ -1484,6 +1557,13 @@ s32 INT_runDayEntry(void *arg) {
             *y = 8;
         }
     }
+#if JP_DEBUG_BUILD
+    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+            kinds[6]);
+    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+#endif
     if (*x == 12) {
         func_800445FC(state->cursor, 12, 6, 4);
         func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
@@ -1948,7 +2028,11 @@ void INT_loadKeyboardPage(u8 page) {
 /* the C doesn't lay out the two rarity tables' cases as the original (it
    moved their bodies after the third deck's cards) nor allocate its registers
    the same; its rodata comes with it */
+#if JP_DEBUG_BUILD
+INCLUDE_RODATA("intseg/nonmatchings/intseg", D_801E6F44);
+#else
 INCLUDE_RODATA("intseg/nonmatchings/intseg", D_801EB2AC);
+#endif
 
 INCLUDE_ASM("intseg/nonmatchings/intseg", INT_makeHeroDeck);
 
@@ -1968,8 +2052,12 @@ void INT_addStarterDeck(u8 player, u8 slot, u8 color) {
             0x44, 0x13, 0x13, 0x11, 0x11, 0x10, 0x26, 0x26, 0x90, 0x90, 0x88, 0x88, 0x89, 0x89, 0x8C,
         },
     };
+#if JP_DEBUG_BUILD
+    static const char name[] = "勇者の";
+#else
     /* "勇者の", and the leftover byte after it */
     static const char name[8] = "\x97" "E\x8E\xD2\x82\xCC\0\x04";
+#endif
     s32 i;
     u8 card;
 
@@ -2057,3 +2145,63 @@ void INT_moveChosenStone(void) {
         }
     } while (done != 2);
 }
+
+#if JP_DEBUG_BUILD
+/* the debug animation viewer's model, animation and loop flag, and where
+   it puts model 2 */
+s32 INT_DEBUG_MODEL = 0;
+s32 INT_DEBUG_ANIM = 0;
+s32 INT_DEBUG_LOOP = 0;
+s16 INT_DEBUG_X = 0;
+s16 INT_DEBUG_Y = 0;
+
+extern const char INT_FMT_DEBUG_ANIMATION[];
+
+/* a debug task nothing spawns: the first pad picks a model and an animation
+   and plays it, the second moves model 2 */
+void INT_debugAnimationTask(void) {
+    Model *model;
+
+    func_800184F0(0, 0x10, 1);
+    while (1) {
+        waitFrames(1);
+        if (PAD_STATES[0]->rawRepeat & PAD_RIGHT) {
+            INT_DEBUG_MODEL++;
+        }
+        if (PAD_STATES[0]->rawRepeat & PAD_LEFT) {
+            INT_DEBUG_MODEL--;
+        }
+        if (PAD_STATES[0]->rawRepeat & PAD_UP) {
+            INT_DEBUG_ANIM--;
+        }
+        if (PAD_STATES[0]->rawRepeat & PAD_DOWN) {
+            INT_DEBUG_ANIM++;
+        }
+        if (PAD_STATES[0]->rawRepeat & PAD_START) {
+            INT_DEBUG_LOOP = (INT_DEBUG_LOOP + 1) & 1;
+        }
+        if (PAD_STATES[0]->rawRepeat & PAD_R1) {
+            startModelAnimation(INT_DEBUG_MODEL, INT_DEBUG_ANIM, INT_DEBUG_LOOP - 1, 0);
+        }
+        if (PAD_STATES[1]->rawHeld & PAD_UP) {
+            INT_DEBUG_Y -= 10;
+        }
+        if (PAD_STATES[1]->rawHeld & PAD_DOWN) {
+            INT_DEBUG_Y += 10;
+        }
+        if (PAD_STATES[1]->rawHeld & PAD_RIGHT) {
+            INT_DEBUG_X += 10;
+        }
+        if (PAD_STATES[1]->rawHeld & PAD_LEFT) {
+            INT_DEBUG_X -= 10;
+        }
+        ((Model *)SCENE_3D->models[2])->pos.vx = INT_DEBUG_X;
+        ((Model *)SCENE_3D->models[2])->pos.vy = INT_DEBUG_Y;
+        sprintf(D_800907F8[7], "POSTION X.%d Y.%d\n", INT_DEBUG_X, INT_DEBUG_Y);
+        sprintf(D_800907F8[5], INT_FMT_DEBUG_ANIMATION, INT_DEBUG_MODEL, INT_DEBUG_ANIM, INT_DEBUG_LOOP);
+    }
+}
+
+/* the last three bytes are leftovers, not zero padding */
+const char INT_FMT_DEBUG_ANIMATION[32] = "POSTION X.%d ANM.%d LOOP.%d\n\0ttt";
+#endif
