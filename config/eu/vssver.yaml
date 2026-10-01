@@ -16,8 +16,9 @@ options:
 
   ld_script_path: build/eu/generated/vssver.ld
 
-  symbol_addrs_path:
-    - config/eu/symbols.txt
+  # a databin: it needs none of the executable's symbols, which would all be
+  # outside its segments
+  symbol_addrs_path: []
   undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_vssver.txt
   undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_vssver.txt
 
