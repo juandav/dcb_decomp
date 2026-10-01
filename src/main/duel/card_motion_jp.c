@@ -17,7 +17,7 @@
 void drawSmallDigits(s32 x, s32 y, u8 *text, s32 palette, s32 z);
 void drawSmallDigitsColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 s32 convertSjisToTinyText(u8 *src, u8 *dst);
-void func_8003F38C(s32 z);
+void drawMessageBarPanel(s32 z);
 
 /* 1 while uploadStringGlyphs uploads its glyphs */
 s32 GLYPH_UPLOAD_BUSY = 0;
@@ -290,7 +290,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         break;
     }
     case 22:
-        func_8003F38C(z);
+        drawMessageBarPanel(z);
         break;
     case 8:
     case 19: {

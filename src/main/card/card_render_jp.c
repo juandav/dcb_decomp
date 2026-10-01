@@ -215,8 +215,8 @@ s32 slideHudMark(s32 x, s32 y, s32 kind, s32 mark) {
 
 /* the marks at the screen's side: the step's (mark 0), the player's
    (mark 1), the turn's (mark 2) and, from mark 3 down, what the buttons do
-   (drawHudMarkList) */
-void func_8004227C(s32 x, s32 y, s32 kind, s32 z) {
+   (drawButtonMarks) */
+void drawStepMark(s32 x, s32 y, s32 kind, s32 z) {
     if (slideHudMark(x, y, kind, 0) == 0 && isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = MARK(0).x;
         CUR_SPRT->sp.y0 = MARK(0).y;
@@ -258,7 +258,7 @@ void drawHudMark(s32 x, s32 y, s32 kind, s32 mark, s32 z) {
 
 /* the buttons' marks for the duel's state DUEL->unk44A, one under the
    other from Y; the state becomes STATE */
-void func_800425D8(s32 x, s32 y, s32 state, s32 z) {
+void drawButtonMarks(s32 x, s32 y, s32 state, s32 z) {
     s32 dy;
 
     dy = 0;
@@ -317,7 +317,7 @@ void func_800425D8(s32 x, s32 y, s32 state, s32 z) {
     }
 }
 
-void func_800428A0(s32 x, s32 y, s32 kind, s32 z) {
+void drawTurnMark(s32 x, s32 y, s32 kind, s32 z) {
     if (slideHudMark(x, y, kind, 2) == 0 && isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = MARK(2).x + 0x18;
         CUR_SPRT->sp.y0 = MARK(2).y;
@@ -337,7 +337,7 @@ void func_800428A0(s32 x, s32 y, s32 kind, s32 z) {
     }
 }
 
-void func_80042A4C(s32 x, s32 y, s32 kind, s32 z) {
+void drawPlayerMark(s32 x, s32 y, s32 kind, s32 z) {
     if (slideHudMark(x, y, kind, 1) == 0 && isSpritePoolFull() == 0) {
         CUR_SPRT->sp.x0 = MARK(1).x;
         CUR_SPRT->sp.y0 = MARK(1).y;

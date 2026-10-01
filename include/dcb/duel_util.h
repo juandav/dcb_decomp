@@ -12,7 +12,7 @@ s32 isCrossPressedByTurnPlayer(void);
 #endif
 void waitForCpuDecision(void);
 #if VERSION_JP
-void func_80036C78(void); /* us's waitForCpuDecision */
+void waitForCpuDecisionNoTutorial(void); /* us's waitForCpuDecision */
 #endif
 void renderAttackChoiceIcons(void);
 void runDuelMessageWindow(void);

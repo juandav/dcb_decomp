@@ -85,7 +85,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 1;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult != 0) {
                     waitDuelFrames(0x1E);
                     DUEL->step = 8;
@@ -175,7 +175,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 2;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -1) {
                     for (i = 0; i < 4; i++) {
                         if (PLAYER(ME)->hand[i] != -1 && HAND_CARD(ME, i).type == 0) {
@@ -256,7 +256,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 3;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -1) {
                     DUEL->step = 0x13;
                     break;
@@ -315,7 +315,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 4;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -1) {
                     DUEL->step = 0x1A;
                 } else {
@@ -469,7 +469,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 5;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -1) {
                     DUEL->step = 0x20;
                 } else {
@@ -545,7 +545,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER(ME)->controller == 2) {
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 5;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -1) {
                     DUEL->step = 0x20;
                 } else {
@@ -710,7 +710,7 @@ void runDuelTurnLoop(void) {
                 DUEL->messageWanted = 1;
                 DUEL->cpuPlayer = ME ^ 1;
                 DUEL->cpuRequest = 7;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -2) {
                     waitDuelFrames(0x3C);
                     KAW_playOnlineDeckTop(OPP);
@@ -799,7 +799,7 @@ void runDuelTurnLoop(void) {
                 DUEL->messageWanted = 1;
                 DUEL->cpuPlayer = ME;
                 DUEL->cpuRequest = 7;
-                func_80036C78();
+                waitForCpuDecisionNoTutorial();
                 if (DUEL->cpuResult == -2) {
                     waitDuelFrames(0x3C);
                     KAW_playOnlineDeckTop(ME);

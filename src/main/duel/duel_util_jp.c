@@ -102,7 +102,7 @@ void waitForCpuDecision(void) {
 
 /* us's waitForCpuDecision, without the tutorial's case: jp's turn loop
    calls it where us's does */
-void func_80036C78(void) {
+void waitForCpuDecisionNoTutorial(void) {
     s32 waited;
 
     DUEL->cpuWaitFrames = 0;
