@@ -13,5 +13,4 @@ DISK_DIR := disks/jp
 OVERLAYS := endseg intseg kawseg nisseg saiseg subseg sugseg
 
 # The source files this version builds (see mk/version/us.mk): none yet.
-# Every binary is still one blob, splat's databin, which the build links
-# back as it is.
+# Every binary is splat's assembly (config/jp/*.yaml).

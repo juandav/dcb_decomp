@@ -38,7 +38,12 @@
 # A label referenced by a jumptable. Local, so that jump tables relocate
 # against .text plus an offset, as the compiler's do; objdiff compares
 # relocations, and global labels made the original's tables never match ours.
+# Code that is still splat's assembly (an asm segment) has its jump tables in
+# another file, its rodata's, so there the build defines GLOBAL_JLABELS.
 .macro jlabel label
+.ifdef GLOBAL_JLABELS
+    .global \label
+.endif
     \label:
 .endm
 

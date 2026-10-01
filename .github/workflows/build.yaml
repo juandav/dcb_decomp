@@ -19,9 +19,7 @@ jobs:
       matrix:
         # deps: where the version's executable and P.DRV are in the
         # dependencies repository. report: upload build/<version>/report.json
-        # as <exe>_report, the artifact decomp.dev reads. jp and eu are still
-        # blobs with no units; once they have some, set report: true and
-        # their artifacts are SLPS_025.06_report and SLES_039.00_report.
+        # as <exe>_report, the artifact decomp.dev reads.
         include:
           - version: us
             exe: SLUS_013.28
@@ -30,11 +28,11 @@ jobs:
           - version: jp
             exe: SLPS_025.06
             deps: jp
-            report: false
+            report: true
           - version: eu
             exe: SLES_039.00
             deps: eu
-            report: false
+            report: true
     name: build (${{ matrix.version }})
     env:
       VERSION: ${{ matrix.version }}

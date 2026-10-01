@@ -10,27 +10,48 @@ options:
   compiler: GCC
 
   asm_path: asm/jp/kawseg
-  asset_path: asm/jp/kawseg/bin
   src_path: src/kawseg
   build_path: build/jp
 
   ld_script_path: build/jp/generated/kawseg.ld
 
+  global_vram_start: 0x80000000
+  global_vram_end: 0x80200000
+
+  gp_value: 0x800871D8
+
+  generate_asm_macros_files: False
+
+  section_order: [".rodata", ".text", ".data", ".bss"]
+
+  # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/jp/symbols.txt
   undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_kawseg.txt
   undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_kawseg.txt
 
-  generate_asm_macros_files: False
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+
+  create_data_pads: False
+  # no C yet: the overlay's code is still splat's assembly
   create_c_files: False
 
 segments:
-  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
-  # functions say where)
+  # loaded at OVERLAY_LOAD_ADDR, the end of the executable's .bss
   - name: kawseg
-    type: databin
+    type: code
     start: 0x0
     vram: 0x801EA3E8
+    align: 4
     subalign: 4
+    subsegments:
+      - [0x0, rodata, kawseg]
+      - [0x3114, asm, kawseg]
+      - [0x151E8, data, kawseg]
 
   - [0x15AD0]
