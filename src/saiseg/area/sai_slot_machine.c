@@ -626,11 +626,13 @@ void SAI_runSlotMachine(s32 unused, s32 parent) {
     resumeTask(parent);
 }
 
-void func_801F3578(void) {
+/* the map menu's Move choice: the map's own screen does it */
+void SAI_moveOnMap(void) {
 }
 
-void func_801F35CC();
+void SAI_runWorldMap();
 
-void func_801F3580(void) {
-    spawnTask(0, -1, 0, 0x800, func_801F35CC, 1, 0, 0, 0);
+/* not called */
+void SAI_startWorldMap(void) {
+    spawnTask(0, -1, 0, 0x800, SAI_runWorldMap, 1, 0, 0, 0);
 }

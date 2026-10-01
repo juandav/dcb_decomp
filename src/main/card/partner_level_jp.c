@@ -26,7 +26,7 @@ void func_8005714C(void);
 void func_801ECC58(void);
 void D_801F0820();
 void D_801F0EA8();
-void func_801F35CC();
+void SAI_runWorldMap();
 
 extern u8 *SCROLLING_BACKGROUND;
 extern s32 D_801E4988; /* the option window */
@@ -191,7 +191,7 @@ void func_80046464(void) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     func_801ECC58();
-    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? func_801F35CC : D_801F0EA8, 1, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? SAI_runWorldMap : D_801F0EA8, 1, 0, 0, 0);
     exitTask();
 }
 

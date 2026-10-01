@@ -82,7 +82,7 @@ void D_8004910C();
 void openDeckEditorFromArea();
 void func_801F0EA8(void);
 void SAI_runKeyItems(void);
-void func_801F3578(void);
+void SAI_moveOnMap(void);
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 
 extern s32 D_8008CD50;
@@ -124,7 +124,7 @@ s16 SAI_findMapPath(u8 *path);
 
 #define OPEN_MAP_MENU(map)                                                \
     openChoiceMenu(&(map)->menu, -6, 50, NULL, NULL);                     \
-    addChoiceMenuItem(&(map)->menu, 13, func_801F3578);                   \
+    addChoiceMenuItem(&(map)->menu, 13, SAI_moveOnMap);                   \
     addChoiceMenuItem(&(map)->menu, 14, func_801F0EA8);                   \
     addChoiceMenuItem(&(map)->menu, 2, openDeckEditorFromArea);           \
     addChoiceMenuItem(&(map)->menu, 16, D_8004910C);                      \
@@ -136,7 +136,7 @@ s16 SAI_findMapPath(u8 *path);
     (map)->label.u = ((place) + 6 >= 11) << 7;                            \
     (map)->label.v = ((place) + 6 >= 11 ? (place) - 5 : (place) + 6) * 21
 
-void func_801F35CC(void) {
+void SAI_runWorldMap(void) {
     MapScreen map;
 
     SAI_openWorldMap(&map);
