@@ -80,7 +80,7 @@ extern JpGame *SCROLLING_BACKGROUND;
 void runOptionScreen();
 void openMemcardScreenForWorldMap();
 void openDeckEditorFromArea();
-void func_801F0EA8(void);
+void SAI_returnToArea(void);
 void SAI_runKeyItems(void);
 void SAI_moveOnMap(void);
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
@@ -156,7 +156,7 @@ u8 SAI_MAP_NEIGHBOURS[16][4] = {
 #define OPEN_MAP_MENU(map)                                                \
     openChoiceMenu(&(map)->menu, -6, 50, NULL, NULL);                     \
     addChoiceMenuItem(&(map)->menu, 13, SAI_moveOnMap);                   \
-    addChoiceMenuItem(&(map)->menu, 14, func_801F0EA8);                   \
+    addChoiceMenuItem(&(map)->menu, 14, SAI_returnToArea);                   \
     addChoiceMenuItem(&(map)->menu, 2, openDeckEditorFromArea);           \
     addChoiceMenuItem(&(map)->menu, 16, openMemcardScreenForWorldMap);                      \
     addChoiceMenuItem(&(map)->menu, 3, runOptionScreen);                    \

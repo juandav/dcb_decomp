@@ -23,9 +23,9 @@ void setBackgroundScrollMode(s32 mode);
 void loadScrollingBackground(s32 arg0, s32 arg1);
 void showScrollingBackground(void);
 void func_8005714C(void);
-void func_801ECC58(void);
+void SAI_doNothing(void);
 void NIS_runVsMode();
-void D_801F0EA8();
+void SAI_returnToArea();
 void SAI_runWorldMap();
 
 extern u8 *SCROLLING_BACKGROUND;
@@ -190,8 +190,8 @@ void enterWorldMap(void) {
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
-    func_801ECC58();
-    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? SAI_runWorldMap : D_801F0EA8, 1, 0, 0, 0);
+    SAI_doNothing();
+    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? SAI_runWorldMap : SAI_returnToArea, 1, 0, 0, 0);
     exitTask();
 }
 

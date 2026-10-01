@@ -565,10 +565,10 @@ typedef struct {
 } SlotMachine;
 
 /* SAISEG's data that several modules share, sai_opponent_select_jp.c's */
-extern SpriteDef D_801F6000[36]; /* the portraits' */
-extern JpWindowDef D_801F63C0;
-extern JpWindowDef D_801F63E0;
-extern JpWindowDef D_801F645C;
+extern SpriteDef SAI_PORTRAIT_SPRITE_DEFS[36]; /* the portraits' */
+extern JpWindowDef SAI_BITS_WINDOW_DEF;
+extern JpWindowDef SAI_MESSAGE_LINES_WINDOW_DEF;
+extern JpWindowDef SAI_DECK_INFO_WINDOW_DEF;
 
 /* SAISEG's data that starts zeroed (sai_bss_jp.c) */
 extern s8 SAI_OWNED_KEY_ITEMS[14];
@@ -606,7 +606,7 @@ typedef struct {
 
 extern SaiUi SAI_UI;
 extern TypedText SAI_TYPED_TEXT;
-extern s32 D_801F7558;
+extern s32 SAI_DECK_INFO_WINDOW;
 extern SlotMachine SAI_SLOT_MACHINE;
 #endif
 
