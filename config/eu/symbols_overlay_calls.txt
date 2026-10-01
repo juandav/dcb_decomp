@@ -1,0 +1,41 @@
+// Overlay functions and data the executable uses by address, under the
+// overlay's own names, as in config/us/symbols_overlay_calls.txt. Only
+// config/eu/main.yaml reads this file: the overlays' configs keep their own
+// names for these addresses, and another overlay may be loaded there.
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+OVERLAY_AREA = 0x801E0890;
+SAI_runArea = 0x801E7464; // type:func
+OPEN_runBattleWithFriend = 0x801ED804; // type:func
+KAW_freeTutorial = 0x801ECC98; // type:func
+KAW_drawHandHints = 0x801ED990; // type:func
+KAW_runDeckSelect = 0x801F2240; // type:func
+KAW_runVersusIntro = 0x801F3CA4; // type:func
+KAW_runResultScreen = 0x801F4B88; // type:func
+KAW_runExpScreen = 0x801F6A18; // type:func
+KAW_runPrizeScreen = 0x801F7DF0; // type:func
+KAW_loadEffectArchive = 0x801F810C; // type:func
+KAW_freeEffectArchive = 0x801F8180; // type:func
+KAW_tickDuelMenu = 0x801F9A60; // type:func
+KAW_initHudPanels = 0x801FA0FC; // type:func
+KAW_freeHudPanels = 0x801FA370; // type:func
+KAW_allocCardPolys = 0x801FA73C; // type:func
+KAW_freeCardPolys = 0x801FA7D0; // type:func
+KAW_createCursor = 0x801FA880; // type:func
+KAW_freeCursor = 0x801FAC98; // type:func
+KAW_initRing = 0x801FB5B8; // type:func
+KAW_freeRing = 0x801FB65C; // type:func
+KAW_renderRing = 0x801FB6BC; // type:func
+KAW_resetBonusFlags = 0x801FBD74; // type:func
+KAW_RESULT_SCREEN_STATE = 0x801FE510;
+SUB_runPartnerEquipment = 0x801E73C4; // type:func
+OPEN_runUserRegistration = 0x801E8B98; // type:func
+EVO_runFusion = 0x801EB414; // type:func
+SUB_runDeckEditor = 0x801EB480; // type:func
+OPEN_runTitleScreen = 0x801EC840; // type:func
+OPEN_runMemcardScreen = 0x801EDFF4; // type:func
+OPEN_loadFriendSaves = 0x801EE218; // type:func
+SAI_runWorldMap = 0x801F24A0; // type:func
+OPEN_MEMCARD_CANCELLED = 0x801FA3C9; // type:u8
+OPEN_findMovieFile = 0x801E2504; // type:func
+OPEN_playMovie = 0x801E2EAC; // type:func
