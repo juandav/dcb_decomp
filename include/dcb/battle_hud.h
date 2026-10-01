@@ -144,7 +144,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z);
 void showDpGainPopup(s32 player);
 
 #if VERSION_JP
-void func_8004923C(void); /* jp's own: a task quitToTitleOrPlayEnding starts */
+void openMemcardScreenBeforeTitle(void); /* jp's own: a task quitToTitleOrPlayEnding starts */
 #endif
 
 #endif /* DCB_BATTLE_HUD_H */

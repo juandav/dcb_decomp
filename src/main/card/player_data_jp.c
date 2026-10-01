@@ -57,10 +57,10 @@ void NIS_startVsDeckSelect();
 void NIS_startTrade();
 /* the executable's, the menus' tasks */
 void func_80045E40();
-void func_80048EFC();
-void func_80049170();
-void func_800491D4();
-void func_80049208();
+void runNewLoadMenu();
+void openMemcardScreenToEditDecks();
+void openMemcardScreenForVersus();
+void openMemcardScreenAfterVersus();
 
 s32 strcmp(const char *a, const char *b);
 
@@ -96,9 +96,9 @@ MenuHeader MENU_HEADERS[12] = {
     { 0x2E, NULL },
 };
 MenuItem MENU_ITEMS[27] = {
-    { 0, func_80048EFC },
-    { 1, func_800491D4 },
-    { 2, func_80049170 },
+    { 0, runNewLoadMenu },
+    { 1, openMemcardScreenForVersus },
+    { 2, openMemcardScreenToEditDecks },
     { 3, func_80045E40 },
     { 6, NIS_runMenuE7E4 },
     { 7, NIS_runMenuE7E4 },
@@ -122,7 +122,7 @@ MenuItem MENU_ITEMS[27] = {
     { 0x30, NIS_enterDeckListForTrade },
     { 0x31, NIS_startVsDeckSelect },
     { 0x32, NIS_startTrade },
-    { 0x33, func_80049208 },
+    { 0x33, openMemcardScreenAfterVersus },
 };
 /* menus for openChoiceMenuFromList: the y, the header (MENU_HEADERS) and up
    to ten items (MENU_ITEMS), -1 after the last; NISSEG's VS mode and deck

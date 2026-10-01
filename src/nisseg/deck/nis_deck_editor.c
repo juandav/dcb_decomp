@@ -53,7 +53,7 @@ void NIS_keepTradeCopies();
 void NIS_runTradeGrid(s32 kind);
 void NIS_runVsMode(void);
 extern void returnToAreaFromDeckEditor();
-extern void func_800491A0();
+extern void openMemcardScreenAfterDeckEdit();
 
 void NIS_runDeckEditor(s32 openWindows);
 void NIS_askAutoDeckStyle(void);

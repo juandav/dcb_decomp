@@ -71,7 +71,7 @@ void quitToTitleOrPlayEnding(s32 mode) {
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
         waitFrames(0x7FFFFFFF);
         waitFrames(2);
-        spawnTask(0, -1, 0, 0x800, func_8004923C);
+        spawnTask(0, -1, 0, 0x800, openMemcardScreenBeforeTitle);
     } else {
         waitFrames(2);
         spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\endseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
