@@ -43,6 +43,8 @@ EVOSEG_C_SRC := \
 		evo_lists.c evo_partner_status.c evo_rewards.c evo_screen_flash.c \
 		evo_text.c evo_trays.c evo_type_choice.c)
 KAWSEG_C_SRC := \
+	$(addprefix src/kawseg/cpu/, kaw_card_queries.c kaw_cpu.c \
+		kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \
 	$(addprefix src/kawseg/duel/, kaw_bonus.c kaw_effect.c kaw_hand.c \
 		kaw_tutorial.c) \
 	src/kawseg/kaw_bss.c \

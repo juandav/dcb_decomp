@@ -8,7 +8,7 @@
 typedef struct {
 #if VERSION_JP
     s32 words[0xA4 / 4];
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     s32 words[0x1E4 / 4];
 #else
 #error "untested version"
@@ -132,7 +132,7 @@ s32 KAW_planDigivolves(s32 player) {
     s32 j;
     s32 card;
     u8 specialty;
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     u8 level;
 #elif VERSION_US
     s32 level;
@@ -164,7 +164,7 @@ s32 KAW_planDigivolves(s32 player) {
             }
 #if VERSION_JP
             if ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) >> 4 == specialty) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             /* us and eu: a level-1 Digimon can't digivolve, and one of level 0
                counts as 1 */
             if ((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(player))[card % 30].card, attr) >> 4 == specialty && level != 1) {
@@ -329,7 +329,7 @@ s32 KAW_decideRedraw(s32 player) {
     }
     return 0;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 KAW_decideRedraw(s32 player) {
     s32 self;
     s32 opponent;

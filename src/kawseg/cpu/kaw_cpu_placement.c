@@ -58,7 +58,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
     s32 count;
     s32 card;
     s32 self;
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     s32 attr;
 #elif VERSION_US
     u8 attr;
@@ -71,7 +71,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
     /* jp's Digimon levels go from 0 to 2, us's from 0 to 3 */
 #if VERSION_JP
     for (level = 0; level < 3; level++) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     for (level = 0; level < 4; level++) {
 #else
 #error "untested version"
@@ -92,12 +92,13 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
                 continue;
             }
             /* a partner card goes first (jp has no partners) */
-#if VERSION_US
+#if VERSION_US || VERSION_EU
             if (getPartnerIndex(PLAYER_CARDS(PLAYER(self))[card % 30].id) >= 0) {
                 return card;
             }
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "/tmp/claude-1000/-home-juandav-code-dw-decomp/d2b36c10-5503-4300-af75-672dcd3b6641/scratchpad/eu2/kaw_cpu_placement: version not checked"
 #endif
             attr = (u8)CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, attr) >> 4;
             if (((u8)CARD_BYTE(PLAYER_CARDS(PLAYER(self))[card % 30].card, attr) & 0xF) != level) {
@@ -198,7 +199,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
 #if VERSION_JP
         case 1:
         case 2:
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         case 2:
         case 3:
 #else
@@ -470,7 +471,7 @@ s32 KAW_keepWithSupport(s16 *cards, s32 player, s32 min) {
                 s16 card = cards[i];
 
                 if ((s8)((DigimonCardData *)deck->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
                 Player *p = PLAYER(player);
                 s16 card = cards[i];
 
@@ -498,7 +499,7 @@ s32 KAW_keepWithSupport(s16 *cards, s32 player, s32 min) {
                 s16 card = cards[i];
 
                 if ((s8)((DigimonCardData *)deck->cards[card % 30].card)->supportActions[j].unk0[0] != 0) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
                 Player *p = PLAYER(player);
                 s16 card = cards[i];
 
@@ -566,7 +567,7 @@ s32 KAW_chooseDpCard(s32 player) {
     } else {
 #if VERSION_JP
         need = 80 - sumDigivolvePoints(player);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         need = 60 - sumDigivolvePoints(player);
 #else
 #error "untested version"

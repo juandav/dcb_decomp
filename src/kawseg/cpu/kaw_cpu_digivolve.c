@@ -42,7 +42,7 @@ s32 KAW_chooseDigivolveTarget(s32 player) {
     s32 need;
 #if VERSION_JP
     PlayerDeck *deck;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     Player *p;
     s8 *card;
     s32 cost;
@@ -121,7 +121,7 @@ s32 KAW_chooseDigivolveTarget(s32 player) {
         case 5:
             break;
         }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         p = PLAYER(self);
         card = PLAYER_CARDS(p)[sel % 30].card;
         targetSpecialty = (u8)card[0x1A] >> 4;
@@ -366,7 +366,7 @@ void KAW_planDigivolveOptions(s32 player) {
         }
     }
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void KAW_planDigivolveOptions(s32 player) {
     s32 minNeed[4];
     s32 i;
