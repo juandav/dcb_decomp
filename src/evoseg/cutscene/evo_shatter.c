@@ -552,11 +552,6 @@ void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
-#if VERSION_EU
-/* eu: s1, s2 and s3 rotated by the register allocator; no C form found yet */
-INCLUDE_RODATA("evoseg/nonmatchings/cutscene/evo_shatter", D_801E095C);
-INCLUDE_ASM("evoseg/nonmatchings/cutscene/evo_shatter", EVO_addShard);
-#elif VERSION_US
 s32 EVO_addShard(s32 part, s32 arg) {
     SVECTOR out;
     MATRIX rot;
@@ -592,10 +587,25 @@ s32 EVO_addShard(s32 part, s32 arg) {
     PushMatrix();
     rot = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->matrices[part];
     verts = EVO_SHARD_VERTEX_CURSOR;
+#if VERSION_US
     vert = obj->vertTop;
+#elif VERSION_EU
+    /* eu walks the vertices with prim too */
+    prim = (u8 *)obj->vertTop;
+#else
+#error "evoseg/cutscene/evo_shatter: version not checked"
+#endif
     world = ((EvoModel *)SCENE_3D->models[EVO_SHATTER.model])->matrices[part];
     for (i = 0; i < obj->nvert; i++) {
+#if VERSION_US
         ApplyMatrixSV(&world, vert++, &out);
+#elif VERSION_EU
+        vert = (SVECTOR *)prim;
+        prim += sizeof(SVECTOR);
+        ApplyMatrixSV(&world, vert, &out);
+#else
+#error "evoseg/cutscene/evo_shatter: version not checked"
+#endif
         EVO_SHARD_VERTEX_CURSOR->vx = out.vx + world.t[0];
         EVO_SHARD_VERTEX_CURSOR->vy = out.vy + world.t[1];
         EVO_SHARD_VERTEX_CURSOR->vz = out.vz + world.t[2];
@@ -719,9 +729,6 @@ s32 EVO_addShard(s32 part, s32 arg) {
     EVO_SHATTER.count = slot + 1;
     return slot;
 }
-#else
-#error "evoseg/cutscene/evo_shatter: version not checked"
-#endif
 
 s32 EVO_randomRange(s32 min, s32 max) {
     s32 tmp;

@@ -47,25 +47,12 @@ void SUB_drawPartnerTab(TabWindow *window);
 /* The texts SUB_drawPartnerTab shares with the details windows; GCC keeps
    one copy of each, emitted with SUB_drawPartnerTab, the first function
    that uses them */
-#if VERSION_EU
-/* eu: SUB_drawPartnerTab is still assembly, which brings them: the
-   functions after it read them by name */
-extern const char SUB_STR_STAT[];
-extern const char SUB_STR_CROSS_EFFECT[];
-extern const char SUB_STR_RANK[];
-extern const char SUB_STR_NEXT[];
-extern const char SUB_STR_PARTNER_SUPPORT[];
-extern const char SUB_STR_NO_DATA[];
-#elif VERSION_US
 #define SUB_STR_STAT "*s0%4d"
 #define SUB_STR_CROSS_EFFECT "(%s)"
 #define SUB_STR_RANK "RANK \f\a%3d"
 #define SUB_STR_NEXT "NEXT \f\a%3d"
 #define SUB_STR_PARTNER_SUPPORT "Support Effect"
 #define SUB_STR_NO_DATA "No Data"
-#else
-#error "subseg/partner/sub_partner: version not checked"
-#endif
 
 /* the partner abilities; the code here only reads their texts */
 AbilityText SUB_ABILITY_TEXTS[128] = {
@@ -388,16 +375,6 @@ void SUB_drawArmorPortrait(s32 player, s32 slot, s32 x, s32 y, s32 otIndex) {
     }
 }
 
-#if VERSION_EU
-/* eu: s0 and s1 swapped by the register allocator; no C form found yet */
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_STAT);
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_CROSS_EFFECT);
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_RANK);
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_NEXT);
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_PARTNER_SUPPORT);
-INCLUDE_RODATA("subseg/nonmatchings/partner/sub_partner", SUB_STR_NO_DATA);
-INCLUDE_ASM("subseg/nonmatchings/partner/sub_partner", SUB_drawPartnerTab);
-#elif VERSION_US
 void SUB_drawPartnerTab(TabWindow *window) {
     s32 unused[2]; /* unused, but it is in the original stack frame */
     char buf[64];
@@ -409,9 +386,8 @@ void SUB_drawPartnerTab(TabWindow *window) {
     s32 slot;
     s32 changed;
     s32 palette;
-    s32 crossEffect;
     s32 next;
-    s32 i;
+    s32 i; /* also the cross effect and the support icon */
     s32 partner;
 
     rgb[0] = window->window.brightness;
@@ -455,15 +431,15 @@ void SUB_drawPartnerTab(TabWindow *window) {
         drawIconColored(x + 0x2C, y + 0x32, 0, 9, rgb, z);
         sprintf(buf, SUB_STR_STAT, PLAYER_DATA(player).partners[slot].card[0].attack[2].power);
         drawTextColored(x + 0x3C, y + 0x31, buf, rgb, palette, z);
-        crossEffect = PLAYER_DATA(player).partners[slot].card[0].crossEffect;
+        i = PLAYER_DATA(player).partners[slot].card[0].crossEffect;
         palette = 7;
-        if (SUB_UNEQUIPPED_PARTNER.card[0].crossEffect != crossEffect) {
+        if (SUB_UNEQUIPPED_PARTNER.card[0].crossEffect != i) {
             palette = 5;
         }
-        sprintf(buf, SUB_STR_CROSS_EFFECT, CROSS_EFFECT_SHORT_NAMES[crossEffect]);
+        sprintf(buf, SUB_STR_CROSS_EFFECT, CROSS_EFFECT_SHORT_NAMES[i]);
         drawSmallTextColored(x + 0x56, y + 0x33, buf, palette, rgb, z);
-        if (CROSS_EFFECT_ICONS[crossEffect] != 0) {
-            drawIconColored(x + 0x95, y + 0x31, 0, CROSS_EFFECT_ICONS[crossEffect] + 0x14, rgb, z);
+        if (CROSS_EFFECT_ICONS[i] != 0) {
+            drawIconColored(x + 0x95, y + 0x31, 0, CROSS_EFFECT_ICONS[i] + 0x14, rgb, z);
         }
         sprintf(buf, SUB_STR_RANK, (s8)PLAYER_DATA(player).partners[slot].level);
         drawLargeTextColored(x + 0x5C, y + 14, buf, 6, rgb, z);
@@ -493,9 +469,6 @@ void SUB_drawPartnerTab(TabWindow *window) {
         drawTextColored(x + 0x78, y + 0x18, (u8 *)SUB_STR_NO_DATA, rgb, 7, z);
     }
 }
-#else
-#error "subseg/partner/sub_partner: version not checked"
-#endif
 
 void SUB_drawArmorChange(UiWindow *window) {
     s32 x = window->originX + 1;
