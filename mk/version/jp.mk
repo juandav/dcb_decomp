@@ -27,7 +27,8 @@ MAIN_C_SRC := \
 	src/main/duel/card_zones.c \
 	$(addprefix src/main/gfx/, prim3d.c prim_pair.c prim_util.c tmd_sort.c \
 		transform.c vram_upload.c) \
-	$(addprefix src/main/model/, anim_control.c model_anim.c model_load.c) \
+	$(addprefix src/main/model/, anim_control.c model_anim.c model_load.c \
+		stage.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, cd_file.c heap.c sound.c sound_play.c \
 		task.c) \

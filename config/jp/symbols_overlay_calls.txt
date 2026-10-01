@@ -1,0 +1,7 @@
+// Overlay functions and data the executable uses by address, under the
+// overlay's own names, as in config/us/symbols_overlay_calls.txt. Only
+// config/jp/main.yaml reads this file: the overlays' configs keep their own
+// names for these addresses, and another overlay may be loaded there.
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+SUG_runPolygonBattle = 0x801FC578; // type:func
