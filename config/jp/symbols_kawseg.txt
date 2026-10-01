@@ -15,10 +15,10 @@ KAW_findCardIdInHand = 0x801EDC4C; // type:func
 KAW_hasDigivolveInHand = 0x801EDCD0; // type:func
 KAW_countStrongerDigimonInHand = 0x801EDD8C; // type:func
 KAW_isVoidingCard = 0x801EDEF8; // type:func
-KAW_findReviveCardInHand = 0x801EDF74; // type:func
+KAW_findVoidingCardInHand = 0x801EDF74; // type:func
 KAW_isPileEffectCard = 0x801EDFDC; // type:func
 KAW_findPileEffectCardInHand = 0x801EE08C; // type:func
-KAW_findVoidingCardInHand = 0x801EE0F4; // type:func
+KAW_findReviveCardInHand = 0x801EE0F4; // type:func
 KAW_isRecoveryCard = 0x801EE15C; // type:func
 KAW_findRecoveryCardInHand = 0x801EE1D8; // type:func
 KAW_getActiveCrossEffect = 0x801EE240; // type:func
@@ -76,3 +76,9 @@ KAW_runResultScreen = 0x801FBFEC; // type:func
 KAW_VS_PANEL_POS = 0x801FF658;
 KAW_VS_NAME_POS = 0x801FF678;
 // end of the names from us
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+KAW_VOIDING_CARDS = 0x801FF5D0;
+KAW_PILE_EFFECT_CARDS = 0x801FF5D8;
+KAW_REVIVE_CARDS = 0x801FF5EC;
+KAW_RECOVERY_CARDS = 0x801FF5F4;

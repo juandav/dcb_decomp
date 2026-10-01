@@ -35,3 +35,5 @@ MAIN_C_SRC := \
 SUGSEG_C_SRC := \
 	src/sugseg/battle/sug_sprite.c \
 	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c)
+KAWSEG_C_SRC := \
+	src/kawseg/cpu/kaw_card_queries.c
