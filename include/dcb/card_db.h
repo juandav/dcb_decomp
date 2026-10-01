@@ -4,7 +4,11 @@
 #include "game.h"
 
 typedef struct {
+#if VERSION_JP
+    /* 0x00 */ s16 price; /* in hundreds of Bits (jp's card shop); jp keeps no id */
+#elif VERSION_US || VERSION_EU
     /* 0x00 */ s16 id;
+#endif
     /* 0x02 */ u8 type;
 #if VERSION_JP
     /* 0x03 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */
@@ -21,7 +25,11 @@ typedef struct {
     /* 0xE1 */ u8 unkE1;
 } OptionCardData;
 typedef struct {
+#if VERSION_JP
+    /* 0x00 */ s16 price; /* in hundreds of Bits (jp's card shop); jp keeps no id */
+#elif VERSION_US || VERSION_EU
     /* 0x00 */ s16 id;
+#endif
     /* 0x02 */ u8 type;
 #if VERSION_JP
     /* 0x03 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */

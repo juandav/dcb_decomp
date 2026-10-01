@@ -112,19 +112,19 @@ void SAI_showLeftSprite(s32 kind) {
 }
 
 void SAI_tickRandomTickers(void) {
-    RandomTicker *ticker;
+    ShopRecord *shop;
     s8 i;
 
-    ticker = PLAYER_DATA(0).tickers;
-    for (i = 0; i < 7; i++, ticker++) {
-        if (ticker->timer >= 0 && ++ticker->timer >= ticker->period) {
-            ticker->timer = 0;
-            ticker->unk2 = 0;
-            ticker->unk3 = 0;
-            /* the same counter as the loop over the tickers: one draw ends it */
+    shop = PLAYER_DATA(0).shops;
+    for (i = 0; i < 7; i++, shop++) {
+        if (shop->timer >= 0 && ++shop->timer >= shop->period) {
+            shop->timer = 0;
+            shop->soldBits = 0;
+            shop->starterStock = 0;
+            /* the same counter as the loop over the shops: one restock ends it */
             for (i = 0; i < 7; i++) {
-                ticker->values[i][0] = ticker->values[i][1];
-                ticker->values[i][1] = rand();
+                shop->seeds[i][0] = shop->seeds[i][1];
+                shop->seeds[i][1] = rand();
             }
         }
     }

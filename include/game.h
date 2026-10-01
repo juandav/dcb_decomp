@@ -842,7 +842,11 @@ typedef struct {
 #endif
 } CardAttack;
 typedef struct {
+#if VERSION_JP
+    /* 0x000 */ s16 price; /* in hundreds of Bits (jp's card shop); jp keeps no id */
+#elif VERSION_US || VERSION_EU
     /* 0x000 */ s16 id;
+#endif
     /* 0x002 */ u8 type;
 #if VERSION_JP
     /* 0x003 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */
@@ -885,15 +889,16 @@ typedef struct {
     /* 0x295 */ u8 unk295[3];
 } Partner;
 #if VERSION_JP
-/* seven pairs of values that are drawn again when the timer reaches the
-   period (jp's profile keeps seven) */
+/* a card shop's stock (jp's SUBSEG): the shop draws it from these seeds, and
+   it is restocked when the timer reaches the period (SAI_tickRandomTickers):
+   the seeds move on and what was sold is back */
 typedef struct {
-    /* 0x00 */ s8 timer;
+    /* 0x00 */ s8 timer; /* -1 until the shop is first visited */
     /* 0x01 */ s8 period;
-    /* 0x02 */ s8 unk2;
-    /* 0x03 */ s8 unk3;
-    /* 0x04 */ s16 values[7][2];
-} RandomTicker;
+    /* 0x02 */ u8 soldBits; /* the single cards sold, one bit each */
+    /* 0x03 */ u8 starterStock; /* the first shop sells its starter cards */
+    /* 0x04 */ s16 seeds[7][2]; /* the six booster packs', then the single cards': [0] now, [1] next */
+} ShopRecord;
 #endif
 typedef struct {
 #if VERSION_JP
@@ -940,7 +945,7 @@ typedef struct {
     /* 0x0F48 */ PlayerDeck savedDecks[3];
     /* 0x126C */ PlayerDeck hallOfFameDeck; /* the deck the player beat the game with, which the ending's records show */
     /* 0x1378 */ s32 clearTime; /* playTime when the game was beaten */
-    /* 0x137C */ RandomTicker tickers[7];
+    /* 0x137C */ ShopRecord shops[7]; /* the first area's (1 after event 0x2F), then five other areas' */
 #elif VERSION_US || VERSION_EU
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */
