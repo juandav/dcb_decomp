@@ -13,7 +13,7 @@
 #if VERSION_JP
 #define TAM_LOOP_FRAME(header) ((header)->loop)
 #define TAM_MOVES_FRAMES(header) ((header)->loop != 0)
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define TAM_LOOP_FRAME(header) ((header)->loop >> 1)
 #define TAM_MOVES_FRAMES(header) ((header)->loop & 1)
 #else
@@ -100,7 +100,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
                 if ((u32)((u16)model->id - 4000) >= 1000) {
                     y = 0x80;
                 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
                 sprintf(path, "M:\\HDF%d\\%d_%d.tam", n, n, id);
                 if (((ModelEffect *)model->owner)->clutBank == 0) {
                     y = 0x80;
@@ -135,7 +135,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     case 4:
         if (((TrailEffect *)owner)->primKind == 12 || ((TrailEffect *)owner)->primKind == 13) {
             uv = &((TrailEffect *)owner)->uv;
@@ -144,8 +144,9 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
             sprintf(path, "E:\\ANM\\%d_%d.tam", id / 10, id % 10);
         }
         break;
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "sugseg/effect/sug_tex_anim: version not checked"
 #endif
     }
     if (slot != 0) {
@@ -204,12 +205,13 @@ void SUG_tickTexAnim(TexAnim *anim) {
     anim->frame++;
     if (anim->frame >= anim->header->count) {
         anim->frame = TAM_LOOP_FRAME(anim->header);
-#if VERSION_US
+#if VERSION_US || VERSION_EU
         if (anim->frame == 0x7F) {
             anim->frame--;
         }
-#elif VERSION_EU
-#error "untested version"
+#elif VERSION_JP
+#else
+#error "sugseg/effect/sug_tex_anim: version not checked"
 #endif
     }
     if (!TAM_MOVES_FRAMES(anim->header)) {
