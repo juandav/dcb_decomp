@@ -1,11 +1,8 @@
 // SAISEG's own symbols, which only its splat config reads
 
 // names from us (tools/match_versions.py --seed): the same function or datum
-SAI_runHackingScene3 = 0x801EE734; // type:func
 SAI_loadMapTextures = 0x801F0320; // type:func
 SAI_createScriptContext = 0x801F03EC; // type:func
-SAI_loadAreaTextures = 0x801F0458; // type:func
-SAI_loadAreaPak = 0x801F0780; // type:func
 SAI_runArea = 0x801F0890; // type:func
 SAI_runSystemErrorHack = 0x801F331C; // type:func
 SAI_runHackingScene1 = 0x801F3580; // type:func
@@ -45,5 +42,31 @@ SAI_isLetter = 0x801EC95C; // type:func version-only
 SAI_clearTextLines = 0x801EC96C; // type:func
 SAI_TEXT_RGB = 0x801EA4C8; // size:0x4 version-only
 SAI_FMT_GOT_BITS = 0x801EA4CC; // size:0x20 version-only
-SAI_MESSAGE_BOX = 0x801F7050; // size:0x164 version-only
-SAI_TYPED_LINES = 0x801F7420; // size:0x130 version-only
+SAI_UI = 0x801F7050; // size:0x3D0 version-only
+SAI_TYPED_TEXT = 0x801F7420; // size:0x134 version-only
+SAI_clearTextVram = 0x801ECA08; // type:func version-only
+SAI_runMenu = 0x801ECA5C; // type:func version-only
+SAI_countSpareCopies = 0x801ECAEC; // type:func version-only
+SAI_doNothing = 0x801ECC58; // type:func version-only
+SAI_resolveOpponentDeck = 0x801ECC60; // type:func version-only
+SAI_drawDeckInfo = 0x801ECD94; // type:func version-only
+SAI_summarizeDeck = 0x801ED368; // type:func version-only
+SAI_summarizeOwnedCards = 0x801ED6CC; // type:func version-only
+SAI_openDeckInfo = 0x801ED9C0; // type:func version-only
+SAI_DECK_INFO = 0x801F6FB8; // size:0x98 version-only
+SAI_runDeckChoice = 0x801EDB4C; // type:func version-only
+SAI_loadCardImage = 0x801EDBFC; // type:func version-only
+SAI_showLeftSprite = 0x801EDCB0; // type:func version-only
+SAI_tickRandomTickers = 0x801EDDFC; // type:func version-only
+SAI_copyText = 0x801EE0E4; // type:func version-only
+SAI_drawMessageLines = 0x801EE134; // type:func version-only
+SAI_runBitsReward = 0x801EE34C; // type:func version-only
+SAI_giveBits = 0x801EE734; // type:func version-only
+SAI_drawBits = 0x801EE790; // type:func version-only
+SAI_playSlotMachine = 0x801EE82C; // type:func version-only
+SAI_BITS_REWARD = 0x801F6FB0; // size:0x4 version-only
+SAI_showRightSprite = 0x801EE984; // type:func version-only
+SAI_loadMapScript = 0x801F0458; // type:func version-only
+SAI_loadAreaScript = 0x801F0504; // type:func version-only
+SAI_giveStarterCards = 0x801F0648; // type:func version-only
+SAI_resetArea = 0x801F0780; // type:func version-only

@@ -376,8 +376,9 @@ extern s8 SAI_PARTNER_CHOICES[4];
 /* what jp's window task (D_8002A3E0) hands back */
 typedef struct {
     /* 0x00 */ u8 unk0;
-    /* 0x01 */ u8 state; /* 4 closes it */
-    /* 0x02 */ u8 unk2[0x4C];
+    /* 0x01 */ s8 state; /* 4 closes it */
+    /* 0x02 */ s8 unk2;
+    /* 0x03 */ u8 unk3[0x4B];
     /* 0x4E */ s16 z;
 } JpWindow;
 
@@ -391,26 +392,100 @@ typedef struct {
     /* 0x1C */ void (*unk1C)(JpWindow *);
 } JpWindowDef;
 
-/* the event a script runs: who speaks and what */
-typedef struct {
-    /* 0x00 */ u8 unk0[0x18];
-    /* 0x18 */ u8 *name;
-    /* 0x1C */ u8 unk1C[0x20];
-    /* 0x3C */ s32 unk3C;
-    /* 0x40 */ u8 *text;
-} SaiEvent;
-
-/* SAISEG's state (SessionData.sai) */
+/* SAISEG's state (SessionData.areaSession) */
 typedef struct SaiState {
-    /* 0x00 */ u8 unk0[0xC];
-    /* 0x0C */ SaiEvent *event;
-    /* 0x10 */ u8 unk10[4];
+    /* 0x00 */ VramSprite *sprites[2]; /* the map window's, one block for each frame buffer */
+    /* 0x08 */ ScriptRunner *runner;
+    /* 0x0C */ s32 *regs; /* the script's registers: [6] who speaks, [16] what */
+    /* 0x10 */ Chunk *pak; /* the map's PAK */
     /* 0x14 */ s32 bits; /* the Bits the player gets */
-    /* 0x18 */ u8 unk18[0x34];
+    /* 0x18 */ s32 unk18; /* how the area ends */
+    /* 0x1C */ s32 map; /* the map the player is on */
+    /* 0x20 */ s32 menuItems[6];
+    /* 0x38 */ s32 scriptOffset; /* where the script goes on after a duel */
+    /* 0x3C */ s16 unk3C;
+    /* 0x3E */ s16 musicTrack;
+    /* 0x40 */ s16 musicVolume;
+    /* 0x42 */ u8 unk42;
+    /* 0x43 */ s8 unk43;
+    /* 0x44 */ s8 unk44;
+    /* 0x45 */ s8 unk45;
+    /* 0x46 */ s8 unk46;
+    /* 0x47 */ u8 unk47;
+    /* 0x48 */ s8 unk48;
+    /* 0x49 */ s8 unk49;
+    /* 0x4A */ u8 unk4A;
+    /* 0x4B */ s8 unk4B;
     /* 0x4C */ u8 flags;
+    /* 0x4D */ u8 menuCount;
+    /* 0x4E */ u8 unk4E;
+    /* 0x4F */ u8 unk4F;
+    /* 0x50 */ s8 unk50;
 } SaiState;
 
+/* a state of jp's executable that SAISEG reads */
+typedef struct {
+    /* 0x000 */ u8 unk0[0x1BE];
+    /* 0x1BE */ s16 unk1BE;
+    /* 0x1C0 */ s16 unk1C0;
+} JpGame;
+
 #define SAI_STATE ((struct SaiState *)((SessionData *)SESSION_DATA)->areaSession)
+
+/* a menu of jp's executable (func_8002B508 sets it up, func_8002B188 adds
+   an item, func_8002BD58 runs it a frame) */
+typedef struct {
+    /* 0x000 */ u8 unk0[0x23C];
+    /* 0x23C */ s32 selected;
+} JpMenu;
+
+/* a line of the message window, rendered into VRAM as it is added */
+typedef struct {
+    /* 0x00 */ s32 active;
+    /* 0x04 */ s32 vramY; /* where the line's glyphs are rendered */
+    /* 0x08 */ u32 width;
+    /* 0x0C */ u32 shown;
+    /* 0x10 */ u8 text[0x30];
+    /* 0x40 */ s8 palettes[0x18]; /* one for each two bytes of text */
+} MsgLine;
+
+/* a line typed as text instead */
+typedef struct {
+    /* 0x00 */ s32 shown;
+    /* 0x04 */ s32 length;
+    /* 0x08 */ s8 active;
+    /* 0x09 */ char text[0x43];
+} TypedLine;
+
+/* what SAISEG's screens share: the message window, a menu, its windows */
+typedef struct {
+    /* 0x000 */ u8 unk0;
+    /* 0x001 */ u8 typing;
+    /* 0x002 */ u8 unk2[2];
+    /* 0x004 */ MsgLine lines[4];
+    /* 0x164 */ JpMenu menu;
+    /* 0x3A4 */ u8 unk3A4[0xC];
+    /* 0x3B0 */ JpWindow *unk3B0;
+    /* 0x3B4 */ JpWindow *unk3B4;
+    /* 0x3B8 */ JpWindow *unk3B8;
+    /* 0x3BC */ JpWindow *unk3BC;
+    /* 0x3C0 */ s32 unk3C0;
+    /* 0x3C4 */ s32 unk3C4;
+    /* 0x3C8 */ u8 unk3C8;
+    /* 0x3C9 */ u8 unk3C9;
+    /* 0x3CA */ u8 unk3CA;
+    /* 0x3CB */ u8 unk3CB;
+    /* 0x3CC */ u8 unk3CC[4];
+} SaiUi;
+
+/* the typed lines, and where the next one goes */
+typedef struct {
+    /* 0x000 */ TypedLine lines[4];
+    /* 0x130 */ TypedLine *next;
+} TypedText;
+
+extern SaiUi SAI_UI;
+extern TypedText SAI_TYPED_TEXT;
 #endif
 
 int MoveImage2(Rect16 *rect, int x, int y);

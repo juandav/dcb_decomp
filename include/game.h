@@ -495,6 +495,12 @@ typedef struct {
     s16 w;
     s16 h;
 } SPRT;
+/* a draw mode (with a texture window) and a sprite, merged into one packet */
+typedef struct {
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u32 code[2];
+    /* 0x0C */ SPRT sp;
+} VramSprite;
 typedef struct {
     DR_MODE dm;
     SPRT sp;
@@ -878,6 +884,17 @@ typedef struct {
     /* 0x294 */ u8 rewardBonus; /* percent chance of a rarer reward card */
     /* 0x295 */ u8 unk295[3];
 } Partner;
+#if VERSION_JP
+/* seven pairs of values that are drawn again when the timer reaches the
+   period (jp's profile keeps seven) */
+typedef struct {
+    /* 0x00 */ s8 timer;
+    /* 0x01 */ s8 period;
+    /* 0x02 */ s8 unk2;
+    /* 0x03 */ s8 unk3;
+    /* 0x04 */ s16 values[7][2];
+} RandomTicker;
+#endif
 typedef struct {
 #if VERSION_JP
     /* jp's profile is laid out otherwise: only the fields its C reads so far */
@@ -890,7 +907,8 @@ typedef struct {
     /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
     /* 0x001E */ u16 versusLosses;
-    /* 0x0020 */ u8 unk20[3];
+    /* 0x0020 */ u8 unk20[2];
+    /* 0x0022 */ u8 area; /* where the player is: SAISEG's map is area + 1 */
     /* 0x0023 */ u8 saveCount; /* "ＳＡＶＥ回数" */
     /* 0x0024 */ s32 bits; /* the money, "所持金" */
     /* 0x0028 */ u32 tamerRank : 3;
@@ -900,6 +918,7 @@ typedef struct {
     /* 0x0029 */ u32 tradeUnlocked : 1;
     /* 0x0029 */ u32 hasTraded : 1;
     /* 0x0029 */ u32 unk28_12 : 1; /* the game was beaten: the ending's records can be browsed, and the player data screen scrolls */
+    /* 0x0029 */ u32 unk28_13 : 1; /* the player gets 2000 Bits and two cards at the start */
     /* 0x002A */ u16 attackCounts[3]; /* the attacks used, by button */
     /* 0x0030 */ s16 maxAttackPowers[0x6E][3]; /* per Digimon card */
     /* 0x02C4 */ u16 cardWins[0x6E]; /* per Digimon card */
@@ -909,12 +928,16 @@ typedef struct {
     /* 0x047C */ u8 cardCollection[0x6E];
     /* 0x04EA */ u8 optionCollection[0x2B];
     /* 0x0515 */ u8 digivolveCollection[6];
-    /* 0x051B */ u8 unk51B[0xF20 - 0x51B];
+    /* 0x051B */ u8 starterCardCount;
+    /* 0x051C */ u8 starterCards[0x1E]; /* given when the game starts, as card ids */
+    /* 0x053A */ u8 unk53A[0xF1C - 0x53A];
+    /* 0x0F1C */ u16 unkF1C; /* bit n: SAISEG script register 0x13 + n */
+    /* 0x0F1E */ u16 unkF1E;
     /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
     /* 0x0F48 */ PlayerDeck savedDecks[3];
     /* 0x126C */ PlayerDeck hallOfFameDeck; /* the deck the player beat the game with, which the ending's records show */
     /* 0x1378 */ s32 clearTime; /* playTime when the game was beaten */
-    /* 0x137C */ u8 unk137C[0x145C - 0x137C];
+    /* 0x137C */ RandomTicker tickers[7];
 #elif VERSION_US || VERSION_EU
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */
