@@ -26,7 +26,7 @@ from elftools.elf.elffile import ELFFile
 for i,a in enumerate(sys.argv):
     if a=='--version' and i+1<len(sys.argv): os.environ['VERSION']=sys.argv[i+1]; del sys.argv[i:i+2]; break
     if a.startswith('--version='): os.environ['VERSION']=a.split('=',1)[1]; del sys.argv[i]; break
-from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, GCC_VERSION, MASPSX_EXTRA, VERSION
+from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, GCC_VERSION, MASPSX_EXTRA, TEXT_ENCODING, VERSION
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{DISK_DIR}/{EXE_NAME}','rb').read()[0x800:]
 def original(binary):
@@ -61,7 +61,7 @@ elif psyq:
 else:
     cc1=f"{D}/bin/gcc-{GCC_VERSION}-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
-cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else " "+MASPSX_EXTRA} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -I{D} -I{D}/include -o {w}.o {D}/include/gte_macros.inc {w}.ms.s"
+cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {f'python3 {D}/tools/sjis_escape.py {w}.i {w}.i && ' if TEXT_ENCODING else ''}{cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else " "+MASPSX_EXTRA} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -I{D} -I{D}/include -o {w}.o {D}/include/gte_macros.inc {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
 if r.returncode: print(r.stderr); sys.exit(1)
 if r.stderr.strip(): print(r.stderr.strip())

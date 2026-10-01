@@ -32,6 +32,9 @@ DISK_DIR = ROOT / _SETTINGS["DISK_DIR"]
 GCC_VERSION = _SETTINGS.get("GCC_VERSION", "2.95.2")
 # the extra maspsx flags of the version's game code
 MASPSX_EXTRA = _SETTINGS.get("MASPSX_EXTRA", "")
+# the encoding the version's text is stored in (cp932 for jp): the UTF-8 of
+# the C's string literals is re-encoded (tools/sjis_escape.py) before cc1
+TEXT_ENCODING = _SETTINGS.get("TEXT_ENCODING", "")
 
 # splat configs (<binary>.yaml), symbols and checksums
 CONFIG_DIR = ROOT / "config" / VERSION

@@ -19,6 +19,9 @@ GCC_VERSION := 2.8.1
 # and assembled with an ASPSX that expands div and rem with their checks for
 # a zero divisor and for overflow, as PsyQ's libraries are
 MASPSX_EXTRA := --expand-div
+# Its text is Shift JIS: the C writes it as UTF-8, and tools/sjis_escape.py
+# re-encodes the string literals before cc1
+TEXT_ENCODING := cp932
 
 # The source files this version builds (see mk/version/us.mk): the modules
 # that build from the same C as us's, by subsystem. The rest of every binary
