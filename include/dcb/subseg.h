@@ -246,7 +246,7 @@ typedef struct {
     /* 0xBFC */ s8 fromOpened; /* the card detail came from the packs bought */
 } ShopState;
 
-/* jp: the item a shop screen works on (outside SUBSEG, at 0x801FC8C8) */
+/* jp: the item a shop screen works on (past SUBSEG's end, where NISSEG has its bss) */
 typedef struct {
     /* 0x0 */ u8 unk0[4];
     /* 0x4 */ s8 deck;
@@ -266,38 +266,38 @@ typedef struct {
     /* 0xC */ s32 unkC;
 } PackRange;
 
-extern PackRange D_801F32D0[7];
-extern JpWindowDesc D_801F3340;
-extern JpWindowDesc D_801F3360;
-extern JpWindowDesc D_801F3380;
-extern JpWindowDesc D_801F33A0;
-extern JpWindowDesc D_801F33C0;
-extern JpWindowDesc D_801F33E0;
-extern JpWindowDesc D_801F3400;
-extern JpWindowDesc D_801F3420;
-extern JpWindowDesc D_801F3440;
-extern JpWindowDesc D_801F3460;
-extern JpWindowDesc D_801F3480;
-extern s8 D_801F34A0[46];
-extern char *D_801F34D0[6];
-extern char *D_801F34E8[5];
-extern char *D_801F34FC[2];
-extern s16 D_801F3504;
-extern JpWindow *D_801F3508[4];
-extern JpWindow *D_801F3518[8];
-extern u8 D_801F3538;
-extern u8 D_801F3539;
-extern JpCursor *D_801F353C;
-extern DR_ENV D_801F3548[2];
-extern DR_ENV D_801F35C8[2];
-extern DRAWENV D_801F3648[2];
-extern ShopState *D_801F3700;
-extern s16 D_801F3708[18];
-extern s8 D_801F3780;
-extern s16 D_801F3782;
-extern u8 *D_801F3784;
-extern ShopCursor D_801FC8C8;
-extern ShopList *D_801FC8E8;
+extern PackRange SUB_PACK_RANGES[7];
+extern JpWindowDesc SUB_STOCK_GRID_WINDOW;
+extern JpWindowDesc SUB_DETAILS_WINDOW;
+extern JpWindowDesc SUB_TOTAL_WINDOW;
+extern JpWindowDesc SUB_BITS_WINDOW;
+extern JpWindowDesc SUB_STOCK_HELP_WINDOW;
+extern JpWindowDesc SUB_OPENED_HELP_WINDOW;
+extern JpWindowDesc SUB_OPENED_GRID_WINDOW;
+extern JpWindowDesc SUB_OPENED_TITLE_WINDOW;
+extern JpWindowDesc SUB_PICTURE_WINDOW;
+extern JpWindowDesc SUB_VIEWER_HELP_WINDOW;
+extern JpWindowDesc SUB_VIEWER_MOTION_WINDOW;
+extern s8 SUB_OPTION_GROUPS[46];
+extern char *SUB_SPECIALTY_NAMES[6];
+extern char *SUB_DIGIVOLVE_EFFECT_NAMES[5];
+extern char *SUB_OPTION_KINDS[2];
+extern s16 SUB_RANDOM_SEED;
+extern JpWindow *SUB_VIEWER_WINDOWS[4];
+extern JpWindow *SUB_SHOP_WINDOWS[8];
+extern u8 SUB_SAVED_CURSOR;
+extern u8 SUB_SAVED_TOP;
+extern JpCursor *SUB_GRID_CURSOR;
+extern DR_ENV SUB_PREVIEW_DR_ENVS[2];
+extern DR_ENV SUB_SCREEN_DR_ENVS[2];
+extern DRAWENV SUB_PREVIEW_DRAW_ENVS[2];
+extern ShopState *SUB_SHOP;
+extern s16 SUB_STOCK_IDS[18];
+extern s8 SUB_SHOP_RUNNING;
+extern s16 SUB_STOCK_ID_COUNT;
+extern u8 *SUB_PACK_CARD_END;
+extern ShopCursor SUB_SHOP_ITEM;
+extern ShopList *SUB_SHOP_LIST;
 
 #endif
 

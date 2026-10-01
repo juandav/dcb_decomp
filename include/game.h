@@ -890,7 +890,7 @@ typedef struct {
 } Partner;
 #if VERSION_JP
 /* a card shop's stock (jp's SUBSEG): the shop draws it from these seeds, and
-   it is restocked when the timer reaches the period (SAI_tickRandomTickers):
+   it is restocked when the timer reaches the period (SAI_tickShopRestocks):
    the seeds move on and what was sold is back */
 typedef struct {
     /* 0x00 */ s8 timer; /* -1 until the shop is first visited */
