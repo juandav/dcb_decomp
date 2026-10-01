@@ -132,4 +132,171 @@ extern DeckMenuState SUB_DECK_MENU;
 extern u8 *SUB_CARD_ARCHIVE;
 extern u8 SUB_AUTO_DECK_ENABLED;
 
+#if VERSION_JP
+/* jp's SUBSEG is a card shop (the USA SUBSEG above is the deck editor) */
+
+/* jp: a window the executable's window task (func_8002A3E0) slides in from
+   (fromX, fromY) to (x, y) and draws with draw every frame */
+typedef struct {
+    /* 0x00 */ s16 fromX;
+    /* 0x02 */ s16 fromY;
+    /* 0x04 */ s16 unk4;
+    /* 0x06 */ s16 unk6;
+    /* 0x08 */ s16 x;
+    /* 0x0A */ s16 y;
+    /* 0x0C */ s16 w;
+    /* 0x0E */ s16 h;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ void (*draw)();
+    /* 0x1C */ void (*tick)();
+} JpWindowDesc;
+
+/* jp: the state the window task hands back; state 4 closes the window */
+typedef struct {
+    /* 0x00 */ s8 unk0;
+    /* 0x01 */ s8 state;
+    /* 0x02 */ u8 unk2[0x4C];
+    /* 0x4E */ s16 z;
+} JpWindow;
+
+/* jp: the executable's blinking hand cursor (func_80044334) */
+typedef struct {
+    /* 0x0 */ u8 unk0[8];
+    /* 0x8 */ s16 x;
+    /* 0xA */ s16 y;
+} JpCursor;
+
+/* libgpu's DR_ENV */
+typedef struct {
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u32 code[15];
+} DR_ENV;
+
+/* jp: where a shop item's small picture sits in VRAM; a negative palette
+   (~palette) marks the cards drawn with the rare frame */
+typedef struct {
+    /* 0x0 */ s16 u;
+    /* 0x2 */ s16 v;
+    /* 0x4 */ s16 tpage;
+    /* 0x6 */ s16 palette;
+} ItemIcon;
+
+/* jp: one line of a shop list: a card or a booster pack */
+typedef struct {
+    /* 0x0 */ ItemIcon icon;
+    /* 0x8 */ u8 type;
+    /* 0x9 */ u8 index;
+    /* 0xA */ s8 count; /* the copies chosen */
+    /* 0xB */ s8 max; /* the copies there are to choose */
+    /* 0xC */ u8 brightness;
+    /* 0xD */ u8 owned; /* the copies the player has */
+} ShopItem;
+
+/* jp: how many of an item the shop has */
+typedef struct {
+    /* 0x0 */ u8 unk0[2];
+    /* 0x2 */ u8 stock; /* selling: the copies the player has */
+    /* 0x3 */ s8 count; /* buying: the copies on sale */
+} ShopStock;
+
+/* jp: the items a shop screen lists, the cursor and the first row shown */
+typedef struct {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 count;
+    /* 0x08 */ s32 top; /* the first item shown (10 at a time) */
+    /* 0x0C */ s32 cursor;
+    /* 0x10 */ u8 unk10[8];
+    /* 0x18 */ ShopItem items[165];
+} ShopList;
+
+/* jp: a VRAM place for a card's large picture (B:\\L_CARD\\LC%03d.TIM) */
+typedef struct {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 clutX;
+    /* 0x6 */ s16 clutY;
+    /* 0x8 */ s16 id;
+} CardImageSlot;
+
+/* jp: the card shop (B:\\OBJECT\\shop.TIM), allocated by SUB_openBuyShop and
+   SUB_openSellShop */
+typedef struct {
+    /* 0x000 */ ShopStock packs[6];
+    /* 0x018 */ ShopStock digimonCards[110];
+    /* 0x1D0 */ ShopStock optionCards[43];
+    /* 0x27C */ ShopStock digivolveCards[6];
+    /* 0x294 */ ShopList list;
+    /* 0xBB4 */ CardImageSlot imageSlots[4];
+    /* 0xBDC */ CardImageSlot *imageSlot;
+    /* 0xBE0 */ POLY_FT4 *polys[2];
+    /* 0xBE8 */ s16 flip;
+    /* 0xBEA */ s8 flipBack;
+    /* 0xBEB */ s8 loading; /* a card picture is being loaded */
+    /* 0xBEC */ s8 flipTimer;
+    /* 0xBED */ s8 itemChosen; /* the item list has picked its first item */
+    /* 0xBEE */ u8 unkBEE[2];
+    /* 0xBF0 */ s32 total; /* what the chosen cards cost (or fetch) */
+    /* 0xBF4 */ s32 savedTotal;
+    /* 0xBF8 */ s16 mode; /* 11 buying, 12 the packs bought, 13 selling */
+    /* 0xBFA */ s8 shopId;
+    /* 0xBFB */ s8 paid;
+    /* 0xBFC */ s8 fromOpened; /* the card detail came from the packs bought */
+} ShopState;
+
+/* jp: the item a shop screen works on (outside SUBSEG, at 0x801FC8C8) */
+typedef struct {
+    /* 0x0 */ u8 unk0[4];
+    /* 0x4 */ s8 deck;
+    /* 0x5 */ s8 count;
+    /* 0x6 */ s8 max;
+    /* 0x7 */ u8 owned;
+    /* 0x8 */ s8 deckCount;
+    /* 0x9 */ s8 type; /* 0 Digimon card, 1 option, 2 Digivolve option, 3 booster pack */
+    /* 0xA */ s16 index;
+} ShopCursor;
+
+/* jp: a booster pack's cards: count card numbers from base + start */
+typedef struct {
+    /* 0x0 */ s32 base;
+    /* 0x4 */ s32 start;
+    /* 0x8 */ s32 count;
+    /* 0xC */ s32 unkC;
+} PackRange;
+
+extern PackRange D_801F32D0[7];
+extern JpWindowDesc D_801F3340;
+extern JpWindowDesc D_801F3360;
+extern JpWindowDesc D_801F3380;
+extern JpWindowDesc D_801F33A0;
+extern JpWindowDesc D_801F33C0;
+extern JpWindowDesc D_801F33E0;
+extern JpWindowDesc D_801F3400;
+extern JpWindowDesc D_801F3420;
+extern JpWindowDesc D_801F3440;
+extern JpWindowDesc D_801F3460;
+extern JpWindowDesc D_801F3480;
+extern s8 D_801F34A0[46];
+extern char *D_801F34D0[6];
+extern char *D_801F34E8[5];
+extern char *D_801F34FC[2];
+extern s16 D_801F3504;
+extern JpWindow *D_801F3508[4];
+extern JpWindow *D_801F3518[8];
+extern u8 D_801F3538;
+extern u8 D_801F3539;
+extern JpCursor *D_801F353C;
+extern DR_ENV D_801F3548[2];
+extern DR_ENV D_801F35C8[2];
+extern DRAWENV D_801F3648[2];
+extern ShopState *D_801F3700;
+extern s16 D_801F3708[18];
+extern s8 D_801F3780;
+extern s16 D_801F3782;
+extern u8 *D_801F3784;
+extern ShopCursor D_801FC8C8;
+extern ShopList *D_801FC8E8;
+
+#endif
+
 #endif /* DCB_SUBSEG_H */
