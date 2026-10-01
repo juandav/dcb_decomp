@@ -286,8 +286,13 @@ def main() -> None:
                 problems.append(f"{name} = {addr:#010x}: no us symbol file of {binary} has it")
                 continue
             # code us has in the executable that this version links into
-            # the overlay: its own names go in the overlay's file
+            # the overlay: its own names go in the overlay's file, and its
+            # other C there uses them from that file
             main_files = {"symbols.txt", "symbols_overlay_calls.txt", "undefined_syms.txt"}
+            if binary != "main" and name in have[own] and set(us_files[name]) <= main_files:
+                if have[own][name] != addr:
+                    problems.append(f"{name}: {own} has it at {have[own][name]:#010x}, the C reads {addr:#010x}")
+                continue
             if binary != "main" and name in defined and set(us_files[name]) <= main_files:
                 comment = " ".join(["us-main"] + ([us_comment[name]] if us_comment[name] else []))
                 if name in have[own]:
