@@ -44,7 +44,9 @@ MAIN_C_SRC := \
 		memcard_screen.c opening_movie.c pad.c render_loop.c \
 		save_checksum.c sound.c sound_play.c task.c vblank.c) \
 	$(addprefix src/main/ui/, str_util.c text_jp.c window_jp.c)
-ENDSEG_C_SRC := src/endseg/endseg_jp.c src/endseg/title/open_movie.c
+ENDSEG_C_SRC := \
+	$(addprefix src/endseg/, end_bss_jp.c endseg_jp.c) \
+	src/endseg/title/open_movie.c
 INTSEG_C_SRC := $(addprefix src/intseg/, int_bss.c intseg.c)
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \
@@ -54,7 +56,8 @@ SUGSEG_C_SRC := \
 		sug_model_effect_jp.c sug_scroll_texture.c sug_sphere.c \
 		sug_sprite_effect.c sug_tex_anim.c sug_trail.c) \
 	$(addprefix src/sugseg/model/, effect_object.c effect_prims.c \
-		streak_particles.c)
+		streak_particles.c) \
+	src/sugseg/sug_bss_jp.c
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_battle_sim.c kaw_card_queries.c \
 		kaw_cpu.c kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \

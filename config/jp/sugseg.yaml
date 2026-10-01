@@ -81,11 +81,13 @@ segments:
       - [0xF400, c, battle/sug_camera]
       - [0xF548, c, battle/sug_hud]
       - [0x110FC, c, battle/sug_battle]
+      # the zeroed data's object, which has no code (as us's sug_bss)
+      - [0x124D8, c, sug_bss_jp]
       - [0x124D8, .data, effect/sug_light_motion]
       - [0x12518, .data, effect/sug_effect_script]
       # data us keeps in sug_bss, in another order: jp has no screen copy
       # effect, so neither sug_battle's SUG_SCREEN_FX_PHASE nor
       # sug_screen_copy's data, and the effect root follows SUG_TAM_CACHE
-      - [0x125F0, data, sug_bss]
+      - [0x125F0, .data, sug_bss_jp]
 
   - [0x1281C]

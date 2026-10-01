@@ -58,10 +58,12 @@ segments:
       - [0x518, .rodata, title/open_movie]
       - [0x52C, c, endseg_jp]
       - [0x2784, c, title/open_movie]
+      # the zeroed data's object, which has no code
+      - [0x3534, c, end_bss_jp]
       - [0x3534, .data, endseg_jp]
       - [0x35DC, .data, title/open_movie]
       # the data ENDSEG starts with zeroed: the records', then the movie
-      # player's (the C declares them extern)
-      - [0x361C, data, end_bss]
+      # player's
+      - [0x361C, .data, end_bss_jp]
 
   - [0x3714]
