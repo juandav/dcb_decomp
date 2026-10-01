@@ -19,7 +19,7 @@ typedef struct {
     /* 0x04 */ KeyItem *item;
 } KeyItemColumn;
 
-/* what func_80044334 creates and obtainPartner (jp's 0x800447B4) draws */
+/* what func_80044334 creates and KAW_drawCursor (in jp, the executable's) draws */
 typedef struct {
     /* 0x00 */ u8 unk0[8];
     /* 0x08 */ s16 x;
@@ -62,7 +62,7 @@ void func_8002B508(void *, s32, s32, s32, s32);
 void func_8002CACC(s32);
 JpIcon *func_80044334(s32, s32, s32, s32, s32);
 void func_80044758(JpIcon *);
-void obtainPartner(JpIcon *);
+void KAW_drawCursor(JpIcon *);
 /* no prototype: this module passes its coordinates as ints (dcb/prim.h) */
 void initVramSprite();
 void drawScrollArrow(s32, s32, s32, s32, s32);
@@ -548,7 +548,7 @@ void SAI_drawKeyItemList(JpWindow *win) {
     if (SAI_KEY_ITEMS.noItems != 1) {
         SAI_KEY_ITEMS.icon->x = SAI_KEY_ITEMS.cursor->x + 0x20;
         SAI_KEY_ITEMS.icon->y = 0x5E;
-        obtainPartner(SAI_KEY_ITEMS.icon);
+        KAW_drawCursor(SAI_KEY_ITEMS.icon);
         if (SAI_KEY_ITEMS.columns[4].item != NULL && SAI_KEY_ITEMS.columns[4].item != &SAI_KEY_ITEM_LIST[SAI_KEY_ITEMS.count - 1]) {
             if (SAI_KEY_ITEMS.rightBlink != 0) {
                 SAI_KEY_ITEMS.leftBlink = SAI_KEY_ITEMS.rightBlink + 1;
