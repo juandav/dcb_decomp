@@ -92,8 +92,7 @@ segments:
       # the rodata of the asm modules after duel_session, up to duel_launch
       - [0x15A4, rodata, card/card_render]
       - [0x1738, .rodata, duel/duel_launch_jp]
-      # the rodata of the asm modules after duel_launch, up to memcard
-      - [0x1768, rodata, system/game_flow]
+      - [0x1768, .rodata, card/card_vram]
       - [0x17B4, .rodata, card/partner_level_jp]
       - [0x1864, .rodata, system/memcard]
       # the rodata of the asm modules after memcard, up to battle_hud
@@ -168,11 +167,11 @@ segments:
       # jp's card_render starts with three functions us doesn't have
       - [0x31F5C, asm, card/card_render]
       - [0x34A38, asm, card/card_db]
-      # jp's startCpuDuel and startVersusDuel, then card_render's first three
-      # functions in an object of their own (jp has no game_flow object: its
-      # launchers are in player_data and in the object after this one)
+      # jp's startCpuDuel and startVersusDuel (jp has no game_flow object: its
+      # launchers are in player_data and here)
       - [0x35A4C, c, duel/duel_launch_jp]
-      - [0x35CD8, asm, system/game_flow]
+      # card_render's first three functions, in an object of their own
+      - [0x35CD8, c, card/card_vram]
       # jp's option screen and the end of a versus duel
       - [0x365B4, c, card/partner_level_jp]
       # jp's memcard object holds only the memory card functions, and all of

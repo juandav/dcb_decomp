@@ -23,8 +23,8 @@ void func_80042BF4(s32 x, s32 y, s32 kind, s32 brightness, s32 z);
 void func_80042E38(s32 x, s32 y, s32 kind, s32 brightness);
 void func_8003F38C(s32 z);
 
-/* 1 while game_flow's uploadStringGlyphs uploads its glyphs */
-s32 D_8007E944 = 0;
+/* 1 while uploadStringGlyphs uploads its glyphs */
+s32 GLYPH_UPLOAD_BUSY = 0;
 
 /* Draws what HUD panel panelIndex shows over its quad: eleven per player
    (0-10 and 11-21), then 22, the message bar */
