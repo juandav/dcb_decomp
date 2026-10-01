@@ -30,7 +30,10 @@ void SUG_playSoloAnimation(s32 model, s32 anim);
 void SUG_applyEatUpHp(s32 side, s32 amount);
 void SUG_playNoDamageTurn(s32 model);
 
+/* jp has no screen copy effect */
+#if VERSION_US || VERSION_EU
 s32 SUG_SCREEN_FX_PHASE = 0;
+#endif
 
 void SUG_placeBattleModels(void) {
     Scene3D *scene;
