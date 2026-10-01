@@ -81,8 +81,11 @@ void SAI_drawMessageWindow(JpWindow *win) {
 /* c6(%s)c7(Ｂｉｔを手に入れた！) */
 const char SAI_FMT_GOT_BITS[] = "c6(%s)c7(Ｂｉｔを手に入れた！)";
 
-/* it reads SESSION_DATA's state again for the Bits, where our C reuses the
-   registers it read the text with */
+/* it reads SESSION_DATA's state again for the Bits, where our C's CSE
+   reuses the registers it read the text with: the original has a CSE
+   barrier right after the two register reads (an empty loop statement
+   there matches, which is a loop note and no code); no plain C form found
+   yet */
 INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_addTextLine);
 
 MsgLine *SAI_allocTextLine(SaiUi *ui) {
@@ -290,7 +293,10 @@ void SAI_drawDeckInfo(JpWindow *win) {
     }
 }
 
-/* the original keeps the addresses an empty loop over the deck hoisted; ours drops them */
+/* the original keeps an empty loop over the deck's cards with the addresses
+   loop.c hoisted for its body: its body survived flow's dead-code pass and
+   went away later, which no C form we tried does (a dead load in the loop
+   is deleted by flow together with what loop.c hoisted) */
 INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_summarizeDeck);
 
 void SAI_summarizeOwnedCards(DeckSummary *owned) {

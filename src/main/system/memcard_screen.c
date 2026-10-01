@@ -1348,7 +1348,10 @@ void closeMemcardScreen(MemcardScreen *screen) {
 /* Finds player's save where it was loaded from (on either card when
    bothPorts): 1 when it is still there, the same profile at the same play
    time */
-/* its registers for found, playTime and the profile are allocated in another order; no C form found yet */
+/* global-alloc gives found s5 before playTime and the profile in the
+   original: found needs more weighted uses than our C's (only the second
+   loop's `found = 1; break;` stays inside its loop's notes in the original,
+   while in ours both end up outside them); no plain C form found yet */
 INCLUDE_ASM("main/nonmatchings/system/memcard_screen", checkSaveIsCurrent);
 
 /* Finds both players' saves: which are missing (1: 1P, 2: 2P, 3: both) */
@@ -1370,7 +1373,9 @@ s16 findMissingSaves(void) {
 
 /* Saves both players' profiles after a versus duel: 0 when done, else the
    player whose save failed (1 or 2) */
-/* two temporaries swap registers in its first statement; no C form found yet */
+/* local-alloc's order in its first statement: the original allocates the
+   SESSION_DATA base and the sum (v0) before the index's shift (v1), as if
+   the shift were not local to the block; no C form found yet */
 INCLUDE_ASM("main/nonmatchings/system/memcard_screen", saveBothProfiles);
 
 /* step 4: the first menu (slot 1, slot 2, or no card at the start) */
