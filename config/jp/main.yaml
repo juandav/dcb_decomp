@@ -82,7 +82,8 @@ segments:
       - [0xD8C, .rodata, model/stage]
       - [0xDD4, .rodata, gfx/prim_desc]
       # OVERLAY_LOAD_ADDR (us has it in duel_util), then duel's strings
-      - [0xDF8, rodata, duel/duel]
+      - [0xDF8, .rodata, duel/duel_jp]
+      - [0xF34, rodata, duel/tutorial_jp]
       - [0x1008, .rodata, duel/cpu_decision]
       # duel_util has no rodata: card_motion's (with battle_hud's
       # drawHudPanelContents) comes next
@@ -151,8 +152,10 @@ segments:
       # jp's own: prim descriptors drawn into the frame's 17th prim slot (the
       # overlays use them), number digits, a callback table
       - [0x1E370, c, gfx/prim_desc]
-      - [0x1F338, asm, duel/duel]
-      - [0x23048, asm, model/effect_prims]
+      - [0x1F338, c, duel/duel_jp]
+      # jp's own: the tutorial duel's turn loop, with the two helpers only it
+      # calls (us runs the tutorial inside runDuelTurnLoop)
+      - [0x22DE8, asm, duel/tutorial_jp]
       - [0x26D60, c, duel/cpu_decision]
       # with a function of jp's own before duel_util's
       - [0x26F5C, c, duel/duel_util_jp]

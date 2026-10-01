@@ -18,6 +18,7 @@
 #include "dcb/text.h"
 #include "dcb/cpu_decision.h"
 #include "dcb/hud_panels.h"
+#include "dcb/duel.h"
 #include "dcb/pad.h"
 
 /* jp's duel session (duel_session.c is us's and eu's): the duel's message
@@ -38,9 +39,6 @@ void func_80043AB4(void);
 s32 func_80044334(s32 mode, s32 x, s32 y, s32 d, s32 count);
 void func_80044758(s32 cursor);
 void func_800447D4(u8 *cursor, s32 z);
-/* jp's turn loops: the duel's and the tutorial's */
-void func_8002EB38();
-void func_8003288C();
 /* KAWSEG's */
 void KAW_runTurnOrderChoice(s32 mode, s32 deckId);
 void KAW_runVersusIntro(s32 mode, s32 deckId);
@@ -138,9 +136,9 @@ void spawnDuelTasks(s32 isCpuDuel) {
     waitFrames(2);
     DUEL->cursor = (u8 *)func_80044334(0, 0x28, 0x30, 0xA, 1);
     if (DUEL->tutorial != 0) {
-        spawnTask(0x1E, -1, 0, 0x800, &func_8003288C, 0, 0, 0, 0);
+        spawnTask(0x1E, -1, 0, 0x800, &runTutorialTurnLoop, 0, 0, 0, 0);
     } else {
-        spawnTask(0x1E, -1, 0, 0x800, &func_8002EB38, 0, 0, 0, 0);
+        spawnTask(0x1E, -1, 0, 0x800, &runDuelTurnLoop, 0, 0, 0, 0);
         if (isCpuDuel != 0) {
             spawnTask(0, -1, 0, 0x800, runCpuDecisionTask, 0, 0, 0, 0);
         }
