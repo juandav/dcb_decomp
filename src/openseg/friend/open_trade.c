@@ -469,7 +469,7 @@ s32 OPEN_countSharedCardCopies(s32 player, s32 card) {
     return shared;
 }
 
-u16 OPEN_findUnsharedCardSerial(s32 player, s32 card) {
+s32 OPEN_findUnsharedCardSerial(s32 player, s32 card) {
     s32 other;
     s32 otherCount;
     s32 count;
@@ -508,9 +508,9 @@ void OPEN_addCardCopy(s32 player, s32 card, s32 serial) {
     }
 }
 
-u16 OPEN_removeCardCopy(s32 player, s32 card) {
+s32 OPEN_removeCardCopy(s32 player, s32 card) {
     s32 count;
-    u16 serial;
+    s32 serial;
     s32 i;
     s32 j;
 
@@ -569,7 +569,6 @@ void OPEN_initTradeCardList(s32 player) {
     s32 n;
     s32 i;
     s32 shared;
-    s32 other;
 
     n = 0;
     for (i = 0; i < 0xBF; i++) {
@@ -595,9 +594,8 @@ void OPEN_initTradeCardList(s32 player) {
         if (OPEN_TRADABLE_COUNTS[player][i] < 0) {
             OPEN_TRADABLE_COUNTS[player][i] = 0;
         }
-        other = player ^ 1;
-        if (OPEN_TRADABLE_COUNTS[player][i] + getOwnedCardCount(other, i) >= 7) {
-            OPEN_TRADABLE_COUNTS[player][i] = 6 - getOwnedCardCount(other, i);
+        if (OPEN_TRADABLE_COUNTS[player][i] + getOwnedCardCount(player ^ 1, i) >= 7) {
+            OPEN_TRADABLE_COUNTS[player][i] = 6 - getOwnedCardCount(player ^ 1, i);
         }
     }
 }
@@ -841,6 +839,7 @@ void OPEN_drawCardList(PlayerWindow *window) {
     s32 palette;
     s32 count;
     s32 shade;
+    s32 top;
 
     win = &window->window;
     player = window->player;
@@ -877,7 +876,14 @@ void OPEN_drawCardList(PlayerWindow *window) {
         if ((win->view.y + win->rect.h) / OPEN_CARD_LIST_MENUS[player].rowH < i) {
             break;
         }
+#if VERSION_EU
+        top = win->originY + i * OPEN_CARD_LIST_MENUS[player].rowH;
+        y = top + 1;
+#elif VERSION_US
         y = win->originY + i * OPEN_CARD_LIST_MENUS[player].rowH + 1;
+#else
+#error "openseg/friend/open_trade: version not checked"
+#endif
         card = OPEN_TRADE_CARD_LISTS[player][i]->id;
         palette = 8;
         if (OPEN_TRADABLE_COUNTS[player][card] > 0) {
@@ -1024,6 +1030,19 @@ void OPEN_drawCardInfo(PlayerWindow *window) {
     }
 }
 
+/* the labels of the trade windows; GCC keeps one copy of each, emitted
+   with OPEN_drawTradeScreen, the first function that uses them */
+#if VERSION_EU
+/* eu: OPEN_runCardTrade is still assembly and reads them by name */
+const char OPEN_STR_WARNING[] = "WARNING";
+const char OPEN_STR_TRADE_OK[] = "TRADE OK?";
+#elif VERSION_US
+#define OPEN_STR_WARNING "WARNING"
+#define OPEN_STR_TRADE_OK "TRADE OK?"
+#else
+#error "openseg/friend/open_trade: version not checked"
+#endif
+
 void OPEN_drawTradeScreen(void) {
     s32 count;
     s32 i;
@@ -1039,10 +1058,10 @@ void OPEN_drawTradeScreen(void) {
         }
     }
     if (count == 0) {
-        OPEN_TRADE_OK_WINDOW.label = (s32)"WARNING";
+        OPEN_TRADE_OK_WINDOW.label = (s32)OPEN_STR_WARNING;
         OPEN_TRADE_OK_WINDOW.palette = 2;
     } else {
-        OPEN_TRADE_OK_WINDOW.label = (s32)"TRADE OK?";
+        OPEN_TRADE_OK_WINDOW.label = (s32)OPEN_STR_TRADE_OK;
         OPEN_TRADE_OK_WINDOW.palette = 1;
     }
     drawWindow(&OPEN_TRADE_OK_WINDOW, OPEN_drawTradeOk, 1);
@@ -1055,6 +1074,10 @@ void OPEN_drawTradeScreen(void) {
     }
 }
 
+#if VERSION_EU
+/* eu: keeps its loop's addresses in other registers; no C form found yet */
+INCLUDE_ASM("openseg/nonmatchings/friend/open_trade", OPEN_runCardTrade);
+#elif VERSION_US
 void OPEN_runCardTrade(s32 parentTask) {
     s32 open[2];
     Rect16 rect;
@@ -1087,7 +1110,7 @@ void OPEN_runCardTrade(s32 parentTask) {
     rect.h = 0x28;
     openWindow(&OPEN_TRADE_OK_WINDOW, &rect, -1, (s16 *)-1, 8, 0x25, 0x80, 0xC);
     animateWindowTo(&OPEN_TRADE_OK_WINDOW, (Rect16 *)-1);
-    OPEN_TRADE_OK_WINDOW.label = (s32)"TRADE OK?";
+    OPEN_TRADE_OK_WINDOW.label = (s32)OPEN_STR_TRADE_OK;
     rect.x = 0xC;
     rect.y = 0xB6;
     rect.w = 0x128;
@@ -1105,7 +1128,7 @@ void OPEN_runCardTrade(s32 parentTask) {
         rect.h = 0x18;
         openWindow(&OPEN_TRADE_WARNING_WINDOWS[i].window, &rect, -1, (s16 *)-1, 8, 0x11, 0x80, 0xC);
         animateWindowTo(&OPEN_TRADE_WARNING_WINDOWS[i].window, (Rect16 *)-1);
-        OPEN_TRADE_WARNING_WINDOWS[i].window.label = (s32)"WARNING";
+        OPEN_TRADE_WARNING_WINDOWS[i].window.label = (s32)OPEN_STR_WARNING;
         OPEN_TRADE_WARNING_WINDOWS[i].window.palette = 2;
         OPEN_TRADE_WARNING_WINDOWS[i].port = i;
         rect.x = i * 0x9C + 0xA;
@@ -1215,6 +1238,16 @@ void OPEN_runCardTrade(s32 parentTask) {
     freeHeapBlock(OPEN_CARD_IMAGE_ARC);
     resumeTask(parentTask);
 }
+#else
+#error "openseg/friend/open_trade: version not checked"
+#endif
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char OPEN_STR_QUIT_TRADING[32] = "Do you want to Quit Trading?\0\x10\x02\x02";
+#elif VERSION_EU
+const char OPEN_STR_QUIT_TRADING[32] = "Do you want to Quit Trading?\0\0\0\x94";
+#else
+#error "openseg/friend/open_trade: version not checked"
+#endif

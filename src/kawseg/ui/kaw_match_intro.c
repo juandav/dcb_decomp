@@ -63,10 +63,17 @@ Rect16 KAW_DECK_INFO_RECTS[2] = {
     { 0xBC, 0x82, 0x76, 0x4C },
 };
 
-/* the online deck of deck 0x8C, as card ids less 0x1D; the code reads 30 */
+/* the online deck of deck 0x8C, as card ids less 0x1D; the code reads 30,
+   and the last two bytes are leftovers, not the same in every version */
 u8 KAW_DARKNESS_WAVE_ORDER[32] = {
     0x1D, 0xA, 1, 0x16, 4, 0x1C, 0xE, 0x18, 0xB, 0xF, 5, 0x1A, 0x19, 0x10, 0x15, 3,
+#if VERSION_US
     0x12, 6, 0x13, 0x17, 0xC, 0x1E, 7, 2, 0x14, 0x11, 0x1B, 0xD, 9, 8, 0x11, 0xE,
+#elif VERSION_EU
+    0x12, 6, 0x13, 0x17, 0xC, 0x1E, 7, 2, 0x14, 0x11, 0x1B, 0xD, 9, 8, 0xD2, 0,
+#else
+#error "kawseg/ui/kaw_match_intro: version not checked"
+#endif
 };
 
 void KAW_drawDeckName(s32 x, s32 y, char *name) {
@@ -160,6 +167,7 @@ void KAW_drawDeckList(ListWindow *w) {
     s32 deck;
     PresetDeck *decks;
     char buf[64];
+    s32 top;
 
     x = w->window.originX;
     y = w->window.originY;
@@ -175,8 +183,15 @@ void KAW_drawDeckList(ListWindow *w) {
             if ((w->window.view.y + w->window.rect.h) / KAW_DECK_LIST_MENUS[player].rowH < i) {
                 break;
             }
+#if VERSION_EU
+            top = w->window.originY + i * KAW_DECK_LIST_MENUS[player].rowH;
+            y = top + 1;
+#elif VERSION_US
             y = w->window.originY + i * KAW_DECK_LIST_MENUS[player].rowH;
             y++;
+#else
+#error "kawseg/ui/kaw_match_intro: version not checked"
+#endif
             deck = KAW_MATCH_SCREEN->deckIds[player][i];
             if (deck < 3) {
                 strcpy(buf, (char *)PLAYER_DATA(player).savedDecks[deck].name);
@@ -413,7 +428,7 @@ void KAW_renderDeckSelect(void) {
 
 void KAW_runDeckSelect(s32 isVersus, s32 match) {
     s32 i;
-    s32 done;
+    u8 done;
     u16 pressed;
 
     KAW_MATCH_SCREEN = allocTaskHeapBlock(0x778);
@@ -605,6 +620,10 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     (p)->u0 = (_u0), (p)->v0 = (_v0), (p)->u1 = (_u0) + (_w), (p)->v1 = (_v0), (p)->u2 = (_u0), \
     (p)->v2 = (_v0) + (_h), (p)->u3 = (_u0) + (_w), (p)->v3 = (_v0) + (_h)
 
+#if VERSION_EU
+/* eu: keeps a pointer to the panel's second half in a register; no C form found yet */
+INCLUDE_ASM("kawseg/nonmatchings/ui/kaw_match_intro", KAW_renderVersusScreen);
+#elif VERSION_US
 void KAW_renderVersusScreen(void) {
     char buf[64];
     VersusPrims *prims;
@@ -709,6 +728,9 @@ void KAW_renderVersusScreen(void) {
         }
     }
 }
+#else
+#error "kawseg/ui/kaw_match_intro: version not checked"
+#endif
 
 /* libgte's setVector */
 #define setVector(v, _x, _y, _z) (v)->vx = (_x), (v)->vy = (_y), (v)->vz = (_z)
@@ -731,8 +753,8 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
         loadMusicTrack(1, rand() % 2 + 0x93, 0x64);
     }
     playLoadedMusic(0);
-    frame = 0;
     spawnTask(0, -1, 0, 0x1000, loadDuelCardGraphics, mode, getCurrentTaskId(), 0, 0);
+    frame = 0;
     if (mode != 0) {
         k = getBaseDeckId(deckId);
         ((PlayerProfile *)PLAYER_PROFILES)[1].battleWins = ((PlayerProfile *)PLAYER_PROFILES)->comLosses[k];
@@ -760,9 +782,10 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     for (i = 0; i < 2; i++) {
         KAW_MATCH_SCREEN->cards[i].code = 0x2C;
         setRGB0(&KAW_MATCH_SCREEN->cards[i], 0x80, 0x80, 0x80);
-        k = i ^ j;
         if (KAW_DUEL->tutorial) {
             k = 1;
+        } else {
+            k = i ^ j;
         }
         KAW_MATCH_SCREEN->cards[i].tpage = ((k * 10 + 0x180) & 0x3FF) >> 6;
         KAW_MATCH_SCREEN->cards[i].clut = ((k + 0xFA) << 6) | 0x19;

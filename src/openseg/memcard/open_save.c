@@ -11,7 +11,12 @@ typedef struct {
 } IconClut;
 
 typedef struct {
-    u8 data[0x180];
+    u8 data[0x80];
+} IconFrame;
+
+/* the save's icon: three frames, stored from VRAM together */
+typedef struct {
+    IconFrame frames[3];
 } IconImage;
 
 typedef struct {
@@ -40,12 +45,28 @@ s16 OPEN_countFreeBlocks(s32 port);
 void OPEN_buildSaveHeader(s32 port, s32 slot);
 u8 OPEN_checkSaveIsCurrent(s32 player, s32 port, s32 slot);
 
-/* the save file names; the memory card functions take them as s32 */
+/* the save file names: the region's product code and the slot; the memory
+   card functions take them as s32 */
+#if VERSION_EU
+#define SAVE_FILE_PREFIX "BESLES-03900"
+#elif VERSION_US
+#define SAVE_FILE_PREFIX "BASLUS-01328"
+#else
+#error "openseg/memcard/open_save: version not checked"
+#endif
 s32 OPEN_SAVE_FILE_NAMES[3] = {
-    (s32)"BASLUS-01328_A",
-    (s32)"BASLUS-01328_B",
-    (s32)"BASLUS-01328_C",
+    (s32)SAVE_FILE_PREFIX "_A",
+    (s32)SAVE_FILE_PREFIX "_B",
+    (s32)SAVE_FILE_PREFIX "_C",
 };
+
+#if VERSION_EU
+/* not referenced by any code */
+s32 D_801F2B0C = 0;
+#elif VERSION_US
+#else
+#error "openseg/memcard/open_save: version not checked"
+#endif
 
 u8 *OPEN_formatSjisNumber(s32 value, s32 width, u8 *dst) {
     s32 i;
@@ -126,6 +147,10 @@ u8 *OPEN_formatSjisNumberZeros(s32 value, s32 width, u8 *dst) {
     return dst;
 }
 
+#if VERSION_EU
+/* eu: player and slot swapped by the register allocator; no C form found yet */
+INCLUDE_ASM("openseg/nonmatchings/memcard/open_save", OPEN_runMemcardAccess);
+#elif VERSION_US
 void OPEN_runMemcardAccess(void) {
     s32 player;
     s32 port;
@@ -371,6 +396,9 @@ void OPEN_runMemcardAccess(void) {
     } while (OPEN_MEMCARD_READY != 1);
     waitFrames(FRAME_INTERVAL);
 }
+#else
+#error "openseg/memcard/open_save: version not checked"
+#endif
 
 void OPEN_applyLoadedSave(s32 port, s32 slot, s32 file) {
     PlayerProfile *src;
@@ -537,8 +565,19 @@ void OPEN_buildSaveHeader(s32 port, s32 slot) {
     OPEN_formatSjisNumber(slot + 1, 1, file);
     OPEN_formatSjisNumber(hour, 3, hours);
     OPEN_formatSjisNumberZeros(minute, 2, minutes);
+#if VERSION_EU
+    {
+        /* "ＤＣＢ［%s］%s：%s", and eu's leftover byte after it */
+        static const char format[20] = "\x82" "c" "\x82" "b" "\x82" "a" "\x81" "m%s" "\x81" "n%s" "\x81" "F%s\0l";
+
+        sprintf(title, format, file, hours, minutes);
+    }
+#elif VERSION_US
     /* "ＤＣＢ［%s］%s：%s" */
     sprintf(title, "\x82" "c" "\x82" "b" "\x82" "a" "\x81" "m%s" "\x81" "n%s" "\x81" "F%s", file, hours, minutes);
+#else
+#error "openseg/memcard/open_save: version not checked"
+#endif
     header->magic[0] = 'S';
     header->magic[1] = 'C';
     header->type = 0x13;
@@ -551,7 +590,16 @@ void OPEN_buildSaveHeader(s32 port, s32 slot) {
         header->reserve[i] = 0;
     }
     header->clut = clut;
+#if VERSION_EU
+    /* eu shows the first frame three times: its icon doesn't move */
+    header->icon.frames[0] = icon.frames[0];
+    header->icon.frames[1] = icon.frames[0];
+    header->icon.frames[2] = icon.frames[0];
+#elif VERSION_US
     header->icon = icon;
+#else
+#error "openseg/memcard/open_save: version not checked"
+#endif
 }
 
 u8 OPEN_checkSaveIsCurrent(s32 player, s32 port, s32 slot) {

@@ -10,5 +10,6 @@ extern s32 KAW_VS_OUTER_LINE_POS[2][4];
 
 void KAW_drawDeckName(s32 x, s32 y, char *name);
 void KAW_drawBattleRecord(s32 x, s32 y, s32 wins, s32 losses);
+void KAW_renderVersusScreen(void);
 
 #endif /* DCB_KAW_MATCH_INTRO_H */
