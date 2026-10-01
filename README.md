@@ -135,6 +135,8 @@ sha1sum disks/us/SLUS_013.28   # fa4e03b5e0671dce399a35f2747080ced492d2c3
 The build reads `disks/us/SLUS_013.28` and `disks/us/P.DRV`.
 `tools/extract_drv.py` takes each overlay out of `P.DRV`, and
 `config/us/overlays.sha1` holds their checksums.
+The Japanese and European discs go in `disks/jp/` and `disks/eu/`
+([Versions](#versions)).
 
 ## Build
 
@@ -164,14 +166,43 @@ OBJDIFF := /path/to/objdiff-cli
 
 ### Versions
 
-The build handles one version of the game at a time, picked with `VERSION`:
-`make VERSION=us` (the default, and so far the only one). Each version has
-its settings in `mk/version/<version>.mk` (the executable's name, the disc
-directory and the overlays), its splat configs, symbols and checksums in
-`config/<version>/`, its disc in `disks/<version>/`, and its own generated
-`asm/<version>/`, `build/<version>/` and `expected/<version>/`. The C and the
-assembly see `VERSION_US` (`VERSION_<VERSION>`). The tools take `VERSION` from
-the environment too, us by default.
+The build handles one version of the game at a time, picked with `VERSION`
+(`us` by default):
+
+| `VERSION` | Release | Executable | Overlays in `P.DRV` | Status |
+|---|---|---|---|---|
+| `us` | USA, SLUS-01328 | `SLUS_013.28` | `ENDSEG` `EVOSEG` `KAWSEG` `OPENSEG` `SAISEG` `SUBSEG` `SUGSEG` | matched, built from C |
+| `jp` | Japan, SLPS-02506 | `SLPS_025.06` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` | blobs: each binary is one splat `databin`, linked back as it is |
+| `eu` | Europe, SLES-03900 | `SLES_039.00` | `ENDSEG` `INTSEG` `KAWSEG` `NISSEG` `SAISEG` `SUBSEG` `SUGSEG` `VSSVER` `OPENSEG` `EVOSEG` | blobs, as `jp` |
+
+Each disc goes in its own `disks/<version>/`, extracted the same way as the
+USA one; the build reads the executable and `P.DRV` from there:
+```
+bin/mkpsxiso-2.20-Linux/bin/dumpsxiso -x disks/jp -s disks/jp/jp.xml "/path/to/the Japanese disc.bin"
+sha1sum disks/jp/SLPS_025.06   # 447c5256757685728bfbecaf3b3b2e7c0164b6cc
+sha1sum disks/jp/P.DRV         # 5bf01a68b32fe474e6c28bd6fbb821e7cc82ad10
+
+bin/mkpsxiso-2.20-Linux/bin/dumpsxiso -x disks/eu -s disks/eu/eu.xml "/path/to/the European disc.bin"
+sha1sum disks/eu/SLES_039.00   # 050ae623135d5c233c255c9e76956eaeabd2fa6e
+sha1sum disks/eu/P.DRV         # a6f3c764bddd6f5ceeb35b22dc6cc52981113157
+```
+
+Then build and check a version as the USA one, with `VERSION`:
+```
+make VERSION=jp generate
+make VERSION=jp -j$(nproc)
+make VERSION=jp compare
+```
+
+Each version has its settings in `mk/version/<version>.mk` (the executable's
+name, the disc directory, the overlays and the source files it builds), its
+splat configs, symbols and checksums in `config/<version>/`, and its own
+generated `asm/<version>/`, `build/<version>/` and `expected/<version>/`. The
+C sees `VERSION_US`, `VERSION_JP` and `VERSION_EU`, each 0 or 1
+(`include/version.h`), and so does the assembly; CONTRIBUTING.md has the
+rules for code that differs between versions. The tools take `VERSION` from
+the environment too, us by default. The CI builds and compares all three;
+`jp` and `eu` have no units in the report yet.
 
 ## Progress
 

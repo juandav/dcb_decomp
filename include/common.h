@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include "version.h"
 #include "include_asm.h"
 
 typedef signed char s8;

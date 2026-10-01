@@ -1,0 +1,39 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): the executable
+name: main
+sha1: 050ae623135d5c233c255c9e76956eaeabd2fa6e
+options:
+  basename: main
+  target_path: disks/eu/SLES_039.00
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/main
+  asset_path: asm/eu/main/bin
+  src_path: src/main
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/main.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_main.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_main.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  - name: header
+    type: header
+    start: 0x0
+
+  # still one blob: the 0x6A800 bytes the PS-X EXE header says it
+  # loads at 0x80010000
+  - name: main
+    type: databin
+    start: 0x800
+    vram: 0x80010000
+    subalign: 4
+
+  - [0x6B000]

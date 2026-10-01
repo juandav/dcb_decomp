@@ -20,6 +20,26 @@ so that the Digimon decomps read the same way.
   writes it from the object's `INCLUDE_ASM`s, and the build takes the `.s`
   whenever it exists.
 
+## Versions
+
+The same source builds every version of the game (`make VERSION=us`, `jp`,
+`eu`). The Makefile passes one `-DVERSION_<VERSION>`, and `include/version.h`
+(through `common.h`) makes `VERSION_US`, `VERSION_JP` and `VERSION_EU` all
+defined, each 0 or 1; the assembly gets the same names from `--defsym`.
+
+- Test a version with `#if`, never `#ifdef` or `defined()`: `#if VERSION_JP`.
+  A misspelt name is then a `-Wundef` warning instead of silently false.
+- A condition names the versions it is for: `#if VERSION_US || VERSION_EU`,
+  not `#if !VERSION_JP`, so that a version added later doesn't fall into a
+  branch nobody checked for it.
+- The versions have no order: no `VERSION >= ...` or "newer than" tests.
+- Each version lists the files it builds in `mk/version/<version>.mk`
+  (`MAIN_C_SRC`, `<OVERLAY>_C_SRC`, `<BINARY>_HASM_SRC`), and the Makefile
+  builds nothing else: a new file goes in the list of every version that
+  has it. A file only one version has is listed only there, and a file
+  whose contents differ throughout gets one copy per version instead of an
+  `#if` around all of it.
+
 ## Layout
 
 - One folder per binary under `src/`: `src/main/` for the executable, and

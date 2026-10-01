@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Japan (SLPS-02506): ENDSEG
+name: endseg
+sha1: c76651f1292c770d53d2fac13a6fabb65a8622ff
+options:
+  basename: endseg
+  # extracted from disks/jp/P.DRV by tools/extract_drv.py
+  target_path: build/jp/disks/ENDSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/jp/endseg
+  asset_path: asm/jp/endseg/bin
+  src_path: src/endseg
+  build_path: build/jp
+
+  ld_script_path: build/jp/generated/endseg.ld
+
+  symbol_addrs_path:
+    - config/jp/symbols.txt
+  undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_endseg.txt
+  undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_endseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: endseg
+    type: databin
+    start: 0x0
+    vram: 0x801EA3E8
+    subalign: 4
+
+  - [0x3714]

@@ -14,6 +14,30 @@ jobs:
       (github.event_name != 'pull_request' ||
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # deps: where the version's executable and P.DRV are in the
+        # dependencies repository. report: upload build/<version>/report.json
+        # as <exe>_report, the artifact decomp.dev reads. jp and eu are still
+        # blobs with no units; once they have some, set report: true and
+        # their artifacts are SLPS_025.06_report and SLES_039.00_report.
+        include:
+          - version: us
+            exe: SLUS_013.28
+            deps: .
+            report: true
+          - version: jp
+            exe: SLPS_025.06
+            deps: jp
+            report: false
+          - version: eu
+            exe: SLES_039.00
+            deps: eu
+            report: false
+    name: build (${{ matrix.version }})
+    env:
+      VERSION: ${{ matrix.version }}
     steps:
     - uses: actions/checkout@v5
       with:
@@ -28,9 +52,12 @@ jobs:
         persist-credentials: false
 
     - run: |
-        mkdir -p disks/us
-        cp dependencies/SLUS_013.28 dependencies/P.DRV disks/us/
+        mkdir -p "disks/$VERSION"
+        cp "dependencies/$DEPS/$EXE" "dependencies/$DEPS/P.DRV" "disks/$VERSION/"
         rm -rf dependencies
+      env:
+        DEPS: ${{ matrix.deps }}
+        EXE: ${{ matrix.exe }}
 
     - run: |
         sudo apt-get update
@@ -45,6 +72,7 @@ jobs:
 
     - run: tools/dl_deps.sh
 
+    # make and the tools take VERSION from the environment
     - run: |
         make generate
         make -j$(nproc)
@@ -52,7 +80,8 @@ jobs:
 
     - run: make report
 
-    - uses: actions/upload-artifact@v6
+    - if: matrix.report
+      uses: actions/upload-artifact@v6
       with:
-        name: SLUS_013.28_report
-        path: build/us/report.json
+        name: ${{ matrix.exe }}_report
+        path: build/${{ matrix.version }}/report.json

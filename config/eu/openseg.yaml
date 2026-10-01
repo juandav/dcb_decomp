@@ -1,0 +1,36 @@
+# Digimon Digital Card Battle, Europe (SLES-03900): OPENSEG
+name: openseg
+sha1: 407a2441bd4e1b3f6ed36c0b237660f65ac6cb63
+options:
+  basename: openseg
+  # extracted from disks/eu/P.DRV by tools/extract_drv.py
+  target_path: build/eu/disks/OPENSEG.BIN
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/eu/openseg
+  asset_path: asm/eu/openseg/bin
+  src_path: src/openseg
+  build_path: build/eu
+
+  ld_script_path: build/eu/generated/openseg.ld
+
+  symbol_addrs_path:
+    - config/eu/symbols.txt
+  undefined_funcs_auto_path: build/eu/generated/undefined_funcs_auto_openseg.txt
+  undefined_syms_auto_path: build/eu/generated/undefined_syms_auto_openseg.txt
+
+  generate_asm_macros_files: False
+  create_c_files: False
+
+segments:
+  # still one blob, loaded at OVERLAY_LOAD_ADDR (its calls to its own
+  # functions say where)
+  - name: openseg
+    type: databin
+    start: 0x0
+    vram: 0x801E0890
+    subalign: 4
+
+  - [0x19C00]
