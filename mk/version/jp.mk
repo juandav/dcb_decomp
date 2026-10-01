@@ -36,7 +36,7 @@ MAIN_C_SRC := \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c cd_file.c game_exit.c \
 		heap.c loader.c opening_movie.c save_checksum.c sound.c \
-		sound_play.c task.c) \
+		sound_play.c task.c vblank.c) \
 	src/main/ui/str_util.c
 ENDSEG_C_SRC := src/endseg/title/open_movie.c
 SUGSEG_C_SRC := \

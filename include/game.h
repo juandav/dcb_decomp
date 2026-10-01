@@ -786,7 +786,8 @@ typedef struct {
 typedef struct {
 #if VERSION_JP
     /* jp's profile is laid out otherwise: only the fields its C reads so far */
-    /* 0x0000 */ u8 unk0[0x18];
+    /* 0x0000 */ u8 unk0[0x14];
+    /* 0x0014 */ s32 playTime;
     /* 0x0018 */ u16 battleWins;
     /* 0x001A */ u8 unk1A[2];
     /* 0x001C */ u16 versusWins;
