@@ -77,7 +77,10 @@ void runRenderLoop(void) {
     for (;;) {
         framesToWait = FRAME_INTERVAL;
         pollPads();
-        while (framesToWait >= 2 || gfx->displayStartCounter == 0) {
+        while (1) {
+            if (framesToWait < 2 && gfx->displayStartCounter != 0) {
+                break;
+            }
             yieldTask();
             framesToWait--;
         }

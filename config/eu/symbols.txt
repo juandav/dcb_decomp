@@ -30,6 +30,7 @@ initScreenCopyEffect = 0x80014F38; // type:func
 renderScreenCopyEffect = 0x800150C4; // type:func
 initGraphics = 0x800153EC; // type:func
 runRenderLoop = 0x80015468; // type:func
+runMainTask = 0x8001572C; // type:func
 mountDrive = 0x80015984; // type:func
 findDirectoryEntryOnDisc = 0x800159EC; // type:func
 findDirectoryEntryInCache = 0x80015B60; // type:func
@@ -977,7 +978,9 @@ _patch_pad = 0x8006D3B8; // type:func
 _remove_ChgclrPAD = 0x8006D430; // type:func
 PadGetState = 0x8006D5AC; // type:func
 PadInfoMode = 0x8006D678; // type:func
-PadStartCom = 0x8006DD10; // type:func
+// eu's libpad: PadStartCom forwards to the body us has under that name
+PadStartCom = 0x8006D520; // type:func
+_PadStartCom = 0x8006DD10; // type:func version-only
 PadStopCom = 0x8006DDDC; // type:func
 _dirFailAuto = 0x800703C8; // type:func
 WINDOW_STYLES = 0x800705CC;
@@ -1125,3 +1128,13 @@ SE2_BANK_INFO = 0x80070888;
 SOUND_SEQ_ATTR_TABLE = 0x801D9348;
 clearFramePrimSlots = 0x80016A10; // type:func
 FRAME_CALLBACKS = 0x8007BD20;
+PadInitDirect = 0x8006F9C0; // type:func
+PAD_RECEIVE_BUFFERS = 0x8008C018;
+SCREEN_COPY_EFFECT = 0x8007BBC8; // size:0x142
+
+// The scratchpad (a fixed hardware address), not a symbol
+D_1F800004 = 0x1F800004; // ignore:true
+initWindowPrimPool = 0x80016A8C; // type:func
+initScreenFade = 0x8001EED0; // type:func
+initSystemSprites = 0x800268A4; // type:func
+resetScrollingBackground = 0x8002F190; // type:func

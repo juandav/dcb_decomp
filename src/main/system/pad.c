@@ -52,7 +52,7 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
     s32 changed;
     u16 pressed;
     s32 held;
-    s16 prevHoldTime;
+    s32 prevHoldTime;
 
     if (rawData[1] == 0x80) {
         pad->rawHeld = 0;
@@ -95,7 +95,7 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
     pressed = changed & pad->rawHeld;
     pad->rawPressed = pressed;
     pad->rawReleased = changed & ~pad->rawHeld;
-    pad->rawRepeat = pressed;
+    pad->rawRepeat = pad->rawPressed;
     /* auto-repeat: holding the same buttons fires once after repeatDelay,
        then every repeatRate (counted in vblanks) */
     if (pad->repeatEnabled) {
@@ -110,7 +110,14 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
                 if (prevHoldTime != 0) {
                     pad->repeating = 1;
                     pad->holdTime = 0;
+                    /* the same value: rawRepeat still holds pressed here */
+#if VERSION_US
                     pad->rawRepeat = pressed | held;
+#elif VERSION_EU
+                    pad->rawRepeat |= held;
+#else
+#error "main/system/pad: version not checked"
+#endif
                 }
             } else {
                 if (pad->holdTime < pad->repeatRate) {

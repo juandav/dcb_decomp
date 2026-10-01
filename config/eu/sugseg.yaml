@@ -76,10 +76,11 @@ segments:
       - [0xDC88, c, battle/sug_camera]
       - [0xDDAC, asm, battle/sug_hud]
       - [0xF9F0, c, battle/sug_battle]
+      - [0x10FE0, c, sug_bss]
       - [0x10FE0, .data, effect/sug_light_motion]
       - [0x11020, .data, battle/sug_battle]
       - [0x11024, data, effect/sug_screen_copy]
       - [0x11028, data, effect/sug_effect_script]
-      - [0x11104, data, sug_bss]
+      - [0x11100, .data, sug_bss]
 
   - [0x11730]

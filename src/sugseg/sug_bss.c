@@ -9,6 +9,13 @@ s32 SUG_CAMERA_SPIN = 1;
 s32 SUG_CAMERA_ORBIT_RANGE = 1;
 s32 SUG_CAMERA_YAW_SPIN = 1;
 u16 SUG_HUD_TPAGE = 10;
+/* four bytes only eu has, not referenced by any code either */
+#if VERSION_EU
+u8 D_801F19A4[4] = { 0 };
+#elif VERSION_US
+#else
+#error "sugseg/sug_bss: version not checked"
+#endif
 ClutFade SUG_STAGE_CLUT = { { 0 } };
 u8 D_801EF79C[4] = { 0 };
 TamEntry SUG_TAM_CACHE[8] = { { 0 } };
