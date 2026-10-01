@@ -1028,7 +1028,7 @@ s32 StartRCnt(u32);
 extern int endTask(int);
 void SetPolyFT4(POLY_FT4 *);
 void SetDrawStp(DR_STP *, s32);
-u32 GetTPage(s32, s32, s32, s32);
+u16 GetTPage(s32, s32, s32, s32);
 void SetGraphDebug(s32);
 void InitGeom(void);
 s32 waitFrames(s32);
@@ -1139,7 +1139,7 @@ s32 SsUtReverbOff();
 s32 SsUtReverbOn();
 void SpuSetVoiceAttr(SpuVoiceAttr *);
 s16 SsVabOpenHeadSticky(u8 *, s16, s32);
-s32 SsVabTransBody(s32, s16);
+s16 SsVabTransBody(s32, s16);
 s32 SsVabTransCompleted(s32);
 extern short SsUtKeyOnV(short voice, short vabId, short prog, short tone,
                         short note, short fine, short voll, short volr);
