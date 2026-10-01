@@ -1081,7 +1081,7 @@ typedef struct {
     /* 0x000 */ u8 *prims; /* 0x820 bytes, half for each frame buffer */
     /* 0x004 */ struct Panel *panels; /* the duel's HUD panels (battle_hud.h) */
     /* 0x008 */ void *unk8; /* 0x36C bytes, KAWSEG's (func_801FEC84) */
-    /* 0x00C */ u8 unkC[4];
+    /* 0x00C */ void *unkC; /* 0x40 bytes, KAWSEG's card prize (func_801FDFC4) */
     /* 0x010 */ PlayerDeck opponentDeck; /* the CPU's, for the next duel */
     /* 0x11C */ s8 cpuStyle[4]; /* copied to Player.cpuPlaceStyle .. cpuSupportStyle */
     /* 0x120 */ s8 deckChoice; /* the saved deck the player takes to a duel against the CPU */
