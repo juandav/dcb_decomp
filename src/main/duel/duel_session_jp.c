@@ -33,12 +33,12 @@ void func_800425D8(s32 x, s32 y, s32 value, s32 arg3);
 void func_8004227C(s32 x, s32 y, s32 value, s32 arg3);
 void func_800428A0(s32 x, s32 y, s32 value, s32 arg3);
 void func_80042A4C(s32 x, s32 y, s32 value, s32 arg3);
-s32 func_80043A00(s32 count);
-void func_80043AB4(void);
+s32 KAW_allocCardPolys(s32 count);
+void KAW_freeCardPolys(void);
 /* jp's cursor (us's KAW_createCursor, KAW_freeCursor and KAW_renderCursor) */
-s32 func_80044334(s32 mode, s32 x, s32 y, s32 d, s32 count);
-void func_80044758(s32 cursor);
-void func_800447D4(u8 *cursor, s32 z);
+s32 KAW_createCursor(s32 mode, s32 x, s32 y, s32 d, s32 count);
+void KAW_freeCursor(s32 cursor);
+void KAW_renderCursor(u8 *cursor, s32 z);
 /* KAWSEG's */
 void KAW_runTurnOrderChoice(s32 mode, s32 deckId);
 void KAW_runVersusIntro(s32 mode, s32 deckId);
@@ -88,7 +88,7 @@ void initDuelState(s32 isCpuDuel) {
     func_8004175C();
     CARD_ANIMS = block = allocTaskHeapBlock(CARD_ANIM_SIZE * 60);
     DUEL_STATE = block = allocTaskHeapBlock(0x484);
-    DUEL->sprites = (CardSprite *)func_80043A00(60);
+    DUEL->sprites = (CardSprite *)KAW_allocCardPolys(60);
     DUEL->turnPlayer = rand() % 2;
     DUEL->messageWanted = 0;
     DUEL->messageShown = 0;
@@ -134,7 +134,7 @@ void spawnDuelTasks(s32 isCpuDuel) {
     ((Graphics *)&GRAPHICS)->snapCamera = 1;
     DUEL->loadBusy = 0;
     waitFrames(2);
-    DUEL->cursor = (u8 *)func_80044334(0, 0x28, 0x30, 0xA, 1);
+    DUEL->cursor = (u8 *)KAW_createCursor(0, 0x28, 0x30, 0xA, 1);
     if (DUEL->tutorial != 0) {
         spawnTask(0x1E, -1, 0, 0x800, &runTutorialTurnLoop, 0, 0, 0, 0);
     } else {
@@ -159,7 +159,7 @@ void spawnDuelTasks(s32 isCpuDuel) {
 void teardownDuelScene(void) {
     endTask(0x19);
     func_80041B14();
-    func_80043AB4();
+    KAW_freeCardPolys();
     freeHeapBlocksByTag(0x7F);
     closeKanjiPage(0xF);
 }
@@ -445,7 +445,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
         renderBoardCards();
         if (DUEL->cursorSlot >= 0) {
             ((CardCursor *)DUEL->cursor)->sprite = SPRITE(((CardCursor *)DUEL->cursor)->id);
-            func_800447D4(DUEL->cursor, 0x67);
+            KAW_renderCursor(DUEL->cursor, 0x67);
         }
         if (DUEL->step == 0x34) {
             winner = DUEL->winner;
@@ -489,7 +489,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
             waitFrames(FRAME_INTERVAL);
         }
     }
-    func_80044758((s32)DUEL->cursor);
+    KAW_freeCursor((s32)DUEL->cursor);
     if (DUEL->tutorial == 0) {
         if (winner == 0 && isCpuDuel != 0) {
             func_801FDFC4();

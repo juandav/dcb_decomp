@@ -24,8 +24,8 @@ extern s32 D_8007E7FC;
 
 void clearKanjiPage(s32 page);
 void func_8004309C(s32);
-NisCursor *func_80044334(s32, s32, s32, s32, s32);
-void func_80044758(NisCursor *cursor);
+NisCursor *KAW_createCursor(s32, s32, s32, s32, s32);
+void KAW_freeCursor(NisCursor *cursor);
 s32 NIS_countOwnedDigimonOf(s32 element, s32 level);
 s32 NIS_countOwnedOptions(void);
 void NIS_addCardsToDeck(s32 type, s32 index, s32 count);
@@ -334,7 +334,7 @@ s32 NIS_enterDeckName(char *name, s8 newDeck) {
         SCROLLING_BACKGROUND->unk1C0 = 0x39;
     }
     strcpy(NIS_TYPED_NAME, name);
-    NIS_NAME_CURSOR = func_80044334(1, 6, 6, 4, 1);
+    NIS_NAME_CURSOR = KAW_createCursor(1, 6, 6, 4, 1);
     clearKanjiPage(0xF);
     waitFrames(0x1E);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_NAME_FIELD_WINDOW, getCurrentTaskId());
@@ -372,7 +372,7 @@ s32 NIS_enterDeckName(char *name, s8 newDeck) {
                         NIS_WINDOW(NIS_DECK_SCREENS.lowerWindow)->state = 4;
                         NIS_WINDOW(NIS_DECK_SCREENS.helpWindow)->state = 4;
                         waitFrames(0x24);
-                        func_80044758(NIS_NAME_CURSOR);
+                        KAW_freeCursor(NIS_NAME_CURSOR);
                         NIS_NAME_CURSOR = NULL;
                         return row - 5;
                     }
@@ -831,7 +831,7 @@ void NIS_runCardGrid(s32 kind) {
     s32 item;
 
     list = NIS_buildCardList(NIS_DECK_EDIT.deck, (kind < 0) ? (u32)-kind : (u32)kind, -1);
-    NIS_GRID_POINTER = func_80044334(1, 0x14, 0x18, 5, 1);
+    NIS_GRID_POINTER = KAW_createCursor(1, 0x14, 0x18, 5, 1);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_CARD_GRID_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.mainWindow = waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_GRID_HELP_WINDOW, getCurrentTaskId());
@@ -860,7 +860,7 @@ void NIS_runCardGrid(s32 kind) {
             menu.handlers[0] = NIS_showCard;
         }
         if (runChoiceMenu(&menu) != 0) {
-            func_80044758(NIS_GRID_POINTER);
+            KAW_freeCursor(NIS_GRID_POINTER);
             NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 4;
             NIS_WINDOW(NIS_DECK_SCREENS.helpWindow)->state = 4;
             waitFrames(0x1E);

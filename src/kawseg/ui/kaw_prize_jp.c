@@ -18,9 +18,9 @@
    the cursor that points at a window */
 s32 func_80043954(s32 type, s32 index);
 void func_80043374(s32 type, s32 index, s32 count);
-void *func_80044334(s32 kind, s32 w, s32 h, s32 frames, s32 count);
-void func_80044758(void *cursor);
-void func_80044790(void *cursor, s32 x, s32 y);
+void *KAW_createCursor(s32 kind, s32 w, s32 h, s32 frames, s32 count);
+void KAW_freeCursor(void *cursor);
+void KAW_drawCursorAt(void *cursor, s32 x, s32 y);
 
 /* libgpu's */
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
@@ -191,7 +191,7 @@ void func_801FDFC4(void) {
     s32 timer;
 
     ((SessionData *)SESSION_DATA)->unkC = allocPermanentHeapBlock(0x40);
-    KAW_HAND_CURSOR = func_80044334(1, 0x90, 0x22, 4, 1);
+    KAW_HAND_CURSOR = KAW_createCursor(1, 0x90, 0x22, 4, 1);
     for (i = 0; i < 3; i++) {
         for (;;) {
             card = rand() % 30 + 30;
@@ -292,7 +292,7 @@ void func_801FDFC4(void) {
             }
             break;
         }
-        func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
+        KAW_drawCursorAt(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->choice * 0x41 + 0x30);
         func_801FD108(KAW_CARD_PRIZE->choice, 1);
         drawWindowFrame(&KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice], 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
         for (i = 0; i < 3; i++) {
@@ -343,7 +343,7 @@ void func_801FDFC4(void) {
             }
         }
         if (KAW_CARD_PRIZE->choice != -1) {
-            func_80044790(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
+            KAW_drawCursorAt(KAW_HAND_CURSOR, 0xA0, KAW_CARD_PRIZE->windows[KAW_CARD_PRIZE->choice].y + 0x1E);
         }
         func_801FDBF8();
         drawWindowFrame(&KAW_CARD_PRIZE->message, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 1);
@@ -356,7 +356,7 @@ void func_801FDFC4(void) {
         func_80043374(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
                       PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].index, 1);
     }
-    func_80044758(KAW_HAND_CURSOR);
+    KAW_freeCursor(KAW_HAND_CURSOR);
     freeHeapBlock(KAW_CARD_PRIZE);
     waitFrames(10);
 }

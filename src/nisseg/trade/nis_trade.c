@@ -88,8 +88,8 @@ extern DR_ENV NIS_TRADE_SCREEN_ENVS[2];
 extern DRAWENV NIS_TRADE_SCENE_DRAWENVS[2];
 
 void SetDrawEnv(DR_ENV *dr, DRAWENV *env);
-NisCursor *func_80044334(s32, s32, s32, s32, s32);
-void func_80044758(NisCursor *cursor);
+NisCursor *KAW_createCursor(s32, s32, s32, s32, s32);
+void KAW_freeCursor(NisCursor *cursor);
 void NIS_runVsMode(void);
 void NIS_showCard(s32 kind);
 
@@ -215,7 +215,7 @@ void NIS_runTradeGrid(s32 arg) {
     s32 rowEnd;
 
     kind = 0;
-    NIS_TRADE_CURSOR = func_80044334(1, 0x14, 0x18, 5, 1);
+    NIS_TRADE_CURSOR = KAW_createCursor(1, 0x14, 0x18, 5, 1);
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_TITLE_WINDOW, getCurrentTaskId(), 0, 0);
     NIS_TRADE_SCREENS.titleWindow = waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x800, runWindowTask, &NIS_TRADE_GRID_WINDOW, getCurrentTaskId(), 0, 0);
@@ -229,7 +229,7 @@ void NIS_runTradeGrid(s32 arg) {
         if (TRADE_PRESSED(PAD_CIRCLE)) {
             if (NIS_TRADE_LIST->count != 0) {
                 playSoundEffect(0);
-                func_80044758(NIS_TRADE_CURSOR);
+                KAW_freeCursor(NIS_TRADE_CURSOR);
                 NIS_WINDOW(NIS_TRADE_SCREENS.titleWindow)->state = 4;
                 NIS_WINDOW(NIS_TRADE_WINDOWS.grid)->state = 4;
                 NIS_WINDOW(NIS_TRADE_WINDOWS.help)->state = 4;
@@ -244,7 +244,7 @@ void NIS_runTradeGrid(s32 arg) {
                 exitTask();
             } else {
                 playSoundEffect(1);
-                func_80044758(NIS_TRADE_CURSOR);
+                KAW_freeCursor(NIS_TRADE_CURSOR);
                 NIS_WINDOW(NIS_TRADE_SCREENS.titleWindow)->state = 4;
                 NIS_WINDOW(NIS_TRADE_WINDOWS.grid)->state = 4;
                 NIS_WINDOW(NIS_TRADE_WINDOWS.help)->state = 4;
@@ -256,7 +256,7 @@ void NIS_runTradeGrid(s32 arg) {
             }
         } else if (TRADE_PRESSED(PAD_CROSS)) {
             playSoundEffect(1);
-            func_80044758(NIS_TRADE_CURSOR);
+            KAW_freeCursor(NIS_TRADE_CURSOR);
             NIS_WINDOW(NIS_TRADE_SCREENS.titleWindow)->state = 4;
             NIS_WINDOW(NIS_TRADE_WINDOWS.grid)->state = 4;
             NIS_WINDOW(NIS_TRADE_WINDOWS.help)->state = 4;
@@ -267,7 +267,7 @@ void NIS_runTradeGrid(s32 arg) {
             exitTask();
         } else if (TRADE_PRESSED(PAD_TRIANGLE)) {
             playSoundEffect(0);
-            func_80044758(NIS_TRADE_CURSOR);
+            KAW_freeCursor(NIS_TRADE_CURSOR);
             NIS_WINDOW(NIS_TRADE_SCREENS.titleWindow)->state = 4;
             NIS_WINDOW(NIS_TRADE_WINDOWS.grid)->state = 4;
             NIS_WINDOW(NIS_TRADE_WINDOWS.help)->state = 4;

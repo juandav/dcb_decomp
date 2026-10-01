@@ -55,7 +55,7 @@ void closeKanjiPage(s32);
 void openKanjiPage(s32, s32);
 s32 func_80043374(u8 type, u8 index, s8 count);
 void func_80043740(u8 type, u8 index, s8 count);
-void func_80044758(JpCursor *cursor);
+void KAW_freeCursor(JpCursor *cursor);
 void renderScrollingBackground();
 void setBackgroundScrollMode(s32);
 void stopScreenFade(void);
@@ -64,7 +64,7 @@ void KAW_drawCursor();
 void drawScrollArrow(s32 x, s32 y, s32 dir, s32 palette, s32 z);
 char *formatSjisNumber(s32 value, s32 digits, char *buf);
 void uploadKanjiString(char *text, Rect16 *rect);
-JpCursor *func_80044334(s32, s32, s32, s32, s32);
+JpCursor *KAW_createCursor(s32, s32, s32, s32, s32);
 void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s32 h);
 
 /* sub_name_entry_jp.c */
@@ -1759,7 +1759,7 @@ void SUB_closeShop(s8 mode) {
         break;
     }
     waitFrames(90);
-    func_80044758(SUB_GRID_CURSOR);
+    KAW_freeCursor(SUB_GRID_CURSOR);
     SUB_SHOP_RUNNING = 0;
     closeKanjiPage(0xF);
     freeHeapBlocksByTag(0x195);
@@ -2409,7 +2409,7 @@ void SUB_initShop(void) {
         }
     }
     SUB_SHOP->imageSlot = SUB_SHOP->imageSlots;
-    SUB_GRID_CURSOR = func_80044334(1, 20, 24, 5, 1);
+    SUB_GRID_CURSOR = KAW_createCursor(1, 20, 24, 5, 1);
 }
 
 void SUB_openSellShop(void) {

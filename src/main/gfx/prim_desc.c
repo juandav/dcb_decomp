@@ -11,7 +11,7 @@
 /* drawPrimDesc expands the description in the scratchpad */
 #define SCRATCH_PRIM_DESC ((PrimDesc *)0x1F800000)
 
-static MATRIX *buildRotTransMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m);
+static MATRIX *buildPrimDescMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m);
 
 /* a rectangle facing the camera's view, placed and turned in 3D */
 void drawPrimDesc3D(PrimDesc3D *prim, PrimDesc3DWork *work) {
@@ -34,7 +34,7 @@ void drawPrimDesc3D(PrimDesc3D *prim, PrimDesc3DWork *work) {
     matrix = &work->matrix;
     desc = &work->desc;
     *desc = *(PrimDesc *)prim;
-    buildRotTransMatrix(&prim->pos, &prim->rot, matrix);
+    buildPrimDescMatrix(&prim->pos, &prim->rot, matrix);
     SetRotMatrix((s32)matrix);
     SetTransMatrix(matrix);
     corner0->vx = -(prim->w >> 1);
@@ -186,7 +186,7 @@ u32 *addPrimDescG4(PrimDesc *desc, u32 *ot, u32 *packet, s32 z) {
 }
 
 /* card_render's, a copy of its own */
-static MATRIX *buildRotTransMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
+static MATRIX *buildPrimDescMatrix(VECTOR *pos, SVECTOR *rot, MATRIX *m) {
     MATRIX tmp;
     SVECTOR r;
 

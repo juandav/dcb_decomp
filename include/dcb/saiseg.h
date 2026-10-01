@@ -485,7 +485,7 @@ typedef struct {
     /* 0x04 */ KeyItem *item;
 } KeyItemColumn;
 
-/* what func_80044334 creates and KAW_drawCursor (in jp, the executable's) draws */
+/* what KAW_createCursor creates and KAW_drawCursor (in jp, the executable's) draws */
 typedef struct {
     /* 0x00 */ u8 unk0[8];
     /* 0x08 */ s16 x;

@@ -20,7 +20,7 @@ void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s
 
 extern char *NIS_ELEMENT_NAMES[];
 extern char *NIS_CARD_KIND_NAMES[];
-void func_800445FC(NisCursor *cursor, s32 w, s32 h, s32 d);
+void KAW_initCursorShape(NisCursor *cursor, s32 w, s32 h, s32 d);
 void func_8006689C(char *dst, char *src, s32 count);
 
 void NIS_drawDeckSummary(s32 deck, s32 z);
@@ -464,10 +464,10 @@ void NIS_drawNameEntry(NisWindow *window) {
         }
         if (NIS_DECK_EDIT.copies == 10) {
             if ((u8)(NIS_DECK_EDIT.unkA - 3) < 2) {
-                func_800445FC(NIS_NAME_CURSOR, 0x12, 6, 4);
+                KAW_initCursorShape(NIS_NAME_CURSOR, 0x12, 6, 4);
                 NIS_NAME_CURSOR->x = NIS_DECK_EDIT.copies * 12 + blockX[i] + 0x44;
             } else {
-                func_800445FC(NIS_NAME_CURSOR, 0xC, 6, 4);
+                KAW_initCursorShape(NIS_NAME_CURSOR, 0xC, 6, 4);
                 NIS_NAME_CURSOR->x = NIS_DECK_EDIT.copies * 12 + blockX[i] + 0x3E;
             }
             NIS_NAME_CURSOR->y = ((i != 2) ? NIS_DECK_EDIT.unkA * 15 : commandY[NIS_DECK_EDIT.unkA]) + 0x58;
@@ -478,7 +478,7 @@ void NIS_drawNameEntry(NisWindow *window) {
 
                 sprintf(text, fmt, letter);
             }
-            func_800445FC(NIS_NAME_CURSOR, 6, 6, 4);
+            KAW_initCursorShape(NIS_NAME_CURSOR, 6, 6, 4);
             NIS_NAME_CURSOR->h = 6;
             NIS_NAME_CURSOR->w = 6;
             NIS_NAME_CURSOR->x = NIS_DECK_EDIT.copies * 12 + blockX[i] + 0x37;
