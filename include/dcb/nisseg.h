@@ -58,7 +58,7 @@ typedef struct {
 #define NIS_OTHER_COUNT 6
 #define NIS_CARD_COUNT (NIS_DIGIMON_COUNT + NIS_OPTION_COUNT + NIS_OTHER_COUNT)
 
-/* jp's card data (D_801E4718 points to it): only what NISSEG reads */
+/* jp's Digimon cards (DIGIMON_CARDS points to them): only what NISSEG reads */
 typedef struct {
     /* 0x00 */ s16 power;
     /* 0x02 */ s16 effects[2];
@@ -83,7 +83,7 @@ typedef struct {
     /* 0x121 */ u8 unk121;
 } NisCardData;
 
-/* jp's option cards (D_801E4710 points to them) */
+/* jp's option cards (OPTION_CARDS points to them) */
 typedef struct {
     /* 0x00 */ u8 unk0[3];
     /* 0x03 */ char name[0x12];
@@ -93,15 +93,15 @@ typedef struct {
     /* 0xD3 */ u8 unkD3;
 } NisOptionData;
 
-/* jp's other cards (D_801E4714) */
+/* jp's Digivolve cards (DIGIVOLVE_CARDS points to them) */
 typedef struct {
     /* 0x00 */ u8 unk0[3];
     /* 0x03 */ char name[0x12];
     /* 0x15 */ char text[4][0x13];
     /* 0x61 */ u8 unk61;
 } NisOtherData;
-#define NIS_CARD_ELEMENT(id) (D_801E4718[id].elementLevel >> 4)
-#define NIS_CARD_LEVEL(id) (D_801E4718[id].elementLevel & 0xF)
+#define NIS_CARD_ELEMENT(id) (NIS_DIGIMON_CARDS[id].elementLevel >> 4)
+#define NIS_CARD_LEVEL(id) (NIS_DIGIMON_CARDS[id].elementLevel & 0xF)
 
 /* a saved deck of jp's profiles */
 typedef struct {
@@ -255,7 +255,8 @@ void func_8002B188(NisMenu *menu, s32, void (*)());
 void openKanjiPage(s32, s32);
 void closeKanjiPage(s32);
 void func_8002CACC(s32);
-char *func_80025004(s32 value, s32 width, char *dst);
+char *formatSjisNumber(s32 value, s32 width, char *dst);
+void drawScrollArrow(s32 x, s32 y, s32 dir, s32 palette, s32 z);
 void uploadKanjiString(char *text, Rect16 *rect);
 /* jp's KAW_drawCursor: the pairing of the versions named it obtainPartner */
 void obtainPartner(NisCursor *cursor);
@@ -263,9 +264,11 @@ extern void D_8002A3E0();
 extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
 extern NisUiState *D_801E4640;
-extern NisCardData *D_801E4718;
-extern NisOptionData *D_801E4710;
-extern NisOtherData *D_801E4714;
+extern u8 *OPTION_CARDS; /* as dcb/card_db.h, whose obtainPartner is not jp's */
+extern u8 *DIGIVOLVE_CARDS;
+#define NIS_DIGIMON_CARDS ((NisCardData *)DIGIMON_CARDS)
+#define NIS_OPTION_CARDS ((NisOptionData *)OPTION_CARDS)
+#define NIS_DIGIVOLVE_CARDS ((NisOtherData *)DIGIVOLVE_CARDS)
 extern NisDeckEdit NIS_DECK_EDIT;
 extern NisCardList *NIS_CARD_LIST; /* the last list built */
 

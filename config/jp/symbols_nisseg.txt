@@ -48,6 +48,15 @@ NIS_closeDeckChoice = 0x801EFE68; // type:func version-only
 NIS_drawDeckChoice1 = 0x801EFE70; // type:func version-only
 NIS_drawDeckChoice2 = 0x801F0030; // type:func version-only
 NIS_chooseVsDecks = 0x801F0240; // type:func version-only
+NIS_DECK_CHOICE_RGB = 0x801EA658; // size:0x4 version-only
+NIS_FMT_TRIANGLE_DECK = 0x801EA65C; // size:0xC version-only
+NIS_STR_TRIANGLE_NONE = 0x801EA668; // size:0x8 version-only
+NIS_FMT_CIRCLE_DECK = 0x801EA670; // size:0xC version-only
+NIS_STR_CIRCLE_NONE = 0x801EA67C; // size:0x8 version-only
+NIS_FMT_CROSS_DECK = 0x801EA684; // size:0xC version-only
+NIS_STR_CROSS_NONE = 0x801EA690; // size:0x8 version-only
+NIS_STR_SQUARE_RANDOM = 0x801EA698; // size:0xC version-only
+NIS_STR_CHOOSE_BY_BUTTON = 0x801EA6A4; // size:0x14 version-only
 
 // deck/nis_deck_scene
 NIS_renderDeckScene = 0x801F7468; // type:func version-only
@@ -108,6 +117,7 @@ NIS_pickSecondElement = 0x801F27E4; // type:func version-only
 NIS_countDeckFreeSlots = 0x801F2A3C; // type:func version-only
 NIS_takeDigimonOfLevel = 0x801F2A9C; // type:func version-only
 NIS_buildAutoDeck = 0x801F2BCC; // type:func version-only
+NIS_AUTO_DECK_COUNTS = 0x801EA8AC; // size:0x8 version-only
 NIS_fixDeckCards = 0x801F34B4; // type:func version-only
 NIS_dropDeckCopiesFromList = 0x801F39CC; // type:func version-only
 NIS_OPTION_STYLES = 0x801FC024; // size:0x30 version-only
