@@ -16,7 +16,7 @@
 extern u8 CROSS_EFFECT_ICONS[];
 extern char *CROSS_EFFECT_NAMES[];
 
-void initWindowSprite(POLY_FT4 *poly, s32 tpage, s32 abr, s32 u, s32 v, s32 w, s32 h);
+void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s32 h);
 
 extern char *NIS_ELEMENT_NAMES[];
 extern char *NIS_CARD_KIND_NAMES[];

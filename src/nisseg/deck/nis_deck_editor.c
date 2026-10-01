@@ -20,7 +20,7 @@ extern s32 D_801FC734;
 extern s16 *NIS_ROOKIE_COUNTS; /* the Digimon owned of each element */
 extern u8 (*NIS_DECK_BACKUP)[2]; /* the deck's cards before editing */
 extern NisProfile *NIS_PROFILE_BACKUP; /* player 1's profile before a trade */
-extern s32 MENU_ITEMS[];
+extern s32 MENU_ITEMS[]; /* player_data_jp.c's menu items, read here as words */
 extern s32 D_8007E7FC;
 
 void clearKanjiPage(s32 page);

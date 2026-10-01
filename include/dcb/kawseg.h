@@ -106,14 +106,27 @@ typedef struct {
 #endif
 
 #if VERSION_JP
-/* jp's tutorial block (SessionData.unk8): its message window and text */
+/* jp's tutorial block (SessionData.unk8): its message window, the decks
+   both players duel with and the text */
 typedef struct {
     /* 0x000 */ UiWindow window;
-    /* 0x050 */ u8 unk50[0x218];
+    /* 0x050 */ PlayerDeck decks[2];
     /* 0x268 */ char text[0x101];
     /* 0x369 */ u8 unk369[3];
 } TutorialK;
 #define KAW_TUTORIAL ((TutorialK *)((SessionData *)SESSION_DATA)->unk8)
+
+/* jp's card prize (SessionData.unkC): after a duel against the CPU the
+   player takes one of three of its cards (kaw_prize_jp's func_801FDFC4) */
+typedef struct {
+    /* 0x00 */ s32 cards[3]; /* the cards' sprites: 30 + their deck slots */
+    /* 0x0C */ Rect16 windows[3];
+    /* 0x24 */ s32 brightness[3];
+    /* 0x30 */ Rect16 message;
+    /* 0x38 */ s32 state; /* 0 choosing, 2 asked to leave, 3 eight owned, 5 asked to take one; 1 taken, 4 left */
+    /* 0x3C */ s32 choice; /* -1 once left */
+} CardPrizeK;
+#define KAW_CARD_PRIZE ((CardPrizeK *)((SessionData *)SESSION_DATA)->unkC)
 #endif
 
 typedef struct ScriptRunner {

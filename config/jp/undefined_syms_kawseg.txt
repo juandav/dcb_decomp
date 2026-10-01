@@ -1,0 +1,25 @@
+/* addresses KAWSEG uses that none of its objects defines */
+
+/* from the C of the modules this version builds (tools/version_symbols.py):
+   what it calls by address, and the fields of its data that the modules
+   still in asm read by splat's names */
+D_801EB454 = 0x801EB454;
+D_801EB460 = 0x801EB460;
+D_801EB468 = 0x801EB468;
+D_801EB46C = 0x801EB46C;
+D_801EB470 = 0x801EB470;
+D_801EB474 = 0x801EB474;
+D_801EB47C = 0x801EB47C;
+D_801EB484 = 0x801EB484;
+D_801EB48C = 0x801EB48C;
+D_801EB494 = 0x801EB494;
+D_801EB4A0 = 0x801EB4A0;
+D_801EB4B0 = 0x801EB4B0;
+D_801EB4B4 = 0x801EB4B4;
+D_801EB4C0 = 0x801EB4C0;
+D_801EB4F0 = 0x801EB4F0;
+D_801EB508 = 0x801EB508;
+D_801EB538 = 0x801EB538;
+D_801EB554 = 0x801EB554;
+D_801EB574 = 0x801EB574;
+D_801EB5A4 = 0x801EB5A4;
