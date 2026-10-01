@@ -48,8 +48,8 @@ void NIS_tickDebugModeSelect(s32 taskId);
 
 /* the debug build's first menu: the debug mode and Sugano's menu */
 NisDebugMenuItem NIS_DEBUG_MENU_ITEMS[2] = {
-    { NIS_tickDebugModeSelect, NULL, 0x400, 0, 0, "TEST TASK" },
-    { func_8002D15C, &NIS_SUGANO_MENU, 0x400, 0, 0, "SUGANO MENU" },
+    { NIS_tickDebugModeSelect, NULL, 0x400, 0, 0, 0, 0, "TEST TASK" },
+    { func_8002D15C, &NIS_SUGANO_MENU, 0x400, 0, 0, 0, 0, "SUGANO MENU" },
 };
 NisDebugMenu NIS_DEBUG_MENU = { NIS_DEBUG_MENU_ITEMS, 0, NULL, 0, 0x10, 0x20, 2, 2, { 0 }, "N_MENU" };
 #endif

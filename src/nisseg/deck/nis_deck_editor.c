@@ -91,16 +91,6 @@ NisWindowDef NIS_AUTO_DECK_WINDOW = { { 0x1A, 0xA0, 0, 0xC }, { 0x1A, 0xA0, 0x11
 NisWindowDef NIS_AUTO_DECK_PORTRAIT_WINDOW = { { 0x126, 0x4F, 0, 0x10 }, { 0xE6, 0x4F, 0x40, 0x38 }, 0xA, 1, NIS_drawAutoDeckPortrait, NIS_closeDeckWindow };
 
 #if JP_DEBUG_BUILD
-/* the windows the debug menu (debug/nis_debug_menu) opens one at a time:
-   what it calls before opening the window and after closing it */
-typedef struct {
-    /* 0x0 */ NisWindowDef *window;
-    /* 0x4 */ void (*open)();
-    /* 0x8 */ void (*close)();
-} NisWindowTest;
-void func_801F8C18();
-void func_801F8D34();
-void func_801F8E10();
 void NIS_closeDeckScene(void);
 
 NisWindowTest NIS_WINDOW_TESTS[4] = {

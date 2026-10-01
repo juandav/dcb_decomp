@@ -316,15 +316,17 @@ typedef struct NisDebugMenu NisDebugMenu;
 typedef struct {
     /* 0x00 */ void (*run)();
     /* 0x04 */ NisDebugMenu *submenu;
-    /* 0x08 */ s32 stackSize;
-    /* 0x0C */ s32 unkC;
-    /* 0x10 */ u8 unk10;
+    /* 0x08 */ s16 stackSize;
+    /* 0x0A */ s16 value; /* what the item's action reads, from min to max */
+    /* 0x0C */ s16 min;
+    /* 0x0E */ s16 max;
+    /* 0x10 */ u8 hasValue;
     /* 0x11 */ char name[15];
 } NisDebugMenuItem;
 struct NisDebugMenu {
     /* 0x00 */ NisDebugMenuItem *items;
     /* 0x04 */ s32 unk4;
-    /* 0x08 */ void (*open)(void);
+    /* 0x08 */ s32 (*open)(void); /* NIS_loadDeckTims */
     /* 0x0C */ s32 unkC;
     /* 0x10 */ s16 x;
     /* 0x12 */ s16 y;
@@ -342,6 +344,18 @@ void NIS_openViewerScene(void);
 void NIS_closeViewerScene(void);
 void NIS_runModelViewer(s32 digimonId);
 extern NisDebugMenu NIS_SUGANO_MENU;
+
+/* the windows the debug menu's WINDOW TEST opens one at a time
+   (NIS_WINDOW_TESTS): what it calls before opening the window and after
+   closing it */
+typedef struct {
+    /* 0x0 */ NisWindowDef *window;
+    /* 0x4 */ void (*open)();
+    /* 0x8 */ void (*close)();
+} NisWindowTest;
+void func_801F8C18();
+void func_801F8D34();
+void func_801F8E10();
 /* its allocHeapBlock names the block too */
 #define NIS_ALLOC_HEAP_BLOCK(size, ownerTag, name, tag) allocNamedHeapBlock(size, ownerTag, name, tag)
 #else
