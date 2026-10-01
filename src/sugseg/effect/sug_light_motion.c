@@ -5,16 +5,27 @@
 #include "dcb/scene3d.h"
 
 /* the light matrix and colours SUG_tickLightMotion sets */
+/* jp's two lights point the other way up, and their green is a little lower */
+#if VERSION_JP
+MATRIX SUG_DEFAULT_LIGHT_MATRIX = { { { 0, 0x1000, -0x5DC }, { 0, -0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
+MATRIX SUG_DEFAULT_LIGHT_COLORS = { { { 0x1000, 0x5DC, 0 }, { 0xFF5, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } };
+#elif VERSION_US || VERSION_EU
 MATRIX SUG_DEFAULT_LIGHT_MATRIX = { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } };
 MATRIX SUG_DEFAULT_LIGHT_COLORS = { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } };
+#else
+#error "sugseg/effect/sug_light_motion: version not checked"
+#endif
 
 LightMotion *SUG_createLightMotion(VECTOR *pos, VECTOR *posTo, VECTOR *color, VECTOR *colorTo, s32 light, s32 period, s32 duration) {
     LightMotion *motion;
 
     motion = allocTaskHeapBlock(sizeof(LightMotion));
+    /* jp lets a zero period divide by zero */
+#if VERSION_US || VERSION_EU
     if (period == 0) {
         period = 1;
     }
+#endif
     motion->pos = *pos;
     motion->posStep.vx = (posTo->vx - pos->vx) / period;
     motion->posStep.vy = (posTo->vy - pos->vy) / period;
