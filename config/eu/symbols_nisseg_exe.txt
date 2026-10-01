@@ -112,17 +112,17 @@ DIGIMON_CARDS = 0x801E0310;
 
 // what jp's NISSEG calls by splat's names in jp's executable, by those names
 
-func_80045E40 = 0x8004CD38; // type:func
-func_80046464 = 0x8004D544; // type:func
-func_80046550 = 0x8004D65C; // type:func
+runOptionScreen = 0x8004CD38; // type:func
+enterWorldMap = 0x8004D544; // type:func
+runVersusDuel = 0x8004D65C; // type:func
 runNewLoadMenu = 0x800501A0; // type:func
 openMemcardScreenAfterDeckEdit = 0x80050464; // type:func
 func_8006689C = 0x8006E0CC; // type:func
-D_8007E7CC = 0x80086218;
+MAIN_MENU = 0x80086218;
 D_8007E7D8 = 0x80086224;
 D_8007E7E4 = 0x80086230;
-D_8007E7FC = 0x80086248;
-D_8007E808 = 0x80086254;
+DECK_KINDS_MENU = 0x80086248;
+VS_MODE_MENU = 0x80086254;
 D_8008CD50 = 0x80094BD8;
 D_801E469C = 0x801E0294;
 D_801E46D8 = 0x801E02D0;

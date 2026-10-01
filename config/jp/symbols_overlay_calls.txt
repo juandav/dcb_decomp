@@ -63,9 +63,9 @@ OVERLAY_AREA = 0x801EA3E8;
 KAW_drawHandHints = 0x801F8488; // type:func
 
 // the overlay tasks jp's memory card screen goes on to (memcard_screen.c):
-// 0x801F117C is NISSEG's or SAISEG's, whichever is loaded
-func_801F117C = 0x801F117C; // type:func
-D_801F0820 = 0x801F0820; // type:func
+// (NISSEG's: SAISEG has no function at 0x801F117C)
+NIS_runMenuE7CC = 0x801F117C; // type:func version-only
+NIS_runVsMode = 0x801F0820; // type:func version-only
 NIS_enterDeckListFromMenu = 0x801FB26C; // type:func version-only
 INT_introTask = 0x801EB428; // type:func version-only
 

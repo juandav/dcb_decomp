@@ -20,7 +20,7 @@ extern s16 *NIS_ROOKIE_COUNTS; /* the Digimon owned of each element */
 extern u8 (*NIS_DECK_BACKUP)[2]; /* the deck's cards before editing */
 extern NisProfile *NIS_PROFILE_BACKUP; /* player 1's profile before a trade */
 extern s32 MENU_ITEMS[]; /* player_data_jp.c's menu items, read here as words */
-extern s32 D_8007E7FC;
+extern s32 DECK_KINDS_MENU;
 
 void clearKanjiPage(s32 page);
 void linkSavedDecks(s32);
@@ -994,7 +994,7 @@ void NIS_runDeckKinds(s32 mode) {
 
     clearKanjiPage(0xF);
     MENU_ITEMS[0x1A] = NIS_DECK_EDIT.deck + 0x12;
-    openChoiceMenuFromList(&menu, &D_8007E7FC, &menu.choice);
+    openChoiceMenuFromList(&menu, &DECK_KINDS_MENU, &menu.choice);
     NIS_GRID_CURSOR = NIS_GRID_SCROLL = 0;
     if (mode < 0) {
         MENU_ITEMS[0x1A] = NIS_DECK_EDIT.deck + 0x12;

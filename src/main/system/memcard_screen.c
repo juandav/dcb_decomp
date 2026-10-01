@@ -60,11 +60,11 @@ typedef struct {
 } ScrollingBackgroundView;
 extern ScrollingBackgroundView *SCROLLING_BACKGROUND;
 /* the overlays' tasks the screen goes back to */
-void func_801F117C();
+void NIS_runMenuE7CC();
 void NIS_enterDeckListFromMenu();
-void D_801F0820();
+void NIS_runVsMode();
 void INT_introTask();
-void func_80046464();
+void enterWorldMap();
 
 /* what runWindowTask hands back (player_data_jp's WindowTask) */
 typedef struct {
@@ -246,16 +246,16 @@ char *MEMCARD_MESSAGES[47] = {
 };
 
 MemcardMode MEMCARD_MODES[10] = {
-    { 2, NULL, func_80046464 },
-    { 3, runNewLoadMenu, func_80046464 },
-    { 0, func_80046464, func_80046464 },
-    { 1, func_801F117C, NIS_enterDeckListFromMenu },
-    { 0, NIS_enterDeckListFromMenu, func_801F117C },
-    { 0x37, func_801F117C, doNothingInMemcardScreen },
-    { 0x38, NULL, D_801F0820 },
-    { 0, D_801F0820, func_801F117C },
-    { 0, NULL, func_801F117C },
-    { 0, NULL, func_80046464 },
+    { 2, NULL, enterWorldMap },
+    { 3, runNewLoadMenu, enterWorldMap },
+    { 0, enterWorldMap, enterWorldMap },
+    { 1, NIS_runMenuE7CC, NIS_enterDeckListFromMenu },
+    { 0, NIS_enterDeckListFromMenu, NIS_runMenuE7CC },
+    { 0x37, NIS_runMenuE7CC, doNothingInMemcardScreen },
+    { 0x38, NULL, NIS_runVsMode },
+    { 0, NIS_runVsMode, NIS_runMenuE7CC },
+    { 0, NULL, NIS_runMenuE7CC },
+    { 0, NULL, enterWorldMap },
 };
 
 /* the frame of the progress bars */
@@ -644,7 +644,7 @@ s32 applyLoadedSave(MemcardScreen *screen) {
 void runNewLoadMenu(void) {
     ChoiceMenu menu;
 
-    openChoiceMenu(&menu, 0x36, 0x32, func_801F117C, 0);
+    openChoiceMenu(&menu, 0x36, 0x32, NIS_runMenuE7CC, 0);
     addChoiceMenuItem(&menu, 5, doNothingInMemcardScreen);
     addChoiceMenuItem(&menu, 4, doNothingInMemcardScreen);
     while (1) {
