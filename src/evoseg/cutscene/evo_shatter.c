@@ -70,7 +70,7 @@ u32 EVO_RAND_SEED_HI = 0x13CC25;
 void EVO_startShatter(s32 model) {
     s32 i;
     s32 j;
-    s16 tmp;
+    s32 tmp;
     u8 unused[0x50]; /* stack space the original reserves but never touches */
 
     EVO_SHATTER.total = -1;
@@ -552,6 +552,11 @@ void EVO_drawShardTNF4(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     }
 }
 
+#if VERSION_EU
+/* eu: s1, s2 and s3 rotated by the register allocator; no C form found yet */
+INCLUDE_RODATA("evoseg/nonmatchings/cutscene/evo_shatter", D_801E095C);
+INCLUDE_ASM("evoseg/nonmatchings/cutscene/evo_shatter", EVO_addShard);
+#elif VERSION_US
 s32 EVO_addShard(s32 part, s32 arg) {
     SVECTOR out;
     MATRIX rot;
@@ -714,6 +719,9 @@ s32 EVO_addShard(s32 part, s32 arg) {
     EVO_SHATTER.count = slot + 1;
     return slot;
 }
+#else
+#error "evoseg/cutscene/evo_shatter: version not checked"
+#endif
 
 s32 EVO_randomRange(s32 min, s32 max) {
     s32 tmp;

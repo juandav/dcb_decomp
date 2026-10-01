@@ -32,7 +32,7 @@ MAIN_C_SRC := \
 		sound.c sound_play.c vblank.c) \
 	$(addprefix src/main/ui/, menu.c str_util.c window.c)
 EVOSEG_C_SRC := \
-	src/evoseg/cutscene/evo_cutscene.c \
+	$(addprefix src/evoseg/cutscene/, evo_cutscene.c evo_shatter.c) \
 	src/evoseg/effect/evo_effect.c \
 	src/evoseg/evo_bss.c \
 	$(addprefix src/evoseg/fusion/, evo_banners.c evo_card_list.c \
@@ -40,7 +40,8 @@ EVOSEG_C_SRC := \
 		evo_lists.c evo_partner_status.c evo_rewards.c evo_screen_flash.c \
 		evo_text.c evo_trays.c evo_type_choice.c)
 KAWSEG_C_SRC := \
-	$(addprefix src/kawseg/duel/, kaw_bonus.c kaw_effect.c kaw_hand.c) \
+	$(addprefix src/kawseg/duel/, kaw_bonus.c kaw_effect.c kaw_hand.c \
+		kaw_tutorial.c) \
 	src/kawseg/kaw_bss.c \
 	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_hud.c \
 		kaw_prize.c kaw_result.c)
@@ -60,7 +61,7 @@ SAISEG_C_SRC := \
 	$(addprefix src/saiseg/, sai_bss.c sai_data.c) \
 	$(addprefix src/saiseg/script/, sai_area_script.c sai_flags.c) \
 	$(addprefix src/saiseg/ui/, sai_choice.c sai_labels.c sai_panel.c \
-		sai_text.c)
+		sai_sprite.c sai_text.c)
 SUBSEG_C_SRC := \
 	$(addprefix src/subseg/deck/, sub_auto_deck.c sub_base_deck.c \
 		sub_deck_editor.c sub_name_entry.c sub_sort.c) \
