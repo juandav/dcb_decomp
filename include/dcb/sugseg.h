@@ -263,10 +263,13 @@ typedef struct {
     s8 frameTimer;
     u16 scaleX;
     u16 scaleY;
+#if VERSION_US || VERSION_EU
+    /* jp's sprites can't be flipped or placed by their frame's origin */
     s8 flipX;
     s8 flipY;
     u8 unk8A;
     s8 useOrigin;
+#endif
 } Sprite;
 
 #if VERSION_JP
@@ -417,7 +420,11 @@ typedef struct {
 } PosHistory;
 
 typedef struct {
+#if VERSION_JP
+    u8 unk0[0x13D]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     u8 unk0[0x139];
+#endif
     u8 suspended;
     u8 unk13A[2];
     Sprite sprite;
