@@ -258,8 +258,8 @@ void func_8002CACC(s32);
 char *formatSjisNumber(s32 value, s32 width, char *dst);
 void drawScrollArrow(s32 x, s32 y, s32 dir, s32 palette, s32 z);
 void uploadKanjiString(char *text, Rect16 *rect);
-/* jp's KAW_drawCursor: the pairing of the versions named it obtainPartner */
-void obtainPartner(NisCursor *cursor);
+/* jp keeps KAW_drawCursor in the executable */
+void KAW_drawCursor(NisCursor *cursor);
 extern void D_8002A3E0();
 extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
