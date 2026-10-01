@@ -42,6 +42,16 @@ initEffectObject = 0x801EBE4C; // type:func us-main
 tickEffectMotion = 0x801EBFA4; // type:func us-main
 updateEffectBrightness = 0x801EC7C0; // type:func us-main
 
+// main's effect_prims, which jp also links into SUGSEG: the rings, and
+// apart from them the streak particles (us-main)
+buildRingEffectMesh = 0x801EC990; // type:func us-main
+createRingEffect = 0x801ED068; // type:func us-main
+renderRingEffect = 0x801ED400; // type:func us-main
+freeRingEffect = 0x801EDB78; // type:func us-main
+createStreakParticles = 0x801F5A84; // type:func us-main
+renderStreakParticles = 0x801F61F4; // type:func us-main
+freeStreakParticles = 0x801F66DC; // type:func us-main
+
 // names from us (tools/match_versions.py --seed): the same function or datum
 SUG_createPosHistory = 0x801EA8FC; // type:func
 SUG_fillPosHistory = 0x801EA9E8; // type:func
