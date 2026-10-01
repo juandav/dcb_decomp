@@ -32,11 +32,9 @@
 #if VERSION_JP
 #define BUILD_RINGS JP_BUILD_RINGS
 #define BUILD_STREAKS JP_BUILD_STREAKS
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define BUILD_RINGS 1
 #define BUILD_STREAKS 1
-#else
-#error "untested version"
 #endif
 
 #if BUILD_RINGS
@@ -397,7 +395,7 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     }
     return fx;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTemplate *template, s16 spreadX, s16 spreadY, s16 length, s16 endLength, s16 frames, s16 speedRange, s16 reverse,
                          s16 count, s16 zOffset, s16 spin, s16 pattern, s16 kind, s16 semi, s32 flags, s32 fixedOtz) {
     StreakParticles *fx;
@@ -517,8 +515,6 @@ StreakParticles *createStreakParticles(u8 *startColor, u8 *endColor, EffectTempl
     }
     return fx;
 }
-#else
-#error "untested version"
 #endif
 
 #if VERSION_JP
@@ -617,7 +613,7 @@ void renderStreakParticles(StreakParticles *fx) {
     fx->frame++;
     PopMatrix();
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void renderStreakParticles(StreakParticles *fx) {
     Particle *particle;
     LINE_G2 *line;
@@ -664,7 +660,16 @@ void renderStreakParticles(StreakParticles *fx) {
                     vertex->vz = particle->speed * frame;
                 }
                 vertex->vz += fx->zOffset;
+                /* eu computes the signed length in a temporary of its own */
+#if VERSION_US
                 length = (particle->length + fx->lengthStep * frame) * fx->direction / 8;
+#elif VERSION_EU
+                {
+                    s32 scaled = (particle->length + fx->lengthStep * frame) * fx->direction;
+
+                    length = scaled / 8;
+                }
+#endif
                 if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
                     vertex->vz += length;
                     otz = RotTransPers((s32)vertex, (s32)&line->r1, &interp, &flag);
@@ -698,7 +703,15 @@ void renderStreakParticles(StreakParticles *fx) {
                     vertex->vz = particle->speed * frame;
                 }
                 vertex->vz += fx->zOffset;
+#if VERSION_US
                 length = (particle->length + fx->lengthStep * frame) * fx->direction / 16;
+#elif VERSION_EU
+                {
+                    s32 scaled = (particle->length + fx->lengthStep * frame) * fx->direction;
+
+                    length = scaled / 16;
+                }
+#endif
                 vertex->vx += dx = length * rsin(particle->angle) / 4096;
                 vertex->vz += dz = length * rcos(particle->angle) / 4096;
                 if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
@@ -738,7 +751,15 @@ void renderStreakParticles(StreakParticles *fx) {
                     vertex->vz = particle->speed * frame;
                 }
                 vertex->vz += fx->zOffset;
+#if VERSION_US
                 length = (particle->length + fx->lengthStep * frame) * fx->direction / 8;
+#elif VERSION_EU
+                {
+                    s32 scaled = (particle->length + fx->lengthStep * frame) * fx->direction;
+
+                    length = scaled / 8;
+                }
+#endif
                 if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
                     vertex->vz += length;
                     otz = RotTransPers((s32)vertex, (s32)&line->x1, &interp, &flag);
@@ -766,7 +787,15 @@ void renderStreakParticles(StreakParticles *fx) {
                     vertex->vz = particle->speed * frame;
                 }
                 vertex->vz += fx->zOffset;
+#if VERSION_US
                 length = (particle->length + fx->lengthStep * frame) * fx->direction / 16;
+#elif VERSION_EU
+                {
+                    s32 scaled = (particle->length + fx->lengthStep * frame) * fx->direction;
+
+                    length = scaled / 16;
+                }
+#endif
                 vertex->vx += dx = length * rsin(particle->angle) / 4096;
                 vertex->vz += dz = length * rcos(particle->angle) / 4096;
                 if (RotTransPers((s32)vertex, (s32)&line->x0, &interp, &flag) < 0x1000U) {
@@ -789,8 +818,6 @@ void renderStreakParticles(StreakParticles *fx) {
     fx->frame++;
     PopMatrix();
 }
-#else
-#error "untested version"
 #endif
 
 void freeStreakParticles(StreakParticles *fx) {

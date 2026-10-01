@@ -31,8 +31,9 @@ MAIN_C_SRC := \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
 		prim_util.c screen_copy.c scroll_bg.c tmd_sort.c transform.c \
 		vram_upload.c) \
-	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
-		model_load.c scene3d.c stage.c wire_grid.c) \
+	$(addprefix src/main/model/, anim_control.c camera.c effect_object.c \
+		effect_prims.c model_anim.c model_load.c scene3d.c stage.c \
+		wire_grid.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c \
@@ -81,9 +82,10 @@ SUBSEG_C_SRC := \
 	src/subseg/partner/sub_partner.c \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
-	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_sprite.c) \
+	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c sug_hud.c \
+		sug_sprite.c) \
 	$(addprefix src/sugseg/effect/, sug_effect_script.c sug_fade_rect.c \
 		sug_gradient.c sug_history.c sug_light_motion.c sug_model_effect.c \
-		sug_screen_copy.c sug_scroll_texture.c sug_sprite_effect.c \
-		sug_stage_fade.c sug_tex_anim.c sug_trail.c) \
+		sug_screen_copy.c sug_scroll_texture.c sug_sphere.c \
+		sug_sprite_effect.c sug_stage_fade.c sug_tex_anim.c sug_trail.c) \
 	src/sugseg/sug_bss.c

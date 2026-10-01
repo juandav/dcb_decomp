@@ -144,10 +144,8 @@ void SUG_drawNumber(s32 x, s32 y, s32 value, u8 brightness) {
             /* jp's digits are 24 pixels apart */
 #if VERSION_JP
             drawTexturedSprite(x + count * 24, y, &uv, SUG_HUD_TPAGE, clut, 1, brightness, 1);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             drawTexturedSprite(x + 4 + count * 21, y, &uv, SUG_HUD_TPAGE, clut, 1, brightness, 1);
-#else
-#error "untested version"
 #endif
             count++;
         }
@@ -293,7 +291,7 @@ void SUG_showAttackLabel(s32 side) {
 #if VERSION_JP
 /* jp: register-priority tie between side, a and count; no C form without a do-while(0) */
 INCLUDE_ASM("sugseg/nonmatchings/battle/sug_hud", SUG_showAttackBanner);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void SUG_showAttackBanner(s32 side) {
     HudSlide banners[5];
     Rect16 unused; /* unused, but it sizes the frame */
@@ -395,8 +393,6 @@ void SUG_showAttackBanner(s32 side) {
     SUG_BATTLE->flags.bits.flag1 = 0;
     SUG_BATTLE->flags.bits.counter = 0;
 }
-#else
-#error "untested version"
 #endif
 
 void SUG_showHpBanner(s32 side) {
@@ -404,14 +400,10 @@ void SUG_showHpBanner(s32 side) {
     HudSlide icon;
 #if VERSION_JP
     HudSlide label;
-#elif VERSION_EU
-#error "untested version"
 #endif
     HudSlide num;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     s32 unused[8];
-#elif VERSION_EU
-#error "untested version"
 #endif
     s32 state;
 
@@ -433,8 +425,6 @@ void SUG_showHpBanner(s32 side) {
     label.uv.y = 0x78;
     label.uv.w = 0xA0;
     label.uv.h = 0x10;
-#elif VERSION_EU
-#error "untested version"
 #endif
     SUG_initHudSlide(&num, -0x18, 0x10, 0x10, 2);
     waitFrames(0x28);
@@ -442,10 +432,8 @@ void SUG_showHpBanner(s32 side) {
         waitFrames(FRAME_INTERVAL);
 #if VERSION_JP
         state = SUG_tickHudSlides(&bar, 4, state, 2);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         state = SUG_tickHudSlides(&bar, 3, state, 2);
-#else
-#error "untested version"
 #endif
         SUG_drawHudSpriteTrail((s16)bar.pos, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.brightness, 0, bar.trail, 6);
         SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE,
@@ -453,18 +441,14 @@ void SUG_showHpBanner(s32 side) {
                       icon.trail, 6);
 #if VERSION_JP
         SUG_drawHudSpriteTrail((s16)label.pos, 0xA2, &label.uv, SUG_HUD_TPAGE, 0x1529, 1, label.brightness, 0, label.trail, 6);
-#elif VERSION_EU
-#error "untested version"
 #endif
         SUG_drawNumber(0xA8, (s16)num.pos, SUG_BATTLE->players[side].hp, num.brightness);
         if (((ModelData *)SCENE_3D->models[side])->animKeyTimer < 0) {
             /* jp's models keep their animations loaded */
 #if VERSION_JP
             startModelAnimation(side, 0, -2, 0);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             playModelAnimation(side, 0);
-#else
-#error "untested version"
 #endif
         }
     } while (state != 3);

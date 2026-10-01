@@ -85,3 +85,6 @@ KAW_chooseAttack = 0x801E7448; // type:func
 KAW_chooseSupportCard = 0x801E7CD0; // type:func
 SUG_updateScreenCopyQuads = 0x801ED394; // type:func
 SUG_runPolygonBattle = 0x801F14B4; // type:func
+SUG_startTexAnim = 0x801E9558; // type:func
+SUG_tickTexAnim = 0x801E98D8; // type:func
+SUG_freeTexAnim = 0x801E9B88; // type:func
