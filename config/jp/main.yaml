@@ -72,11 +72,9 @@ segments:
       - [0x9D8, .rodata, ui/str_util]
       - [0xA0C, .rodata, system/sound]
       - [0xA2C, .rodata, system/opening_movie]
-      # the rank names, which us has in memcard.c: jp keeps them before
-      # player_rank's rodata, apart from its memcard object (their pointers
-      # are at the start of player_data's data)
-      - [0xA4C, rodata, system/memcard_data]
-      - [0xBF4, .rodata, card/player_rank]
+      # player_rank's rodata starts with the rank names, which us has in
+      # memcard.c (its first jump table is 8-aligned from them)
+      - [0xA4C, .rodata, card/player_rank]
       # jp's player_data starts right after updatePlayerRanks
       - [0xC50, .rodata, card/player_data_jp]
       - [0xD8C, .rodata, model/stage]
@@ -99,8 +97,8 @@ segments:
       - [0x1864, .rodata, system/memcard]
       - [0x1884, .rodata, system/memcard_screen]
       - [0x2740, .rodata, system/game_exit]
+      # PsyQ's rodata, from libspu's on (jp's executable has no hacking_shell)
       - [0x2768, rodata, psyq]
-      - [0x2768, rodata, ui/hacking_shell]
       - [0x3628, c, main]
       - [0x36D0, c, system/task]
       - [0x414C, asm, startup]
@@ -202,9 +200,11 @@ segments:
       - [0x5C040, .data, model/wire_grid]
       - [0x5C054, data, ui/text_jp]
       - [0x6EDA0, .data, system/sound]
-      # PLAYER_PROFILES and COMPLETE_SET_CARD_COUNTS (us has them in
-      # memcard), then the tables of jp's own code in player_data
-      - [0x6EDF4, data, card/player_data_jp]
+      # player_rank's PLAYER_PROFILES to COMPLETE_SET_CARD_COUNTS (us has them
+      # in memcard)
+      - [0x6EDF4, .data, card/player_rank]
+      # the tables of jp's own code in player_data
+      - [0x6EE64, data, card/player_data_jp]
       - [0x6F094, .data, model/stage]
       - [0x6F114, .data, gfx/prim_desc]
       - [0x6F144, .data, duel/card_motion_jp]
