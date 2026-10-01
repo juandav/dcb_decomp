@@ -27,6 +27,10 @@ _SETTINGS = dict(re.findall(r"^(\w+)\s*:=\s*(.*?)\s*$", _MK.read_text(), re.M))
 EXE_NAME = _SETTINGS["EXE_NAME"]
 DISK_DIR = ROOT / _SETTINGS["DISK_DIR"]
 
+# the GCC that built the game's code (bin/gcc-<GCC_VERSION>-psx/cc1), as
+# the Makefile defaults it
+GCC_VERSION = _SETTINGS.get("GCC_VERSION", "2.95.2")
+
 # splat configs (<binary>.yaml), symbols and checksums
 CONFIG_DIR = ROOT / "config" / VERSION
 # splat's output (<binary>/...)
