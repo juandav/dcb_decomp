@@ -139,6 +139,9 @@ void runSceneCameraTask(s32 preset) {
     CameraPreset *target;
     VECTOR *lookAt;
     s32 *lookAtCoords;
+#if VERSION_JP
+    s32 y;
+#endif
 
     yaw = 0;
     /* GRAPHICS.targetModel starts the current CameraPreset */
@@ -178,7 +181,33 @@ void runSceneCameraTask(s32 preset) {
             graphics = (Graphics *)&GRAPHICS;
             *lookAt = *(VECTOR *)&graphics->posX;
             yaw = stepCameraTowardTarget((u8 *)camera, lookAtCoords, yaw, (s16 *)target);
+#if VERSION_JP
+            /* jp also turns the camera's height and distance by the camera angles
+               and keeps the x it gets, less the look-at y, in unk5A */
+            {
+                SVECTOR rot;
+
+                y = -camera->originY;
+                rot.vx = camera->rotY + yaw;
+                rot.vy = camera->pitch / 4096;
+                rot.vz = camera->rotZ;
+                angles->vx = camera->height / 4096;
+                angles->vy = 0;
+                angles->vz = camera->distance / 4096;
+                RotMatrix(&rot, view);
+                gte_SetRotMatrix(view);
+                gte_ldv0(angles);
+                gte_rtv0tr();
+                gte_stlvnl(viewTrans);
+                gte_stflg(gteFlag);
+                camera->unk5A = viewTrans->vx - y;
+                SCENE_WORLD_ROTATION.vx = angles->vx = camera->rotX = rot.vy;
+            }
+#elif VERSION_US
             SCENE_WORLD_ROTATION.vx = angles->vx = camera->rotX = camera->pitch / 4096;
+#else
+#error "main/model/camera: version not checked"
+#endif
             SCENE_WORLD_ROTATION.vy = angles->vy = camera->rotY + yaw;
             SCENE_WORLD_ROTATION.vz = angles->vz = camera->rotZ;
             RotMatrix(angles, view);
@@ -191,8 +220,16 @@ void runSceneCameraTask(s32 preset) {
             gte_rtv0tr();
             gte_stlvnl(viewTrans);
             gte_stflg(gteFlag);
+#if VERSION_JP
+            viewTrans->vz += camera->distance / 4096;
+            y = camera->height / 4096;
+            viewTrans->vy += y;
+#elif VERSION_US
             viewTrans->vz += camera->distance / 4096;
             viewTrans->vy += camera->height / 4096;
+#else
+#error "main/model/camera: version not checked"
+#endif
             TransMatrix(view, viewTrans);
             gte_SetTransMatrix(view);
         } else {

@@ -25,10 +25,10 @@ MASPSX_EXTRA := --expand-div
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
 	src/main/duel/card_zones.c \
-	$(addprefix src/main/gfx/, display.c prim.c prim3d.c prim_pair.c prim_util.c \
-		tmd_sort.c transform.c vram_upload.c) \
-	$(addprefix src/main/model/, anim_control.c model_anim.c model_load.c \
-		scene3d.c stage.c wire_grid.c) \
+	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
+		prim_util.c tmd_sort.c transform.c vram_upload.c) \
+	$(addprefix src/main/model/, anim_control.c camera.c model_anim.c \
+		model_load.c scene3d.c stage.c wire_grid.c) \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, angle.c archive.c cd_file.c heap.c \
 		loader.c opening_movie.c save_checksum.c sound.c sound_play.c \

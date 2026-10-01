@@ -5,6 +5,20 @@
 #include "dcb/prim_util.h"
 #include "dcb/transform.h"
 
+#if VERSION_JP
+/* jp's fade task runs until it is stopped, with no busy flag to set up or test */
+void stopScreenFade(void) {
+    SCREEN_FADE_STOP = 1;
+}
+
+void setScreenFadeParams(s32 fadeIn, s32 blendMode, s32 speed) {
+    SCREEN_FADE_DIRECTION = fadeIn;
+    SCREEN_FADE_BLEND_MODE = blendMode;
+    SCREEN_FADE_SPEED = speed;
+    SCREEN_FADE_STOP = 0;
+    SCREEN_FADE_LEVEL = fadeIn * 0xFF;
+}
+#elif VERSION_US
 void initScreenFade(void) {
     SCREEN_FADE_ACTIVE = 0;
 }
@@ -23,8 +37,19 @@ void setScreenFadeParams(s32 fadeIn, s32 blendMode, s32 speed) {
     SCREEN_FADE_SPEED = speed;
     SCREEN_FADE_LEVEL = fadeIn * 0xFF;
 }
+#else
+#error "main/gfx/fade: version not checked"
+#endif
 
 void screenFadeTask(s32 fadeIn, s32 blendMode, s32 speed) {
+#if VERSION_JP
+    SCREEN_FADE_DIRECTION = fadeIn;
+    SCREEN_FADE_BLEND_MODE = blendMode;
+    SCREEN_FADE_SPEED = speed;
+    SCREEN_FADE_STOP = 0;
+    SCREEN_FADE_LEVEL = fadeIn * 0xFF;
+    do {
+#elif VERSION_US
     while (SCREEN_FADE_ACTIVE != 0) {
         waitFrames(FRAME_INTERVAL);
     }
@@ -34,6 +59,9 @@ void screenFadeTask(s32 fadeIn, s32 blendMode, s32 speed) {
     SCREEN_FADE_ACTIVE = 1;
     SCREEN_FADE_LEVEL = fadeIn * 0xFF;
     while (SCREEN_FADE_ACTIVE != 0) {
+#else
+#error "main/gfx/fade: version not checked"
+#endif
         waitFrames(FRAME_INTERVAL);
         if (SCREEN_FADE_DIRECTION != 0) {
             if ((SCREEN_FADE_LEVEL -= SCREEN_FADE_SPEED) < 0) {
@@ -57,6 +85,12 @@ void screenFadeTask(s32 fadeIn, s32 blendMode, s32 speed) {
         SCREEN_FADE_POLYS[FRAME_BUFFER_INDEX].y3 = 240;
         AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)&SCREEN_FADE_POLYS[FRAME_BUFFER_INDEX]);
         AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)SCREEN_FADE_TPAGES[FRAME_BUFFER_INDEX]);
+#if VERSION_JP
+    } while (SCREEN_FADE_STOP == 0);
+#elif VERSION_US
     }
     SCREEN_FADE_ACTIVE = 0;
+#else
+#error "main/gfx/fade: version not checked"
+#endif
 }
