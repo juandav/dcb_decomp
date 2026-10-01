@@ -21,8 +21,12 @@ CdLocation OPEN_MOVIE_LOC = { 0 };
 u32 OPEN_MOVIE_FRAME = 0;
 s8 OPEN_MOVIE_STARTED = 0;
 s32 OPEN_MOVIE_END_FRAME = 0;
-/* not referenced by any code */
+/* not referenced by any code; a leftover value in us, zero in eu */
+#if VERSION_US
 s32 D_801F087C = 0xAFB40020;
+#elif VERSION_EU
+s32 D_801F087C = 0;
+#endif
 UiWindow OPEN_TRADE_LIST_WINDOW = { 0 };
 /* not referenced by any code */
 u8 D_801F08C4[0xC] = { 0 };

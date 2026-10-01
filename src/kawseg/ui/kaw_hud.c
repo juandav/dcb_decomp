@@ -225,9 +225,9 @@ void KAW_fadeCardSprite(CardSprite *sprite, u8 *to) {
 }
 
 s32 KAW_createCursor(s32 mode, s32 x, s32 y, s32 d, s32 count) {
+    s32 k;
     s32 i;
     s32 j;
-    s32 k;
     Shape *shapes;
     u8 *rgb;
 
@@ -354,8 +354,6 @@ void KAW_drawCursor(void *cursor) {
     KAW_renderCursor(cursor, 1);
 }
 
-#define ABS(x) ((x) < 0 ? -(x) : (x))
-
 #define setXY4(p, _x0, _y0, _x1, _y1, _x2, _y2, _x3, _y3)                                  \
     (p)->x0 = _x0, (p)->y0 = _y0, (p)->x1 = _x1, (p)->y1 = _y1, (p)->x2 = _x2, (p)->y2 = _y2, \
     (p)->x3 = _x3, (p)->y3 = _y3
@@ -388,7 +386,11 @@ void KAW_renderCursor(void *cursor, s32 otz) {
     s32 sxy[4];
     s32 depthCue;
     s32 flag;
+#if VERSION_US
     s32 level;
+#elif VERSION_EU
+    u8 level;
+#endif
     s32 i;
     CardSprite *sprite;
 
@@ -397,18 +399,18 @@ void KAW_renderCursor(void *cursor, s32 otz) {
     i = (((PlayerProfile *)PLAYER_PROFILES)->playTime * 8) % 200;
     level = (u8)(i >= 100 ? 300 - i : i + 100);
     for (i = 0; i < 64; i += 2) {
-        if (ABS(shape->points[i]) == shape->x) {
+        if (abs(shape->points[i]) == shape->x) {
             shape->cur[i] = shape->points[i];
         } else {
-            shape->cur[i] = shape->x + (ABS(shape->points[i]) - shape->x) * level / 100;
+            shape->cur[i] = shape->x + (abs(shape->points[i]) - shape->x) * level / 100;
             if (shape->points[i] < 0) {
                 shape->cur[i] *= -1;
             }
         }
-        if (ABS(shape->points[i + 1]) == shape->y) {
+        if (abs(shape->points[i + 1]) == shape->y) {
             shape->cur[i + 1] = shape->points[i + 1];
         } else {
-            shape->cur[i + 1] = shape->y + (ABS(shape->points[i + 1]) - shape->y) * level / 100;
+            shape->cur[i + 1] = shape->y + (abs(shape->points[i + 1]) - shape->y) * level / 100;
             if (shape->points[i + 1] < 0) {
                 shape->cur[i + 1] *= -1;
             }

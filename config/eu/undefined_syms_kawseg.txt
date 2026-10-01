@@ -4,3 +4,10 @@
    what it calls by address, and the fields of its data that the modules
    still in asm read by splat's names */
 SUG_createFadeRect = 0x801E8B58;
+D_801FE1E0 = 0x801FE1E0;
+D_801FE1EC = 0x801FE1EC;
+D_801FE234 = 0x801FE234;
+D_801FE240 = 0x801FE240;
+D_801FE3F0 = 0x801FE3F0;
+D_801FE4F0 = 0x801FE4F0;
+D_801FE804 = 0x801FE804;
