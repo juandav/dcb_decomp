@@ -960,10 +960,72 @@ void initTexSprite(TexSprite *sprite, s16 clut, s16 x, s16 y, u16 vramX, u16 vra
     sprite->z = z;
 }
 
-/* the panel's icon, from where each one is in VRAM. Still asm: the C (17
-   instructions off) computes the icon's width before converting the VRAM
-   position for initTexSprite, where the original converts first */
-INCLUDE_ASM("main/nonmatchings/card/player_data_jp", setPanelIcon);
+/* the panel's icon, from where each one is in VRAM */
+void setPanelIcon(s32 icon) {
+    TexSprite *sprite;
+    s32 n;
+    s32 x;
+    s32 y;
+    s32 clut;
+    POLY_FT4 *poly;
+
+    sprite = &SCROLLING_BACKGROUND->panel[2];
+    if (icon < 0x18) {
+        x = icon / 12 * 32 + 0x380;
+        y = icon % 12 * 21 + 0x100;
+    } else if (icon < 0x1F) {
+        n = icon - 0x18;
+        x = n / 4 * 32 + 0x200;
+        y = n % 4 * 21 + 0x1AB;
+    } else if (icon < 0x20) {
+        x = 0x340;
+        y = 0x13F;
+    } else if (icon < 0x2E) {
+        n = icon - 0x20;
+        x = n / 8 * 32 + 0x140;
+        y = n % 8 * 21 + 0x100;
+    } else if (icon < 0x35) {
+        n = icon - 0x2E;
+        x = n / 9 * 32 + 0x240;
+        y = n % 9 * 21 + 0x100;
+    } else if (icon < 0x39) {
+        n = icon - 0x35;
+        x = n / 2 * 32 + 0x2C0;
+        y = n % 2 * 21 + 0x140;
+    } else if (icon < 0x3C) {
+        n = icon - 0x39;
+        x = n / 5 * 32 + 0x140;
+        y = n % 5 * 21 + 0x1AC;
+    } else if (icon < 0x3D) {
+        n = icon - 0x3C;
+        x = n / 5 * 32 + 0x140;
+        y = n % 5 * 21 + 0x1EA;
+    } else if (icon < 0x3E) {
+        n = icon - 0x3D;
+        x = n / 5 * 32 + 0x140;
+        y = n % 5 * 21 + 0x17E;
+    } else {
+        n = icon - 0x3E;
+        x = n / 5 * 32 + 0x3E0;
+        y = n % 5 * 21 + 0x160;
+    }
+    SCROLLING_BACKGROUND->icon = icon;
+    clut = 0x7F38;
+    if (icon == 0xB) {
+        clut = 0x7F78;
+    }
+    /* at (20, 21); icons 0x1F and 0x3C are narrower */
+    initTexSprite(sprite, clut, 20, 21, x, y, (icon == 0x3C || icon == 0x1F) ? 0x70 : 0x80, 21, 0);
+    if (sprite->uv.x + sprite->uv.w >= 0x100) {
+        sprite->uv.x -= sprite->uv.x + sprite->uv.w - 0xFF;
+    }
+    for (n = 0; n < 2; n++) {
+        poly = &SCROLLING_BACKGROUND->bars[n];
+        poly->clut = sprite->clut;
+        poly->tpage = sprite->tpage;
+        setPrimQuadUvRect((u8 *)poly, sprite->uv.x, sprite->uv.y, sprite->uv.w, sprite->uv.h);
+    }
+}
 
 /* the panel's icon slides out; true once it is out */
 s32 slidePanelIconOut(ScrollingBackground *bg) {
