@@ -288,10 +288,6 @@ void SUG_showAttackLabel(s32 side) {
     } while (state != 2);
 }
 
-#if VERSION_JP
-/* jp: register-priority tie between side, a and count; no C form without a do-while(0) */
-INCLUDE_ASM("sugseg/nonmatchings/battle/sug_hud", SUG_showAttackBanner);
-#elif VERSION_US || VERSION_EU
 void SUG_showAttackBanner(s32 side) {
     HudSlide banners[5];
     Rect16 unused; /* unused, but it sizes the frame */
@@ -324,7 +320,8 @@ void SUG_showAttackBanner(s32 side) {
         banners[0].uv.y = 0x58;
         banners[0].uv.w = 0x80;
         banners[0].uv.h = 0x20;
-        side = ~side;
+        /* -side - 1 rather than ~side: jp's register allocation needs it */
+        side = -side - 1;
         flipped = 1;
     }
     uv0.x = SUG_BATTLE->players[side].element * 40;
@@ -393,7 +390,6 @@ void SUG_showAttackBanner(s32 side) {
     SUG_BATTLE->flags.bits.flag1 = 0;
     SUG_BATTLE->flags.bits.counter = 0;
 }
-#endif
 
 void SUG_showHpBanner(s32 side) {
     HudSlide bar;
