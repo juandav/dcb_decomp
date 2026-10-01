@@ -21,7 +21,10 @@ its address in undefined_syms, for the link.
 
 A name goes in the version's files that have it in us (config/<v>/symbols.txt,
 symbols_<overlay>.txt, symbols_overlay_calls.txt or undefined_syms*.txt),
-with us's comment. It prints what it would add, and the names whose
+with us's comment. A name an overlay's C defines that us has only in the
+executable (code the version links into the overlay, as jp's SUGSEG holds
+main's effect_object) goes in the overlay's file, marked "us-main" for
+tools/check_names.py. It prints what it would add, and the names whose
 reads disagree or whose address the version's files already give another
 name; --write adds the rest. Check the module's functions match first: a
 relocation in a function that doesn't line up with the original reads the
@@ -281,6 +284,17 @@ def main() -> None:
                         add[own].append((addr, name, ""))
                     continue
                 problems.append(f"{name} = {addr:#010x}: no us symbol file of {binary} has it")
+                continue
+            # code us has in the executable that this version links into
+            # the overlay: its own names go in the overlay's file
+            main_files = {"symbols.txt", "symbols_overlay_calls.txt", "undefined_syms.txt"}
+            if binary != "main" and name in defined and set(us_files[name]) <= main_files:
+                comment = " ".join(["us-main"] + ([us_comment[name]] if us_comment[name] else []))
+                if name in have[own]:
+                    if have[own][name] != addr:
+                        problems.append(f"{name}: {own} has it at {have[own][name]:#010x}, the C reads {addr:#010x}")
+                elif (addr, name, comment) not in add[own]:
+                    add[own].append((addr, name, comment))
                 continue
             # in each of the files us has it in (a label in an overlay's
             # symbols and its address in undefined_syms for the link)

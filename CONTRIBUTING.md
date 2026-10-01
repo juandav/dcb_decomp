@@ -107,7 +107,11 @@ made by hand has to touch every version the same way. Then
 `make VERSION=<version> regenerate` each version. The CI runs
 `tools/check_names.py`, which fails when a name in jp's or eu's symbol files
 isn't us's name in the same binary any more; a name only one version has
-(its own code) says so with `version-only` in its comment.
+(its own code) says so with `version-only` in its comment. A version that
+links into an overlay code us has in the executable (jp's SUGSEG holds
+main's `effect_object` and `effect_prims`) gives it us's name in the
+overlay's symbol file, with `us-main` in the comment: check_names checks it
+against us's executable, and `tools/version_symbols.py` writes it so.
 
 ## Pull requests
 
