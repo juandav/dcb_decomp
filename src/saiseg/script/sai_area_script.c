@@ -25,15 +25,10 @@
 
 
 extern u8 SAI_DIALOG[];
-extern s8 SAI_PARTNER_COUNT;
 
 /* Runs the area script and carries out the events it stops on: op 10 starts
    panels and tasks, op 11 sets up choices, opponents, music and exits, op 13
    fades the portraits and gives cards. */
-#if VERSION_EU
-/* eu: its switch comes out laid out differently; not worked out yet */
-INCLUDE_ASM("saiseg/nonmatchings/script/sai_area_script", SAI_runAreaScript);
-#elif VERSION_US
 void SAI_runAreaScript(ScriptRunner *runner) {
     s32 result;
     s32 i;
@@ -59,7 +54,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     do {
                         waitFrames(1);
                     } while (SAI_AREA.openPanel != 0);
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     SAI_clearOpponents();
                     spawnTask(0, -1, 0, 0x800, SAI_runTalkPanel, 0, getCurrentTaskId(), 0, 0);
                     return;
@@ -73,7 +68,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_loadScriptFlags();
                     }
                     runner->regs[1] = 0;
-                    SAI_AREA_MODE = AREA_MODE_CHOICES;
+                    SAI_AREA.mode = AREA_MODE_CHOICES;
                     return;
                 case 2:
                     if (SAI_AREA.openPanel == 0) {
@@ -92,7 +87,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     do {
                         waitFrames(1);
                     } while (SAI_AREA.openPanel != 0);
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     SAI_OPPONENTS.current[0] = 0x80;
                     SAI_OPPONENTS.target[0] = 0x80;
                     SAI_OPPONENTS.current[1] = 0x80;
@@ -106,11 +101,11 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_AREA.selectState = 7;
                         return;
                     }
-                    SAI_AREA_MODE = AREA_MODE_SELECT_OPPONENT;
+                    SAI_AREA.mode = AREA_MODE_SELECT_OPPONENT;
                     return;
                 case 4:
                     if (SAI_addTextLine((u8 *)runner->regs[4]) == -1) {
-                        SAI_AREA_MODE = AREA_MODE_TEXT_FULL;
+                        SAI_AREA.mode = AREA_MODE_TEXT_FULL;
                         return;
                     }
                     break;
@@ -126,21 +121,21 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                         SAI_unlockArmorsFromFlags(SAI_SCRIPT[0]->regs);
                         SAI_PLAYER_STATS.state = 1;
                         spawnTask(0, -1, 0, 0x400, SAI_runPlayerData, 0, getCurrentTaskId(), 0, 0);
-                        SAI_AREA_MODE = AREA_MODE_BUSY;
+                        SAI_AREA.mode = AREA_MODE_BUSY;
                     }
                     return;
                 case 9:
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = AREA_EXIT_DECK_EDITOR;
+                    SAI_AREA.exitAction = AREA_EXIT_DECK_EDITOR;
                     return;
                 case 10:
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     spawnTask(0, -1, 0, 0x400, SAI_runPartnerGet, getCurrentTaskId(), 0, 0, 0);
                     return;
                 case 11:
-                    SAI_PARTNER_COUNT = 0;
+                    SAI_AREA.partnerCount = 0;
                     for (i = 0; i < 4; i++) {
-                        SAI_PARTNER_CHOICES[i] = -1;
+                        SAI_AREA.partners[i] = -1;
                     }
                     break;
                 case 12:
@@ -176,7 +171,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     break;
                 case 17:
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = AREA_EXIT_EQUIPMENT;
+                    SAI_AREA.exitAction = AREA_EXIT_EQUIPMENT;
                     return;
                 case 18:
                     ((PlayerProfile *)PLAYER_PROFILES)->tradeUnlocked = 1;
@@ -228,13 +223,13 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     ((PlayerProfile *)PLAYER_PROFILES)->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
                     ((PlayerProfile *)PLAYER_PROFILES)->resumeInArea = runner->script->params[0];
                     runner->regs[0] = 0;
-                    SAI_EXIT_ACTION = AREA_EXIT_SAVE;
+                    SAI_AREA.exitAction = AREA_EXIT_SAVE;
                     return;
                 case 7:
                     SESSION->selectImage = runner->script->params[0];
                     break;
                 case 8:
-                    SAI_LOCATION = SESSION->location = runner->script->params[0];
+                    SAI_AREA.location = SESSION->location = runner->script->params[0];
                     break;
                 case 9:
                     SAI_AREA.prizePack = runner->script->params[0];
@@ -268,7 +263,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     break;
                 case 16:
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     spawnTask(0, -1, 0, 0x400, SAI_grantDigiPart, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 17:
@@ -285,7 +280,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     SESSION->scriptOffset = SAI_SCRIPT[0]->script->pc - SAI_SCRIPT[0]->script->start;
                     return;
                 case 20:
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     spawnTask(0, -1, 0, 0x400, SAI_runHackingEvent, (s16)runner->script->params[0], getCurrentTaskId(), 0, 0);
                     return;
                 case 21:
@@ -324,7 +319,7 @@ void SAI_runAreaScript(ScriptRunner *runner) {
                     }
                     break;
                 case 1:
-                    SAI_AREA_MODE = AREA_MODE_BUSY;
+                    SAI_AREA.mode = AREA_MODE_BUSY;
                     SAI_SCRIPT_REWARD_CARDS[0] = runner->script->params[0];
                     SAI_SCRIPT_REWARD_CARDS[1] = runner->script->params[1];
                     SAI_SCRIPT_REWARD_CARDS[2] = runner->script->params[2];
@@ -344,9 +339,6 @@ void SAI_runAreaScript(ScriptRunner *runner) {
         clearScriptBusy(runner->script);
     } while (result != 0);
 }
-#else
-#error "saiseg/script/sai_area_script: version not checked"
-#endif
 
 s32 SAI_stepAreaScript(ScriptRunner *runner) {
     *runner->regs = 1;
