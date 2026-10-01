@@ -65,7 +65,7 @@ void SAI_clearTextLines(void);
 void SAI_loadMapTextures(void);
 void func_801EE8F0(void);
 void func_801F1130();
-void SAI_runSystemErrorHack();
+void SAI_runSlotMachine();
 void func_801EDEF0(void);
 void SAI_runBitsReward(s32 unused, s32 parent);
 void func_801EDF7C(s8 fade);
@@ -250,7 +250,7 @@ void SAI_playSlotMachine(void) {
     waitFrames(40);
     stopScreenFade();
     removeFrameCallback((s32)renderScrollingBackground);
-    spawnTask(0, -1, 0, 0x1000, SAI_runSystemErrorHack, 0, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x1000, SAI_runSlotMachine, 0, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     stopScreenFade();
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 4, 0);
