@@ -804,3 +804,4 @@ SOUND_SEQ_ATTR_TABLE = 0x801E3008;
 getSjisGlyph = 0x80027CBC; // type:func version-only
 getSjisGlyphIndex = 0x80027D4C; // type:func version-only
 FRAME_BUFFER_INDEX = 0x80088BFC;
+DUEL_PLAYERS = 0x801E4708;

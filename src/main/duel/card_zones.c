@@ -127,6 +127,7 @@ s32 drawOnlineDeckCard(s32 player) {
     return -1;
 }
 
+#if VERSION_US || VERSION_EU
 s32 takePartnerCardFromOnlineDeck(s32 player) {
     s32 i;
     s32 j;
@@ -135,7 +136,7 @@ s32 takePartnerCardFromOnlineDeck(s32 player) {
     for (i = 0; i < 30; i++) {
         if (PLAYER(player)->onlineDeck[i] != -1) {
             cardIndex = PLAYER(player)->onlineDeck[i];
-            if (findPartnerSlot(player, PLAYER(player)->cards[cardIndex % 30].id) >= 0) {
+            if (findPartnerSlot(player, PLAYER_CARDS(PLAYER(player))[cardIndex % 30].id) >= 0) {
                 for (j = i; j > 0; j--) {
                     PLAYER(player)->onlineDeck[j] = PLAYER(player)->onlineDeck[j - 1];
                 }
@@ -146,6 +147,7 @@ s32 takePartnerCardFromOnlineDeck(s32 player) {
     }
     return -1;
 }
+#endif
 
 s32 returnCardToOnlineDeck(s32 cardIndex, s32 player) {
     s32 i;
@@ -212,7 +214,7 @@ s32 checkHandHasDigimonCard(s32 player) {
     duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 0) {
+        if (cardIndex != -1 && PLAYER_CARDS(duelPlayer)[cardIndex % 30].type == 0) {
             return 0;
         }
     }
@@ -228,7 +230,7 @@ s32 checkHandHasOptionCard(s32 player) {
     duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 1) {
+        if (cardIndex != -1 && PLAYER_CARDS(duelPlayer)[cardIndex % 30].type == 1) {
             return 0;
         }
     }
@@ -244,7 +246,7 @@ s32 checkHandHasDigivolveCard(s32 player) {
     duelPlayer = PLAYER(player);
     for (; i < 4; i++) {
         cardIndex = duelPlayer->hand[i];
-        if (cardIndex != -1 && duelPlayer->cards[cardIndex % 30].type == 2) {
+        if (cardIndex != -1 && PLAYER_CARDS(duelPlayer)[cardIndex % 30].type == 2) {
             return 0;
         }
     }
@@ -295,7 +297,16 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
     if (cardIndex == -1) {
         return -1;
     }
-    card = (DigimonCardData *)PLAYER(player)->cards[cardIndex % 30].card;
+    card = (DigimonCardData *)PLAYER_CARDS(PLAYER(player))[cardIndex % 30].card;
+#if VERSION_JP
+    /* a stat penalty of n divides the card's stats by 2^n, rounded down to tens */
+    statShift = PLAYER(player)->statPenalty;
+    for (stackSlot = 2; stackSlot >= 0; stackSlot--) {
+        if (PLAYER(player)->digimonStack[stackSlot] == -1) {
+            PLAYER(player)->digimonStack[stackSlot] = cardIndex;
+        }
+        if (PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
+#elif VERSION_US || VERSION_EU
     /* a stat penalty of n > 1 divides the card's stats by 2^(n-1), rounded down to tens */
     statShift = PLAYER(player)->statPenalty - 1;
     if (statShift < 0) {
@@ -304,6 +315,7 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
     for (stackSlot = 2; stackSlot >= 0; stackSlot--) {
         if (PLAYER(player)->digimonStack[stackSlot] == -1 || PLAYER(player)->digimonStack[stackSlot] == cardIndex) {
             PLAYER(player)->digimonStack[stackSlot] = cardIndex;
+#endif
             PLAYER(player)->specialty = card->attr >> 4;
             PLAYER(player)->stats[0] = (card->hp >> statShift) / 10 * 10;
             PLAYER(player)->baseAttackPowers[0] = (card->attack[0].power >> statShift) / 10 * 10;
@@ -319,6 +331,7 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
     return -1;
 }
 
+#if VERSION_US || VERSION_EU
 s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
     Rect16 unused;
@@ -330,9 +343,9 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
         return -1;
     }
     cardIndex = getActiveDigimonCard(player);
-    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].armorCardId);
+    setCardSlotFromId(&PLAYER_CARDS(PLAYER(player))[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].armorCardId);
     armorCard = &PLAYER_DATA(player).partners[partnerSlot].card[1];
-    PLAYER(player)->cards[cardIndex % 30].card = (s8 *)armorCard;
+    PLAYER_CARDS(PLAYER(player))[cardIndex % 30].card = (s8 *)armorCard;
     /* copy the armor's art over the card's art in VRAM */
     artRect.x = ((player << 8) + (partnerSlot + 3) * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;
@@ -358,7 +371,9 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     }
     return -1;
 }
+#endif
 
+#if VERSION_US || VERSION_EU
 s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
     Rect16 unused;
@@ -370,9 +385,9 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
         return -1;
     }
     cardIndex = getActiveDigimonCard(player);
-    setCardSlotFromId(&PLAYER(player)->cards[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].cardId);
+    setCardSlotFromId(&PLAYER_CARDS(PLAYER(player))[cardIndex % 30], PLAYER_DATA(player).partners[partnerSlot].cardId);
     baseCard = &PLAYER_DATA(player).partners[partnerSlot].card[0];
-    PLAYER(player)->cards[cardIndex % 30].card = (s8 *)baseCard;
+    PLAYER_CARDS(PLAYER(player))[cardIndex % 30].card = (s8 *)baseCard;
     /* copy the partner's art back over the card's art in VRAM */
     artRect.x = ((player << 8) + partnerSlot * 40 >> 1) + 0x2C0;
     artRect.y = 0xC8;
@@ -396,6 +411,7 @@ s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     }
     return -1;
 }
+#endif
 
 s32 removeCardFromDigimonStack(s32 cardIndex, s32 player) {
     s32 i;
@@ -418,15 +434,18 @@ s32 sumDigivolvePoints(s32 player) {
     i = 0;
     points = 0;
     duelPlayer = PLAYER(player);
-    for (; i < 8; i++) {
+    for (; i < DP_SLOT_COUNT; i++) {
         cardIndex = duelPlayer->dpSlots[i];
         if (cardIndex != -1) {
-            points += ((DigimonCardData *)duelPlayer->cards[cardIndex % 30].card)->dpBonus;
+            points += ((DigimonCardData *)PLAYER_CARDS(duelPlayer)[cardIndex % 30].card)->dpBonus;
         }
     }
+    /* us and eu cap them at 90 */
+#if VERSION_US || VERSION_EU
     if (points > 90) {
         points = 90;
     }
+#endif
     return points;
 }
 
@@ -443,7 +462,7 @@ s32 peekDpSlotTop(s32 player) {
             goto end;
         }
         i++;
-    } while (i < 8);
+    } while (i < DP_SLOT_COUNT);
     cardIndex = -1;
 end:
     return cardIndex;
@@ -462,14 +481,14 @@ s32 countEmptyDpSlots(s32 player) {
             count++;
         }
         i++;
-    } while (i < 8);
+    } while (i < DP_SLOT_COUNT);
     return count;
 }
 
 s32 addCardToDpSlots(s32 cardIndex, s32 player) {
     s32 i;
 
-    for (i = 7; i >= 0; i--) {
+    for (i = DP_SLOT_COUNT - 1; i >= 0; i--) {
         if (PLAYER(player)->dpSlots[i] == cardIndex) {
             return -1;
         }
@@ -484,7 +503,7 @@ s32 addCardToDpSlots(s32 cardIndex, s32 player) {
 s32 removeCardFromDpSlots(s32 cardIndex, s32 player) {
     s32 i;
 
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < DP_SLOT_COUNT; i++) {
         if (PLAYER(player)->dpSlots[i] != -1 && PLAYER(player)->dpSlots[i] == cardIndex) {
             PLAYER(player)->dpSlots[i] = -1;
             return 0;
@@ -530,7 +549,12 @@ void shuffleOnlineDeck(s32 player) {
     cardCount = countOnlineDeckCards(player);
     if (cardCount >= 2) {
         for (pass = 0; pass < PLAYER(player)->shufflePasses; pass++) {
+            /* us and eu shuffle the last cardCount slots, jp the first ones */
+#if VERSION_JP
+            for (i = 0; i < cardCount; i++) {
+#elif VERSION_US || VERSION_EU
             for (i = 30 - cardCount; i < 30; i++) {
+#endif
                 swapIndex = rand() % cardCount + (30 - cardCount);
                 swap = PLAYER(player)->onlineDeck[i];
                 PLAYER(player)->onlineDeck[i] = PLAYER(player)->onlineDeck[swapIndex];
@@ -551,7 +575,12 @@ void shuffleOfflineDeck(s32 player) {
     cardCount = countOfflineDeckCards(player);
     if (cardCount >= 2) {
         for (pass = 0; pass < PLAYER(player)->shufflePasses; pass++) {
+            /* us and eu shuffle the last cardCount slots, jp the first ones */
+#if VERSION_JP
+            for (i = 0; i < cardCount; i++) {
+#elif VERSION_US || VERSION_EU
             for (i = 30 - cardCount; i < 30; i++) {
+#endif
                 swapIndex = rand() % cardCount + (30 - cardCount);
                 swap = PLAYER(player)->offlineDeck[i];
                 PLAYER(player)->offlineDeck[i] = PLAYER(player)->offlineDeck[swapIndex];
