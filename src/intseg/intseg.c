@@ -903,10 +903,93 @@ void INT_waitAnimationEnd(s32 slot, s32 anim, s32 loopKey) {
     }
 }
 
-/* only the registers of the state and the loop counter differ (s1 and s2
-   swapped): GCC allocates the counter first (the permuter matches it only by
-   wrapping the action 2 case in a do {} while (0)) */
-INCLUDE_ASM("intseg/nonmatchings/intseg", INT_runYesNoPrompt);
+/* "no" to a name or nickname: back to the page before, to type it again */
+#define INT_REENTER_IF_NO(state, openEntry) \
+    do {                                    \
+        if ((state)->keyX != 0) {           \
+            (state)->page--;                \
+            openEntry(state, 0);            \
+            return 0;                       \
+        }                                   \
+    } while (0)
+
+/* the yes/no prompt after a typed name, nickname or the chosen stone */
+s32 INT_runYesNoPrompt(void *arg) {
+    IntState *state = arg;
+    u8 action = INT_PAGES[state->page - 1].action;
+    s16 i;
+    Scene3D *scene;
+
+    if (PAD_STATES[0]->rawRepeat & PAD_RIGHT) {
+        state->keyX = (state->keyX + 1) & 1;
+        playSoundEffect(2);
+    } else if (PAD_STATES[0]->rawRepeat & PAD_LEFT) {
+        state->keyX = (state->keyX + 1) & 1;
+        playSoundEffect(2);
+    } else if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
+        playSoundEffect(0);
+        if (action == 2) {
+            startModelAnimation(3, 3, -2, 0);
+            INT_REENTER_IF_NO(state, INT_openNameEntry);
+        } else if (action == 3) {
+            if (state->keyX != 0) {
+                startModelAnimation(3, 0xE, -2, 0);
+                INT_waitAnimationEnd(3, 3, -2);
+                state->page++;
+            } else {
+                startModelAnimation(3, 0xE, -2, 0);
+            }
+        } else if (action == 0xF) {
+            INT_REENTER_IF_NO(state, INT_openNicknameEntry);
+            for (i = 0; i < 3; i++) {
+                applyAnimationFirstFrame(i, 0);
+                startModelAnimation(i, 0, -2, 0);
+                SCENE_3D->modelState[i] = 1;
+                INT_waitAnimationEnd(i, 1, 0);
+            }
+            startModelAnimation(3, 9, -2, 0);
+            INT_waitAnimationEnd(3, -1, -2);
+            strcpy(((IntProfile *)PLAYER_PROFILES)->name, state->fields[2]);
+        } else if (action == 0x14) {
+            if (state->keyX != 0) {
+                startModelAnimation(state->stone, 4, -2, 0);
+                INT_waitAnimationEnd(state->stone, -1, -2);
+                waitFrames(36);
+                state->page = 0x11;
+                scene = SCENE_3D;
+                ((Model *)scene->models[0])->pos.vx = 0x8C;
+                ((Model *)scene->models[1])->pos.vx = 0x118;
+                ((Model *)scene->models[2])->pos.vx = 0x1A4;
+                ((Model *)scene->models[0])->pos.vy = -0xFA;
+                ((Model *)scene->models[1])->pos.vy = -0xFA;
+                ((Model *)scene->models[2])->pos.vy = -0xFA;
+                applyAnimationFirstFrame(0, 0);
+                applyAnimationFirstFrame(1, 0);
+                applyAnimationFirstFrame(2, 0);
+                startModelAnimation(0, 0, -2, 0);
+                INT_waitAnimationEnd(0, 1, 0);
+                startModelAnimation(1, 0, -2, 0);
+                INT_waitAnimationEnd(1, 1, 0);
+                startModelAnimation(2, 0, -2, 0);
+                INT_waitAnimationEnd(2, 1, 0);
+            } else {
+                startModelAnimation(3, 9, -2, 0);
+            }
+        } else {
+            return 0;
+        }
+        INT_advancePage(state);
+        return 0;
+    }
+    if (state->keyX != 0) {
+        KAW_initCursorShape(state->cursor, 0xC, 6, 4);
+        KAW_drawCursorAt(state->cursor, 0xB6, 0x52);
+    } else {
+        KAW_initCursorShape(state->cursor, 0x12, 6, 4);
+        KAW_drawCursorAt(state->cursor, 0x8C, 0x52);
+    }
+    return 0;
+}
 
 s32 INT_runStoneChoice(void *arg) {
     IntState *state = arg;
