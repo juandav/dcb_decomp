@@ -1,0 +1,31 @@
+/* addresses SUBSEG uses that none of its objects defines */
+
+/* from the C of the modules this version builds (tools/version_symbols.py):
+   what it calls by address, and the fields of its data that the modules
+   still in asm read by splat's names */
+func_8001666C = 0x8001666C;
+func_8001B6C8 = 0x8001B6C8;
+func_80024D1C = 0x80024D1C;
+func_80025004 = 0x80025004;
+func_80025750 = 0x80025750;
+func_80026318 = 0x80026318;
+func_8002645C = 0x8002645C;
+func_800264BC = 0x800264BC;
+func_8002A034 = 0x8002A034;
+func_8002A3E0 = 0x8002A3E0;
+func_8002C6F8 = 0x8002C6F8;
+func_8002CACC = 0x8002CACC;
+func_80043374 = 0x80043374;
+func_80043740 = 0x80043740;
+func_80044334 = 0x80044334;
+func_80044758 = 0x80044758;
+D_8007E5F8 = 0x8007E5F8;
+D_8007EAA0 = 0x8007EAA0;
+D_8007ED20 = 0x8007ED20;
+D_8007ED60 = 0x8007ED60;
+D_801E4640 = 0x801E4640;
+D_801E4710 = 0x801E4710;
+D_801E4714 = 0x801E4714;
+D_801E4718 = 0x801E4718;
+D_801FC8C8 = 0x801FC8C8;
+D_801FC8E8 = 0x801FC8E8;
