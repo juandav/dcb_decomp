@@ -109,7 +109,7 @@ void NIS_tickDebugModeSelect(s32 taskId) {
         resumeTask(taskId);
         break;
     }
-    if (D_8008CD50 == 0) {
+    if (DB(0).primSlots[16] == 0) {
         allocPrimDescPackets(0x40);
     }
 }
@@ -134,7 +134,7 @@ void NIS_runTitleScreen(void) {
     D_801DEBF0 = 0;
 #endif
     NIS_uploadTimFile("D:\\TITLE.TIM");
-    if (D_8008CD50 == 0) {
+    if (DB(0).primSlots[16] == 0) {
         allocPrimDescPackets(0x40);
     }
     NIS_initTitleScreen(&title);

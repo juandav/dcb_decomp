@@ -32,7 +32,6 @@ void KAW_drawCursorAt();
 void runWindowTask();
 void openMemcardScreenForNewGame();
 extern s16 CAMERA_TARGET_MODEL;
-extern s32 D_8008CD50;
 extern void *D_801E469C;
 extern u8 *OPTION_CARDS;
 extern u8 *DIGIVOLVE_CARDS;
@@ -397,7 +396,7 @@ s32 INT_initIntroScene(IntState *state) {
     Scene3D *scene;
 
     ClearImage(&rect, 0, 0, 0);
-    if (D_8008CD50 == 0) {
+    if (DB(0).primSlots[16] == 0) {
         allocPrimDescPackets(0x40);
     }
     i = 0;

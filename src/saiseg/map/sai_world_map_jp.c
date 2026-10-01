@@ -85,7 +85,6 @@ void SAI_runKeyItems(void);
 void SAI_moveOnMap(void);
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 
-extern s32 D_8008CD50;
 extern SpriteDesc *D_801E469C; /* the sprites the executable draws */
 extern s8 D_801E46D8[]; /* splitDigits' digits */
 extern u8 OPTION_FROM_WORLD_MAP;
@@ -180,7 +179,7 @@ void SAI_runWorldMap(void) {
 
 void SAI_openWorldMap(MapScreen *map) {
     SAI_MAP_LABEL_PLACE = SAI_MAP_CURSOR = SAI_MAP_PLACE = PLAYER_DATA(0).area + 1;
-    if (D_8008CD50 == 0) {
+    if (DB(0).primSlots[16] == 0) {
         allocPrimDescPackets(0x40);
     }
     OPEN_MAP_MENU(map);

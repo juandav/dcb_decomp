@@ -292,7 +292,6 @@ void uploadKanjiString(char *text, Rect16 *rect);
 /* jp keeps KAW_drawCursor in the executable */
 void KAW_drawCursor(NisCursor *cursor);
 void runWindowTask();
-extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
 
 /* the debug build (eu's NISSEG) prints where it is, names the tasks it
