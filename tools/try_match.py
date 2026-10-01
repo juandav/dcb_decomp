@@ -7,7 +7,8 @@ usage: tools/try_match.py [--version us] [--psyq|--gcc28|--nocse] draft.c [func 
 
 --version picks the game version, as VERSION does for make (the VERSION
 environment variable works too; us by default): its disc, its splat output
-in asm/<version>/ and its build in build/<version>/, and -DVERSION_<VERSION>.
+in asm/<version>/ and its build in build/<version>/, -DVERSION_<VERSION> and
+the GCC that built its game code (GCC_VERSION in mk/version/<version>.mk).
 
 --psyq builds like src/main/psyq.c: GCC 2.7.2 -O2 and tools/aspsx_reorder.py.
 --gcc28 builds like the PsyQ objects that came from GCC 2.8.1
@@ -24,7 +25,7 @@ from elftools.elf.elffile import ELFFile
 for i,a in enumerate(sys.argv):
     if a=='--version' and i+1<len(sys.argv): os.environ['VERSION']=sys.argv[i+1]; del sys.argv[i:i+2]; break
     if a.startswith('--version='): os.environ['VERSION']=a.split('=',1)[1]; del sys.argv[i]; break
-from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, VERSION
+from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, GCC_VERSION, VERSION
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe=open(f'{DISK_DIR}/{EXE_NAME}','rb').read()[0x800:]
 def original(binary):
@@ -57,7 +58,7 @@ elif psyq:
     if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:
-    cc1=f"{D}/bin/gcc-2.95.2-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
+    cc1=f"{D}/bin/gcc-{GCC_VERSION}-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
 cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -DSKIP_ASM {src} > {w}.i && {cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else ""} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -I{D} -I{D}/include -o {w}.o {D}/include/gte_macros.inc {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)
