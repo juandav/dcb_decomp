@@ -907,7 +907,7 @@ typedef struct {
     /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
     /* 0x001E */ u16 versusLosses;
-    /* 0x0020 */ u8 unk20[2];
+    /* 0x0020 */ s16 profileId; /* random */
     /* 0x0022 */ u8 area; /* where the player is: SAISEG's map is area + 1 */
     /* 0x0023 */ u8 saveCount; /* "ＳＡＶＥ回数" */
     /* 0x0024 */ s32 bits; /* the money, "所持金" */
@@ -929,8 +929,11 @@ typedef struct {
     /* 0x04EA */ u8 optionCollection[0x2B];
     /* 0x0515 */ u8 digivolveCollection[6];
     /* 0x051B */ u8 starterCardCount;
-    /* 0x051C */ u8 starterCards[0x1E]; /* given when the game starts, as card ids */
-    /* 0x053A */ u8 unk53A[0xF1C - 0x53A];
+    /* 0x051C */ u8 starterCards[0x10]; /* given when the game starts, as card ids */
+    /* each copy's serial number, as in us's cardCopySerials */
+    /* 0x052C */ u16 cardSerials[0x6E][8];
+    /* 0x0C0C */ u16 optionSerials[0x2B][8];
+    /* 0x0EBC */ u16 digivolveSerials[6][8];
     /* 0x0F1C */ u16 unkF1C; /* bit n: SAISEG script register 0x13 + n */
     /* 0x0F1E */ u16 unkF1E;
     /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
@@ -1002,6 +1005,21 @@ typedef struct {
     /* 0x2771 */ u8 unk2771[3];
 #endif
 } PlayerProfile;
+#if VERSION_JP
+/* jp's area state, 0x54 bytes: only the fields its C reads so far */
+typedef struct {
+    /* 0x00 */ u8 unk0[0xC];
+    /* 0x0C */ s32 *flags; /* 0x11E words */
+    /* 0x10 */ void *pak; /* the area's model PAK (loadAreaPakTask) */
+    /* 0x14 */ u8 unk14[0x2E];
+    /* 0x42 */ u8 area;
+    /* 0x43 */ s8 pakState; /* 1: loading, 2: loaded */
+    /* 0x44 */ s8 unk44;
+    /* 0x45 */ u8 unk45[0xA];
+    /* 0x4F */ u8 unk4F;
+    /* 0x50 */ u8 unk50[4];
+} AreaSession;
+#elif VERSION_US || VERSION_EU
 /* Where SAISEG keeps its area state while other overlays run (SAISEG's
    SaisegSession sees the whole block) */
 typedef struct {
@@ -1014,25 +1032,48 @@ typedef struct {
     /* 0x1A8 */ u8 location;
     /* 0x1A9 */ u8 resumeMode; /* 1: back from a duel, 2: back from the complete stats */
 } AreaSession;
+#else
+#error "AreaSession: version not checked"
+#endif
 #if VERSION_JP
-/* what jp's window task (func_8002A3E0) opens: a window that grows from one
-   rect to the other, its contents drawn by draw */
+/* what jp's window task (runWindowTask) opens: a window that grows from one
+   rect to the other, its contents drawn by draw, with two sprites that slide
+   in to its corner */
 typedef struct {
     /* 0x00 */ Rect16 from;
     /* 0x08 */ Rect16 to;
-    /* 0x10 */ s32 frames;
-    /* 0x14 */ s32 unk14;
+    /* 0x10 */ s32 frames; /* the window's opening time, and the sprites' speed */
+    /* 0x14 */ s32 side; /* the sprites': 0 left, 1 right */
     /* 0x18 */ void (*draw)(void *window);
-    /* 0x1C */ void (*close)(void);
+    /* 0x1C */ void (*update)(s8 *state); /* each frame: 3 ends the task, 4 closes the window first */
 } WindowSpec;
-/* jp's menu of choices (func_8002B508 opens it, func_8002B188 adds a choice,
-   func_8002BD58 is true once one is taken) */
+/* a sprite of a texture page: drawTexturedSprite's arguments */
 typedef struct {
-    /* 0x000 */ u8 unk0[0x23C];
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ u16 tpage;
+    /* 0x06 */ u16 clut;
+    /* 0x08 */ Rect16 uv;
+    /* 0x10 */ s32 z;
+} TexSprite;
+/* jp's menu of choices, a column of icons with their labels: openChoiceMenu
+   opens it, addChoiceMenuItem adds a choice, runChoiceMenu runs a frame */
+typedef struct {
+    /* 0x000 */ TexSprite cursor;
+    /* 0x014 */ TexSprite bar; /* where the choice's label shows */
+    /* 0x028 */ TexSprite items[20]; /* each choice's label, then its icon */
+    /* 0x1B8 */ POLY_FT4 bars[2]; /* per frame buffer */
+    /* 0x208 */ void (*actions[11])(); /* each choice's task, then the cancel's */
+    /* 0x234 */ s32 barWidth;
+    /* 0x238 */ s32 barFullWidth;
     /* 0x23C */ s32 choice;
-    /* 0x240 */ u8 unk240[8];
+    /* 0x240 */ s32 count;
+    /* 0x244 */ s32 *arg; /* what the chosen task gets */
     /* 0x248 */ s8 result; /* negative: cancelled */
-    /* 0x249 */ u8 unk249[7];
+    /* 0x249 */ s8 timer;
+    /* 0x24A */ s8 state; /* MENU_STATE_HANDLERS */
+    /* 0x24B */ u8 blink;
+    /* 0x24C */ u8 unk24C[4];
 } ChoiceMenu;
 /* jp's session block is 0x154 bytes, laid out differently: only the fields
    its matched code reads are placed */
@@ -1054,7 +1095,8 @@ typedef struct {
     /* 0x13C */ u8 unk13C[0x10];
     /* 0x14C */ u8 versusWins[2]; /* this session's, per player */
     /* 0x14E */ u8 deckChoices[2]; /* each player's saved deck in a versus duel */
-    /* 0x150 */ u8 unk150[4];
+    /* 0x150 */ u8 otherPad; /* 1 in VS mode: the second controller works too */
+    /* 0x151 */ u8 unk151[3];
 } SessionData;
 #elif VERSION_US || VERSION_EU
 typedef struct {
@@ -1250,7 +1292,10 @@ typedef struct {
     /* 0x478 */ s8 quit; /* 1: the Give Up prompt is open; 2 + the winner once given up */
     /* 0x479 */ s8 helpOpen; /* the duel waits (waitDuelFrames) while this or quit is set */
     /* 0x47A */ s8 helpPage;
-    /* 0x47B */ u8 unk47B[2];
+    /* the cards the support panels show (drawHudPanelContents): the last
+       Digimon and the last Option or Digivolve card under the cursor */
+    /* 0x47B */ u8 shownDigimon;
+    /* 0x47C */ u8 shownOption;
     /* 0x47D */ u8 artSlot;
     /* 0x47E */ u8 cpuPlayer;
     /* 0x47F */ s8 unk47F;

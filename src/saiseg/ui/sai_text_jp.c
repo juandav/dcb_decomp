@@ -118,7 +118,7 @@ void SAI_clearTextLines(void) {
 
 /* the deck screen's menu and the opponent's deck */
 
-s32 func_8002BD58(JpMenu *menu);
+s32 runChoiceMenu(JpMenu *menu);
 
 void SAI_clearTextVram(void) {
     Rect16 rect = { 0x3C0, 0, 0x40, 0x100 };
@@ -132,7 +132,7 @@ void SAI_runMenu(void) {
     SAI_STATE->regs[15] = 0;
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (func_8002BD58(menu)) {
+        if (runChoiceMenu(menu)) {
             SAI_STATE->regs[15] = menu->selected + 1;
             exitTask();
         }
@@ -193,11 +193,11 @@ typedef struct {
 extern DeckInfo SAI_DECK_INFO;
 extern s32 D_801F7558;
 extern JpWindowDef D_801F645C;
-extern JpGame *D_801E4640;
-extern void D_8002A3E0();
+extern JpGame *SCROLLING_BACKGROUND;
+extern void runWindowTask();
 
-void func_8002B508(JpMenu *, s32, s32, s32, s32);
-void func_8002B188(JpMenu *, s32, void (*)(void));
+void openChoiceMenu(JpMenu *, s32, s32, s32, s32);
+void addChoiceMenuItem(JpMenu *, s32, void (*)(void));
 void SAI_runMenu(void);
 void SAI_summarizeDeck(DeckSummary *summary, s8 deck);
 void SAI_summarizeOwnedCards(DeckSummary *owned);
@@ -331,16 +331,16 @@ void SAI_openDeckInfo(void) {
     }
     SAI_summarizeOwnedCards(&SAI_DECK_INFO.owned);
     i = 0;
-    spawnTask(0, -1, 0, 0x600, D_8002A3E0, &D_801F645C, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F645C, getCurrentTaskId());
     D_801F7558 = waitFrames(0x7FFFFFFF);
-    func_8002B508(&SAI_UI.menu, 0x3B, 0x32, 0, 0);
+    openChoiceMenu(&SAI_UI.menu, 0x3B, 0x32, 0, 0);
     while (i < 3 && SAI_DECK_INFO.decks[i].inUse != 0) {
-        func_8002B188(&SAI_UI.menu, i + 0x39, SAI_runMenu);
+        addChoiceMenuItem(&SAI_UI.menu, i + 0x39, SAI_runMenu);
         i++;
     }
     spawnTask(0, -1, 0, 0x1000, SAI_runMenu, 0, getCurrentTaskId(), 0, 0);
 }
 
 s8 func_801EDB34(void) {
-    return D_801E4640->unk1BE;
+    return SCROLLING_BACKGROUND->unk1BE;
 }

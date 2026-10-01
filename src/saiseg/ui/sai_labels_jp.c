@@ -35,23 +35,23 @@ typedef struct {
     /* 0x10 */ s8 unk10;
 } BitsReward;
 
-extern JpGame *D_801E4640;
+extern JpGame *SCROLLING_BACKGROUND;
 extern Bytes4 SAI_TEXT_RGB;
 extern SpriteDef D_801F6000[];
 extern JpWindowDef D_801F63C0;
 extern JpWindowDef D_801F63E0;
 extern BitsReward *SAI_BITS_REWARD;
 extern s32 D_801F7558;
-extern void D_8002A3E0();
-extern void D_8002C6F8();
+extern void runWindowTask();
+extern void renderScrollingBackground();
 
 void openKanjiPage(s32 page, s32 capacity);
 void clearKanjiPage(s32 page);
 void closeKanjiPage(s32 page);
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
-void func_8002B508(JpMenu *, s32, s32, s32, s32);
-void func_8002C9DC(void);
-void func_8002CACC(s32);
+void openChoiceMenu(JpMenu *, s32, s32, s32, s32);
+void showScrollingBackground(void);
+void setBackgroundScrollMode(s32);
 
 /* no prototypes: this module passes its coordinates as ints */
 void initVramSprite();
@@ -146,10 +146,10 @@ void func_801EDEF0(void) {
 
 void func_801EDF7C(s8 fade) {
     if (!fade) {
-        func_8002CACC(3);
+        setBackgroundScrollMode(3);
     }
     func_801EE8F0();
-    D_801E4640->unk1C0 = -1;
+    SCROLLING_BACKGROUND->unk1C0 = -1;
     removeFrameCallback((s32)func_801F1130);
     SAI_STATE->unk4E = SAI_UI.unk3C8;
     SAI_UI.unk3B4->state = 4;
@@ -163,10 +163,10 @@ void func_801EDF7C(s8 fade) {
 void func_801EE058(void) {
     func_801EDF7C(0);
     quitToTitleOrPlayEnding(2);
-    func_8002CACC(1);
+    setBackgroundScrollMode(1);
     waitFrames(30);
     SAI_UI.unk3C8 = SAI_STATE->unk4E;
-    func_8002B508(&SAI_UI.menu, (s8)SAI_UI.unk3C8, 0x32, 0, 0);
+    openChoiceMenu(&SAI_UI.menu, (s8)SAI_UI.unk3C8, 0x32, 0, 0);
     waitFrames(30);
     func_801EDEF0();
 }
@@ -249,7 +249,7 @@ void SAI_drawBits(JpWindow *win) {
 void SAI_playSlotMachine(void) {
     waitFrames(40);
     stopScreenFade();
-    removeFrameCallback((s32)D_8002C6F8);
+    removeFrameCallback((s32)renderScrollingBackground);
     spawnTask(0, -1, 0, 0x1000, SAI_runSystemErrorHack, 0, getCurrentTaskId(), 0, 0);
     waitFrames(0x7FFFFFFF);
     stopScreenFade();

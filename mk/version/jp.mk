@@ -28,8 +28,9 @@ TEXT_ENCODING := cp932
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
 	src/main/main.c \
-	$(addprefix src/main/card/, partner_level_jp.c player_rank.c) \
-	$(addprefix src/main/duel/, card_zones.c cpu_decision.c \
+	$(addprefix src/main/card/, partner_level_jp.c player_data_jp.c \
+		player_rank.c) \
+	$(addprefix src/main/duel/, card_zones.c card_motion_jp.c cpu_decision.c \
 		duel_launch_jp.c duel_session_jp.c duel_setup_jp.c duel_util_jp.c \
 		hud_panels_jp.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_desc.c \
@@ -70,7 +71,9 @@ SAISEG_C_SRC := \
 	$(addprefix src/saiseg/ui/, sai_labels_jp.c sai_panel_jp.c sai_text_jp.c)
 NISSEG_C_SRC := \
 	src/nisseg/deck/nis_auto_deck.c \
+	src/nisseg/deck/nis_deck_editor.c \
 	src/nisseg/deck/nis_deck_scene.c \
+	src/nisseg/deck/nis_deck_windows.c \
 	src/nisseg/title/nis_title.c \
 	src/nisseg/viewer/nis_model_viewer.c \
 	src/nisseg/vs/nis_vs_deck_select.c \

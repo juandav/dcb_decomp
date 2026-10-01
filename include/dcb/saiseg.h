@@ -373,7 +373,7 @@ extern s8 SAI_PARTNER_CHOICES[4];
 #if VERSION_JP
 /* jp's SAISEG is its own design: its types, with what its C reads so far */
 
-/* what jp's window task (D_8002A3E0) hands back */
+/* what jp's window task (runWindowTask) hands back */
 typedef struct {
     /* 0x00 */ u8 unk0;
     /* 0x01 */ s8 state; /* 4 closes it */
@@ -432,8 +432,8 @@ typedef struct {
 
 #define SAI_STATE ((struct SaiState *)((SessionData *)SESSION_DATA)->areaSession)
 
-/* a menu of jp's executable (func_8002B508 sets it up, func_8002B188 adds
-   an item, func_8002BD58 runs it a frame) */
+/* a menu of jp's executable (openChoiceMenu sets it up, addChoiceMenuItem adds
+   an item, runChoiceMenu runs it a frame) */
 typedef struct {
     /* 0x000 */ u8 unk0[0x23C];
     /* 0x23C */ s32 selected;

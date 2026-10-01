@@ -12,23 +12,23 @@
 /* jp's option screen and the end of a versus duel, where us has
    partner_level.c (us's and eu's) */
 
-void func_8002A3E0();
-void func_8002B06C(ChoiceMenu *menu);
-void func_8002B188(ChoiceMenu *menu, s32 text, void (*task)());
-void func_8002B508(ChoiceMenu *menu, s32 x, s32 y, void (*back)(), s32 arg4);
-s32 func_8002BD58(ChoiceMenu *menu);
+void runWindowTask();
+void startChoiceMenuAction(ChoiceMenu *menu);
+void addChoiceMenuItem(ChoiceMenu *menu, s32 text, void (*task)());
+void openChoiceMenu(ChoiceMenu *menu, s32 x, s32 y, void (*back)(), s32 arg4);
+s32 runChoiceMenu(ChoiceMenu *menu);
 void openKanjiPage(s32 page, s32 capacity);
 void closeKanjiPage(s32 page);
-void func_8002CACC(s32 mode);
-void func_8002C820(s32 arg0, s32 arg1);
-void func_8002C9DC(void);
+void setBackgroundScrollMode(s32 mode);
+void loadScrollingBackground(s32 arg0, s32 arg1);
+void showScrollingBackground(void);
 void func_8005714C(void);
 void func_801ECC58(void);
 void D_801F0820();
 void D_801F0EA8();
-void D_801F35CC();
+void func_801F35CC();
 
-extern u8 *D_801E4640;
+extern u8 *SCROLLING_BACKGROUND;
 extern s32 D_801E4988; /* the option window */
 extern u8 D_801E4980; /* set when the option menu is left */
 extern u8 D_801E4990;
@@ -67,21 +67,21 @@ void func_80045E40(void) {
     func_80045DCC("D:\\OPTION.TIM");
     playMusic(0, 4, 0x7F);
     openKanjiPage(0xF, 0x1B9);
-    spawnTask(0, -1, 0, 0x400, func_8002A3E0, &spec, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x400, runWindowTask, &spec, getCurrentTaskId(), 0, 0);
     D_801E4988 = waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x800, func_80046048, 0, 0, 0, 0);
     D_801E4980 = 0;
     do {
         waitFrames(FRAME_INTERVAL);
     } while (D_801E4980 != 1);
-    *(s16 *)(D_801E4640 + 0x1BE) = 2;
+    *(s16 *)(SCROLLING_BACKGROUND + 0x1BE) = 2;
     ((u8 *)D_801E4988)[1] = 4;
     waitFrames(30);
     closeKanjiPage(0xF);
     if (D_801E4990 != 0) {
-        func_8002CACC(0);
+        setBackgroundScrollMode(0);
     } else {
-        func_8002CACC(2);
+        setBackgroundScrollMode(2);
         playMusic(0, 4, 0x7F);
     }
     spawnTask(0, -1, 0, 0x800, D_8007ED74[D_801E4990], 1, 0, 0, 0);
@@ -92,19 +92,19 @@ void func_80045E40(void) {
 void func_80046048(void) {
     ChoiceMenu menu;
 
-    func_8002B508(&menu, -0x3D, 0x32, func_80045DC4, 0);
-    func_8002B188(&menu, 0x3F, func_800460F0);
-    func_8002B188(&menu, 0x40, func_800461DC);
+    openChoiceMenu(&menu, -0x3D, 0x32, func_80045DC4, 0);
+    addChoiceMenuItem(&menu, 0x3F, func_800460F0);
+    addChoiceMenuItem(&menu, 0x40, func_800461DC);
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (func_8002BD58(&menu) == 0) {
+        if (runChoiceMenu(&menu) == 0) {
             continue;
         }
         if (menu.result < 0) {
             D_801E4980 = 1;
             exitTask();
         }
-        func_8002B06C(&menu);
+        startChoiceMenuAction(&menu);
     }
 }
 
@@ -112,12 +112,12 @@ void func_80046048(void) {
 void func_800460F0(void) {
     ChoiceMenu menu;
 
-    func_8002B508(&menu, -0x3D, 0x32, func_80046048, 0);
-    func_8002B188(&menu, 0x41, func_80046048);
-    func_8002B188(&menu, 0x42, func_80046048);
+    openChoiceMenu(&menu, -0x3D, 0x32, func_80046048, 0);
+    addChoiceMenuItem(&menu, 0x41, func_80046048);
+    addChoiceMenuItem(&menu, 0x42, func_80046048);
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (func_8002BD58(&menu) == 0) {
+        if (runChoiceMenu(&menu) == 0) {
             continue;
         }
         if (menu.result >= 0) {
@@ -132,7 +132,7 @@ void func_800460F0(void) {
                 break;
             }
         }
-        func_8002B06C(&menu);
+        startChoiceMenuAction(&menu);
     }
 }
 
@@ -140,12 +140,12 @@ void func_800460F0(void) {
 void func_800461DC(void) {
     ChoiceMenu menu;
 
-    func_8002B508(&menu, -0x3D, 0x32, func_80046048, 0);
-    func_8002B188(&menu, 0x43, func_80046048);
-    func_8002B188(&menu, 0x44, func_80046048);
+    openChoiceMenu(&menu, -0x3D, 0x32, func_80046048, 0);
+    addChoiceMenuItem(&menu, 0x43, func_80046048);
+    addChoiceMenuItem(&menu, 0x44, func_80046048);
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (func_8002BD58(&menu) == 0) {
+        if (runChoiceMenu(&menu) == 0) {
             continue;
         }
         if (menu.result >= 0) {
@@ -158,7 +158,7 @@ void func_800461DC(void) {
                 break;
             }
         }
-        func_8002B06C(&menu);
+        startChoiceMenuAction(&menu);
     }
 }
 
@@ -191,7 +191,7 @@ void func_80046464(void) {
     waitFrames(0x7FFFFFFF);
     waitFrames(2);
     func_801ECC58();
-    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? D_801F35CC : D_801F0EA8, 1, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, ((PlayerProfile *)PLAYER_PROFILES)->unk28_9 ? func_801F35CC : D_801F0EA8, 1, 0, 0, 0);
     exitTask();
 }
 
@@ -240,7 +240,7 @@ void func_80046550(void) {
     }
     updatePlayerRanks(0);
     updatePlayerRanks(1);
-    func_8002C820(0xE, 4);
-    func_8002C9DC();
+    loadScrollingBackground(0xE, 4);
+    showScrollingBackground();
     spawnTask(0, -1, 0, 0x1000, D_801F0820, 0);
 }

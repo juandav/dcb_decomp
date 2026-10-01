@@ -4,3 +4,12 @@
    what it calls by address, and the fields of its data that the modules
    still in asm read by splat's names */
 D_80010000 = 0x80010000;
+D_80010828 = 0x80010828;
+D_80010830 = 0x80010830;
+D_80010838 = 0x80010838;
+D_8001083C = 0x8001083C;
+D_80010848 = 0x80010848;
+D_8001086C = 0x8001086C;
+D_800108A8 = 0x800108A8;
+D_800108C8 = 0x800108C8;
+D_800108CC = 0x800108CC;

@@ -135,7 +135,7 @@ extern u8 SUB_AUTO_DECK_ENABLED;
 #if VERSION_JP
 /* jp's SUBSEG is a card shop (the USA SUBSEG above is the deck editor) */
 
-/* jp: a window the executable's window task (func_8002A3E0) slides in from
+/* jp: a window the executable's window task (runWindowTask) slides in from
    (fromX, fromY) to (x, y) and draws with draw every frame */
 typedef struct {
     /* 0x00 */ s16 fromX;
