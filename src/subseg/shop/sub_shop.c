@@ -20,8 +20,8 @@
 #include "dcb/subseg.h"
 
 /*
- * jp's SUBSEG is a card shop, not the USA deck editor (sub_deck_screens.c):
- * it buys and sells cards and booster packs, opens the packs bought, and
+ * jp's SUBSEG is a card shop, a program of its own (us's SUBSEG is the deck
+ * editor, deck/sub_deck_screens.c): it buys and sells cards and booster packs, opens the packs bought, and
  * shows a card's picture and its Digimon's model. The executable sets it up
  * with SUB_openBuyShop (buying) or SUB_openSellShop (selling), then spawns
  * SUB_runShop.
