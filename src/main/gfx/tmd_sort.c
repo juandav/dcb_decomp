@@ -349,10 +349,6 @@ u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
  * buffer. A primitive is only drawn if it faces the camera, and consecutive
  * primitives of a strip are wound in opposite directions.
  */
-#if VERSION_EU
-/* eu: still asm, though the C below matches it too */
-INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortModelPrimitives);
-#elif VERSION_US || VERSION_JP
 void sortModelPrimitives(SortWork *w) {
     u32 *packet;
     u32 *cursor;
@@ -614,9 +610,6 @@ void sortModelPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
-#else
-#error "main/gfx/tmd_sort: version not checked"
-#endif
 
 u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
     SortWork *work;
@@ -803,10 +796,6 @@ u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     return packet + 8;
 }
 
-#if VERSION_EU
-/* eu: still asm, though the C below matches it too */
-INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortEnvMappedPrimitives);
-#elif VERSION_US || VERSION_JP
 void sortEnvMappedPrimitives(SortWork *w) {
     u32 *packet;
     u32 *cursor;
@@ -975,6 +964,3 @@ void sortEnvMappedPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
-#else
-#error "main/gfx/tmd_sort: version not checked"
-#endif
