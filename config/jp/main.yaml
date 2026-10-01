@@ -174,7 +174,7 @@ segments:
       - [0x337CC, asm, card/card_db_jp]
       # jp's own: the card polys, the card sprite renderer (card_render's in
       # us) and the hand cursor (KAWSEG's in us)
-      - [0x34200, asm, card/card_sprite_jp]
+      - [0x34200, c, card/card_sprite_jp]
       # jp's own: the duel's battle log
       - [0x35874, c, duel/battle_log_jp]
       # jp's startCpuDuel and startVersusDuel (jp has no game_flow object: its
