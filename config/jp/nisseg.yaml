@@ -55,7 +55,7 @@ segments:
       # the modules, each with its rodata and data; the .data of the deck
       # screens' windows, tables and kana sits apart from its code
       - [0x0, .rodata, title/nis_title]
-      - [0x34, rodata, trade/nis_trade]
+      - [0x34, .rodata, trade/nis_trade]
       - [0x270, .rodata, vs/nis_vs_deck_select]
       - [0x310, .rodata, vs/nis_vs_mode]
       - [0x48C, .rodata, deck/nis_auto_deck]
@@ -64,7 +64,7 @@ segments:
       - [0xC2C, .rodata, deck/nis_deck_editor]
       - [0xC58, .rodata, viewer/nis_model_viewer]
       - [0xCB4, c, title/nis_title]
-      - [0x1434, asm, trade/nis_trade]
+      - [0x1434, c, trade/nis_trade]
       - [0x5A80, c, vs/nis_vs_deck_select]
       - [0x63C4, c, vs/nis_vs_mode]
       - [0x6E30, c, deck/nis_auto_deck]
@@ -73,7 +73,7 @@ segments:
       - [0xD440, c, deck/nis_deck_editor]
       - [0x10EBC, c, viewer/nis_model_viewer]
       - [0x11984, .data, title/nis_title]
-      - [0x11988, data, trade/nis_trade]
+      - [0x11988, .data, trade/nis_trade]
       - [0x11A7C, .data, deck/nis_deck_editor]
       - [0x11C3C, .data, deck/nis_auto_deck]
       - [0x11C6C, .data, deck/nis_deck_windows]

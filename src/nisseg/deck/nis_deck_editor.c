@@ -16,7 +16,6 @@
 
 extern u8 D_801E46E9;
 extern s32 NIS_AUTO_DECK_FROM_MENU; /* 1 when the auto deck was asked for from a deck's menu */
-extern s32 D_801FC734;
 extern s16 *NIS_ROOKIE_COUNTS; /* the Digimon owned of each element */
 extern u8 (*NIS_DECK_BACKUP)[2]; /* the deck's cards before editing */
 extern NisProfile *NIS_PROFILE_BACKUP; /* player 1's profile before a trade */
@@ -50,8 +49,8 @@ void NIS_drawNameEntry(NisWindow *window);
 void NIS_drawDeckCopyQuestion(NisWindow *window);
 void NIS_drawAutoDeckQuestion(NisWindow *window);
 void NIS_drawAutoDeckPortrait(NisWindow *window);
-void func_801ECE3C();
-void func_801EBB64(s32 kind);
+void NIS_keepTradeCopies();
+void NIS_runTradeGrid(s32 kind);
 void NIS_runVsMode(void);
 extern void returnToAreaFromDeckEditor();
 extern void D_800491A0();
@@ -631,7 +630,7 @@ void NIS_viewCardModel(void) {
     if (D_801E46E8 != 1) {
         NIS_DECK_SCREENS.nameWindow = 0;
     } else {
-        D_801FC734 = 0;
+        NIS_TRADE_SCREENS.titleWindow = 0;
     }
     NIS_DECK_EDIT.fromViewer = 1;
     spawnTask(0, -1, 0, 0x1000, NIS_showCard, NIS_DECK_EDIT.kind);
@@ -763,7 +762,7 @@ void NIS_showCard(s32 kind) {
             if (D_801E46E8 != 1) {
                 NIS_addCardsToDeck(NIS_DECK_EDIT.cardType, NIS_DECK_EDIT.cardIndex, NIS_DECK_EDIT.copies - copies);
             } else {
-                func_801ECE3C();
+                NIS_keepTradeCopies();
             }
             break;
         }
@@ -788,7 +787,7 @@ void NIS_showCard(s32 kind) {
         if (D_801E46E8 != 1) {
             spawnTask(0, -1, 0, 0x1000, NIS_runCardGrid, kind, 0, 0, 0);
         } else {
-            spawnTask(0, -1, 0, 0x800, func_801EBB64, kind, 0, 0, 0);
+            spawnTask(0, -1, 0, 0x800, NIS_runTradeGrid, kind, 0, 0, 0);
         }
     }
     exitTask();
