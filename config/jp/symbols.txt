@@ -747,3 +747,36 @@ NEXT_SFX_VOICE = 0x8007E5E8;
 SFX_BASE_NOTE = 0x8007E5EC;
 SFX_BASE_FINE = 0x8007E5F0;
 // end of the names from us
+
+// names from us for the data of the modules that build from the shared C
+// (the relocations of their matched functions), by module
+
+// main/gfx/prim3d
+CURRENT_FRAME_BUFFER = 0x80088B74;
+
+// main/gfx/prim_util
+SetSprt8 = 0x8006528C; // type:func
+SetSprt16 = 0x800652AC; // type:func
+SetSprt = 0x800652CC; // type:func
+SetTile1 = 0x800652EC; // type:func
+SetTile8 = 0x8006530C; // type:func
+SetTile16 = 0x8006532C; // type:func
+SetTile = 0x8006534C; // type:func
+PRIM_INIT_FUNCS = 0x8006B7CC;
+
+// main/gfx/vram_upload
+LOADED_TIM = 0x801E2E58;
+
+// main/system/task
+exitTask = 0x80013A6C; // type:func
+TASK_VSYNC_MODE = 0x800871D8;
+CURRENT_TASK = 0x800871DC;
+PREEMPTED_TASK = 0x800871E0;
+DEFERRED_TASK = 0x800871E4;
+CURRENT_TASK_PRIORITY = 0x800871E8;
+PREEMPTED_TASK_PRIORITY = 0x800871EA;
+DEFERRED_TASK_PRIORITY = 0x800871EC;
+KERNEL_TCB = 0x800872A8;
+TASK_LIST_END = 0x800872B0;
+TASKS = 0x80087370;
+TASK_GP = 0x80087400;

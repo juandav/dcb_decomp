@@ -17,5 +17,10 @@ OVERLAYS := endseg intseg kawseg nisseg saiseg subseg sugseg
 # holds a constant where 2.95.2 loads the constant again
 GCC_VERSION := 2.8.1
 
-# The source files this version builds (see mk/version/us.mk): none yet.
-# Every binary is splat's assembly (config/jp/*.yaml).
+# The source files this version builds (see mk/version/us.mk): the modules
+# that build from the same C as us's, by subsystem. The rest of every binary
+# is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
+MAIN_C_SRC := \
+	$(addprefix src/main/gfx/, prim3d.c prim_util.c transform.c \
+		vram_upload.c) \
+	src/main/system/task.c

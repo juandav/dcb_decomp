@@ -96,7 +96,9 @@ s32 startTaskScheduler(s32 mode, s32 stackSize, s32 entry, s32 a0, s32 a1, s32 a
     EnableEvent(vsyncEvent);
     SetRCnt(0xF2000003, 1, 0x1000);
     StartRCnt(0xF2000003);
+#if VERSION_US || VERSION_EU
     VSYNC_EVENT = vsyncEvent;
+#endif
     ExitCriticalSection();
     return 0;
 }
@@ -145,7 +147,9 @@ Task *selectNextTask(Task *current) {
         next = PREEMPTED_TASK;
         PREEMPTED_TASK_PRIORITY = -1;
     } else {
+#if VERSION_US || VERSION_EU
         priority = next->status.priority;
+#endif
         if ((u16)priority > (u16)DEFERRED_TASK_PRIORITY) {
             priority = DEFERRED_TASK_PRIORITY;
             next = DEFERRED_TASK;

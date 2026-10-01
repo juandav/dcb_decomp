@@ -323,9 +323,17 @@ void setPrimQuadRect(void *prim, s16 x, s16 y, s16 w, s16 h) {
     }
 }
 
+/* the right and bottom edges that setPoly*Rect work out: jp keeps them in
+   16 bits */
+#if VERSION_JP
+typedef s16 RectEdge;
+#elif VERSION_US || VERSION_EU
+typedef s32 RectEdge;
+#endif
+
 void setPolyF4Rect(POLY_F4 *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 right;
-    s32 bottom;
+    RectEdge right;
+    RectEdge bottom;
 
     poly->x0 = x;
     poly->y0 = y;
@@ -340,8 +348,8 @@ void setPolyF4Rect(POLY_F4 *poly, s16 x, s16 y, s16 w, s16 h) {
 }
 
 void setPolyG4Rect(POLY_G4 *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 right;
-    s32 bottom;
+    RectEdge right;
+    RectEdge bottom;
 
     poly->x0 = x;
     poly->y0 = y;
@@ -356,8 +364,8 @@ void setPolyG4Rect(POLY_G4 *poly, s16 x, s16 y, s16 w, s16 h) {
 }
 
 void setPolyFT4Rect(POLY_FT4 *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 right;
-    s32 bottom;
+    RectEdge right;
+    RectEdge bottom;
 
     poly->x0 = x;
     poly->y0 = y;
@@ -372,8 +380,8 @@ void setPolyFT4Rect(POLY_FT4 *poly, s16 x, s16 y, s16 w, s16 h) {
 }
 
 void setPolyGT4Rect(POLY_GT4 *poly, s16 x, s16 y, s16 w, s16 h) {
-    s32 right;
-    s32 bottom;
+    RectEdge right;
+    RectEdge bottom;
 
     poly->x0 = x;
     poly->y0 = y;
