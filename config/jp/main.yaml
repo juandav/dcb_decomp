@@ -27,6 +27,7 @@ options:
 
   symbol_addrs_path:
     - config/jp/symbols.txt
+    - config/jp/symbols_overlay_calls.txt
   undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_main.txt
   undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_main.txt
 
@@ -73,9 +74,9 @@ segments:
       - [0xBF4, rodata, card/player_rank]
       - [0xD6C, rodata, card/player_data]
       - [0xD78, rodata, duel/duel_launch]
-      - [0xD80, rodata, gfx/scroll_bg]
       - [0xD80, rodata, model/effect_object]
-      - [0xD80, rodata, model/stage]
+      - [0xD8C, .rodata, model/stage]
+      - [0xDD4, rodata, gfx/scroll_bg]
       - [0xE94, rodata, duel/duel]
       - [0x1008, rodata, duel/cpu_decision]
       - [0x2758, rodata, duel/duel_util]
@@ -132,8 +133,8 @@ segments:
       - [0x1B400, asm, system/decompress]
       - [0x1B608, asm, duel/duel_launch]
       - [0x1C20C, asm, model/effect_object]
-      - [0x1D2CC, asm, gfx/scroll_bg]
-      - [0x1D860, asm, model/stage]
+      - [0x1D860, c, model/stage]
+      - [0x1E370, asm, gfx/scroll_bg]
       - [0x1F338, asm, duel/duel]
       - [0x23048, asm, model/effect_prims]
       - [0x26D60, asm, duel/cpu_decision]
@@ -165,9 +166,8 @@ segments:
       - [0x5C040, data, model/wire_grid]
       - [0x6EDA0, .data, system/sound]
       - [0x6EDF4, data, model/scene3d]
-      - [0x6F118, data, ui/text]
-      - [0x6F138, data, gfx/scroll_bg]
-      - [0x6F140, data, model/stage]
+      - [0x6F094, .data, model/stage]
+      - [0x6F114, data, gfx/scroll_bg]
       - [0x6F144, data, card/card_render]
       - [0x6F6F8, data, card/card_db]
       - [0x6F6FC, data, system/memcard]

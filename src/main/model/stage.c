@@ -23,6 +23,42 @@
 #include "dcb/sound_play.h"
 #include "dcb/overlay_calls.h"
 
+#if VERSION_JP
+ArenaStage ARENA_STAGES[32] = {
+    { 0x1E, 8, 0xA, 0 },
+    { 0x1F, 8, 0xA, 0 },
+    { 0x20, 8, 0xA, 0 },
+    { 0x21, 8, 0xA, 0 },
+    { 0x26, 8, 5, 0 },
+    { 0x27, 8, 2, 0 },
+    { 0x29, 8, 2, 0 },
+    { 0x2B, 0x10, 0xC, 0 },
+    { 0x2D, 0x10, 6, 0 },
+    { 0x2F, 0x10, 4, 0 },
+    { 0x2C, 0, 0, 0 },
+    { 0x2E, 0x10, 1, 0 },
+    { 0x30, 0x10, 0xA, 0 },
+    { 0x14, 0, 0, 0 },
+    { 0x16, 0, 0, 0 },
+    { 0x1B, 0, 0, 0 },
+    { 0x1C, 0, 0, 0 },
+    { 0x1D, 0, 0, 0 },
+    { 0x1A, 0, 0, 0 },
+    { 0x18, 0, 0, 0 },
+    { 0x17, 8, 0xA, 0 },
+    { 0x25, 0, 0, 0 },
+    { 0x24, 0x10, 0xF, 2 },
+    { 0x23, 0, 0, 2 },
+    { 0x13, 0, 0, 0 },
+    { 0x19, 0, 0, 2 },
+    { 0x28, 0, 0, 0 },
+    { 0x22, 0, 0, 2 },
+    { 0x11, 0, 0, 0 },
+    { 0x15, 0, 0, 2 },
+    { 0x10, 0, 0, 0 },
+    { 0xE, 0x10, 0xF, 2 },
+};
+#elif VERSION_US
 ArenaStage ARENA_STAGES[56] = {
     { 0x50, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
     { 0x51, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
@@ -81,9 +117,42 @@ ArenaStage ARENA_STAGES[56] = {
     { 0x16, 7, 0, 0x3A, { 0, 0, 0 }, 0x80 },
     { 0x17, 7, 0, 0x38, { 0, 0, 0 }, 0x80 },
 };
+#else
+#error "untested version"
+#endif
 
 /* Heap tags: slot + 0x1F4 holds a model's PAK, slot + 0x84 its animation data,
    0x81 the skills and the stage. */
+#if VERSION_JP
+s32 loadDigimonModelPak(s32 slot, s32 id) {
+    char path[32];
+    s32 pak;
+    KeyFrame *key;
+
+    sprintf(path, "F:\\%03d.PAK", id);
+    pak = loadFileTagged((s32 *)path, getCurrentTaskId(), slot + 0x1F4);
+    if (loadModel(slot, id, -1, pak) == 0) {
+        return pak;
+    }
+    loadModelAnimation(slot, 0, 0, pak);
+    loadModelAnimation(slot, 7, 7, pak);
+    loadModelAnimation(slot, 1, 1, pak);
+    loadModelAnimation(slot, 2, 2, pak);
+    loadModelAnimation(slot, 3, 3, pak);
+    loadModelAnimation(slot, 4, 4, pak);
+    loadModelAnimation(slot, 5, 5, pak);
+    loadModelAnimation(slot, 6, 6, pak);
+    /* the first key of animation 6 lasts at least 6 frames */
+    key = ((Model *)SCENE_3D->models[slot])->anims[6].data;
+    if (key->duration < 6) {
+        key->duration = 6;
+    }
+    applyAnimationFirstFrame(slot, 7);
+    SCENE_3D->modelState[slot] = -1;
+    truncatePakTextures((Chunk *)pak);
+    return pak;
+}
+#elif VERSION_US
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     char path[32];
     s32 pak;
@@ -117,6 +186,9 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     truncatePakTextures((Chunk *)pak);
     return pak;
 }
+#else
+#error "untested version"
+#endif
 
 void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
     s32 modelId;
@@ -139,11 +211,22 @@ void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
         if (loadedId > 0) {
             unloadModel(player);
             freeHeapBlocksByTag(player + 0x1F4);
+            /* jp keeps no animation blocks of its own (heap tag 0x84 + slot) */
+#if VERSION_US
             freeHeapBlocksByTag(player + 0x84);
+#elif VERSION_EU
+#error "untested version"
+#endif
         }
         if (modelId > 0) {
             cardData = findDigimonCardByModelId(modelId);
+#if VERSION_JP
+            pak = loadDigimonModelPak(player, modelId);
+#elif VERSION_US
             pak = loadDigimonModelPak(player, modelId, 0, 0);
+#else
+#error "untested version"
+#endif
             if (pak == 0) {
                 /* leaves loadBusy set */
                 return;
@@ -162,7 +245,13 @@ void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
 
 /* Loads the arena and keeps both players' Digimon models in sync with their
    battle cards until the duel sets stopStageTask. */
+#if VERSION_JP
+void runDuelStageTask(s32 stageId, s32 music) {
+#elif VERSION_US
 void runDuelStageTask(s32 stageId) {
+#else
+#error "untested version"
+#endif
     s32 pak;
     s32 i;
     DigimonCardData *battleCard;
@@ -181,6 +270,15 @@ void runDuelStageTask(s32 stageId) {
         EAT_UP_HP_SKILL = (void *)loadSkill(998, pak);
         truncatePakTextures((Chunk *)pak);
     }
+    /* jp starts the duel's music here, a random one of two when none is given */
+#if VERSION_JP
+    if (music <= 0) {
+        music = (rand() & 1) * 10 + 0x25;
+    }
+    loadMusicTrack(1, music, 100);
+#elif VERSION_EU
+#error "untested version"
+#endif
     loadArenaStage(stageId);
     DUEL_DIGIMON_MODELS[0].modelId = DUEL_DIGIMON_MODELS[1].modelId = -1;
     DUEL->loadBusy = 0;
@@ -200,11 +298,19 @@ void runDuelStageTask(s32 stageId) {
         }
     }
     unloadArenaStage();
+#if VERSION_JP
+    freeHeapBlocksByTag(0x1F4);
+    freeHeapBlocksByTag(0x1F5);
+    freeHeapBlocksByTag(0x81);
+#elif VERSION_US
     freeHeapBlocksByTag(0x1F4);
     freeHeapBlocksByTag(0x84);
     freeHeapBlocksByTag(0x1F5);
     freeHeapBlocksByTag(0x85);
     freeHeapBlocksByTag(0x81);
+#else
+#error "untested version"
+#endif
     DUEL->stopStageTask = 0;
 }
 
@@ -229,18 +335,40 @@ void playPolygonBattle(void) {
     DUEL->loadBusy = 0;
 }
 
+/* jp's stage models are numbered from 950, us's from 900 */
+#if VERSION_JP
+#define STAGE_MODEL_BASE 950
+#elif VERSION_US
+#define STAGE_MODEL_BASE 900
+#else
+#error "untested version"
+#endif
+
 void loadArenaStage(s32 stageId) {
     char path[32];
 
-    /* a negative id picks one of the last 12 stages at random */
+    /* a negative id picks a stage at random: any of jp's 32, one of the last
+       12 of us's */
     if (stageId < 0) {
+#if VERSION_JP
+        stageId = rand() % 32;
+#elif VERSION_US
         stageId = rand() % 12 + 0x2C;
+#else
+#error "untested version"
+#endif
     }
-    sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + 900);
+    sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE);
     spawnTask(0, -1, 0, 0x400, loadFileTagged, path, getCurrentTaskId(), 0x81);
     STAGE_PAK = waitFrames(0x7FFFFFFF);
     /* the stage is model slot 23 */
-    loadModel(0x17, ARENA_STAGES[stageId].bg + 900, 0, STAGE_PAK, 0);
+#if VERSION_JP
+    loadModel(0x17, ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE, 0, STAGE_PAK);
+#elif VERSION_US
+    loadModel(0x17, ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE, 0, STAGE_PAK, 0);
+#else
+#error "untested version"
+#endif
     SCENE_3D->modelState[0x17] = -1;
     ((Model *)SCENE_3D->models[23])->tpageOffset = 0xA0000;
     ((Model *)SCENE_3D->models[23])->clutOffset = 0x280000;
@@ -253,33 +381,53 @@ void loadArenaStage(s32 stageId) {
     SCENE_3D->texAnimDelay = ARENA_STAGES[stageId].texAnimDelay;
     SCENE_3D->texAnimFrames = ARENA_STAGES[stageId].texAnimFrames;
     SCENE_3D->stageFlags = ARENA_STAGES[stageId].flags;
+#if VERSION_US
     STAGE_CLEAR_COLOR[0] = ARENA_STAGES[stageId].rgb[0];
     STAGE_CLEAR_COLOR[1] = ARENA_STAGES[stageId].rgb[1];
     STAGE_CLEAR_COLOR[2] = ARENA_STAGES[stageId].rgb[2];
     STAGE_FADE_LEVEL = ARENA_STAGES[stageId].fadeLevel;
+#elif VERSION_EU
+#error "untested version"
+#endif
 }
 
 void showArenaStage(s16 rotX) {
     Scene3D *scene;
+#if VERSION_US
     s32 tim;
+#elif VERSION_EU
+#error "untested version"
+#endif
 
     SCENE_3D_ENABLED = 1;
     scene = SCENE_3D;
     ((Model *)scene->models[23])->rot.vx = rotX;
+    /* jp's stage TIMs are stored uncompressed */
+#if VERSION_JP
+    uploadTim((u32 *)findPakChunk((Chunk *)STAGE_PAK, 5, ((Model *)scene->models[23])->id), 0x3C0, 0, 0x3F0, 0x70);
+    DrawSync(0);
+#elif VERSION_US
     tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, ((Model *)scene->models[23])->id));
     uploadTim((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
     freeHeapBlock((void *)tim);
+#else
+#error "untested version"
+#endif
     if (rotX != 0 && (SCENE_3D->stageFlags & 2)) {
         endTask(0x1B);
         spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
         applyAnimationFirstFrame(0x17, 0);
         startModelAnimation(0x17, 0, -2, 0);
     }
-    /* the background is cleared to the stage's colour */
+    /* us clears the background to the stage's colour */
+#if VERSION_US
     DB(0).draw.r0 = DB(1).draw.r0 = STAGE_CLEAR_COLOR[0];
     DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
     DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
+#elif VERSION_EU
+#error "untested version"
+#endif
 }
 
 void unloadArenaStage(void) {
@@ -289,14 +437,27 @@ void unloadArenaStage(void) {
 
 /* Every texAnimDelay frames, moves the stage's CLUT to the next frame of its
    texture animation (stageFlags >> 3 frames). */
+/* the stage texture's frame count: jp keeps it in texAnimFrames and only
+   animates when there are frames, us keeps it in stageFlags' top bits and
+   animates when there is a delay */
+#if VERSION_JP
+#define STAGE_TEX_ANIMATED() (SCENE_3D->texAnimFrames > 0)
+#define STAGE_TEX_FRAMES() SCENE_3D->texAnimFrames
+#elif VERSION_US
+#define STAGE_TEX_ANIMATED() (SCENE_3D->texAnimDelay != 0)
+#define STAGE_TEX_FRAMES() ((u8)SCENE_3D->stageFlags >> 3)
+#else
+#error "untested version"
+#endif
+
 void animateStageTexture(Model *model) {
     s32 vramSlot;
 
-    if (SCENE_3D->texAnimDelay != 0) {
+    if (STAGE_TEX_ANIMATED()) {
         if (++SCENE_3D->texAnimTimer >= SCENE_3D->texAnimDelay) {
             vramSlot = model->tpageOffset / 0x10000 + 5;
             SCENE_3D->texAnimTimer = 0;
-            if (++SCENE_3D->texAnimFrame >= (u8)SCENE_3D->stageFlags >> 3) {
+            if (++SCENE_3D->texAnimFrame >= STAGE_TEX_FRAMES()) {
                 SCENE_3D->texAnimFrame = 0;
             }
             model->clutOffset =
