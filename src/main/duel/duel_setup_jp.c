@@ -7,7 +7,7 @@
    saved deck from its profile (the CPU its deck from the session), and the
    tutorial sets itself up in KAWSEG */
 
-void func_8004309C(s32 player);
+void linkSavedDecks(s32 player);
 void func_801FEC84();
 
 void initDuelPlayers(s32 isCpuDuel) {
@@ -43,7 +43,7 @@ void initDuelPlayers(s32 isCpuDuel) {
             PLAYER(i)->stats[j] = 0;
             PLAYER(i)->displayedStats[j] = 0;
         }
-        func_8004309C(i);
+        linkSavedDecks(i);
     }
     if (isCpuDuel != 0) {
         PLAYER(1)->controller = 2;

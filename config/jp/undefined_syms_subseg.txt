@@ -3,7 +3,7 @@
 /* from the C of the modules this version builds (tools/version_symbols.py):
    what it calls by address, and the fields of its data that the modules
    still in asm read by splat's names */
-func_80043374 = 0x80043374;
-func_80043740 = 0x80043740;
+addCardToCollection = 0x80043374;
+removeCardFromCollection = 0x80043740;
 KAW_createCursor = 0x80044334;
 KAW_freeCursor = 0x80044758;

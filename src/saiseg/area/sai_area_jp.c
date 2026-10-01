@@ -11,7 +11,7 @@
 /* jp's area (sai_area.c is us's and eu's): the map's textures and script,
    loaded from its PAK, and the task that runs it until the area ends */
 
-void func_80043374(s32 type, s32 id, s32 count);
+void addCardToCollection(s32 type, s32 id, s32 count);
 
 void SAI_clearTextVram(void);
 
@@ -96,7 +96,7 @@ void SAI_giveStarterCards(void) {
                 type = 2;
             }
         }
-        func_80043374(type, id, 1);
+        addCardToCollection(type, id, 1);
     }
     PLAYER_DATA(0).savedDecks[0].losses = 0;
     PLAYER_DATA(0).savedDecks[0].wins = 0;
@@ -105,8 +105,8 @@ void SAI_giveStarterCards(void) {
     }
     if (PLAYER_DATA(0).unk28_13) {
         PLAYER_DATA(0).bits += 2000;
-        func_80043374(0, 0x6C, 1);
-        func_80043374(0, 0x6D, 1);
+        addCardToCollection(0, 0x6C, 1);
+        addCardToCollection(0, 0x6D, 1);
     }
 }
 

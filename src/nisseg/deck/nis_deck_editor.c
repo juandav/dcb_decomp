@@ -23,7 +23,7 @@ extern s32 MENU_ITEMS[]; /* player_data_jp.c's menu items, read here as words */
 extern s32 D_8007E7FC;
 
 void clearKanjiPage(s32 page);
-void func_8004309C(s32);
+void linkSavedDecks(s32);
 NisCursor *KAW_createCursor(s32, s32, s32, s32, s32);
 void KAW_freeCursor(NisCursor *cursor);
 s32 NIS_countOwnedDigimonOf(s32 element, s32 level);
@@ -430,7 +430,7 @@ s32 NIS_enterDeckName(char *name, s8 newDeck) {
 void NIS_clearDeckRecord(s8 deck) {
     s8 i;
 
-    func_8004309C(0);
+    linkSavedDecks(0);
     NIS_PROFILE(0)->savedDecks[deck].wins = NIS_PROFILE(0)->savedDecks[deck].losses = 0;
     for (i = 0; i < 3; i++) {
         NIS_PROFILE(0)->savedDecks[deck].unk104[i] = 0;
@@ -967,7 +967,7 @@ void NIS_runDeckKinds(s32 mode) {
             }
         }
         if (result != -1) {
-            func_8004309C(0);
+            linkSavedDecks(0);
         }
         startChoiceMenuAction(&menu);
     }

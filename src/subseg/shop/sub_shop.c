@@ -53,8 +53,6 @@ void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env);
 void clearKanjiPage(s32);
 void closeKanjiPage(s32);
 void openKanjiPage(s32, s32);
-s32 func_80043374(u8 type, u8 index, s8 count);
-void func_80043740(u8 type, u8 index, s8 count);
 void KAW_freeCursor(JpCursor *cursor);
 void renderScrollingBackground();
 void setBackgroundScrollMode(s32);
@@ -1730,11 +1728,11 @@ void SUB_commitDeal(s8 selling) {
             if (excess != 0) {
                 AREA_FLAGS[12] += SUB_getItemPrice(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index) * excess / 5;
             }
-            if (func_80043374(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count) < 0) {
+            if (addCardToCollection(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count) < 0) {
                 AREA_FLAGS[1] = -1;
             }
         } else {
-            func_80043740(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count);
+            removeCardFromCollection(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count);
         }
         if ((i & 3) == 0) {
             waitFrames(1);

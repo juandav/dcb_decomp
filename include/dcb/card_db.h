@@ -71,8 +71,16 @@ void assignCardCopySerial(s32 player, s32 cardId, s32 copy);
 #endif
 void clearCollectionNewFlags(s32 player);
 void clearCollectionFirstObtainedFlags(s32 player);
+#if VERSION_JP
+/* jp's keep the first player's collection, by card type (0-2) and index */
+s32 addCardToCollection(s32 type, s32 index, s32 count);
+s32 removeCardFromCollection(s32 type, s32 index, s32 count);
+#elif VERSION_US || VERSION_EU
 s32 addCardToCollection(s32 player, s32 cardId, s32 count);
 s8 removeCardFromCollection(s32 player, s32 cardId, s32 count);
+#else
+#error "card_db.h: version not checked"
+#endif
 s32 getOwnedCardCount(s32 player, s32 cardId);
 s32 getCardId(s32 type, s32 index);
 s32 getCardSpecialty(s32 cardId);
