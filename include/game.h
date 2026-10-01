@@ -1060,8 +1060,11 @@ typedef struct {
     u8 texAnimFrames;
     u8 texAnimDelay;
     s8 flags;
+    /* jp's stages have no clear colour or fade level */
+#if VERSION_US || VERSION_EU
     u8 rgb[3];
     u8 fadeLevel; /* the level SUGSEG's attack scenes fade the stage to */
+#endif
 } ArenaStage;
 typedef struct {
     /* 0x0 */ s16 unk0;
