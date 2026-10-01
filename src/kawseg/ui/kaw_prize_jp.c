@@ -16,8 +16,6 @@
 
 /* jp's executable: the copies of a card the player owns, giving one, and
    the cursor that points at a window */
-s32 func_80043954(s32 type, s32 index);
-void func_80043374(s32 type, s32 index, s32 count);
 void *KAW_createCursor(s32 kind, s32 w, s32 h, s32 frames, s32 count);
 void KAW_freeCursor(void *cursor);
 void KAW_drawCursorAt(void *cursor, s32 x, s32 y);
@@ -55,7 +53,7 @@ void func_801FD108(s32 index, s32 z) {
     y = KAW_CARD_PRIZE->windows[index].y;
     card = KAW_CARD_PRIZE->cards[index];
     deck = PLAYER(1)->deck;
-    if (func_80043954(deck->cards[card % 30].type, deck->cards[card % 30].index) == 0) {
+    if (getOwnedCardCount(deck->cards[card % 30].type, deck->cards[card % 30].index) == 0) {
         KAW_drawSprite(x + 0xE, y + 0x2E, 0x360, 0x1F0, 0x18, 9, 0x360, 0x1F9, 0, 1, 0, rgb[0], 0);
     }
     CARD_SPR(card)->pos.vx = x - 0x8C;
@@ -134,7 +132,7 @@ void func_801FD108(s32 index, s32 z) {
     }
     }
     renderCardSprite(CARD_SPR(card), 0);
-    sprintf(text, "%d", func_80043954(deck->cards[card % 30].type, deck->cards[card % 30].index));
+    sprintf(text, "%d", getOwnedCardCount(deck->cards[card % 30].type, deck->cards[card % 30].index));
     drawTextColored(x + 0x7F, y + 0xE, text, rgb, 7, z);
     drawIconTextColored(x + 0x64, y + 0xE, 6, 1, rgb, z, "所持  c7枚");
 }
@@ -170,8 +168,8 @@ void func_801FDBF8(void) {
 
         type = PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type;
         index = PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].index;
-        if (func_80043954(type, index) != 0) {
-            sprintf(text, "このカードは%d枚持っています。 b0決定 b2戻る", func_80043954(type, index));
+        if (getOwnedCardCount(type, index) != 0) {
+            sprintf(text, "このカードは%d枚持っています。 b0決定 b2戻る", getOwnedCardCount(type, index));
         } else {
             strcpy(text, "このカードは持っていません。 b0決定 b2戻る");
         }
@@ -280,7 +278,7 @@ void func_801FDFC4(void) {
         case 5:
             if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                if (func_80043954(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
+                if (getOwnedCardCount(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
                                   PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].index) == 8) {
                     KAW_CARD_PRIZE->state = 3;
                 } else {
@@ -353,7 +351,7 @@ void func_801FDFC4(void) {
         }
     }
     if (KAW_CARD_PRIZE->state == 1) {
-        func_80043374(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
+        addCardToCollection(PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].type,
                       PLAYER(1)->deck->cards[KAW_CARD_PRIZE->cards[KAW_CARD_PRIZE->choice] % 30].index, 1);
     }
     KAW_freeCursor(KAW_HAND_CURSOR);
