@@ -78,7 +78,7 @@ void startAreaPakLoad(void);
 extern JpGame *SCROLLING_BACKGROUND;
 
 void func_80045E40();
-void D_8004910C();
+void func_8004910C();
 void openDeckEditorFromArea();
 void func_801F0EA8(void);
 void SAI_runKeyItems(void);
@@ -158,7 +158,7 @@ u8 SAI_MAP_NEIGHBOURS[16][4] = {
     addChoiceMenuItem(&(map)->menu, 13, SAI_moveOnMap);                   \
     addChoiceMenuItem(&(map)->menu, 14, func_801F0EA8);                   \
     addChoiceMenuItem(&(map)->menu, 2, openDeckEditorFromArea);           \
-    addChoiceMenuItem(&(map)->menu, 16, D_8004910C);                      \
+    addChoiceMenuItem(&(map)->menu, 16, func_8004910C);                      \
     addChoiceMenuItem(&(map)->menu, 3, func_80045E40);                    \
     addChoiceMenuItem(&(map)->menu, 60, SAI_runKeyItems)
 

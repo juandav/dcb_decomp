@@ -30,7 +30,7 @@ void KAW_initCursorShape();
 void KAW_freeCursor();
 void KAW_drawCursorAt();
 void runWindowTask();
-void D_800490B4();
+void func_800490B4();
 extern s16 CAMERA_TARGET_MODEL;
 extern s32 D_8008CD50;
 extern void *D_801E469C;
@@ -657,9 +657,9 @@ s32 INT_runPageAction(IntState *state) {
             playMusic(0, 4, 0x7F);
             NAME_TASK("NEW");
 #if JP_DEBUG_BUILD
-            spawnTask(0, -1, 4, 0x1000, D_800490B4, 0, 0, 0, 0);
+            spawnTask(0, -1, 4, 0x1000, func_800490B4, 0, 0, 0, 0);
 #else
-            spawnTask(0, -1, 0, 0x1000, D_800490B4, 0, 0, 0, 0);
+            spawnTask(0, -1, 0, 0x1000, func_800490B4, 0, 0, 0, 0);
 #endif
             exitTask();
             return 0;
