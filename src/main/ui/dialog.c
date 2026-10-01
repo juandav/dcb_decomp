@@ -19,9 +19,7 @@
 void initDialog(Dialog *dialog, u8 *text, u32 flags) {
     Rect16 r;
     s32 labelWidth;
-    s32 width;
-    s32 x;
-    s32 centerX;
+    s32 widest;
 
     dialog->type = flags & 0xF;
     dialog->unkB6 = flags & 0x80;
@@ -45,21 +43,25 @@ void initDialog(Dialog *dialog, u8 *text, u32 flags) {
     /* the labels are 6 pixels per character */
     dialog->yesWidth = strlen(dialog->yesLabel) * 6;
     dialog->noWidth = strlen(dialog->noLabel) * 6;
-    labelWidth = dialog->yesWidth;
-    if (labelWidth < dialog->noWidth) {
-        labelWidth = dialog->noWidth;
+    widest = dialog->yesWidth;
+    if (widest < dialog->noWidth) {
+        widest = dialog->noWidth;
     }
-    labelWidth = labelWidth * 2 + 0x10;
+    /* room for both labels side by side, and a margin */
+#if VERSION_EU
+    labelWidth = widest * 2 + 0x10;
+#elif VERSION_US
+    labelWidth = widest = widest * 2 + 0x10;
+#else
+#error "main/ui/dialog: version not checked"
+#endif
     if (dialog->width < labelWidth) {
         dialog->width = labelWidth;
     }
     /* centred on the 320x240 screen, the two choices either side of the middle */
-    width = dialog->width;
-    x = (320 - width) / 2;
-    centerX = x + width / 2;
-    dialog->yesX = centerX - (dialog->yesWidth + 4);
-    dialog->noX = centerX + 4;
-    r.x = x;
+    dialog->yesX = (320 - dialog->width) / 2 + dialog->width / 2 - (dialog->yesWidth + 4);
+    dialog->noX = (320 - dialog->width) / 2 + dialog->width / 2 + 4;
+    r.x = (320 - dialog->width) / 2;
     r.y = (240 - dialog->height) / 2;
     r.w = dialog->width;
     r.h = dialog->height;
@@ -91,6 +93,10 @@ s32 runDialogForPad(void *dialog, s32 pad) {
     return ((Dialog *)dialog)->choice;
 }
 
+#if VERSION_EU
+/* eu: keeps two more addresses in registers across its loops; no C form found yet */
+INCLUDE_ASM("main/nonmatchings/ui/dialog", dialogTask);
+#elif VERSION_US
 void dialogTask(Dialog *dialog, s32 parentTask) {
     Rect16 r;
     s32 x;
@@ -157,6 +163,9 @@ void dialogTask(Dialog *dialog, s32 parentTask) {
     resumeTask(parentTask, dialog->choice);
     exitTask();
 }
+#else
+#error "main/ui/dialog: version not checked"
+#endif
 
 void drawDialogBody(Dialog *dialog) {
     Rect16 r;
