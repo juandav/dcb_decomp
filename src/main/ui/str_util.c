@@ -330,10 +330,10 @@ typedef struct {
     u16 glyph;
 } SjisGlyphRun;
 
-extern u8 D_8006B8FC[];         /* the glyphs of the symbols, kana and the alphabets */
-extern u8 D_8006E604[];         /* the glyphs of the kanji (0x889F-0x9872) */
-extern SjisGlyphRun D_8007E4D4[]; /* the runs of lead bytes 0x81-0x84 */
-extern SjisGlyphRun D_8007E520[]; /* the kanji, two runs per lead byte from 0x88 */
+extern u8 SJIS_SYMBOL_GLYPHS[];         /* the glyphs of the symbols, kana and the alphabets */
+extern u8 SJIS_KANJI_GLYPHS[];         /* the glyphs of the kanji (0x889F-0x9872) */
+extern SjisGlyphRun SJIS_SYMBOL_RUNS[]; /* the runs of lead bytes 0x81-0x84 */
+extern SjisGlyphRun SJIS_KANJI_RUNS[]; /* the kanji, two runs per lead byte from 0x88 */
 
 /* The glyph of the Shift-JIS character at str */
 u8 *getSjisGlyph(u8 *str) {
@@ -342,11 +342,11 @@ u8 *getSjisGlyph(u8 *str) {
 
     code = str[0] << 8 | str[1];
     if ((u16)(code - 0x8140) < 0x37F) {
-        glyphs = D_8006B8FC;
+        glyphs = SJIS_SYMBOL_GLYPHS;
     } else if ((u16)(code - 0x889F) < 0xFD4) {
-        glyphs = D_8006E604;
+        glyphs = SJIS_KANJI_GLYPHS;
     } else {
-        glyphs = D_8006B8FC;
+        glyphs = SJIS_SYMBOL_GLYPHS;
     }
     return glyphs + getSjisGlyphIndex(code) * 0x16;
 }
@@ -376,7 +376,7 @@ s32 getSjisGlyphIndex(u16 code) {
         } else if (bytes[0] == 0xFC) {
             run = 6;
         }
-        glyph = code - D_8007E4D4[run].code + D_8007E4D4[run].glyph;
+        glyph = code - SJIS_SYMBOL_RUNS[run].code + SJIS_SYMBOL_RUNS[run].glyph;
         break;
     case 0x82:
         if ((u8)(bytes[0] - 0x4F) < 0xA) {
@@ -388,7 +388,7 @@ s32 getSjisGlyphIndex(u16 code) {
         } else if ((u8)(bytes[0] - 0x9F) < 0x53) {
             run = 10;
         }
-        glyph = code - D_8007E4D4[run].code + D_8007E4D4[run].glyph;
+        glyph = code - SJIS_SYMBOL_RUNS[run].code + SJIS_SYMBOL_RUNS[run].glyph;
         break;
     case 0x83:
         if ((u8)(bytes[0] - 0x40) < 0x3F) {
@@ -400,7 +400,7 @@ s32 getSjisGlyphIndex(u16 code) {
         } else if ((u8)(bytes[0] - 0xBF) < 0x18) {
             run = 14;
         }
-        glyph = code - D_8007E4D4[run].code + D_8007E4D4[run].glyph;
+        glyph = code - SJIS_SYMBOL_RUNS[run].code + SJIS_SYMBOL_RUNS[run].glyph;
         break;
     case 0x84:
         if ((u8)(bytes[0] - 0x40) < 0x21) {
@@ -412,12 +412,12 @@ s32 getSjisGlyphIndex(u16 code) {
         } else if ((u8)(bytes[0] - 0x9F) < 0x20) {
             run = 18;
         }
-        glyph = code - D_8007E4D4[run].code + D_8007E4D4[run].glyph;
+        glyph = code - SJIS_SYMBOL_RUNS[run].code + SJIS_SYMBOL_RUNS[run].glyph;
         break;
     default:
         /* a lead byte's codes are two runs, split at the trail byte 0x7F */
         run = (bytes[1] - 0x88) * 2 - (bytes[0] < 0x7F);
-        glyph = code - D_8007E520[run].code + D_8007E520[run].glyph;
+        glyph = code - SJIS_KANJI_RUNS[run].code + SJIS_KANJI_RUNS[run].glyph;
         break;
     }
     return glyph;
