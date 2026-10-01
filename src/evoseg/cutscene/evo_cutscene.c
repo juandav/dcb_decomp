@@ -382,8 +382,15 @@ s16 EVO_PART_DRAW_MODES[40] = {
     16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
 };
 
-/* not referenced by any code */
+/* not referenced by any code; the last two bytes are leftovers, not the same
+   in every version */
+#if VERSION_US
 u8 D_801EF8C4[16] = { 0x40, 0x48, 0x4C, 0x50, 0x58, 0x5C, 0x20, 0x28, 0x24, 0x2C, 0x30, 0x38, 0x34, 0x3C, 0xF6, 0x57 };
+#elif VERSION_EU
+u8 D_801EF8C4[16] = { 0x40, 0x48, 0x4C, 0x50, 0x58, 0x5C, 0x20, 0x28, 0x24, 0x2C, 0x30, 0x38, 0x34, 0x3C, 0x62, 0x14 };
+#else
+#error "evoseg/cutscene/evo_cutscene: version not checked"
+#endif
 
 void EVO_drawFusionBanner(void) {
     Rect16 uv;
@@ -749,6 +756,10 @@ void EVO_remapPartTextures(EvoPart *part, s32 enable) {
         pk = (EvoPacket *)(&(pk)->line + 1);                  \
     }
 
+#if VERSION_EU
+/* eu: s1 and s6 swapped by the register allocator; no C form found yet */
+INCLUDE_ASM("evoseg/nonmatchings/cutscene/evo_cutscene", EVO_renderDissolvingObject);
+#elif VERSION_US
 void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     Color rgb;
     MATRIX m;
@@ -1065,6 +1076,9 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
     }
     GsSetWorkBase((long)pk);
 }
+#else
+#error "evoseg/cutscene/evo_cutscene: version not checked"
+#endif
 
 void EVO_initGsSortTable(void) {
     GsFCALL4.f3[GsDivMODE_NDIV][GsLMODE_NORMAL] = GsTMDfastF3L;

@@ -55,7 +55,7 @@ segments:
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x0, .rodata, sai_data]
-      - [0x358, rodata, ui/sai_text]
+      - [0x358, .rodata, ui/sai_text]
       - [0x3B8, .rodata, script/sai_flags]
       - [0x3E0, .rodata, ui/sai_labels]
       - [0x3F0, .rodata, player/sai_player_data]
@@ -71,8 +71,8 @@ segments:
       - [0x8FC, rodata, map/sai_world_map]
       - [0xA3C, .rodata, player/sai_reward]
       - [0xAD4, .rodata, player/sai_partner_get]
-      - [0xB38, rodata, player/sai_digi_parts]
-      - [0x1B2C, asm, ui/sai_text]
+      - [0xB38, .rodata, player/sai_digi_parts]
+      - [0x1B2C, c, ui/sai_text]
       - [0x21E8, c, ui/sai_choice]
       - [0x29F8, c, script/sai_flags]
       - [0x2FD8, c, ui/sai_labels]
@@ -89,7 +89,7 @@ segments:
       - [0xDAEC, asm, map/sai_world_map]
       - [0x12984, c, player/sai_reward]
       - [0x13B28, c, player/sai_partner_get]
-      - [0x14994, asm, player/sai_digi_parts]
+      - [0x14994, c, player/sai_digi_parts]
       - [0x14F08, c, sai_bss]
       - [0x14F08, c, sai_data]
       - [0x14F08, .data, sai_data]
@@ -100,7 +100,7 @@ segments:
       - [0x151B0, data, ui/sai_sprite]
       - [0x156D8, data, map/sai_world_map]
       - [0x157DC, .data, player/sai_partner_get]
-      - [0x157E0, data, player/sai_digi_parts]
+      - [0x157E0, .data, player/sai_digi_parts]
       - [0x15DE0, .data, sai_bss]
 
   - [0x16F10]
