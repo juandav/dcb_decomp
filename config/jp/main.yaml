@@ -198,7 +198,12 @@ segments:
       - [0x5BFB4, .data, gfx/prim_util]
       - [0x5C020, .data, gfx/tmd_sort]
       - [0x5C040, .data, model/wire_grid]
-      - [0x5C054, data, ui/text_jp]
+      - [0x5C054, .data, ui/text_jp]
+      # jp's font, which str_util's getSjisGlyph reads: the 12x11 glyphs of
+      # the symbols, kana and alphabets, then of the 2965 kanji of JIS level
+      # 1 (0x889F-0x9872), 22 bytes each, and the runs of codes that index
+      # them
+      - [0x5C0FC, data, ui/str_util]
       - [0x6EDA0, .data, system/sound]
       # player_rank's PLAYER_PROFILES to COMPLETE_SET_CARD_COUNTS (us has them
       # in memcard)
