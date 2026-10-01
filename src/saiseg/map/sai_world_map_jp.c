@@ -77,7 +77,7 @@ void startChoiceMenuAction(ChoiceMenu *menu);
 void startAreaPakLoad(void);
 extern JpGame *SCROLLING_BACKGROUND;
 
-void func_80045E40();
+void runOptionScreen();
 void openMemcardScreenForWorldMap();
 void openDeckEditorFromArea();
 void func_801F0EA8(void);
@@ -88,7 +88,7 @@ u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 extern s32 D_8008CD50;
 extern SpriteDesc *D_801E469C; /* the sprites the executable draws */
 extern s8 D_801E46D8[]; /* splitDigits' digits */
-extern u8 D_801E4990;
+extern u8 OPTION_FROM_WORLD_MAP;
 
 /* the map's data that starts zeroed (sai_bss_jp.c) */
 extern PrimDesc3D SAI_MAP_PLAYER_DRAWN;
@@ -159,7 +159,7 @@ u8 SAI_MAP_NEIGHBOURS[16][4] = {
     addChoiceMenuItem(&(map)->menu, 14, func_801F0EA8);                   \
     addChoiceMenuItem(&(map)->menu, 2, openDeckEditorFromArea);           \
     addChoiceMenuItem(&(map)->menu, 16, openMemcardScreenForWorldMap);                      \
-    addChoiceMenuItem(&(map)->menu, 3, func_80045E40);                    \
+    addChoiceMenuItem(&(map)->menu, 3, runOptionScreen);                    \
     addChoiceMenuItem(&(map)->menu, 60, SAI_runKeyItems)
 
 /* the place's name in the names' texture: two columns of 11 */
@@ -270,7 +270,7 @@ s32 SAI_tickWorldMapMenu(MapScreen *map) {
             SET_CALLBACK(SAI_tickMapCursor);
             break;
         case 4:
-            D_801E4990 = 1;
+            OPTION_FROM_WORLD_MAP = 1;
         case 1:
         case 2:
         case 3:

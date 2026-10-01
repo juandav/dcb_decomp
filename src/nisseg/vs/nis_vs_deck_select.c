@@ -10,7 +10,7 @@
    with Triangle, Circle or Cross, or a random one with Square, in their own
    window; then the duel starts */
 
-void func_80046550();
+void runVersusDuel();
 
 s32 NIS_chooseVsDecks(void);
 void NIS_drawDeckChoice1(NisWindow *window);
@@ -41,7 +41,7 @@ const char NIS_STR_CHOOSE_BY_BUTTON[] = "　各ボタンで決定";
 
 void NIS_startVsDeckSelect(void) {
     NIS_chooseVsDecks();
-    spawnTask(0, -1, 0, 0x1000, func_80046550, 0);
+    spawnTask(0, -1, 0, 0x1000, runVersusDuel, 0);
     exitTask();
 }
 

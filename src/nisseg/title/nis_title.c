@@ -28,8 +28,8 @@ void NIS_pulsePressStart(TitleScreen *title, u8 step);
 void NIS_startTrade(void);
 void NIS_startVsDeckSelect(void);
 void NIS_runMainMenu(s32 arg);
-extern void func_80045E40();
-extern void func_80046464();
+extern void runOptionScreen();
+extern void enterWorldMap();
 extern void runNewLoadMenu();
 
 const s32 D_801EA3E8 = 7;
@@ -82,7 +82,7 @@ void NIS_tickDebugModeSelect(s32 taskId) {
     switch (NIS_DEBUG_MODE[0]) {
     case 1:
         NIS_DEBUG_NAME_TASK(0, NIS_TASK_OPTION);
-        spawnTask(0, -1, 0, 0x800, func_80045E40, 1, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, runOptionScreen, 1, 0, 0, 0);
         break;
     case 2:
         NIS_DEBUG_NAME_TASK(0, NIS_TASK_TRADE);
@@ -90,7 +90,7 @@ void NIS_tickDebugModeSelect(s32 taskId) {
         break;
     case 3:
         NIS_DEBUG_NAME_TASK(0, NIS_TASK_WORLD_MAP);
-        spawnTask(0, -1, 0, 0x800, func_80046464, 1, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, enterWorldMap, 1, 0, 0, 0);
         break;
     case 4:
         NIS_DEBUG_NAME_TASK(0, NIS_TASK_NEW_LOAD);

@@ -44,7 +44,7 @@ void SAI_runWorldMap(); /* SAISEG's */
 void NIS_enterDeckList(); /* NISSEG's deck editor */
 s32 NIS_enterDeckName(char *text, s32 mode); /* NISSEG's text entry */
 /* NISSEG's, the menus' tasks (0x801F117C is NIS_runMenuE7CC) */
-void func_801F117C();
+void NIS_runMenuE7CC();
 void NIS_runMenuE7D8();
 void NIS_runMenuE7E4();
 void NIS_returnToDeckList();
@@ -56,7 +56,7 @@ void NIS_enterDeckListForTrade();
 void NIS_startVsDeckSelect();
 void NIS_startTrade();
 /* the executable's, the menus' tasks */
-void func_80045E40();
+void runOptionScreen();
 void runNewLoadMenu();
 void openMemcardScreenToEditDecks();
 void openMemcardScreenForVersus();
@@ -83,7 +83,7 @@ typedef struct {
 
 MenuHeader MENU_HEADERS[12] = {
     { 0x35, NULL },
-    { 3, func_801F117C },
+    { 3, NIS_runMenuE7CC },
     { 4, NIS_runMenuE7D8 },
     { 0x18, NIS_returnToDeckList },
     { 0x19, NIS_runMenuE7E4 },
@@ -99,7 +99,7 @@ MenuItem MENU_ITEMS[27] = {
     { 0, runNewLoadMenu },
     { 1, openMemcardScreenForVersus },
     { 2, openMemcardScreenToEditDecks },
-    { 3, func_80045E40 },
+    { 3, runOptionScreen },
     { 6, NIS_runMenuE7E4 },
     { 7, NIS_runMenuE7E4 },
     { 8, NIS_enterDeckList },
@@ -127,12 +127,12 @@ MenuItem MENU_ITEMS[27] = {
 /* menus for openChoiceMenuFromList: the y, the header (MENU_HEADERS) and up
    to ten items (MENU_ITEMS), -1 after the last; NISSEG's VS mode and deck
    editor open them */
-s8 D_8007E7CC[12] = { 0x32, 0, 0, 1, 2, -1 };
+s8 MAIN_MENU[12] = { 0x32, 0, 0, 1, 2, -1 };
 s8 D_8007E7D8[12] = { 0x32, 1, 4, 5, -1 };
 s8 D_8007E7E4[12] = { 0x32, 2, 6, 7, 8, -1 };
 s8 D_8007E7F0[12] = { 0x32, 3, 9, 0xA, 0xB, 0xC, -1 };
-s8 D_8007E7FC[12] = { 0x32, 9, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x15, -1 };
-s8 D_8007E808[12] = { 0x32, 0xB, 0x16, 0x17, 0x18, 0x19, 0x1A, -1 };
+s8 DECK_KINDS_MENU[12] = { 0x32, 9, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x15, -1 };
+s8 VS_MODE_MENU[12] = { 0x32, 0xB, 0x16, 0x17, 0x18, 0x19, 0x1A, -1 };
 MenuItemSheet MENU_ITEM_SHEETS[16] = {
     { 9, 0x58, 0x300, 0x100 }, { 9, 0x68, 0x340, 0x100 }, { 9, 0x48, 0x200, 0x100 }, { 9, 0x50, 0x1C0, 0x100 },
     { 9, 0x68, 0x180, 0x100 }, { 9, 0x80, 0x140, 0x100 }, { 9, 0x48, 0x294, 0x100 }, { 9, 0x50, 0x280, 0x100 },

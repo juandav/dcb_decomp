@@ -16,10 +16,10 @@
 extern NisWindow *NIS_VS_WINDOW;
 extern u8 NIS_TRADE_BLOCKED;
 extern u8 NIS_SAME_SAVE;
-extern u8 D_8007E808[];
+extern u8 VS_MODE_MENU[];
 extern u8 D_8007E7E4[];
 extern u8 D_8007E7D8[];
-extern u8 D_8007E7CC[];
+extern u8 MAIN_MENU[];
 extern u8 D_801E46D8[];
 
 void NIS_runVsMode(void);
@@ -52,7 +52,7 @@ void NIS_runVsMode(void) {
     NisProfile *profiles;
 
     NIS_loadTimFile("D:\\VSMODE.TIM");
-    openChoiceMenuFromList(&menu, D_8007E808, 0);
+    openChoiceMenuFromList(&menu, VS_MODE_MENU, 0);
     NIS_openVsWindow(&def);
     playMusic(0, 4, 0x7F);
     NIS_TRADE_BLOCKED = 0;
@@ -237,7 +237,7 @@ void NIS_runMenuE7D8(void) {
 void NIS_runMenuE7CC(void) {
     NisMenu menu;
 
-    openChoiceMenuFromList(&menu, D_8007E7CC, 0);
+    openChoiceMenuFromList(&menu, MAIN_MENU, 0);
     while (1) {
         NIS_DEBUG_FRAME();
         waitFrames(FRAME_INTERVAL);

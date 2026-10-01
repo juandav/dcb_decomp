@@ -24,32 +24,32 @@ void loadScrollingBackground(s32 arg0, s32 arg1);
 void showScrollingBackground(void);
 void func_8005714C(void);
 void func_801ECC58(void);
-void D_801F0820();
+void NIS_runVsMode();
 void D_801F0EA8();
 void SAI_runWorldMap();
 
 extern u8 *SCROLLING_BACKGROUND;
-extern s32 D_801E4988; /* the option window */
-extern u8 D_801E4980; /* set when the option menu is left */
-extern u8 D_801E4990;
-extern void (*D_8007ED74[])();
+extern s32 OPTION_WINDOW; /* the option window */
+extern u8 OPTION_MENU_LEFT; /* set when the option menu is left */
+extern u8 OPTION_FROM_WORLD_MAP;
+extern void (*OPTION_EXIT_TASKS[])();
 
-void func_80046048(void);
-void func_800460F0(void);
-void func_800461DC(void);
-void func_800462BC(UiWindow *window);
+void runOptionMenu(void);
+void runSoundMenu(void);
+void runBattleAnimationMenu(void);
+void drawOptionWindow(UiWindow *window);
 
-void func_80045DB4(void) {
+void ignoreOptionWindowClose(void) {
 }
 
 void func_80045DBC(void) {
 }
 
-void func_80045DC4(void) {
+void doNothingInOptions(void) {
 }
 
 /* loads the TIMs of file path into VRAM */
-void func_80045DCC(char *path) {
+void loadTimFile(char *path) {
     u32 *tims;
 
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
@@ -61,47 +61,47 @@ void func_80045DCC(char *path) {
 }
 
 /* the option screen */
-void func_80045E40(void) {
-    WindowSpec spec = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 10, 0, func_800462BC, func_80045DB4 };
+void runOptionScreen(void) {
+    WindowSpec spec = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 10, 0, drawOptionWindow, ignoreOptionWindowClose };
 
-    func_80045DCC("D:\\OPTION.TIM");
+    loadTimFile("D:\\OPTION.TIM");
     playMusic(0, 4, 0x7F);
     openKanjiPage(0xF, 0x1B9);
     spawnTask(0, -1, 0, 0x400, runWindowTask, &spec, getCurrentTaskId(), 0, 0);
-    D_801E4988 = waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, func_80046048, 0, 0, 0, 0);
-    D_801E4980 = 0;
+    OPTION_WINDOW = waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, runOptionMenu, 0, 0, 0, 0);
+    OPTION_MENU_LEFT = 0;
     do {
         waitFrames(FRAME_INTERVAL);
-    } while (D_801E4980 != 1);
+    } while (OPTION_MENU_LEFT != 1);
     *(s16 *)(SCROLLING_BACKGROUND + 0x1BE) = 2;
-    ((u8 *)D_801E4988)[1] = 4;
+    ((u8 *)OPTION_WINDOW)[1] = 4;
     waitFrames(30);
     closeKanjiPage(0xF);
-    if (D_801E4990 != 0) {
+    if (OPTION_FROM_WORLD_MAP != 0) {
         setBackgroundScrollMode(0);
     } else {
         setBackgroundScrollMode(2);
         playMusic(0, 4, 0x7F);
     }
-    spawnTask(0, -1, 0, 0x800, D_8007ED74[D_801E4990], 1, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, OPTION_EXIT_TASKS[OPTION_FROM_WORLD_MAP], 1, 0, 0, 0);
     exitTask();
 }
 
 /* the option menu: sound, then polygon battles */
-void func_80046048(void) {
+void runOptionMenu(void) {
     ChoiceMenu menu;
 
-    openChoiceMenu(&menu, -0x3D, 0x32, func_80045DC4, 0);
-    addChoiceMenuItem(&menu, 0x3F, func_800460F0);
-    addChoiceMenuItem(&menu, 0x40, func_800461DC);
+    openChoiceMenu(&menu, -0x3D, 0x32, doNothingInOptions, 0);
+    addChoiceMenuItem(&menu, 0x3F, runSoundMenu);
+    addChoiceMenuItem(&menu, 0x40, runBattleAnimationMenu);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
             continue;
         }
         if (menu.result < 0) {
-            D_801E4980 = 1;
+            OPTION_MENU_LEFT = 1;
             exitTask();
         }
         startChoiceMenuAction(&menu);
@@ -109,12 +109,12 @@ void func_80046048(void) {
 }
 
 /* stereo or mono */
-void func_800460F0(void) {
+void runSoundMenu(void) {
     ChoiceMenu menu;
 
-    openChoiceMenu(&menu, -0x3D, 0x32, func_80046048, 0);
-    addChoiceMenuItem(&menu, 0x41, func_80046048);
-    addChoiceMenuItem(&menu, 0x42, func_80046048);
+    openChoiceMenu(&menu, -0x3D, 0x32, runOptionMenu, 0);
+    addChoiceMenuItem(&menu, 0x41, runOptionMenu);
+    addChoiceMenuItem(&menu, 0x42, runOptionMenu);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
@@ -137,12 +137,12 @@ void func_800460F0(void) {
 }
 
 /* whether to watch the polygon battles */
-void func_800461DC(void) {
+void runBattleAnimationMenu(void) {
     ChoiceMenu menu;
 
-    openChoiceMenu(&menu, -0x3D, 0x32, func_80046048, 0);
-    addChoiceMenuItem(&menu, 0x43, func_80046048);
-    addChoiceMenuItem(&menu, 0x44, func_80046048);
+    openChoiceMenu(&menu, -0x3D, 0x32, runOptionMenu, 0);
+    addChoiceMenuItem(&menu, 0x43, runOptionMenu);
+    addChoiceMenuItem(&menu, 0x44, runOptionMenu);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
@@ -170,9 +170,9 @@ INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80010FE8);
 INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011004);
 INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011020);
 INCLUDE_RODATA("main/nonmatchings/card/partner_level_jp", D_80011038);
-INCLUDE_ASM("main/nonmatchings/card/partner_level_jp", func_800462BC);
+INCLUDE_ASM("main/nonmatchings/card/partner_level_jp", drawOptionWindow);
 
-/* loads the TIMs of file path into VRAM (as func_80045DCC) */
+/* loads the TIMs of file path into VRAM (as loadTimFile) */
 void func_800463F0(char *path) {
     u32 *tims;
 
@@ -185,7 +185,7 @@ void func_800463F0(char *path) {
 }
 
 /* back to SAISEG */
-void func_80046464(void) {
+void enterWorldMap(void) {
     waitFrames(2);
     spawnTask(0, -1, 0, 0x1000, loadFileToAddress, "P:\\saiseg.bin", OVERLAY_LOAD_ADDR, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
@@ -196,7 +196,7 @@ void func_80046464(void) {
 }
 
 /* a versus duel (with the polygon battles shown), then its record */
-void func_80046550(void) {
+void runVersusDuel(void) {
     PlayerProfile *profiles;
     SessionData *session;
     u16 max;
@@ -242,5 +242,5 @@ void func_80046550(void) {
     updatePlayerRanks(1);
     loadScrollingBackground(0xE, 4);
     showScrollingBackground();
-    spawnTask(0, -1, 0, 0x1000, D_801F0820, 0);
+    spawnTask(0, -1, 0, 0x1000, NIS_runVsMode, 0);
 }
