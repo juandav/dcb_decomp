@@ -21,7 +21,6 @@
 u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
 u8 *formatSjisNumberZeros(s32 value, s32 width, u8 *dst);
 void func_8005714C(); /* libsnd: the mono counterpart of SsSetStereo */
-extern s32 D_8008CD50;
 /* memcard.c's, as this module declares them: it passes the save's blocks as
    an int */
 extern CardDir *MEMORY_CARD_DIRECTORIES[2];
@@ -740,7 +739,7 @@ void openMemcardScreenBeforeTitle(void) {
 void openMemcardScreen(void) {
     openKanjiPage(0xF, 0x1B9);
     MEMCARD_SCREEN.buffer = allocHeapBlock(0x2000, 0x25A);
-    if (D_8008CD50 == 0) {
+    if (DB(0).primSlots[16] == 0) {
         allocPrimDescPackets(0x40);
     }
     playMusic(0, 4, 0x7F);
