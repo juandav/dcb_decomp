@@ -78,6 +78,9 @@ typedef struct {
     u8 b[4];
 } Bytes4;
 typedef struct {
+    u8 r, g, b, cd;
+} CVECTOR;
+typedef struct {
     s32 vpx;
     s32 vpy;
     s32 vpz;
@@ -261,6 +264,31 @@ typedef struct {
     /* 0x2C */ u8 *cur;
     /* 0x30 */ u8 buf[0x1000];
 } CdFile;
+#if VERSION_JP
+/* jp's windows have no styles or labels: a line frame in three colours */
+typedef struct {
+    /* 0x00 */ s16 originX;
+    /* 0x02 */ s16 originY;
+    /* 0x04 */ Rect16 view;
+    /* 0x0C */ Rect16 rect;
+    /* 0x14 */ Rect16 cur;
+    /* 0x1C */ Rect16 from;
+    /* 0x24 */ Rect16 delta;
+    /* 0x2C */ s16 scrollX; /* where the view scrolls to while animating, -1 for nowhere */
+    /* 0x2E */ s16 scrollY;
+    /* 0x30 */ s16 scrollDX;
+    /* 0x32 */ s16 scrollDY;
+    /* 0x34 */ s16 offsetX; /* the view's position plus half of the size still to grow */
+    /* 0x36 */ s16 offsetY;
+    /* 0x38 */ CVECTOR colors[3]; /* the fill and the frame's two lines */
+    /* 0x44 */ s16 animFrames;
+    /* 0x46 */ s16 animFrame;
+    /* 0x48 */ u16 flags;
+    /* 0x4A */ s16 brightness;
+    /* 0x4C */ s16 animDone;
+    /* 0x4E */ s16 z;
+} UiWindow;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x00 */ s16 originX;
     /* 0x02 */ s16 originY;
@@ -283,6 +311,9 @@ typedef struct {
     /* 0x42 */ u8 style;
     /* 0x43 */ u8 scrollbarStyle;
 } UiWindow;
+#else
+#error "UiWindow: version not checked"
+#endif
 typedef struct {
     u32 addr : 24;
     u32 len : 8;
@@ -308,6 +339,14 @@ typedef struct {
     u8 r1, g1, b1, p1;
     s16 x1, y1;
 } LINE_G2;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    u32 pad;
+} LINE_F3;
 typedef struct {
     u32 tag;
     u8 r0, g0, b0, code;
