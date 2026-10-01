@@ -877,3 +877,6 @@ PAD_RECEIVE_BUFFERS = 0x80098F00;
 
 // The scratchpad (a fixed hardware address), not a symbol
 D_1F800004 = 0x1F800004; // ignore:true
+BOOT_SEQ_ATTR_TABLE = 0x800871F8; // size:0xB0 version-only manual (main() gives it to SsSetTableSize)
+_ramsize = 0x8006B77C;
+_stacksize = 0x8006B780;
