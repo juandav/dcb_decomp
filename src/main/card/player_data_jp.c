@@ -21,20 +21,6 @@
    holds what us split out into game_flow, duel_launch and scroll_bg, and jp's
    own windows and menus */
 
-/* the task of a window that opens from one rect to another (WindowSpec),
-   with two sprites that follow its corner */
-typedef struct {
-    /* 0x00 */ u8 unk0;
-    /* 0x01 */ s8 state;
-    /* 0x02 */ s8 phase; /* of the window's opening and closing */
-    /* 0x03 */ u8 unk3;
-    /* 0x04 */ POLY_FT4 sprites[2][2]; /* per frame buffer */
-    /* 0xA4 */ s32 x;
-    /* 0xA8 */ s32 y;
-    /* 0xAC */ UiWindow window;
-    /* 0xFC */ WindowSpec *spec;
-} WindowTask;
-
 /* the two sprites' texture and size: clut, colour mode, VRAM x and y, w, h */
 typedef struct {
     /* 0x00 */ s32 clut;

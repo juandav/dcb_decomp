@@ -78,6 +78,18 @@ KAW_VS_PANEL_POS = 0x801FF658;
 KAW_VS_NAME_POS = 0x801FF678;
 // end of the names from us
 
+KAW_tickTurnOrderWindow = 0x801FA364; // type:func version-only (the turn order window's update, empty)
+KAW_drawTurnOrderText = 0x801FA36C; // type:func version-only
+KAW_runTurnOrderChoice = 0x801FA4E0; // type:func version-only (picks the first turn while the match's graphics load)
+KAW_runVersusIntro = 0x801FAD28; // type:func manual (duel_session runs it after the turn order choice, as us's)
+KAW_MATCH_LOADING = 0x801FFC50; // manual
+KAW_VS_BAR_POLYS = 0x801FFB20; // size:0x30 version-only
+KAW_VS_BAR_MODES = 0x801FFB50; // size:0x10 version-only
+KAW_VS_LOGO_POLYS = 0x801FFB60; // size:0x50 version-only
+KAW_TURN_ORDER_MENU = 0x801FFC60; // version-only
+KAW_TURN_ORDER_STEP = 0x801FFEAC; // version-only
+KAW_HAND_CURSOR = 0x801FFEB0; // version-only (the turn order choice's and the card prize's)
+
 // names from the C of the modules this version builds (tools/version_symbols.py)
 KAW_VOIDING_CARDS = 0x801FF5D0;
 KAW_PILE_EFFECT_CARDS = 0x801FF5D8;

@@ -42,8 +42,8 @@ void func_800447D4(u8 *cursor, s32 z);
 void func_8002EB38();
 void func_8003288C();
 /* KAWSEG's */
-void func_801FA4E0(s32 mode, s32 deckId);
-void func_801FAD28(s32 mode, s32 deckId);
+void KAW_runTurnOrderChoice(s32 mode, s32 deckId);
+void KAW_runVersusIntro(s32 mode, s32 deckId);
 void func_801F8F68(void);
 void func_801F9144(void);
 void func_801FF2C0(void);
@@ -263,8 +263,8 @@ void runDuel(s32 isCpuDuel, s32 parent) {
     s8 c;
 
     initDuelState(isCpuDuel);
-    func_801FA4E0(isCpuDuel, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
-    func_801FAD28(isCpuDuel, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
+    KAW_runTurnOrderChoice(isCpuDuel, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
+    KAW_runVersusIntro(isCpuDuel, ((SessionData *)SESSION_DATA)->opponentDeckIndex);
     spawnDuelTasks(isCpuDuel);
     playLoadedMusic(0);
     fade = 0x80;
