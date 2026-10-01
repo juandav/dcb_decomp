@@ -15,8 +15,13 @@
 
 extern s32 KAW_RESULT_SCREEN_STATE;
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding,
+   and not the same in every version */
+#if VERSION_US
 const char KAW_FMT_WIN_ARC_PATH[20] = "B:\\WIN\\%3.3d.ARC\0\x02\x24\x41";
+#elif VERSION_EU
+const char KAW_FMT_WIN_ARC_PATH[20] = "B:\\WIN\\%3.3d.ARC\0\0\0\x02";
+#endif
 
 void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
     char path[64];

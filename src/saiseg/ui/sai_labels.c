@@ -49,7 +49,7 @@ void SAI_runChoiceScript(ScriptRunner *runner) {
         if (result == 1) {
             if (runner->script->eventOp == 10) {
                 if (runner->script->eventArg == 14) {
-                    SAI_CHOICE_STATES[runner->regs[1] - 1] = result;
+                    SAI_AREA.choiceStates[runner->regs[1] - 1] = result;
                 }
             }
             return;

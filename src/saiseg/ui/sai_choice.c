@@ -19,7 +19,7 @@ void SAI_openChoiceMenu(s8 mode) {
     SAI_AREA.choiceCount = 0;
     SAI_AREA.choicePhase = 0;
     for (i = 0; i < 5; i++) {
-        SAI_CHOICE_STATES[i] = 0;
+        SAI_AREA.choiceStates[i] = 0;
     }
     if (mode == 1) {
         SAI_SPRITES[25] = SAI_createSprite(0x15);
