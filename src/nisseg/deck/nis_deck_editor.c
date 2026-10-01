@@ -312,7 +312,9 @@ s32 NIS_kanaRowOf(s32 row) {
     return 7;
 }
 
-/* 1 if the name is empty or only full-width spaces */
+/* 1 if the name is empty or only full-width spaces. Matching it needs the
+   "return 1" of a name ending early kept apart from the one after the loop:
+   GCC merges the two, whatever the form of the loop (permuter included) */
 INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_isNameBlank);
 /* the deck name entry: the cursor moves over a page of kana (columns 0-9)
    and the commands (column 10: the pages, back and done). Returns 0 for
@@ -707,9 +709,33 @@ void NIS_loadCardImage(void) {
     NIS_CARD_IMAGE.loaded = 0;
 }
 
+/* which of the buttons either player repeated (each masked apart) */
+#define REPEATED_OF(buttons) (((buttons) & PAD_STATES[0]->rawRepeat) | ((buttons) & PAD_STATES[NIS_STATE->otherPad]->rawRepeat))
+
 /* takes a copy out with the decrease buttons or puts one in with the
    increase ones (at most max, 4 and a full deck); returns 1 if it did */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_changeCopies);
+s32 NIS_changeCopies(s32 decrease, s32 increase, s8 *copies, s8 max) {
+    if (REPEATED_OF(decrease) && *copies > 0) {
+        (*copies)--;
+        NIS_writeDeckCardCount(-1);
+        playSoundEffect(1);
+        return 1;
+    }
+    if (D_801E46E8 != 1) {
+        if (NIS_DECK_EDIT.cardCount < 30 && *copies < 4 && REPEATED_OF(increase) && *copies < max) {
+            (*copies)++;
+            NIS_writeDeckCardCount(1);
+            playSoundEffect(0);
+            return 1;
+        }
+    } else if (REPEATED_OF(increase) && *copies < max) {
+        (*copies)++;
+        NIS_writeDeckCardCount(1);
+        playSoundEffect(0);
+        return 1;
+    }
+    return 0;
+}
 /* the card in view: its picture, its details and the copies in the deck;
    Circle keeps the copies, Cross puts them back, Triangle shows the
    Digimon's model */
@@ -795,7 +821,94 @@ void NIS_showCard(s32 kind) {
 
 /* the card grid of a kind (or of the deck): Circle shows a card, L1 and R1
    take a copy out or put one in */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_runCardGrid);
+void NIS_runCardGrid(s32 kind) {
+    NisMenu menu;
+    NisCardList *list;
+    s32 before;
+    s32 rowStart;
+    s32 rowEnd;
+    s32 copies;
+    s32 item;
+
+    list = NIS_buildCardList(NIS_DECK_EDIT.deck, (kind < 0) ? (u32)-kind : (u32)kind, -1);
+    NIS_GRID_POINTER = func_80044334(1, 0x14, 0x18, 5, 1);
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_CARD_GRID_WINDOW, getCurrentTaskId());
+    NIS_DECK_SCREENS.mainWindow = waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_GRID_HELP_WINDOW, getCurrentTaskId());
+    NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);
+    if (list->count >= NIS_GRID_CURSOR) {
+        list->cursor = NIS_GRID_CURSOR;
+        list->scroll = NIS_GRID_SCROLL;
+    }
+    NIS_DECK_EDIT.fromViewer = 0;
+    openChoiceMenu(&menu, -1, 0x13, NIS_runDeckKinds, &kind);
+    /* the deck's own grid, or a kind's */
+    item = (kind == 0) ? NIS_DECK_EDIT.deck + 0x12 : kind + 0x1B;
+    if (list->count == 0) {
+        addChoiceMenuItem(&menu, item, NULL);
+    } else {
+        addChoiceMenuItem(&menu, item, NIS_showCard);
+    }
+    if (NIS_CARD_LIST->cursor >= NIS_CARD_LIST->count) {
+        NIS_CARD_LIST->cursor = NIS_CARD_LIST->count - 1;
+    }
+    while (1) {
+        waitFrames(FRAME_INTERVAL);
+        if ((s8)((s8)NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck + NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].count) == 0) {
+            menu.handlers[0] = NULL;
+        } else {
+            menu.handlers[0] = NIS_showCard;
+        }
+        if (runChoiceMenu(&menu) != 0) {
+            func_80044758(NIS_GRID_POINTER);
+            NIS_WINDOW(NIS_DECK_SCREENS.mainWindow)->state = 4;
+            NIS_WINDOW(NIS_DECK_SCREENS.helpWindow)->state = 4;
+            waitFrames(0x1E);
+            NIS_DECK_EDIT.cardType = NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].type;
+            NIS_DECK_EDIT.cardIndex = NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].index;
+            NIS_DECK_EDIT.copies = NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck;
+            NIS_DECK_EDIT.unkA = NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].count;
+            NIS_GRID_CURSOR = list->cursor;
+            NIS_GRID_SCROLL = list->scroll;
+            startChoiceMenuAction(&menu);
+        }
+        if (NIS_CARD_LIST->count == 0 || menu.unk248 != 0) {
+            continue;
+        }
+        before = NIS_CARD_LIST->cursor;
+        rowStart = NIS_CARD_LIST->cursor / 5 * 5;
+        rowEnd = rowStart + 5;
+        if (NIS_CARD_LIST->count < rowEnd) {
+            rowEnd = NIS_CARD_LIST->count;
+        }
+        if ((NIS_REPEATED() & PAD_RIGHT) && ++NIS_CARD_LIST->cursor >= rowEnd) {
+            NIS_CARD_LIST->cursor = rowStart;
+        } else if ((NIS_REPEATED() & PAD_LEFT) && --NIS_CARD_LIST->cursor < rowStart) {
+            NIS_CARD_LIST->cursor = rowEnd - 1;
+        } else if ((NIS_REPEATED() & PAD_DOWN) && (NIS_CARD_LIST->cursor += 5) >= NIS_CARD_LIST->count) {
+            if (NIS_CARD_LIST->cursor < (NIS_CARD_LIST->count - 1) / 5 * 5 + 5) {
+                NIS_CARD_LIST->cursor = NIS_CARD_LIST->count - 1;
+            } else {
+                NIS_CARD_LIST->cursor -= 5;
+            }
+        } else if ((NIS_REPEATED() & PAD_UP) && NIS_CARD_LIST->cursor - 5 >= 0) {
+            NIS_CARD_LIST->cursor -= 5;
+        }
+        if (before != NIS_CARD_LIST->cursor) {
+            playSoundEffect(2);
+        }
+        if (NIS_CARD_LIST->scroll > NIS_CARD_LIST->cursor) {
+            NIS_CARD_LIST->scroll -= 5;
+        }
+        if (NIS_CARD_LIST->scroll + 9 < NIS_CARD_LIST->cursor) {
+            NIS_CARD_LIST->scroll += 5;
+        }
+        copies = (s8)NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck;
+        if (NIS_changeCopies(PAD_L1, PAD_R1, (s8 *)&NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck, NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].count)) {
+            NIS_addCardsToDeck(NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].type, NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].index, (s8)NIS_CARD_LIST->entries[NIS_CARD_LIST->cursor].inDeck - copies);
+        }
+    }
+}
 void NIS_freeDeckBackup(void) {
     freeHeapBlocksByTag(0x193);
 }
@@ -923,7 +1036,10 @@ void NIS_ignoreCancel(void) {
 }
 
 /* the saved decks: the one chosen gets its menu, the free slot makes a new
-   deck; cancel goes back to where the deck screens were opened from */
+   deck; cancel goes back to where the deck screens were opened from.
+   Matching it needs the menu's count and choice, and the addresses kept
+   through the loop, in the original's registers: the C comes within 23
+   instructions of it, all register choices (permuter included) */
 INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_runDeckList);
 
 /* the VRAM NIS_runDeckList clears (defined after it, so that GCC switches
