@@ -45,19 +45,23 @@ void updateEffectArcMotion(EffectObject *fx) {
 /* The linear motion plus a sine wave on x */
 void updateEffectWaveXMotion(EffectObject *fx) {
     s32 phase;
+    s32 wave;
 
     updateEffectLinearMotion(fx);
     phase = fx->wavePhase + fx->moveSpeed * fx->t;
-    fx->posX = ((s32)(fx->waveAmplitude * rsin(phase * fx->waveFreq)) >> 10) + fx->posX;
+    wave = fx->waveAmplitude * rsin(phase * fx->waveFreq);
+    fx->posX = (wave >> 10) + fx->posX;
 }
 
 /* The linear motion plus a sine wave on y */
 void updateEffectWaveYMotion(EffectObject *fx) {
     s32 phase;
+    s32 wave;
 
     updateEffectLinearMotion(fx);
     phase = fx->wavePhase + fx->moveSpeed * fx->t;
-    fx->posY = ((s32)(fx->waveAmplitude * rsin(phase * fx->waveFreq)) >> 10) + fx->posY;
+    wave = fx->waveAmplitude * rsin(phase * fx->waveFreq);
+    fx->posY = (wave >> 10) + fx->posY;
 }
 
 /* The arc motion, with the hop turned by the start rotation on z */
@@ -105,6 +109,47 @@ void updateEffectShakeMotion(EffectObject *fx) {
     fx->posY = fx->py + y;
     fx->posZ = fx->pz + z;
 }
+
+#if VERSION_JP
+/* Copies the transform recorded BACK rows before the trail's head (the
+   last one recorded when BACK is 0) into the effect's fields. */
+void getEffectTrailEntry(EffectTrail *trail, s32 back, VECTOR *pos, SVECTOR *rot, VECTOR *scale, s16 *brightness) {
+    s32 i;
+
+    if (back == 0) {
+        if (pos != NULL) {
+            *pos = trail->pos[trail->last];
+        }
+        if (rot != NULL) {
+            *rot = trail->rot[trail->last];
+        }
+        if (scale != NULL) {
+            *scale = trail->scale[trail->last];
+        }
+        if (brightness != NULL) {
+            *brightness = trail->brightness[trail->last];
+        }
+    } else {
+        i = trail->head;
+        i -= back * trail->rows;
+        if (i < 0) {
+            i += trail->count;
+        }
+        if (pos != NULL) {
+            *pos = trail->pos[i];
+        }
+        if (rot != NULL) {
+            *rot = trail->rot[i];
+        }
+        if (scale != NULL) {
+            *scale = trail->scale[i];
+        }
+        if (brightness != NULL) {
+            *brightness = trail->brightness[i];
+        }
+    }
+}
+#endif
 
 s32 getVectorDistance(SVECTOR *from, SVECTOR *to) {
     VECTOR delta;
@@ -241,7 +286,14 @@ void restartEffectMotion(void *obj) {
     s32 i;
 
     fx = obj;
+    /* jp has no start delay (us's modes 91 and up) nor a mode 90 */
+#if VERSION_JP
+    fx->suspended = 0;
+#elif VERSION_US
     fx->suspended = fx->mode >= 91;
+#else
+#error "untested version"
+#endif
     fx->state = -1;
     for (i = 0; i < 3; i++) {
         fx->done[i] = 0;
@@ -250,7 +302,13 @@ void restartEffectMotion(void *obj) {
     fx->flag = 0;
     fx->t = 0;
     fx->t2 = 0;
+#if VERSION_JP
+    if (fx->mode != 0) {
+#elif VERSION_US
     if (fx->mode != 0 && fx->mode != 90) {
+#else
+#error "untested version"
+#endif
         fx->sx = fx->sx0;
         fx->sy = fx->sy0;
         fx->sz = fx->sz0;
@@ -300,6 +358,11 @@ void *initEffectObject(void *obj) {
     fx->targetY = fx->py2;
     fx->targetZ = fx->pz2;
     getDirectionVector((SVECTOR *)&fx->px, (SVECTOR *)&fx->px2, &fx->dir);
+#if VERSION_JP
+    fx->trail = NULL;
+#elif VERSION_EU
+#error "untested version"
+#endif
     fx->unkFC = 0;
     fx->brightness = 0;
     fx->fadeState = 0;
@@ -314,6 +377,26 @@ void *initEffectObject(void *obj) {
  * restart, suspend or fade out. Modes 10 and >= 90 keep their scale and
  * rotation.
  */
+/* us's modes 90 and up only wait (a start delay, mode 90 a fixed effect); jp
+   has none of them */
+#if VERSION_JP
+#define IS_MOVING_MODE(mode) 1
+#elif VERSION_US
+#define IS_MOVING_MODE(mode) ((mode) < 90)
+#else
+#error "untested version"
+#endif
+
+/* the scale an effect stops at becomes its current one: jp copies the four
+   words as one VECTOR */
+#if VERSION_JP
+#define SET_TARGET_SCALE(fx) (*(VECTOR *)&(fx)->sxT = *(VECTOR *)&(fx)->sx)
+#elif VERSION_US
+#define SET_TARGET_SCALE(fx) ((fx)->sxT = (fx)->sx, (fx)->syT = (fx)->sy, (fx)->szT = (fx)->sz, (fx)->swT = (fx)->sw)
+#else
+#error "untested version"
+#endif
+
 s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     EffectObject *fx = (EffectObject *)fxAddr;
     u8 applyMode = applyFlag;
@@ -322,7 +405,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     SVECTOR targetPos;
     s32 hit;
 
-    if (fx->mode != 10 && fx->mode < 90) {
+    if (fx->mode != 10 && IS_MOVING_MODE(fx->mode)) {
         if (fx->sx != fx->sxT) {
             fx->sx = fx->dsx * fx->t + fx->sx0;
             if (fx->dsx >= 0) {
@@ -380,7 +463,11 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 56:
     case 69:
     case 82:
+#if VERSION_US
     case 90:
+#elif VERSION_EU
+#error "untested version"
+#endif
         fx->posX = fx->px;
         fx->posY = fx->py;
         fx->posZ = fx->pz;
@@ -479,8 +566,15 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     case 89:
         updateEffectShakeMotion(fx);
         break;
+#if VERSION_JP
+    case 10:
+        getEffectTrailEntry(fx->trail, fx->unkFC, (VECTOR *)&fx->posX, (SVECTOR *)&fx->rotX, (VECTOR *)&fx->sx, &fx->brightness);
+        break;
+#elif VERSION_EU
+#error "untested version"
+#endif
     }
-    if (fx->state != -1 && fx->mode != 0 && fx->mode < 90) {
+    if (fx->state != -1 && fx->mode != 0 && IS_MOVING_MODE(fx->mode)) {
         updateTransformMatrix(fx, applyMode);
         updateTransformMatrix(&fx->targetMatrix, 0);
         getTransformWorldPos(fx, &curPos);
@@ -511,10 +605,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
                 fx->py = fx->py2;
                 fx->pz = fx->pz2;
                 restartEffectMotion(fx);
-                fx->sxT = fx->sx;
-                fx->syT = fx->sy;
-                fx->szT = fx->sz;
-                fx->swT = fx->sw;
+                SET_TARGET_SCALE(fx);
                 fx->drx = 0;
                 fx->dry = 0;
                 fx->drz = 0;
@@ -551,6 +642,19 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
                 fx->px = fx->px2;
                 fx->py = fx->py2;
                 fx->pz = fx->pz2;
+                /* jp also restarts it in place, as for 12 */
+#if VERSION_JP
+                restartEffectMotion(fx);
+                SET_TARGET_SCALE(fx);
+                fx->drx = 0;
+                fx->dry = 0;
+                fx->drz = 0;
+                fx->ddrx = 0;
+                fx->ddry = 0;
+                fx->ddrz = 0;
+#elif VERSION_EU
+#error "untested version"
+#endif
             case 63:
             case 64:
             case 65:
@@ -566,7 +670,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             fx->state = 2;
         }
     }
-    if (fx->mode < 90 && fx->mode != 0 && fx->state == -1) {
+    if (IS_MOVING_MODE(fx->mode) && fx->mode != 0 && fx->state == -1) {
         fx->state = 0;
     }
     if (fx->flag != 0) {
@@ -582,7 +686,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             break;
         }
     }
-    if (fx->mode < 90) {
+    if (IS_MOVING_MODE(fx->mode)) {
         fx->t++;
         fx->t2++;
         if (fx->period != 0 && fx->flag == 0 && fx->period < fx->cnt++) {
@@ -607,10 +711,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 48:
                 fx->mode = 0;
                 restartEffectMotion(fx);
-                fx->sxT = fx->sx;
-                fx->syT = fx->sy;
-                fx->szT = fx->sz;
-                fx->swT = fx->sw;
+                SET_TARGET_SCALE(fx);
                 fx->drx = 0;
                 fx->dry = 0;
                 fx->drz = 0;
@@ -646,10 +747,7 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
             case 89:
                 fx->mode = 0;
                 restartEffectMotion(fx);
-                fx->sxT = fx->sx;
-                fx->syT = fx->sy;
-                fx->szT = fx->sz;
-                fx->swT = fx->sw;
+                SET_TARGET_SCALE(fx);
                 fx->drx = 0;
                 fx->dry = 0;
                 fx->drz = 0;
@@ -673,6 +771,8 @@ s32 tickEffectMotion(s32 fxAddr, s32 applyFlag) {
     updateTransformMatrix(fx, applyMode);
 }
 
+/* jp has no start delay */
+#if VERSION_US
 /* Modes >= 91 wait wavePhase frames, then run as mode - 100 */
 void tickEffectStartDelay(void *obj) {
     EffectObject *fx;
@@ -688,6 +788,9 @@ void tickEffectStartDelay(void *obj) {
         fx->mode -= 100;
     }
 }
+#elif VERSION_EU
+#error "untested version"
+#endif
 
 /*
  * The brightness (0-0x100) of the effect this frame. fadeMode 1: from the

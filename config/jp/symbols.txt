@@ -757,6 +757,8 @@ DUEL_DIGIMON_MODELS = 0x801E4658; // size:0x40 manual
 PAD_STATES = 0x80098F48; // manual (the pads' states, as in us)
 STAGE_PAK = 0x801E4648; // manual (the arena stage's PAK, as in us)
 OVERLAY_LOAD_ADDR = 0x800105F8; // manual
+VectorNormalS = 0x8005D328; // type:func manual (the pairing missed these two)
+VectorNormal = 0x8005D33C; // type:func manual
 // end of the names from us
 
 // names from the C of the modules this version builds (tools/version_symbols.py)
