@@ -7,6 +7,16 @@
 #define setWH(p, _w, _h) (p)->w = _w, (p)->h = _h
 #define WP ((WindowPrims *)WINDOW_PRIM_CURSOR)
 
+#if VERSION_JP
+/* jp's window: the frame's four lines, its fill, and the draw areas that
+   clip the screen, the window and its contents */
+typedef struct {
+    /* 0x00 */ LINE_F3 lines[4];
+    /* 0x60 */ POLY_F4 fill;
+    /* 0x78 */ DR_MODE tpage;
+    /* 0x80 */ DR_AREA drawAreas[3];
+} WindowPrims;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x000 */ POLY_FT4 ft4a[4];
     /* 0x0A0 */ SPRT linea[4];
@@ -20,6 +30,9 @@ typedef struct {
     /* 0x214 */ POLY_FT4 ft4c[2];
     /* 0x264 */ u8 drawAreas[0x30];
 } WindowPrims;
+#else
+#error "WindowPrims: version not checked"
+#endif
 
 extern s32 WINDOW_PRIM_CURSOR;
 extern u16 WINDOW_PRIM_POOL_SIZE;
