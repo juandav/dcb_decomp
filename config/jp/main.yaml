@@ -91,7 +91,7 @@ segments:
       - [0x11CC, .rodata, duel/hud_panels_jp]
       - [0x1340, .rodata, duel/duel_session_jp]
       # the rodata of the asm modules after duel_session, up to duel_launch
-      - [0x15A4, rodata, card/card_render_jp]
+      - [0x15A4, .rodata, card/card_render_jp]
       - [0x172C, .rodata, card/card_db_jp]
       - [0x1738, .rodata, duel/duel_launch_jp]
       - [0x1768, .rodata, card/card_vram]
@@ -167,7 +167,7 @@ segments:
       - [0x31114, c, duel/card_zones]
       # jp's card_render: its HUD panels (KAWSEG's in us) and the duel's HUD
       # drawing
-      - [0x31F5C, asm, card/card_render_jp]
+      - [0x31F5C, c, card/card_render_jp]
       # jp's card_db: loading the card files and the collection
       - [0x337CC, c, card/card_db_jp]
       # jp's own: the card polys, the card sprite renderer (card_render's in
@@ -210,8 +210,9 @@ segments:
       - [0x6F144, .data, duel/card_motion_jp]
       - [0x6F148, .data, duel/hud_panels_jp]
       - [0x6F14C, .data, duel/duel_session_jp]
-      # card_render's, then partner_level_jp's D_8007ED74
-      - [0x6F1B4, data, card/card_render_jp]
+      - [0x6F1B4, .data, card/card_render_jp]
+      # partner_level_jp's D_8007ED74
+      - [0x6F574, data, card/partner_level_jp]
       - [0x6F57C, .data, system/memcard_screen]
       - [0x6F744, data, psyq]
       # the game's code, from main() on: one asm range for now

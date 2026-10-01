@@ -46,6 +46,16 @@ typedef struct {
     /* 0x6F */ u8 unk6F;
 } DigivolveCardData;
 
+#if VERSION_JP
+/* a booster pack of jp's card shop, laid out as a card */
+typedef struct {
+    /* 0x00 */ s16 price; /* in hundreds of Bits */
+    /* 0x02 */ u8 type; /* 3 */
+    /* 0x03 */ char name[0x11];
+    /* 0x14 */ char text[4][0x13]; /* "１" to "４": not shown */
+} BoosterPack;
+#endif
+
 extern u8 PARTNER_ARMOR_CARD_IDS[6][3];
 /* per pack: for each colour and the options, a card id range (first, span, …) */
 extern s8 REWARD_CARD_RANGES[16][6][3];

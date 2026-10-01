@@ -1254,7 +1254,7 @@ typedef struct {
 /* a mark jp's duel draws at the screen's side */
 typedef struct {
     /* 0x0 */ s8 owner;
-    /* 0x1 */ u8 shown;
+    /* 0x1 */ s8 shown;
     /* 0x2 */ s16 x;
     /* 0x4 */ s16 y;
 } HudMark;
