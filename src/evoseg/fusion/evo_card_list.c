@@ -488,7 +488,7 @@ void EVO_drawCardList(UiWindow *w) {
     s32 z;
     s32 i;
     s32 type;
-    s32 palette;
+    u8 palette;
 
     x = w->originX;
     z = w->z;

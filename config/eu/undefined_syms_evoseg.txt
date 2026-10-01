@@ -1,0 +1,10 @@
+/* addresses EVOSEG uses that none of its objects defines */
+
+/* from the C of the modules this version builds (tools/version_symbols.py):
+   what it calls by address, and the fields of its data that the modules
+   still in asm read by splat's names */
+D_801F24E0 = 0x801F24E0;
+D_801F24EC = 0x801F24EC;
+D_801F24FE = 0x801F24FE;
+D_801F250C = 0x801F250C;
+D_801F2514 = 0x801F2514;
