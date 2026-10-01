@@ -18,6 +18,30 @@ SUG_SCRIPT_STATES = 0x801FCBF0;
 SUG_PREV_MODEL = 0x801FCBFC;
 SUG_TARGET_HP = 0x801FCC00;
 
+// main's effect_object, which jp links into SUGSEG (us-main: us has these
+// names in the executable)
+updateEffectLinearMotion = 0x801EAF2C; // type:func us-main
+updateEffectArcMotion = 0x801EAFCC; // type:func us-main
+updateEffectWaveXMotion = 0x801EB060; // type:func us-main
+updateEffectWaveYMotion = 0x801EB0DC; // type:func us-main
+updateEffectTiltedArcMotion = 0x801EB158; // type:func us-main
+updateEffectTiltedAccelArcMotion = 0x801EB23C; // type:func us-main
+updateEffectShakeMotion = 0x801EB388; // type:func us-main
+getEffectTrailEntry = 0x801EB4DC; // type:func version-only (jp's effect mode 10)
+getVectorDistance = 0x801EB6A8; // type:func us-main
+isPointAlongSegment = 0x801EB72C; // type:func us-main
+projectPointOntoLine = 0x801EB86C; // type:func us-main
+isWithinDistance = 0x801EBA34; // type:func us-main
+checkEffectHitTarget = 0x801EBA78; // type:func us-main
+cloneEffectObject = 0x801EBB28; // type:func us-main
+updateEffectObject = 0x801EBB98; // type:func us-main
+freeEffectObject = 0x801EBBD0; // type:func us-main
+getDirectionVector = 0x801EBBF0; // type:func us-main
+restartEffectMotion = 0x801EBCD4; // type:func us-main
+initEffectObject = 0x801EBE4C; // type:func us-main
+tickEffectMotion = 0x801EBFA4; // type:func us-main
+updateEffectBrightness = 0x801EC7C0; // type:func us-main
+
 // names from us (tools/match_versions.py --seed): the same function or datum
 SUG_createPosHistory = 0x801EA8FC; // type:func
 SUG_fillPosHistory = 0x801EA9E8; // type:func

@@ -35,7 +35,8 @@ MAIN_C_SRC := \
 	src/main/ui/str_util.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_hud.c sug_sprite.c) \
-	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c)
+	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c) \
+	src/sugseg/model/effect_object.c
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_card_queries.c kaw_cpu.c \
 		kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c)

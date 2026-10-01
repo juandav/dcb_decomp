@@ -56,14 +56,14 @@ segments:
       - [0x0, .rodata, effect/sug_history]
       # jp's SUGSEG holds the effect objects and rings that us has in the
       # executable (main/model/effect_object, effect_prims)
-      - [0x4, rodata, model/effect_object]
-      - [0x3EC, rodata, effect/sug_gradient]
+      - [0x4, .rodata, model/effect_object]
+      - [0x3E8, rodata, effect/sug_gradient]
       - [0x400, .rodata, effect/sug_tex_anim]
       - [0x448, rodata, effect/sug_effect_script]
       - [0x4E8, .rodata, battle/sug_sprite]
       - [0x50C, .rodata, battle/sug_battle]
       - [0x514, c, effect/sug_history]
-      - [0xB44, asm, model/effect_object]
+      - [0xB44, c, model/effect_object]
       - [0x25A8, asm, model/effect_prims]
       - [0x381C, asm, effect/sug_sphere]
       - [0x71E0, asm, effect/sug_gradient]
