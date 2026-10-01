@@ -18,10 +18,7 @@ extern s32 VBLANKS_PER_FRAME;
 
 s16 SUG_SCREEN_FX_ANGLE = 0;
 
-/* old-style definition: one caller passes no argument */
-void SUG_moveScreenCopy(frame)
-    s32 frame;
-{
+void SUG_moveScreenCopy(s32 frame) {
     s32 radius;
 
     switch (SUG_SCREEN_FX_MOTION) {
@@ -70,20 +67,13 @@ void SUG_startScreenCopyFade(u8 r, u8 g, u8 b, s32 x, s32 y) {
     SUG_SCREEN_FX_FRAME = 0;
 }
 
-#if VERSION_EU
-/* eu: a0 and v1 swapped by the register allocator; no C form found yet */
-INCLUDE_ASM("sugseg/nonmatchings/effect/sug_screen_copy", SUG_stepScreenCopyFade);
-#elif VERSION_US
 void SUG_stepScreenCopyFade(void) {
     SCREEN_COPY_EFFECT.r = SUG_SCREEN_FX_BASE_RGB[0] + SUG_SCREEN_FX_RGB_STEP[0] * SUG_SCREEN_FX_FRAME;
     SCREEN_COPY_EFFECT.g = SUG_SCREEN_FX_BASE_RGB[1] + SUG_SCREEN_FX_RGB_STEP[1] * SUG_SCREEN_FX_FRAME;
     SCREEN_COPY_EFFECT.b = SUG_SCREEN_FX_BASE_RGB[2] + SUG_SCREEN_FX_RGB_STEP[2] * SUG_SCREEN_FX_FRAME;
-    SUG_moveScreenCopy();
+    SUG_moveScreenCopy(SUG_SCREEN_FX_FRAME);
     SUG_SCREEN_FX_FRAME++;
 }
-#else
-#error "sugseg/effect/sug_screen_copy: version not checked"
-#endif
 
 void SUG_startScreenCopyEffect(EffectParams *params, s32 clearColor) {
     SUG_SCREEN_FX_FRAME = 0;

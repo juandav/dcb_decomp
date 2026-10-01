@@ -5,6 +5,7 @@
 #include "dcb/save_checksum.h"
 #include "dcb/openseg.h"
 #include "dcb/open_memcard.h"
+#include "dcb/dialog.h"
 
 typedef struct {
     u8 data[0x20];
@@ -31,7 +32,6 @@ typedef struct {
 
 extern PlayerProfile *OPEN_MEMCARD_BUFFER;
 extern u8 OPEN_MEMCARD_MESSAGE_PORT;
-extern u8 OPEN_MEMCARD_READY_RESULT;
 
 void StoreImage(Rect16 *rect, void *p);
 void OPEN_applyLoadedSave();
@@ -39,8 +39,8 @@ void OPEN_prepareSaveData(s32 port);
 s32 OPEN_readSavePreview(s32 port, s32 slot);
 s32 OPEN_ensureMemoryCardReady(s32 port);
 s32 OPEN_checkMemoryCard(s32 port);
-s32 OPEN_waitMemoryCardSave(s32 part, s32 port);
-s32 OPEN_waitMemoryCardLoad(s32 unused, s32 port);
+s16 OPEN_waitMemoryCardSave(s32 part, s32 port);
+s16 OPEN_waitMemoryCardLoad(s32 unused, s32 port);
 s16 OPEN_countFreeBlocks(s32 port);
 void OPEN_buildSaveHeader(s32 port, s32 slot);
 u8 OPEN_checkSaveIsCurrent(s32 player, s32 port, s32 slot);
@@ -147,10 +147,6 @@ u8 *OPEN_formatSjisNumberZeros(s32 value, s32 width, u8 *dst) {
     return dst;
 }
 
-#if VERSION_EU
-/* eu: player and slot swapped by the register allocator; no C form found yet */
-INCLUDE_ASM("openseg/nonmatchings/memcard/open_save", OPEN_runMemcardAccess);
-#elif VERSION_US
 void OPEN_runMemcardAccess(void) {
     s32 player;
     s32 port;
@@ -158,7 +154,7 @@ void OPEN_runMemcardAccess(void) {
     s32 status;
     s32 result;
     s32 i;
-    s32 j;
+    s32 card;
 
     OPEN_MEMCARD_MESSAGE = -1;
     do {
@@ -169,9 +165,9 @@ void OPEN_runMemcardAccess(void) {
         status = 0;
         switch (OPEN_MEMCARD.state) {
         case 1:
-            if (OPEN_MEMCARD_MODE == 7 && port == 0) {
-                for (slot = 0; slot < 2; slot++) {
-                    status = OPEN_checkMemoryCard(slot);
+            if (OPEN_MEMCARD.mode == 7 && port == 0) {
+                for (card = 0; card < 2; card++) {
+                    status = OPEN_checkMemoryCard(card);
                     if (status != 0) {
                         break;
                     }
@@ -196,16 +192,16 @@ void OPEN_runMemcardAccess(void) {
                     OPEN_MEMCARD.state = 11;
                 }
             } else {
-                if (OPEN_MEMCARD_MODE == 7 && port == 0) {
-                    for (slot = 0; slot < 2; slot++) {
-                        scanMemoryCardFiles(slot);
+                if (OPEN_MEMCARD.mode == 7 && port == 0) {
+                    for (card = 0; card < 2; card++) {
+                        scanMemoryCardFiles(card);
                         for (i = 0; i < 3; i++) {
-                            OPEN_readSavePreview(slot, i);
+                            OPEN_readSavePreview(card, i);
                         }
-                        status = (s8)(OPEN_MEMCARD.empty[slot][0] & OPEN_MEMCARD.empty[slot][1] & OPEN_MEMCARD.empty[slot][2]);
+                        status = (s8)(OPEN_MEMCARD.empty[card][0] & OPEN_MEMCARD.empty[card][1] & OPEN_MEMCARD.empty[card][2]);
                         if (status == 1) {
-                            OPEN_MEMCARD.messagePort = slot;
-                            status = OPEN_checkMemoryCard(slot);
+                            OPEN_MEMCARD.messagePort = card;
+                            status = OPEN_checkMemoryCard(card);
                             if (status == 1) {
                                 OPEN_MEMCARD.message = 12;
                                 OPEN_MEMCARD.state = 29;
@@ -218,7 +214,7 @@ void OPEN_runMemcardAccess(void) {
                             break;
                         }
                     }
-                    if (OPEN_MEMCARD_STATE != 1) {
+                    if (OPEN_MEMCARD.state != 1) {
                         break;
                     }
                 } else {
@@ -230,17 +226,17 @@ void OPEN_runMemcardAccess(void) {
                 OPEN_MEMCARD.freeBlocks = OPEN_countFreeBlocks(port);
                 switch (OPEN_MEMCARD.mode) {
                 case 0:
-                    status = OPEN_MEMCARD_FREE_BLOCKS;
+                    status = OPEN_MEMCARD.freeBlocks;
                     for (i = 0; i < 3; i++) {
                         if (OPEN_MEMCARD.empty[port][i] == 0) {
                             status += 2;
                         }
                     }
                     if (status < 2) {
-                        OPEN_MEMCARD_STATE = 6;
+                        OPEN_MEMCARD.state = 6;
                     } else {
                         OPEN_showSaveSlots();
-                        OPEN_MEMCARD_STATE = 3;
+                        OPEN_MEMCARD.state = 3;
                     }
                     break;
                 case 7:
@@ -251,19 +247,19 @@ void OPEN_runMemcardAccess(void) {
                         OPEN_MEMCARD.state = 28;
                     } else {
                         OPEN_showSaveSlots();
-                        OPEN_MEMCARD_STATE = 10;
+                        OPEN_MEMCARD.state = 10;
                     }
                     break;
                 }
             }
             break;
         case 17:
-            OPEN_MEMCARD_MESSAGE = -1;
+            OPEN_MEMCARD.message = -1;
             break;
         case 23:
-            if (OPEN_MEMCARD_MODE == 6 && port == 0) {
-                for (slot = 0; slot < 2; slot++) {
-                    status = OPEN_checkSaveIsCurrent(slot, slot, ((SessionView *)SESSION_DATA)->saves[slot].file);
+            if (OPEN_MEMCARD.mode == 6 && port == 0) {
+                for (card = 0; card < 2; card++) {
+                    status = OPEN_checkSaveIsCurrent(card, card, ((SessionView *)SESSION_DATA)->saves[card].file);
                     if (status != 3) {
                         break;
                     }
@@ -292,7 +288,7 @@ void OPEN_runMemcardAccess(void) {
             if (status == 1) {
                 OPEN_MEMCARD.message = 12;
                 OPEN_MEMCARD.state = 19;
-                OPEN_MEMCARD_READY_RESULT = status;
+                ((Dialog *)&OPEN_DIALOG)->closed = status;
             }
             break;
         case 4:
@@ -302,7 +298,7 @@ void OPEN_runMemcardAccess(void) {
             if (startMemoryCardSave(port, 2, (s32)OPEN_MEMCARD.buffer, OPEN_SAVE_FILE_NAMES[slot], (McHeader *)MEMORY_CARD_SAVE_HEADER) == -1) {
                 OPEN_MEMCARD.state = 5;
             } else if (OPEN_waitMemoryCardSave(player, port) == -1) {
-                OPEN_MEMCARD_STATE = 5;
+                OPEN_MEMCARD.state = 5;
             } else {
                 OPEN_MEMCARD.message = 21;
                 OPEN_MEMCARD.state = 25;
@@ -314,18 +310,21 @@ void OPEN_runMemcardAccess(void) {
             writeSaveChecksum(0x2774, OPEN_MEMCARD.buffer);
             if (startMemoryCardSave(port, 2, (s32)OPEN_MEMCARD.buffer, OPEN_SAVE_FILE_NAMES[slot], (McHeader *)MEMORY_CARD_SAVE_HEADER) == -1) {
                 OPEN_MEMCARD.state = 20;
-            } else if (OPEN_waitMemoryCardSave(player, port) == -1) {
-                OPEN_MEMCARD_STATE = 20;
             } else {
-                OPEN_MEMCARD.cancelled = 0;
-                if (OPEN_MEMCARD.mode != 6 || player != 0) {
-                    playMenuSound(1);
-                    OPEN_MEMCARD.message = 22;
-                    OPEN_MEMCARD.animPhase = 1;
-                    OPEN_MEMCARD.state = 26;
+                status = OPEN_waitMemoryCardSave(player, port);
+                if (status == -1) {
+                    OPEN_MEMCARD.state = 20;
                 } else {
-                    OPEN_MEMCARD.animPhase = 3;
-                    OPEN_MEMCARD.state = 27;
+                    OPEN_MEMCARD.cancelled = 0;
+                    if (OPEN_MEMCARD.mode != 6 || player != 0) {
+                        playMenuSound(1);
+                        OPEN_MEMCARD.message = 22;
+                        OPEN_MEMCARD.animPhase = 1;
+                        OPEN_MEMCARD.state = 26;
+                    } else {
+                        OPEN_MEMCARD.animPhase = 3;
+                        OPEN_MEMCARD.state = 27;
+                    }
                 }
             }
             break;
@@ -333,21 +332,21 @@ void OPEN_runMemcardAccess(void) {
         case 10:
             result = OPEN_ensureMemoryCardReady(port);
             if (result == 1) {
-                OPEN_MEMCARD_READY_RESULT = result;
-                OPEN_MEMCARD_STATE = result;
+                ((Dialog *)&OPEN_DIALOG)->closed = result;
+                OPEN_MEMCARD.state = result;
                 OPEN_hideSaveSlots();
             }
             break;
         case 7:
             result = OPEN_ensureMemoryCardReady(port);
             if (result == 1) {
-                OPEN_MEMCARD_READY_RESULT = result;
-                OPEN_MEMCARD_STATE = result;
+                ((Dialog *)&OPEN_DIALOG)->closed = result;
+                OPEN_MEMCARD.state = result;
             }
             break;
         case 8:
             formatMemoryCard(port);
-            OPEN_MEMCARD_STATE = 1;
+            OPEN_MEMCARD.state = 1;
             break;
         case 9:
             if (startMemoryCardLoad(port, (s32)OPEN_MEMCARD.buffer, OPEN_SAVE_FILE_NAMES[slot]) == -1) {
@@ -381,24 +380,21 @@ void OPEN_runMemcardAccess(void) {
             OPEN_MEMCARD.state = 12;
             break;
         case 20:
-            OPEN_MEMCARD_READY_RESULT = 1;
+            ((Dialog *)&OPEN_DIALOG)->closed = 1;
             OPEN_MEMCARD.message = 15;
             OPEN_MEMCARD.state = 21;
             break;
         case 13:
-            OPEN_MEMCARD_READY_RESULT = 1;
+            ((Dialog *)&OPEN_DIALOG)->closed = 1;
             OPEN_MEMCARD.message = 19;
             OPEN_MEMCARD.state = 14;
             break;
         case 29:
             break;
         }
-    } while (OPEN_MEMCARD_READY != 1);
+    } while (OPEN_MEMCARD.ready != 1);
     waitFrames(FRAME_INTERVAL);
 }
-#else
-#error "openseg/memcard/open_save: version not checked"
-#endif
 
 void OPEN_applyLoadedSave(s32 port, s32 slot, s32 file) {
     PlayerProfile *src;
@@ -477,7 +473,7 @@ s32 OPEN_checkMemoryCard(s32 port) {
     return getMemoryCardStatus(port);
 }
 
-s32 OPEN_waitMemoryCardSave(s32 part, s32 port) {
+s16 OPEN_waitMemoryCardSave(s32 part, s32 port) {
     s32 result;
 
     while (1) {
@@ -502,7 +498,7 @@ s32 OPEN_waitMemoryCardSave(s32 part, s32 port) {
     }
 }
 
-s32 OPEN_waitMemoryCardLoad(s32 unused, s32 port) {
+s16 OPEN_waitMemoryCardLoad(s32 unused, s32 port) {
     s32 result;
 
     while (1) {
