@@ -756,13 +756,538 @@ void openMemcardScreen(void) {
 
 /* the screen's task: each step opens its menu and its message, and the step's
    handler runs the menu; the progress bars of the saves and loads */
-/* GCC's loop.c doesn't hoist MEMCARD_SLOT's address out of its loop, which the original's does; no C form found yet */
-INCLUDE_RODATA("main/nonmatchings/system/memcard_screen", D_80011D2C);
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", runMemcardScreen);
+void runMemcardScreen(void) {
+    MemcardScreen *screen = &MEMCARD_SCREEN;
+    /* the progress bars (gouraud quads at 108, 107, 6 high; x1 is the
+       length): [0] for the loads, [1] for the saves */
+    PrimDesc bars[2] = {
+        { 0, 0, 0, 0xFF, 0x38, 0, 0, 0, 0, 0, 0, 108, 107, 0, 6, 0, 0, 0, 0, 0xFF0000, 0xFF7070, 0xFF7070, 0, 0, 0, 0 },
+        { 0, 0xFF, 0, 0, 0x38, 0, 0, 0, 0, 0, 0, 108, 107, 0, 6, 0, 0, 0, 0, 0xFF, 0x7070FF, 0x7070FF, 0, 0, 0, 0 },
+    };
+    PlayerProfile *profile; /* a file's profile, or the loaded profile */
+
+    screen->hasOldSave = 0;
+    while (1) {
+        waitFrames(FRAME_INTERVAL);
+        switch (screen->step) {
+        case 0:
+        case 49:
+            break;
+        case 14:
+            SCROLLING_BACKGROUND->icon = 0;
+            MEMCARD_SCREEN.message = 2;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            screen->step = 15;
+            break;
+        case 3:
+            MEMCARD_WINDOWS[1]->state = 2;
+            openChoiceMenu(&screen->menu, MEMCARD_MODES[screen->mode].icon, 0x32, MEMCARD_MODES[screen->mode].cancel, 0);
+            addChoiceMenuItem(&screen->menu, 6, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 7, doNothingInMemcardScreen);
+            if (screen->mode == 0) {
+                addChoiceMenuItem(&screen->menu, 0x3D, doNothingInMemcardScreen);
+            }
+            MEMCARD_SCREEN.message = 0x1F;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = selectMemcardSlot;
+            screen->step = 4;
+            break;
+        case 1:
+            openChoiceMenu(&screen->menu, 2, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 1;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = confirmPlayWithoutCard;
+            screen->step = 2;
+            break;
+        case 7:
+            if (screen->mode == 0) {
+                openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            } else if (screen->mode == 1 || screen->mode == 3 || screen->mode == 5 || screen->mode == 6) {
+                openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            } else if (screen->mode == 2 || screen->mode == 4 || screen->mode == 7 ||
+                       screen->mode == 9) {
+                openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            }
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 7;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = runNoCardPrompt;
+            screen->step = 8;
+            break;
+        case 9:
+            openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 3;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = confirmFormat;
+            screen->step = 10;
+            break;
+        case 11:
+            MEMCARD_SCREEN.message = 4;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            screen->step = 12;
+            break;
+        case 16:
+            openChoiceMenu(&screen->menu, 5, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 9;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = runNoFreeBlockPrompt;
+            screen->step = 17;
+            break;
+        case 20:
+            openChoiceMenu(&screen->menu, 5, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 0xA;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = confirmNewFile;
+            screen->step = 21;
+            break;
+        case 18:
+            SCROLLING_BACKGROUND->icon = 0;
+            MEMCARD_SCREEN.message = 0xE;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            screen->step = 19;
+            break;
+        case 5:
+            openChoiceMenu(&screen->menu, 4, 0x32, doNothingInMemcardScreen, 0);
+            if (screen->mode == 0) {
+                addChoiceMenuItem(&screen->menu, screen->fileStatus[0] == 0 ? 8 : 0x3E, doNothingInMemcardScreen);
+                addChoiceMenuItem(&screen->menu, screen->fileStatus[1] == 0 ? 9 : 0x3E, doNothingInMemcardScreen);
+                addChoiceMenuItem(&screen->menu, screen->fileStatus[2] == 0 ? 0xA : 0x3E, doNothingInMemcardScreen);
+            } else if (screen->mode == 1 || screen->mode == 3 || screen->mode == 5 || screen->mode == 6) {
+                if (screen->fileStatus[0] == 0) {
+                    addChoiceMenuItem(&screen->menu, 8, doNothingInMemcardScreen);
+                }
+                if (screen->fileStatus[1] == 0) {
+                    addChoiceMenuItem(&screen->menu, 9, doNothingInMemcardScreen);
+                }
+                if (screen->fileStatus[2] == 0) {
+                    addChoiceMenuItem(&screen->menu, 0xA, doNothingInMemcardScreen);
+                }
+                /* no file to load */
+                if (screen->fileStatus[0] == 1 && screen->fileStatus[1] == screen->fileStatus[0] &&
+                    screen->fileStatus[2] == screen->fileStatus[1]) {
+                    openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+                    addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+                    MEMCARD_SCREEN.message = 0x12;
+                    MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                    MEMCARD_SCREEN.handler = runNoSavePrompt;
+                    screen->step = 0x20;
+                    break;
+                }
+            }
+            MEMCARD_MESSAGE_WINDOW.draw = drawSavePreview;
+            MEMCARD_SCREEN.handler = selectSaveFile;
+            screen->step = 6;
+            break;
+        case 24:
+            if (screen->mode == 0) {
+                openChoiceMenu(&screen->menu, 5, 0x32, doNothingInMemcardScreen, 0);
+            } else if (screen->mode == 1 || screen->mode == 3) {
+                openChoiceMenu(&screen->menu, 1, 0x32, doNothingInMemcardScreen, 0);
+            } else if (screen->mode == 5) {
+                openChoiceMenu(&screen->menu, 0x37, 0x32, doNothingInMemcardScreen, 0);
+            } else if (screen->mode == 6) {
+                openChoiceMenu(&screen->menu, 0x38, 0x32, doNothingInMemcardScreen, 0);
+            }
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+            if (screen->mode == 0) {
+                MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0xB;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 1 || screen->mode == 3) {
+                /* one block per mode, as the icons above: the loop then has
+                   enough uses of MEMCARD_SLOT for loop.c to hoist its address */
+                MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0x13;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 5) {
+                MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0x13;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 6) {
+                /* the second player's file is the first one's */
+                profile = (PlayerProfile *)(screen->buffer + MEMCARD_SLOT.file * 0x80);
+                if (PLAYER_DATA(0).profileId == profile->profileId) {
+                    MEMCARD_SCREEN.message = 0x24;
+                    MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                } else {
+                    MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0x13;
+                    MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                }
+            }
+            MEMCARD_SCREEN.handler = confirmOverwriteOrLoad;
+            screen->step = 25;
+            break;
+        case 48:
+            openChoiceMenu(&screen->menu, 0, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 0x19;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardSlotMessage;
+            MEMCARD_SCREEN.handler = confirmPlayer2Load;
+            screen->step = 49;
+            break;
+        case 26:
+            MEMCARD_PROGRESS = 0;
+            SCROLLING_BACKGROUND->state = 1;
+            if (screen->mode == 2) {
+                MEMCARD_SCREEN.message = 0x1C;
+            } else if (screen->mode == 4) {
+                MEMCARD_SCREEN.message = 0x1C;
+            } else if (screen->mode == 7) {
+                MEMCARD_SCREEN.message = 0x1C;
+            } else if (screen->mode == 8) {
+                MEMCARD_SCREEN.message = 0x1C;
+            } else if (screen->mode == 9) {
+                MEMCARD_SCREEN.message = 0x1C;
+            } else {
+                MEMCARD_SCREEN.message = 0xE;
+            }
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            if (screen->mode == 7) {
+                MEMCARD_WINDOWS[1]->state = 1;
+                screen->step = 28;
+            } else {
+                screen->step = 19;
+            }
+            break;
+        case 27:
+            bars[1].x1 = (MEMCARD_PROGRESS << 7) / 100;
+            drawPrimDesc(&bars[1]);
+            drawPrimDesc((PrimDesc *)&MEMCARD_PROGRESS_FRAME);
+            break;
+        case 28:
+            bars[1].x1 = (MEMCARD_PROGRESS << 7) / 200;
+            if (screen->mode == 8 && MEMCARD_PROGRESS < 100) {
+                bars[1].x1 += 0x40;
+            }
+            drawPrimDesc(&bars[1]);
+            drawPrimDesc((PrimDesc *)&MEMCARD_PROGRESS_FRAME);
+            break;
+        case 22:
+            openChoiceMenu(&screen->menu, 6, 0x32, NULL, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, MEMCARD_MODES[screen->mode].next);
+            if (screen->mode == 2 || screen->mode == 9) {
+                addChoiceMenuItem(&screen->menu, 0xC, NIS_runTitleScreen);
+            }
+            if (screen->mode == 0) {
+                ((SessionData *)SESSION_DATA)->areaSession->area = ((PlayerProfile *)screen->buffer)->area;
+                startAreaPakLoad();
+                MEMCARD_SCREEN.message = 0x10;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 1;
+            } else if (screen->mode == 1) {
+                MEMCARD_SCREEN.message = 0x18;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 0;
+            } else if (screen->mode == 2 || screen->mode == 9) {
+                if (screen->saved != 0) {
+                    MEMCARD_SCREEN.message = 0x1E;
+                } else if (((SessionData *)SESSION_DATA)->noMemoryCard == 1) {
+                    MEMCARD_SCREEN.message = 0x28;
+                } else {
+                    MEMCARD_SCREEN.message = 0x29;
+                }
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 0;
+            } else if (screen->mode == 3) {
+                MEMCARD_SCREEN.message = 0x2A;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 2;
+            } else if (screen->mode == 4) {
+                MEMCARD_SCREEN.message = 0x2B;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 2;
+            } else if (screen->mode == 5) {
+                MEMCARD_SCREEN.message = 0x20;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 6) {
+                MEMCARD_SCREEN.message = 0x2C;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 4;
+            } else if (screen->mode == 7) {
+                MEMCARD_SCREEN.message = 0x10;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 2;
+            } else if (screen->mode == 8) {
+                MEMCARD_SCREEN.message = 0x26;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+                screen->scrollMode = 2;
+            }
+            profile = (PlayerProfile *)screen->buffer;
+            if (!profile->monoSound) {
+                SsSetStereo();
+            } else {
+                func_8005714C();
+            }
+            MEMCARD_SCREEN.handler = runDonePrompt;
+            screen->step = 23;
+            break;
+        case 33:
+            MEMCARD_PROGRESS = 0;
+            SCROLLING_BACKGROUND->icon = 0;
+            MEMCARD_SCREEN.message = 0x16;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            screen->step = 34;
+            break;
+        case 34:
+            bars[0].x1 = (MEMCARD_PROGRESS << 7) / 100;
+            drawPrimDesc(&bars[0]);
+            drawPrimDesc((PrimDesc *)&MEMCARD_PROGRESS_FRAME);
+            break;
+        case 29:
+            openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 0x11;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = func_8004B5D8;
+            screen->step = 30;
+            break;
+        case 42:
+            openChoiceMenu(&screen->menu, MEMCARD_MODES[screen->mode].icon, 0x32, MEMCARD_MODES[screen->mode].cancel, 0);
+            if (screen->mode == 2) {
+                MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[0].port;
+                MEMCARD_WINDOWS[1]->state = 1;
+                addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+                addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+                screen->scrollMode = 0;
+                MEMCARD_SCREEN.message = 0x2D;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 4) {
+                MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[0].port;
+                MEMCARD_WINDOWS[1]->state = 1;
+                addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+                addChoiceMenuItem(&screen->menu, 0xC, NIS_runMainMenuTask);
+                screen->scrollMode = 2;
+                MEMCARD_SCREEN.message = 0x2D;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 7) {
+                screen->scrollMode = 2;
+                if (PLAYER_DATA(0).profileId == PLAYER_DATA(1).profileId) {
+                    addChoiceMenuItem(&screen->menu, 0xB, NIS_runMainMenuTask);
+                    MEMCARD_SCREEN.message = 0x25;
+                } else {
+                    MEMCARD_WINDOWS[1]->state = 2;
+                    addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+                    addChoiceMenuItem(&screen->menu, 0xC, NIS_runMainMenuTask);
+                    MEMCARD_SCREEN.message = 0x2D;
+                }
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            } else if (screen->mode == 9) {
+                MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[0].port;
+                MEMCARD_WINDOWS[1]->state = 1;
+                addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+                addChoiceMenuItem(&screen->menu, 0xC, doNothingInMemcardScreen);
+                screen->scrollMode = 2;
+                MEMCARD_SCREEN.message = 0x2D;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            }
+            MEMCARD_SCREEN.handler = confirmSave;
+            screen->step = 43;
+            break;
+        case 44:
+            openChoiceMenu(&screen->menu, 0, 0x32, NULL, 0);
+            MEMCARD_SCREEN.message = 2;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            screen->step = 45;
+            break;
+        case 15:
+        case 45:
+            MEMORY_CARD_WAIT_COUNTER++;
+            break;
+        case 46:
+            openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            if (screen->mode == 7 || screen->mode == 8) {
+                MEMCARD_MESSAGE_WINDOW.draw = drawMissingCardMessage;
+            } else {
+                MEMCARD_SCREEN.message = 0x21;
+                MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            }
+            MEMCARD_SCREEN.handler = runMissingCardPrompt;
+            screen->step = 47;
+            break;
+        case 36:
+            openChoiceMenu(&screen->menu, 0xB, 0x32, NULL, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            if (screen->mode == 0) {
+                MEMCARD_SCREEN.message = 0xF;
+            } else {
+                MEMCARD_SCREEN.message = 0x1D;
+            }
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = runFailurePrompt;
+            screen->step = 37;
+            break;
+        case 38:
+        case 40:
+            openChoiceMenu(&screen->menu, 0xB, 0x32, doNothingInMemcardScreen, 0);
+            addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
+            MEMCARD_SCREEN.message = 0x17;
+            MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
+            MEMCARD_SCREEN.handler = func_8004B830;
+            screen->step = 39;
+            break;
+        case 13:
+            exitTask();
+            break;
+        }
+        if (screen->handler != NULL) {
+            screen->handler(screen);
+        }
+    }
+}
 
 /* the screen's other task: the memory card's work for the steps */
-/* its loop keeps the step 14 in a register; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", runMemcardAccess);
+/* while a menu is up: back to step 14 to check the card again when it was
+   taken out or changed. A statement macro; the match depends on its
+   do-while, whose loop notes weigh the step 14's uses (it gets s4 before
+   SESSION_DATA's address) */
+#define CHECK_CARD()                                              \
+    do {                                                          \
+        if (ensureMemoryCardReady(MEMCARD_SLOT.port) == 1) {      \
+            screen->step = 14;                                    \
+        }                                                         \
+    } while (0)
+
+void runMemcardAccess(void) {
+    MemcardScreen *screen;
+    s32 status;
+    s32 result;
+    s32 blocks; /* a save takes one block */
+
+    screen = &MEMCARD_SCREEN;
+    blocks = 1;
+    getSaveFileName(1, screen->fileNames[0]);
+    getSaveFileName(2, screen->fileNames[1]);
+    getSaveFileName(3, screen->fileNames[2]);
+    while (1) {
+        waitFrames(FRAME_INTERVAL);
+        switch (screen->step) {
+        case 0:
+            break;
+        case 15:
+            status = getMemoryCardStatus(MEMCARD_SLOT.port);
+            if (status == 1) {
+                screen->step = 7;
+            } else if (status == 2) {
+                if (screen->mode == 0) {
+                    screen->step = 9;
+                } else if (screen->mode == 1 || screen->mode == 3 || screen->mode == 5 || screen->mode == 6) {
+                    screen->step = 0x1D;
+                }
+            } else {
+                scanMemoryCardFiles(MEMCARD_SLOT.port);
+                readSavePreview(1, screen);
+                readSavePreview(2, screen);
+                readSavePreview(3, screen);
+                if (screen->mode == 0) {
+                    screen->hasOldSave = hasDigimonWorldSave();
+                } else {
+                    screen->hasOldSave = 0;
+                }
+                screen->freeBlocks = countFreeBlocks();
+                screen->step = 5;
+            }
+            break;
+        case 12:
+            formatMemoryCard(MEMCARD_SLOT.port);
+            screen->step = 14;
+            break;
+        case 6: /* the file list */
+            CHECK_CARD();
+            break;
+        case 10: /* format the card? */
+            CHECK_CARD();
+            break;
+        case 21: /* make a new file? */
+            CHECK_CARD();
+            break;
+        case 25: /* overwrite or load this file? */
+            CHECK_CARD();
+            break;
+        case 19:
+            MEMCARD_PROGRESS = 0;
+            prepareSaveData(screen);
+            screen->step = 27;
+        case 27:
+            buildSaveHeader(0);
+            writeSaveChecksum(0x145C, screen->buffer);
+            if (startMemoryCardSave(MEMCARD_SLOT.port, blocks, (s32)screen->buffer,
+                                    (s32)screen->fileNames[MEMCARD_SLOT.file],
+                                    MEMORY_CARD_SAVE_HEADER) == -1 ||
+                (result = waitMemoryCardSave()) == -1) {
+                screen->step = 0x24;
+            } else {
+                screen->step = 0x16;
+            }
+            break;
+        case 28:
+            result = saveBothProfiles(screen);
+            if (result == 1) {
+                screen->step = 0x24;
+            } else if (result == 2) {
+                screen->step = 0x24;
+            } else if (result == 0) {
+                screen->step = 0x16;
+            }
+            break;
+        case 49:
+            if (ensureMemoryCardReady(((SessionData *)SESSION_DATA)->saves[0].port) == 1) {
+                MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[0].port;
+                MEMCARD_WINDOWS[1]->state = 1;
+                screen->step = 7;
+            } else if (screen->mode == 7 &&
+                       ensureMemoryCardReady(((SessionData *)SESSION_DATA)->saves[1].port) == 1) {
+                MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[1].port;
+                MEMCARD_WINDOWS[1]->state = 1;
+                screen->step = 7;
+            }
+            break;
+        case 34:
+            if (startMemoryCardLoad(MEMCARD_SLOT.port, (s32)screen->buffer,
+                                    (s32)screen->fileNames[MEMCARD_SLOT.file]) == -1 ||
+                (result = waitMemoryCardLoad()) == -1) {
+                screen->step = 0x26;
+            } else if (verifySaveChecksum(0x145C, screen->buffer) == 1) {
+                screen->step = 0x28;
+            } else {
+                screen->step = 0x16;
+            }
+            break;
+        case 45:
+            if (screen->mode == 7) {
+                result = findMissingSaves();
+                screen->missingPlayers = result;
+                if (result == 1) {
+                    screen->step = 0x2E;
+                } else if (result == 2) {
+                    screen->step = 0x2E;
+                } else if (result == 3) {
+                    screen->step = 0x2E;
+                } else if (result == 0) {
+                    screen->step = 0x30;
+                }
+            } else {
+                status = checkSaveIsCurrent(0, 1);
+                if (status == 0) {
+                    screen->step = 0x2E;
+                } else if (status == 1) {
+                    screen->step = 0x30;
+                    ((SessionData *)SESSION_DATA)->saves[0].port = MEMCARD_SLOT.port;
+                }
+            }
+            break;
+        case 13:
+            exitTask();
+            break;
+        }
+    }
+}
 
 /* Reads file's preview (1 to 3), trying five times: 0 when it is there */
 s32 readSavePreview(u8 file, MemcardScreen *screen) {
