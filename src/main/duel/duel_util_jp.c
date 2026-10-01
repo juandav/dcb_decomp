@@ -33,17 +33,13 @@ void KAW_drawSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clu
 }
 
 void waitDuelFrames(s32 frames) {
-    s32 busy;
-
     while (1) {
         if (DUEL->stopTurnLoop != 0) {
             DUEL->stopTurnLoop = 0;
             exitTask();
             return;
         }
-        busy = DUEL->unk479;
-        busy |= DUEL->unk478;
-        if (busy) {
+        if (DUEL->helpOpen | DUEL->quit) {
             waitFrames(FRAME_INTERVAL);
             continue;
         }

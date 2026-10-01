@@ -22,6 +22,19 @@
     (a)->spr->rot.vy = RY - (RY - (a)->ry) * (a)->count / (a)->total;        \
     (a)->spr->rot.vz = RZ - (RZ - (a)->rz) * (a)->count / (a)->total;        \
     (a)->spr->scale = SC - (SC - (a)->scale) * (a)->count / (a)->total
+#if VERSION_JP
+/* jp's HUD panels are in its session block: eleven per player, then one
+   for both */
+#define HUD_PANEL(i) (&((SessionData *)SESSION_DATA)->panels[i])
+#define PLAYER_PANEL(p, slot) HUD_PANEL((p) * 11 + (slot))
+
+/* jp's HUD panel: a textured quad that the duel moves around */
+typedef struct Panel {
+    /* 0x00 */ u8 unk0[0x41];
+    /* 0x41 */ u8 state;
+    /* 0x42 */ u8 unk42[6];
+} Panel;
+#elif VERSION_US || VERSION_EU
 #define PANEL(i) (((HudPanel *)HUD_PANELS)[i])
 /* HUD_PANELS holds six panels per player (enum HudPanelSlot) */
 #define PLAYER_PANEL(p, slot) (&((Panel *)HUD_PANELS)[(p) * 6 + (slot)])
@@ -41,6 +54,7 @@ typedef struct Panel {
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ struct Panel *parent;
 } Panel;
+#endif
 enum HudPanelSlot {
     HUD_CARD_INFO,
     HUD_ATTACK,
@@ -63,6 +77,27 @@ typedef struct {
     /* 0x1C */ s32 z;
     /* 0x20 */ u8 parent[4];
 } HudPanel;
+#if VERSION_JP
+/* jp keeps the state and hand slot right after the sprite */
+typedef struct {
+    /* 0x00 */ CardSprite *spr;
+    /* 0x04 */ s8 state;
+    /* 0x05 */ s8 handSlot;
+    /* 0x06 */ u8 unk6[2];
+    /* 0x08 */ s32 x;
+    /* 0x0C */ s32 y;
+    /* 0x10 */ s32 z;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ s16 rx;
+    /* 0x1A */ s16 ry;
+    /* 0x1C */ s16 rz;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ s16 scale;
+    /* 0x22 */ s16 total;
+    /* 0x24 */ s16 count;
+    /* 0x26 */ u8 unk26[2];
+} CardAnim;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x00 */ CardSprite *spr;
     /* 0x04 */ s32 x;
@@ -79,6 +114,7 @@ typedef struct {
     /* 0x22 */ s8 state;
     /* 0x23 */ s8 handSlot;
 } CardAnim;
+#endif
 
 extern s32 STAT_POPUP_RGB;
 extern u8 *CROSS_EFFECT_SHORT_NAMES[];

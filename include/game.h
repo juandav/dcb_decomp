@@ -27,7 +27,32 @@
 #define PLAYER_DATA(p) (((PlayerProfile *)PLAYER_PROFILES)[p])
 #define DUEL ((Duel *)DUEL_STATE)
 #define PLAYER(p) ((Player *)DUEL_PLAYERS[p])
-#define SPRITE_KIND(c) (*(s8 *)(CARD_ANIMS + (c) * 36 + 0x22))
+/* the bytes of a card's CardAnim (battle_hud.h) and where its state is */
+#if VERSION_JP
+#define CARD_ANIM_SIZE 40
+#define SPRITE_KIND(c) (*(s8 *)(CARD_ANIMS + (c) * CARD_ANIM_SIZE + 4))
+#elif VERSION_US || VERSION_EU
+#define CARD_ANIM_SIZE 36
+#define SPRITE_KIND(c) (*(s8 *)(CARD_ANIMS + (c) * CARD_ANIM_SIZE + 0x22))
+#endif
+/* the SPRITE_KIND states that send a card somewhere (tickCardMotion) */
+#if VERSION_JP
+#define CARD_MOVE_TO_ONLINE_DECK 1
+#define CARD_MOVE_TO_HAND 3
+#define CARD_MOVE_TO_OFFLINE_DECK 6
+#define CARD_MOVE_TO_DIGIMON_STACK 9
+#define CARD_MOVE_TO_PLAYED 14
+#define CARD_MOVE_DRAWN_TO_PLAYED 19
+#define CARD_MOVE_TO_DP_SLOTS 24
+#elif VERSION_US || VERSION_EU
+#define CARD_MOVE_TO_ONLINE_DECK 1
+#define CARD_MOVE_TO_HAND 3
+#define CARD_MOVE_TO_OFFLINE_DECK 8
+#define CARD_MOVE_TO_DIGIMON_STACK 11
+#define CARD_MOVE_TO_PLAYED 16
+#define CARD_MOVE_DRAWN_TO_PLAYED 21
+#define CARD_MOVE_TO_DP_SLOTS 26
+#endif
 
 typedef struct {
     /* 0x00 */ s16 clip[4];
@@ -939,6 +964,18 @@ typedef struct {
     /* 0x1A8 */ u8 location;
     /* 0x1A9 */ u8 resumeMode; /* 1: back from a duel, 2: back from the complete stats */
 } AreaSession;
+#if VERSION_JP
+/* jp's session block is 0x154 bytes, laid out differently: only the fields
+   its matched code reads are placed */
+typedef struct {
+    /* 0x000 */ u8 *prims; /* 0x820 bytes, half for each frame buffer */
+    /* 0x004 */ struct Panel *panels; /* the duel's HUD panels (battle_hud.h) */
+    /* 0x008 */ void *unk8; /* 0x36C bytes, KAWSEG's (func_801FEC84) */
+    /* 0x00C */ u8 unkC[0x12C];
+    /* 0x138 */ AreaSession *areaSession;
+    /* 0x13C */ u8 unk13C[0x18];
+} SessionData;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x0000 */ u8 *npcDeckFile;
     /* 0x0004 */ u8 opponentDeckIndex;
@@ -957,6 +994,7 @@ typedef struct {
     /* 0x1028 */ s8 menuRow; /* the row picked in an OPENSEG menu */
     /* 0x1029 */ u8 unk1029[3];
 } SessionData;
+#endif
 typedef struct {
     /* 0x0 */ u32 attribute;
     /* 0x4 */ GsCOORDINATE2 *coord2;
@@ -1080,9 +1118,16 @@ typedef struct {
 /* jp's duel state is laid out differently (cpuResult is 0x3DC bytes earlier):
    only the fields its matched code reads are placed */
 typedef struct {
-    /* 0x000 */ u8 unk0[0x428];
+    /* 0x000 */ u8 *cursor;
+    /* 0x004 */ u8 unk4[0x400];
+    /* 0x404 */ CardCache cache[6];
+    /* 0x41C */ struct CardSprite *sprites; /* the sprite of each of the 60 cards */
+    /* 0x420 */ u8 unk420[8];
     /* 0x428 */ s32 cpuResult;
-    /* 0x42C */ u8 unk42C[6];
+    /* hand slots the cards played this turn came from (us's Duel) */
+    /* 0x42C */ s16 playedFromSlot;
+    /* 0x42E */ s16 discardedFromSlot;
+    /* 0x430 */ s16 dpFromSlot;
     /* 0x432 */ s8 state;
     /* 0x433 */ s8 loadBusy;
     /* 0x434 */ s8 stopArtLoader;
@@ -1091,13 +1136,23 @@ typedef struct {
     /* 0x437 */ s8 stopTurnLoop;
     /* 0x438 */ s8 cpuRequest;
     /* 0x439 */ s8 turnPlayer;
-    /* 0x43A */ u8 unk43A[9];
+    /* 0x43A */ s8 step;
+    /* 0x43B */ u8 unk43B[4];
+    /* 0x43F */ u8 cursorPlayer;
+    /* 0x440 */ s8 cursorSlot;
+    /* 0x441 */ s8 cursorMode;
+    /* 0x442 */ u8 winner;
     /* 0x443 */ s8 tutorial;
-    /* 0x444 */ u8 unk444[0x34];
-    /* 0x478 */ u8 unk478; /* the duel waits (waitDuelFrames) while this or unk479 is set */
-    /* 0x479 */ u8 unk479;
-    /* 0x47A */ u8 unk47A[4];
+    /* 0x444 */ u8 unk444[0x33];
+    /* 0x477 */ s8 menuPlayer; /* who opened the Give Up prompt or the help */
+    /* 0x478 */ s8 quit; /* 1: the Give Up prompt is open; 2 + the winner once given up */
+    /* 0x479 */ s8 helpOpen; /* the duel waits (waitDuelFrames) while this or quit is set */
+    /* 0x47A */ s8 helpPage;
+    /* 0x47B */ u8 unk47B[2];
+    /* 0x47D */ u8 artSlot;
     /* 0x47E */ u8 cpuPlayer;
+    /* 0x47F */ u8 unk47F;
+    /* 0x480 */ u8 unk480; /* the player who may open the prompts (2: none) */
 } Duel;
 #elif VERSION_US || VERSION_EU
 typedef struct {
@@ -1169,6 +1224,24 @@ typedef struct {
     /* 0x00 */ u8 unk0[0xA5];
     /* 0xA5 */ s8 choice;
 } Window;
+#if VERSION_JP
+/* jp's card sprite has no fade-in colours, number or depth */
+typedef struct CardSprite {
+    /* 0x00 */ u8 rgbc[4];
+    /* 0x04 */ u8 fade[4];
+    /* 0x08 */ u16 clut;
+    /* 0x0A */ u16 tpage;
+    /* 0x0C */ u8 pal;
+    /* 0x0D */ u8 flags; /* 0x80: drawn */
+    /* 0x0E */ u8 u;
+    /* 0x0F */ u8 v;
+    /* 0x10 */ VECTOR pos;
+    /* 0x20 */ SVECTOR rot;
+    /* 0x28 */ s32 scale;
+    /* 0x2C */ s16 sx;
+    /* 0x2E */ s16 sy;
+} CardSprite;
+#elif VERSION_US || VERSION_EU
 typedef struct CardSprite {
     /* 0x00 */ u8 rgbc[4];
     /* 0x04 */ u8 fade[4];
@@ -1189,6 +1262,7 @@ typedef struct CardSprite {
     /* 0x36 */ s16 sy;
     /* 0x38 */ s32 z;
 } CardSprite;
+#endif
 typedef struct {
     /* 0x00 */ u8 unk0[0xC];
     /* 0x0C */ u8 flags;

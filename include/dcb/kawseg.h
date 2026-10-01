@@ -14,7 +14,7 @@
 #define setRGB2(p, _r2, _g2, _b2) (p)->r2 = _r2, (p)->g2 = _g2, (p)->b2 = _b2
 #define setRGB3(p, _r3, _g3, _b3) (p)->r3 = _r3, (p)->g3 = _g3, (p)->b3 = _b3
 #define DUEL_AI ((DuelAi *)DUEL_STATE)
-#define CARD_SPR(c) (((CardAnim *)(CARD_ANIMS + (c) * 36))->spr)
+#define CARD_SPR(c) (((CardAnim *)(CARD_ANIMS + (c) * CARD_ANIM_SIZE))->spr)
 
 #define setXYWH(p, _x0, _y0, _w, _h)                                                            \
     (p)->x0 = (_x0), (p)->y0 = (_y0), (p)->x1 = (_x0) + (_w), (p)->y1 = (_y0), (p)->x2 = (_x0), \
@@ -214,8 +214,10 @@ typedef struct {
     /* 0x001C */ u16 versusWins;
     /* 0x001E */ u16 versusLosses;
     /* 0x0020 */ u8 unk20[0x10];
-    /* 0x0030 */ u16 bestDamage[0xBF][3];
-    /* 0x04AA */ u8 unk4AA[0x145C - 0x4AA];
+    /* 0x0030 */ u16 bestDamage[0x6E][3]; /* per Digimon card: jp has 0x6E */
+    /* 0x02C4 */ u16 cardWins[0x6E];
+    /* 0x03A0 */ u16 cardLosses[0x6E];
+    /* 0x047C */ u8 unk47C[0x145C - 0x47C];
 } ProfileK;
 #elif VERSION_US || VERSION_EU
 typedef struct {
