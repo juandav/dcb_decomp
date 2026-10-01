@@ -8,7 +8,7 @@
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 
-#if VERSION_US || VERSION_EU
+#if VERSION_US
 s32 UNUSED_MAIN_WORDS[2] = { 0, 0 };
 #endif
 
@@ -45,9 +45,18 @@ int main(void) {
     }
 }
 #elif VERSION_US || VERSION_EU
+#if VERSION_EU
+/* libetc's video modes */
+#define MODE_PAL 1
+long SetVideoMode(long mode);
+#endif
+
 int main(void) {
     Rect16 vramRect;
 
+#if VERSION_EU
+    SetVideoMode(MODE_PAL);
+#endif
     ResetCallback();
     VSync(0);
     SetDispMask(0);

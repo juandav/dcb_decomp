@@ -82,8 +82,8 @@ void fillVramRect(s32 x, s32 y, s32 w, s32 h, u32 color) {
     freeHeapBlock(buf);
 }
 
-#if VERSION_JP
-/* jp: takes tpage as an int and keeps it apart from the bits it builds
+#if VERSION_JP || VERSION_EU
+/* jp and eu: take tpage as an int and keep it apart from the bits they build
    (another register allocation); no C form found yet */
 INCLUDE_ASM("main/nonmatchings/gfx/prim", drawTexturedSprite);
 #elif VERSION_US
@@ -113,6 +113,4 @@ void drawTexturedSprite(s32 x, s32 y, Rect16 *uvRect, u16 tpage, s32 clut, s32 o
         SPRITE_POOL_CURSOR += sizeof(SprtPacket);
     }
 }
-#else
-#error "main/gfx/prim: version not checked"
 #endif

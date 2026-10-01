@@ -15,6 +15,11 @@ void resetDisplay(s32 w, s32 h, s32 interlace) {
     initDisplayBuffers(w, h, interlace);
 }
 
+#if VERSION_EU
+/* the PAL picture starts 24 lines down the screen (screen[1]: its y) */
+#define PAL_SCREEN_Y 24
+#endif
+
 void initDisplayBuffers(s32 w, s32 h, s32 interlace) {
     s32 i;
 
@@ -23,14 +28,23 @@ void initDisplayBuffers(s32 w, s32 h, s32 interlace) {
         if (h > 240) {
             SetDefDrawEnv(&DB(i).draw, 0, 0, w, h);
             SetDefDispEnv(&DB(i).disp, 0, 0, w, h);
+#if VERSION_EU
+            DB(i).disp.screen[1] = PAL_SCREEN_Y;
+#endif
             DB(i).disp.isinter = 1;
         } else {
             if (interlace == 0) {
                 SetDefDrawEnv(&DB(i).draw, 0, i * 256, w, h);
                 SetDefDispEnv(&DB(i).disp, 0, 256 - i * 256, w, h);
+#if VERSION_EU
+                DB(i).disp.screen[1] = PAL_SCREEN_Y;
+#endif
             } else {
                 SetDefDrawEnv(&DB(i).draw, 0, i * 240, w, h);
                 SetDefDispEnv(&DB(i).disp, 0, 240 - i * 240, w, h);
+#if VERSION_EU
+                DB(i).disp.screen[1] = PAL_SCREEN_Y;
+#endif
             }
             DB(i).disp.isinter = 0;
         }

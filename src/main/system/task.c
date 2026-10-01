@@ -147,7 +147,7 @@ Task *selectNextTask(Task *current) {
         next = PREEMPTED_TASK;
         PREEMPTED_TASK_PRIORITY = -1;
     } else {
-#if VERSION_US || VERSION_EU
+#if VERSION_US
         priority = next->status.priority;
 #endif
         if ((u16)priority > (u16)DEFERRED_TASK_PRIORITY) {
