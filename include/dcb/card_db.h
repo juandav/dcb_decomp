@@ -115,6 +115,7 @@ void clearBattleLog(void);
 s32 countBattleLogLines(s32 player);
 /* jp: adds TEXT to the lines PLAYER's battle log shows (up to 7) */
 void addBattleLogLine(s32 player, char *text);
+void drawBattleLog(s32 player, s32 x, s32 y, s32 z);
 #endif
 
 #endif /* DCB_CARD_DB_H */
