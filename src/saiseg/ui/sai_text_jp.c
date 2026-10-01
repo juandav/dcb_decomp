@@ -1,44 +1,22 @@
 #include "common.h"
 #include "game.h"
+#include "dcb/card_db.h"
+#include "dcb/prim.h"
 #include "dcb/text.h"
 #include "dcb/task.h"
 #include "dcb/saiseg.h"
 
-/* jp's message window (sai_text.c is us's and eu's): up to four lines,
+/* jp's message window and deck information screen (sai_text.c, sai_flags.c
+   and sai_reward.c are us's and eu's): one object, as the jump table of
+   SAI_summarizeDeck is 8-aligned only from the message window's rodata. The message window holds up to four lines,
    rendered into VRAM as they are added and typed out a glyph at a time */
 
-typedef struct {
-    /* 0x00 */ s32 active;
-    /* 0x04 */ s32 vramY; /* where the line's glyphs are rendered */
-    /* 0x08 */ u32 width;
-    /* 0x0C */ u32 shown;
-    /* 0x10 */ u8 text[0x30];
-    /* 0x40 */ s8 palettes[0x18]; /* one for each two bytes of text */
-} MsgLine;
-
-typedef struct {
-    /* 0x00 */ u8 unk0;
-    /* 0x01 */ u8 typing;
-    /* 0x02 */ u8 unk2[2];
-    /* 0x04 */ MsgLine lines[4];
-} MsgBox;
-
-/* a line typed as text instead */
-typedef struct {
-    /* 0x00 */ s32 shown;
-    /* 0x04 */ s32 length;
-    /* 0x08 */ s8 active;
-    /* 0x09 */ char text[0x43];
-} TypedLine;
-
-extern MsgBox SAI_MESSAGE_BOX;
-extern TypedLine SAI_TYPED_LINES[4];
 
 void func_8006689C(char *, char *, s32);
-char *formatSjisNumber(s32, s32, char *);
-u32 uploadKanjiString(u8 *, Rect16 *);
+u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
+s32 uploadKanjiString(u8 *text, Rect16 *rect);
 
-MsgLine *SAI_allocTextLine(MsgBox *box);
+MsgLine *SAI_allocTextLine(SaiUi *ui);
 s32 SAI_isLetter(s8 c);
 
 /* the color the message window's glyphs are drawn in */
@@ -56,22 +34,22 @@ void SAI_drawMessageWindow(JpWindow *win) {
     u32 count;
     s32 x;
 
-    line = SAI_MESSAGE_BOX.lines;
-    SAI_MESSAGE_BOX.typing = 0;
+    line = SAI_UI.lines;
+    SAI_UI.typing = 0;
     y = 4;
     if (SAI_STATE->flags & 0x10) {
         AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[win->z], DB(FRAME_BUFFER_INDEX).primSlots[0] + 0x60);
     }
     for (i = 0; i < 4; i++) {
-        if (SAI_TYPED_LINES[i].active != 0 && SAI_MESSAGE_BOX.typing == 0) {
-            SAI_TYPED_LINES[i].shown += 400;
-            n = SAI_TYPED_LINES[i].shown / 100 * 2;
-            if (n >= SAI_TYPED_LINES[i].length) {
-                n = SAI_TYPED_LINES[i].length;
+        if (SAI_TYPED_TEXT.lines[i].active != 0 && SAI_UI.typing == 0) {
+            SAI_TYPED_TEXT.lines[i].shown += 400;
+            n = SAI_TYPED_TEXT.lines[i].shown / 100 * 2;
+            if (n >= SAI_TYPED_TEXT.lines[i].length) {
+                n = SAI_TYPED_TEXT.lines[i].length;
             } else {
-                SAI_MESSAGE_BOX.typing = 1;
+                SAI_UI.typing = 1;
             }
-            func_8006689C(buf, SAI_TYPED_LINES[i].text, n);
+            func_8006689C(buf, SAI_TYPED_TEXT.lines[i].text, n);
             buf[n] = 0;
             drawIconText(0x26, y + 0x99, 7, 1, win->z, (s32)buf);
         }
@@ -84,7 +62,7 @@ void SAI_drawMessageWindow(JpWindow *win) {
             if (count >= line->width) {
                 count = line->width;
             } else {
-                SAI_MESSAGE_BOX.typing = 1;
+                SAI_UI.typing = 1;
             }
             for (j = 0; j < count; j++) {
                 x = j * 12;
@@ -95,7 +73,7 @@ void SAI_drawMessageWindow(JpWindow *win) {
                 drawPageSpriteColored(x + 0x26, line->vramY + 0x19, &uv, rgb.b, GetTPage(0, 0, 0x3C0, 0), line->palettes[j], win->z);
             }
         }
-        if (SAI_MESSAGE_BOX.typing == 1) {
+        if (SAI_UI.typing == 1) {
             break;
         }
     }
@@ -105,14 +83,14 @@ void SAI_drawMessageWindow(JpWindow *win) {
 const char SAI_FMT_GOT_BITS[] = "c6(%s)c7(Ｂｉｔを手に入れた！)";
 
 /* it reads SESSION_DATA's state again for the Bits, where our C reuses the
-   pointer it read the event with */
+   registers it read the text with */
 INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_addTextLine);
 
-MsgLine *SAI_allocTextLine(MsgBox *box) {
+MsgLine *SAI_allocTextLine(SaiUi *ui) {
     MsgLine *line;
     s8 i;
 
-    line = box->lines;
+    line = ui->lines;
     for (i = 0; i < 4; i++, line++) {
         if (line->active == 0) {
             line->active = 1;
@@ -133,7 +111,236 @@ void SAI_clearTextLines(void) {
     s8 i;
 
     for (i = 0; i < 4; i++) {
-        SAI_MESSAGE_BOX.lines[i].active = 0;
+        SAI_UI.lines[i].active = 0;
     }
     ClearImage(&rect, 0, 0, 0);
+}
+
+/* the deck screen's menu and the opponent's deck */
+
+s32 func_8002BD58(JpMenu *menu);
+
+void SAI_clearTextVram(void) {
+    Rect16 rect = { 0x3C0, 0, 0x40, 0x100 };
+
+    ClearImage(&rect, 0, 0, 0);
+}
+
+void SAI_runMenu(void) {
+    JpMenu *menu = &SAI_UI.menu;
+
+    SAI_STATE->regs[15] = 0;
+    while (1) {
+        waitFrames(FRAME_INTERVAL);
+        if (func_8002BD58(menu)) {
+            SAI_STATE->regs[15] = menu->selected + 1;
+            exitTask();
+        }
+    }
+}
+
+/* our C gives the copies and the hoisted card id each other's registers */
+INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_countSpareCopies);
+
+void SAI_doNothing(void) {
+}
+
+void SAI_resolveOpponentDeck(void) {
+    PlayerDeck *deck;
+    s32 i;
+    s32 j;
+
+    deck = &((SessionData *)SESSION_DATA)->opponentDeck;
+    for (i = 0; i < 30; i++) {
+        switch (deck->cards[i].type) {
+        case 0:
+            deck->cards[i].card = (s8 *)(DIGIMON_CARDS + deck->cards[i].index * 0x122);
+            break;
+        case 1:
+            deck->cards[i].card = (s8 *)(OPTION_CARDS + deck->cards[i].index * 0xD4);
+            break;
+        case 2:
+            deck->cards[i].card = (s8 *)(DIGIVOLVE_CARDS + deck->cards[i].index * 0x62);
+            break;
+        }
+    }
+    deck->wins = 0;
+    deck->losses = 0;
+    for (j = 0; j < 3; j++) {
+        deck->attackCounts[j] = 0;
+    }
+}
+
+/* the deck information screen */
+
+typedef struct {
+    /* 0x00 */ s16 specialties[5];
+    /* 0x0A */ s16 options;
+    /* 0x0C */ s16 levels[3];
+    /* 0x12 */ s16 sevens; /* the Sevens cards (option cards 0x23 to 0x29) */
+    /* 0x14 */ u8 inUse;
+    /* 0x15 */ u8 sevensHeld; /* bit n: Sevens card n is in the deck */
+    /* 0x16 */ char name[0xE];
+} DeckSummary;
+
+typedef struct {
+    /* 0x00 */ DeckSummary decks[3];
+    /* 0x6C */ DeckSummary owned; /* the cards the player owns */
+    /* 0x90 */ u8 unk90[4];
+    /* 0x94 */ s32 cardsOwned;
+} DeckInfo;
+
+extern DeckInfo SAI_DECK_INFO;
+extern s32 D_801F7558;
+extern JpWindowDef D_801F645C;
+extern JpGame *D_801E4640;
+extern void D_8002A3E0();
+
+void func_8002B508(JpMenu *, s32, s32, s32, s32);
+void func_8002B188(JpMenu *, s32, void (*)(void));
+void SAI_runMenu(void);
+void SAI_summarizeDeck(DeckSummary *summary, s8 deck);
+void SAI_summarizeOwnedCards(DeckSummary *owned);
+
+u8 *formatSjisNumber(s32 value, s32 width, u8 *dst);
+
+void SAI_drawDeckInfo(JpWindow *win) {
+    Rect16 uv = { 0, 0xE8, 0x10, 0x10 };
+    char line[0x20];
+    u8 count[0x10];
+    u8 total[0x18];
+    s32 tpage;
+    s32 deck;
+    DeckSummary *summary;
+    s32 i;
+    s32 x;
+
+    tpage = GetTPage(1, 0, 0x140, 0);
+    deck = SAI_UI.menu.selected;
+    sprintf(line, "%sデック", SAI_DECK_INFO.decks[deck].name);
+    drawIconText(0x8C, 0x36, 7, 1, win->z, (s32)line);
+    /* 種類別カード枚数 */
+    sprintf(line, "%s", "種類別カード枚数");
+    drawIconText(0x8C, 0x46, 7, 1, win->z, (s32)line);
+    summary = &SAI_DECK_INFO.decks[deck];
+    formatSjisNumber(summary->specialties[0], 2, count);
+    sprintf(line, "a0s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.specialties[0], 3, total));
+    drawIconText(0x8D, 0x52, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->specialties[1], 2, count);
+    sprintf(line, "a1s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.specialties[1], 3, total));
+    drawIconText(0xDA, 0x52, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->specialties[2], 2, count);
+    sprintf(line, "a2s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.specialties[2], 3, total));
+    drawIconText(0x8D, 0x5E, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->specialties[3], 2, count);
+    sprintf(line, "a3s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.specialties[3], 3, total));
+    drawIconText(0xDA, 0x5E, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->specialties[4], 2, count);
+    sprintf(line, "a4s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.specialties[4], 3, total));
+    drawIconText(0x8D, 0x6A, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->options, 2, count);
+    sprintf(line, "a5s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.options, 3, total));
+    drawIconText(0xDA, 0x6A, 7, 1, win->z, (s32)line);
+    /* レベル別カード枚数 */
+    sprintf(line, "%s", "レベル別カード枚数");
+    drawIconText(0x8C, 0x7A, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->levels[0], 2, count);
+    sprintf(line, "e3s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.levels[0], 3, total));
+    drawIconText(0x8D, 0x86, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->levels[1], 2, count);
+    sprintf(line, "e4s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.levels[1], 4, total));
+    drawIconText(0xDA, 0x86, 7, 1, win->z, (s32)line);
+    formatSjisNumber(summary->levels[2], 2, count);
+    sprintf(line, "e5s0w-4%sw0／s0w-4%s", count, formatSjisNumber(SAI_DECK_INFO.owned.levels[2], 4, total));
+    drawIconText(0x8D, 0x92, 7, 1, win->z, (s32)line);
+    formatSjisNumber(SAI_DECK_INFO.cardsOwned, 4, count);
+    /* 総カード枚数　s0w-4%s枚 */
+    sprintf(line, "総カード枚数　s0w-4%s枚", count);
+    drawIconText(0x90, 0xA2, 7, 1, win->z, (s32)line);
+    formatSjisNumber(SAI_DECK_INFO.owned.sevens, 3, count);
+    /* セブンズカード　%s枚 */
+    sprintf(line, "セブンズカード　%s枚", count);
+    drawIconText(0x8C, 0xB2, 7, 1, win->z, (s32)line);
+    x = 0x8D;
+    for (i = 0; i < 7; i++) {
+        if ((SAI_DECK_INFO.decks[deck].sevensHeld >> i) & 1) {
+            drawTexturedSprite(x, 0xC2, &uv, tpage, 0x2B14, win->z, 0x80, -1);
+        }
+        uv.x += 0x10;
+        x += 0x11;
+    }
+}
+
+/* the original keeps the addresses an empty loop over the deck hoisted; ours drops them */
+INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_summarizeDeck);
+
+void SAI_summarizeOwnedCards(DeckSummary *owned) {
+    s32 i;
+
+    owned->specialties[2] = 0;
+    owned->specialties[1] = 0;
+    owned->specialties[0] = 0;
+    owned->options = 0;
+    owned->specialties[4] = 0;
+    owned->specialties[3] = 0;
+    owned->sevens = 0;
+    owned->sevensHeld = 0;
+    SAI_DECK_INFO.cardsOwned = 0;
+    for (i = 0; i < 3; i++) {
+        owned->levels[i] = 0;
+    }
+    for (i = 0; i < 0x6E; i++) {
+        switch (((DigimonCardData *)(DIGIMON_CARDS + i * 0x122))->attr >> 4) {
+        case 0:
+            owned->specialties[0] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+            break;
+        case 1:
+            owned->specialties[1] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+            break;
+        case 2:
+            owned->specialties[2] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+            break;
+        case 3:
+            owned->specialties[3] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+            break;
+        case 4:
+            owned->specialties[4] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+            break;
+        }
+        owned->levels[((DigimonCardData *)(DIGIMON_CARDS + i * 0x122))->attr & 0xF] += (u8)(PLAYER_DATA(0).cardCollection[i] & 0xF);
+        SAI_DECK_INFO.cardsOwned += PLAYER_DATA(0).cardCollection[i] & 0xF;
+    }
+    for (i = 0; i < 0x2B; i++) {
+        owned->options += (u8)(PLAYER_DATA(0).optionCollection[i] & 0xF);
+        SAI_DECK_INFO.cardsOwned += PLAYER_DATA(0).optionCollection[i] & 0xF;
+        if ((u32)(i - 0x23) < 7) {
+            owned->sevens += (u8)(PLAYER_DATA(0).optionCollection[i] & 0xF);
+        }
+    }
+    for (i = 0; i < 6; i++) {
+        owned->options += (u8)(PLAYER_DATA(0).digivolveCollection[i] & 0xF);
+        SAI_DECK_INFO.cardsOwned += PLAYER_DATA(0).digivolveCollection[i] & 0xF;
+    }
+}
+
+void SAI_openDeckInfo(void) {
+    s8 i;
+
+    for (i = 0; i < 3; i++) {
+        SAI_summarizeDeck(&SAI_DECK_INFO.decks[i], i);
+    }
+    SAI_summarizeOwnedCards(&SAI_DECK_INFO.owned);
+    i = 0;
+    spawnTask(0, -1, 0, 0x600, D_8002A3E0, &D_801F645C, getCurrentTaskId());
+    D_801F7558 = waitFrames(0x7FFFFFFF);
+    func_8002B508(&SAI_UI.menu, 0x3B, 0x32, 0, 0);
+    while (i < 3 && SAI_DECK_INFO.decks[i].inUse != 0) {
+        func_8002B188(&SAI_UI.menu, i + 0x39, SAI_runMenu);
+        i++;
+    }
+    spawnTask(0, -1, 0, 0x1000, SAI_runMenu, 0, getCurrentTaskId(), 0, 0);
+}
+
+s8 func_801EDB34(void) {
+    return D_801E4640->unk1BE;
 }

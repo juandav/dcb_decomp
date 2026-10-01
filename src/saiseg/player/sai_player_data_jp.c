@@ -69,6 +69,7 @@ void drawScrollArrow(s32, s32, s32, s32, s32);
 
 void func_801F35CC();
 
+void SAI_findKeyItems(void);
 void SAI_initKeyItemList(void);
 void SAI_drawKeyItemText(JpWindow *win);
 void SAI_drawPlayerData(JpWindow *win);
