@@ -7,7 +7,7 @@
 // automatic names, D_8002A3E0 and the like, keep jp's address in the name),
 // and the automatic names of what jp's executable doesn't have.
 
-func_80014B28 = 0x80014B28; // type:func
+setTaskName = 0x80014B28; // type:func
 getCurrentTaskId = 0x80014B34; // type:func
 spawnTask = 0x80014C3C; // type:func
 endTask = 0x80014C84; // type:func
@@ -65,7 +65,7 @@ rand = 0x8006DE5C; // type:func
 strcpy = 0x8006DFBC; // type:func
 sprintf = 0x8006EB3C; // type:func
 PLAYER_PROFILES = 0x80086018;
-D_800907F8 = 0x800907F8; // size:0x200
+DEBUG_TEXT_LINES = 0x800907F8; // size:0x200
 FRAME_INTERVAL = 0x80090A80;
 CAMERA_TARGET_MODEL = 0x80090B14;
 D_8008CD50 = 0x80094BD8;

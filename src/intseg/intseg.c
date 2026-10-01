@@ -39,14 +39,14 @@ extern u8 *DIGIVOLVE_CARDS;
 
 #if JP_DEBUG_BUILD
 /* the debug code of the executable eu's INTSEG was built against */
-void func_80014B28();
+void setTaskName();
 void func_800184F0();
 void func_80018F5C();
 extern s32 D_801DEBF0;
 /* the debug text's lines */
-extern char D_800907F8[8][0x40];
+extern char DEBUG_TEXT_LINES[8][0x40];
 /* names the task spawned next */
-#define NAME_TASK(name) func_80014B28(0, name)
+#define NAME_TASK(name) setTaskName(0, name)
 #else
 #define NAME_TASK(name)
 #endif
@@ -1046,7 +1046,7 @@ s32 INT_runStoneChoice(void *arg) {
         return 0;
     }
 #if JP_DEBUG_BUILD
-    sprintf(D_800907F8[6], "CUR_X = %d\n", *stone);
+    sprintf(DEBUG_TEXT_LINES[6], "CUR_X = %d\n", *stone);
 #endif
     return 0;
 }
@@ -1210,12 +1210,12 @@ s32 INT_runNameEntry(void *arg) {
         }
     }
 #if JP_DEBUG_BUILD
-    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
-    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
-    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+    sprintf(DEBUG_TEXT_LINES[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(DEBUG_TEXT_LINES[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(DEBUG_TEXT_LINES[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
             kinds[6]);
-    sprintf(D_800907F8[3], "PLACE = %d \n", field);
-    sprintf(D_800907F8[4], "%2x %2x %2x %2x %2x %2x \n", name[0], name[1], name[2], name[3], name[4], name[5]);
+    sprintf(DEBUG_TEXT_LINES[3], "PLACE = %d \n", field);
+    sprintf(DEBUG_TEXT_LINES[4], "%2x %2x %2x %2x %2x %2x \n", name[0], name[1], name[2], name[3], name[4], name[5]);
 #endif
     if (*x == 12) {
         KAW_initCursorShape(state->cursor, 12, 6, 4);
@@ -1337,11 +1337,11 @@ s32 INT_runYearEntry(void *arg) {
         }
     }
 #if JP_DEBUG_BUILD
-    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
-    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
-    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+    sprintf(DEBUG_TEXT_LINES[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(DEBUG_TEXT_LINES[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(DEBUG_TEXT_LINES[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
             kinds[6]);
-    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+    sprintf(DEBUG_TEXT_LINES[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
         KAW_initCursorShape(state->cursor, 12, 6, 4);
@@ -1492,11 +1492,11 @@ s32 INT_runMonthEntry(void *arg) {
         }
     }
 #if JP_DEBUG_BUILD
-    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
-    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
-    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+    sprintf(DEBUG_TEXT_LINES[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(DEBUG_TEXT_LINES[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(DEBUG_TEXT_LINES[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
             kinds[6]);
-    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+    sprintf(DEBUG_TEXT_LINES[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
         KAW_initCursorShape(state->cursor, 12, 6, 4);
@@ -1641,11 +1641,11 @@ s32 INT_runDayEntry(void *arg) {
         }
     }
 #if JP_DEBUG_BUILD
-    sprintf(D_800907F8[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
-    sprintf(D_800907F8[1], "in_xp = %d \n", state->lengths[field]);
-    sprintf(D_800907F8[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
+    sprintf(DEBUG_TEXT_LINES[0], "CUR_X = %d CUR_Y = %d\n", *x, *y);
+    sprintf(DEBUG_TEXT_LINES[1], "in_xp = %d \n", state->lengths[field]);
+    sprintf(DEBUG_TEXT_LINES[2], "%d %d %d %d %d %d %d \n", kinds[0], kinds[1], kinds[2], kinds[3], kinds[4], kinds[5],
             kinds[6]);
-    sprintf(D_800907F8[3], "PLACE = %d \n", field);
+    sprintf(DEBUG_TEXT_LINES[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
         KAW_initCursorShape(state->cursor, 12, 6, 4);
@@ -2280,8 +2280,8 @@ void INT_debugAnimationTask(void) {
         }
         ((Model *)SCENE_3D->models[2])->pos.vx = INT_DEBUG_X;
         ((Model *)SCENE_3D->models[2])->pos.vy = INT_DEBUG_Y;
-        sprintf(D_800907F8[7], "POSTION X.%d Y.%d\n", INT_DEBUG_X, INT_DEBUG_Y);
-        sprintf(D_800907F8[5], INT_FMT_DEBUG_ANIMATION, INT_DEBUG_MODEL, INT_DEBUG_ANIM, INT_DEBUG_LOOP);
+        sprintf(DEBUG_TEXT_LINES[7], "POSTION X.%d Y.%d\n", INT_DEBUG_X, INT_DEBUG_Y);
+        sprintf(DEBUG_TEXT_LINES[5], INT_FMT_DEBUG_ANIMATION, INT_DEBUG_MODEL, INT_DEBUG_ANIM, INT_DEBUG_LOOP);
     }
 }
 
