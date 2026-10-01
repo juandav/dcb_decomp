@@ -1061,19 +1061,19 @@ void runMemcardScreen(void) {
                 MEMCARD_SLOT.port = ((SessionData *)SESSION_DATA)->saves[0].port;
                 MEMCARD_WINDOWS[1]->state = 1;
                 addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
-                addChoiceMenuItem(&screen->menu, 0xC, NIS_runMenuE7CC);
+                addChoiceMenuItem(&screen->menu, 0xC, NIS_runMainMenuTask);
                 screen->scrollMode = 2;
                 MEMCARD_SCREEN.message = 0x2D;
                 MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
             } else if (screen->mode == 7) {
                 screen->scrollMode = 2;
                 if (PLAYER_DATA(0).profileId == PLAYER_DATA(1).profileId) {
-                    addChoiceMenuItem(&screen->menu, 0xB, NIS_runMenuE7CC);
+                    addChoiceMenuItem(&screen->menu, 0xB, NIS_runMainMenuTask);
                     MEMCARD_SCREEN.message = 0x25;
                 } else {
                     MEMCARD_WINDOWS[1]->state = 2;
                     addChoiceMenuItem(&screen->menu, 0xB, doNothingInMemcardScreen);
-                    addChoiceMenuItem(&screen->menu, 0xC, NIS_runMenuE7CC);
+                    addChoiceMenuItem(&screen->menu, 0xC, NIS_runMainMenuTask);
                     MEMCARD_SCREEN.message = 0x2D;
                 }
                 MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
