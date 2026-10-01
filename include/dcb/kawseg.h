@@ -117,7 +117,7 @@ typedef struct {
 #define KAW_TUTORIAL ((TutorialK *)((SessionData *)SESSION_DATA)->unk8)
 
 /* jp's card prize (SessionData.unkC): after a duel against the CPU the
-   player takes one of three of its cards (kaw_prize_jp's func_801FDFC4) */
+   player takes one of three of its cards (kaw_prize_jp's KAW_runCardPrize) */
 typedef struct {
     /* 0x00 */ s32 cards[3]; /* the cards' sprites: 30 + their deck slots */
     /* 0x0C */ Rect16 windows[3];

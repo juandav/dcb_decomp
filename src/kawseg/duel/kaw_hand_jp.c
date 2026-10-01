@@ -21,7 +21,7 @@
 /* the window frame drawn around a text box */
 extern CVECTOR KAW_WINDOW_FRAME_COLORS[];
 /* frames before the Give Up prompt takes a button */
-extern s32 D_801FFB1C;
+extern s32 KAW_GIVE_UP_DELAY;
 
 void KAW_pickCardArtSlot(void) {
     s32 id;
@@ -316,7 +316,7 @@ moved:
 }
 
 /* draws help page `page` at x, y */
-void func_801F8D04(s32 x, s32 y, s32 page) {
+void KAW_drawHelpPage(s32 x, s32 y, s32 page) {
     Rect16 rect;
 
     rect.x = x - 2;
@@ -356,12 +356,12 @@ void KAW_closeCardSelect(s32 player) {
 }
 
 /* select opens and closes the help, circle and cross turn its pages */
-void func_801F8F68(void) {
+void KAW_tickHelp(void) {
     s32 pad;
 
     if (DUEL->helpOpen != 0) {
         pad = DUEL->menuPlayer;
-        func_801F8D04(0x10, 0x14, DUEL->helpPage);
+        KAW_drawHelpPage(0x10, 0x14, DUEL->helpPage);
         if (PAD_STATES[pad]->rawPressed & PAD_CIRCLE) {
             playSoundEffect(0xA2);
             DUEL->helpPage++;
@@ -389,7 +389,7 @@ void func_801F8F68(void) {
 const char KAW_STR_GIVE_UP[40] = "  降参しますか？\n" "c7b0する  b2しない\n" "\0\xA2\xF0\xA3";
 
 /* start opens the Give Up prompt: circle gives up, cross or start closes it */
-void func_801F9144(void) {
+void KAW_tickGiveUpPrompt(void) {
     Rect16 rect;
     s32 pad;
 
@@ -401,7 +401,7 @@ void func_801F9144(void) {
         rect.h = 0x1C;
         drawIconText(0x7C, 0x6C, 6, 1, 0, (s32)KAW_STR_GIVE_UP);
         drawWindowFrame(&rect, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 0);
-        if (D_801FFB1C == 0) {
+        if (KAW_GIVE_UP_DELAY == 0) {
             if (PAD_STATES[pad]->rawPressed & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
                 DUEL->quit = (DUEL->humanPlayer + 2) ^ 1;
@@ -412,7 +412,7 @@ void func_801F9144(void) {
                 DUEL->quit = 0;
             }
         } else {
-            D_801FFB1C--;
+            KAW_GIVE_UP_DELAY--;
         }
     } else if (DUEL->helpOpen == 0 && (u8)DUEL->humanPlayer < 2) {
         pad = DUEL->humanPlayer;
@@ -420,7 +420,7 @@ void func_801F9144(void) {
             playSoundEffect(0xA0);
             DUEL->quit = 1;
             DUEL->menuPlayer = pad;
-            D_801FFB1C = 16;
+            KAW_GIVE_UP_DELAY = 16;
         }
     }
 }

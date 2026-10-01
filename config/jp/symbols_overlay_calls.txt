@@ -61,6 +61,12 @@ KAW_discardDpSlots = 0x801F9B3C; // type:func
 KAW_checkKnockout = 0x801F9C20; // type:func
 OVERLAY_AREA = 0x801EA3E8;
 KAW_drawHandHints = 0x801F8488; // type:func
+KAW_tickHelp = 0x801F8F68; // type:func version-only
+KAW_tickGiveUpPrompt = 0x801F9144; // type:func version-only
+KAW_runCardPrize = 0x801FDFC4; // type:func version-only
+KAW_openTutorialMessage = 0x801FF2C0; // type:func version-only
+KAW_startTutorial = 0x801FEC84; // type:func
+KAW_freeTutorial = 0x801FF0B8; // type:func
 
 // the overlay tasks jp's memory card screen goes on to (memcard_screen.c):
 // (NISSEG's: SAISEG has no function at 0x801F117C)

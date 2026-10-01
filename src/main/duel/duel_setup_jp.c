@@ -8,7 +8,7 @@
    tutorial sets itself up in KAWSEG */
 
 void linkSavedDecks(s32 player);
-void func_801FEC84();
+void KAW_startTutorial();
 
 void initDuelPlayers(s32 isCpuDuel) {
     s32 i;
@@ -56,7 +56,7 @@ void initDuelPlayers(s32 isCpuDuel) {
             PLAYER(1)->cpuRedrawStyle = ((SessionData *)SESSION_DATA)->cpuStyle[2];
             PLAYER(1)->cpuSupportStyle = ((SessionData *)SESSION_DATA)->cpuStyle[3];
         } else {
-            func_801FEC84();
+            KAW_startTutorial();
         }
     }
 }

@@ -39,11 +39,11 @@ void KAW_renderCursor(u8 *cursor, s32 z);
 /* KAWSEG's */
 void KAW_runTurnOrderChoice(s32 mode, s32 deckId);
 void KAW_runVersusIntro(s32 mode, s32 deckId);
-void func_801F8F68(void);
-void func_801F9144(void);
-void func_801FF2C0(void);
-void func_801FDFC4(void);
-void func_801FF0B8(void);
+void KAW_tickHelp(void);
+void KAW_tickGiveUpPrompt(void);
+void KAW_openTutorialMessage(void);
+void KAW_runCardPrize(void);
+void KAW_freeTutorial(void);
 void KAW_runResultScreen();
 extern s32 KAW_RESULT_SCREEN_STATE;
 
@@ -273,9 +273,9 @@ void runDuel(s32 isCpuDuel, s32 parent) {
             DUEL->state++;
         case 0:
             if (timer >= 0x3D) {
-                func_801F9144();
-                func_801F8F68();
-                func_801FF2C0();
+                KAW_tickGiveUpPrompt();
+                KAW_tickHelp();
+                KAW_openTutorialMessage();
             } else {
                 timer++;
             }
@@ -489,7 +489,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
     KAW_freeCursor((s32)DUEL->cursor);
     if (DUEL->tutorial == 0) {
         if (winner == 0 && isCpuDuel != 0) {
-            func_801FDFC4();
+            KAW_runCardPrize();
         }
         if (DUEL->tutorial == 0) {
             /* each deck's record, and the hall of fame's deck */
@@ -508,7 +508,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
         }
     }
     teardownDuelScene();
-    func_801FF0B8();
+    KAW_freeTutorial();
     waitFrames(4);
     stopMusic();
     resumeTask(parent, winner);

@@ -174,7 +174,7 @@ u8 *KAW_TUTORIAL_MESSAGES[120] = {
 
 /* Sets the tutorial up: its message window, opening from the screen's
    centre, and the two fixed decks the players duel with */
-void func_801FEC84(void) {
+void KAW_startTutorial(void) {
     Rect16 rect;
     s32 player;
     s32 i;
@@ -232,7 +232,7 @@ void func_801FEC84(void) {
     }
 }
 
-void func_801FF0B8(void) {
+void KAW_freeTutorial(void) {
     if (DUEL->tutorial != 0) {
         freeHeapBlock(((SessionData *)SESSION_DATA)->unk8);
     }

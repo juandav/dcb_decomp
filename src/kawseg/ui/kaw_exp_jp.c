@@ -13,7 +13,7 @@ extern s16 KAW_TUTORIAL_MESSAGE_POS[][2];
 
 /* copies the tutorial's message into its window, the player's name for each
    'P' */
-void func_801FF100(void) {
+void KAW_formatTutorialMessage(void) {
     u8 *src;
     char *dst;
     s32 i;
@@ -47,13 +47,13 @@ void func_801FF100(void) {
     *dst = 0;
 }
 
-void func_801FF264(UiWindow *window) {
+void KAW_drawTutorialText(UiWindow *window) {
     drawIconText(window->originX + 5, window->originY + 2, 7, 1, window->z, (s32)KAW_TUTORIAL->text);
 }
 
 /* opens the tutorial's message window on its message, closing the one
    shown first */
-void func_801FF2C0(void) {
+void KAW_openTutorialMessage(void) {
     Rect16 rect;
 
     if (DUEL->tutorial == 0) {
@@ -69,7 +69,7 @@ void func_801FF2C0(void) {
     }
     if (DUEL->tutorialOpen == 0) {
         if (DUEL->tutorialVisible != 0) {
-            func_801FF100();
+            KAW_formatTutorialMessage();
             measureText(1, (u8 *)KAW_TUTORIAL->text);
             KAW_TUTORIAL->window.cur.x = KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][0];
             KAW_TUTORIAL->window.cur.y = KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][1];
@@ -87,7 +87,7 @@ void func_801FF2C0(void) {
         DUEL->tutorialClosing = 1;
     }
     if (DUEL->tutorialOpen | DUEL->tutorialVisible) {
-        drawWindow(&KAW_TUTORIAL->window, func_801FF264, 0);
+        drawWindow(&KAW_TUTORIAL->window, KAW_drawTutorialText, 0);
         if (DUEL->tutorialClosing != 0 && KAW_TUTORIAL->window.animDone == 1) {
             DUEL->tutorialOpen = 0;
             DUEL->tutorialClosing = 0;

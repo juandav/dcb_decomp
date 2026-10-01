@@ -5,7 +5,7 @@
 /* jp's KAWSEG data that starts zeroed (kaw_bss.c is us's and eu's); the u8
    arrays are not referenced by any code */
 s32 KAW_SUPPORT_REGISTER = 0;
-s32 D_801FFB1C = 0;
+s32 KAW_GIVE_UP_DELAY = 0;
 POLY_F4 KAW_VS_BAR_POLYS[2] = { { 0 } };
 DR_MODE KAW_VS_BAR_MODES[2] = { { 0 } };
 POLY_FT4 KAW_VS_LOGO_POLYS[2] = { { 0 } };
