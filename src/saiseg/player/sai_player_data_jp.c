@@ -51,9 +51,9 @@ extern KeyItemScreen SAI_KEY_ITEMS;
 extern KeyItem SAI_KEY_ITEM_LIST[15];
 extern void D_8002A3E0();
 extern s32 *D_801E4640;
-extern char *D_8007E5FC[8];
-extern char *D_8007E61C[8];
-extern char *D_8007E63C[8];
+extern char *STR_TAMER_RANKS[8];
+extern char *STR_COLLECTOR_RANKS[8];
+extern char *STR_BATTLE_RANKS[8];
 
 void openKanjiPage(s32, s32);
 void clearKanjiPage(s32);
@@ -474,15 +474,15 @@ void SAI_drawPlayerData(JpWindow *win) {
     y = top + 0x5B;
     /* バトル称号 */
     drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x83o\x83g\x83\x8B\x8F\xCC\x8D\x86");
-    drawIconText(0x91, y, 7, 1, win->z, (s32)D_8007E5FC[PLAYER_DATA(0).tamerRank]);
+    drawIconText(0x91, y, 7, 1, win->z, (s32)STR_TAMER_RANKS[PLAYER_DATA(0).tamerRank]);
     y = top + 0x6B;
     /* コレクト称号 */
     drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x83R\x83\x8C\x83N\x83g\x8F\xCC\x8D\x86");
-    drawIconText(0x91, y, 7, 1, win->z, (s32)D_8007E61C[PLAYER_DATA(0).collectorRank]);
+    drawIconText(0x91, y, 7, 1, win->z, (s32)STR_COLLECTOR_RANKS[PLAYER_DATA(0).collectorRank]);
     y = top + 0x7B;
     /* ２Ｐ対戦称号 */
     drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82Q\x82o\x91\xCE\x90\xED\x8F\xCC\x8D\x86");
-    drawIconText(0x91, y, 7, 1, win->z, (s32)D_8007E63C[PLAYER_DATA(0).battleRank]);
+    drawIconText(0x91, y, 7, 1, win->z, (s32)STR_BATTLE_RANKS[PLAYER_DATA(0).battleRank]);
     y = top + 0x8B;
     /* ＣＯＭ対戦成績 */
     drawIconText(0x2D, y, 6, 1, win->z, (s32)"\x82" "b\x82n\x82l\x91\xCE\x90\xED\x90\xAC\x90\xD1");

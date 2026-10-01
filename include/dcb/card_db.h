@@ -6,19 +6,35 @@
 typedef struct {
     /* 0x00 */ s16 id;
     /* 0x02 */ u8 type;
+#if VERSION_JP
+    /* 0x03 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */
+#elif VERSION_US || VERSION_EU
     /* 0x03 */ char name[0x16];
+#endif
     /* 0x19 */ u8 unk19[0x73];
     /* 0x8C */ s8 supportIcon;
+#if VERSION_JP
+    /* 0x8D */ u8 text[4][0x13];
+#elif VERSION_US || VERSION_EU
     /* 0x8D */ u8 text[4][0x15];
+#endif
     /* 0xE1 */ u8 unkE1;
 } OptionCardData;
 typedef struct {
     /* 0x00 */ s16 id;
     /* 0x02 */ u8 type;
+#if VERSION_JP
+    /* 0x03 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */
+#elif VERSION_US || VERSION_EU
     /* 0x03 */ char name[0x16];
+#endif
     /* 0x19 */ u8 rewardRank;
     /* 0x1A */ s8 effect; /* what the Digivolve Option does (runDuelTurnLoop) */
+#if VERSION_JP
+    /* 0x1B */ u8 text[4][0x13];
+#elif VERSION_US || VERSION_EU
     /* 0x1B */ u8 text[4][0x15];
+#endif
     /* 0x6F */ u8 unk6F;
 } DigivolveCardData;
 

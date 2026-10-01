@@ -124,7 +124,7 @@ void updatePlayerRanks(s32 player) {
         }
     }
     for (i = 0; i < 6; i++) {
-        completedSets = PLAYER_DATA(player).unk515[i] & 0xF;
+        completedSets = PLAYER_DATA(player).digivolveCollection[i] & 0xF;
         if (completedSets != 0) {
             ownedCards += completedSets;
             specialtyCounts[5]++;
