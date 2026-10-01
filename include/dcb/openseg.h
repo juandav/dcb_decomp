@@ -151,15 +151,6 @@ typedef struct {
     u8 unk46[2];
 } MessageWindow;
 
-/* libgpu's POLY_F4 */
-typedef struct {
-    u32 tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    s16 x1, y1;
-    s16 x2, y2;
-    s16 x3, y3;
-} POLY_F4;
 
 extern TextScroll OPEN_INTRO_TEXT;
 /* where the registration and friend screens slide their decorations

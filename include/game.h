@@ -278,6 +278,43 @@ typedef struct {
     u32 tag;
     u8 r0, g0, b0, code;
     s16 x0, y0;
+    s16 x1, y1;
+} LINE_F2;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+} LINE_G2;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+} POLY_F3;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+} POLY_F4;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, p1;
+    s16 x1, y1;
+    u8 r2, g2, b2, p2;
+    s16 x2, y2;
+} POLY_G3;
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
     u8 r1, g1, b1, p1;
     s16 x1, y1;
     u8 r2, g2, b2, p2;

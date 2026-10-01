@@ -6,12 +6,6 @@
 #define PULSE(n) (GRID_PULSE_PHASE + (n) * 12)
 
 typedef struct {
-    u32 tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    s16 x1, y1;
-} LINE_F2;
-typedef struct {
     /* 0x000 */ MATRIX m;
     /* 0x020 */ VECTOR pos;
     /* 0x030 */ SVECTOR rot;
