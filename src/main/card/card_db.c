@@ -413,14 +413,10 @@ void markBuildableOpponentDecks(s32 player) {
 /* picks the 3 reward cards: cards whose rewardRank falls in the pack's range
    for their specialty and level, and with the partners' rewardBonus as percent
    chance, one of them from just above that range */
-#if VERSION_EU
-INCLUDE_ASM("main/nonmatchings/card/card_db", rollRewardCards);
-#elif VERSION_US
 void rollRewardCards(s32 player, s32 pack) {
     DigimonCardData **cards;
     s16 *inRange;
     s16 *nearRange;
-    DigimonCardData **card;
     DigimonCardData **data;
     s16 *in;
     s16 *near;
@@ -430,6 +426,7 @@ void rollRewardCards(s32 player, s32 pack) {
     s32 i;
     s8 upper;
     s8 lower;
+    s32 row;
 
     clearCollectionFirstObtainedFlags(player);
     cards = allocTaskHeapBlock(0x4B4);
@@ -445,19 +442,18 @@ void rollRewardCards(s32 player, s32 pack) {
     nearCount = 0;
     in = inRange;
     near = nearRange;
-    card = cards;
+    data = cards;
     for (i = 0; i < 0x12D; i++) {
-        upper = -1;
-        *in = upper;
-        *near = upper;
+        *in = -1;
+        *near = -1;
         if (i < 0xBF) {
-            *card = &((DigimonCardData *)DIGIMON_CARDS)[i];
+            *data = &((DigimonCardData *)DIGIMON_CARDS)[i];
         } else if (i < 0x125) {
-            *card = (DigimonCardData *)&((OptionCardData *)OPTION_CARDS)[i - 0xBF];
+            *data = (DigimonCardData *)&((OptionCardData *)OPTION_CARDS)[i - 0xBF];
         } else {
-            *card = (DigimonCardData *)&((DigivolveCardData *)DIGIVOLVE_CARDS)[i - 0x125];
+            *data = (DigimonCardData *)&((DigivolveCardData *)DIGIVOLVE_CARDS)[i - 0x125];
         }
-        card++;
+        data++;
         in++;
         near++;
     }
@@ -469,19 +465,19 @@ void rollRewardCards(s32 player, s32 pack) {
         lower = 0;
         switch ((s8)(*data)->type) {
         case 0:
-            upper = 0;
+            row = 0;
             switch ((*data)->attr & 0xF) {
             case 0:
-                upper = 2;
+                row = 2;
                 break;
             case 2:
-                upper = 1;
+                row = 1;
                 break;
             case 3:
-                upper = 0;
+                row = 0;
                 break;
             }
-            upper = REWARD_CARD_RANGES[pack][(*data)->attr >> 4][upper];
+            upper = REWARD_CARD_RANGES[pack][(*data)->attr >> 4][row];
             lower = 0;
             if (upper < 0) {
                 lower = abs(upper);
@@ -517,9 +513,6 @@ void rollRewardCards(s32 player, s32 pack) {
     freeHeapBlock(inRange);
     freeHeapBlock(nearRange);
 }
-#else
-#error "main/card/card_db: version not checked"
-#endif
 
 void addRewardCardsToCollection(s32 player) {
     s32 i;

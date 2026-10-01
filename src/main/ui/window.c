@@ -359,14 +359,15 @@ void clipRectToBounds(Rect16 *rect, Rect16 *bounds) {
     }
 }
 
-#if VERSION_EU
-/* eu: divides in each branch and subtracts after the join; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/ui/window", stepWindowAnimation);
-#elif VERSION_US
+#if VERSION_US || VERSION_EU
 s32 stepWindowAnimation(UiWindow *w) {
     s32 remaining;
+#if VERSION_US
     s32 dx;
     s32 dy;
+#elif VERSION_EU
+    s32 rounded; /* one temporary for both axes */
+#endif
     s32 delta;
     s32 ox;
     s32 oy;
@@ -377,15 +378,25 @@ s32 stepWindowAnimation(UiWindow *w) {
     if (delta < 0) {
         w->from.x = w->cur.x - delta * remaining / (s8)w->animFrames;
     } else {
+#if VERSION_US
         dx = delta * remaining - 1;
         w->from.x = w->cur.x - (dx + (s8)w->animFrames) / (s8)w->animFrames;
+#elif VERSION_EU
+        rounded = delta * remaining - 1;
+        w->from.x = w->cur.x - (rounded + (s8)w->animFrames) / (s8)w->animFrames;
+#endif
     }
     delta = w->delta.y;
     if (delta < 0) {
         w->from.y = w->cur.y - delta * remaining / (s8)w->animFrames;
     } else {
+#if VERSION_US
         dy = delta * remaining - 1;
         w->from.y = w->cur.y - (dy + (s8)w->animFrames) / (s8)w->animFrames;
+#elif VERSION_EU
+        rounded = delta * remaining - 1;
+        w->from.y = w->cur.y - (rounded + (s8)w->animFrames) / (s8)w->animFrames;
+#endif
     }
     w->from.w = w->cur.w - w->delta.w * remaining / (s8)w->animFrames;
     w->from.h = w->cur.h - w->delta.h * remaining / (s8)w->animFrames;

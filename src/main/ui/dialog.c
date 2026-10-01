@@ -93,17 +93,11 @@ s32 runDialogForPad(void *dialog, s32 pad) {
     return ((Dialog *)dialog)->choice;
 }
 
-#if VERSION_EU
-/* eu: keeps two more addresses in registers across its loops; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/ui/dialog", dialogTask);
-#elif VERSION_US
 void dialogTask(Dialog *dialog, s32 parentTask) {
     Rect16 r;
-    s32 x;
-    s32 width;
-    u16 closeButtons;
-    PadState **pads;
-    s32 on;
+    s16 x;
+    s16 width;
+    s16 closeButtons;
 
     PAD_INPUT_ENABLED = 0;
     if (dialog->choice == 1) {
@@ -118,9 +112,7 @@ void dialogTask(Dialog *dialog, s32 parentTask) {
     r.w = width;
     r.h = 12;
     setCursorHighlight(&dialog->cursor, &r, (Bytes4 *)-1);
-    pads = PAD_STATES;
-    on = 1;
-    do {
+    for (;;) {
         waitFrames(FRAME_INTERVAL);
         drawWindow(&dialog->win, drawDialogBody, 0);
         if (dialog->onFrame != 0) {
@@ -136,36 +128,33 @@ void dialogTask(Dialog *dialog, s32 parentTask) {
         } else {
             closeButtons = PAD_CROSS;
         }
-        if (pads[dialog->pad]->rawPressed & closeButtons) {
-            break;
+        if ((PAD_STATES[dialog->pad]->rawPressed & closeButtons) || dialog->closed != 0) {
+            if (dialog->closed != 0) {
+                dialog->choice = 3;
+            } else if (PAD_STATES[dialog->pad]->rawPressed & PAD_TRIANGLE) {
+                dialog->choice = 0;
+                dialog->closed = 1;
+                playMenuSound(0);
+            } else {
+                dialog->closed = 1;
+                playMenuSound(1);
+            }
+            /* close the window and keep drawing until the animation ends */
+            animateWindowTo(&dialog->win, (Rect16 *)-1);
+            do {
+                waitFrames(FRAME_INTERVAL);
+                drawWindow(&dialog->win, drawDialogBody, 0);
+                if (dialog->onFrame != 0) {
+                    dialog->onFrame();
+                }
+            } while (dialog->win.animDone == 0);
+            PAD_INPUT_ENABLED = 1;
+            resumeTask(parentTask, dialog->choice);
+            exitTask();
+            return;
         }
-    } while (dialog->closed == 0);
-    if (dialog->closed != 0) {
-        dialog->choice = 3;
-    } else if (pads[dialog->pad]->rawPressed & PAD_TRIANGLE) {
-        dialog->choice = 0;
-        dialog->closed = on;
-        playMenuSound(0);
-    } else {
-        dialog->closed = on;
-        playMenuSound(1);
     }
-    /* close the window and keep drawing until the animation ends */
-    animateWindowTo(&dialog->win, (Rect16 *)-1);
-    do {
-        waitFrames(FRAME_INTERVAL);
-        drawWindow(&dialog->win, drawDialogBody, 0);
-        if (dialog->onFrame != 0) {
-            dialog->onFrame();
-        }
-    } while (dialog->win.animDone == 0);
-    PAD_INPUT_ENABLED = 1;
-    resumeTask(parentTask, dialog->choice);
-    exitTask();
 }
-#else
-#error "main/ui/dialog: version not checked"
-#endif
 
 void drawDialogBody(Dialog *dialog) {
     Rect16 r;
