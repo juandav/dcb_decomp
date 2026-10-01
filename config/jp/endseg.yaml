@@ -54,7 +54,13 @@ segments:
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x0, rodata, endseg]
+      # jp links OPENSEG's movie player into ENDSEG
+      - [0x518, .rodata, title/open_movie]
       - [0x52C, asm, endseg]
+      - [0x2784, c, title/open_movie]
       - [0x3534, data, endseg]
+      - [0x35DC, .data, title/open_movie]
+      # the data ENDSEG starts with zeroed: endseg's, then the movie player's
+      - [0x361C, data, end_bss]
 
   - [0x3714]

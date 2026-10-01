@@ -6,6 +6,7 @@
 #include "dcb/vblank.h"
 #include "dcb/pad.h"
 #include "dcb/openseg.h"
+#include "dcb/render_loop.h"
 
 typedef struct {
     SpuVolume volume;
@@ -103,6 +104,24 @@ void OPEN_uploadMovieSlice(void);
 void OPEN_waitMovieFrame(DecEnv *env, s32 unused);
 void OPEN_runMovieRenderLoop();
 
+/* jp links the movie player into ENDSEG and has five movies */
+#if VERSION_JP
+/* the vblank count when each frame was shown, and the vblanks since the last */
+extern s32 OPEN_MOVIE_VSYNC;
+extern s32 OPEN_MOVIE_VSYNC_DELTA;
+extern s32 OPEN_MOVIE_LAST_VSYNC;
+
+const MovieHeights OPEN_MOVIE_HEIGHTS = { { 0xA0, 0xF0, 0xF0, 0xA0, 0xB0 } };
+
+/* the movies */
+Movie OPEN_MOVIES[5] = {
+    { 0, 0, 0x11C1 },
+    { 1, 0x5910, 0xD34 },
+    { 2, 0xDDA8, 0x52 },
+    { 3, 0xE130, 0x11E5 },
+    { 4, 0x13AF0, 0x117D },
+};
+#elif VERSION_US || VERSION_EU
 /* not referenced by any code */
 const s32 D_801DDF38 = 8;
 
@@ -114,6 +133,9 @@ Movie OPEN_MOVIES[3] = {
     { 1, 0x3A18, 0x717 },
     { 2, 0x8190, 0x52 },
 };
+#else
+#error "openseg/title/open_movie: version not checked"
+#endif
 
 s32 OPEN_MOVIE_HEIGHT = 0xB0;
 
@@ -136,6 +158,9 @@ void OPEN_clearScreen(s32 r, s32 g, s32 b) {
     rect.w = 480;
     rect.h = 480;
     ClearImage(&rect, (u8)r, (u8)g, (u8)b);
+#if VERSION_JP
+    DrawSync(0);
+#endif
 }
 
 void OPEN_muteCdAudio(void) {
@@ -223,6 +248,11 @@ void OPEN_showMovieFrame(FrameBuffer *fb, s32 bufferIndex) {
     rect.h = OPEN_MOVIE_HEIGHT;
     copy = rect;
     StRingStatus(&OPEN_RING_FREE_SECTORS, &OPEN_RING_OVER_SECTORS);
+#if VERSION_JP
+    OPEN_MOVIE_VSYNC = VSync(-1);
+    OPEN_MOVIE_VSYNC_DELTA = OPEN_MOVIE_VSYNC - OPEN_MOVIE_LAST_VSYNC;
+    OPEN_MOVIE_LAST_VSYNC = OPEN_MOVIE_VSYNC;
+#endif
     if (OPEN_MOVIE_STARTED != 0 || bufferIndex != 0) {
         OPEN_MOVIE_STARTED = 1;
         OPEN_MOVIE_BUFFER_INDEX = bufferIndex;
@@ -283,7 +313,9 @@ void OPEN_initMovieStream(CdLocation *loc, void (*callback)()) {
     DecDCTReset(0);
     DecDCToutCallback(callback);
     StSetRing(OPEN_STREAM_RING, 0x40);
+#if VERSION_US || VERSION_EU
     StClearRing();
+#endif
     StSetStream(1, 1, -1, 0, 0);
     OPEN_startCdStream(loc);
 }
@@ -395,6 +427,50 @@ void OPEN_startCdStream(CdLocation *loc) {
 }
 
 /* main declares it s32 (dcb/overlay_calls.h); nothing is returned */
+#if VERSION_JP
+/* clears the whole of VRAM's two frame buffers to black */
+void OPEN_clearVram(void) {
+    Rect16 rect;
+
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = 480;
+    rect.h = 512;
+    ClearImage(&rect, 0, 0, 0);
+    DrawSync(0);
+}
+
+/* jp shows the movie through the executable's render loop */
+s32 OPEN_playMovie(s32 index) {
+    MovieHeights movie = OPEN_MOVIE_HEIGHTS;
+    s32 wait;
+
+    endTask(0x1F);
+    waitFrames(FRAME_INTERVAL);
+    OPEN_clearVram();
+    resetDisplay(320, 240, 1);
+    ((Graphics *)&GRAPHICS)->displayStartCounter = 0;
+    ((Graphics *)&GRAPHICS)->vblanksPerFrame = 2;
+    spawnTask(0x1F, 0, 0, 0x1000, runRenderLoop);
+    waitFrames(60);
+    OPEN_startMovie(OPEN_MOVIES[index].sector, OPEN_MOVIES[index].endFrame, 0x3FFF, 1, movie.heights[index]);
+    while (!(PAD_STATES[0]->rawRepeat & 0x800) && OPEN_MOVIE_ENDED == 0) {
+        yieldTask();
+    }
+    wait = 30;
+    while (!(PAD_STATES[0]->rawRepeat & 0x860)) {
+        if (--wait == -1) {
+            break;
+        }
+        yieldTask();
+    }
+    endTask(0x1F);
+    OPEN_clearVram();
+    OPEN_stopMovie();
+    resetDisplay(320, 240, 0);
+    waitFrames(0x3C);
+}
+#elif VERSION_US || VERSION_EU
 s32 OPEN_playMovie(s32 index) {
     MovieHeights movie = OPEN_MOVIE_HEIGHTS;
     s32 wait;
@@ -464,3 +540,4 @@ void OPEN_runMovieRenderLoop(void) {
         VBLANK_COUNTER = 0;
     }
 }
+#endif
