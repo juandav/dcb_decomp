@@ -85,8 +85,9 @@ segments:
       - [0xDD4, rodata, gfx/scroll_bg]
       - [0xE94, rodata, duel/duel]
       - [0x1008, .rodata, duel/cpu_decision]
-      # the rodata of duel_util and of the asm modules after it, up to memcard
-      - [0x1028, rodata, duel/duel_util]
+      # the rodata of the asm modules after duel_util (which has none), up to
+      # memcard
+      - [0x1028, rodata, duel/card_motion]
       - [0x1864, .rodata, system/memcard]
       # the rodata of the asm modules after memcard, up to battle_hud
       - [0x1884, rodata, ui/dialog]
@@ -94,7 +95,6 @@ segments:
       - [0x2768, rodata, card/card_db]
       - [0x2768, rodata, card/card_render]
       - [0x2768, rodata, duel/battle_hud]
-      - [0x2768, rodata, duel/card_motion]
       - [0x2768, rodata, duel/duel_session]
       - [0x2768, rodata, duel/hud_panels]
       - [0x2768, rodata, psyq]
@@ -150,8 +150,10 @@ segments:
       - [0x23048, asm, model/effect_prims]
       - [0x26D60, c, duel/cpu_decision]
       # with a function of jp's own before duel_util's
-      - [0x26F5C, asm, duel/duel_util]
-      - [0x29064, asm, duel/card_motion]
+      - [0x26F5C, c, duel/duel_util_jp]
+      # jp's waitForStatCountersToSettle and drawHudPanelContents (battle_hud's
+      # in us) come right after duel_util
+      - [0x27478, asm, duel/card_motion]
       - [0x2EDF8, asm, duel/hud_panels]
       - [0x2F79C, asm, duel/duel_session]
       - [0x30D10, asm, duel/duel_setup]
