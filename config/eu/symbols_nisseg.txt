@@ -21,6 +21,20 @@ NIS_startVsDeckSelect = 0x801EC6E4; // type:func version-only
 NIS_runMainMenu = 0x801ED86C; // type:func version-only
 
 // debug/nis_debug_menu
+NIS_STR_RANDOM = 0x801E7018; // size:0x10 version-only
+NIS_fillRandomDeck = 0x801F89C4; // type:func version-only
+NIS_testRandomDeck = 0x801F8BE0; // type:func version-only
+NIS_resumeParentTask = 0x801F8C18; // type:func version-only
+NIS_testCardDetails = 0x801F8C38; // type:func version-only
+NIS_testDeckScene = 0x801F8CB8; // type:func version-only
+NIS_initCardDetailsTest = 0x801F8D34; // type:func version-only
+NIS_initDeckNameTest = 0x801F8E10; // type:func version-only
+NIS_testTitleBackground = 0x801F8E3C; // type:func version-only
+NIS_testChoiceMenu = 0x801F8E84; // type:func version-only
+NIS_testWindow = 0x801F8F44; // type:func version-only
+NIS_DECK_EDIT_MENU_ITEMS = 0x801F9228; // size:0x100 version-only
+NIS_DECK_EDIT_MENU = 0x801F9328; // size:0x28 version-only
+NIS_SUGANO_MENU_ITEMS = 0x801F9350; // size:0x40 version-only
 NIS_SUGANO_MENU = 0x801F9390; // size:0x28 version-only
 
 // vs/nis_vs_deck_select

@@ -20,38 +20,38 @@ void NIS_writeCardDetails(s32 type, s32 index);
 void NIS_openDeckScene(s32 modelId);
 void NIS_closeDeckScene(void);
 
-void func_801F8BE0(NisDebugMenu *menu, s32 parentTask);
-void func_801F8C38(NisDebugMenu *menu, s32 parentTask);
-void func_801F8CB8(NisDebugMenu *menu, s32 parentTask);
-void func_801F8E3C(NisDebugMenu *menu, s32 parentTask);
-void func_801F8E84(NisDebugMenu *menu, s32 parentTask);
-void func_801F8F44(NisDebugMenu *menu, s32 parentTask);
+void NIS_testRandomDeck(NisDebugMenu *menu, s32 parentTask);
+void NIS_testCardDetails(NisDebugMenu *menu, s32 parentTask);
+void NIS_testDeckScene(NisDebugMenu *menu, s32 parentTask);
+void NIS_testTitleBackground(NisDebugMenu *menu, s32 parentTask);
+void NIS_testChoiceMenu(NisDebugMenu *menu, s32 parentTask);
+void NIS_testWindow(NisDebugMenu *menu, s32 parentTask);
 
-extern NisDebugMenu D_801F9328;
+extern NisDebugMenu NIS_DECK_EDIT_MENU;
 
 /* each item's value is the deck, the card, the model or the window to try */
-NisDebugMenuItem D_801F9228[8] = {
-    { func_801F8BE0, &D_801F9328, 0x400, 0, 0, 2, 1, "RANDOM DECK" },
-    { func_801F8C18, &D_801F9328, 0x1000, 0, 0, 2, 1, "DECK DISP" },
-    { func_801F8C38, &D_801F9328, 0x1000, 0, 0, 0x1D, 1, "DECK DISP" },
-    { func_801F8CB8, &D_801F9328, 0x800, 0, 0, 0xC8, 1, "MODEL TEST" },
-    { func_801F8E3C, &D_801F9328, 0x800, 0, 0, 0, 0, "TITLE TEST" },
-    { func_801F8E84, &D_801F9328, 0x800, 0, 0, 0, 0, "CMDE TEST" },
-    { func_801F8F44, &D_801F9328, 0x800, 0, 0, 0x63, 1, "WINDOW TEST" },
+NisDebugMenuItem NIS_DECK_EDIT_MENU_ITEMS[8] = {
+    { NIS_testRandomDeck, &NIS_DECK_EDIT_MENU, 0x400, 0, 0, 2, 1, "RANDOM DECK" },
+    { NIS_resumeParentTask, &NIS_DECK_EDIT_MENU, 0x1000, 0, 0, 2, 1, "DECK DISP" },
+    { NIS_testCardDetails, &NIS_DECK_EDIT_MENU, 0x1000, 0, 0, 0x1D, 1, "DECK DISP" },
+    { NIS_testDeckScene, &NIS_DECK_EDIT_MENU, 0x800, 0, 0, 0xC8, 1, "MODEL TEST" },
+    { NIS_testTitleBackground, &NIS_DECK_EDIT_MENU, 0x800, 0, 0, 0, 0, "TITLE TEST" },
+    { NIS_testChoiceMenu, &NIS_DECK_EDIT_MENU, 0x800, 0, 0, 0, 0, "CMDE TEST" },
+    { NIS_testWindow, &NIS_DECK_EDIT_MENU, 0x800, 0, 0, 0x63, 1, "WINDOW TEST" },
     { NIS_runMainMenu, NULL, 0x800, 0, 0, 0, 0, "GAME START" },
 };
-NisDebugMenu D_801F9328 = { D_801F9228, 0, NIS_loadDeckTims, 0, 0x18, 0x28, 8, 8, { 0 }, "DECK EDIT" };
+NisDebugMenu NIS_DECK_EDIT_MENU = { NIS_DECK_EDIT_MENU_ITEMS, 0, NIS_loadDeckTims, 0, 0x18, 0x28, 8, 8, { 0 }, "DECK EDIT" };
 
 /* Sugano's menu: the deck menu above ("deck editing") and the model viewer */
-NisDebugMenuItem D_801F9350[2] = {
-    { func_8002D15C, &D_801F9328, 0x400, 0, 0, 0, 0, "ﾃﾞｯｷﾍﾝｼｭｳ" },
+NisDebugMenuItem NIS_SUGANO_MENU_ITEMS[2] = {
+    { func_8002D15C, &NIS_DECK_EDIT_MENU, 0x400, 0, 0, 0, 0, "ﾃﾞｯｷﾍﾝｼｭｳ" },
     { NIS_testModelViewer, NULL, 0x400, 0, 0, 0, 0, "MODEL VIEW" },
 };
-NisDebugMenu NIS_SUGANO_MENU = { D_801F9350, 0, NULL, 0, 0x10, 0x20, 2, 2, { 0 }, "SUGMENU" };
+NisDebugMenu NIS_SUGANO_MENU = { NIS_SUGANO_MENU_ITEMS, 0, NULL, 0, 0x10, 0x20, 2, 2, { 0 }, "SUGMENU" };
 
 /* fills saved deck `slot` of player 1 with 30 random cards, named "random",
    and gives the player a copy of each */
-void func_801F89C4(s32 slot) {
+void NIS_fillRandomDeck(s32 slot) {
     /* "ランダム" padded with two ideographic spaces, and the leftover bytes
        after it */
     static const char name[16] = "ランダム　　\0\0\a.";
@@ -81,20 +81,20 @@ void func_801F89C4(s32 slot) {
 }
 
 /* RANDOM DECK: a random deck in the chosen slot */
-void func_801F8BE0(NisDebugMenu *menu, s32 parentTask) {
-    func_801F89C4(menu->items[0].value);
+void NIS_testRandomDeck(NisDebugMenu *menu, s32 parentTask) {
+    NIS_fillRandomDeck(menu->items[0].value);
     resumeTask(parentTask);
 }
 
 /* the first DECK DISP, which only picks the deck for the second, and the
    WINDOW TEST of the deck summary: nothing to do */
-void func_801F8C18(NisDebugMenu *menu, s32 parentTask) {
+void NIS_resumeParentTask(NisDebugMenu *menu, s32 parentTask) {
     resumeTask(parentTask);
 }
 
 /* the second DECK DISP: the chosen card of the chosen deck in the card
    details */
-void func_801F8C38(NisDebugMenu *menu, s32 parentTask) {
+void NIS_testCardDetails(NisDebugMenu *menu, s32 parentTask) {
     NisDeck *deck;
 
     deck = &NIS_PROFILE(0)->savedDecks[menu->items[1].value];
@@ -104,7 +104,7 @@ void func_801F8C38(NisDebugMenu *menu, s32 parentTask) {
 
 /* MODEL TEST: the deck screens' scene with the chosen model, until the task
    it starts resumes this one */
-void func_801F8CB8(NisDebugMenu *menu, s32 parentTask) {
+void NIS_testDeckScene(NisDebugMenu *menu, s32 parentTask) {
     NIS_openDeckScene(menu->items[3].value);
     spawnTask(0, -1, 0, 0x1000, func_801FFBE0, 0, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
@@ -114,7 +114,7 @@ void func_801F8CB8(NisDebugMenu *menu, s32 parentTask) {
 
 /* the WINDOW TEST of the card details: the chosen card of the chosen deck,
    and its model if it is a Digimon */
-void func_801F8D34(NisDebugMenu *menu, s32 parentTask) {
+void NIS_initCardDetailsTest(NisDebugMenu *menu, s32 parentTask) {
     NisDeck *deck;
 
     deck = &NIS_PROFILE(0)->savedDecks[menu->items[1].value];
@@ -125,13 +125,13 @@ void func_801F8D34(NisDebugMenu *menu, s32 parentTask) {
 }
 
 /* the WINDOW TEST of the deck name: the chosen deck's */
-void func_801F8E10(NisDebugMenu *menu, s32 parentTask) {
+void NIS_initDeckNameTest(NisDebugMenu *menu, s32 parentTask) {
     NIS_writeDeckName(menu->items[1].value);
 }
 
 /* TITLE TEST: the title's scrolling background, until something resumes
    this task */
-void func_801F8E3C(NisDebugMenu *menu, s32 parentTask) {
+void NIS_testTitleBackground(NisDebugMenu *menu, s32 parentTask) {
     loadScrollingBackground(8, 0);
     showScrollingBackground();
     waitFrames(0x7FFFFFFF);
@@ -139,7 +139,7 @@ void func_801F8E3C(NisDebugMenu *menu, s32 parentTask) {
 }
 
 /* CMDE TEST: a menu of four choices that do nothing */
-void func_801F8E84(NisDebugMenu *menu, s32 parentTask) {
+void NIS_testChoiceMenu(NisDebugMenu *menu, s32 parentTask) {
     NisMenu choices;
 
     D_801DEBF0 = 0;
@@ -158,7 +158,7 @@ void func_801F8E84(NisDebugMenu *menu, s32 parentTask) {
 
 /* WINDOW TEST: the chosen window of the deck screens, which Square, Triangle
    and Cross pass a state to; Cross closes it */
-void func_801F8F44(NisDebugMenu *menu, s32 parentTask) {
+void NIS_testWindow(NisDebugMenu *menu, s32 parentTask) {
     NisWindowTest *test;
     NisWindow *window;
 
