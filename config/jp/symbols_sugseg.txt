@@ -1,5 +1,10 @@
 // SUGSEG's own symbols, which only its splat config reads
 
+// alternate entry points of the executable's __subsf3 (libmath): GCC calls
+// them for float additions and divisions
+__addsf3 = 0x80022CBC; // type:func
+__divsf3 = 0x80022ECC; // type:func
+
 // names from us (tools/match_versions.py --seed): the same function or datum
 SUG_createPosHistory = 0x801EA8FC; // type:func
 SUG_fillPosHistory = 0x801EA9E8; // type:func
