@@ -45,17 +45,17 @@ KAWSEG_C_SRC := \
 		kaw_tutorial.c) \
 	src/kawseg/kaw_bss.c \
 	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_hud.c \
-		kaw_prize.c kaw_result.c)
+		kaw_match_intro.c kaw_prize.c kaw_result.c)
 OPENSEG_C_SRC := \
-	src/openseg/friend/open_friend.c \
-	src/openseg/memcard/open_memcard.c \
+	$(addprefix src/openseg/friend/, open_friend.c open_trade.c) \
+	$(addprefix src/openseg/memcard/, open_memcard.c open_save.c) \
 	src/openseg/open_bss.c \
 	$(addprefix src/openseg/registration/, open_name_entry.c \
 		open_registration.c open_starter.c) \
 	src/openseg/title/open_movie.c
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
-		sai_splash.c) \
+		sai_opponent_select.c sai_splash.c) \
 	$(addprefix src/saiseg/hacking/, sai_hacking.c sai_word_input.c) \
 	src/saiseg/map/sai_world_map.c \
 	$(addprefix src/saiseg/player/, sai_digi_parts.c sai_partner_get.c \

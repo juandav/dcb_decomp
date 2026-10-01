@@ -18,7 +18,6 @@ typedef struct {
 } SaveBlock;
 
 extern s16 SAI_SELECT_DELAYS[6];
-extern s32 SAI_SELECT_BLINK[6];
 extern s8 SAI_SELECT_SELECTED;
 extern u8 SAI_SELECT_EMPTY_BLINK[6];
 extern s8 SAI_SELECT_STATE;
@@ -27,7 +26,6 @@ extern s32 SAI_SELECT_PROGRESS[6];
 void SAI_tickOpponentSelectInput(void) {
     s8 card;
     s32 i;
-    s32 *timers;
 
     if (PAD_STATES[0]->pressed & (PAD_UP | PAD_DOWN)) {
         SAI_AREA.select.selected += 3;
@@ -60,13 +58,8 @@ void SAI_tickOpponentSelectInput(void) {
                 } else {
                     SAI_AREA.select.page++;
                 }
-                i = 0;
-                timers = SAI_SELECT_BLINK;
-            loop:
-                timers[i] = rand() % 30 + 30;
-                i++;
-                if (i < 6) {
-                    goto loop;
+                for (i = 0; i < 6; i++) {
+                    SAI_AREA.select.blink[i] = rand() % 30 + 30;
                 }
                 playSoundEffect(0);
             } else if (card >= 0 && card < 16) {
@@ -85,20 +78,15 @@ void SAI_tickOpponentSelectInput(void) {
 }
 
 void SAI_randomizeOpponentDelays(void) {
-    s32 i = 0;
-    s16 *values = SAI_SELECT_DELAYS;
+    s32 i;
 
-loop:
-    values[i] = rand() % 30;
-    i++;
-    if (i < 6) {
-        goto loop;
+    for (i = 0; i < 6; i++) {
+        SAI_AREA.select.delay[i] = rand() % 30;
     }
 }
 
 void SAI_initOpponentSelect(void) {
     Rect16 rect;
-    AreaState *ctx;
     s32 i;
 
     for (i = 0; i < 6; i++) {
@@ -109,11 +97,11 @@ void SAI_initOpponentSelect(void) {
         SAI_SPRITES[i + 31]->pos.vy = -0x57;
         SAI_setSpriteBlendMode(SAI_SPRITES[i + 31], 1);
     }
-    for (i = 0, ctx = &SAI_AREA; i < 6; i++) {
-        ctx->select.delay[i] = rand() % 30;
-        ctx->select.progress[i] = 0;
-        ctx->select.emptyBlink[i] = 0;
-        SAI_SELECT_BLINK[i] = rand() % 30 + 50;
+    for (i = 0; i < 6; i++) {
+        SAI_AREA.select.delay[i] = rand() % 30;
+        SAI_AREA.select.progress[i] = 0;
+        SAI_AREA.select.emptyBlink[i] = 0;
+        SAI_AREA.select.blink[i] = rand() % 30 + 50;
     }
     for (i = 0; i < 6; i++) {
         SAI_SPRITES[i + 37] = SAI_createSprite(0x3A);
@@ -178,6 +166,10 @@ void SAI_freeOpponentSelect(void) {
     SAI_clearOpponents();
 }
 
+#if VERSION_EU
+/* eu: keeps the portraits' height 0x24 in a register; no C form found yet */
+INCLUDE_ASM("saiseg/nonmatchings/area/sai_opponent_select", SAI_updateOpponentPortraits);
+#elif VERSION_US
 void SAI_updateOpponentPortraits(void) {
     Rect16 rect;
     s32 i;
@@ -189,11 +181,11 @@ void SAI_updateOpponentPortraits(void) {
 
     for (i = 0; i < 6; i++) {
         page = SAI_AREA.select.page;
-        cards = SAI_OPPONENT_IDS;
+        cards = SAI_OPPONENTS.ids;
         card = cards[page * 6 + i];
         if (card != -1) {
-            if (SAI_SELECT_BLINK[i] > 0) {
-                if (SAI_SELECT_BLINK[i] & 4) {
+            if (SAI_AREA.select.blink[i] > 0) {
+                if (SAI_AREA.select.blink[i] & 4) {
                     rect.x = 0x318;
                 } else {
                     rect.x = 0x323;
@@ -226,7 +218,7 @@ void SAI_updateOpponentPortraits(void) {
                 rect.w = 0x3F;
                 rect.h = 0x38;
                 SAI_setSpriteImage8Bit(SAI_SPRITES[i + 37], &rect, 0);
-                SAI_SELECT_BLINK[i] = 0;
+                SAI_AREA.select.blink[i] = 0;
                 SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x280, 0x1FB);
                 SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x280, 0x1FB);
             }
@@ -238,6 +230,9 @@ void SAI_updateOpponentPortraits(void) {
         SAI_SPRITES[i + 37]->pos.vy = SAI_SPRITES[i + 31]->pos.vy - 1;
     }
 }
+#else
+#error "saiseg/area/sai_opponent_select: version not checked"
+#endif
 
 void SAI_zoomOpponentPortrait(void) {
     Rect16 rect;
@@ -267,7 +262,9 @@ void SAI_zoomOpponentPortrait(void) {
         if (i == SAI_AREA.select.selected) {
             SAI_SPRITES[i + 31]->pos.vx = (SAI_AREA.select.zoom * 108 + ((i % 3) * 55 - 46) * (20 - SAI_AREA.select.zoom)) / 20;
             SAI_SPRITES[i + 31]->pos.vy = (SAI_AREA.select.zoom * 21 + ((i / 3) * 50 - 43) * (20 - SAI_AREA.select.zoom)) / 20;
-            SAI_setSpriteSize(SAI_SPRITES[i + 31], (SAI_AREA.select.zoom * 80 + (20 - SAI_AREA.select.zoom) * 56) / 20, (SAI_AREA.select.zoom * 70 + (20 - SAI_AREA.select.zoom) * 48) / 20);
+            w = (SAI_AREA.select.zoom * 80 + (20 - SAI_AREA.select.zoom) * 56) / 20;
+            h = (SAI_AREA.select.zoom * 70 + (20 - SAI_AREA.select.zoom) * 48) / 20;
+            SAI_setSpriteSize(SAI_SPRITES[i + 31], w, h);
             w = (SAI_AREA.select.zoom * 64 + (20 - SAI_AREA.select.zoom) * 44) / 20;
             h = (SAI_AREA.select.zoom * 56 + (20 - SAI_AREA.select.zoom) * 38) / 20;
             SAI_setSpriteSize(SAI_SPRITES[i + 37], w, h);
@@ -276,7 +273,9 @@ void SAI_zoomOpponentPortrait(void) {
         } else {
             SAI_SPRITES[i + 31]->pos.vx = (SAI_AREA.select.zoom * 134 + ((i % 3) * 55 - 46) * (20 - SAI_AREA.select.zoom)) / 20;
             SAI_SPRITES[i + 31]->pos.vy = (SAI_AREA.select.zoom * -87 + ((i / 3) * 50 - 43) * (20 - SAI_AREA.select.zoom)) / 20;
-            SAI_setSpriteSize(SAI_SPRITES[i + 31], (SAI_AREA.select.zoom * 24 + (20 - SAI_AREA.select.zoom) * 56) / 20, (SAI_AREA.select.zoom * 22 + (20 - SAI_AREA.select.zoom) * 48) / 20);
+            w = (SAI_AREA.select.zoom * 24 + (20 - SAI_AREA.select.zoom) * 56) / 20;
+            h = (SAI_AREA.select.zoom * 22 + (20 - SAI_AREA.select.zoom) * 48) / 20;
+            SAI_setSpriteSize(SAI_SPRITES[i + 31], w, h);
             w = (SAI_AREA.select.zoom * 18 + (20 - SAI_AREA.select.zoom) * 44) / 20;
             h = (SAI_AREA.select.zoom * 16 + (20 - SAI_AREA.select.zoom) * 38) / 20;
             SAI_setSpriteSize(SAI_SPRITES[i + 37], w, h);
@@ -290,54 +289,57 @@ void SAI_zoomOpponentPortrait(void) {
     SAI_SPRITES[45]->pos.vy = SAI_SPRITES[44]->pos.vy;
 }
 
-s8 SAI_slideOpponentPortraits(void) {
+s32 SAI_slideOpponentPortraits(void) {
     s32 i;
     s8 busy;
+    s16 w;
+    s16 h;
 
     for (i = 0; i < 6; i++) {
         if (SAI_AREA.selectState == 4 || SAI_AREA.selectState == 20) {
-            if (SAI_SELECT_DELAYS[i] <= 0) {
-                SAI_SELECT_PROGRESS[i]++;
+            if (SAI_AREA.select.delay[i] <= 0) {
+                SAI_AREA.select.progress[i]++;
             } else {
-                SAI_SELECT_DELAYS[i]--;
-                if (SAI_SELECT_DELAYS[i] < 0) {
-                    SAI_SELECT_DELAYS[i] = 0;
+                SAI_AREA.select.delay[i]--;
+                if (SAI_AREA.select.delay[i] < 0) {
+                    SAI_AREA.select.delay[i] = 0;
                 }
             }
-            if (SAI_SELECT_PROGRESS[i] > 20) {
-                SAI_SELECT_PROGRESS[i] = 20;
+            if (SAI_AREA.select.progress[i] > 20) {
+                SAI_AREA.select.progress[i] = 20;
             }
         } else if (SAI_AREA.selectState == 5) {
-            if (SAI_SELECT_DELAYS[i] <= 0) {
+            if (SAI_AREA.select.delay[i] <= 0) {
                 SAI_AREA.select.blink[i] = (SAI_AREA.select.blink[i] + 1) & 0xFFF;
-                if (SAI_AREA.select.blink[i] > 20 || SAI_SELECT_PROGRESS[i] != 20) {
-                    SAI_SELECT_PROGRESS[i]--;
+                if (SAI_AREA.select.blink[i] > 20 || SAI_AREA.select.progress[i] != 20) {
+                    SAI_AREA.select.progress[i]--;
                 }
             } else {
-                SAI_SELECT_DELAYS[i]--;
-                if (SAI_SELECT_DELAYS[i] < 0) {
-                    SAI_SELECT_DELAYS[i] = 0;
+                SAI_AREA.select.delay[i]--;
+                if (SAI_AREA.select.delay[i] < 0) {
+                    SAI_AREA.select.delay[i] = 0;
                 }
             }
-            if (SAI_SELECT_PROGRESS[i] < 0) {
-                SAI_SELECT_PROGRESS[i] = 0;
+            if (SAI_AREA.select.progress[i] < 0) {
+                SAI_AREA.select.progress[i] = 0;
             }
         }
-        SAI_SPRITES[i + 31]->pos.vx = ((i % 3 * 55 - 46) * SAI_SELECT_PROGRESS[i] + (20 - SAI_SELECT_PROGRESS[i]) * 134) / 20;
-        SAI_SPRITES[i + 31]->pos.vy = ((i / 3 * 50 - 43) * SAI_SELECT_PROGRESS[i] + (20 - SAI_SELECT_PROGRESS[i]) * -87) / 20;
-        SAI_setSpriteSize(SAI_SPRITES[i + 31], (SAI_SELECT_PROGRESS[i] * 56 + (20 - SAI_SELECT_PROGRESS[i]) * 24) / 20,
-                      (SAI_SELECT_PROGRESS[i] * 48 + (20 - SAI_SELECT_PROGRESS[i]) * 22) / 20);
+        SAI_SPRITES[i + 31]->pos.vx = ((i % 3 * 55 - 46) * SAI_AREA.select.progress[i] + (20 - SAI_AREA.select.progress[i]) * 134) / 20;
+        SAI_SPRITES[i + 31]->pos.vy = ((i / 3 * 50 - 43) * SAI_AREA.select.progress[i] + (20 - SAI_AREA.select.progress[i]) * -87) / 20;
+        w = (SAI_AREA.select.progress[i] * 56 + (20 - SAI_AREA.select.progress[i]) * 24) / 20;
+        h = (SAI_AREA.select.progress[i] * 48 + (20 - SAI_AREA.select.progress[i]) * 22) / 20;
+        SAI_setSpriteSize(SAI_SPRITES[i + 31], w, h);
     }
     busy = 0;
-    if (SAI_SELECT_STATE == 4 || SAI_SELECT_STATE == 20) {
+    if (SAI_AREA.selectState == 4 || SAI_AREA.selectState == 20) {
         for (i = 0; i < 6; i++) {
-            if (SAI_SELECT_BLINK[i] > 0) {
-                SAI_SELECT_BLINK[i]--;
+            if (SAI_AREA.select.blink[i] > 0) {
+                SAI_AREA.select.blink[i]--;
             }
-            if (SAI_SELECT_BLINK[i] < 0) {
-                SAI_SELECT_BLINK[i] = 0;
+            if (SAI_AREA.select.blink[i] < 0) {
+                SAI_AREA.select.blink[i] = 0;
             }
-            if (SAI_SELECT_BLINK[i] != 0) {
+            if (SAI_AREA.select.blink[i] != 0) {
                 busy++;
             }
         }
@@ -350,9 +352,9 @@ s8 SAI_slideOpponentPortraits(void) {
                 SAI_AREA.mode = AREA_MODE_SCRIPT;
             }
         }
-    } else if (SAI_SELECT_STATE == 5) {
+    } else if (SAI_AREA.selectState == 5) {
         for (i = 0; i < 6; i++) {
-            if (SAI_SELECT_PROGRESS[i] != 0) {
+            if (SAI_AREA.select.progress[i] != 0) {
                 busy++;
             }
         }
@@ -452,17 +454,17 @@ void SAI_drawOpponentSelect(void) {
     for (i = 0; i < 2; i++) {
         SAI_stepBrightness(i);
     }
-    if (SAI_AREA_MODE == AREA_MODE_SELECT_OPPONENT) {
+    if (SAI_AREA.mode == AREA_MODE_SELECT_OPPONENT) {
         SAI_OPPONENTS.target[0] = SAI_OPPONENTS.target[1] = 0x80;
     }
     SAI_setSpriteBrightness(SAI_SPRITES[45], SAI_OPPONENTS.current[0]);
-    SAI_setSpriteBrightness(SAI_SPRITES[SAI_SELECT_SELECTED + 37], SAI_OPPONENTS.current[1]);
+    SAI_setSpriteBrightness(SAI_SPRITES[SAI_AREA.select.selected + 37], SAI_OPPONENTS.current[1]);
     SAI_drawSprite(SAI_SPRITES[44]);
     SAI_drawSprite(SAI_SPRITES[45]);
     for (i = 0; i < 6; i++) {
-        if ((SAI_OPPONENT_IDS + SAI_AREA.select.page * 6)[i] == -1) {
-            SAI_SELECT_EMPTY_BLINK[i]++;
-            if (SAI_SELECT_EMPTY_BLINK[i] & 4) {
+        if (SAI_OPPONENTS.ids[SAI_AREA.select.page * 6 + i] == -1) {
+            SAI_AREA.select.emptyBlink[i]++;
+            if (SAI_AREA.select.emptyBlink[i] & 4) {
                 rect.x = 0x318;
             } else {
                 rect.x = 0x323;
@@ -477,7 +479,7 @@ void SAI_drawOpponentSelect(void) {
             if (SAI_SCRIPT[0]->regs[i + 268] != 0) {
                 SAI_setSpriteBrightness(SAI_SPRITES[i + 37], 0x30);
             }
-            SAI_SELECT_EMPTY_BLINK[i] = 0;
+            SAI_AREA.select.emptyBlink[i] = 0;
         }
         SAI_drawSprite(SAI_SPRITES[i + 31]);
         SAI_drawSprite(SAI_SPRITES[i + 37]);
@@ -498,7 +500,7 @@ void SAI_runOpponentSelectPanel(void) {
     do {
         waitFrames(1);
     } while (SAI_spinPanel() == 0);
-    SAI_PANEL_IMAGE_HIDDEN = 0;
+    SAI_AREA.imageHidden = 0;
     SAI_toggleMessageWindow(1);
     addFrameCallback((s32)SAI_drawOpponentSelect);
     do {
@@ -506,7 +508,7 @@ void SAI_runOpponentSelectPanel(void) {
     } while (SAI_uncoverPanel() == 0);
     do {
         waitFrames(1);
-        switch (SAI_SELECT_STATE) {
+        switch (SAI_AREA.selectState) {
         case 2:
             break;
         case 4:
@@ -522,8 +524,8 @@ void SAI_runOpponentSelectPanel(void) {
             SAI_slideChosenOpponentBack();
             break;
         }
-    } while (SAI_CLOSE_PANEL == 0);
-    SAI_SELECT_STATE = 5;
+    } while (SAI_AREA.closePanel == 0);
+    SAI_AREA.selectState = 5;
     if (SESSION->resumeMode == 1) {
         do {
             waitFrames(1);
@@ -538,12 +540,12 @@ void SAI_runOpponentSelectPanel(void) {
     do {
         waitFrames(1);
     } while (SAI_coverPanel() == 0);
-    SAI_PANEL_IMAGE_HIDDEN = -1;
+    SAI_AREA.imageHidden = -1;
     playSoundEffect(11);
     do {
         waitFrames(1);
     } while (SAI_spinPanel() == 0);
     SAI_freeOpponentSelect();
     SAI_freePanel();
-    SAI_OPEN_PANEL = 0;
+    SAI_AREA.openPanel = 0;
 }
