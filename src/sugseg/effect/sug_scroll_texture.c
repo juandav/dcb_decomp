@@ -107,10 +107,15 @@ void SUG_scrollTexture(ScrollTex *tex) {
     }
     StoreImage(&rects[0], tex->buf1);
     StoreImage(&rects[1], tex->buf0);
+    /* jp doesn't wait for the GPU between the copies */
+#if VERSION_US || VERSION_EU
     DrawSync(0);
+#endif
     LoadImage((s16 *)&rects[2], (s32)tex->buf1);
     LoadImage((s16 *)&rects[3], (s32)tex->buf0);
+#if VERSION_US || VERSION_EU
     DrawSync(0);
+#endif
 }
 
 void SUG_freeScrollTexture(void **obj) {
