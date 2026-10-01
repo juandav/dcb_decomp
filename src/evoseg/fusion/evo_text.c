@@ -31,6 +31,11 @@ EvoText *EVO_allocTextLine(EvoText *slot) {
     return NULL;
 }
 
+#if VERSION_EU
+/* eu: its loops rotate the other way; no C form found yet */
+INCLUDE_RODATA("evoseg/nonmatchings/fusion/evo_text", D_801E1CE0);
+INCLUDE_ASM("evoseg/nonmatchings/fusion/evo_text", EVO_addTextLine);
+#elif VERSION_US
 s32 EVO_addTextLine(u8 *src) {
     u8 *playerName;
     u8 *cardName;
@@ -121,6 +126,9 @@ s32 EVO_addTextLine(u8 *src) {
     }
     return i;
 }
+#else
+#error "evoseg/fusion/evo_text: version not checked"
+#endif
 
 const char D_801DF3B0[] = "";
 
@@ -129,14 +137,28 @@ s32 EVO_typeTextLine(s32 x, s32 y, EvoText *t, s32 z) {
     u8 *dst;
     u8 *src;
     s8 i;
-    u8 c;
+    s32 c;
 
+    /* the same pointers; each version's compiler needs its own order to
+       give them the original's registers */
+#if VERSION_US
     dst = buf;
+#elif VERSION_EU
+    src = t->text;
+#else
+#error "evoseg/fusion/evo_text: version not checked"
+#endif
     if (t->len == t->pos) {
         drawText(x, y, (s32)t, 7, z);
         return -1;
     }
+#if VERSION_US
     src = t->text;
+#elif VERSION_EU
+    dst = buf;
+#else
+#error "evoseg/fusion/evo_text: version not checked"
+#endif
     for (i = 0; i < t->pos; i++) {
         *dst++ = *src++;
     }

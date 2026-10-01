@@ -30,6 +30,10 @@ extern s8 SAI_PARTNER_COUNT;
 /* Runs the area script and carries out the events it stops on: op 10 starts
    panels and tasks, op 11 sets up choices, opponents, music and exits, op 13
    fades the portraits and gives cards. */
+#if VERSION_EU
+/* eu: its switch comes out laid out differently; not worked out yet */
+INCLUDE_ASM("saiseg/nonmatchings/script/sai_area_script", SAI_runAreaScript);
+#elif VERSION_US
 void SAI_runAreaScript(ScriptRunner *runner) {
     s32 result;
     s32 i;
@@ -340,6 +344,9 @@ void SAI_runAreaScript(ScriptRunner *runner) {
         clearScriptBusy(runner->script);
     } while (result != 0);
 }
+#else
+#error "saiseg/script/sai_area_script: version not checked"
+#endif
 
 s32 SAI_stepAreaScript(ScriptRunner *runner) {
     *runner->regs = 1;
@@ -356,7 +363,7 @@ Script *SAI_createScriptContext(u8 *scriptData) {
     script->start = codeStart;
     script->pc = codeStart;
     script->offset = 0;
-    script->size = *(u32 *)(scriptData + 8);
+    script->size = *(u32 *)(script->base + 8);
     clearScriptBusy(script);
     return script;
 }

@@ -34,7 +34,6 @@ enum MapState {
     MAP_MENU
 };
 
-extern PolyF4 *SAI_MAP_PATH_POLYS[2];
 extern DrTPage SAI_MAP_PATH_TPAGES[2][20];
 extern s8 SAI_MAP_ANIM_REGION;
 extern MapAnim *SAI_MAP_ANIMS;
@@ -111,8 +110,8 @@ void SAI_initPathPolys(void) {
     s32 j;
 
     for (i = 0; i < 2; i++) {
-        DB(i).primSlots[1] = (s32)(SAI_MAP_PATH_POLYS[i] = allocHeapBlock(20 * sizeof(PolyF4), 0x28));
-        poly = SAI_MAP_PATH_POLYS[i];
+        DB(i).primSlots[1] = (s32)(SAI_WORLD_MAP.pathPolys[i] = allocHeapBlock(20 * sizeof(PolyF4), 0x28));
+        poly = SAI_WORLD_MAP.pathPolys[i];
         for (j = 0; j < 20; j++, poly++) {
             SetPolyF4(poly);
             poly->r0 = 0x7F;
@@ -183,7 +182,7 @@ void SAI_slideIconToTop(void) {
 void SAI_runCornerIcon(s32 state) {
     Rect16 uv[2];
     u8 brightness;
-    s32 dir;
+    s8 dir;
 
     if (state == 3) {
         state = 2;
@@ -209,6 +208,7 @@ void SAI_runCornerIcon(s32 state) {
     uv[1].h = 0x30;
     brightness = 0x80;
     dir = 1;
+    SAI_WORLD_MAP.iconMotion = 0;
     SAI_WORLD_MAP.iconX = 0x88;
     SAI_WORLD_MAP.iconY = 0x60;
     SAI_WORLD_MAP.iconRunning = 1;
@@ -463,6 +463,11 @@ void SAI_drawMapAnims(s8 mode) {
     }
 }
 
+#if VERSION_EU
+/* eu: keeps &uv in s1 for the whole loop; no C form found yet */
+INCLUDE_RODATA("saiseg/nonmatchings/map/sai_world_map", D_801E11F4);
+INCLUDE_ASM("saiseg/nonmatchings/map/sai_world_map", SAI_drawRegion0Anims);
+#elif VERSION_US
 void SAI_drawRegion0Anims(void) {
     Rect16 uv[8] = {
         { 0x00, 0x00, 0x20, 0x10 },
@@ -495,6 +500,9 @@ void SAI_drawRegion0Anims(void) {
     drawTexturedSprite(0xCC, 0x74, &uv[6], 0x9B, 0x6A18, 0x21, 0x80, 1);
     drawTexturedSprite(0x8F, 0x46, &uv[7], 0x9B, 0x6A18, 0x21, 0x80, 1);
 }
+#else
+#error "saiseg/map/sai_world_map: version not checked"
+#endif
 
 void SAI_drawRegion1Anims(void) {
     Rect16 uv[4] = {
@@ -640,10 +648,11 @@ void SAI_openMapMenu(void) {
 }
 
 void SAI_fadeInRegion(void) {
-    s32 value;
+    s16 value;
 
     if (SAI_WORLD_MAP.state == MAP_FADE_IN) {
-        value = SAI_WORLD_MAP.alpha - 8;
+        value = SAI_WORLD_MAP.alpha;
+        value -= 8;
         if (value < 0) {
             value = 0;
             if (SAI_WORLD_MAP.openMenu == 0) {
@@ -686,7 +695,7 @@ void SAI_selectMapNode(void) {
 }
 
 void SAI_tickMapInput(void) {
-    s32 dir = -1;
+    s8 dir = -1;
     s32 dx;
     s32 dy;
 
@@ -817,8 +826,10 @@ void SAI_walkMapMarker(void) {
 }
 
 void SAI_fadeOutRegion(void) {
-    s32 alpha = SAI_WORLD_MAP.alpha + 8;
+    s16 alpha;
 
+    alpha = SAI_WORLD_MAP.alpha;
+    alpha += 8;
     if (alpha > 0xFF) {
         alpha = 0xFF;
         SAI_WORLD_MAP.oldMarkerCount = SAI_WORLD_MAP.markerCount;
@@ -1336,7 +1347,7 @@ void SAI_initMapPaths(void) {
     s32 i;
     s32 j;
     s8 next;
-    s16 angle;
+    s32 angle;
 
     SAI_initMapAnims(SAI_WORLD_MAP.region);
     path = SAI_WORLD_MAP.paths;
@@ -1355,7 +1366,7 @@ void SAI_initMapPaths(void) {
             if (i < next && next >= 0 && SAI_MAP_NODES[next].unlocked != 0) {
                 dx = SAI_MAP_NODES[next].x - node->x;
                 dy = SAI_MAP_NODES[next].y - node->y;
-                angle = ratan2(dy, dx);
+                angle = (s16)ratan2(dy, dx);
                 path->rot.vz = -angle;
                 path->pos.vx = node->x;
                 path->pos.vy = node->y;
@@ -1410,7 +1421,7 @@ void SAI_drawMapPaths(FrameBuffer *fb) {
 
 void SAI_createMapMenuTab(s8 keepTabState) {
     if (keepTabState == 0) {
-        SAI_MAP_MENU_TAB_STATE = 0;
+        SAI_MAP_MENU_TAB_STATE = keepTabState;
     }
     SAI_MAP_MENU_TAB.offset = 0;
     SAI_SPRITES[5] = SAI_createSprite(0x41);
