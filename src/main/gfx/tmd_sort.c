@@ -349,11 +349,10 @@ u32 *emitUntexturedQuad(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
  * buffer. A primitive is only drawn if it faces the camera, and consecutive
  * primitives of a strip are wound in opposite directions.
  */
-#if VERSION_JP || VERSION_EU
-/* jp and eu: their register allocation needs one more saved register (fp); no
-   C form found yet */
+#if VERSION_EU
+/* eu: still asm, though the C below matches it too */
 INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortModelPrimitives);
-#elif VERSION_US
+#elif VERSION_US || VERSION_JP
 void sortModelPrimitives(SortWork *w) {
     u32 *packet;
     u32 *cursor;
@@ -365,7 +364,9 @@ void sortModelPrimitives(SortWork *w) {
     u32 stripLength;
     u32 k;
     s32 nclip;
+    u32 scratch; /* the UV loads' scratch register (gte_lduv01) */
 
+    scratch = 0;
     packet = (u32 *)SORT_WORK->packet;
     cursor = SORT_WORK->data;
     while ((header = *cursor++) != 0) {
@@ -387,10 +388,7 @@ void sortModelPrimitives(SortWork *w) {
                     gte_stopz_reg(nclip);
                     if (SORT_WORK->textured) {
                         if (SORT_WORK->quad) {
-                            u32 tpage = SORT_WORK->tpage;
-                            u32 clut = SORT_WORK->clut;
-
-                            gte_lduv01(cursor, 4, clut, tpage);
+                            gte_lduv01(scratch, cursor, 4, SORT_WORK->clut, SORT_WORK->tpage);
                             word = cursor[8];
                             if (nclip > 0) {
                                 loadGteQuadVertex3(1, cursor[3], (u8 *)SORT_WORK->work);
@@ -420,9 +418,7 @@ void sortModelPrimitives(SortWork *w) {
                                     }
                                     loadGteVertex0(gouraud, word, (u8 *)SORT_WORK->work);
                                     loadGteVertex1Nclip(gouraud, cursor[1], (u8 *)SORT_WORK->work);
-                                    tpage = SORT_WORK->tpage;
-                                    clut = SORT_WORK->clut;
-                                    gte_lduv01(cursor, 2, clut, tpage);
+                                    gte_lduv01(scratch, cursor, 2, SORT_WORK->clut, SORT_WORK->tpage);
                                     gte_stopz_reg(nclip);
                                     word = cursor[4];
                                     if (nclip > 0) {
@@ -449,7 +445,7 @@ void sortModelPrimitives(SortWork *w) {
                                         break;
                                     }
                                     loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
-                                    gte_lduv1(cursor, 2, SORT_WORK->tpage);
+                                    gte_lduv1(scratch, cursor, 2, SORT_WORK->tpage);
                                     gte_stopz_reg(nclip);
                                     word = cursor[4];
                                     if (nclip > 0) {
@@ -462,10 +458,7 @@ void sortModelPrimitives(SortWork *w) {
                                 }
                             }
                         } else {
-                            u32 tpage = SORT_WORK->tpage;
-                            u32 clut = SORT_WORK->clut;
-
-                            gte_lduv01(cursor, 3, clut, tpage);
+                            gte_lduv01(scratch, cursor, 3, SORT_WORK->clut, SORT_WORK->tpage);
                             word = cursor[6];
                             if (nclip > 0) {
                                 gte_avsz3();
@@ -489,7 +482,7 @@ void sortModelPrimitives(SortWork *w) {
                                 /* strips replace V0 too, fans keep it */
                                 if (SORT_WORK->pass != 0) {
                                     loadGteVertex0Nclip(gouraud, word, (u8 *)SORT_WORK->work);
-                                    gte_lduv0(cursor, 1, SORT_WORK->clut);
+                                    gte_lduv0(scratch, cursor, 1, SORT_WORK->clut);
                                     gte_stopz_reg(nclip);
                                     word = cursor[2];
                                     if ((k & 1) ? nclip < 0 : nclip > 0) {
@@ -502,7 +495,7 @@ void sortModelPrimitives(SortWork *w) {
                                     }
                                 }
                                 loadGteVertex1Nclip(gouraud, word, (u8 *)SORT_WORK->work);
-                                gte_lduv1(cursor, 1, SORT_WORK->tpage);
+                                gte_lduv1(scratch, cursor, 1, SORT_WORK->tpage);
                                 gte_stopz_reg(nclip);
                                 word = cursor[2];
                                 if ((k & 1) ? nclip < 0 : nclip > 0) {
@@ -621,6 +614,8 @@ void sortModelPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
+#else
+#error "main/gfx/tmd_sort: version not checked"
 #endif
 
 u32 sortModelObject(u32 *data, u32 *ot, u32 packet, void *otSize) {
@@ -808,11 +803,10 @@ u32 *emitEnvMapTriangle(u32 *packet, u32 *ot, s32 gouraud, u32 code) {
     return packet + 8;
 }
 
-#if VERSION_JP || VERSION_EU
-/* jp and eu: packet takes s1 ahead of cursor and the scratch pointer; no C
-   form found yet */
+#if VERSION_EU
+/* eu: still asm, though the C below matches it too */
 INCLUDE_ASM("main/nonmatchings/gfx/tmd_sort", sortEnvMappedPrimitives);
-#elif VERSION_US
+#elif VERSION_US || VERSION_JP
 void sortEnvMappedPrimitives(SortWork *w) {
     u32 *packet;
     u32 *cursor;
@@ -898,8 +892,8 @@ void sortEnvMappedPrimitives(SortWork *w) {
                         if (value > 0) {
                             gte_avsz3();
                             gte_lwc2(3, 20, cursor);
-                            packet = emitTexturedTriangle(emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code),
-                                                SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            packet = emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
+                            packet = emitTexturedTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);
                         }
                         cursor += 6;
                         for (k = 1; k != stripLength;) {
@@ -981,4 +975,6 @@ void sortEnvMappedPrimitives(SortWork *w) {
     SORT_WORK->packet = (u32)packet;
     SORT_WORK->data = cursor;
 }
+#else
+#error "main/gfx/tmd_sort: version not checked"
 #endif

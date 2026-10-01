@@ -7,8 +7,8 @@
 #define STRIP_DRAW(draw)                                                                                            \
     {                                                                                                                \
         gte_avsz3();                                                                                                 \
-        packet = draw(emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code), SORT_WORK->ot, gouraud,           \
-                   SORT_WORK->code);                                                                                 \
+        packet = emitEnvMapTriangle(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);                               \
+        packet = draw(packet, SORT_WORK->ot, gouraud, SORT_WORK->code);                                             \
     }
 
 /* A vertex of an environment-mapped model after transformVerticesWithEnvMap */
