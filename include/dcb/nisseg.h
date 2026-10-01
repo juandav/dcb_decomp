@@ -180,7 +180,7 @@ typedef struct {
     /* 0x04 */ u32 code[15];
 } DR_ENV;
 
-/* a cursor of jp's executable (func_80044334 makes one) */
+/* a cursor of jp's executable (KAW_createCursor makes one) */
 typedef struct {
     /* 0x00 */ u8 unk0[8];
     /* 0x08 */ s16 x;

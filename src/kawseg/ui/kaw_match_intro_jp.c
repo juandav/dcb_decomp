@@ -38,9 +38,9 @@ extern POLY_FT4 KAW_VS_LOGO_POLYS[2];
 extern POLY_FT4 KAW_RESULT_WINNER_POLYS[2];
 
 /* jp's executable's blinking hand cursor */
-void *func_80044334(s32, s32, s32, s32, s32);
-void func_80044758(void *cursor);
-void func_80044790(void *cursor, s32 x, s32 y);
+void *KAW_createCursor(s32, s32, s32, s32, s32);
+void KAW_freeCursor(void *cursor);
+void KAW_drawCursorAt(void *cursor, s32 x, s32 y);
 
 char *strcpy(char *dst, const char *src);
 char *strcat(char *dst, const char *src);
@@ -196,7 +196,7 @@ void KAW_runTurnOrderChoice(s32 isVersus, s32 match) {
     slide = -0xA0;
     chosen = 0;
     playSoundEffect(0xA5);
-    KAW_HAND_CURSOR = func_80044334(1, 0xE, 0xE, 4, 1);
+    KAW_HAND_CURSOR = KAW_createCursor(1, 0xE, 0xE, 4, 1);
     do {
         frame++;
         waitFrames(FRAME_INTERVAL);
@@ -217,7 +217,7 @@ void KAW_runTurnOrderChoice(s32 isVersus, s32 match) {
             }
         }
         if (frame > 60) {
-            func_80044790(KAW_HAND_CURSOR, chosen * 0x30 + 0x88, 0x74);
+            KAW_drawCursorAt(KAW_HAND_CURSOR, chosen * 0x30 + 0x88, 0x74);
         }
     } while (slide != 0 || !(PAD_STATES[0]->rawPressed & PAD_CIRCLE));
     playSoundEffect(0xA0);
@@ -279,7 +279,7 @@ void KAW_runTurnOrderChoice(s32 isVersus, s32 match) {
         waitFrames(FRAME_INTERVAL);
     }
     freeScrollingBackground();
-    func_80044758(KAW_HAND_CURSOR);
+    KAW_freeCursor(KAW_HAND_CURSOR);
     waitFrames(10);
 }
 

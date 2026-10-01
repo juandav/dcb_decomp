@@ -18,8 +18,8 @@ void clearKanjiPage(s32);
 void closeKanjiPage(s32);
 void openChoiceMenu(void *, s32, s32, s32, s32);
 void setBackgroundScrollMode(s32);
-JpIcon *func_80044334(s32, s32, s32, s32, s32);
-void func_80044758(JpIcon *);
+JpIcon *KAW_createCursor(s32, s32, s32, s32, s32);
+void KAW_freeCursor(JpIcon *);
 void KAW_drawCursor(JpIcon *);
 /* no prototype: this module passes its coordinates as ints (dcb/prim.h) */
 void initVramSprite();
@@ -159,7 +159,7 @@ void SAI_runKeyItems(void) {
     SAI_findKeyItems();
     SAI_initKeyItemList();
     SAI_KEY_ITEMS.cursor = SAI_KEY_ITEMS.columns;
-    SAI_KEY_ITEMS.icon = func_80044334(1, 0x20, 0x1C, 5, 1);
+    SAI_KEY_ITEMS.icon = KAW_createCursor(1, 0x20, 0x1C, 5, 1);
     spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
     SAI_KEY_ITEMS.listWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_TEXT_WINDOW_DEF, getCurrentTaskId());
@@ -177,7 +177,7 @@ void SAI_runKeyItems(void) {
     SAI_KEY_ITEMS.textWindow->state = 4;
     setBackgroundScrollMode(0);
     waitFrames(60);
-    func_80044758(SAI_KEY_ITEMS.icon);
+    KAW_freeCursor(SAI_KEY_ITEMS.icon);
     closeKanjiPage(0xF);
     spawnTask(0, -1, 0, 0x800, SAI_runWorldMap, 1, 0, 0, 0);
     exitTask();

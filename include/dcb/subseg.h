@@ -162,7 +162,7 @@ typedef struct {
     /* 0x4E */ s16 z;
 } JpWindow;
 
-/* jp: the executable's blinking hand cursor (func_80044334) */
+/* jp: the executable's blinking hand cursor (KAW_createCursor) */
 typedef struct {
     /* 0x0 */ u8 unk0[8];
     /* 0x8 */ s16 x;

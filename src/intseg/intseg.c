@@ -25,10 +25,10 @@ void formatSjisNumberZeros();
 void openKanjiPage();
 void closeKanjiPage();
 void freeScrollingBackground();
-s32 func_80044334();
-void func_800445FC();
-void func_80044758();
-void func_80044790();
+s32 KAW_createCursor();
+void KAW_initCursorShape();
+void KAW_freeCursor();
+void KAW_drawCursorAt();
 void runWindowTask();
 void D_800490B4();
 extern s16 CAMERA_TARGET_MODEL;
@@ -448,7 +448,7 @@ s32 INT_initIntroScene(IntState *state) {
     applyAnimationFirstFrame(3, 1);
     startModelAnimation(3, 1, -2, 0);
     openKanjiPage(0xF, 0x1B9);
-    state->cursor = func_80044334(1, 6, 6, 4, 1);
+    state->cursor = KAW_createCursor(1, 6, 6, 4, 1);
     state->typedChars = 0;
     state->typedLines = 0;
     state->unkBA = 0;
@@ -651,7 +651,7 @@ s32 INT_runPageAction(IntState *state) {
             NAME_TASK("FADE OUT");
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 0x10, 0);
             waitFrames(30);
-            func_80044758(state->cursor);
+            KAW_freeCursor(state->cursor);
             closeKanjiPage(0xF);
             INT_endScene3D();
             playMusic(0, 4, 0x7F);
@@ -1135,11 +1135,11 @@ s32 INT_runNameEntry(void *arg) {
     sprintf(D_800907F8[4], "%2x %2x %2x %2x %2x %2x \n", name[0], name[1], name[2], name[3], name[4], name[5]);
 #endif
     if (*x == 12) {
-        func_800445FC(state->cursor, 12, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 12, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
     } else {
-        func_800445FC(state->cursor, 6, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 6, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
     }
     INT_drawFieldCursor(*len >> 1, field);
     return 0;
@@ -1261,11 +1261,11 @@ s32 INT_runYearEntry(void *arg) {
     sprintf(D_800907F8[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
-        func_800445FC(state->cursor, 12, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 12, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
     } else {
-        func_800445FC(state->cursor, 6, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 6, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
     }
     INT_drawFieldCursor(*len >> 1, field);
     return 0;
@@ -1416,11 +1416,11 @@ s32 INT_runMonthEntry(void *arg) {
     sprintf(D_800907F8[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
-        func_800445FC(state->cursor, 12, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 12, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
     } else {
-        func_800445FC(state->cursor, 6, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 6, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
     }
     INT_drawFieldCursor(*len >> 1, field);
     return 0;
@@ -1565,11 +1565,11 @@ s32 INT_runDayEntry(void *arg) {
     sprintf(D_800907F8[3], "PLACE = %d \n", field);
 #endif
     if (*x == 12) {
-        func_800445FC(state->cursor, 12, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 12, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x83, *y * 14 + 0x5C);
     } else {
-        func_800445FC(state->cursor, 6, 6, 4);
-        func_80044790(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
+        KAW_initCursorShape(state->cursor, 6, 6, 4);
+        KAW_drawCursorAt(state->cursor, *x * 12 + 0x7D, *y * 14 + 0x5C);
     }
     INT_drawFieldCursor(*len >> 1, field);
     return 0;

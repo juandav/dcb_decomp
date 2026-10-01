@@ -5,5 +5,5 @@
    still in asm read by splat's names */
 func_80043374 = 0x80043374;
 func_80043740 = 0x80043740;
-func_80044334 = 0x80044334;
-func_80044758 = 0x80044758;
+KAW_createCursor = 0x80044334;
+KAW_freeCursor = 0x80044758;
