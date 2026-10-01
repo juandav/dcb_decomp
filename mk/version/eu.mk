@@ -40,7 +40,7 @@ EVOSEG_C_SRC := \
 		evo_lists.c evo_partner_status.c evo_rewards.c evo_screen_flash.c \
 		evo_trays.c evo_type_choice.c)
 KAWSEG_C_SRC := \
-	$(addprefix src/kawseg/duel/, kaw_effect.c kaw_hand.c) \
+	$(addprefix src/kawseg/duel/, kaw_bonus.c kaw_effect.c kaw_hand.c) \
 	src/kawseg/kaw_bss.c \
 	$(addprefix src/kawseg/ui/, kaw_duel_menu.c kaw_exp.c kaw_hud.c \
 		kaw_prize.c kaw_result.c)
@@ -48,7 +48,8 @@ OPENSEG_C_SRC := \
 	src/openseg/friend/open_friend.c \
 	src/openseg/memcard/open_memcard.c \
 	src/openseg/open_bss.c \
-	src/openseg/registration/open_registration.c
+	$(addprefix src/openseg/registration/, open_registration.c \
+		open_starter.c)
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_splash.c) \

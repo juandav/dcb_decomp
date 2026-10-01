@@ -47,7 +47,7 @@ void OPEN_giveStarterDeck(s32 deck) {
     u8 *file;
     DeckFile *decks;
     s32 i;
-    u16 card;
+    s32 card;
 
     spawnTask(0, -1, 0, 0x800, loadFileTagged, "B:\\DECK2.DEK", getCurrentTaskId(), -2);
     file = (u8 *)waitFrames(0x7FFFFFFF);
@@ -246,7 +246,14 @@ void OPEN_runStarterSelect(s32 parentTask) {
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawStarterSelectWindow);
     OPEN_INTRO_TEXT.waitInput = 1;
-    while (1) {
+    do {
+#if VERSION_US
+    wait:
+#elif VERSION_EU
+        /* eu goes back with continue: even unused, the label changes its code */
+#else
+#error "openseg/registration/open_starter: version not checked"
+#endif
         waitFrames(FRAME_INTERVAL);
         if (OPEN_INTRO_TEXT.page == 5 && (PAD_STATES[0]->pressed & 0x40)) {
             playMenuSound(1);
@@ -254,7 +261,15 @@ void OPEN_runStarterSelect(s32 parentTask) {
             OPEN_INTRO_TEXT.page = 6;
         }
         if (OPEN_STARTER_SELECT.chosen == 0) {
+            /* both go back to the wait; each version's compiler needs its
+               own form to lay the loop out as the original does */
+#if VERSION_US
+            goto wait;
+#elif VERSION_EU
             continue;
+#else
+#error "openseg/registration/open_starter: version not checked"
+#endif
         }
         initDialog(dialog, OPEN_STR_IS_THIS_DECK_OK, 1);
         runDialog(dialog);
@@ -266,10 +281,7 @@ void OPEN_runStarterSelect(s32 parentTask) {
             OPEN_STARTER_SELECT.chosen = 0;
             break;
         }
-        if (OPEN_STARTER_SELECT.chosen != 0) {
-            break;
-        }
-    }
+    } while (OPEN_STARTER_SELECT.chosen == 0);
     animateWindowTo(&OPEN_STARTER_WINDOW, (Rect16 *)-1);
     playMenuSound(4);
     freeHeapBlock(arc);
@@ -279,5 +291,12 @@ void OPEN_runStarterSelect(s32 parentTask) {
     resumeTask(parentTask);
 }
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char OPEN_STR_IS_THIS_DECK_OK[20] = "Is this Deck OK?\0\x6D\x01\x0C";
+#elif VERSION_EU
+const char OPEN_STR_IS_THIS_DECK_OK[20] = "Is this Deck OK?\0\0\x02\x62";
+#else
+#error "openseg/registration/open_starter: version not checked"
+#endif

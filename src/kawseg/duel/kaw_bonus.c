@@ -144,6 +144,9 @@ void KAW_resetBonusFlags(s32 player) {
     }
 }
 
+/* the same count; each version's compiler needs its own form to give the
+   original's registers */
+#if VERSION_US
 void KAW_countEarnedBonuses(void) {
     s32 i;
     u8 *flags;
@@ -160,6 +163,26 @@ void KAW_countEarnedBonuses(void) {
         }
     }
 }
+#elif VERSION_EU
+void KAW_countEarnedBonuses(void) {
+    s32 i;
+    DuelK *duel;
+    ProfileK *profile;
+
+    i = 0;
+    duel = KAW_DUEL;
+    profile = (ProfileK *)PLAYER_PROFILES;
+    for (; i < 32; i++) {
+        if (duel->bonusFlags[i] != 0) {
+            if (++profile->counts[i] >= 1000) {
+                profile->counts[i] = 999;
+            }
+        }
+    }
+}
+#else
+#error "kawseg/duel/kaw_bonus: version not checked"
+#endif
 
 void KAW_trackSpecialties(s32 player) {
     Player *p;
@@ -508,7 +531,6 @@ void KAW_showBonusBanner(s32 player, s32 id) {
                 h = 0;
             }
         }
-        frame++;
         drawText(x - measureText(KAW_BONUSES[id].name) / 2, y - 6, (s32)KAW_BONUSES[id].name, 7, 0);
         SetDrawTPage(&BANNER->bannerMode[FRAME_BUFFER_INDEX], 0, 0, GetTPage(0, 2, 0, 0));
         initPrimByType(8, &BANNER->banner[FRAME_BUFFER_INDEX], 1, 0);
@@ -524,5 +546,6 @@ void KAW_showBonusBanner(s32 player, s32 id) {
         (&BANNER->banner[FRAME_BUFFER_INDEX])->y3 = y - h + h * 2;
         AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)&BANNER->banner[FRAME_BUFFER_INDEX]);
         AddPrim((s32 *)CURRENT_FRAME_BUFFER->ot, (s32)&BANNER->bannerMode[FRAME_BUFFER_INDEX]);
+        frame++;
     } while (frame < 120);
 }
