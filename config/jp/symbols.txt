@@ -1329,3 +1329,7 @@ OPTION_WINDOW = 0x801E4988; // version-only
 OPTION_MENU_LEFT = 0x801E4980; // version-only
 OPTION_FROM_WORLD_MAP = 0x801E4990; // version-only
 OPTION_EXIT_TASKS = 0x8007ED74; // version-only
+SJIS_SYMBOL_GLYPHS = 0x8006B8FC; // version-only
+SJIS_KANJI_GLYPHS = 0x8006E604; // version-only
+SJIS_SYMBOL_RUNS = 0x8007E4D4; // version-only
+SJIS_KANJI_RUNS = 0x8007E520; // version-only
