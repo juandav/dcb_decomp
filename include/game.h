@@ -56,11 +56,16 @@ typedef struct {
     /* 0x0070 */ u32 ot[0x1000];
     /* 0x4070 */ void *scenePackets;
     /* 0x4074 */ s32 unk4074;
+#if VERSION_JP
+    /* 0x4078 */ s32 primSlots[17]; /* jp has one more slot */
+    /* 0x40BC */ s32 spritePool;
+    /* 0x40C0 */ s32 windowPrimPool;
+#elif VERSION_US || VERSION_EU
     /* 0x4078 */ s32 primSlots[16];
     /* 0x40B8 */ s32 spritePool;
     /* 0x40BC */ s32 windowPrimPool;
-#if VERSION_JP
-    /* 0x40C0 */ u8 unk40C0[4]; /* jp's frame buffers are 4 bytes longer */
+#else
+#error "FrameBuffer: version not checked"
 #endif
 } FrameBuffer;
 typedef struct {

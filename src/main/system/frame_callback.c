@@ -16,17 +16,21 @@ void addFrameCallback(s32 callback) {
     s32 entry;
 
     slot = &FRAME_CALLBACKS;
-    if (callback != 0) {
+#if VERSION_US || VERSION_EU
+    /* jp doesn't check for a null callback */
+    if (callback == 0) {
+        return;
+    }
+#endif
 loop_1:
-        entry = slot[0];
-        if (entry != callback) {
-            if (entry != 0) {
-                slot += 1;
-                goto loop_1;
-            }
-            slot[0] = callback;
-            slot[1] = 0;
+    entry = slot[0];
+    if (entry != callback) {
+        if (entry != 0) {
+            slot += 1;
+            goto loop_1;
         }
+        slot[0] = callback;
+        slot[1] = 0;
     }
 }
 
@@ -59,14 +63,16 @@ found:
     slot++;
     goto found;
 }
-#elif VERSION_EU
+#elif VERSION_JP || VERSION_EU
 void removeFrameCallback(s32 callback) {
     s32 *slot;
 
     slot = &FRAME_CALLBACKS;
+#if VERSION_EU
     if (callback == 0) {
         return;
     }
+#endif
     while (*slot != callback) {
         if (*slot == 0) {
             return;
@@ -102,5 +108,8 @@ void clearFramePrimSlots(void) {
         ((Graphics *)&GRAPHICS)->buffers[i].primSlots[13] = 0;
         ((Graphics *)&GRAPHICS)->buffers[i].primSlots[14] = 0;
         ((Graphics *)&GRAPHICS)->buffers[i].primSlots[15] = 0;
+#if VERSION_JP
+        ((Graphics *)&GRAPHICS)->buffers[i].primSlots[16] = 0;
+#endif
     }
 }

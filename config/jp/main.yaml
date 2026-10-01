@@ -57,7 +57,8 @@ segments:
     subalign: 4
     subsegments:
       # us's modules, each with its rodata and data (tools/split_version.py)
-      - [0x800, rodata, system/render_loop]
+      - [0x800, .rodata, system/render_loop]
+      - [0x808, rodata, system/boot]
       - [0x818, .rodata, system/cd_file]
       - [0x820, rodata, ui/window]
       - [0x820, .rodata, system/pad]
@@ -100,10 +101,11 @@ segments:
       - [0x414C, asm, startup]
       - [0x44CC, c, system/vblank]
       - [0x4548, c, gfx/screen_copy]
-      - [0x487C, asm, system/render_loop]
+      - [0x487C, c, system/render_loop]
+      - [0x4B8C, asm, system/boot]
       - [0x4D60, c, system/cd_file]
-      - [0x5DE4, asm, system/frame_callback]
-      - [0x60C0, asm, ui/window]
+      - [0x5DE4, c, system/frame_callback]
+      - [0x5F00, asm, ui/window]
       - [0x7CF8, c, system/pad]
       - [0x8080, c, system/heap]
       - [0x8628, c, system/angle]
@@ -126,7 +128,7 @@ segments:
       - [0x1146C, c, model/wire_grid]
       - [0x11C28, c, model/camera]
       - [0x12778, asm, libmath]
-      - [0x14238, asm, ui/text]
+      - [0x13DCC, asm, ui/text]
       - [0x17C80, c, ui/str_util]
       - [0x188D0, c, system/sound]
       - [0x18EF0, c, system/opening_movie]
