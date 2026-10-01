@@ -370,6 +370,49 @@ extern s8 SAI_ICON_RUNNING;
 extern s8 SAI_EXIT_ACTION;
 extern s8 SAI_PARTNER_CHOICES[4];
 
+#if VERSION_JP
+/* jp's SAISEG is its own design: its types, with what its C reads so far */
+
+/* what jp's window task (D_8002A3E0) hands back */
+typedef struct {
+    /* 0x00 */ u8 unk0;
+    /* 0x01 */ u8 state; /* 4 closes it */
+    /* 0x02 */ u8 unk2[0x4C];
+    /* 0x4E */ s16 z;
+} JpWindow;
+
+/* what jp's window task opens */
+typedef struct {
+    /* 0x00 */ s16 unk0[4];
+    /* 0x08 */ Rect16 rect;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ void (*draw)(JpWindow *);
+    /* 0x1C */ void (*unk1C)(JpWindow *);
+} JpWindowDef;
+
+/* the event a script runs: who speaks and what */
+typedef struct {
+    /* 0x00 */ u8 unk0[0x18];
+    /* 0x18 */ u8 *name;
+    /* 0x1C */ u8 unk1C[0x20];
+    /* 0x3C */ s32 unk3C;
+    /* 0x40 */ u8 *text;
+} SaiEvent;
+
+/* SAISEG's state (SessionData.sai) */
+typedef struct SaiState {
+    /* 0x00 */ u8 unk0[0xC];
+    /* 0x0C */ SaiEvent *event;
+    /* 0x10 */ u8 unk10[4];
+    /* 0x14 */ s32 bits; /* the Bits the player gets */
+    /* 0x18 */ u8 unk18[0x34];
+    /* 0x4C */ u8 flags;
+} SaiState;
+
+#define SAI_STATE ((struct SaiState *)((SessionData *)SESSION_DATA)->areaSession)
+#endif
+
 int MoveImage2(Rect16 *rect, int x, int y);
 
 #endif /* DCB_SAISEG_H */

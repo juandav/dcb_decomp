@@ -868,26 +868,32 @@ typedef struct {
 typedef struct {
 #if VERSION_JP
     /* jp's profile is laid out otherwise: only the fields its C reads so far */
-    /* 0x0000 */ u8 unk0[0x14];
+    /* 0x0000 */ char name[0x14];
     /* 0x0014 */ s32 playTime;
     /* 0x0018 */ u16 battleWins;
-    /* 0x001A */ u8 unk1A[2];
+    /* 0x001A */ u16 battleLosses;
     /* 0x001C */ u16 versusWins;
-    /* 0x001E */ u8 unk1E[0xA];
+    /* 0x001E */ u16 versusLosses;
+    /* 0x0020 */ u8 unk20[3];
+    /* 0x0023 */ u8 saveCount; /* "ＳＡＶＥ回数" */
+    /* 0x0024 */ s32 bits; /* the money, "所持金" */
     /* 0x0028 */ u32 tamerRank : 3;
     /* 0x0028 */ u32 collectorRank : 3;
     /* 0x0028 */ u32 battleRank : 3;
     /* 0x0029 */ u32 unk28_9 : 1;
     /* 0x0029 */ u32 tradeUnlocked : 1;
     /* 0x0029 */ u32 hasTraded : 1;
-    /* 0x0029 */ u32 unk28_12 : 20;
-    /* 0x002C */ u8 unk2C[0x47C - 0x2C];
+    /* 0x0029 */ u32 unk28_12 : 1; /* lets the player data screen scroll */
+    /* 0x002A */ u16 attackCounts[3]; /* the attacks used, by button */
+    /* 0x0030 */ u8 unk30[0x47C - 0x30];
     /* bits 0-3: copies owned of each Digimon card, of each option card, and
        of six more cards that count with the option cards */
     /* 0x047C */ u8 cardCollection[0x6E];
     /* 0x04EA */ u8 optionCollection[0x2B];
     /* 0x0515 */ u8 unk515[6];
-    /* 0x051B */ u8 unk51B[0x145C - 0x51B];
+    /* 0x051B */ u8 unk51B[0xF20 - 0x51B];
+    /* 0x0F20 */ u32 eventFlags[10]; /* bit n: event 0x22 + n has happened */
+    /* 0x0F48 */ u8 unkF48[0x145C - 0xF48];
 #elif VERSION_US || VERSION_EU
     /* 0x0000 */ char name[0xD];
     /* 0x000D */ u8 saveCount; /* "Number of Saves", stops at 255 */

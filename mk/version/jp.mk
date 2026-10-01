@@ -56,3 +56,6 @@ KAWSEG_C_SRC := \
 		kaw_cpu.c kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c) \
 	src/kawseg/duel/kaw_hand_jp.c \
 	$(addprefix src/kawseg/ui/, kaw_hud_jp.c kaw_result_jp.c)
+SAISEG_C_SRC := \
+	src/saiseg/player/sai_player_data_jp.c \
+	src/saiseg/ui/sai_text_jp.c
