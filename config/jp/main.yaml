@@ -142,8 +142,9 @@ segments:
       - [0x2EDF8, asm, duel/hud_panels]
       - [0x2F79C, asm, duel/duel_session]
       - [0x30D10, asm, duel/duel_setup]
-      - [0x31114, asm, duel/card_zones]
-      - [0x325B0, asm, card/card_render]
+      - [0x31114, c, duel/card_zones]
+      # jp's card_render starts with three functions us doesn't have
+      - [0x31F5C, asm, card/card_render]
       - [0x34A38, asm, card/card_db]
       - [0x35A4C, asm, system/game_flow]
       - [0x365B4, asm, card/partner_level]
