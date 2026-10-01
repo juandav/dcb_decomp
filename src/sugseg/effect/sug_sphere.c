@@ -27,6 +27,10 @@ void SUG_drawSphereG(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_drawSphereGT(SphereEffect *fx, s32 cull, s32 count, s32 speed, s32 otz);
 void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode);
 
+#if VERSION_JP
+/* jp: its global register allocation differs (clut stays in fp, pulse is spilled); no C form found yet */
+INCLUDE_ASM("sugseg/nonmatchings/effect/sug_sphere", SUG_createSphereEffect);
+#elif VERSION_US
 SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 pulseMode, EffectTemplate *template, s16 segments, s16 slices, s32 radius, u8 semiTrans,
                            u8 abr, u8 primKind, u8 openBottom, s16 texAnimId, Rect16 *uv, s32 tpage, s32 clut, u8 cull, s32 otz, s32 pak) {
     SphereEffect *fx;
@@ -278,6 +282,9 @@ SphereEffect *SUG_createSphereEffect(s16 brightness, u8 *color, s16 pulse, s16 p
     }
     return fx;
 }
+#else
+#error "untested version"
+#endif
 
 void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode) {
     *(Bytes4 *)fx->rgb = *rgb;
@@ -287,10 +294,17 @@ void SUG_setSphereColor(SphereEffect *fx, Bytes4 *rgb, s16 pulse, s16 pulseMode)
 }
 
 void SUG_tickSphereEffect(SphereEffect *fx) {
+    /* jp narrows the speed before passing it */
+#if VERSION_JP
+    s16 speed;
+#elif VERSION_US
     s32 speed;
+#else
+#error "untested version"
+#endif
 
     if (fx->suspended != 0) {
-        tickEffectStartDelay(fx);
+        TICK_START_DELAY(fx);
         return;
     }
     PushMatrix();
@@ -386,6 +400,11 @@ void SUG_drawSphereLines(SphereEffect *fx, u8 cull, s32 n, s32 speed, s32 otz) {
     fx->prevBrightness = fx->brightness;
 }
 
+#if VERSION_JP
+/* jp: the bottom triangles load FRAME_BUFFER_INDEX before their vertices; no C
+   form found yet */
+INCLUDE_ASM("sugseg/nonmatchings/effect/sug_sphere", SUG_drawSphereF);
+#elif VERSION_US
 /* old-style definition: the callers pass ints, cull and speed are narrowed here */
 void SUG_drawSphereF(fx, cull, count, speed, otz)
     SphereEffect *fx;
@@ -434,8 +453,7 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
             r = fx->rgb[0];
             g = fx->rgb[1];
             bl = fx->rgb[2];
-            scale = rcos(angle & 0x7FF);
-            scale = scale < 0 ? -scale : scale;
+            scale = abs(rcos(angle & 0x7FF));
             dimR = ((fx->rgb[0] * scale) >> 12) & 0xFF;
             dimG = ((fx->rgb[1] * scale) >> 12) & 0xFF;
             dimB = ((fx->rgb[2] * scale) >> 12) & 0xFF;
@@ -491,8 +509,7 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
             g = ((fx->rgb[1] * sine) >> 12) & 0xFF;
             bl = ((fx->rgb[2] * sine) >> 12) & 0xFF;
         } else {
-            scale = rcos(angle & 0x7FF);
-            scale = scale < 0 ? -scale : scale;
+            scale = abs(rcos(angle & 0x7FF));
             r = ((fx->rgb[0] * scale) >> 12) & 0xFF;
             g = ((fx->rgb[1] * scale) >> 12) & 0xFF;
             bl = ((fx->rgb[2] * scale) >> 12) & 0xFF;
@@ -520,6 +537,9 @@ void SUG_drawSphereF(fx, cull, count, speed, otz)
         transformAndAddPolyF4((s32)quad, (s32)tpage, (s32)&a, (s32)&b, (s32)&c, (s32)&d, fx->semiTrans, cull, otz);
     }
 }
+#else
+#error "untested version"
+#endif
 
 void SUG_drawSphereG(fx, cull, count, speed, otz)
     SphereEffect *fx;
@@ -583,18 +603,15 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
                 c0.r = base.r;
                 c0.g = base.g;
                 c0.b = base.b;
-                s = rcos(angle0 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle0 & 0x7FF));
                 c1.r = base.r * s >> 12;
                 c1.g = base.g * s >> 12;
                 c1.b = base.b * s >> 12;
-                s = rcos(angle1 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle1 & 0x7FF));
                 c2.r = base.r * s >> 12;
                 c2.g = base.g * s >> 12;
                 c2.b = base.b * s >> 12;
-                s = rcos(angle2 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle2 & 0x7FF));
                 c3.r = base.r * s >> 12;
                 c3.g = base.g * s >> 12;
                 c3.b = base.b * s >> 12;
@@ -657,10 +674,8 @@ void SUG_drawSphereG(fx, cull, count, speed, otz)
                     c1.g = base.g * t >> 12;
                     c1.b = base.b * t >> 12;
                 } else {
-                    s = rcos(angle0);
-                    s = s < 0 ? -s : s;
-                    u = rcos(angle1);
-                    u = u < 0 ? -u : u;
+                    s = abs(rcos(angle0));
+                    u = abs(rcos(angle1));
                     c0.r = base.r * s >> 12;
                     c0.g = base.g * s >> 12;
                     c0.b = base.b * s >> 12;
@@ -753,18 +768,15 @@ void SUG_drawSphereGT(fx, cull, count, speed, otz)
                 c0.r = base.r;
                 c0.g = base.g;
                 c0.b = base.b;
-                s = rcos(angle0 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle0 & 0x7FF));
                 c1.r = base.r * s >> 12;
                 c1.g = base.g * s >> 12;
                 c1.b = base.b * s >> 12;
-                s = rcos(angle1 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle1 & 0x7FF));
                 c2.r = base.r * s >> 12;
                 c2.g = base.g * s >> 12;
                 c2.b = base.b * s >> 12;
-                s = rcos(angle2 & 0x7FF);
-                s = s < 0 ? -s : s;
+                s = abs(rcos(angle2 & 0x7FF));
                 c3.r = base.r * s >> 12;
                 c3.g = base.g * s >> 12;
                 c3.b = base.b * s >> 12;

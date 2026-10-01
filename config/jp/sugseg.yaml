@@ -65,7 +65,7 @@ segments:
       - [0x514, c, effect/sug_history]
       - [0xB44, c, model/effect_object]
       - [0x25A8, c, model/effect_prims]
-      - [0x381C, asm, effect/sug_sphere]
+      - [0x381C, c, effect/sug_sphere]
       - [0x71E0, asm, effect/sug_gradient]
       - [0x866C, asm, effect/sug_model_effect]
       - [0x8CE8, asm, effect/sug_sprite_effect]

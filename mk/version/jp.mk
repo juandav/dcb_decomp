@@ -35,7 +35,8 @@ MAIN_C_SRC := \
 	src/main/ui/str_util.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_hud.c sug_sprite.c) \
-	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c) \
+	$(addprefix src/sugseg/effect/, sug_history.c sug_sphere.c \
+		sug_tex_anim.c) \
 	$(addprefix src/sugseg/model/, effect_object.c effect_prims.c \
 		streak_particles.c)
 KAWSEG_C_SRC := \
