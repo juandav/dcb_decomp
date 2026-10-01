@@ -74,6 +74,10 @@ typedef struct {
     /* 0x000 */ u8 unk0[0x3E8];
     /* 0x3E8 */ DigivolvePlan *selected;
     /* 0x3EC */ DigivolvePlan slots[4];
+    /* 0x404 */ u8 unk404[0x3D];
+    /* 0x441 */ s8 cursorMode; /* which cards the card cursor offers, -1: none */
+    /* 0x442 */ u8 winner;
+    /* 0x443 */ s8 tutorial;
 } DuelK;
 #elif VERSION_US || VERSION_EU
 typedef struct {
@@ -204,7 +208,12 @@ typedef struct RingPrims {
 /* jp keeps a profile for each of the two players (PLAYER_PROFILES points to
    both), in another layout: only the fields its matched code reads are placed */
 typedef struct {
-    /* 0x0000 */ u8 unk0[0x30];
+    /* 0x0000 */ u8 unk0[0x18];
+    /* 0x0018 */ u16 battleWins;
+    /* 0x001A */ u16 battleLosses;
+    /* 0x001C */ u16 versusWins;
+    /* 0x001E */ u16 versusLosses;
+    /* 0x0020 */ u8 unk20[0x10];
     /* 0x0030 */ u16 bestDamage[0xBF][3];
     /* 0x04AA */ u8 unk4AA[0x145C - 0x4AA];
 } ProfileK;
