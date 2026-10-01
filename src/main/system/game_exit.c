@@ -44,7 +44,6 @@ void quitToTitleOrPlayEnding(s32 mode) {
         ClearImage(&vramRect, 0, 0, 0);
         DrawSync(0);
         waitFrames(10);
-        done = 0;
         stopMusic();
         waitFrames(10);
         spawnTask(0, -1, 0, 0x800, playOpeningMovie, 1, parentTask);
@@ -52,6 +51,7 @@ void quitToTitleOrPlayEnding(s32 mode) {
         resetDisplay(0x140, 0xF0, 0);
         spawnTask(0x1F, 0, 0, 0x800, runRenderLoop, 0, 0, 0, 0);
         waitFrames(2);
+        done = 0;
         do {
             spawnTask(0, -1, 0, 0x600, OPEN_runMemcardScreen, 8, parentTask, 0, 0);
             waitFrames(0x7FFFFFFF);
