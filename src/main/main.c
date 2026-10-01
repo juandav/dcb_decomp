@@ -8,7 +8,9 @@
 #include "dcb/render_loop.h"
 #include "dcb/boot.h"
 
+#if VERSION_US || VERSION_EU
 s32 UNUSED_MAIN_WORDS[2] = { 0, 0 };
+#endif
 
 /*
  * The memory sizes PsyQ's startup code (__SN_ENTRY_POINT) reads before it
@@ -19,6 +21,30 @@ s32 UNUSED_MAIN_WORDS[2] = { 0, 0 };
 u32 _ramsize = 0x200000; /* the PlayStation's 2 MB */
 u32 _stacksize = 0x8000;   /* 32 KB */
 
+#if VERSION_JP
+/* libsnd's attribute table for one sequence (SS_SEQ_TABSIZ bytes) */
+extern s32 BOOT_SEQ_ATTR_TABLE[0xB0 / 4];
+
+/* jp's main() starts the CD, the sound and the pads itself, which us's
+   runMainTask does; initGraphics resets the GPU and clears VRAM */
+int main(void) {
+    ResetCallback();
+    ResetGraph(0);
+    CdInit();
+    SsInit();
+    SsSetTableSize(BOOT_SEQ_ATTR_TABLE, 1, 1);
+    resetHeap(1);
+    initDiscDrive();
+    initGraphics();
+    initMemoryCard();
+    initPads();
+    ChangeClearPad(0);
+    launchTaskScheduler(1, 0x400, runMainTask, 0, 0, 0, 0);
+    for (;;) {
+        rand();
+    }
+}
+#elif VERSION_US || VERSION_EU
 int main(void) {
     Rect16 vramRect;
 
@@ -39,3 +65,4 @@ int main(void) {
         rand();
     }
 }
+#endif

@@ -27,6 +27,7 @@ TEXT_ENCODING := cp932
 # that build from the same C as us's, by subsystem. The rest of every binary
 # is still splat's assembly (config/jp/*.yaml), one asm segment per us module.
 MAIN_C_SRC := \
+	src/main/main.c \
 	src/main/card/player_rank.c \
 	$(addprefix src/main/duel/, card_zones.c cpu_decision.c) \
 	$(addprefix src/main/gfx/, display.c fade.c prim.c prim3d.c prim_pair.c \
