@@ -10,8 +10,13 @@ mkdir -p "$BIN_DIR"
 cd "$BIN_DIR"
 
 fetch() {
-	rm -f "$1"
-	wget -q -O "$1" "$2"
+	# GitHub's release downloads fail now and then (wget exit 8): retry a few times
+	for try in 1 2 3 4 5; do
+		rm -f "$1"
+		wget -q -O "$1" "$2" && break
+		[ "$try" = 5 ] && exit 1
+		sleep $((try * 5))
+	done
 	grep " $1\$" "$TOP/tools/deps.sha256" | sha256sum -c -
 }
 
