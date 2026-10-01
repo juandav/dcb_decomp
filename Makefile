@@ -57,7 +57,8 @@ INC := -Iinclude -Iexternal/psyq_headers/psyq_lib47/include
 CPPFLAGS := $(INC) -undef -nostdinc -Wundef \
 	    -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx \
 	    -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D_LANGUAGE_C -DLANGUAGE_C \
-	    -DVERSION_$(VERSION_UPPER) -DASM_DIR='"$(ASM_DIR)"'
+	    -DVERSION_$(VERSION_UPPER) -DASM_DIR='"$(ASM_DIR)"' \
+	    -I$(BUILDDIR)
 CC1FLAGS := -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float \
 	    -fgnu-linker -Wall -Wno-unused
 # a version can add its own (MASPSX_EXTRA in mk/version/<version>.mk)
@@ -145,6 +146,18 @@ TARGET_ASM := $(C_SRC:src/%.c=$(ASM_DIR)/%.s)
 ASM_SRC := $(filter-out $(TARGET_ASM),$(shell find $(ASM_DIR) -name '*.s' \
 	   -not -path '*/nonmatchings/*' -not -path '*/matchings/*' 2> /dev/null))
 
+# The fonts the version draws text with (config/<version>/fonts.txt), which
+# are the game's art and so not in the repository: `make generate` cuts each
+# one out of the executable as a PNG sheet, assets/<version>/<name>.png, and
+# the build turns the sheet into $(BUILDDIR)/assets/<name>.inc, the C
+# initializer its source file includes as "assets/<name>.inc" (see
+# tools/font.py). An edited sheet goes into the build as it is.
+FONT_LIST := $(wildcard $(CONFIG_DIR)/fonts.txt)
+FONTS := $(if $(FONT_LIST),$(shell awk '{ sub(/\#.*/, "") } NF { print $$1 }' $(FONT_LIST)))
+ASSETS_DIR := assets/$(VERSION)
+FONT_PNG := $(FONTS:%=$(ASSETS_DIR)/%.png)
+FONT_INC := $(FONTS:%=$(BUILDDIR)/assets/%.inc)
+
 # Code that was written in assembly, kept as assembly source: splat's hasm
 # segments (src/<binary>/<name>.s; splat only writes one if it isn't there),
 # and the PsyQ objects Sony assembled (src/main/psyq/<object>.s, used in
@@ -228,7 +241,21 @@ $(GENDIR)/main.ld: $(CONFIG_DIR)/main.yaml $(CONFIG_DIR)/symbols.txt $(wildcard 
 		r=$$?; rm -f src/main/psyq.c; exit $$r
 	@touch $@
 
-generate: $(GENDIR)/main.ld $(foreach o,$(OVERLAYS),$(GENDIR)/$(o).ld)
+generate: $(GENDIR)/main.ld $(foreach o,$(OVERLAYS),$(GENDIR)/$(o).ld) $(FONT_PNG)
+
+# only extract a sheet again when the executable or the list change, so that
+# an edited sheet stays
+$(ASSETS_DIR)/%.png: .EXTRA_PREREQS :=
+$(ASSETS_DIR)/%.png: $(DISK_DIR)/$(EXE_NAME) $(FONT_LIST)
+	@mkdir -p $(dir $@)
+	$(PYTHON) tools/font.py extract $< $(FONT_LIST) $* $@
+
+$(BUILDDIR)/assets/%.inc: $(ASSETS_DIR)/%.png $(FONT_LIST) tools/font.py
+	@mkdir -p $(dir $@)
+	$(PYTHON) tools/font.py build $(FONT_LIST) $* $< $@
+
+# the C files include them (their .d files then say which one does)
+$(C_OBJ): | $(FONT_INC)
 
 regenerate: reset
 	$(MAKE) generate
@@ -307,7 +334,7 @@ clean:
 	rm -rf $(BUILDDIR) $(TOOLS_BUILDDIR)
 
 reset: clean
-	rm -rf $(ASM_DIR) $(EXPECTEDDIR)
+	rm -rf $(ASM_DIR) $(EXPECTEDDIR) $(ASSETS_DIR)
 
 -include $(C_OBJ:.o=.d) $(PSYQ_OBJ:.s=.d)
 

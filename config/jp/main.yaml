@@ -202,8 +202,9 @@ segments:
       # jp's font, which str_util's getSjisGlyph reads: the 12x11 glyphs of
       # the symbols, kana and alphabets, then of the 2965 kanji of JIS level
       # 1 (0x889F-0x9872), 22 bytes each, and the runs of codes that index
-      # them
-      - [0x5C0FC, data, ui/str_util]
+      # them. The C builds the glyphs from the PNG sheets tools/font.py cuts
+      # out of the executable (config/jp/fonts.txt).
+      - [0x5C0FC, .data, ui/str_util]
       - [0x6EDA0, .data, system/sound]
       # player_rank's PLAYER_PROFILES to COMPLETE_SET_CARD_COUNTS (us has them
       # in memcard)

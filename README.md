@@ -213,6 +213,14 @@ In `jp` and `eu` the game's code that is still splat's assembly is in the
 report as units with nothing matched yet (the PsyQ SDK is left out, as in
 `us`).
 
+The Japanese version draws its text with a font of its own, 3,489 glyphs of
+12x11 pixels in its executable. Like the rest of the game's data it is not in
+the repository: `make VERSION=jp generate` cuts it out of `disks/jp/` as PNG
+sheets in `assets/jp/` (`tools/font.py`, with the tables listed in
+`config/jp/fonts.txt`), and the build turns the sheets back into the C
+initializers that `src/main/ui/str_util.c` includes. An edited sheet goes into
+the build as it is.
+
 ## Progress
 
 ```
@@ -256,6 +264,7 @@ built.
 | `mk/version/` | each version's settings for the Makefile: the executable's name, the disc directory, the overlays |
 | `tools/` | build helpers, `try_match.py`, `asm_source.py`, `extract_drv.py`, the report generator |
 | `asm/<version>/`, `expected/<version>/`, `build/<version>/` | generated; not in git |
+| `assets/<version>/` | the version's graphics as PNG, extracted from the disc by `make generate`; not in git |
 
 ## Contributing
 

@@ -1,0 +1,8 @@
+# jp's font, which src/main/ui/str_util.c defines: tools/font.py cuts each
+# table out of the executable as a PNG sheet, assets/jp/<name>.png, and the
+# build turns the sheet back into build/jp/assets/<name>.inc, the C that
+# str_util.c includes.
+#
+# name               offset   glyphs
+sjis_symbol_glyphs   0x5C0FC  524     # the symbols, kana and alphabets (0x8140-0x84BE)
+sjis_kanji_glyphs    0x5EE04  2965    # the kanji of JIS level 1 (0x889F-0x9872)
