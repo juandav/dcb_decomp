@@ -5,6 +5,28 @@
 #include "dcb/heap.h"
 #include "dcb/angle.h"
 
+#if VERSION_JP
+/* jp has no resetPadStates and no PAD_INPUT_ENABLED: initPads clears part of
+   each pad's state itself */
+void initPads(void) {
+    s32 i;
+    u8 *padMemory;
+
+    padMemory = allocPermanentHeapBlock(sizeof(PadState) * 2);
+    for (i = 0; i < 2; i++) {
+        PAD_STATES[i] = (PadState *)(padMemory + i * sizeof(PadState));
+        PAD_STATES[i]->rawHeld = 0;
+        PAD_STATES[i]->repeatEnabled = 1;
+        PAD_STATES[i]->repeating = 0;
+        PAD_STATES[i]->holdTime = 0;
+        PAD_STATES[i]->padStatus = 0;
+        PAD_STATES[i]->padType = 0;
+        setPadRepeatRate(i, 0x1E, 2);
+    }
+    PadInitDirect(PAD_RECEIVE_BUFFERS[0], PAD_RECEIVE_BUFFERS[1]);
+    PadStartCom();
+}
+#elif VERSION_US || VERSION_EU
 void initPads(void) {
     s32 i;
     u8 *padMemory;
@@ -18,12 +40,14 @@ void initPads(void) {
     PadInitDirect(PAD_RECEIVE_BUFFERS[0], PAD_RECEIVE_BUFFERS[1]);
     PadStartCom();
 }
+#endif
 
 void setPadRepeatRate(s32 port, s16 repeatDelay, s16 repeatRate) {
     PAD_STATES[port]->repeatDelay = repeatDelay;
     PAD_STATES[port]->repeatRate = repeatRate;
 }
 
+#if VERSION_US || VERSION_EU
 void resetPadStates(void) {
     s32 i;
 
@@ -44,6 +68,7 @@ void resetPadStates(void) {
         setPadRepeatRate(i, 0x1E, 2);
     }
 }
+#endif
 
 /* rawData is the port's receive buffer: a status byte (0 when the transfer
    worked), the controller's id, then its two bytes of buttons (0 = pressed). */
@@ -113,7 +138,7 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
                     /* the same value: rawRepeat still holds pressed here */
 #if VERSION_US
                     pad->rawRepeat = pressed | held;
-#elif VERSION_EU
+#elif VERSION_JP || VERSION_EU
                     pad->rawRepeat |= held;
 #else
 #error "main/system/pad: version not checked"
@@ -137,6 +162,16 @@ s32 updatePadState(s32 port, PadState *pad, u8 *rawData) {
     return 0;
 }
 
+#if VERSION_JP
+/* jp's game reads the pads' raw masks: there are no copies to update */
+void pollPads(void) {
+    s32 port;
+
+    for (port = 0; port < 2; port++) {
+        updatePadState(port * 0x10, PAD_STATES[port], PAD_RECEIVE_BUFFERS[port]);
+    }
+}
+#elif VERSION_US || VERSION_EU
 void pollPads(void) {
     s32 port;
     PadState *pad;
@@ -161,3 +196,4 @@ void pollPads(void) {
         port += 1;
     } while (port < 2);
 }
+#endif

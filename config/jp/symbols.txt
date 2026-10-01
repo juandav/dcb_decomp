@@ -746,7 +746,9 @@ _patch_pad = 0x80068594; // type:func
 _remove_ChgclrPAD = 0x8006860C; // type:func
 PadGetState = 0x80068788; // type:func
 PadInfoMode = 0x80068854; // type:func
-PadStartCom = 0x80068EEC; // type:func
+// jp's libpad, as eu's: PadStartCom forwards to the body us has under that name
+PadStartCom = 0x800686FC; // type:func manual
+_PadStartCom = 0x80068EEC; // type:func version-only manual
 PadStopCom = 0x80068FB8; // type:func
 _dirFailAuto = 0x8006B5A4; // type:func
 DEFAULT_TEXT_RGB = 0x8006B854;
@@ -865,3 +867,5 @@ COMPLETE_SET_CARD_COUNTS = 0x8007E65C;
 DIGIMON_CARDS = 0x801E4718;
 RENDER_CALLBACKS_ENABLED = 0x8006B784;
 VBLANK_COUNTER = 0x80088B70;
+PadInitDirect = 0x8006AB9C; // type:func manual (the same code as eu's PadInitDirect)
+PAD_RECEIVE_BUFFERS = 0x80098F00;

@@ -175,6 +175,18 @@ typedef struct {
     /* 0x02 */ u16 rawPressed;
     /* 0x04 */ u16 rawReleased;
     /* 0x06 */ u16 rawRepeat;
+#if VERSION_JP
+    /* jp has no copies for the game to read: the game reads the raw masks */
+    /* 0x08 */ s8 repeatEnabled;
+    /* 0x09 */ s8 repeating;
+    /* 0x0A */ s16 holdTime;
+    /* 0x0C */ u16 repeatButtons;
+    /* 0x0E */ s16 repeatDelay;
+    /* 0x10 */ s16 repeatRate;
+    /* 0x12 */ u8 padStatus;
+    /* 0x13 */ u8 padType;
+    /* 0x14 */ s16 padExId;
+#elif VERSION_US || VERSION_EU
     /* 0x08 */ s16 held;
     /* 0x0A */ s16 pressed;
     /* 0x0C */ s16 released;
@@ -188,6 +200,7 @@ typedef struct {
     /* 0x1A */ u8 padStatus;
     /* 0x1B */ u8 padType;
     /* 0x1C */ s16 padExId;
+#endif
 } PadState;
 typedef struct {
     u32 tag;
