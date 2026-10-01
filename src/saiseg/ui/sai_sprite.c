@@ -95,6 +95,9 @@ SpriteTemplate SAI_SPRITE_TEMPLATES[66] = {
     { 0x328, 0, 0x210, 0xF2, 0, 0x58, 0x50, 0, 0 },
 };
 
+/* the same walk over the pack; each version's compiler needs its own form of
+   the loop to lay it out as the original does */
+#if VERSION_US
 void SAI_uploadPakTextures(u8 *pack) {
     PackEntry *entry;
 
@@ -113,6 +116,28 @@ void SAI_uploadPakTextures(u8 *pack) {
         pack += entry->size;
     } while (1);
 }
+#elif VERSION_EU
+void SAI_uploadPakTextures(u8 *pack) {
+    PackEntry *entry;
+
+    if (pack == NULL) {
+        return;
+    }
+    while (1) {
+        entry = (PackEntry *)pack;
+        pack += sizeof(PackEntry);
+        if (entry->type < 0) {
+            break;
+        }
+        if (entry->type == 5) {
+            uploadTexturePack((u32 *)pack);
+        }
+        pack += entry->size;
+    }
+}
+#else
+#error "saiseg/ui/sai_sprite: version not checked"
+#endif
 
 void SAI_loadAreaPak(void) {
     char path[0x48];
@@ -241,6 +266,10 @@ void SAI_setSpriteSize(Sprite3D *sprite, s16 width, s16 height) {
     sprite->corners[2].vy = halfHeight;
 }
 
+#if VERSION_EU
+/* eu: masks the tpage with -0x61 in a register; no C form found yet */
+INCLUDE_ASM("saiseg/nonmatchings/ui/sai_sprite", SAI_setSpriteBlendMode);
+#elif VERSION_US
 void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
     s16 tpage;
 
@@ -256,3 +285,6 @@ void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
         SetSemiTrans(&sprite->quads[1], 0);
     }
 }
+#else
+#error "saiseg/ui/sai_sprite: version not checked"
+#endif

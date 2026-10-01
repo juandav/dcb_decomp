@@ -41,6 +41,10 @@ void KAW_drawTutorialText(UiWindow *window) {
     drawText(window->originX, window->originY, KAW_DUEL->tutorialScript->text, 7, window->z);
 }
 
+#if VERSION_EU
+/* eu: v0 and v1 swapped by the register allocator; no C form found yet */
+INCLUDE_ASM("kawseg/nonmatchings/duel/kaw_tutorial", KAW_showTutorialMessage);
+#elif VERSION_US
 s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     Rect16 rect;
     u8 text[200];
@@ -92,6 +96,9 @@ s32 KAW_showTutorialMessage(s32 y, u8 *src) {
     }
     PAD_INPUT_ENABLED = 0;
 }
+#else
+#error "kawseg/duel/kaw_tutorial: version not checked"
+#endif
 
 s32 KAW_tickTutorial(void) {
     s32 *vars;
@@ -179,7 +186,7 @@ s32 KAW_tickTutorial(void) {
                     DUEL->cpuResult = (s16)KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 2:
-                    MSG_BAR_NEXT = KAW_DUEL->tutorialScript->script->params[0];
+                    DUEL_MSG_BAR.next = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 case 3:
                     playSoundEffect((s16)KAW_DUEL->tutorialScript->script->params[0]);
@@ -194,7 +201,7 @@ s32 KAW_tickTutorial(void) {
                     KAW_closeCardSelect((s16)KAW_DUEL->tutorialScript->script->params[0]);
                     break;
                 case 6:
-                    MSG_BAR_PLAYER_LABEL = KAW_DUEL->tutorialScript->script->params[0];
+                    DUEL_MSG_BAR.playerLabel = KAW_DUEL->tutorialScript->script->params[0];
                     break;
                 }
                 break;
