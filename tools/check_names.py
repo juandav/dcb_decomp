@@ -19,6 +19,13 @@ binary us doesn't have (INTSEG, NISSEG), and a name that is a version's own,
 with "version-only" in its comment:
 
     func_name = 0x80012345; // type:func version-only
+
+A version that links into an overlay code us has in the executable (jp's
+SUGSEG holds main's effect_object and effect_prims) names it in the
+overlay's file with "us-main" in the comment; that name is checked against
+us's executable instead:
+
+    tickEffectMotion = 0x801EBFA4; // type:func us-main
 """
 
 import re
@@ -76,14 +83,15 @@ def main():
                 if binary not in us_binaries or AUTO_NAME.match(name) or "version-only" in comment.split():
                     continue
                 checked += 1
-                if name not in us.get(binary, {}):
+                home = "main" if "us-main" in comment.split() else binary
+                if name not in us.get(home, {}):
                     if name in where:
-                        errors.append(f"{rel}:{n}: {name} is {where[name]}'s in us, not {binary}'s")
+                        errors.append(f"{rel}:{n}: {name} is {where[name]}'s in us, not {home}'s")
                     else:
                         errors.append(f"{rel}:{n}: us has no {name} (renamed in one version only? "
                                       "tools/rename.py renames in all)")
-                elif us[binary][name] != func:
-                    kind = "a function" if us[binary][name] else "data"
+                elif us[home][name] != func:
+                    kind = "a function" if us[home][name] else "data"
                     errors.append(f"{rel}:{n}: {name} is {kind} in us")
     for e in errors:
         print(e)
