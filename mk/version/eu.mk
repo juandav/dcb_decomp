@@ -24,8 +24,8 @@ GCC_VERSION := 2.8.1
 MAIN_C_SRC := \
 	$(addprefix src/main/card/, card_render.c partner_level.c \
 		player_data.c player_rank.c) \
-	$(addprefix src/main/duel/, battle_hud.c card_zones.c duel_launch.c \
-		duel_session.c duel_setup.c duel_util.c hud_panels.c) \
+	$(addprefix src/main/duel/, battle_hud.c card_motion.c card_zones.c \
+		duel_launch.c duel_session.c duel_setup.c duel_util.c hud_panels.c) \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c loader.c \
 		memcard.c opening_movie.c pad.c render_loop.c save_checksum.c sort.c \
@@ -72,7 +72,8 @@ SUBSEG_C_SRC := \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c) \
-	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_gradient.c \
-		sug_light_motion.c sug_model_effect.c sug_screen_copy.c \
-		sug_scroll_texture.c sug_sprite_effect.c sug_stage_fade.c sug_trail.c) \
+	$(addprefix src/sugseg/effect/, sug_effect_script.c sug_fade_rect.c \
+		sug_gradient.c sug_light_motion.c sug_model_effect.c \
+		sug_screen_copy.c sug_scroll_texture.c sug_sprite_effect.c \
+		sug_stage_fade.c sug_trail.c) \
 	src/sugseg/sug_bss.c

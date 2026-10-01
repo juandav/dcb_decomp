@@ -30,6 +30,10 @@
    the sprite there (ANIM_STEP) and one holds it. 0-2: Online Deck, 3-7: hand,
    8-10: Offline Deck, 11-15: Digimon stack, 16-20: played card, 21-25: played
    card drawn from the Online Deck, 26-28: DP slots, 29-34: screen centre. */
+#if VERSION_EU
+/* eu: reads the panels' positions as u16 and truncates the targets late; no C form found yet */
+INCLUDE_ASM("main/nonmatchings/duel/card_motion", tickCardMotion);
+#elif VERSION_US
 void tickCardMotion(s32 cardIndex, s32 player) {
     CardAnim *anim;
 
@@ -503,6 +507,9 @@ void tickCardMotion(s32 cardIndex, s32 player) {
         break;
     }
 }
+#else
+#error "main/duel/card_motion: version not checked"
+#endif
 
 void renderBoardCards(void) {
     char text[8];
@@ -511,7 +518,7 @@ void renderBoardCards(void) {
     s32 i;
     s32 j;
     s32 hpLabelDrawn;
-    s8 card;
+    s32 card;
     s32 hpColor;
     s32 z;
 
