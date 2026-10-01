@@ -105,6 +105,9 @@ void resetPlayerData(void) {
         }
         for (i = 0; i < 3; i++) {
             profile->savedDecks[i].inUse = 0;
+            /* the original clears the record twice; GCC 2.95 drops the first */
+            profile->savedDecks[i].wins = 0;
+            profile->savedDecks[i].losses = 0;
             profile->savedDecks[i].saveCount = 0;
             profile->savedDecks[i].wins = 0;
             profile->savedDecks[i].losses = 0;
@@ -192,15 +195,10 @@ void *findDigimonCardByModelId(s32 modelId) {
     s32 i;
 
     card = (DigimonCardData *)DIGIMON_CARDS;
-    if (card->modelId != modelId) {
-        i = 0;
-        do {
-            i++;
-            card++;
-            if (i >= 0xBF) {
-                break;
-            }
-        } while (card->modelId != modelId);
+    for (i = 0; i < 0xBF; i++, card++) {
+        if (card->modelId == modelId) {
+            break;
+        }
     }
     return card;
 }
