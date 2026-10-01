@@ -401,6 +401,10 @@ void drawMediumText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
     drawMediumTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
 }
 
+#if VERSION_EU
+/* eu: loads the palette digit through another register; no C form found yet */
+INCLUDE_ASM("main/nonmatchings/ui/text", drawMediumTextColored);
+#elif VERSION_US
 void drawMediumTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) {
     s32 left;
     s16 clut;
@@ -490,6 +494,9 @@ void drawMediumTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z) 
         }
     }
 }
+#else
+#error "main/ui/text: version not checked"
+#endif
 
 void drawLargeText(s32 x, s32 y, s32 text, s32 palette, s32 z) {
     drawLargeTextColored(x, y, (u8 *)text, palette, (u8 *)&DEFAULT_TEXT_RGB, z);
@@ -1004,13 +1011,15 @@ s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u
                 text++;
                 icon = *text++;
                 drawIconColored(x, y + 1, 0, icon - '0', rgb, z);
-                x += 12 + spacing;
+                x += 12;
+                x += spacing;
                 break;
             case 'b':
                 text++;
                 icon = *text++;
                 drawIconColored(x, y + 1, 0, icon - ')', rgb, z);
-                x += 12 + spacing;
+                x += 12;
+                x += spacing;
                 break;
             case 'c':
                 text++;
@@ -1021,7 +1030,8 @@ s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u
                 text++;
                 icon = *text++;
                 drawIconColored(x, y + 1, 0, icon - 0x1C, rgb, z);
-                x += 12 + spacing;
+                x += 12;
+                x += spacing;
                 break;
             case 'e':
                 text++;
@@ -1033,7 +1043,8 @@ s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u
                     icon = *text - '"';
                 }
                 drawIconColored(x, y + 1, 0, icon, rgb, z);
-                x += 12 + spacing;
+                x += 12;
+                x += spacing;
                 text++;
                 break;
             case 'g':

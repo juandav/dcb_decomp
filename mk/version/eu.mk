@@ -30,7 +30,8 @@ MAIN_C_SRC := \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c loader.c \
 		memcard.c opening_movie.c pad.c render_loop.c save_checksum.c sort.c \
 		sound.c sound_play.c vblank.c) \
-	$(addprefix src/main/ui/, hacking_shell.c menu.c str_util.c window.c)
+	$(addprefix src/main/ui/, dialog.c hacking_shell.c menu.c str_util.c \
+		text.c window.c)
 ENDSEG_C_SRC := src/endseg/endseg.c
 EVOSEG_C_SRC := \
 	$(addprefix src/evoseg/cutscene/, evo_cutscene.c evo_shatter.c) \
@@ -52,7 +53,7 @@ OPENSEG_C_SRC := \
 	src/openseg/open_bss.c \
 	$(addprefix src/openseg/registration/, open_name_entry.c \
 		open_registration.c open_starter.c) \
-	src/openseg/title/open_movie.c
+	$(addprefix src/openseg/title/, open_movie.c open_title.c)
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_opponent_select.c sai_splash.c) \

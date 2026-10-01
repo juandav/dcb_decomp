@@ -99,6 +99,9 @@ void OPEN_drawSprite(s32 x, s32 y, s32 texX, s32 texY, s32 w, s32 h, s32 clutX, 
     }
 }
 
+/* libgpu's setDrawTPage */
+#define setDrawTPage(p, dfe, dtd, tpage) (setlen(p, 1), ((u32 *)(p))[1] = _get_mode(dfe, dtd, tpage))
+
 void OPEN_drawTitleScreen(void) {
     s32 shade;
     s32 i; /* also the shade of the dark band */
@@ -145,8 +148,7 @@ void OPEN_drawTitleScreen(void) {
         OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y2 = 0xBA;
         OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].x3 = 0x140;
         OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX].y3 = 0xBA;
-        setlen(&OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX], 1);
-        OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX].code[0] = _get_mode(0, 0, 0x40);
+        setDrawTPage(&OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX], 0, 0, 0x40);
         addPrim(&CURRENT_FRAME_BUFFER->ot[6], &OPEN_TITLE_BAND_QUADS[FRAME_BUFFER_INDEX]);
         addPrim(&CURRENT_FRAME_BUFFER->ot[6], &OPEN_TITLE_BAND_MODES[FRAME_BUFFER_INDEX]);
     case 6:
@@ -231,6 +233,10 @@ void OPEN_drawTitleScreen(void) {
     }
 }
 
+#if VERSION_EU
+/* eu: swaps the registers of choice and idle; no C form found yet */
+INCLUDE_ASM("openseg/nonmatchings/title/open_title", OPEN_runTitleScreen);
+#elif VERSION_US
 void OPEN_runTitleScreen(s32 parentTask) {
     char text[192]; /* unused, but it sizes the frame */
     /* never read: only its empty string is left in .rodata. It is written
@@ -372,3 +378,6 @@ void OPEN_runTitleScreen(s32 parentTask) {
     }
     resumeTask(parentTask, choice);
 }
+#else
+#error "openseg/title/open_title: version not checked"
+#endif
