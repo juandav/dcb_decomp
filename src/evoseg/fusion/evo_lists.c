@@ -171,7 +171,7 @@ void EVO_checkCardCapacity(s16 cardId) {
 
 void EVO_tickCardList(void) {
     s16 cardId;
-    s32 blocked = 0;
+    u8 blocked = 0;
     s32 i;
 
     cardId = EVO_CARD_LIST[EVO_CARD_LIST_MENU.row]->id;

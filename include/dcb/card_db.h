@@ -40,7 +40,7 @@ void loadCardDatabase();
 void assignCardCopySerial(s32 player, s32 cardId, s32 copy);
 void clearCollectionNewFlags(s32 player);
 void clearCollectionFirstObtainedFlags(s32 player);
-s8 addCardToCollection(s32 player, s32 cardId, s32 count);
+s32 addCardToCollection(s32 player, s32 cardId, s32 count);
 s8 removeCardFromCollection(s32 player, s32 cardId, s32 count);
 s32 getOwnedCardCount(s32 player, s32 cardId);
 s32 getCardId(s32 type, s32 index);

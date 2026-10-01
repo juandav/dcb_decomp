@@ -671,8 +671,8 @@ void SUB_drawCardList(UiWindow *window) {
     s32 z = window->z;
     s32 i;
     s32 y;
-    s32 palette;
-    s8 type;
+    u8 palette;
+    s32 type;
     u8 *rgb;
     s32 count;
 
@@ -684,9 +684,9 @@ void SUB_drawCardList(UiWindow *window) {
             break;
         }
         y = window->originY + i * SUB_CARD_LIST_MENU.rowH + 1;
+        palette = 7;
         type = ((s8 *)SUB_CARD_LIST[i])[2];
         rgb = SUB_CARD_LIST_COLORS[0];
-        palette = 7;
         count = getOwnedCardCount(SUB_EDITOR.player, *(s16 *)SUB_CARD_LIST[i]);
         if (PLAYER_DATA(SUB_EDITOR.player).cardCollection[*(s16 *)SUB_CARD_LIST[i]] & 0x40) {
             if (count == 0) {
@@ -733,7 +733,7 @@ void SUB_drawCardList(UiWindow *window) {
     }
     updateMenuCursor(&SUB_CARD_LIST_MENU);
     SUB_COLLECTION_STATS.selectedCard = SUB_CARD_LIST[SUB_CARD_LIST_MENU.row];
-    SUB_COLLECTION_STATS.selectedId = *(s16 *)SUB_COLLECTION_STATS.selectedCard;
+    SUB_COLLECTION_STATS.selectedId = *(s16 *)SUB_CARD_LIST[SUB_CARD_LIST_MENU.row];
 }
 
 const char SUB_STR_LV[] = "Lv";
@@ -1080,7 +1080,7 @@ s32 SUB_compareDeckLevel3First(CardSlot *a, CardSlot *b) {
 void SUB_linkPartnerCards(CardSlot *cards, s32 player) {
     s32 i;
     s32 j;
-    s32 cardId;
+    u8 cardId;
 
     for (i = 0; i < 3; i++) {
         cardId = PLAYER_DATA(player).partners[i].cardId;

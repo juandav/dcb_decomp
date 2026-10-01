@@ -145,7 +145,10 @@ void EVO_saveScriptFlags(void) {
 
     i = 20;
     bit = 0;
-    while (bit < 32) {
+    while (1) {
+        if (bit >= 32) {
+            break;
+        }
         if (EVO_SCRIPT->vars[i] != 0) {
             ((PlayerProfile *)PLAYER_PROFILES)->scriptFlags |= 1 << bit;
         }

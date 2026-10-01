@@ -39,8 +39,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/subseg/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -56,21 +57,21 @@ segments:
       - [0x0, rodata, deck/sub_name_entry]
       - [0xAC, rodata, deck/sub_base_deck]
       - [0xE8, rodata, partner/sub_partner]
-      - [0x11CC, rodata, deck/sub_sort]
+      - [0x11CC, .rodata, deck/sub_sort]
       - [0x1374, rodata, deck/sub_deck_editor]
       - [0x13C8, rodata, deck/sub_deck_screens]
       - [0x196C, rodata, deck/sub_auto_deck]
       - [0x1A6C, asm, deck/sub_name_entry]
       - [0x301C, asm, deck/sub_base_deck]
       - [0x34FC, asm, partner/sub_partner]
-      - [0x76C0, asm, deck/sub_sort]
+      - [0x76C0, c, deck/sub_sort]
       - [0xA300, asm, deck/sub_deck_editor]
       - [0xAE78, asm, deck/sub_deck_screens]
       - [0x11DC0, asm, deck/sub_auto_deck]
       - [0x13630, data, deck/sub_name_entry]
       - [0x1368C, data, deck/sub_base_deck]
       - [0x136B8, data, partner/sub_partner]
-      - [0x13D3C, data, deck/sub_sort]
+      - [0x13D3C, .data, deck/sub_sort]
       - [0x13F68, data, deck/sub_deck_screens]
       - [0x13F7C, data, deck/sub_auto_deck]
       - [0x14050, data, sub_bss]
