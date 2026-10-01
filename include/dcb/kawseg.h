@@ -105,6 +105,17 @@ typedef struct {
 } DuelK;
 #endif
 
+#if VERSION_JP
+/* jp's tutorial block (SessionData.unk8): its message window and text */
+typedef struct {
+    /* 0x000 */ UiWindow window;
+    /* 0x050 */ u8 unk50[0x218];
+    /* 0x268 */ char text[0x101];
+    /* 0x369 */ u8 unk369[3];
+} TutorialK;
+#define KAW_TUTORIAL ((TutorialK *)((SessionData *)SESSION_DATA)->unk8)
+#endif
+
 typedef struct ScriptRunner {
      void *data;
      Script *script;
