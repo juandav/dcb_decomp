@@ -72,7 +72,7 @@ SAI_returnToArea = 0x801F0EA8; // type:func version-only
 
 // the overlay tasks jp's memory card screen goes on to (memcard_screen.c):
 // (NISSEG's: SAISEG has no function at 0x801F117C)
-NIS_runMenuE7CC = 0x801F117C; // type:func version-only
+NIS_runMainMenuTask = 0x801F117C; // type:func version-only
 NIS_runVsMode = 0x801F0820; // type:func version-only
 NIS_enterDeckListFromMenu = 0x801FB26C; // type:func version-only
 INT_introTask = 0x801EB428; // type:func version-only

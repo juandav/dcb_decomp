@@ -60,7 +60,7 @@ typedef struct {
 } ScrollingBackgroundView;
 extern ScrollingBackgroundView *SCROLLING_BACKGROUND;
 /* the overlays' tasks the screen goes back to */
-void NIS_runMenuE7CC();
+void NIS_runMainMenuTask();
 void NIS_enterDeckListFromMenu();
 void NIS_runVsMode();
 void INT_introTask();
@@ -249,12 +249,12 @@ MemcardMode MEMCARD_MODES[10] = {
     { 2, NULL, enterWorldMap },
     { 3, runNewLoadMenu, enterWorldMap },
     { 0, enterWorldMap, enterWorldMap },
-    { 1, NIS_runMenuE7CC, NIS_enterDeckListFromMenu },
-    { 0, NIS_enterDeckListFromMenu, NIS_runMenuE7CC },
-    { 0x37, NIS_runMenuE7CC, doNothingInMemcardScreen },
+    { 1, NIS_runMainMenuTask, NIS_enterDeckListFromMenu },
+    { 0, NIS_enterDeckListFromMenu, NIS_runMainMenuTask },
+    { 0x37, NIS_runMainMenuTask, doNothingInMemcardScreen },
     { 0x38, NULL, NIS_runVsMode },
-    { 0, NIS_runVsMode, NIS_runMenuE7CC },
-    { 0, NULL, NIS_runMenuE7CC },
+    { 0, NIS_runVsMode, NIS_runMainMenuTask },
+    { 0, NULL, NIS_runMainMenuTask },
     { 0, NULL, enterWorldMap },
 };
 
@@ -644,7 +644,7 @@ s32 applyLoadedSave(MemcardScreen *screen) {
 void runNewLoadMenu(void) {
     ChoiceMenu menu;
 
-    openChoiceMenu(&menu, 0x36, 0x32, NIS_runMenuE7CC, 0);
+    openChoiceMenu(&menu, 0x36, 0x32, NIS_runMainMenuTask, 0);
     addChoiceMenuItem(&menu, 5, doNothingInMemcardScreen);
     addChoiceMenuItem(&menu, 4, doNothingInMemcardScreen);
     while (1) {
