@@ -244,6 +244,9 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
         xform = (Xform *)slots->slots[id].value;
         saved = *(Xform *)slots->xform;
         initTransform(slots->xform, 0, 0, 0, 0, 0, 0, 0);
+        /* the chain up to the slots' own transform; each version's
+           compiler needs its own form of the loop */
+#if VERSION_US
         n = 0;
         p = chain;
         chain[0] = xform;
@@ -257,6 +260,17 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
                 *(Xform **)((s32)p + (n << 2)) = xform;
             } while (xform != (Xform *)slots->xform);
         }
+#elif VERSION_EU
+        for (n = 0; n < 16; n++) {
+            chain[n] = xform;
+            if (xform == (Xform *)slots->xform) {
+                break;
+            }
+            xform = xform->parent;
+        }
+#else
+#error "sugseg/effect/sug_effect_script: version not checked"
+#endif
         for (i = n; i > 0; i--) {
             updateTransformMatrix(chain[i], 0);
         }
@@ -391,14 +405,13 @@ s32 SUG_tickEffectScript(EffectScript *runner) {
     s32 i;
 
     slots = runner->slots;
-    i = 0;
     PushMatrix();
     tickEffectMotion((s32)&SUG_EFFECT_ROOT, 0);
     updateTransformMatrix(slots->xform, 0);
     PopMatrix();
     runner->regs[0] = 1;
     SUG_runEffectScript(runner);
-    for (; i < 150; i++) {
+    for (i = 0; i < 150; i++) {
         if (slots->slots[i].active != 0) {
             fn = SUG_EFFECT_TICK_FUNCS[slots->slots[i].id];
             if (fn != NULL) {
@@ -469,10 +482,10 @@ void SUG_runEffectScript(EffectScript *runner) {
                     SCREEN_COPY_EFFECT.b = 0xA8;
                     break;
                 case 4:
-                    CLEAR_BG_ON_DRAW = 0;
+                    CAMERA->buffers[0].draw.isbg = 0;
                     break;
                 case 5:
-                    CLEAR_BG_ON_DRAW = 1;
+                    CAMERA->buffers[0].draw.isbg = 1;
                     break;
                 case 6:
                     SUG_uploadEffectTim(PARAMS, slots->modelSlots[0] << 8, (Chunk *)slots->pak);
@@ -547,7 +560,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                 case 14:
                     switch (PARAM(0)) {
                     case 2:
-                        CAMERA_TARGET_MODEL = -1;
+                        CAMERA->targetModel = -1;
                         SCENE_3D->modelState[0] = SCENE_3D->modelState[1] = 1;
                         break;
                     case 0:
@@ -569,7 +582,7 @@ void SUG_runEffectScript(EffectScript *runner) {
                             *(s16 *)((u8 *)dst + 0x42) += *(s16 *)(prev + 0xC);
                             *(s16 *)((u8 *)dst + 0x52) += *(s16 *)(prev + 0x10);
                         } else {
-                            CAMERA_TARGET_MODEL = slots->modelSlots[PARAMS->source];
+                            CAMERA->targetModel = slots->modelSlots[PARAMS->source];
                         }
                         SCENE_3D->modelState[CAMERA->targetModel] = 1;
                         SCENE_3D->modelState[(s16)(CAMERA->targetModel ^ 1)] = -1;
@@ -787,6 +800,9 @@ void SUG_createScrollTextureFromParams(EffectParams *params, EffectSlots *ctx) {
     SUG_createScrollTexture(&rect, params->texDepth, params->variant, params->rate);
 }
 
+/* (u16)(v) << n, written as the two shifts GCC 2.8.1 keeps */
+#define U16_SHL(v, n) ((u32)((v) << 16) >> (16 - (n)))
+
 void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
     u8 color[3];
     Rect16 uv;
@@ -807,10 +823,10 @@ void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
     v = y & 0xFF;
     switch (cmd->texDepth) {
     case 0:
-        u <<= 2;
+        u = U16_SHL(u, 2);
         break;
     case 1:
-        u <<= 1;
+        u = U16_SHL(u, 1);
         break;
     }
     uv.x = u;
@@ -855,10 +871,10 @@ void SUG_createTrailFromParams(EffectParams *cmd, EffectSlots *ctx) {
     v = y & 0xFF;
     switch (cmd->texDepth) {
     case 0:
-        u <<= 2;
+        u = U16_SHL(u, 2);
         break;
     case 1:
-        u <<= 1;
+        u = U16_SHL(u, 1);
         break;
     }
     uv.x = u;
@@ -899,10 +915,10 @@ void SUG_createRingFromParams(EffectParams *cmd, EffectSlots *ctx) {
     v = y & 0xFF;
     switch (cmd->texDepth) {
     case 0:
-        u <<= 2;
+        u = U16_SHL(u, 2);
         break;
     case 1:
-        u <<= 1;
+        u = U16_SHL(u, 1);
         break;
     }
     uv.x = u;
