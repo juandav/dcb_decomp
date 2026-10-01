@@ -28,4 +28,13 @@
 #define VERSION_EU 0
 #endif
 
+/*
+ * Not a version: a Japanese debug build that the European disc carries
+ * (eu's INTSEG and NISSEG), which mk/version/eu.mk compiles as jp's with
+ * -DJP_DEBUG_BUILD=1. Its debug code is under #if JP_DEBUG_BUILD.
+ */
+#ifndef JP_DEBUG_BUILD
+#define JP_DEBUG_BUILD 0
+#endif
+
 #endif /* VERSION_H */

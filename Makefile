@@ -168,8 +168,13 @@ $(ASM_OBJ): ASFLAGS += --defsym GLOBAL_JLABELS=1
 OVERLAY_DRIVE := $(DISK_DIR)/P.DRV
 OVERLAY_BINS := $(foreach o,$(OVERLAYS),$(BUILDDIR)/$(shell echo $(o) | tr a-z A-Z).BIN)
 
-# the executable's named symbols, as a linker script for the overlays
+# the executable's named symbols, as a linker script for the overlays; an
+# overlay built for another executable than the version's (eu's NISSEG) links
+# with that one's names instead, config/<version>/symbols_<overlay>_exe.txt
 $(GENDIR)/symbols_main.ld: $(CONFIG_DIR)/symbols.txt
+	@mkdir -p $(dir $@)
+	sed -e 's|//.*||' $< > $@
+$(GENDIR)/symbols_%_exe.ld: $(CONFIG_DIR)/symbols_%_exe.txt
 	@mkdir -p $(dir $@)
 	sed -e 's|//.*||' $< > $@
 
@@ -181,7 +186,7 @@ $(BUILDDIR)/disks/$$($(1)_NAME).BIN: $(OVERLAY_DRIVE) tools/extract_drv.py
 	$(PYTHON) tools/extract_drv.py $$< $$($(1)_NAME) $$@
 
 $(GENDIR)/$(1).ld: .EXTRA_PREREQS :=
-$(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard $(CONFIG_DIR)/symbols_$(1).txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
+$(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard $(CONFIG_DIR)/symbols_$(1).txt $(CONFIG_DIR)/symbols_$(1)_exe.txt) $(BUILDDIR)/disks/$$($(1)_NAME).BIN
 	$(SPLAT) $$< --disassemble-all --make-full-disasm-for-code
 	@# a C file with no code (an overlay's data-only files, such as
 	@# <prefix>_bss.c) gets no full disassembly from splat; its target is
@@ -196,9 +201,11 @@ $(GENDIR)/$(1).ld: $(CONFIG_DIR)/$(1).yaml $(CONFIG_DIR)/symbols.txt $(wildcard 
 	done
 	@touch $$@
 
-$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $(GENDIR)/symbols_main.ld $(UNDEFINED_SYMS) $(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)
+$(1)_EXE_SYMS := $(if $(wildcard $(CONFIG_DIR)/symbols_$(1)_exe.txt),$(GENDIR)/symbols_$(1)_exe.ld,$(GENDIR)/symbols_main.ld $(UNDEFINED_SYMS))
+
+$(BUILDDIR)/$$($(1)_NAME).elf: $(OBJ) $(GENDIR)/$(1).ld $$($(1)_EXE_SYMS) $(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)
 	$(LD) -nostdlib --no-check-sections -Map $(BUILDDIR)/$$($(1)_NAME).map \
-		-T $(GENDIR)/$(1).ld -T $(GENDIR)/symbols_main.ld $(addprefix -T ,$(UNDEFINED_SYMS)) \
+		-T $(GENDIR)/$(1).ld $$(addprefix -T ,$$($(1)_EXE_SYMS)) \
 		$(addprefix -T ,$(wildcard $(CONFIG_DIR)/undefined_syms_$(1).txt)) \
 		-T $(GENDIR)/undefined_syms_auto_$(1).txt \
 		-T $(GENDIR)/undefined_funcs_auto_$(1).txt -o $$@
