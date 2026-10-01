@@ -34,3 +34,8 @@ EVOSEG_C_SRC := \
 KAWSEG_C_SRC := \
 	src/kawseg/duel/kaw_effect.c \
 	$(addprefix src/kawseg/ui/, kaw_exp.c kaw_prize.c)
+SAISEG_C_SRC := src/saiseg/hacking/sai_hacking.c
+SUGSEG_C_SRC := \
+	src/sugseg/battle/sug_camera.c \
+	$(addprefix src/sugseg/effect/, sug_fade_rect.c sug_light_motion.c \
+		sug_model_effect.c sug_scroll_texture.c sug_sprite_effect.c)

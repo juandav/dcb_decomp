@@ -39,8 +39,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the overlay's code is still splat's assembly
+  # the C files in src/saiseg/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -64,7 +65,7 @@ segments:
       - [0x6AC, rodata, area/sai_opponent_select]
       - [0x6F8, rodata, area/sai_opponent_info]
       - [0x75C, rodata, area/sai_splash]
-      - [0x770, rodata, hacking/sai_hacking]
+      - [0x770, .rodata, hacking/sai_hacking]
       - [0x7D0, rodata, hacking/sai_word_input]
       - [0x8E8, rodata, ui/sai_sprite]
       - [0x8FC, rodata, map/sai_world_map]
@@ -82,7 +83,7 @@ segments:
       - [0x7618, asm, area/sai_opponent_select]
       - [0x9810, asm, area/sai_opponent_info]
       - [0xAFF8, asm, area/sai_splash]
-      - [0xB724, asm, hacking/sai_hacking]
+      - [0xB724, c, hacking/sai_hacking]
       - [0xBFA8, asm, hacking/sai_word_input]
       - [0xD310, asm, ui/sai_sprite]
       - [0xDAEC, asm, map/sai_world_map]
@@ -92,7 +93,7 @@ segments:
       - [0x14F08, data, sai_data]
       - [0x1503C, data, ui/sai_choice]
       - [0x1504C, data, player/sai_player_data]
-      - [0x15118, data, hacking/sai_hacking]
+      - [0x15118, .data, hacking/sai_hacking]
       - [0x1512C, data, hacking/sai_word_input]
       - [0x151B0, data, ui/sai_sprite]
       - [0x156D8, data, map/sai_world_map]

@@ -136,3 +136,11 @@ SUG_playNoDamageTurn = 0x801F1448; // type:func
 SUG_runPolygonBattle = 0x801F14B4; // type:func
 SUG_HUD_TPAGE = 0x801F19A0;
 // end of the names from us
+
+// names from the C of the modules this version builds (tools/version_symbols.py)
+SUG_CAMERA_SPIN = 0x801F1994;
+SUG_CAMERA_ORBIT_RANGE = 0x801F1998;
+SUG_CAMERA_YAW_SPIN = 0x801F199C;
+SUG_DEFAULT_LIGHT_MATRIX = 0x801F1870;
+SUG_DEFAULT_LIGHT_COLORS = 0x801F1890;
+SUG_MODEL_CLUT_RECT = 0x801E08A8;

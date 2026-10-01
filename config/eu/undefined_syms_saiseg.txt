@@ -1,0 +1,6 @@
+/* addresses SAISEG uses that none of its objects defines */
+
+/* from the C of the modules this version builds (tools/version_symbols.py):
+   what it calls by address, and the fields of its data that the modules
+   still in asm read by splat's names */
+SAI_AREA_MODE = 0x801F69CE;
