@@ -710,6 +710,10 @@ typedef struct {
 #elif VERSION_US || VERSION_EU
 #define PLAYER_CARDS(p) ((p)->cards)
 #endif
+/* the byte of a card's DigimonCardData at FIELD, read through an s8 or u8
+   pointer to the data as KAWSEG does: the offset follows each version's
+   layout */
+#define CARD_BYTE(data, field) ((data)[(s32) & ((DigimonCardData *)0)->field])
 typedef struct {
     /* 0x00 */ u8 unk0[0xE];
     /* 0x0E */ s16 value;
