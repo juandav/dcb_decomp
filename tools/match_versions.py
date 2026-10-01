@@ -923,16 +923,25 @@ def symbol_file(version, binary):
 
 def seed(version, p, data_pairs):
     """Write the names into the version's symbol files, between BEGIN and
-    END (replacing what an earlier run wrote there)."""
+    END (replacing what an earlier run wrote there). A name given by hand
+    stays: outside the block, or inside it with `manual` in its comment (a
+    pair corrected by hand), which is kept in the block as it is."""
     us_lines = us_symbol_lines()
     bins = [b for b, _, _ in binaries(version)]
-    # the names the files already give by hand (outside the block)
+    # the names the files already give by hand (outside the block, or marked
+    # manual inside it)
     manual = {}
+    kept = defaultdict(list)  # binary -> [(addr, line)] of the manual lines in the block
     for b in bins:
         path = symbol_file(version, b)
         text = path.read_text() if path.exists() else ""
         if BEGIN in text:
-            text = text[:text.index(BEGIN)] + text[text.index(END) + len(END):]
+            block = text[text.index(BEGIN):text.index(END)]
+            for line in block.splitlines():
+                m = re.match(r"^\s*(\S+)\s*=\s*(0x[0-9A-Fa-f]+).*//.*\bmanual\b", line)
+                if m:
+                    kept[b].append((int(m[2], 16), line))
+            text = text[:text.index(BEGIN)] + "\n".join(line for _, line in kept[b]) + text[text.index(END) + len(END):]
         for m in re.finditer(r"^\s*(\S+)\s*=\s*(0x[0-9A-Fa-f]+)", text, re.M):
             manual[m[1]] = (b, int(m[2], 16))
     # every name splat gives now, with its address: a name we write must not
@@ -976,7 +985,7 @@ def seed(version, p, data_pairs):
     written = {}
     for binary in bins:
         path = symbol_file(version, binary)
-        lst = sorted(entries.get(binary, []))
+        lst = sorted(entries.get(binary, []) + kept[binary])
         old = path.read_text() if path.exists() else ""
         if BEGIN in old:
             old = old[:old.index(BEGIN)].rstrip("\n") + "\n" + old[old.index(END) + len(END):].lstrip("\n")
