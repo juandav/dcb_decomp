@@ -70,7 +70,7 @@ segments:
       - [0x3F84, c, cpu/kaw_cpu]
       - [0x50FC, c, cpu/kaw_cpu_placement]
       - [0x6B98, c, cpu/kaw_cpu_digivolve]
-      - [0x7F70, asm, cpu/kaw_cpu_attack]
+      - [0x7F70, c, cpu/kaw_cpu_attack]
       - [0x9A20, asm, cpu/kaw_battle_sim]
       - [0xEB80, asm, ui/kaw_duel_menu]
       - [0xEF40, asm, duel/kaw_hand]

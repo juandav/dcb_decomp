@@ -5,14 +5,30 @@
 #include "dcb/kaw_card_queries.h"
 
 typedef struct {
+#if VERSION_JP
+    s16 own;
+    s16 opponent;
+#elif VERSION_US
     s32 own;
     s32 opponent;
+#else
+#error "untested version"
+#endif
     s8 kills;
     s8 survives;
     s8 dies;
 } CardScore;
 
 #define SIM(i) (DUEL_AI->sims[i])
+/* us only looks for a card against the opponent's top card when it has one;
+   jp always looks */
+#if VERSION_JP
+#define HAS_TOP_CARD(player) 1
+#elif VERSION_US
+#define HAS_TOP_CARD(player) ((s8)PLAYER(player)->topCards[0] != -1)
+#else
+#error "untested version"
+#endif
 
 void KAW_chooseAttack(s32 player) {
     s32 draws;
@@ -24,7 +40,11 @@ void KAW_chooseAttack(s32 player) {
 
     draws = 0;
     wins = 0;
+#if VERSION_US
     DUEL->cpuResult = 0;
+#elif VERSION_EU
+#error "untested version"
+#endif
     for (i = 0; i < 3; i++) {
         if (SIM(i).outcome == 0) {
             draws++;
@@ -35,6 +55,17 @@ void KAW_chooseAttack(s32 player) {
     }
     if (draws != 0) {
         if (draws == 1) {
+#if VERSION_JP
+            for (i = 0; i < 3; i++) {
+                if (SIM(i).outcome == 0) {
+                    DUEL->cpuResult = i;
+                    break;
+                }
+            }
+            if (i == 3) {
+                DUEL->cpuResult = 0;
+            }
+#elif VERSION_US
             for (i = 0; i < 3; i++) {
                 if (SIM(i).outcome == 0) {
                     DUEL->cpuResult = i;
@@ -42,6 +73,9 @@ void KAW_chooseAttack(s32 player) {
                 }
             }
             DUEL->cpuResult = 0;
+#else
+#error "untested version"
+#endif
         } else {
             weight = 0;
             pick = 0;
@@ -54,9 +88,16 @@ void KAW_chooseAttack(s32 player) {
             if (SIM(2).outcome == 0) {
                 weight += 5;
             }
+            /* jp divides even by a zero weight */
+#if VERSION_JP
+            pick = rand() % weight;
+#elif VERSION_US
             if (weight != 0) {
                 pick = rand() % weight;
             }
+#else
+#error "untested version"
+#endif
             if (SIM(0).outcome == 0) {
                 if (pick < 2) {
                     DUEL->cpuResult = 0;
@@ -285,7 +326,7 @@ void KAW_chooseSupportCard(void) {
             DUEL->cpuResult = -1;
             return;
         }
-        if ((s8)PLAYER(opponent)->topCards[0] != -1) {
+        if (HAS_TOP_CARD(opponent)) {
             for (i = 0; i < 4; i++) {
                 if (scores[i].kills != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                     DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -333,7 +374,7 @@ void KAW_chooseSupportCard(void) {
         cards = countOnlineDeckCards(self);
         switch (PLAYER(self)->cpuSupportStyle) {
         case 0:
-            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
+            if (HAS_TOP_CARD(opponent)) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].survives != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -422,7 +463,7 @@ void KAW_chooseSupportCard(void) {
                 DUEL->cpuResult = PLAYER(self)->hand[j];
                 return;
             }
-            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
+            if (HAS_TOP_CARD(opponent)) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].survives != 0 && KAW_isVoidingCard(self, PLAYER(self)->hand[i]) != 0) {
                         if (KAW_isRecoveryCard(opponent, (s8)PLAYER(opponent)->topCards[0]) |
@@ -443,7 +484,7 @@ void KAW_chooseSupportCard(void) {
         cards = countOnlineDeckCards(self);
         switch (PLAYER(self)->cpuSupportStyle) {
         case 0:
-            if ((s8)PLAYER(opponent)->topCards[0] != -1 && PLAYER(self)->wins != 2) {
+            if (HAS_TOP_CARD(opponent) && PLAYER(self)->wins != 2) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].dies != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];
@@ -511,7 +552,7 @@ void KAW_chooseSupportCard(void) {
                 DUEL->cpuResult = PLAYER(self)->hand[j];
                 return;
             }
-            if ((s8)PLAYER(opponent)->topCards[0] != -1) {
+            if (HAS_TOP_CARD(opponent)) {
                 for (i = 0; i < 4; i++) {
                     if (scores[i].dies != 0 && KAW_isPileEffectCard(self, PLAYER(self)->hand[i]) != 0) {
                         DUEL->cpuResult = PLAYER(self)->hand[i];

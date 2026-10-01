@@ -37,4 +37,4 @@ SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/effect/, sug_history.c sug_tex_anim.c)
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/cpu/, kaw_card_queries.c kaw_cpu.c \
-		kaw_cpu_digivolve.c kaw_cpu_placement.c)
+		kaw_cpu_attack.c kaw_cpu_digivolve.c kaw_cpu_placement.c)
