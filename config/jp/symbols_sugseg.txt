@@ -5,6 +5,11 @@
 __addsf3 = 0x80022CBC; // type:func
 __divsf3 = 0x80022ECC; // type:func
 
+// the battle state (manual: the pairing doesn't reach SUGSEG's bss)
+SUG_BATTLE_STATE = 0x801FC9EC;
+SUG_BATTLE = 0x801FCBD0;
+SUG_TARGET_HP = 0x801FCC00;
+
 // names from us (tools/match_versions.py --seed): the same function or datum
 SUG_createPosHistory = 0x801EA8FC; // type:func
 SUG_fillPosHistory = 0x801EA9E8; // type:func

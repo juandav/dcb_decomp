@@ -79,7 +79,7 @@ segments:
       - [0xC890, asm, effect/sug_effect_script]
       - [0xE9AC, c, battle/sug_sprite]
       - [0xF400, asm, battle/sug_camera]
-      - [0xF548, asm, battle/sug_hud]
+      - [0xF548, c, battle/sug_hud]
       - [0x110FC, asm, battle/sug_battle]
       - [0x124D8, data, effect/sug_light_motion]
       - [0x12698, data, battle/sug_battle]

@@ -4,6 +4,7 @@
 #include "dcb/player_data.h"
 #include "dcb/prim.h"
 #include "dcb/sugseg.h"
+#include "dcb/anim_control.h"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
@@ -54,7 +55,7 @@ void SUG_initHudSlide(HudSlide *obj, s16 pos, s16 target0, s16 target1, s8 flags
     obj->target[0] = target0;
     obj->target[1] = target1;
     obj->flags = flags;
-    if (flags & 2) {
+    if (obj->flags & 2) {
         SUG_fillShorts(obj->trail, 6, pos);
     }
     obj->brightness = 0x80;
@@ -140,7 +141,14 @@ void SUG_drawNumber(s32 x, s32 y, s32 value, u8 brightness) {
         } while (j <= i);
         if (any != 0 || i == 3) {
             uv.x = digits[i] * 24;
+            /* jp's digits are 24 pixels apart */
+#if VERSION_JP
+            drawTexturedSprite(x + count * 24, y, &uv, SUG_HUD_TPAGE, clut, 1, brightness, 1);
+#elif VERSION_US
             drawTexturedSprite(x + 4 + count * 21, y, &uv, SUG_HUD_TPAGE, clut, 1, brightness, 1);
+#else
+#error "untested version"
+#endif
             count++;
         }
     }
@@ -255,7 +263,7 @@ void SUG_showAttackLabel(s32 side) {
 
     state = 0;
     alt = SUG_BATTLE->players[side].crash;
-    both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
+    both = (SUG_BATTLE->flags.bits.flag1 != 0) | (alt != 0);
     SUG_initHudSlide(&obj, 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
     obj.uv.x = 0;
     obj.uv.y = 0x88;
@@ -273,15 +281,19 @@ void SUG_showAttackLabel(s32 side) {
     uv2.h = 0x10;
     do {
         waitFrames(FRAME_INTERVAL);
-        state = SUG_tickHudSlides(&obj, ((SUG_BATTLE->flags.word >> 2) & 1) + 1, state, 2);
+        state = SUG_tickHudSlides(&obj, SUG_BATTLE->flags.bits.counter + 1, state, 2);
         SUG_drawHudSpriteTrail((s16)obj.pos, 0xA2, &obj.uv, SUG_HUD_TPAGE, getClut(0x280, 0x53), 1, 0x80, 1, obj.trail, 1);
         if (both) {
             SUG_drawHudSpriteTrail((s16)obj2.pos, 0x92, &obj2.uv, SUG_HUD_TPAGE, getClut(alt * 16 + 0x2A0, 0x54), 1, 0x80, 0, obj2.trail, 6);
         }
-        drawTexturedSprite((s16)obj.pos + 6, 0xA2, &uv2, SUG_HUD_TPAGE, SUG_BATTLE->players[side].attack | 0x14A8, 0, 0x80, 1);
+        drawTexturedSprite((s16)obj.pos + 6, 0xA2, &uv2, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].attack * 16 + 0x280, 0x52), 0, 0x80, 1);
     } while (state != 2);
 }
 
+#if VERSION_JP
+/* jp: register-priority tie between side, a and count; no C form without a do-while(0) */
+INCLUDE_ASM("sugseg/nonmatchings/battle/sug_hud", SUG_showAttackBanner);
+#elif VERSION_US
 void SUG_showAttackBanner(s32 side) {
     HudSlide banners[5];
     Rect16 unused; /* unused, but it sizes the frame */
@@ -326,8 +338,8 @@ void SUG_showAttackBanner(s32 side) {
     uv1.w = 0x18;
     uv1.h = 0x10;
     alt = SUG_BATTLE->players[side].crash;
-    both = ((SUG_BATTLE->flags.word >> 1) & 1) | (alt != 0);
-    if (!((SUG_BATTLE->flags.word >> 2) & 1)) {
+    both = (SUG_BATTLE->flags.bits.flag1 != 0) | (alt != 0);
+    if (!SUG_BATTLE->flags.bits.counter) {
         SUG_initHudSlide(&banners[1], 0x140, both * 32 + 0x4E, both * 32 + 0x50, 2);
         if (both) {
             a = count++;
@@ -373,22 +385,34 @@ void SUG_showAttackBanner(s32 side) {
         if (b >= 0) {
             SUG_drawHudSpriteTrail((s16)banners[b].pos, 0xA2, &banners[b].uv, SUG_HUD_TPAGE, 0x14E9, 1, banners[b].brightness, 0, banners[b].trail, 6);
         } else {
-            drawTexturedSprite((s16)banners[1].pos + 6, 0xA2, &uv1, SUG_HUD_TPAGE, SUG_BATTLE->players[side].attack | 0x14A8, 0, banners[1].brightness, 1);
+            drawTexturedSprite((s16)banners[1].pos + 6, 0xA2, &uv1, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].attack * 16 + 0x280, 0x52), 0, banners[1].brightness, 1);
         }
         if (c >= 0) {
             SUG_drawHudSpriteTrail((s16)banners[c].pos, 0x98, &banners[c].uv, SUG_HUD_TPAGE, 0x14EA, 1, banners[c].brightness, 0, banners[c].trail, 6);
         }
         drawTexturedSprite(0x10, 0x10, &uv0, SUG_HUD_TPAGE, getClut(SUG_BATTLE->players[side].element * 16 + 0x290, 0x50), 1, banners[0].brightness, 1);
     } while (state != 3);
-    SUG_BATTLE->flags.word &= ~2;
-    SUG_BATTLE->flags.word &= ~4;
+    SUG_BATTLE->flags.bits.flag1 = 0;
+    SUG_BATTLE->flags.bits.counter = 0;
 }
+#else
+#error "untested version"
+#endif
 
 void SUG_showHpBanner(s32 side) {
     HudSlide bar;
     HudSlide icon;
+#if VERSION_JP
+    HudSlide label;
+#elif VERSION_EU
+#error "untested version"
+#endif
     HudSlide num;
+#if VERSION_US
     s32 unused[8];
+#elif VERSION_EU
+#error "untested version"
+#endif
     s32 state;
 
     state = 0;
@@ -402,18 +426,46 @@ void SUG_showHpBanner(s32 side) {
     icon.uv.y = 0xA8;
     icon.uv.w = 0x28;
     icon.uv.h = 0x18;
+    /* jp also slides in a label */
+#if VERSION_JP
+    SUG_initHudSlide(&label, 0x140, 0, 0xA, 2);
+    label.uv.x = 0;
+    label.uv.y = 0x78;
+    label.uv.w = 0xA0;
+    label.uv.h = 0x10;
+#elif VERSION_EU
+#error "untested version"
+#endif
     SUG_initHudSlide(&num, -0x18, 0x10, 0x10, 2);
     waitFrames(0x28);
     do {
         waitFrames(FRAME_INTERVAL);
+#if VERSION_JP
+        state = SUG_tickHudSlides(&bar, 4, state, 2);
+#elif VERSION_US
         state = SUG_tickHudSlides(&bar, 3, state, 2);
+#else
+#error "untested version"
+#endif
         SUG_drawHudSpriteTrail((s16)bar.pos, 0xB4, &bar.uv, SUG_HUD_TPAGE, 0x1528, 1, bar.brightness, 0, bar.trail, 6);
         SUG_drawHudSpriteTrail(10, (s16)icon.pos, &icon.uv, SUG_HUD_TPAGE,
                       getClut(0x290 + SUG_BATTLE->players[side].element * 16, 0x50), 1, icon.brightness, 0,
                       icon.trail, 6);
+#if VERSION_JP
+        SUG_drawHudSpriteTrail((s16)label.pos, 0xA2, &label.uv, SUG_HUD_TPAGE, 0x1529, 1, label.brightness, 0, label.trail, 6);
+#elif VERSION_EU
+#error "untested version"
+#endif
         SUG_drawNumber(0xA8, (s16)num.pos, SUG_BATTLE->players[side].hp, num.brightness);
         if (((ModelData *)SCENE_3D->models[side])->animKeyTimer < 0) {
+            /* jp's models keep their animations loaded */
+#if VERSION_JP
+            startModelAnimation(side, 0, -2, 0);
+#elif VERSION_US
             playModelAnimation(side, 0);
+#else
+#error "untested version"
+#endif
         }
     } while (state != 3);
     waitFrames(FRAME_INTERVAL);
