@@ -43,11 +43,11 @@ typedef struct {
     /* 0x02 */ u8 type; /* 3 */
     /* 0x03 */ char name[0x11];
     /* 0x14 */ char text[4][0x13]; /* "１" to "４": not shown */
-} JpPackData;
+} BoosterPack;
 
 extern u8 CROSS_EFFECT_ICONS[];
 extern char *CROSS_EFFECT_NAMES[];
-extern JpPackData D_8007EAA0[];
+extern BoosterPack BOOSTER_PACKS[];
 
 void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env);
 void clearKanjiPage(s32);
@@ -71,32 +71,32 @@ void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s
 void func_801EA908(void);
 void func_801EA910(void);
 
-void func_801F0EA0();
-void func_801F127C();
-void func_801F1FC4();
-void func_801F0404(void);
-ShopList *func_801ED598(s32 deck, u32 mode, s32 group);
-void func_801F1CCC();
+void SUB_runItemDetails();
+void SUB_runStockGrid();
+void SUB_runOpenedGrid();
+void SUB_markSoldStock(void);
+ShopList *SUB_buildShopList(s32 deck, u32 mode, s32 group);
+void SUB_runOpenedDetails();
 s32 SUB_getItemPrice(s8 type, s16 index);
 s16 SUB_shopRandom(s16 seed);
-void func_801ED750(ShopList *list);
-void func_801ED7C0(ShopList *list);
+void SUB_addCountsToMax(ShopList *list);
+void SUB_setStockMax(ShopList *list);
 
-void func_801EA918(JpWindow *window) {
+void SUB_drawViewerHelp(JpWindow *window) {
     char text[64];
 
     sprintf(text, " Ｒ１／Ｒ２　拡大／縮小　　Ｌ１／Ｌ２　上げる／下げる");
     drawIconText(0x1A, 0x18, 7, 1, window->z, (s32)text);
 }
 
-void func_801EA970(JpWindow *window) {
+void SUB_drawViewerMotions(JpWindow *window) {
     char text[64];
 
     sprintf(text, " b0b2b1　モーション　　　b3　戻る");
     drawIconText(0x1A, 0xD1, 7, 1, window->z, (s32)text);
 }
 
-void func_801EA9C8(void) {
+void SUB_initViewerScene(void) {
     initScene3D(1);
     createWireGrid(3000, 3000, 11, 11, 1, 0);
     GRID_VISIBLE = 0;
@@ -107,7 +107,7 @@ void func_801EA9C8(void) {
     loadArenaStage(-1);
 }
 
-void func_801EAA74(void) {
+void SUB_freeViewerScene(void) {
     endTask(0x1B);
     endTask(0x19);
     removeFrameCallback((s32)renderSceneModels);
@@ -117,7 +117,7 @@ void func_801EAA74(void) {
     freeHeapBlocksByTag(0x7F);
 }
 
-void func_801EAACC(void) {
+void SUB_showViewerModel(void) {
     CAMERA->snapCamera = 1;
     CAMERA->targetDistance = 3000;
     CAMERA->targetHeight = -((Model *)SCENE_3D->models[0])->bonepos[0][1] * 3;
@@ -129,7 +129,7 @@ void func_801EAACC(void) {
     startModelAnimation(0, 0, -2, 0);
 }
 
-void func_801EAB7C(void) {
+void SUB_unloadViewerModel(void) {
     freeHeapBlocksByTag(500);
     unloadModel(0);
     unloadModelAnimations(0);
@@ -137,7 +137,7 @@ void func_801EAB7C(void) {
     SCENE_3D->modelState[23] = 0;
 }
 
-void func_801EABC4(void) {
+void SUB_playViewerMotion(void) {
     s32 anim;
 
     CAMERA->targetModel = 0;
@@ -164,11 +164,11 @@ void func_801EABC4(void) {
     waitFrames(8);
 }
 
-void func_801EAD68(s32 parentTask) {
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3460, getCurrentTaskId());
-    D_801F3508[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3480, getCurrentTaskId());
-    D_801F3508[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
+void SUB_runViewerControls(s32 parentTask) {
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_VIEWER_HELP_WINDOW, getCurrentTaskId());
+    SUB_VIEWER_WINDOWS[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_VIEWER_MOTION_WINDOW, getCurrentTaskId());
+    SUB_VIEWER_WINDOWS[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
     do {
         waitFrames(FRAME_INTERVAL);
         if ((PAD_STATES[0]->rawHeld & PAD_R1) && CAMERA->targetDistance > 1000) {
@@ -188,11 +188,11 @@ void func_801EAD68(s32 parentTask) {
         } else if ((PAD_STATES[0]->rawHeld & PAD_L2) && CAMERA->targetHeight < 1000) {
             CAMERA->targetHeight += 25;
         } else if (PAD_STATES[0]->rawPressed & (PAD_TRIANGLE | PAD_CIRCLE | PAD_CROSS)) {
-            func_801EABC4();
+            SUB_playViewerMotion();
         }
     } while (!(PAD_STATES[0]->rawRepeat & PAD_SQUARE));
-    D_801F3508[0]->state = 4;
-    D_801F3508[1]->state = 4;
+    SUB_VIEWER_WINDOWS[0]->state = 4;
+    SUB_VIEWER_WINDOWS[1]->state = 4;
     waitFrames(10);
     resumeTask(parentTask);
 }
@@ -214,13 +214,13 @@ void SUB_viewDigimonModel(s32 modelId) {
     loadSoundEffectBank(0);
     loadDigimonModelPak(0, modelId);
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x10, 0);
-    func_801EAACC();
+    SUB_showViewerModel();
     waitFrames(0x10);
-    spawnTask(0, -1, 0, 0x400, func_801EAD68, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x400, SUB_runViewerControls, getCurrentTaskId());
     waitFrames(0x7FFFFFFF);
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 0x10, 0);
     waitFrames(0x10);
-    func_801EAB7C();
+    SUB_unloadViewerModel();
     waitFrames(10);
     stopScreenFade();
     loadSoundEffectBank(1);
@@ -231,7 +231,7 @@ void SUB_viewDigimonModel(s32 modelId) {
     } while (SCROLLING_BACKGROUND->brightness != 0x80);
 }
 
-s32 func_801EB21C(s32 type, s32 index) {
+s32 SUB_getCardId(s32 type, s32 index) {
     s32 id = 0;
 
     switch (type) {
@@ -281,7 +281,7 @@ s32 SUB_countOwnedCards(void) {
     return SUB_countOwnedDigimonCards() + SUB_countOwnedOptionCards() + SUB_countOwnedDigivolveCards();
 }
 
-s32 func_801EB370(s32 specialty, s32 level) {
+s32 SUB_countOwnedDigimonOf(s32 specialty, s32 level) {
     s32 total = 0;
     s32 i;
 
@@ -295,7 +295,7 @@ s32 func_801EB370(s32 specialty, s32 level) {
     return total;
 }
 
-s32 func_801EB42C(s32 deck, s32 specialty, s32 level) {
+s32 SUB_countDeckDigimonOf(s32 deck, s32 specialty, s32 level) {
     s32 total = 0;
     s32 i;
 
@@ -309,7 +309,8 @@ s32 func_801EB42C(s32 deck, s32 specialty, s32 level) {
     return total;
 }
 
-s32 func_801EB524(s32 deck) {
+/* the deck's slots that hold no Digimon card: the empty ones (0xFF) too */
+s32 SUB_countDeckOptions(s32 deck) {
     s32 total = 0;
     s32 i;
 
@@ -321,7 +322,7 @@ s32 func_801EB524(s32 deck) {
     return total;
 }
 
-s32 func_801EB580(s32 deck, s32 type, s32 specialty, s32 level) {
+s32 SUB_countCards(s32 deck, s32 type, s32 specialty, s32 level) {
     s32 count = 0;
 
     if (type < 0) {
@@ -330,21 +331,21 @@ s32 func_801EB580(s32 deck, s32 type, s32 specialty, s32 level) {
         }
     } else if (deck == 0) {
         if (type == 0) {
-            count = func_801EB370(specialty, level);
+            count = SUB_countOwnedDigimonOf(specialty, level);
         } else {
             count = SUB_countOwnedOptionCards() + SUB_countOwnedDigivolveCards();
         }
     } else if (type == 0) {
-        count = func_801EB42C(deck - 1, specialty, level);
+        count = SUB_countDeckDigimonOf(deck - 1, specialty, level);
     } else {
-        count = func_801EB524(deck - 1);
+        count = SUB_countDeckOptions(deck - 1);
     }
     return count;
 }
 
-ItemIcon func_801EB618(s32 type, s32 index) {
+ItemIcon SUB_getItemIcon(s32 type, s32 index) {
     ItemIcon icon;
-    s32 id = func_801EB21C(type, index);
+    s32 id = SUB_getCardId(type, index);
     s32 u;
 
     if (type == 3) {
@@ -374,7 +375,7 @@ ItemIcon func_801EB618(s32 type, s32 index) {
     return icon;
 }
 
-s32 func_801EB810(void) {
+s32 SUB_countDecksInUse(void) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
@@ -385,14 +386,14 @@ s32 func_801EB810(void) {
     return i;
 }
 
-void func_801EB85C(s32 type, s32 index, s32 count) {
+void SUB_addCardsToDeck(s32 type, s32 index, s32 count) {
     CardSlot *slot;
     s32 i;
 
     if (count == 0) {
         return;
     }
-    slot = PLAYER_DATA(0).savedDecks[D_801FC8C8.deck].cards;
+    slot = PLAYER_DATA(0).savedDecks[SUB_SHOP_ITEM.deck].cards;
     if (count < 0) {
         for (i = 0; i < 30; i++, slot++) {
             if (type == slot->type && index == slot->index) {
@@ -418,23 +419,23 @@ void func_801EB85C(s32 type, s32 index, s32 count) {
 void func_801EB928(void) {
 }
 
-void func_801EB930(ShopItem *items, s32 left, s32 right) {
+void SUB_sortItems(ShopItem *items, s32 left, s32 right) {
     ShopItem swap;
     s32 pivot;
     s32 j;
     s32 i;
 
-    pivot = func_801EB21C(items[(left + right) / 2].type, items[(left + right) / 2].index);
+    pivot = SUB_getCardId(items[(left + right) / 2].type, items[(left + right) / 2].index);
     i = left;
     j = right;
     while (1) {
-        while (func_801EB21C(items[i].type, items[i].index) < pivot) {
+        while (SUB_getCardId(items[i].type, items[i].index) < pivot) {
             if (i >= right) {
                 break;
             }
             i++;
         }
-        while (pivot < func_801EB21C(items[j].type, items[j].index)) {
+        while (pivot < SUB_getCardId(items[j].type, items[j].index)) {
             if (left >= j) {
                 break;
             }
@@ -450,14 +451,14 @@ void func_801EB930(ShopItem *items, s32 left, s32 right) {
         j--;
     }
     if (left < i - 1) {
-        func_801EB930(items, left, i - 1);
+        SUB_sortItems(items, left, i - 1);
     }
     if (j + 1 < right) {
-        func_801EB930(items, j + 1, right);
+        SUB_sortItems(items, j + 1, right);
     }
 }
 
-void func_801EBB3C(ShopList *list, s32 deck) {
+void SUB_countListInDeck(ShopList *list, s32 deck) {
     CardSlot *slot;
     s32 i;
     s32 j;
@@ -472,7 +473,7 @@ void func_801EBB3C(ShopList *list, s32 deck) {
     }
 }
 
-void func_801EBBF4(ShopList *list) {
+void SUB_setListMaxToOwned(ShopList *list) {
     s32 i;
 
     for (i = 0; i < list->count; i++) {
@@ -493,7 +494,7 @@ void func_801EBBF4(ShopList *list) {
     }
 }
 
-s32 func_801EBD18(ShopList *list, u8 type, u8 index) {
+s32 SUB_addItemToList(ShopList *list, u8 type, u8 index) {
     s32 i;
 
     for (i = 0; i < list->count; i++) {
@@ -506,103 +507,103 @@ s32 func_801EBD18(ShopList *list, u8 type, u8 index) {
     list->items[i].max = 0;
     list->items[i].owned = 0;
     list->items[i].brightness = 0x40;
-    list->items[i].icon = func_801EB618(type, index);
+    list->items[i].icon = SUB_getItemIcon(type, index);
     list->items[i].type = type;
     list->items[i].index = index;
     list->count++;
     return 0;
 }
 
-void func_801EBE44(ShopList *list, s32 deck) {
+void SUB_listDeckCards(ShopList *list, s32 deck) {
     CardSlot *slot = PLAYER_DATA(0).savedDecks[deck].cards;
     s32 i;
 
     for (i = 0; i < 30; i++, slot++) {
         if (slot->type != 0xFF) {
-            func_801EBD18(list, slot->type, slot->index);
+            SUB_addItemToList(list, slot->type, slot->index);
         }
     }
-    func_801EB930(list->items, 0, list->count - 1);
+    SUB_sortItems(list->items, 0, list->count - 1);
 }
 
-void func_801EBEEC(ShopList *list, s32 specialty, s32 level) {
+void SUB_listOwnedDigimon(ShopList *list, s32 specialty, s32 level) {
     s32 i;
 
     for (i = 0; i < 110; i++) {
         if ((PLAYER_DATA(0).cardCollection[i] & 0xF) && SUB_DIGIMON_CARDS[i].attr >> 4 == specialty
             && (level < 0 || (SUB_DIGIMON_CARDS[i].attr & 0xF) == level)) {
-            func_801EBD18(list, 0, i);
+            SUB_addItemToList(list, 0, i);
         }
     }
 }
 
-void func_801EBFBC(ShopList *list) {
+void SUB_listOwnedOptionAndDigivolveCards(ShopList *list) {
     s32 i;
 
     for (i = 0; i < 43; i++) {
         if (PLAYER_DATA(0).optionCollection[i] & 0xF) {
-            func_801EBD18(list, 1, i);
+            SUB_addItemToList(list, 1, i);
         }
     }
     for (i = 0; i < 6; i++) {
         if (PLAYER_DATA(0).digivolveCollection[i] & 0xF) {
-            func_801EBD18(list, 2, i);
+            SUB_addItemToList(list, 2, i);
         }
     }
 }
 
-void func_801EC074(ShopList *list, s8 group) {
+void SUB_listOwnedOptionsOfGroup(ShopList *list, s8 group) {
     s32 i;
 
     for (i = 0; i < 43; i++) {
-        if ((PLAYER_DATA(0).optionCollection[i] & 0xF) && D_801F34A0[i] == group) {
-            func_801EBD18(list, 1, i);
+        if ((PLAYER_DATA(0).optionCollection[i] & 0xF) && SUB_OPTION_GROUPS[i] == group) {
+            SUB_addItemToList(list, 1, i);
         }
     }
 }
 
-void func_801EC118(ShopList *list) {
+void SUB_listOwnedDigivolveCards(ShopList *list) {
     s32 i;
 
     for (i = 0; i < 6; i++) {
         if (PLAYER_DATA(0).digivolveCollection[i] & 0xF) {
-            func_801EBD18(list, 2, i);
+            SUB_addItemToList(list, 2, i);
         }
     }
 }
 
-void func_801EC18C(ShopList *list) {
+void SUB_listNewCards(ShopList *list) {
     s32 i;
 
     for (i = 0; i < 110; i++) {
         if (PLAYER_DATA(0).cardCollection[i] & 0x80) {
-            func_801EBD18(list, 0, i);
+            SUB_addItemToList(list, 0, i);
         }
     }
     for (i = 0; i < 43; i++) {
         if (PLAYER_DATA(0).optionCollection[i] & 0x80) {
-            func_801EBD18(list, 1, i);
+            SUB_addItemToList(list, 1, i);
         }
     }
     for (i = 0; i < 6; i++) {
         if (PLAYER_DATA(0).digivolveCollection[i] & 0x80) {
-            func_801EBD18(list, 2, i);
+            SUB_addItemToList(list, 2, i);
         }
     }
 }
 
-void func_801EC288(ShopList *list) {
+void SUB_listOwnedCards(ShopList *list) {
     s32 i;
 
     for (i = 0; i < 110; i++) {
         if (PLAYER_DATA(0).cardCollection[i] & 0xF) {
-            func_801EBD18(list, 0, i);
+            SUB_addItemToList(list, 0, i);
         }
     }
-    func_801EBFBC(list);
+    SUB_listOwnedOptionAndDigivolveCards(list);
 }
 
-void func_801EC304(ShopList *list) {
+void SUB_setListOwned(ShopList *list) {
     s32 i;
     u8 index;
 
@@ -633,46 +634,46 @@ void func_801EC304(ShopList *list) {
     }
 }
 
-void func_801EC444(ShopList *list) {
+void SUB_listStock(ShopList *list) {
     s32 bit = 0;
     s32 i;
 
     for (i = 0; i < 6; i++) {
-        if (D_801F3700->packs[i].count != 0) {
-            func_801EBD18(list, 3, i);
+        if (SUB_SHOP->packs[i].count != 0) {
+            SUB_addItemToList(list, 3, i);
         }
     }
     for (i = 0; i < 110; i++) {
-        while (D_801F3700->digimonCards[i].count != 0) {
-            if (!((PLAYER_DATA(0).shops[D_801F3700->shopId].soldBits >> bit) & 1)) {
-                func_801EBD18(list, 0, i);
+        while (SUB_SHOP->digimonCards[i].count != 0) {
+            if (!((PLAYER_DATA(0).shops[SUB_SHOP->shopId].soldBits >> bit) & 1)) {
+                SUB_addItemToList(list, 0, i);
             }
-            D_801F3700->digimonCards[i].count--;
+            SUB_SHOP->digimonCards[i].count--;
             bit++;
         }
     }
     for (i = 0; i < 43; i++) {
-        while (D_801F3700->optionCards[i].count != 0) {
-            if (!((PLAYER_DATA(0).shops[D_801F3700->shopId].soldBits >> bit) & 1)) {
-                func_801EBD18(list, 1, i);
+        while (SUB_SHOP->optionCards[i].count != 0) {
+            if (!((PLAYER_DATA(0).shops[SUB_SHOP->shopId].soldBits >> bit) & 1)) {
+                SUB_addItemToList(list, 1, i);
             }
-            D_801F3700->optionCards[i].count--;
+            SUB_SHOP->optionCards[i].count--;
             bit++;
         }
     }
     for (i = 0; i < 6; i++) {
-        while (D_801F3700->digivolveCards[i].count != 0) {
-            if (!((PLAYER_DATA(0).shops[D_801F3700->shopId].soldBits >> bit) & 1)) {
-                func_801EBD18(list, 2, i);
+        while (SUB_SHOP->digivolveCards[i].count != 0) {
+            if (!((PLAYER_DATA(0).shops[SUB_SHOP->shopId].soldBits >> bit) & 1)) {
+                SUB_addItemToList(list, 2, i);
             }
-            D_801F3700->digivolveCards[i].count--;
+            SUB_SHOP->digivolveCards[i].count--;
             bit++;
         }
     }
-    func_801EC304(list);
+    SUB_setListOwned(list);
 }
 
-void func_801EC6F4(ShopList *list) {
+void SUB_sortList(ShopList *list) {
     ShopItem swap;
     s32 gap;
     s32 i;
@@ -683,8 +684,8 @@ void func_801EC6F4(ShopList *list) {
     for (; gap > 0; gap /= 3) {
         for (i = gap; i < list->count; i++) {
             for (j = i - gap; j >= 0; j -= gap) {
-                if (func_801EB21C(list->items[j].type, list->items[j].index)
-                    <= func_801EB21C(list->items[j + gap].type, list->items[j + gap].index)) {
+                if (SUB_getCardId(list->items[j].type, list->items[j].index)
+                    <= SUB_getCardId(list->items[j + gap].type, list->items[j + gap].index)) {
                     break;
                 }
                 swap = list->items[j];
@@ -695,7 +696,7 @@ void func_801EC6F4(ShopList *list) {
     }
 }
 
-void func_801EC904(u8 *unused, u8 pack, u8 level) {
+void SUB_addLevelCardIds(u8 *unused, u8 pack, u8 level) {
     u8 ranges[7][3][2] = {
         { { 0x00, 0x02 }, { 0x03, 0x0A }, { 0x0B, 0x13 } },
         { { 0x14, 0x16 }, { 0x17, 0x1E }, { 0x1F, 0x29 } },
@@ -708,16 +709,16 @@ void func_801EC904(u8 *unused, u8 pack, u8 level) {
     u8 id;
 
     for (id = ranges[pack][level][0]; id <= ranges[pack][level][1];) {
-        *D_801F3784 = id;
+        *SUB_PACK_CARD_END = id;
         id++;
-        D_801F3784++;
+        SUB_PACK_CARD_END++;
     }
-    *D_801F3784 = 0xFF;
+    *SUB_PACK_CARD_END = 0xFF;
 }
 
-/* Returns an int: func_801ECC68's code needs the wide return value, and
-   func_801F2618 narrows it to u8 itself. */
-s32 func_801ECA7C(u8 pack, u8 level) {
+/* Returns an int: SUB_listOpenedPacks's code needs the wide return value, and
+   SUB_rollStock narrows it to u8 itself. */
+s32 SUB_rollPackCard(u8 pack, u8 level) {
     u8 *ids;
     u8 swap;
     s32 count;
@@ -725,7 +726,7 @@ s32 func_801ECA7C(u8 pack, u8 level) {
     s32 j;
     s16 k;
 
-    ids = D_801F3784 = allocTaskHeapBlock(200);
+    ids = SUB_PACK_CARD_END = allocTaskHeapBlock(200);
     if (pack == 0xFF) {
         if (level >= 4) {
             level = 3;
@@ -733,12 +734,12 @@ s32 func_801ECA7C(u8 pack, u8 level) {
         if (level == 3) {
             for (j = 0; j < 7; j++) {
                 for (i = 0; i < 3; i++) {
-                    func_801EC904(D_801F3784, j, i);
+                    SUB_addLevelCardIds(SUB_PACK_CARD_END, j, i);
                 }
             }
         } else {
             for (i = 0; i < 7; i++) {
-                func_801EC904(D_801F3784, i, level);
+                SUB_addLevelCardIds(SUB_PACK_CARD_END, i, level);
             }
         }
     } else {
@@ -748,13 +749,13 @@ s32 func_801ECA7C(u8 pack, u8 level) {
         }
         if (level == 3) {
             for (i = 0; i < 3; i++) {
-                func_801EC904(D_801F3784, pack, i);
+                SUB_addLevelCardIds(SUB_PACK_CARD_END, pack, i);
             }
         } else {
-            func_801EC904(D_801F3784, pack, level);
+            SUB_addLevelCardIds(SUB_PACK_CARD_END, pack, level);
         }
     }
-    count = D_801F3784 - ids;
+    count = SUB_PACK_CARD_END - ids;
     for (i = 0; i < count; i++) {
         k = SUB_shopRandom(-1) % count;
         swap = ids[i];
@@ -765,7 +766,7 @@ s32 func_801ECA7C(u8 pack, u8 level) {
     return ids[0];
 }
 
-void func_801ECC68(ShopList *list) {
+void SUB_listOpenedPacks(ShopList *list) {
     s32 count = 165;
     u8 order[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     s32 i;
@@ -777,18 +778,18 @@ void func_801ECC68(ShopList *list) {
     u8 level;
     u8 id;
 
-    for (i = 0; i < D_801F3700->list.count; i++) {
-        if (D_801F3700->list.items[i].type != 3) {
-            while (D_801F3700->list.items[i].count != 0) {
-                func_801EBD18(list, D_801F3700->list.items[i].type, D_801F3700->list.items[i].index);
-                D_801F3700->list.items[i].count--;
+    for (i = 0; i < SUB_SHOP->list.count; i++) {
+        if (SUB_SHOP->list.items[i].type != 3) {
+            while (SUB_SHOP->list.items[i].count != 0) {
+                SUB_addItemToList(list, SUB_SHOP->list.items[i].type, SUB_SHOP->list.items[i].index);
+                SUB_SHOP->list.items[i].count--;
             }
         }
     }
     for (i = 0; i < count; i++) {
-        if (D_801F3700->list.items[i].type == 3) {
-            SUB_shopRandom(PLAYER_DATA(0).shops[D_801F3700->shopId].seeds[D_801F3700->list.items[i].index][0]);
-            while (D_801F3700->list.items[i].count != 0) {
+        if (SUB_SHOP->list.items[i].type == 3) {
+            SUB_shopRandom(PLAYER_DATA(0).shops[SUB_SHOP->shopId].seeds[SUB_SHOP->list.items[i].index][0]);
+            while (SUB_SHOP->list.items[i].count != 0) {
                 for (j = 0; j < 4; j++) {
                     swap = order[j];
                     r = (s16)(SUB_shopRandom(-1) % 8);
@@ -798,8 +799,8 @@ void func_801ECC68(ShopList *list) {
                 for (k = 0; k < 8; k++) {
                     SUB_shopRandom(-1);
                     for (j = 0; j < 4; j++) {
-                        if (order[j] == k && D_801F3700->list.items[i].index < 5) {
-                            pack = D_801F3700->list.items[i].index;
+                        if (order[j] == k && SUB_SHOP->list.items[i].index < 5) {
+                            pack = SUB_SHOP->list.items[i].index;
                             break;
                         }
                         pack = 0xFF;
@@ -811,33 +812,33 @@ void func_801ECC68(ShopList *list) {
                     } else {
                         level = 2;
                     }
-                    id = func_801ECA7C(pack, level);
+                    id = SUB_rollPackCard(pack, level);
                     if (id < 110) {
-                        func_801EBD18(list, 0, id);
+                        SUB_addItemToList(list, 0, id);
                     } else {
                         id -= 110;
                         if (id < 43) {
-                            func_801EBD18(list, 1, id);
+                            SUB_addItemToList(list, 1, id);
                         } else {
-                            func_801EBD18(list, 2, id - 43);
+                            SUB_addItemToList(list, 2, id - 43);
                         }
                     }
                     if (!(k & 1)) {
                         waitFrames(1);
                     }
                 }
-                D_801F3700->list.items[i].count--;
-                PLAYER_DATA(0).shops[D_801F3700->shopId].seeds[D_801F3700->list.items[i].index][0] =
-                    PLAYER_DATA(0).shops[D_801F3700->shopId].seeds[D_801F3700->list.items[i].index][1];
-                PLAYER_DATA(0).shops[D_801F3700->shopId].seeds[D_801F3700->list.items[i].index][1] = SUB_shopRandom(-1);
+                SUB_SHOP->list.items[i].count--;
+                PLAYER_DATA(0).shops[SUB_SHOP->shopId].seeds[SUB_SHOP->list.items[i].index][0] =
+                    PLAYER_DATA(0).shops[SUB_SHOP->shopId].seeds[SUB_SHOP->list.items[i].index][1];
+                PLAYER_DATA(0).shops[SUB_SHOP->shopId].seeds[SUB_SHOP->list.items[i].index][1] = SUB_shopRandom(-1);
             }
         }
     }
-    func_801EC6F4(list);
-    func_801EC304(list);
+    SUB_sortList(list);
+    SUB_setListOwned(list);
 }
 
-void func_801ED080(ShopList *list) {
+void SUB_listSellableCards(ShopList *list) {
     u8 most;
     u8 copies;
     s32 i;
@@ -860,10 +861,10 @@ void func_801ED080(ShopList *list) {
                 }
             }
         }
-        D_801F3700->digimonCards[i].stock -= most;
+        SUB_SHOP->digimonCards[i].stock -= most;
         if (SUB_DIGIMON_CARDS[i].price > 0) {
-            while (--D_801F3700->digimonCards[i].stock != 0xFF) {
-                func_801EBD18(list, 0, i);
+            while (--SUB_SHOP->digimonCards[i].stock != 0xFF) {
+                SUB_addItemToList(list, 0, i);
             }
         }
     }
@@ -883,10 +884,10 @@ void func_801ED080(ShopList *list) {
                 }
             }
         }
-        D_801F3700->optionCards[i].stock -= most;
+        SUB_SHOP->optionCards[i].stock -= most;
         if (SUB_OPTION_CARDS[i].price > 0) {
-            while (--D_801F3700->optionCards[i].stock != 0xFF) {
-                func_801EBD18(list, 1, i);
+            while (--SUB_SHOP->optionCards[i].stock != 0xFF) {
+                SUB_addItemToList(list, 1, i);
             }
         }
     }
@@ -906,10 +907,10 @@ void func_801ED080(ShopList *list) {
                 }
             }
         }
-        D_801F3700->digivolveCards[i].stock -= most;
+        SUB_SHOP->digivolveCards[i].stock -= most;
         if (SUB_DIGIVOLVE_CARDS[i].price > 0) {
-            while (--D_801F3700->digivolveCards[i].stock != 0xFF) {
-                func_801EBD18(list, 2, i);
+            while (--SUB_SHOP->digivolveCards[i].stock != 0xFF) {
+                SUB_addItemToList(list, 2, i);
             }
         }
     }
@@ -920,7 +921,7 @@ void func_801ED080(ShopList *list) {
     }
 }
 
-void func_801ED53C(ShopList *list) {
+void SUB_setListLeft(ShopList *list) {
     s32 i;
 
     for (i = 0; i < list->count; i++) {
@@ -929,69 +930,69 @@ void func_801ED53C(ShopList *list) {
     }
 }
 
-ShopList *func_801ED598(s32 deck, u32 mode, s32 group) {
+ShopList *SUB_buildShopList(s32 deck, u32 mode, s32 group) {
     ShopList *list = allocHeapBlock(0x920, 0x195);
 
     bzero((Scene3D *)list, 0x920);
     switch (mode) {
     case 0:
-        func_801EBE44(list, deck);
+        SUB_listDeckCards(list, deck);
         break;
     case 1:
-        func_801EBEEC(list, 0, group);
+        SUB_listOwnedDigimon(list, 0, group);
         break;
     case 2:
-        func_801EBEEC(list, 1, group);
+        SUB_listOwnedDigimon(list, 1, group);
         break;
     case 3:
-        func_801EBEEC(list, 2, group);
+        SUB_listOwnedDigimon(list, 2, group);
         break;
     case 4:
-        func_801EBEEC(list, 3, group);
+        SUB_listOwnedDigimon(list, 3, group);
         break;
     case 5:
-        func_801EBEEC(list, 4, group);
+        SUB_listOwnedDigimon(list, 4, group);
         break;
     case 6:
-        func_801EBFBC(list);
+        SUB_listOwnedOptionAndDigivolveCards(list);
         break;
     case 7:
-        func_801EC18C(list);
+        SUB_listNewCards(list);
         break;
     case 8:
-        func_801EC288(list);
+        SUB_listOwnedCards(list);
         break;
     case 9:
-        func_801EC074(list, group);
+        SUB_listOwnedOptionsOfGroup(list, group);
         break;
     case 10:
-        func_801EC118(list);
+        SUB_listOwnedDigivolveCards(list);
         break;
     case 11:
-        func_801EC444(list);
+        SUB_listStock(list);
         break;
     case 12:
-        func_801ECC68(list);
+        SUB_listOpenedPacks(list);
         break;
     case 13:
-        func_801ED080(list);
+        SUB_listSellableCards(list);
         break;
     }
     if (mode != 12) {
         if (mode == 11) {
-            func_801ED7C0(list);
+            SUB_setStockMax(list);
         } else if (mode != 13) {
-            func_801EBBF4(list);
+            SUB_setListMaxToOwned(list);
         }
     } else {
-        func_801EBBF4(list);
-        func_801ED750(list);
+        SUB_setListMaxToOwned(list);
+        SUB_addCountsToMax(list);
     }
-    D_801FC8E8 = list;
+    SUB_SHOP_LIST = list;
     return list;
 }
 
-void func_801ED750(ShopList *list) {
+void SUB_addCountsToMax(ShopList *list) {
     s32 i;
 
     for (i = 0; i < list->count; i++) {
@@ -1002,7 +1003,7 @@ void func_801ED750(ShopList *list) {
     }
 }
 
-void func_801ED7C0(ShopList *list) {
+void SUB_setStockMax(ShopList *list) {
     s32 i;
 
     for (i = 0; i < list->count; i++) {
@@ -1015,7 +1016,7 @@ void func_801ED7C0(ShopList *list) {
     }
 }
 
-void func_801ED84C(JpWindow *window) {
+void SUB_drawCardPicture(JpWindow *window) {
     char text[152];
     POLY_FT4 *poly;
     s32 y;
@@ -1023,15 +1024,15 @@ void func_801ED84C(JpWindow *window) {
     s16 dx;
     s16 dy;
 
-    poly = D_801F3700->polys[FRAME_BUFFER_INDEX];
+    poly = SUB_SHOP->polys[FRAME_BUFFER_INDEX];
     y = 0xB2;
-    if (D_801F3700->paid == 0) {
+    if (SUB_SHOP->paid == 0) {
         sprintf(text, "b0枚数決定 ");
         drawIconText(0x1C, y, 7, 1, window->z, (s32)text);
     } else {
         y -= 12;
     }
-    if (D_801FC8C8.type == 0) {
+    if (SUB_SHOP_ITEM.type == 0) {
         y += 12;
         sprintf(text, "b1ビューモード ");
         drawIconText(0x1C, y, 7, 1, window->z, (s32)text);
@@ -1039,26 +1040,26 @@ void func_801ED84C(JpWindow *window) {
     y += 12;
     sprintf(text, "b2キャンセル ");
     drawIconText(0x1C, y, 7, 1, window->z, (s32)text);
-    if (D_801F3700->loading == 0 && D_801F3700->flipTimer-- <= 0) {
-        D_801F3700->flipTimer = 0;
-        if (D_801F3700->flipBack == 0) {
-            D_801F3700->flip++;
+    if (SUB_SHOP->loading == 0 && SUB_SHOP->flipTimer-- <= 0) {
+        SUB_SHOP->flipTimer = 0;
+        if (SUB_SHOP->flipBack == 0) {
+            SUB_SHOP->flip++;
         } else {
-            D_801F3700->flip--;
+            SUB_SHOP->flip--;
         }
     }
-    if (D_801F3700->flip <= 0) {
-        D_801F3700->flip = 0;
+    if (SUB_SHOP->flip <= 0) {
+        SUB_SHOP->flip = 0;
     }
-    if (D_801F3700->flip == 10) {
-        D_801F3700->flipBack = 1;
+    if (SUB_SHOP->flip == 10) {
+        SUB_SHOP->flipBack = 1;
     }
-    if (D_801F3700->flipBack == 1) {
-        flip = D_801F3700->flip;
-        initWindowSprite(poly, (D_801F3700->imageSlot->clutY << 6) | ((D_801F3700->imageSlot->clutX >> 4) & 0x3F), 1,
-                      D_801F3700->imageSlot->x, D_801F3700->imageSlot->y, 0x40, 0x40);
+    if (SUB_SHOP->flipBack == 1) {
+        flip = SUB_SHOP->flip;
+        initWindowSprite(poly, (SUB_SHOP->imageSlot->clutY << 6) | ((SUB_SHOP->imageSlot->clutX >> 4) & 0x3F), 1,
+                      SUB_SHOP->imageSlot->x, SUB_SHOP->imageSlot->y, 0x40, 0x40);
         dx = flip * 32 / 10;
-        dy = D_801F3700->flip * 6 / 10;
+        dy = SUB_SHOP->flip * 6 / 10;
         poly->x0 = dx + 36;
         poly->y0 = dy + 74;
         poly->x1 = 100 - dx;
@@ -1067,15 +1068,15 @@ void func_801ED84C(JpWindow *window) {
         poly->y2 = 138 - dy;
         poly->x3 = 100 - dx;
         poly->y3 = dy + 138;
-        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)D_801F3700->polys[FRAME_BUFFER_INDEX]);
+        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)SUB_SHOP->polys[FRAME_BUFFER_INDEX]);
         poly++;
-        if (D_801FC8C8.type == 3) {
+        if (SUB_SHOP_ITEM.type == 3) {
             initWindowSprite(poly, 0x7F01, 0, 0x220, 0x180, 0x50, 0x74);
         } else {
             initWindowSprite(poly, 0x7F00, 0, 0x1A8, 0x100, 0x50, 0x74);
         }
         dx = flip * 4;
-        dy = D_801F3700->flip * 6 / 10;
+        dy = SUB_SHOP->flip * 6 / 10;
         poly->x0 = dx + 28;
         poly->y3 = dy + 170;
         poly->x1 = 108 - dx;
@@ -1084,12 +1085,12 @@ void func_801ED84C(JpWindow *window) {
         poly->y1 = 54 - dy;
         poly->x3 = 108 - dx;
         poly->y0 = dy + 54;
-        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)(D_801F3700->polys[FRAME_BUFFER_INDEX] + 1));
+        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)(SUB_SHOP->polys[FRAME_BUFFER_INDEX] + 1));
     } else {
         poly += 2;
         initWindowSprite(poly, 0x3DD8, 1, 0x180, 0x100, 0x50, 0x74);
-        dx = D_801F3700->flip * 4;
-        dy = D_801F3700->flip * 6 / 10;
+        dx = SUB_SHOP->flip * 4;
+        dy = SUB_SHOP->flip * 6 / 10;
         poly->x0 = dx + 28;
         poly->y0 = 54 - dy;
         poly->x1 = 108 - dx;
@@ -1098,18 +1099,18 @@ void func_801ED84C(JpWindow *window) {
         poly->y2 = dy + 170;
         poly->x3 = 108 - dx;
         poly->y3 = 170 - dy;
-        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)(D_801F3700->polys[FRAME_BUFFER_INDEX] + 2));
+        AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)(SUB_SHOP->polys[FRAME_BUFFER_INDEX] + 2));
     }
 }
 
-void func_801EDDA0(ItemIcon icon, s32 x, s32 y, s32 z, u8 brightness) {
+void SUB_drawItemIcon(ItemIcon icon, s32 x, s32 y, s32 z, u8 brightness) {
     s32 palette;
     s32 tpage;
     s32 clutX;
     s32 clut;
 
     if (icon.palette < 0) {
-        /* func_801EB618 stored ~palette */
+        /* SUB_getItemIcon stored ~palette */
         clutX = 0xFD;
         clut = (s16)(icon.palette + 1);
         icon.palette = -clut;
@@ -1139,12 +1140,12 @@ void func_801EDDA0(ItemIcon icon, s32 x, s32 y, s32 z, u8 brightness) {
     drawTexturedSprite(x, y, (Rect16 *)&icon, 0x17, ((palette + 0x1C0) << 6) | 0x1D, z, brightness, -1);
 }
 
-void func_801EDEF4(JpWindow *window) {
+void SUB_drawStockGrid(JpWindow *window) {
     char text[32];
     char number[24];
     Rect16 rect = { 0, 0xF0, 0x18, 9 };
     DigimonCardData *card;
-    JpPackData *pack;
+    BoosterPack *pack;
     char *name;
     s32 id;
     u8 index;
@@ -1155,51 +1156,51 @@ void func_801EDEF4(JpWindow *window) {
     s32 n;
     s32 type;
 
-    if (D_801FC8E8->count == 0) {
+    if (SUB_SHOP_LIST->count == 0) {
         return;
     }
-    for (n = 0, i = D_801FC8E8->top; n < 10; n++, i++) {
-        if (i >= D_801FC8E8->count) {
+    for (n = 0, i = SUB_SHOP_LIST->top; n < 10; n++, i++) {
+        if (i >= SUB_SHOP_LIST->count) {
             break;
         }
         x = (n % 5) * 50 + 0x1A;
         y = (n / 5) * 64 + 0x38;
-        if (D_801F3700->mode != 11) {
+        if (SUB_SHOP->mode != 11) {
             price = 0;
         } else {
-            price = SUB_getItemPrice(D_801FC8E8->items[i].type, D_801FC8E8->items[i].index) + D_801F3700->total;
+            price = SUB_getItemPrice(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index) + SUB_SHOP->total;
             if (PLAYER_DATA(0).bits < price) {
                 price = -1;
             }
         }
-        if (D_801FC8E8->cursor == i) {
-            D_801FC8E8->items[i].brightness = 0x80;
-            D_801F353C->x = x + 20;
-            D_801F353C->y = y + 24;
-        } else if (D_801FC8E8->items[i].brightness > 0x40) {
-            if ((D_801FC8E8->items[i].brightness -= 0x10) < 0x40) {
-                D_801FC8E8->items[i].brightness = 0x40;
+        if (SUB_SHOP_LIST->cursor == i) {
+            SUB_SHOP_LIST->items[i].brightness = 0x80;
+            SUB_GRID_CURSOR->x = x + 20;
+            SUB_GRID_CURSOR->y = y + 24;
+        } else if (SUB_SHOP_LIST->items[i].brightness > 0x40) {
+            if ((SUB_SHOP_LIST->items[i].brightness -= 0x10) < 0x40) {
+                SUB_SHOP_LIST->items[i].brightness = 0x40;
             }
         }
-        if (D_801FC8E8->items[i].owned == 0) {
-            drawTexturedSprite(x + 14, y + 32, &rect, 0x17, 0x7E5C, window->z, D_801FC8E8->items[i].brightness, -1);
+        if (SUB_SHOP_LIST->items[i].owned == 0) {
+            drawTexturedSprite(x + 14, y + 32, &rect, 0x17, 0x7E5C, window->z, SUB_SHOP_LIST->items[i].brightness, -1);
         }
-        func_801EDDA0(D_801FC8E8->items[i].icon, x, y, window->z, D_801FC8E8->items[i].brightness);
-        sprintf(text, "%3dc7(%d)", D_801FC8E8->items[i].count, D_801FC8E8->items[i].max);
+        SUB_drawItemIcon(SUB_SHOP_LIST->items[i].icon, x, y, window->z, SUB_SHOP_LIST->items[i].brightness);
+        sprintf(text, "%3dc7(%d)", SUB_SHOP_LIST->items[i].count, SUB_SHOP_LIST->items[i].max);
         drawText(x - 8, y + 50, (s32)text,
-                 D_801FC8E8->items[i].count == D_801FC8E8->items[i].max || price == -1 ? 2 : 7, window->z);
+                 SUB_SHOP_LIST->items[i].count == SUB_SHOP_LIST->items[i].max || price == -1 ? 2 : 7, window->z);
     }
-    KAW_drawCursor(D_801F353C);
-    if (D_801FC8E8->top != 0) {
+    KAW_drawCursor(SUB_GRID_CURSOR);
+    if (SUB_SHOP_LIST->top != 0) {
         drawScrollArrow(0x10E, 0x39, 4, 5, window->z);
     }
-    if (D_801FC8E8->top + 10 < D_801FC8E8->count) {
+    if (SUB_SHOP_LIST->top + 10 < SUB_SHOP_LIST->count) {
         drawScrollArrow(0x10E, 0xAA, 6, 5, window->z);
     }
-    type = D_801FC8E8->items[D_801FC8E8->cursor].type;
+    type = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type;
     if (type == 0) {
-        card = &SUB_DIGIMON_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index];
-        sprintf(text, "Ｎｏ %d", D_801FC8E8->items[D_801FC8E8->cursor].index + 1);
+        card = &SUB_DIGIMON_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index];
+        sprintf(text, "Ｎｏ %d", SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index + 1);
         drawIconText(0x1E, 0xB8, 7, 1, window->z, (s32)text);
         sprintf(text, "a%d%s", card->attr >> 4, card->name);
         drawIconText(0x4E, 0xB8, 7, 1, window->z, (s32)text);
@@ -1209,16 +1210,16 @@ void func_801EDEF4(JpWindow *window) {
         drawIconText(0xEA, 0xB8, 7, 1, window->z, (s32)text);
     } else {
         if (type == 3) {
-            index = D_801FC8E8->items[D_801FC8E8->cursor].index;
-            pack = &D_8007EAA0[index];
-            func_801EB21C(D_801FC8E8->items[D_801FC8E8->cursor].type, index);
+            index = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index;
+            pack = &BOOSTER_PACKS[index];
+            SUB_getCardId(SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type, index);
             sprintf(text, "%sブースターパック", pack->name);
         } else {
-            id = func_801EB21C(D_801FC8E8->items[D_801FC8E8->cursor].type, D_801FC8E8->items[D_801FC8E8->cursor].index) + 1;
+            id = SUB_getCardId(SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type, SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index) + 1;
             if (type == 1) {
-                name = SUB_OPTION_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+                name = SUB_OPTION_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index].name;
             } else {
-                name = SUB_DIGIVOLVE_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+                name = SUB_DIGIVOLVE_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index].name;
             }
             sprintf(text, "Ｎｏ %ds0　s1a5オプションカードs0　s1%s", id, name);
         }
@@ -1226,13 +1227,13 @@ void func_801EDEF4(JpWindow *window) {
     }
 }
 
-void func_801EE5CC(JpWindow *window) {
+void SUB_drawItemDetails(JpWindow *window) {
     Rect16 pos;
     char text[72];
     char title[72];
     char number[32];
     DigimonCardData *card;
-    JpPackData *pack;
+    BoosterPack *pack;
     OptionCardData *option;
     s32 n;
     s32 price;
@@ -1242,16 +1243,16 @@ void func_801EE5CC(JpWindow *window) {
     s32 color;
     s32 palette;
 
-    if (D_801F3700->mode != 11) {
+    if (SUB_SHOP->mode != 11) {
         price = 0;
     } else {
-        price = SUB_getItemPrice(D_801FC8C8.type, D_801FC8C8.index) + D_801F3700->total;
+        price = SUB_getItemPrice(SUB_SHOP_ITEM.type, SUB_SHOP_ITEM.index) + SUB_SHOP->total;
         if (PLAYER_DATA(0).bits < price) {
             price = -1;
         }
     }
-    if (D_801FC8C8.type == 0) {
-        card = &SUB_DIGIMON_CARDS[D_801FC8C8.index];
+    if (SUB_SHOP_ITEM.type == 0) {
+        card = &SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index];
         pos.x = 0x79;
         pos.y = 0x32;
         pos.w = 0;
@@ -1260,37 +1261,37 @@ void func_801EE5CC(JpWindow *window) {
                 (card->attr & 0xF) + 3);
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)title);
         pos.y += 16;
-        sprintf(title, "  属性　%s　Ｎｏ%s", D_801F34D0[SUB_DIGIMON_CARDS[D_801FC8C8.index].attr >> 4],
-                formatSjisNumber(D_801FC8C8.index + 1, 3, number));
+        sprintf(title, "  属性　%s　Ｎｏ%s", SUB_SPECIALTY_NAMES[SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].attr >> 4],
+                formatSjisNumber(SUB_SHOP_ITEM.index + 1, 3, number));
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)title);
         pos.y += 12;
-        sprintf(text, "  %s", SUB_DIGIMON_CARDS[D_801FC8C8.index].name);
+        sprintf(text, "  %s", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].name);
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         drawIconText(pos.x + 100, pos.y, 7, 1, window->z, (s32)" ＨＰ");
-        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].hp);
+        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].hp);
         drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         pos.y += 12;
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)" 必進Ｐ");
-        sprintf(text, " w-1%2d", SUB_DIGIMON_CARDS[D_801FC8C8.index].dpCost);
+        sprintf(text, " w-1%2d", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].dpCost);
         drawText(pos.x + 48, pos.y, (s32)text, 7, window->z);
         drawIconText(pos.x + 100, pos.y, 7, 1, window->z, (s32)" ＰＯＷ");
-        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].dpBonus);
+        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].dpBonus);
         drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         pos.y += 12;
         for (i = 0; i < 3; i++, pos.y += 12) {
             /* b%d%s */
-            sprintf(text, " 　b%d%s", i, SUB_DIGIMON_CARDS[D_801FC8C8.index].attack[i].name);
+            sprintf(text, " 　b%d%s", i, SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].attack[i].name);
             drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
-            sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].attack[i].power);
+            sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].attack[i].power);
             drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         }
         level = CROSS_EFFECT_ICONS[card->crossEffect];
         if (level != 0) {
             /* %s d%d */
-            sprintf(text, "  　%s d%d", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[D_801FC8C8.index].crossEffect], level);
+            sprintf(text, "  　%s d%d", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].crossEffect], level);
         } else {
             /* %s */
-            sprintf(text, "  　%s", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[D_801FC8C8.index].crossEffect]);
+            sprintf(text, "  　%s", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].crossEffect]);
         }
         drawIconText(pos.x + 1, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
@@ -1302,12 +1303,12 @@ void func_801EE5CC(JpWindow *window) {
         }
         pos.y += 12;
         for (i = 0; i < 4; i++, pos.y += 12) {
-            sprintf(text, " %s", SUB_DIGIMON_CARDS[D_801FC8C8.index].supportText[i]);
+            sprintf(text, " %s", SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].supportText[i]);
             drawIconText(pos.x - 2, pos.y, 7, 1, window->z, (s32)text);
         }
-    } else if (D_801FC8C8.type == 3) {
-        func_801EB21C(3, D_801FC8C8.index);
-        pack = &D_8007EAA0[D_801FC8C8.index];
+    } else if (SUB_SHOP_ITEM.type == 3) {
+        SUB_getCardId(3, SUB_SHOP_ITEM.index);
+        pack = &BOOSTER_PACKS[SUB_SHOP_ITEM.index];
         pos.x = 0x7D;
         pos.y = 0x36;
         pos.w = 0;
@@ -1317,7 +1318,7 @@ void func_801EE5CC(JpWindow *window) {
         pos.y += 16;
         drawIconText(pos.x + 12, pos.y, 7, 1, window->z, (s32)" ８枚入り");
         pos.y += 16;
-        switch (D_801FC8C8.index) {
+        switch (SUB_SHOP_ITEM.index) {
         case 0:
             drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)" 必ず４枚以上の火炎デジモン");
             break;
@@ -1338,47 +1339,47 @@ void func_801EE5CC(JpWindow *window) {
             drawIconText(pos.x, pos.y + 12, 7, 1, window->z, (s32)" 完全にランダムです。");
             break;
         }
-        if (D_801FC8C8.index != 5) {
+        if (SUB_SHOP_ITEM.index != 5) {
             drawIconText(pos.x, pos.y + 12, 7, 1, window->z, (s32)" が入っています。");
         }
     } else {
-        id = func_801EB21C(D_801FC8C8.type, D_801FC8C8.index);
-        palette = D_801FC8C8.type + 4;
+        id = SUB_getCardId(SUB_SHOP_ITEM.type, SUB_SHOP_ITEM.index);
+        palette = SUB_SHOP_ITEM.type + 4;
         pos.x = 0x7D;
         pos.y = 0x36;
         pos.w = 0;
         pos.h = 0;
-        if (D_801FC8C8.type == 1 && (option = &SUB_OPTION_CARDS[D_801FC8C8.index])->supportIcon != 0) {
+        if (SUB_SHOP_ITEM.type == 1 && (option = &SUB_OPTION_CARDS[SUB_SHOP_ITEM.index])->supportIcon != 0) {
             sprintf(text, " a%dオプションカード d%d", palette, option->supportIcon);
         } else {
             sprintf(text, " a%dオプションカード", palette);
         }
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
-        sprintf(text, "   %s　　Ｎｏ%s", D_801F34FC[D_801FC8C8.type - 1], formatSjisNumber(id + 1, 3, number));
+        sprintf(text, "   %s　　Ｎｏ%s", SUB_OPTION_KINDS[SUB_SHOP_ITEM.type - 1], formatSjisNumber(id + 1, 3, number));
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
         drawIconText(pos.x, pos.y, 7, 1, window->z,
-                     D_801FC8C8.type == 1 ? (s32)SUB_OPTION_CARDS[D_801FC8C8.index].name : (s32)SUB_DIGIVOLVE_CARDS[D_801FC8C8.index].name);
+                     SUB_SHOP_ITEM.type == 1 ? (s32)SUB_OPTION_CARDS[SUB_SHOP_ITEM.index].name : (s32)SUB_DIGIVOLVE_CARDS[SUB_SHOP_ITEM.index].name);
         pos.y += 24;
         for (i = 0; i < 4; i++, pos.y += 12) {
             drawIconText(pos.x + 24, pos.y, 7, 1, window->z,
-                         D_801FC8C8.type == 1 ? (s32)SUB_OPTION_CARDS[D_801FC8C8.index].text[i] : (s32)SUB_DIGIVOLVE_CARDS[D_801FC8C8.index].text[i]);
+                         SUB_SHOP_ITEM.type == 1 ? (s32)SUB_OPTION_CARDS[SUB_SHOP_ITEM.index].text[i] : (s32)SUB_DIGIVOLVE_CARDS[SUB_SHOP_ITEM.index].text[i]);
         }
     }
-    if (D_801F3700->paid == 0) {
-        if (D_801F3700->mode == 11) {
+    if (SUB_SHOP->paid == 0) {
+        if (SUB_SHOP->mode == 11) {
             drawIconText(0xEC, 0xA6, 7, 1, window->z, (s32)"購入枚数");
-            sprintf(text, "b%d", D_801FC8C8.count);
-            drawText(0xF1, 0xBA, (s32)text, D_801FC8C8.count < D_801FC8C8.max ? price == -1 ? 2 : 8 : 2, window->z);
-            sprintf(text, "c7(%d)", D_801FC8C8.max);
-            drawText(0x104, 0xC6, (s32)text, D_801FC8C8.count >= D_801FC8C8.max || price == -1 ? 2 : 8, window->z);
+            sprintf(text, "b%d", SUB_SHOP_ITEM.count);
+            drawText(0xF1, 0xBA, (s32)text, SUB_SHOP_ITEM.count < SUB_SHOP_ITEM.max ? price == -1 ? 2 : 8 : 2, window->z);
+            sprintf(text, "c7(%d)", SUB_SHOP_ITEM.max);
+            drawText(0x104, 0xC6, (s32)text, SUB_SHOP_ITEM.count >= SUB_SHOP_ITEM.max || price == -1 ? 2 : 8, window->z);
         } else {
             drawIconText(0xEC, 0xA6, 7, 1, window->z, (s32)"売却枚数");
-            sprintf(text, "b%d", D_801FC8C8.count);
-            drawText(0xF1, 0xBA, (s32)text, D_801FC8C8.count < D_801FC8C8.max ? price == -1 ? 2 : 8 : 2, window->z);
-            sprintf(text, "c7(%d)", D_801FC8C8.max);
-            drawText(0x104, 0xC6, (s32)text, D_801FC8C8.count >= D_801FC8C8.max || price == -1 ? 2 : 8, window->z);
+            sprintf(text, "b%d", SUB_SHOP_ITEM.count);
+            drawText(0xF1, 0xBA, (s32)text, SUB_SHOP_ITEM.count < SUB_SHOP_ITEM.max ? price == -1 ? 2 : 8 : 2, window->z);
+            sprintf(text, "c7(%d)", SUB_SHOP_ITEM.max);
+            drawText(0x104, 0xC6, (s32)text, SUB_SHOP_ITEM.count >= SUB_SHOP_ITEM.max || price == -1 ? 2 : 8, window->z);
         }
         pos.x = 0xEC;
         pos.y = 0xA4;
@@ -1388,13 +1389,13 @@ void func_801EE5CC(JpWindow *window) {
     }
 }
 
-void func_801EF51C(JpWindow *window) {
+void SUB_drawTotal(JpWindow *window) {
     char text[136];
     char number[16];
     s32 total;
 
-    total = D_801F3700->total;
-    if (D_801F3700->mode == 13) {
+    total = SUB_SHOP->total;
+    if (SUB_SHOP->mode == 13) {
         total /= 5;
     }
     formatSjisNumber(total, 6, number);
@@ -1402,7 +1403,7 @@ void func_801EF51C(JpWindow *window) {
     drawIconText(0x1A, 0x17, 7, 1, window->z, (s32)text);
 }
 
-void func_801EF5C8(JpWindow *window) {
+void SUB_drawBits(JpWindow *window) {
     char text[136];
     char number[16];
     s8 i;
@@ -1418,14 +1419,14 @@ void func_801EF5C8(JpWindow *window) {
     drawIconText(0xAA, 0x17, 7, 1, window->z, (s32)text);
 }
 
-void func_801EF6B0(JpWindow *window) {
+void SUB_drawStockHelp(JpWindow *window) {
     char text[136];
     char number[16];
-    ShopItem *items = D_801F3700->list.items;
-    s32 cur = D_801F3700->list.cursor;
+    ShopItem *items = SUB_SHOP->list.items;
+    s32 cur = SUB_SHOP->list.cursor;
     s32 price = PLAYER_DATA(0).playTime; /* jp starts from the play time, which only an unknown item type keeps */
 
-    if (D_801FC8E8->count > 0) {
+    if (SUB_SHOP_LIST->count > 0) {
         switch (items[cur].type) {
         case 0:
             price = SUB_DIGIMON_CARDS[items[cur].index].price;
@@ -1437,14 +1438,14 @@ void func_801EF6B0(JpWindow *window) {
             price = SUB_DIGIVOLVE_CARDS[items[cur].index].price;
             break;
         case 3:
-            price = D_8007EAA0[items[cur].index].price;
+            price = BOOSTER_PACKS[items[cur].index].price;
             break;
         }
         price *= 100;
     } else {
         price = 0;
     }
-    if (D_801F3700->mode == 13) {
+    if (SUB_SHOP->mode == 13) {
         formatSjisNumber(price / 5, 4, number);
         sprintf(text, "b0見る b2戻る b1売る Ｌ１ － Ｒ１ ＋ 売値 s0w-4%s d0", number);
     } else {
@@ -1454,14 +1455,14 @@ void func_801EF6B0(JpWindow *window) {
     drawIconText(0x1A, 0xD1, 7, 1, window->z, (s32)text);
 }
 
-void func_801EF8F8(JpWindow *window) {
+void SUB_drawOpenedHelp(JpWindow *window) {
     char text[152];
 
     sprintf(text, " b0見る b2戻る ");
     drawIconText(0x1A, 0xD1, 7, 1, window->z, (s32)text);
 }
 
-void func_801EF950(JpWindow *window) {
+void SUB_drawOpenedGrid(JpWindow *window) {
     char text[32];
     char number[24];
     Rect16 rect = { 0, 0xF0, 0x18, 9 };
@@ -1474,39 +1475,39 @@ void func_801EF950(JpWindow *window) {
     s32 n;
     s32 type;
 
-    for (n = 0, i = D_801FC8E8->top; n < 10; n++, i++) {
-        if (i >= D_801FC8E8->count) {
+    for (n = 0, i = SUB_SHOP_LIST->top; n < 10; n++, i++) {
+        if (i >= SUB_SHOP_LIST->count) {
             break;
         }
         x = (n % 5) * 50 + 0x1A;
         y = (n / 5) * 64 + 0x38;
-        if (D_801FC8E8->cursor == i) {
-            D_801FC8E8->items[i].brightness = 0x80;
-            D_801F353C->x = x + 20;
-            D_801F353C->y = y + 24;
-        } else if (D_801FC8E8->items[i].brightness > 0x40) {
-            if ((D_801FC8E8->items[i].brightness -= 0x10) < 0x40) {
-                D_801FC8E8->items[i].brightness = 0x40;
+        if (SUB_SHOP_LIST->cursor == i) {
+            SUB_SHOP_LIST->items[i].brightness = 0x80;
+            SUB_GRID_CURSOR->x = x + 20;
+            SUB_GRID_CURSOR->y = y + 24;
+        } else if (SUB_SHOP_LIST->items[i].brightness > 0x40) {
+            if ((SUB_SHOP_LIST->items[i].brightness -= 0x10) < 0x40) {
+                SUB_SHOP_LIST->items[i].brightness = 0x40;
             }
         }
-        if (D_801FC8E8->items[i].owned == 0) {
-            drawTexturedSprite(x + 14, y + 32, &rect, 0x17, 0x7E5C, window->z, D_801FC8E8->items[i].brightness, -1);
+        if (SUB_SHOP_LIST->items[i].owned == 0) {
+            drawTexturedSprite(x + 14, y + 32, &rect, 0x17, 0x7E5C, window->z, SUB_SHOP_LIST->items[i].brightness, -1);
         }
-        func_801EDDA0(D_801FC8E8->items[i].icon, x, y, window->z, D_801FC8E8->items[i].brightness);
-        sprintf(text, "%3dc7(%d)", D_801FC8E8->items[i].count, D_801FC8E8->items[i].max);
-        drawText(x - 8, y + 50, (s32)text, D_801FC8E8->items[i].max >= 8 ? 2 : 7, window->z);
+        SUB_drawItemIcon(SUB_SHOP_LIST->items[i].icon, x, y, window->z, SUB_SHOP_LIST->items[i].brightness);
+        sprintf(text, "%3dc7(%d)", SUB_SHOP_LIST->items[i].count, SUB_SHOP_LIST->items[i].max);
+        drawText(x - 8, y + 50, (s32)text, SUB_SHOP_LIST->items[i].max >= 8 ? 2 : 7, window->z);
     }
-    KAW_drawCursor(D_801F353C);
-    if (D_801FC8E8->top != 0) {
+    KAW_drawCursor(SUB_GRID_CURSOR);
+    if (SUB_SHOP_LIST->top != 0) {
         drawScrollArrow(0x10E, 0x39, 4, 5, window->z);
     }
-    if (D_801FC8E8->top + 10 < D_801FC8E8->count) {
+    if (SUB_SHOP_LIST->top + 10 < SUB_SHOP_LIST->count) {
         drawScrollArrow(0x10E, 0xAA, 6, 5, window->z);
     }
-    type = D_801FC8E8->items[D_801FC8E8->cursor].type;
+    type = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type;
     if (type == 0) {
-        card = &SUB_DIGIMON_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index];
-        sprintf(text, "Ｎｏ %d", D_801FC8E8->items[D_801FC8E8->cursor].index + 1);
+        card = &SUB_DIGIMON_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index];
+        sprintf(text, "Ｎｏ %d", SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index + 1);
         drawIconText(0x1E, 0xB8, 7, 1, window->z, (s32)text);
         sprintf(text, "a%d%s", card->attr >> 4, card->name);
         drawIconText(0x4E, 0xB8, 7, 1, window->z, (s32)text);
@@ -1515,24 +1516,24 @@ void func_801EF950(JpWindow *window) {
         sprintf(text, "ＨＰ%s", formatSjisNumber(card->hp, 4, number));
         drawIconText(0xEA, 0xB8, 7, 1, window->z, (s32)text);
     } else {
-        id = func_801EB21C(D_801FC8E8->items[D_801FC8E8->cursor].type, D_801FC8E8->items[D_801FC8E8->cursor].index) + 1;
+        id = SUB_getCardId(SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type, SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index) + 1;
         if (type == 1) {
-            name = SUB_OPTION_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+            name = SUB_OPTION_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index].name;
         } else {
-            name = SUB_DIGIVOLVE_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+            name = SUB_DIGIVOLVE_CARDS[SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index].name;
         }
         sprintf(text, "Ｎｏ %ds0　s1a5オプションカードs0　s1%s", id, name);
         drawIconText(0x1E, 0xB8, 7, 1, window->z, (s32)text);
     }
 }
 
-void func_801EFF14(JpWindow *window) {
+void SUB_drawOpenedTitle(JpWindow *window) {
     char text[13] = " 購入カード ";
 
     drawIconText(0x38, 0x17, 7, 1, window->z, (s32)text);
 }
 
-void func_801EFF98(void) {
+void SUB_loadShopTextures(void) {
     u32 *tims;
 
     spawnTask(0, -1, 0, 0x800, loadFile, "C:\\OBJECT\\shop.TIM", getCurrentTaskId());
@@ -1543,15 +1544,15 @@ void func_801EFF98(void) {
     }
 }
 
-void func_801F0010(s32 delta) {
+void SUB_updateDeckCount(s32 delta) {
     Rect16 rect = { 0x3D5, 0xF4, 0, 0 };
     char text[8];
 
-    formatSjisNumber(D_801FC8C8.deckCount += delta, 2, text);
+    formatSjisNumber(SUB_SHOP_ITEM.deckCount += delta, 2, text);
     uploadKanjiString(text, &rect);
 }
 
-void func_801F009C(s32 deck) {
+void SUB_uploadDeckName(s32 deck) {
     char text[48];
     Rect16 rect;
     PlayerDeck *saved = &PLAYER_DATA(0).savedDecks[deck];
@@ -1565,36 +1566,36 @@ void func_801F009C(s32 deck) {
     rect.x = 0x3D5;
     sprintf(text, "　　／３０枚");
     uploadKanjiString(text, &rect);
-    func_801F0010(0);
+    SUB_updateDeckCount(0);
 }
 
 /* the card numbers each booster pack holds: count of them from base + start
-   (func_801F2570); packs 5 and 6 hold the option cards */
-PackRange D_801F32D0[7] = {
+   (SUB_addPackCardIds); packs 5 and 6 hold the option cards */
+PackRange SUB_PACK_RANGES[7] = {
     { 0, 3, 8, 9 },  { 20, 3, 8, 11 }, { 42, 3, 12, 12 }, { 69, 3, 9, 10 },
     { 91, 3, 6, 8 }, { 0, 19, 7, 9 },  { 0, 1, 3, 1 },
 };
 
-JpWindowDesc D_801F3340 = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, func_801EDEF4, func_801EA908 };
-JpWindowDesc D_801F3360 = { 290, 48, 0, 12, 122, 48, 168, 170, 10, 1, func_801EE5CC, func_801EA908 };
-JpWindowDesc D_801F3380 = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, func_801EF51C, func_801EA908 };
-JpWindowDesc D_801F33A0 = { 290, 23, 0, 12, 170, 23, 120, 12, 10, 1, func_801EF5C8, func_801EA908 };
-JpWindowDesc D_801F33C0 = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, func_801EF6B0, func_801EA908 };
-JpWindowDesc D_801F33E0 = { 26, 208, 0, 12, 26, 208, 116, 12, 10, 0, func_801EF8F8, func_801EA908 };
-JpWindowDesc D_801F3400 = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, func_801EF950, func_801EA908 };
-JpWindowDesc D_801F3420 = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, func_801EFF14, func_801EA908 };
-JpWindowDesc D_801F3440 = { 26, 48, 0, 12, 26, 48, 84, 170, 10, 0, func_801ED84C, func_801EA908 };
-JpWindowDesc D_801F3460 = { 26, 23, 0, 12, 26, 23, 272, 12, 10, 0, func_801EA918, func_801EA910 };
-JpWindowDesc D_801F3480 = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, func_801EA970, func_801EA910 };
+JpWindowDesc SUB_STOCK_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawStockGrid, func_801EA908 };
+JpWindowDesc SUB_DETAILS_WINDOW = { 290, 48, 0, 12, 122, 48, 168, 170, 10, 1, SUB_drawItemDetails, func_801EA908 };
+JpWindowDesc SUB_TOTAL_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawTotal, func_801EA908 };
+JpWindowDesc SUB_BITS_WINDOW = { 290, 23, 0, 12, 170, 23, 120, 12, 10, 1, SUB_drawBits, func_801EA908 };
+JpWindowDesc SUB_STOCK_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawStockHelp, func_801EA908 };
+JpWindowDesc SUB_OPENED_HELP_WINDOW = { 26, 208, 0, 12, 26, 208, 116, 12, 10, 0, SUB_drawOpenedHelp, func_801EA908 };
+JpWindowDesc SUB_OPENED_GRID_WINDOW = { 290, 48, 0, 12, 18, 48, 272, 148, 10, 1, SUB_drawOpenedGrid, func_801EA908 };
+JpWindowDesc SUB_OPENED_TITLE_WINDOW = { 26, 23, 0, 12, 26, 23, 116, 12, 10, 0, SUB_drawOpenedTitle, func_801EA908 };
+JpWindowDesc SUB_PICTURE_WINDOW = { 26, 48, 0, 12, 26, 48, 84, 170, 10, 0, SUB_drawCardPicture, func_801EA908 };
+JpWindowDesc SUB_VIEWER_HELP_WINDOW = { 26, 23, 0, 12, 26, 23, 272, 12, 10, 0, SUB_drawViewerHelp, func_801EA910 };
+JpWindowDesc SUB_VIEWER_MOTION_WINDOW = { 26, 208, 0, 12, 26, 208, 272, 12, 10, 0, SUB_drawViewerMotions, func_801EA910 };
 
-/* per option card: the group func_801EC074 lists it in */
-s8 D_801F34A0[46] = {
+/* per option card: the group SUB_listOwnedOptionsOfGroup lists it in */
+s8 SUB_OPTION_GROUPS[46] = {
     0, 1, 1, 2, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 2,
     1, 1, 2, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 2, 1, 0, 0, -1,
 };
 
 /* the specialties */
-char *D_801F34D0[6] = {
+char *SUB_SPECIALTY_NAMES[6] = {
     "火炎",
     "氷水",
     "自然",
@@ -1604,7 +1605,7 @@ char *D_801F34D0[6] = {
 };
 
 /* not referenced by any code */
-char *D_801F34E8[5] = {
+char *SUB_DIGIVOLVE_EFFECT_NAMES[5] = {
     "色、必要進化ポイント無視",
     "２段階進化",
     "進化ポイント＋３０",
@@ -1613,34 +1614,34 @@ char *D_801F34E8[5] = {
 };
 
 /* the option cards' kinds */
-char *D_801F34FC[2] = {
+char *SUB_OPTION_KINDS[2] = {
     "戦闘用",
     "進化用",
 };
 
 /* SUB_shopRandom's seed */
-s16 D_801F3504 = 31416;
+s16 SUB_RANDOM_SEED = 31416;
 
-void func_801F0154(FrameBuffer *fb, s32 index) {
+void SUB_renderModelPreview(FrameBuffer *fb, s32 index) {
     s32 other = index ^ 1;
 
-    fillVramRect(D_801F3648[other].clip[0], D_801F3648[other].clip[1], 0x180, 0x80, 0);
-    AddPrim((s32 *)&fb->ot[0xFFF], (s32)&D_801F3548[other]);
-    SetDrawEnv(&D_801F35C8[other], &fb->draw);
-    AddPrim((s32 *)&fb->ot[300], (s32)&D_801F35C8[other]);
+    fillVramRect(SUB_PREVIEW_DRAW_ENVS[other].clip[0], SUB_PREVIEW_DRAW_ENVS[other].clip[1], 0x180, 0x80, 0);
+    AddPrim((s32 *)&fb->ot[0xFFF], (s32)&SUB_PREVIEW_DR_ENVS[other]);
+    SetDrawEnv(&SUB_SCREEN_DR_ENVS[other], &fb->draw);
+    AddPrim((s32 *)&fb->ot[300], (s32)&SUB_SCREEN_DR_ENVS[other]);
 }
 
-void func_801F01F4(s32 modelId) {
-    SetDefDrawEnv(&D_801F3648[0], 0x140, 0x100, 0x60, 0x80);
-    SetDefDrawEnv(&D_801F3648[1], 0x140, 0x180, 0x60, 0x80);
-    D_801F3648[0].ofs[0] -= 0x70;
-    D_801F3648[1].ofs[0] -= 0x70;
-    D_801F3648[0].ofs[1] -= 0x14;
-    D_801F3648[1].ofs[1] -= 0x14;
-    SetDrawEnv(&D_801F3548[0], &D_801F3648[0]);
-    SetDrawEnv(&D_801F3548[1], &D_801F3648[1]);
+void SUB_openModelPreview(s32 modelId) {
+    SetDefDrawEnv(&SUB_PREVIEW_DRAW_ENVS[0], 0x140, 0x100, 0x60, 0x80);
+    SetDefDrawEnv(&SUB_PREVIEW_DRAW_ENVS[1], 0x140, 0x180, 0x60, 0x80);
+    SUB_PREVIEW_DRAW_ENVS[0].ofs[0] -= 0x70;
+    SUB_PREVIEW_DRAW_ENVS[1].ofs[0] -= 0x70;
+    SUB_PREVIEW_DRAW_ENVS[0].ofs[1] -= 0x14;
+    SUB_PREVIEW_DRAW_ENVS[1].ofs[1] -= 0x14;
+    SetDrawEnv(&SUB_PREVIEW_DR_ENVS[0], &SUB_PREVIEW_DRAW_ENVS[0]);
+    SetDrawEnv(&SUB_PREVIEW_DR_ENVS[1], &SUB_PREVIEW_DRAW_ENVS[1]);
     initScene3D(1);
-    addFrameCallback((s32)func_801F0154);
+    addFrameCallback((s32)SUB_renderModelPreview);
     createWireGrid(500, 500, 11, 11, 0, 0);
     loadOmdModelFromDisc(0, modelId, -1);
     /* jp reads the result loadModelAnimation leaves in v0 */
@@ -1652,11 +1653,11 @@ void func_801F01F4(s32 modelId) {
     spawnTask(0x1B, -1, 0, 0x1000, runModelAnimationTask, 1);
 }
 
-void func_801F038C(void) {
-    if (D_801FC8C8.type == 0) {
+void SUB_closeModelPreview(void) {
+    if (SUB_SHOP_ITEM.type == 0) {
         endTask(0x19);
         endTask(0x1B);
-        removeFrameCallback((s32)func_801F0154);
+        removeFrameCallback((s32)SUB_renderModelPreview);
         removeFrameCallback((s32)renderSceneModels);
         removeFrameCallback((s32)renderWireGrid);
         waitFrames(4);
@@ -1665,8 +1666,8 @@ void func_801F038C(void) {
     }
 }
 
-void func_801F0404(void) {
-    ShopList list = *D_801FC8E8;
+void SUB_markSoldStock(void) {
+    ShopList list = *SUB_SHOP_LIST;
     s32 i = 0;
     /* redundant (the loop sets it), but it puts i = 0 before the count load, as in jp */
     s32 bit = 0;
@@ -1677,9 +1678,9 @@ void func_801F0404(void) {
         }
     }
     for (bit = 0; bit < 8; bit++) {
-        if (!((PLAYER_DATA(0).shops[D_801F3700->shopId].soldBits >> bit) & 1)) {
+        if (!((PLAYER_DATA(0).shops[SUB_SHOP->shopId].soldBits >> bit) & 1)) {
             if (list.items[i].count != 0) {
-                PLAYER_DATA(0).shops[D_801F3700->shopId].soldBits |= 1 << bit;
+                PLAYER_DATA(0).shops[SUB_SHOP->shopId].soldBits |= 1 << bit;
                 list.items[i].count--;
                 list.items[i].max--;
                 if (list.items[i].max == 0) {
@@ -1719,21 +1720,21 @@ u8 SUB_getCopiesOverLimit(s8 type, s8 index, s32 count) {
     return 0;
 }
 
-void func_801F0670(s8 selling) {
+void SUB_commitDeal(s8 selling) {
     s32 i;
     u8 excess;
 
-    for (i = 0; i < D_801FC8E8->count; i++) {
+    for (i = 0; i < SUB_SHOP_LIST->count; i++) {
         if (selling == 0) {
-            excess = SUB_getCopiesOverLimit(D_801FC8E8->items[i].type, D_801FC8E8->items[i].index, D_801FC8E8->items[i].count);
+            excess = SUB_getCopiesOverLimit(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count);
             if (excess != 0) {
-                AREA_FLAGS[12] += SUB_getItemPrice(D_801FC8E8->items[i].type, D_801FC8E8->items[i].index) * excess / 5;
+                AREA_FLAGS[12] += SUB_getItemPrice(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index) * excess / 5;
             }
-            if (func_80043374(D_801FC8E8->items[i].type, D_801FC8E8->items[i].index, D_801FC8E8->items[i].count) < 0) {
+            if (func_80043374(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count) < 0) {
                 AREA_FLAGS[1] = -1;
             }
         } else {
-            func_80043740(D_801FC8E8->items[i].type, D_801FC8E8->items[i].index, D_801FC8E8->items[i].count);
+            func_80043740(SUB_SHOP_LIST->items[i].type, SUB_SHOP_LIST->items[i].index, SUB_SHOP_LIST->items[i].count);
         }
         if ((i & 3) == 0) {
             waitFrames(1);
@@ -1741,25 +1742,25 @@ void func_801F0670(s8 selling) {
     }
 }
 
-void func_801F0824(s8 mode) {
+void SUB_closeShop(s8 mode) {
     setBackgroundScrollMode(1);
     switch (mode) {
     case 0:
-        D_801F3518[0]->state = 4;
-        D_801F3518[1]->state = 4;
-        D_801F3518[3]->state = 4;
-        D_801F3518[4]->state = 4;
+        SUB_SHOP_WINDOWS[0]->state = 4;
+        SUB_SHOP_WINDOWS[1]->state = 4;
+        SUB_SHOP_WINDOWS[3]->state = 4;
+        SUB_SHOP_WINDOWS[4]->state = 4;
         break;
     case 1:
-        D_801F3518[5]->state = 4;
-        D_801F3518[6]->state = 4;
-        D_801F3518[7]->state = 4;
-        D_801F3518[4]->state = 4;
+        SUB_SHOP_WINDOWS[5]->state = 4;
+        SUB_SHOP_WINDOWS[6]->state = 4;
+        SUB_SHOP_WINDOWS[7]->state = 4;
+        SUB_SHOP_WINDOWS[4]->state = 4;
         break;
     }
     waitFrames(90);
-    func_80044758(D_801F353C);
-    D_801F3780 = 0;
+    func_80044758(SUB_GRID_CURSOR);
+    SUB_SHOP_RUNNING = 0;
     closeKanjiPage(0xF);
     freeHeapBlocksByTag(0x195);
     freeHeapBlocksByTag(0x193);
@@ -1780,7 +1781,7 @@ s32 SUB_getItemPrice(s8 type, s16 index) {
         price = SUB_DIGIVOLVE_CARDS[index].price;
         break;
     case 3:
-        price = D_8007EAA0[index].price;
+        price = BOOSTER_PACKS[index].price;
         break;
     default:
         price = -1;
@@ -1790,17 +1791,17 @@ s32 SUB_getItemPrice(s8 type, s16 index) {
 }
 
 s32 SUB_adjustItemCount(s32 more, s32 less, s8 *count, s8 max) {
-    s32 price = SUB_getItemPrice(D_801FC8E8->items[D_801FC8E8->cursor].type, D_801FC8E8->items[D_801FC8E8->cursor].index);
+    s32 price = SUB_getItemPrice(SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type, SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index);
     s32 sound;
 
     if (PAD_STATES[0]->rawRepeat & more) {
-        if (D_801F3700->mode == 13) {
+        if (SUB_SHOP->mode == 13) {
             if (++*count > max) {
                 *count = max;
                 return 1;
             }
         } else {
-            if (PLAYER_DATA(0).bits < price + D_801F3700->total) {
+            if (PLAYER_DATA(0).bits < price + SUB_SHOP->total) {
                 return 1;
             }
             if (++*count > max) {
@@ -1808,14 +1809,14 @@ s32 SUB_adjustItemCount(s32 more, s32 less, s8 *count, s8 max) {
                 return 1;
             }
         }
-        D_801F3700->total += price;
+        SUB_SHOP->total += price;
         sound = 0;
     } else if (PAD_STATES[0]->rawRepeat & less) {
         if (--*count < 0) {
             *count = 0;
             return 1;
         }
-        D_801F3700->total -= price;
+        SUB_SHOP->total -= price;
         sound = 1;
     } else {
         return 0;
@@ -1824,121 +1825,121 @@ s32 SUB_adjustItemCount(s32 more, s32 less, s8 *count, s8 max) {
     return 1;
 }
 
-void func_801F0BF0(void) {
+void SUB_loadCardPicture(void) {
     char path[64];
     u32 *tim;
-    s32 id = func_801EB21C(D_801FC8C8.type, D_801FC8C8.index);
+    s32 id = SUB_getCardId(SUB_SHOP_ITEM.type, SUB_SHOP_ITEM.index);
     s32 i;
 
-    D_801F3700->flip = 0;
-    D_801F3700->flipBack = 0;
-    D_801F3700->flipTimer = 60;
+    SUB_SHOP->flip = 0;
+    SUB_SHOP->flipBack = 0;
+    SUB_SHOP->flipTimer = 60;
     for (i = 0; i < 3; i++) {
-        if (D_801F3700->imageSlot->id != id) {
-            if (D_801F3700->imageSlot != &D_801F3700->imageSlots[3]) {
-                D_801F3700->imageSlot++;
+        if (SUB_SHOP->imageSlot->id != id) {
+            if (SUB_SHOP->imageSlot != &SUB_SHOP->imageSlots[3]) {
+                SUB_SHOP->imageSlot++;
             } else {
-                D_801F3700->imageSlot = D_801F3700->imageSlots;
+                SUB_SHOP->imageSlot = SUB_SHOP->imageSlots;
             }
         } else {
-            D_801F3700->loading = 1;
+            SUB_SHOP->loading = 1;
         }
     }
-    if (D_801F3700->loading == 0) {
-        D_801F3700->imageSlot->id = id;
-        D_801F3700->loading = 1;
+    if (SUB_SHOP->loading == 0) {
+        SUB_SHOP->imageSlot->id = id;
+        SUB_SHOP->loading = 1;
         sprintf(path, "B:\\L_CARD\\LC%3.3d.TIM", id);
         spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
         tim = (u32 *)waitFrames(0x7FFFFFFF);
-        uploadTim(tim, D_801F3700->imageSlot->x, D_801F3700->imageSlot->y, D_801F3700->imageSlot->clutX,
-                  D_801F3700->imageSlot->clutY);
+        uploadTim(tim, SUB_SHOP->imageSlot->x, SUB_SHOP->imageSlot->y, SUB_SHOP->imageSlot->clutX,
+                  SUB_SHOP->imageSlot->clutY);
         DrawSync(0);
         freeHeapBlock(tim);
     }
-    D_801F3700->loading = 0;
+    SUB_SHOP->loading = 0;
 }
 
-void func_801F0D8C(s32 arg) {
+void SUB_viewItemModel(s32 arg) {
     clearKanjiPage(0xF);
     closeKanjiPage(0xF);
     openKanjiPage(0x15, 0x1B9);
     clearKanjiPage(0x15);
-    func_801EA9C8();
-    SUB_viewDigimonModel(SUB_DIGIMON_CARDS[D_801FC8C8.index].modelId);
-    func_801EAA74();
-    D_801F3518[1] = NULL;
-    D_801F3518[7] = NULL;
-    D_801F3518[4] = NULL;
-    D_801F3518[3] = NULL;
+    SUB_initViewerScene();
+    SUB_viewDigimonModel(SUB_DIGIMON_CARDS[SUB_SHOP_ITEM.index].modelId);
+    SUB_freeViewerScene();
+    SUB_SHOP_WINDOWS[1] = NULL;
+    SUB_SHOP_WINDOWS[7] = NULL;
+    SUB_SHOP_WINDOWS[4] = NULL;
+    SUB_SHOP_WINDOWS[3] = NULL;
     clearKanjiPage(0x15);
     closeKanjiPage(0x15);
     openKanjiPage(0xF, 0x1B9);
     clearKanjiPage(0xF);
-    spawnTask(0, -1, 0, 0x1000, D_801F3700->fromOpened == 0 ? func_801F0EA0 : func_801F1CCC, arg);
+    spawnTask(0, -1, 0, 0x1000, SUB_SHOP->fromOpened == 0 ? SUB_runItemDetails : SUB_runOpenedDetails, arg);
     exitTask();
 }
 
-void func_801F0EA0(s32 parent) {
-    s32 count = D_801FC8C8.count;
+void SUB_runItemDetails(s32 parent) {
+    s32 count = SUB_SHOP_ITEM.count;
     s32 viewing;
 
-    spawnTask(0, -1, 0, 0x1000, func_801F0BF0, parent);
-    D_801F3700->fromOpened = 0;
-    if (D_801F3518[3] == NULL) {
-        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3380, getCurrentTaskId());
-        D_801F3518[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x1000, SUB_loadCardPicture, parent);
+    SUB_SHOP->fromOpened = 0;
+    if (SUB_SHOP_WINDOWS[3] == NULL) {
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_TOTAL_WINDOW, getCurrentTaskId());
+        SUB_SHOP_WINDOWS[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    if (D_801F3518[4] == NULL) {
-        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
-        D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (SUB_SHOP_WINDOWS[4] == NULL) {
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_BITS_WINDOW, getCurrentTaskId());
+        SUB_SHOP_WINDOWS[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3360, getCurrentTaskId());
-    D_801F3518[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3440, getCurrentTaskId());
-    D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_DETAILS_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_PICTURE_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
     waitFrames(90);
     viewing = 0;
     while (1) {
         waitFrames(FRAME_INTERVAL);
-        if (D_801F3700->loading != 0) {
+        if (SUB_SHOP->loading != 0) {
             continue;
         }
         if (PAD_STATES[0]->rawPressed & PAD_CROSS) {
-            func_801F0010(count - D_801FC8C8.count);
-            D_801F3700->total = D_801F3700->savedTotal;
+            SUB_updateDeckCount(count - SUB_SHOP_ITEM.count);
+            SUB_SHOP->total = SUB_SHOP->savedTotal;
             goto close;
         }
         if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
-            D_801FC8E8->items[D_801FC8E8->cursor].count = D_801FC8C8.count;
+            SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].count = SUB_SHOP_ITEM.count;
             goto close;
         }
-        if ((PAD_STATES[0]->rawPressed & PAD_TRIANGLE) && D_801FC8C8.type == 0) {
+        if ((PAD_STATES[0]->rawPressed & PAD_TRIANGLE) && SUB_SHOP_ITEM.type == 0) {
             viewing = 1;
-            spawnTask(0, -1, 0, 0x1000, func_801F0D8C, count - D_801FC8C8.count, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1000, SUB_viewItemModel, count - SUB_SHOP_ITEM.count, getCurrentTaskId(), 0, 0);
             goto close;
         }
-        if (D_801F3700->mode == 11 || D_801F3700->mode == 13) {
-            SUB_adjustItemCount(PAD_RIGHT | PAD_R1, PAD_LEFT | PAD_L1, &D_801FC8C8.count, D_801FC8C8.max);
+        if (SUB_SHOP->mode == 11 || SUB_SHOP->mode == 13) {
+            SUB_adjustItemCount(PAD_RIGHT | PAD_R1, PAD_LEFT | PAD_L1, &SUB_SHOP_ITEM.count, SUB_SHOP_ITEM.max);
         }
     }
 close:
-    D_801F3518[2]->state = 4;
-    D_801F3518[0]->state = 4;
+    SUB_SHOP_WINDOWS[2]->state = 4;
+    SUB_SHOP_WINDOWS[0]->state = 4;
     if (viewing == 1) {
-        D_801F3518[3]->state = 4;
-        D_801F3518[4]->state = 4;
+        SUB_SHOP_WINDOWS[3]->state = 4;
+        SUB_SHOP_WINDOWS[4]->state = 4;
     }
     waitFrames(30);
     waitFrames(30);
     if (viewing == 1) {
         exitTask();
     } else {
-        spawnTask(0, -1, 0, 0x1000, func_801F127C, parent);
+        spawnTask(0, -1, 0, 0x1000, SUB_runStockGrid, parent);
         exitTask();
     }
 }
 
-void func_801F127C(s32 parent) {
+void SUB_runStockGrid(s32 parent) {
     ShopList *list;
     s16 action;
     s32 i;
@@ -1948,31 +1949,31 @@ void func_801F127C(s32 parent) {
     s32 rowStart;
     s32 rowEnd;
 
-    if (D_801FC8E8 == NULL) {
-        list = func_801ED598(D_801FC8C8.deck, D_801F3700->mode, -1);
-        if (D_801F3700->itemChosen == 0) {
-            D_801F3700->itemChosen = 1;
-            D_801FC8C8.type = list->items[0].type;
-            D_801FC8C8.index = list->items[0].index;
+    if (SUB_SHOP_LIST == NULL) {
+        list = SUB_buildShopList(SUB_SHOP_ITEM.deck, SUB_SHOP->mode, -1);
+        if (SUB_SHOP->itemChosen == 0) {
+            SUB_SHOP->itemChosen = 1;
+            SUB_SHOP_ITEM.type = list->items[0].type;
+            SUB_SHOP_ITEM.index = list->items[0].index;
         }
     } else {
-        list = D_801FC8E8;
+        list = SUB_SHOP_LIST;
     }
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3340, getCurrentTaskId());
-    D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33C0, getCurrentTaskId());
-    D_801F3518[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    if (list->count >= D_801F3538) {
-        list->cursor = D_801F3538;
-        list->top = D_801F3539;
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_STOCK_GRID_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_STOCK_HELP_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (list->count >= SUB_SAVED_CURSOR) {
+        list->cursor = SUB_SAVED_CURSOR;
+        list->top = SUB_SAVED_TOP;
     }
-    D_801F3700->list = *D_801FC8E8;
+    SUB_SHOP->list = *SUB_SHOP_LIST;
     waitFrames(60);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (PAD_STATES[0]->rawPressed & PAD_CROSS) {
             AREA_FLAGS[1] = 0;
-            func_801F0824(0);
+            SUB_closeShop(0);
         }
         pressed = PAD_STATES[0]->rawPressed;
         if (pressed & (PAD_CIRCLE | PAD_TRIANGLE)) {
@@ -1986,172 +1987,172 @@ void func_801F127C(s32 parent) {
         }
         if (action == 2) {
             action = 0;
-            for (i = 0; i < D_801FC8E8->count; i++) {
-                if (D_801FC8E8->items[i].count != 0) {
+            for (i = 0; i < SUB_SHOP_LIST->count; i++) {
+                if (SUB_SHOP_LIST->items[i].count != 0) {
                     action = 2;
                     goto found;
                 }
             }
         found:
         }
-        if (D_801FC8E8->count == 0) {
+        if (SUB_SHOP_LIST->count == 0) {
             action = 0;
         }
-        D_801F3700->list = *D_801FC8E8;
+        SUB_SHOP->list = *SUB_SHOP_LIST;
         if (action != 0) {
-            if (action != 1 && D_801F3700->mode != 13) {
-                D_801F3518[3]->state = 4;
-                D_801F3518[0]->state = 4;
-                D_801F3518[1]->state = 4;
+            if (action != 1 && SUB_SHOP->mode != 13) {
+                SUB_SHOP_WINDOWS[3]->state = 4;
+                SUB_SHOP_WINDOWS[0]->state = 4;
+                SUB_SHOP_WINDOWS[1]->state = 4;
             } else if (action == 1) {
-                D_801F3518[0]->state = 4;
-                D_801F3518[1]->state = 4;
+                SUB_SHOP_WINDOWS[0]->state = 4;
+                SUB_SHOP_WINDOWS[1]->state = 4;
             }
             waitFrames(30);
             waitFrames(30);
-            D_801FC8C8.type = D_801FC8E8->items[D_801FC8E8->cursor].type;
-            D_801FC8C8.index = D_801FC8E8->items[D_801FC8E8->cursor].index;
-            D_801FC8C8.count = D_801FC8E8->items[D_801FC8E8->cursor].count;
-            D_801FC8C8.max = D_801FC8E8->items[D_801FC8E8->cursor].max;
-            D_801FC8C8.owned = D_801FC8E8->items[D_801FC8E8->cursor].owned;
-            D_801F3538 = list->cursor;
-            D_801F3539 = list->top;
+            SUB_SHOP_ITEM.type = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type;
+            SUB_SHOP_ITEM.index = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index;
+            SUB_SHOP_ITEM.count = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].count;
+            SUB_SHOP_ITEM.max = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].max;
+            SUB_SHOP_ITEM.owned = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].owned;
+            SUB_SAVED_CURSOR = list->cursor;
+            SUB_SAVED_TOP = list->top;
             if (action == 1) {
-                D_801F3700->savedTotal = D_801F3700->total;
-                spawnTask(0, -1, 0, 0x1000, D_801FC8E8->count != 0 ? func_801F0EA0 : NULL, parent);
-            } else if (D_801F3700->mode == 13) {
+                SUB_SHOP->savedTotal = SUB_SHOP->total;
+                spawnTask(0, -1, 0, 0x1000, SUB_SHOP_LIST->count != 0 ? SUB_runItemDetails : NULL, parent);
+            } else if (SUB_SHOP->mode == 13) {
                 AREA_FLAGS[1] = 1;
-                AREA_FLAGS[12] = D_801F3700->total / 5;
-                func_801F0670(1);
-                func_801F0824(0);
+                AREA_FLAGS[12] = SUB_SHOP->total / 5;
+                SUB_commitDeal(1);
+                SUB_closeShop(0);
             } else {
-                func_801F0404();
-                D_801F3700->list = *D_801FC8E8;
-                D_801F3700->paid = 1;
+                SUB_markSoldStock();
+                SUB_SHOP->list = *SUB_SHOP_LIST;
+                SUB_SHOP->paid = 1;
                 AREA_FLAGS[1] = 1;
-                AREA_FLAGS[12] = -D_801F3700->total;
-                spawnTask(0, -1, 0, 0x1000, D_801FC8E8->count != 0 ? func_801F1FC4 : NULL, parent, getCurrentTaskId(), 0, 0);
+                AREA_FLAGS[12] = -SUB_SHOP->total;
+                spawnTask(0, -1, 0, 0x1000, SUB_SHOP_LIST->count != 0 ? SUB_runOpenedGrid : NULL, parent, getCurrentTaskId(), 0, 0);
                 freeHeapBlocksByTag(0x195);
-                D_801FC8E8 = NULL;
-                D_801F3538 = D_801F3539 = 0;
+                SUB_SHOP_LIST = NULL;
+                SUB_SAVED_CURSOR = SUB_SAVED_TOP = 0;
             }
             clearKanjiPage(0xF);
             exitTask();
         }
-        count = D_801FC8E8->count;
+        count = SUB_SHOP_LIST->count;
         if (count != 0) {
-            prev = D_801FC8E8->cursor;
+            prev = SUB_SHOP_LIST->cursor;
             rowStart = (prev / 5) * 5;
             rowEnd = rowStart + 5;
             if (count < rowEnd) {
                 rowEnd = count;
             }
-            if ((PAD_STATES[0]->rawRepeat & PAD_RIGHT) && ++D_801FC8E8->cursor >= rowEnd) {
-                D_801FC8E8->cursor = rowStart;
-            } else if ((PAD_STATES[0]->rawRepeat & PAD_LEFT) && --D_801FC8E8->cursor < rowStart) {
-                D_801FC8E8->cursor = rowEnd - 1;
-            } else if ((PAD_STATES[0]->rawRepeat & PAD_DOWN) && (D_801FC8E8->cursor += 5) >= D_801FC8E8->count) {
-                if (D_801FC8E8->cursor < (D_801FC8E8->count - 1) / 5 * 5 + 5) {
-                    D_801FC8E8->cursor = D_801FC8E8->count - 1;
+            if ((PAD_STATES[0]->rawRepeat & PAD_RIGHT) && ++SUB_SHOP_LIST->cursor >= rowEnd) {
+                SUB_SHOP_LIST->cursor = rowStart;
+            } else if ((PAD_STATES[0]->rawRepeat & PAD_LEFT) && --SUB_SHOP_LIST->cursor < rowStart) {
+                SUB_SHOP_LIST->cursor = rowEnd - 1;
+            } else if ((PAD_STATES[0]->rawRepeat & PAD_DOWN) && (SUB_SHOP_LIST->cursor += 5) >= SUB_SHOP_LIST->count) {
+                if (SUB_SHOP_LIST->cursor < (SUB_SHOP_LIST->count - 1) / 5 * 5 + 5) {
+                    SUB_SHOP_LIST->cursor = SUB_SHOP_LIST->count - 1;
                 } else {
-                    D_801FC8E8->cursor -= 5;
+                    SUB_SHOP_LIST->cursor -= 5;
                 }
             } else if (PAD_STATES[0]->rawRepeat & PAD_UP) {
-                if (D_801FC8E8->cursor - 5 >= 0) {
-                    D_801FC8E8->cursor -= 5;
+                if (SUB_SHOP_LIST->cursor - 5 >= 0) {
+                    SUB_SHOP_LIST->cursor -= 5;
                 }
             }
-            if (D_801FC8E8->top > D_801FC8E8->cursor) {
-                D_801FC8E8->top -= 5;
+            if (SUB_SHOP_LIST->top > SUB_SHOP_LIST->cursor) {
+                SUB_SHOP_LIST->top -= 5;
             }
-            if (D_801FC8E8->top + 9 < D_801FC8E8->cursor) {
-                D_801FC8E8->top += 5;
+            if (SUB_SHOP_LIST->top + 9 < SUB_SHOP_LIST->cursor) {
+                SUB_SHOP_LIST->top += 5;
             }
-            if (D_801FC8E8->cursor != prev) {
+            if (SUB_SHOP_LIST->cursor != prev) {
                 playSoundEffect(2);
             }
         }
         /* Dead store: action is recomputed at the top of the loop. gcc drops the
            store but keeps the start of the test (the original's field is unknown). */
-        if (D_801FC8E8->items[D_801FC8E8->cursor].count == 0) {
+        if (SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].count == 0) {
             action = 0;
         }
-        SUB_adjustItemCount(PAD_R1, PAD_L1, &D_801FC8E8->items[D_801FC8E8->cursor].count, D_801FC8E8->items[D_801FC8E8->cursor].max);
+        SUB_adjustItemCount(PAD_R1, PAD_L1, &SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].count, SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].max);
     }
 }
 
 void SUB_runShop(s32 unused, s32 parentTask) {
-    D_801F3780 = 1;
-    D_801F3700->paid = 0;
-    D_801F3700->total = 0;
-    D_801FC8E8 = NULL;
-    D_801FC8C8.deckCount = 30;
-    func_801EFF98();
-    D_801F3518[7] = NULL;
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3380, getCurrentTaskId());
-    D_801F3518[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
-    D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    SUB_SHOP_RUNNING = 1;
+    SUB_SHOP->paid = 0;
+    SUB_SHOP->total = 0;
+    SUB_SHOP_LIST = NULL;
+    SUB_SHOP_ITEM.deckCount = 30;
+    SUB_loadShopTextures();
+    SUB_SHOP_WINDOWS[7] = NULL;
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_TOTAL_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_BITS_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
     openKanjiPage(0xF, 0x1E3);
-    D_801F3538 = D_801F3539 = 0;
-    spawnTask(0, -1, 0, 0x1000, func_801F127C, 0, getCurrentTaskId(), 0, 0);
+    SUB_SAVED_CURSOR = SUB_SAVED_TOP = 0;
+    spawnTask(0, -1, 0, 0x1000, SUB_runStockGrid, 0, getCurrentTaskId(), 0, 0);
     do {
         waitFrames(1);
-    } while (D_801F3780 != 0);
+    } while (SUB_SHOP_RUNNING != 0);
     resumeTask(parentTask);
 }
 
-void func_801F1CCC(s32 parent) {
+void SUB_runOpenedDetails(s32 parent) {
     u16 pressed;
     s32 viewing;
 
-    spawnTask(0, -1, 0, 0x1000, func_801F0BF0, parent);
-    D_801F3700->fromOpened = 1;
+    spawnTask(0, -1, 0, 0x1000, SUB_loadCardPicture, parent);
+    SUB_SHOP->fromOpened = 1;
     clearKanjiPage(0xF);
-    if (D_801F3518[7] == NULL) {
-        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3420, getCurrentTaskId());
-        D_801F3518[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (SUB_SHOP_WINDOWS[7] == NULL) {
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_OPENED_TITLE_WINDOW, getCurrentTaskId());
+        SUB_SHOP_WINDOWS[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    if (D_801F3518[4] == NULL) {
-        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
-        D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (SUB_SHOP_WINDOWS[4] == NULL) {
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_BITS_WINDOW, getCurrentTaskId());
+        SUB_SHOP_WINDOWS[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3360, getCurrentTaskId());
-    D_801F3518[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3440, getCurrentTaskId());
-    D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_DETAILS_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_PICTURE_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
     waitFrames(90);
     while (1) {
         viewing = 0;
         waitFrames(FRAME_INTERVAL);
-        if (D_801F3700->loading != 0) {
+        if (SUB_SHOP->loading != 0) {
             continue;
         }
         pressed = PAD_STATES[0]->rawPressed;
         if (pressed & (PAD_CIRCLE | PAD_CROSS)) {
             break;
         }
-        if ((pressed & PAD_TRIANGLE) && D_801FC8C8.type == 0) {
+        if ((pressed & PAD_TRIANGLE) && SUB_SHOP_ITEM.type == 0) {
             viewing = 1;
-            spawnTask(0, -1, 0, 0x1000, func_801F0D8C, D_801FC8C8.count, getCurrentTaskId(), 0, 0);
+            spawnTask(0, -1, 0, 0x1000, SUB_viewItemModel, SUB_SHOP_ITEM.count, getCurrentTaskId(), 0, 0);
             break;
         }
     }
-    D_801F3518[2]->state = 4;
-    D_801F3518[0]->state = 4;
+    SUB_SHOP_WINDOWS[2]->state = 4;
+    SUB_SHOP_WINDOWS[0]->state = 4;
     if (viewing == 1) {
-        D_801F3518[7]->state = 4;
-        D_801F3518[4]->state = 4;
+        SUB_SHOP_WINDOWS[7]->state = 4;
+        SUB_SHOP_WINDOWS[4]->state = 4;
     }
     waitFrames(30);
     waitFrames(30);
     if (viewing != 1) {
-        spawnTask(0, -1, 0, 0x1000, func_801F1FC4, parent);
+        spawnTask(0, -1, 0, 0x1000, SUB_runOpenedGrid, parent);
     }
     exitTask();
 }
 
-void func_801F1FC4(s32 parent) {
+void SUB_runOpenedGrid(s32 parent) {
     u8 unused[0x250]; /* unused, but it is in the original stack frame */
     ShopList *list = NULL;
     s32 count;
@@ -2159,96 +2160,96 @@ void func_801F1FC4(s32 parent) {
     s32 rowStart;
     s32 rowEnd;
 
-    if (D_801FC8E8 == NULL) {
-        list = func_801ED598(D_801FC8C8.deck, 12, -1);
+    if (SUB_SHOP_LIST == NULL) {
+        list = SUB_buildShopList(SUB_SHOP_ITEM.deck, 12, -1);
         list->cursor = 0;
     }
-    if (D_801F3518[7] == NULL) {
-        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3420, getCurrentTaskId());
-        D_801F3518[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (SUB_SHOP_WINDOWS[7] == NULL) {
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_OPENED_TITLE_WINDOW, getCurrentTaskId());
+        SUB_SHOP_WINDOWS[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33E0, getCurrentTaskId());
-    D_801F3518[5] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3400, getCurrentTaskId());
-    D_801F3518[6] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    if (list->count >= D_801F3538) {
-        list->cursor = D_801F3538;
-        list->top = D_801F3539;
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_OPENED_HELP_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[5] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &SUB_OPENED_GRID_WINDOW, getCurrentTaskId());
+    SUB_SHOP_WINDOWS[6] = (JpWindow *)waitFrames(0x7FFFFFFF);
+    if (list->count >= SUB_SAVED_CURSOR) {
+        list->cursor = SUB_SAVED_CURSOR;
+        list->top = SUB_SAVED_TOP;
     }
     waitFrames(60);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (PAD_STATES[0]->rawPressed & PAD_CIRCLE) {
-            D_801F3518[5]->state = 4;
-            D_801F3518[6]->state = 4;
+            SUB_SHOP_WINDOWS[5]->state = 4;
+            SUB_SHOP_WINDOWS[6]->state = 4;
             waitFrames(30);
             waitFrames(30);
-            D_801FC8C8.type = D_801FC8E8->items[D_801FC8E8->cursor].type;
-            D_801FC8C8.index = D_801FC8E8->items[D_801FC8E8->cursor].index;
-            D_801FC8C8.count = D_801FC8E8->items[D_801FC8E8->cursor].count;
-            D_801FC8C8.max = D_801FC8E8->items[D_801FC8E8->cursor].max;
-            D_801F3538 = list->cursor;
-            D_801F3539 = list->top;
-            spawnTask(0, -1, 0, 0x1000, D_801FC8E8->count != 0 ? func_801F1CCC : NULL, parent);
+            SUB_SHOP_ITEM.type = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].type;
+            SUB_SHOP_ITEM.index = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].index;
+            SUB_SHOP_ITEM.count = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].count;
+            SUB_SHOP_ITEM.max = SUB_SHOP_LIST->items[SUB_SHOP_LIST->cursor].max;
+            SUB_SAVED_CURSOR = list->cursor;
+            SUB_SAVED_TOP = list->top;
+            spawnTask(0, -1, 0, 0x1000, SUB_SHOP_LIST->count != 0 ? SUB_runOpenedDetails : NULL, parent);
             exitTask();
         } else if (PAD_STATES[0]->rawPressed & PAD_CROSS) {
-            func_801F0670(0);
-            func_801F0824(1);
+            SUB_commitDeal(0);
+            SUB_closeShop(1);
         }
-        count = D_801FC8E8->count;
+        count = SUB_SHOP_LIST->count;
         if (count == 0) {
             continue;
         }
-        prev = D_801FC8E8->cursor;
+        prev = SUB_SHOP_LIST->cursor;
         rowStart = (prev / 5) * 5;
         rowEnd = rowStart + 5;
         if (count < rowEnd) {
             rowEnd = count;
         }
         if (PAD_STATES[0]->rawRepeat & PAD_RIGHT) {
-            if (++D_801FC8E8->cursor >= rowEnd) {
-                D_801FC8E8->cursor = rowStart;
+            if (++SUB_SHOP_LIST->cursor >= rowEnd) {
+                SUB_SHOP_LIST->cursor = rowStart;
             }
         } else if (PAD_STATES[0]->rawRepeat & PAD_LEFT) {
-            if (--D_801FC8E8->cursor < rowStart) {
-                D_801FC8E8->cursor = rowEnd - 1;
+            if (--SUB_SHOP_LIST->cursor < rowStart) {
+                SUB_SHOP_LIST->cursor = rowEnd - 1;
             }
         } else if (PAD_STATES[0]->rawRepeat & PAD_DOWN) {
-            if ((D_801FC8E8->cursor += 5) >= D_801FC8E8->count) {
-                if (D_801FC8E8->cursor < (D_801FC8E8->count - 1) / 5 * 5 + 5) {
-                    D_801FC8E8->cursor = D_801FC8E8->count - 1;
+            if ((SUB_SHOP_LIST->cursor += 5) >= SUB_SHOP_LIST->count) {
+                if (SUB_SHOP_LIST->cursor < (SUB_SHOP_LIST->count - 1) / 5 * 5 + 5) {
+                    SUB_SHOP_LIST->cursor = SUB_SHOP_LIST->count - 1;
                 } else {
-                    D_801FC8E8->cursor -= 5;
+                    SUB_SHOP_LIST->cursor -= 5;
                 }
             }
         } else if (PAD_STATES[0]->rawRepeat & PAD_UP) {
-            if (D_801FC8E8->cursor - 5 >= 0) {
-                D_801FC8E8->cursor -= 5;
+            if (SUB_SHOP_LIST->cursor - 5 >= 0) {
+                SUB_SHOP_LIST->cursor -= 5;
             }
         }
-        if (prev != D_801FC8E8->cursor) {
+        if (prev != SUB_SHOP_LIST->cursor) {
             playSoundEffect(2);
         }
-        if (D_801FC8E8->top > D_801FC8E8->cursor) {
-            D_801FC8E8->top -= 5;
+        if (SUB_SHOP_LIST->top > SUB_SHOP_LIST->cursor) {
+            SUB_SHOP_LIST->top -= 5;
         }
-        if (D_801FC8E8->top + 9 < D_801FC8E8->cursor) {
-            D_801FC8E8->top += 5;
+        if (SUB_SHOP_LIST->top + 9 < SUB_SHOP_LIST->cursor) {
+            SUB_SHOP_LIST->top += 5;
         }
     }
 }
 
 s16 SUB_shopRandom(s16 seed) {
     if (seed >= 0) {
-        D_801F3504 = seed;
+        SUB_RANDOM_SEED = seed;
     }
-    return D_801F3504 = D_801F3504 * 3022 % 25763;
+    return SUB_RANDOM_SEED = SUB_RANDOM_SEED * 3022 % 25763;
 }
 
-s16 *func_801F2570(s16 *ids, s8 pack) {
+s16 *SUB_addPackCardIds(s16 *ids, s8 pack) {
     s32 i;
 
-    for (i = D_801F32D0[pack].start; i < D_801F32D0[pack].start + D_801F32D0[pack].count; i++) {
+    for (i = SUB_PACK_RANGES[pack].start; i < SUB_PACK_RANGES[pack].start + SUB_PACK_RANGES[pack].count; i++) {
         if ((u8)(pack - 5) < 2) {
             if (pack == 5) {
                 *ids++ = i + 110;
@@ -2256,150 +2257,150 @@ s16 *func_801F2570(s16 *ids, s8 pack) {
                 *ids++ = i + 153;
             }
         } else {
-            *ids++ = i + D_801F32D0[pack].base;
+            *ids++ = i + SUB_PACK_RANGES[pack].base;
         }
     }
     return ids;
 }
 
-void func_801F2618(void) {
-    s8 shop = D_801F3700->shopId;
+void SUB_rollStock(void) {
+    s8 shop = SUB_SHOP->shopId;
     s32 i = 0;
     s32 count;
 
     switch (shop) {
     case 0:
         for (i = 0; i < 5; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(0xFF, 1);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(0xFF, 1);
         }
         for (i = 5; i < 7; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(0xFF, 2);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(0xFF, 2);
         }
-        D_801F3700->packs[5].count = 1;
+        SUB_SHOP->packs[5].count = 1;
         break;
     case 1:
         for (i = 0; i < 6; i++) {
-            D_801F3700->packs[i].count = 1;
+            SUB_SHOP->packs[i].count = 1;
         }
         for (i = 0; i < 4; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(0xFF, 1);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(0xFF, 1);
         }
         for (i = 4; i < 6; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(0xFF, 2);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(0xFF, 2);
         }
-        D_801F3708[i++] = (u8)func_801ECA7C(0xFF, 0);
+        SUB_STOCK_IDS[i++] = (u8)SUB_rollPackCard(0xFF, 0);
         break;
     case 2 ... 6:
-        D_801F3700->packs[shop - 2].count = 1;
-        D_801F3700->packs[5].count = 1;
+        SUB_SHOP->packs[shop - 2].count = 1;
+        SUB_SHOP->packs[5].count = 1;
         for (i = 0; i < 3; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(shop - 2, 1);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(shop - 2, 1);
         }
         for (i = 3; i < 5; i++) {
-            D_801F3708[i] = (u8)func_801ECA7C(shop - 2, 2);
+            SUB_STOCK_IDS[i] = (u8)SUB_rollPackCard(shop - 2, 2);
         }
         break;
     }
     count = i;
     if (shop == 0 && PLAYER_DATA(0).shops[0].starterStock == 1) {
-        D_801F3700->digimonCards[16].count = 1;
-        D_801F3700->digimonCards[36].count = 1;
-        D_801F3700->digimonCards[65].count = 1;
-        D_801F3700->optionCards[26].count = 1;
-        D_801F3700->optionCards[34].count = 1;
+        SUB_SHOP->digimonCards[16].count = 1;
+        SUB_SHOP->digimonCards[36].count = 1;
+        SUB_SHOP->digimonCards[65].count = 1;
+        SUB_SHOP->optionCards[26].count = 1;
+        SUB_SHOP->optionCards[34].count = 1;
         return;
     }
     for (i = 0; i < count; i++) {
-        if (D_801F3708[i] < 110) {
-            D_801F3700->digimonCards[D_801F3708[i]].count++;
-        } else if ((D_801F3708[i] -= 110) < 43) {
-            D_801F3700->optionCards[D_801F3708[i]].count++;
-        } else if ((D_801F3708[i] -= 43) < 6) {
-            D_801F3700->digivolveCards[D_801F3708[i]].count++;
+        if (SUB_STOCK_IDS[i] < 110) {
+            SUB_SHOP->digimonCards[SUB_STOCK_IDS[i]].count++;
+        } else if ((SUB_STOCK_IDS[i] -= 110) < 43) {
+            SUB_SHOP->optionCards[SUB_STOCK_IDS[i]].count++;
+        } else if ((SUB_STOCK_IDS[i] -= 43) < 6) {
+            SUB_SHOP->digivolveCards[SUB_STOCK_IDS[i]].count++;
         }
     }
 }
 
-void func_801F29BC(void) {
-    s16 *ids = D_801F3708;
-    u8 shop = D_801F3700->shopId;
+void SUB_rollStockFromRanges(void) {
+    s16 *ids = SUB_STOCK_IDS;
+    u8 shop = SUB_SHOP->shopId;
     s32 i;
     s16 j;
     s16 swap;
     s16 pack;
 
-    D_801F3700->packs[5].count = 1;
+    SUB_SHOP->packs[5].count = 1;
     switch ((s8)shop) {
     case 0:
         for (i = 0; i < 7; i++) {
-            ids = func_801F2570(ids, i);
+            ids = SUB_addPackCardIds(ids, i);
         }
         *ids = -1;
         break;
     case 1:
         for (i = 0; i < 7; i++) {
-            ids = func_801F2570(ids, i);
+            ids = SUB_addPackCardIds(ids, i);
         }
         for (i = 0; i < 6; i++) {
-            D_801F3700->packs[i].count = 1;
+            SUB_SHOP->packs[i].count = 1;
         }
         *ids = -1;
         break;
     default:
-        ids = func_801F2570(ids, shop - 2);
-        D_801F3700->packs[(s8)shop - 2].count = 1;
+        ids = SUB_addPackCardIds(ids, shop - 2);
+        SUB_SHOP->packs[(s8)shop - 2].count = 1;
         *ids = -1;
         break;
     }
-    D_801F3782 = ids - D_801F3708;
-    for (i = 0; i < D_801F3782; i++) {
-        j = SUB_shopRandom(-1) % D_801F3782;
-        swap = D_801F3708[i];
-        D_801F3708[i] = D_801F3708[j];
-        D_801F3708[j] = swap;
+    SUB_STOCK_ID_COUNT = ids - SUB_STOCK_IDS;
+    for (i = 0; i < SUB_STOCK_ID_COUNT; i++) {
+        j = SUB_shopRandom(-1) % SUB_STOCK_ID_COUNT;
+        swap = SUB_STOCK_IDS[i];
+        SUB_STOCK_IDS[i] = SUB_STOCK_IDS[j];
+        SUB_STOCK_IDS[j] = swap;
     }
     if ((s8)shop == 1) {
         pack = SUB_shopRandom(-1) % 6;
-        D_801F3708[0] = D_801F32D0[pack].base + SUB_shopRandom(-1) % D_801F32D0[pack].start;
+        SUB_STOCK_IDS[0] = SUB_PACK_RANGES[pack].base + SUB_shopRandom(-1) % SUB_PACK_RANGES[pack].start;
     }
-    if (D_801F3700->shopId == 0 && PLAYER_DATA(0).shops[0].starterStock == 1) {
-        D_801F3700->digimonCards[16].count = 1;
-        D_801F3700->digimonCards[36].count = 1;
-        D_801F3700->digimonCards[65].count = 1;
-        D_801F3700->optionCards[26].count = 1;
-        D_801F3700->optionCards[34].count = 1;
+    if (SUB_SHOP->shopId == 0 && PLAYER_DATA(0).shops[0].starterStock == 1) {
+        SUB_SHOP->digimonCards[16].count = 1;
+        SUB_SHOP->digimonCards[36].count = 1;
+        SUB_SHOP->digimonCards[65].count = 1;
+        SUB_SHOP->optionCards[26].count = 1;
+        SUB_SHOP->optionCards[34].count = 1;
         return;
     }
     for (i = 0; i < 5; i++) {
-        if (D_801F3708[i] - 110 < 0) {
-            D_801F3700->digimonCards[D_801F3708[i]].count = 1;
-        } else if (D_801F3708[i] - 43 < 0) {
-            D_801F3700->optionCards[D_801F3708[i] - 110].count = 1;
+        if (SUB_STOCK_IDS[i] - 110 < 0) {
+            SUB_SHOP->digimonCards[SUB_STOCK_IDS[i]].count = 1;
+        } else if (SUB_STOCK_IDS[i] - 43 < 0) {
+            SUB_SHOP->optionCards[SUB_STOCK_IDS[i] - 110].count = 1;
         } else {
-            D_801F3700->digivolveCards[D_801F3708[i] - 153].count = 1;
+            SUB_SHOP->digivolveCards[SUB_STOCK_IDS[i] - 153].count = 1;
         }
     }
 }
 
-void func_801F2D50(void) {
+void SUB_initShop(void) {
     s32 i;
     s32 j;
     POLY_FT4 *poly;
 
-    D_801F3700->itemChosen = 0;
-    D_801F3700->loading = 0;
+    SUB_SHOP->itemChosen = 0;
+    SUB_SHOP->loading = 0;
     for (i = 0; i < 4; i++) {
-        D_801F3700->imageSlots[i].id = -1;
-        D_801F3700->imageSlots[i].x = ((i & 1) << 5) + 0x180;
-        D_801F3700->imageSlots[i].y = ((i & 2) << 5) + 0x175;
-        D_801F3700->imageSlots[i].clutX = 0x180;
-        D_801F3700->imageSlots[i].clutY = i + 0xF2;
+        SUB_SHOP->imageSlots[i].id = -1;
+        SUB_SHOP->imageSlots[i].x = ((i & 1) << 5) + 0x180;
+        SUB_SHOP->imageSlots[i].y = ((i & 2) << 5) + 0x175;
+        SUB_SHOP->imageSlots[i].clutX = 0x180;
+        SUB_SHOP->imageSlots[i].clutY = i + 0xF2;
     }
     for (i = 0; i < 2; i++) {
-        DB(i).primSlots[2] = (s32)(D_801F3700->polys[i] = allocHeapBlock(0x78, 0x193));
+        DB(i).primSlots[2] = (s32)(SUB_SHOP->polys[i] = allocHeapBlock(0x78, 0x193));
     }
     for (j = 0; j < 2; j++) {
-        poly = D_801F3700->polys[j];
+        poly = SUB_SHOP->polys[j];
         for (i = 0; i < 3; i++, poly++) {
             SetPolyFT4(poly);
             poly->r0 = 0x80;
@@ -2407,24 +2408,24 @@ void func_801F2D50(void) {
             poly->b0 = 0x80;
         }
     }
-    D_801F3700->imageSlot = D_801F3700->imageSlots;
-    D_801F353C = func_80044334(1, 20, 24, 5, 1);
+    SUB_SHOP->imageSlot = SUB_SHOP->imageSlots;
+    SUB_GRID_CURSOR = func_80044334(1, 20, 24, 5, 1);
 }
 
 void SUB_openSellShop(void) {
     s32 i;
 
-    D_801F3700 = allocHeapBlock(0xC00, 0x193);
-    D_801F3700->mode = 13;
-    func_801F2D50();
+    SUB_SHOP = allocHeapBlock(0xC00, 0x193);
+    SUB_SHOP->mode = 13;
+    SUB_initShop();
     for (i = 0; i < 110; i++) {
-        D_801F3700->digimonCards[i].stock = PLAYER_DATA(0).cardCollection[i] & 0x7F;
+        SUB_SHOP->digimonCards[i].stock = PLAYER_DATA(0).cardCollection[i] & 0x7F;
     }
     for (i = 0; i < 43; i++) {
-        D_801F3700->optionCards[i].stock = PLAYER_DATA(0).optionCollection[i] & 0x7F;
+        SUB_SHOP->optionCards[i].stock = PLAYER_DATA(0).optionCollection[i] & 0x7F;
     }
     for (i = 0; i < 6; i++) {
-        D_801F3700->digivolveCards[i].stock = PLAYER_DATA(0).digivolveCollection[i] & 0x7F;
+        SUB_SHOP->digivolveCards[i].stock = PLAYER_DATA(0).digivolveCollection[i] & 0x7F;
     }
 }
 
@@ -2436,45 +2437,45 @@ void SUB_openBuyShop(void) {
     s32 shift;
     s32 bit;
 
-    D_801F3700 = allocHeapBlock(0xC00, 0x193);
-    D_801F3700->mode = 11;
-    func_801F2D50();
+    SUB_SHOP = allocHeapBlock(0xC00, 0x193);
+    SUB_SHOP->mode = 11;
+    SUB_initShop();
     for (i = 0; i < 6; i++) {
         if (places[i] == PLAYER_DATA(0).area) {
-            D_801F3700->shopId = i;
-            if (D_801F3700->shopId != 0) {
-                D_801F3700->shopId++;
+            SUB_SHOP->shopId = i;
+            if (SUB_SHOP->shopId != 0) {
+                SUB_SHOP->shopId++;
             }
             i = 6;
         }
     }
-    if (D_801F3700->shopId == 0) {
+    if (SUB_SHOP->shopId == 0) {
         flag = 13;
         word = flag / 32;
         shift = flag % 32;
         if (PLAYER_DATA(0).eventFlags[word] & (bit = 1 << shift)) {
-            D_801F3700->shopId = 1;
+            SUB_SHOP->shopId = 1;
         }
     }
-    if (PLAYER_DATA(0).shops[D_801F3700->shopId].timer == -1) {
-        PLAYER_DATA(0).shops[D_801F3700->shopId].timer = 0;
+    if (PLAYER_DATA(0).shops[SUB_SHOP->shopId].timer == -1) {
+        PLAYER_DATA(0).shops[SUB_SHOP->shopId].timer = 0;
     }
-    SUB_shopRandom(PLAYER_DATA(0).shops[D_801F3700->shopId].seeds[6][0]);
+    SUB_shopRandom(PLAYER_DATA(0).shops[SUB_SHOP->shopId].seeds[6][0]);
     for (i = 0; i < 110; i++) {
-        D_801F3700->digimonCards[i].stock = PLAYER_DATA(0).cardCollection[i];
-        D_801F3700->digimonCards[i].count = 0;
+        SUB_SHOP->digimonCards[i].stock = PLAYER_DATA(0).cardCollection[i];
+        SUB_SHOP->digimonCards[i].count = 0;
     }
     for (i = 0; i < 43; i++) {
-        D_801F3700->optionCards[i].stock = PLAYER_DATA(0).optionCollection[i];
-        D_801F3700->optionCards[i].count = 0;
+        SUB_SHOP->optionCards[i].stock = PLAYER_DATA(0).optionCollection[i];
+        SUB_SHOP->optionCards[i].count = 0;
     }
     for (i = 0; i < 6; i++) {
-        D_801F3700->digivolveCards[i].stock = PLAYER_DATA(0).digivolveCollection[i];
-        D_801F3700->digivolveCards[i].count = 0;
+        SUB_SHOP->digivolveCards[i].stock = PLAYER_DATA(0).digivolveCollection[i];
+        SUB_SHOP->digivolveCards[i].count = 0;
     }
     for (i = 0; i < 6; i++) {
-        D_801F3700->packs[i].stock = 0;
-        D_801F3700->packs[i].count = 0;
+        SUB_SHOP->packs[i].stock = 0;
+        SUB_SHOP->packs[i].count = 0;
     }
-    func_801F2618();
+    SUB_rollStock();
 }

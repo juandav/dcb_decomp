@@ -111,7 +111,7 @@ void SAI_showLeftSprite(s32 kind) {
     exitTask();
 }
 
-void SAI_tickRandomTickers(void) {
+void SAI_tickShopRestocks(void) {
     ShopRecord *shop;
     s8 i;
 
