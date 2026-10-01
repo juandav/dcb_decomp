@@ -78,6 +78,7 @@ NISSEG_C_SRC := \
 	src/nisseg/deck/nis_deck_editor.c \
 	src/nisseg/deck/nis_deck_scene.c \
 	src/nisseg/deck/nis_deck_windows.c \
+	src/nisseg/nis_bss.c \
 	src/nisseg/title/nis_title.c \
 	src/nisseg/trade/nis_trade.c \
 	src/nisseg/viewer/nis_model_viewer.c \

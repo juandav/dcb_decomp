@@ -22,59 +22,6 @@
    to three kinds of cards from those they can spare, then both offers are
    shown and the cards change hands */
 
-/* a card the player can trade */
-typedef struct {
-    /* 0x0 */ NisCardPicture picture;
-    /* 0x8 */ u8 brightness;
-    /* 0x9 */ u8 type; /* 0 Digimon, 1 option, 2 other */
-    /* 0xA */ u8 index; /* within its type */
-    /* 0xB */ s8 chosen; /* copies to trade */
-    /* 0xC */ s8 max; /* copies that can be traded */
-    /* 0xD */ s8 owned;
-} TradeCard;
-
-typedef struct {
-    /* 0x000 */ s32 scroll; /* the first card the grid shows */
-    /* 0x004 */ s32 cursor;
-    /* 0x008 */ s32 count;
-    /* 0x00C */ TradeCard cards[NIS_CARD_COUNT];
-} TradeCardList;
-
-/* what a player gives: up to three kinds of cards */
-typedef struct {
-    /* 0x00 */ s8 kinds;
-    /* 0x01 */ s8 copies;
-    /* 0x02 */ TradeCard cards[4];
-} TradeOffer;
-
-/* bit n: the player's copy n of a card has a serial number the other
-   player's copies don't have, so it can be traded */
-typedef struct {
-    /* 0x00 */ u8 digimon[NIS_DIGIMON_COUNT];
-    /* 0x6E */ u8 options[NIS_OPTION_COUNT];
-    /* 0x99 */ u8 others[NIS_OTHER_COUNT];
-} TradeMasks;
-
-/* the trade's windows, as waitFrames returns them */
-typedef struct {
-    /* 0x00 */ s32 offers; /* both offers, under the trade menu */
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ s32 grid;
-    /* 0x0C */ s32 help;
-    /* 0x10 */ s32 card; /* the trade's own card screen */
-    /* 0x14 */ s32 question;
-} TradeWindows;
-
-/* the card in view of the trade's own card screen */
-typedef struct {
-    /* 0x0 */ s8 copies;
-    /* 0x1 */ s8 max;
-    /* 0x2 */ s8 owned;
-    /* 0x3 */ s8 shown; /* the copies written into VRAM */
-    /* 0x4 */ s8 type;
-    /* 0x6 */ s16 index;
-} TradeView;
-
 extern u8 D_801E46E9;
 extern TradeWindows NIS_TRADE_WINDOWS;
 extern NisCursor *NIS_TRADE_CURSOR;
