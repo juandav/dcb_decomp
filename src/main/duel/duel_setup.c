@@ -14,7 +14,7 @@ void loadPresetDeckForPlayer(s32 player) {
     PresetDeck *deck;
     s32 i;
     s32 partner;
-    u16 cardId;
+    s32 cardId;
 
     presetDecks = (PresetDeck *)(((SessionData *)SESSION_DATA)->npcDeckFile + 8);
     if (((SessionData *)SESSION_DATA)->npcDeckIndex[player] != -1) {
@@ -40,7 +40,7 @@ void initDuelPlayers(s32 isCpuDuel) {
     s32 i;
     s32 j;
     s32 partner;
-    u16 cardId;
+    s32 cardId;
 
     for (i = 0; i < 2; i++) {
         DUEL_PLAYERS[i] = allocTaskHeapBlock(0x1E4); /* a Player */

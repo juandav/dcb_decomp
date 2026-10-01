@@ -404,5 +404,12 @@ void SAI_runWordInput(char *word) {
     SAI_toggleMessageWindow(1);
 }
 
-/* the last three bytes are leftovers in the original, not zero padding */
+/* the last three bytes are leftovers in the original, not zero padding, and
+   not the same in every version */
+#if VERSION_US
 const char SAI_STR_NO_KEYWORD[36] = "A Key Word has not been entered!\0" "333";
+#elif VERSION_EU
+const char SAI_STR_NO_KEYWORD[36] = "A Key Word has not been entered!\0" "e1\x06";
+#else
+#error "saiseg/hacking/sai_word_input: version not checked"
+#endif

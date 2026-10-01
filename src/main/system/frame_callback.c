@@ -30,6 +30,9 @@ loop_1:
     }
 }
 
+/* the same search and shift; each version's compiler needs its own form of
+   the loops to lay them out as the original does */
+#if VERSION_US
 void removeFrameCallback(s32 callback) {
     s32 *slot;
     s32 entry;
@@ -56,6 +59,28 @@ found:
     slot++;
     goto found;
 }
+#elif VERSION_EU
+void removeFrameCallback(s32 callback) {
+    s32 *slot;
+
+    slot = &FRAME_CALLBACKS;
+    if (callback == 0) {
+        return;
+    }
+    while (*slot != callback) {
+        if (*slot == 0) {
+            return;
+        }
+        slot++;
+    }
+    /* move the rest of the list down over it */
+    while ((*slot = slot[1]) != 0) {
+        slot++;
+    }
+}
+#else
+#error "main/system/frame_callback: version not checked"
+#endif
 
 void clearFramePrimSlots(void) {
     s32 i;

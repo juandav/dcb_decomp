@@ -18,7 +18,7 @@
    music PAKs number them from 200 */
 #if VERSION_JP
 #define MUSIC_CHUNK_ID(id) ((id) + 200)
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define MUSIC_CHUNK_ID(id) (id)
 #else
 #error "untested version"
@@ -58,11 +58,16 @@ void initSound(void) {
     SOUND_STATE.cur = -1;
     loadSoundEffectBank(1);
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void initSound(void) {
     SsSetTableSize(&SOUND_SEQ_ATTR_TABLE, 0x20, 1);
     SsSetMVol(0, 0);
+    /* the sequencer ticks with the display: SS_TICK60 on NTSC, SS_TICK50 on PAL */
+#if VERSION_US
     SsSetTickMode(1);
+#elif VERSION_EU
+    SsSetTickMode(4);
+#endif
     SsStart();
     setReverbType(1);
     SsSetStereo();
@@ -190,7 +195,7 @@ s32 openSlotVabHeader(SndSlot *slot, s16 vabId, s32 spuAddr) {
 #if VERSION_JP
     /* vabId 0 is the sound effects' bank, the others music */
     vabHeader = findPakChunk((Chunk *)slot->buf, 7, vabId != 0 ? MUSIC_CHUNK_ID(slot->id) : slot->id);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     vabHeader = findPakChunk((Chunk *)slot->buf, 7, slot->id);
 #else
 #error "untested version"

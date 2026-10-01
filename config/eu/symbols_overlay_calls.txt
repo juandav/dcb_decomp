@@ -39,3 +39,4 @@ SAI_runWorldMap = 0x801F24A0; // type:func
 OPEN_MEMCARD_CANCELLED = 0x801FA3C9; // type:u8
 OPEN_findMovieFile = 0x801E2504; // type:func
 OPEN_playMovie = 0x801E2EAC; // type:func
+KAW_startTutorial = 0x801ECBB8; // type:func
