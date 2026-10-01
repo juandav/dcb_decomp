@@ -12,7 +12,7 @@
 #include "dcb/task.h"
 
 s8 *copyString(s8 *dst, s8 *src) {
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     while ((*dst = *src) != 0) {
         dst++;
         src++;
@@ -186,7 +186,7 @@ s32 measureWideString(s16 *str) {
 
     ch = str;
     width = 0;
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     while ((c = *++ch) != 0) {
         if (c < 0) {
             width += 1;
@@ -213,7 +213,7 @@ loop:
 }
 
 s16 *copyAsciiToWideString(s16 *dst, u8 *src) {
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     while ((*dst = -*src) != 0) {
         src++;
         dst++;
@@ -232,7 +232,7 @@ s16 *copyAsciiToWideString(s16 *dst, u8 *src) {
 }
 
 s16 *copyWideString(s16 *dst, s16 *src) {
-#if VERSION_JP
+#if VERSION_JP || VERSION_EU
     while ((*dst = *src) != 0) {
         dst++;
         src++;
