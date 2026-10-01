@@ -97,13 +97,6 @@ typedef struct {
     /* 0x139 */ u8 suspended;
 } EffectObject;
 typedef struct {
-    u32 tag;
-    u8 r0, g0, b0, code;
-    s16 x0, y0;
-    u8 r1, g1, b1, p1;
-    s16 x1, y1;
-} LINE_G2;
-typedef struct {
     /* 0x00 */ u8 unk0[0x30];
     /* 0x30 */ s16 rotX;
     /* 0x32 */ s16 rotY;
