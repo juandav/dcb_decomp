@@ -7,9 +7,9 @@
 /* jp's KAWSEG keeps the tutorial's message window here (kaw_exp.c is us's
    and eu's) */
 
-/* the tutorial's messages and where each shows */
-extern u8 *D_801FF938[];
-extern s16 D_801FF75C[][2];
+/* the tutorial's messages and where each shows (kaw_hud_jp.c's) */
+extern u8 *KAW_TUTORIAL_MESSAGES[];
+extern s16 KAW_TUTORIAL_MESSAGE_POS[][2];
 
 /* copies the tutorial's message into its window, the player's name for each
    'P' */
@@ -18,7 +18,7 @@ void func_801FF100(void) {
     char *dst;
     s32 i;
 
-    src = D_801FF938[DUEL->tutorialShown];
+    src = KAW_TUTORIAL_MESSAGES[DUEL->tutorialShown];
     dst = KAW_TUTORIAL->text;
     for (i = 0; i < 0x101; i++) {
         KAW_TUTORIAL->text[i] = 0;
@@ -71,12 +71,12 @@ void func_801FF2C0(void) {
         if (DUEL->tutorialVisible != 0) {
             func_801FF100();
             measureText(1, (u8 *)KAW_TUTORIAL->text);
-            KAW_TUTORIAL->window.cur.x = D_801FF75C[DUEL->tutorialMessage][0];
-            KAW_TUTORIAL->window.cur.y = D_801FF75C[DUEL->tutorialMessage][1];
+            KAW_TUTORIAL->window.cur.x = KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][0];
+            KAW_TUTORIAL->window.cur.y = KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][1];
             KAW_TUTORIAL->window.cur.w = 0;
             KAW_TUTORIAL->window.cur.h = 0;
-            rect.x = (s16)(D_801FF75C[DUEL->tutorialMessage][0] - 5) - (TEXT_WIDTH + 1) / 2;
-            rect.y = (s16)(D_801FF75C[DUEL->tutorialMessage][1] - 2) - (TEXT_HEIGHT + 1) / 2;
+            rect.x = (s16)(KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][0] - 5) - (TEXT_WIDTH + 1) / 2;
+            rect.y = (s16)(KAW_TUTORIAL_MESSAGE_POS[DUEL->tutorialMessage][1] - 2) - (TEXT_HEIGHT + 1) / 2;
             rect.w = (TEXT_WIDTH + 1) / 2 * 2 + 10;
             rect.h = (TEXT_HEIGHT + 1) / 2 * 2 + 4;
             animateWindowTo(&KAW_TUTORIAL->window, &rect, -1, -1);

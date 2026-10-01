@@ -39,7 +39,7 @@ typedef struct {
 
 typedef struct {
     /* 0x000 */ ChoiceMenu menu; /* what to do where the player is */
-    /* 0x250 */ u8 unk250[4];
+    /* 0x24C */ u8 unk24C[8];
     /* 0x254 */ MapWalk walk;
     /* 0x25E */ MapLabel label;
     /* 0x268 */ s8 labelDir; /* 1: the label slides in, -1: out */
