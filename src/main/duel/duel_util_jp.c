@@ -8,8 +8,9 @@
 #include "dcb/kaw_hand.h"
 
 /* jp's duel waits (duel_util.c is us's and eu's): the waits hold while the
-   duel is paused, and the turn player confirms with circle. KAWSEG's
-   KAW_drawSprite comes first, in the executable */
+   duel is paused, the turn player confirms with circle, and us's wait
+   for the CPU has no tutorial case. KAWSEG's KAW_drawSprite comes first, in the
+   executable */
 
 void KAW_drawSprite(s32 x, s32 y, s32 u, s32 v, s32 w, s32 h, s32 clutX, s32 clutY, s32 tp, s32 semi, s32 abr, s32 brightness,
                    s32 otz) {
@@ -70,6 +71,8 @@ void isCrossPressedByTurnPlayer(void) {
     playSoundEffect(0xA0);
 }
 
+/* waits a second, then for the turn player's circle (jp's KAWSEG calls it
+   where us waits for the CPU) */
 void waitForCpuDecision(void) {
     PadState *pad;
     s32 wait;
@@ -93,6 +96,30 @@ void waitForCpuDecision(void) {
             }
         } else {
             wait--;
+        }
+    }
+}
+
+/* us's waitForCpuDecision, without the tutorial's case: jp's turn loop
+   calls it where us's does */
+void func_80036C78(void) {
+    s32 waited;
+
+    DUEL->cpuWaitFrames = 0;
+    while (1) {
+        if (DUEL->stopTurnLoop != 0) {
+            DUEL->stopTurnLoop = 0;
+            exitTask();
+            return;
+        }
+        waitFrames(FRAME_INTERVAL);
+        if (DUEL->cpuRequest == 0) {
+            return;
+        }
+        /* give up once cpuWaitFrames passes 240 */
+        waited = DUEL->cpuWaitFrames++;
+        if (waited >= 0xF1) {
+            return;
         }
     }
 }

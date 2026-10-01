@@ -157,9 +157,9 @@ segments:
       - [0x26D60, c, duel/cpu_decision]
       # with a function of jp's own before duel_util's
       - [0x26F5C, c, duel/duel_util_jp]
-      # jp's waitForStatCountersToSettle and drawHudPanelContents (battle_hud's
-      # in us) come right after duel_util
-      - [0x27478, asm, duel/card_motion]
+      # jp's drawHudPanelContents (battle_hud's in us) comes right after
+      # duel_util
+      - [0x2751C, asm, duel/card_motion]
       # jp's hud_panels holds the eleven panels' functions and the shared one's
       - [0x2CA44, c, duel/hud_panels_jp]
       - [0x2F79C, c, duel/duel_session_jp]
