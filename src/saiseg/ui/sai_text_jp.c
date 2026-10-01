@@ -138,8 +138,48 @@ void SAI_runMenu(void) {
     }
 }
 
-/* our C gives the copies and the hoisted card id each other's registers */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_countSpareCopies);
+/* the copies of a card the player has spare: those owned, less the most any
+   saved deck holds when inDecks is 1 */
+s32 SAI_countSpareCopies(s8 inDecks, s16 card) {
+    s32 copies;
+    s8 type;
+    s16 id;
+    s32 deck;
+    s32 i;
+    s32 count;
+    s32 most;
+
+    most = 0;
+    if (card < 0x6E) {
+        id = card;
+        type = 0;
+        copies = PLAYER_DATA(0).cardCollection[id] & 0xF;
+    } else if (card < 0x56) {
+        id = card - 0x6E;
+        type = 1;
+        copies = PLAYER_DATA(0).optionCollection[id] & 0xF;
+    } else {
+        id = card - 0x99;
+        type = 2;
+        copies = PLAYER_DATA(0).digivolveCollection[id] & 0xF;
+    }
+    if (inDecks == 1) {
+        for (deck = 0; deck < 3; deck++) {
+            if (PLAYER_DATA(0).savedDecks[deck].inUse != 0) {
+                for (i = 0, count = 0; i < 30; i++) {
+                    if (PLAYER_DATA(0).savedDecks[deck].cards[i].index == id && PLAYER_DATA(0).savedDecks[deck].cards[i].type == type) {
+                        count++;
+                    }
+                }
+                if (count >= most) {
+                    most = count;
+                }
+            }
+        }
+        copies -= most;
+    }
+    return copies;
+}
 
 void SAI_doNothing(void) {
 }

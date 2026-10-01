@@ -6,6 +6,11 @@
 #include "dcb/archive.h"
 #include "dcb/vram_upload.h"
 #include "dcb/script.h"
+#include "dcb/pad.h"
+#include "dcb/sound_play.h"
+#include "dcb/frame_callback.h"
+#include "dcb/fade.h"
+#include "dcb/game_exit.h"
 #include "dcb/saiseg.h"
 
 /* jp's area (sai_area.c is us's and eu's): the map's textures and script,
@@ -14,6 +19,23 @@
 void addCardToCollection(s32 type, s32 id, s32 count);
 
 void SAI_clearTextVram(void);
+
+extern JpGame *SCROLLING_BACKGROUND;
+extern s8 D_801F3780; /* the address of SUBSEG's SUB_SHOP_RUNNING */
+extern void renderScrollingBackground();
+void startAreaPakLoad(void);
+void setBackgroundScrollMode(s32);
+void allocAreaFlags(void);
+void SAI_clearTextLines(void);
+void SAI_runMenu(void);
+void func_801EE8F0(void);
+s32 func_801F02B4(ScriptRunner *runner);
+void func_801F0EA8(void);
+void func_801F0F48(void);
+void func_801F1130();
+void func_801F16E0(void);
+void func_801F18C8(void);
+void SAI_runWorldMap();
 
 void SAI_loadMapTextures(void) {
     char path[0x18];
@@ -129,5 +151,127 @@ void SAI_resetArea(void) {
     SAI_clearTextVram();
 }
 
-/* our C swaps the registers of `running` and of the state's address */
-INCLUDE_ASM("saiseg/nonmatchings/area/sai_area_jp", SAI_runArea);
+/* the area's task: it runs the area's script, event by event, until it
+   ends in another area (7), the title or the ending (8), or the map */
+void SAI_runArea(void) {
+    s32 running;
+
+    running = 0;
+    if (!PLAYER_DATA(0).unk28_9) {
+        SAI_giveStarterCards();
+        PLAYER_DATA(0).unk28_9 = 1;
+    }
+    SAI_STATE->unk45 = 1;
+    SAI_STATE->map = PLAYER_DATA(0).area + 1;
+    func_801F0F48();
+    do {
+        waitFrames(FRAME_INTERVAL);
+        SAI_resetArea();
+        SAI_STATE->runner = SAI_loadAreaScript();
+        allocAreaFlags();
+        SAI_STATE->runner->regs = SAI_STATE->regs;
+        func_801F18C8();
+        addFrameCallback((s32)func_801F1130);
+        waitFrames(4);
+        do {
+            waitFrames(FRAME_INTERVAL);
+            switch (SAI_STATE->unk18) {
+            case 1:
+                running = 1;
+                SAI_STATE->flags++;
+                if ((PAD_STATES[0]->rawPressed & PAD_CIRCLE) && SAI_UI.typing == 0) {
+                    SAI_STATE->flags = 0;
+                    SAI_STATE->unk18 = 0;
+                    playSoundEffectAtVolume(0, 0x32);
+                    SAI_clearTextLines();
+                }
+                break;
+            case 2:
+                running = 1;
+                if (SAI_UI.typing == 0) {
+                    SAI_STATE->flags = 0;
+                    SAI_STATE->unk18 = 0;
+                    SAI_clearTextLines();
+                }
+                break;
+            case 3:
+                running = 1;
+                if (SAI_UI.typing == 0) {
+                    spawnTask(0, -1, 0, 0x400, SAI_runMenu);
+                    SAI_STATE->unk18 = 4;
+                    SAI_UI.typing = 0;
+                }
+                break;
+            case 4:
+                running = 1;
+                SAI_STATE->flags++;
+                if (SAI_STATE->regs[15] != 0) {
+                    SAI_STATE->flags = 0;
+                    SAI_STATE->unk18 = 0;
+                }
+                break;
+            case 5:
+                if (D_801F3780 == 0) {
+                    running = 1;
+                    SAI_STATE->unk18 = 0;
+                    SAI_loadMapTextures();
+                    SAI_clearTextVram();
+                    SAI_STATE->unk4B = 1;
+                    addFrameCallback((s32)func_801F1130);
+                    waitFrames(4);
+                }
+                break;
+            case 7:
+                running = 0;
+                break;
+            case 8:
+                running = 0;
+                break;
+            default:
+                running = func_801F02B4(SAI_STATE->runner);
+                break;
+            }
+        } while (running != 0);
+        func_801F16E0();
+        SCROLLING_BACKGROUND->unk1BE = 2;
+        func_801EE8F0();
+        waitFrames(2);
+        removeFrameCallback((s32)func_801F1130);
+        waitFrames(2);
+        freeHeapBlocksByTag(0x190);
+        freeHeapBlocksByTag(0x194);
+    } while (running != 0);
+    waitFrames(40);
+    SAI_STATE->unk43 = 0;
+    if (SAI_STATE->unk18 == 7) {
+        startAreaPakLoad();
+        SAI_STATE->unk18 = 0;
+        spawnTask(0, -1, 0, 0x1000, func_801F0EA8, 0, getCurrentTaskId(), 0, 0);
+    } else if (SAI_STATE->unk18 == 8) {
+        if (SAI_STATE->unk50 == 1) {
+            SAI_STATE->unk18 = 0;
+            SCROLLING_BACKGROUND->unk1C0 = -1;
+            setBackgroundScrollMode(2);
+            waitFrames(60);
+            quitToTitleOrPlayEnding(SAI_STATE->unk50);
+        } else {
+            SCROLLING_BACKGROUND->unk1C0 = -1;
+            waitFrames(90);
+            removeFrameCallback((s32)renderScrollingBackground);
+            waitFrames(1);
+            stopScreenFade();
+            SAI_STATE->unk18 = 0;
+            SAI_STATE->unk42 = PLAYER_DATA(0).area;
+            quitToTitleOrPlayEnding(SAI_STATE->unk50);
+            PLAYER_DATA(0).area = 0;
+            SAI_STATE->unk42 = 0;
+            startAreaPakLoad();
+            spawnTask(0, -1, 0, 0x1000, func_801F0EA8, 0, getCurrentTaskId(), 0, 0);
+            addFrameCallback((s32)renderScrollingBackground);
+        }
+    } else {
+        setBackgroundScrollMode(0);
+        spawnTask(0, -1, 0, 0x800, SAI_runWorldMap, 1, 0, 0, 0);
+    }
+    exitTask();
+}
