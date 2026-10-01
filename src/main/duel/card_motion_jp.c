@@ -17,9 +17,6 @@
 void drawSmallDigits(s32 x, s32 y, u8 *text, s32 palette, s32 z);
 void drawSmallDigitsColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 s32 convertSjisToTinyText(u8 *src, u8 *dst);
-void func_80042008(s32 x, s32 y, s32 z);
-void func_80042BF4(s32 x, s32 y, s32 kind, s32 brightness, s32 z);
-void func_80042E38(s32 x, s32 y, s32 kind, s32 brightness);
 void func_8003F38C(s32 z);
 
 /* 1 while uploadStringGlyphs uploads its glyphs */
@@ -45,9 +42,9 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         s32 i;
 
         if (DUEL->turnPlayer == player) {
-            func_80042BF4(panel->sx + 0x47, panel->sy + 2 + player * 61, 2, 0x80, z);
+            drawTurnSideBadge(panel->sx + 0x47, panel->sy + 2 + player * 61, 2, 0x80, z);
         } else {
-            func_80042BF4(panel->sx + 0x47, panel->sy + 2 + player * 61, 2, 0x30, z);
+            drawTurnSideBadge(panel->sx + 0x47, panel->sy + 2 + player * 61, 2, 0x30, z);
         }
         idx = getActiveDigimonCard(player);
         if (idx >= 0) {
@@ -87,11 +84,11 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
         drawIconText(panel->sx + 0x62 - measureText(1, text) / 2, panel->sy - player * 48 + 0x32, 7, 1, z, (s32)text);
         switch (PLAYER(player)->wins) {
         case 3:
-            func_80042E38(panel->sx + 0xC1, panel->sy - player * 46 + 0x29, 1, 0x68);
+            drawWinMarker(panel->sx + 0xC1, panel->sy - player * 46 + 0x29, 1, 0x68);
         case 2:
-            func_80042E38(panel->sx + 0xAE, panel->sy - player * 46 + 0x2F, 0, 0x68);
+            drawWinMarker(panel->sx + 0xAE, panel->sy - player * 46 + 0x2F, 0, 0x68);
         case 1:
-            func_80042E38(panel->sx + 0x9B, panel->sy - player * 46 + 0x2F, 0, 0x68);
+            drawWinMarker(panel->sx + 0x9B, panel->sy - player * 46 + 0x2F, 0, 0x68);
             break;
         }
         break;
@@ -120,7 +117,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             addPrim(&CURRENT_FRAME_BUFFER->ot[z], &CUR_SPRT->dm);
             SPRITE_POOL_CURSOR += sizeof(SprtPacket);
         } else {
-            func_80042008(panel->sx + 0xD, panel->sy + 2 + player * -67, z);
+            drawCardArtPlaceholder(panel->sx + 0xD, panel->sy + 2 + player * -67, z);
         }
         break;
     }
@@ -329,7 +326,7 @@ void drawHudPanelContents(s32 panelIndex, s32 z) {
             panel->clut = 0x702F;
         }
         isOpponent = DUEL->turnPlayer != player;
-        func_80042BF4(panel->sx + 0x89, panel->sy + 0x3E, isOpponent, 0x80, z);
+        drawTurnSideBadge(panel->sx + 0x89, panel->sy + 0x3E, isOpponent, 0x80, z);
         break;
     }
     case 9: {

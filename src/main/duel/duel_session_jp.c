@@ -26,9 +26,6 @@
    deck's record */
 
 /* the card_render functions jp's duel calls */
-void func_8004175C(void);
-void func_80041B14(void);
-void func_80041DB0(s32 brightness);
 void func_800425D8(s32 x, s32 y, s32 value, s32 arg3);
 void func_8004227C(s32 x, s32 y, s32 value, s32 arg3);
 void func_800428A0(s32 x, s32 y, s32 value, s32 arg3);
@@ -85,7 +82,7 @@ void initDuelState(s32 isCpuDuel) {
     void *block;
     s32 i;
 
-    func_8004175C();
+    initHudPanels();
     CARD_ANIMS = block = allocTaskHeapBlock(CARD_ANIM_SIZE * 60);
     DUEL_STATE = block = allocTaskHeapBlock(0x484);
     DUEL->sprites = (CardSprite *)KAW_allocCardPolys(60);
@@ -158,7 +155,7 @@ void spawnDuelTasks(s32 isCpuDuel) {
 
 void teardownDuelScene(void) {
     endTask(0x19);
-    func_80041B14();
+    freeHudPanels();
     KAW_freeCardPolys();
     freeHeapBlocksByTag(0x7F);
     closeKanjiPage(0xF);
@@ -406,7 +403,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
             break;
         }
         if (fade != 0) {
-            func_80041DB0(fade);
+            renderDuelBackground(fade);
         }
         /* the polygon battle has the screen */
         if (DUEL->state >= 3 && DUEL->state < 7) {
@@ -465,7 +462,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
         DUEL->stopStageTask = -1;
         while (DUEL->stopStageTask | DUEL->stopArtLoader) {
             waitFrames(FRAME_INTERVAL);
-            func_80041DB0(0x80);
+            renderDuelBackground(0x80);
             tickBattleHud();
             renderBoardCards();
         }
@@ -476,7 +473,7 @@ void runDuel(s32 isCpuDuel, s32 parent) {
     while (KAW_RESULT_SCREEN_STATE != 0) {
         waitFrames(FRAME_INTERVAL);
         if (KAW_RESULT_SCREEN_STATE == -1) {
-            func_80041DB0(0x80);
+            renderDuelBackground(0x80);
             tickBattleHud();
             renderBoardCards();
         }
