@@ -390,6 +390,8 @@ void KAW_renderCursor(void *cursor, s32 otz) {
     s32 level;
 #elif VERSION_EU
     u8 level;
+#else
+#error "kawseg/ui/kaw_hud: version not checked"
 #endif
     s32 i;
     CardSprite *sprite;

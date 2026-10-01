@@ -26,6 +26,8 @@ s32 OPEN_MOVIE_END_FRAME = 0;
 s32 D_801F087C = 0xAFB40020;
 #elif VERSION_EU
 s32 D_801F087C = 0;
+#else
+#error "openseg/open_bss: version not checked"
 #endif
 UiWindow OPEN_TRADE_LIST_WINDOW = { 0 };
 /* not referenced by any code */

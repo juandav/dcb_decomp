@@ -98,6 +98,8 @@ void (*KAW_EFFECT_TICK_FUNCS[4])(u8 *) = {
     (void (*)(u8 *))0x801E651C,
 #elif VERSION_EU
     (void (*)(u8 *))0x801E8C60,
+#else
+#error "kawseg/duel/kaw_effect: version not checked"
 #endif
     (void (*)(u8 *))renderRingEffect,
     (void (*)(u8 *))updateEffectObject,

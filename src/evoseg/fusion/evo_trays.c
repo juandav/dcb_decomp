@@ -56,6 +56,8 @@ void EVO_drawTray(EvoTray *tray) {
     if (((EvoFusion *)((u8 *)&EVO_FUSION + player))->busy[0] == 0) {
 #elif VERSION_EU
     if (EVO_FUSION.busy[player] == 0) {
+#else
+#error "evoseg/fusion/evo_trays: version not checked"
 #endif
         bzero((Scene3D *)text, 0x21);
         sprintf(text, "TRAY%d", player);

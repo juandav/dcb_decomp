@@ -9,6 +9,8 @@
 u32 D_801F02BC = 0xF05B2E46;
 #elif VERSION_EU
 u32 D_801F02BC = 0x0C00A1F2;
+#else
+#error "evoseg/evo_bss: version not checked"
 #endif
 
 s8 EVO_BANNER_FADE = 0;
@@ -27,6 +29,8 @@ u8 D_801F02E9 = 0;
 u8 D_801F02EA = 0xB2;
 u8 D_801F02EB = 0x8F;
 u8 D_801F02EC[4] = { 0x5C, 0x00, 0xB1, 0x8F };
+#else
+#error "evoseg/evo_bss: version not checked"
 #endif
 EvoSpark EVO_SPARKS[16] = { { { 0 } } };
 EvoColor EVO_SHARD_COLOR = { 0 };

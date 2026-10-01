@@ -230,6 +230,8 @@ void SAI_showRewardCards(s32 fromScript) {
     static const char path[16] = "B:\\M_CARD.ARC\0\xBB\xBB";
 #elif VERSION_EU
     static const char path[16] = "B:\\M_CARD.ARC";
+#else
+#error "saiseg/player/sai_reward: version not checked"
 #endif
     Rect16 rect;
     u8 *tims;
