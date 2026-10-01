@@ -13,7 +13,7 @@ void SUG_setStageBrightness(u8 level) {
     u8 b;
 
     SUG_STAGE_CLUT.level = level;
-    if (level == 0xFF) {
+    if (SUG_STAGE_CLUT.level == 0xFF) {
         LoadImage((s16 *)&SUG_STAGE_CLUT.rect, (s32)SUG_STAGE_CLUT.clut);
         DrawSync(0);
     } else {

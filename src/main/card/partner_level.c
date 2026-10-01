@@ -29,11 +29,11 @@
 #include "dcb/window.h"
 
 s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot) {
-    s8 level;
+    s32 level;
     s32 partnerIndex;
     s32 i;
 
-    level = ((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level;
+    level = (s8)((PlayerProfile *)PLAYER_PROFILES)[player].partners[slot].level;
     partnerIndex = getSlotPartnerIndex(player, slot);
     if (partnerIndex >= 0) {
         for (i = 0; i < 0x80; i++) {
@@ -50,7 +50,7 @@ s32 findNewPartnerAbility(AbilityLearnEntry *abilityTable, s32 player, s32 slot)
 
 s32 getExpForNextLevel(s32 level) {
     level++;
-    return (level + 2) * level;
+    return level * level + level * 2;
 }
 
 s32 rollPartnerAbility(s32 player, s32 slot) {

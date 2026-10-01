@@ -102,9 +102,9 @@ void SUG_runCameraOrbit(s32 frames, s32 resetCamera) {
 }
 
 void SUG_playAttackTurn(s32 model, s32 a1, void *script, void (*fn)(s32), s32 switchModel) {
-    s16 other;
+    s32 other;
 
-    other = SUG_CURRENT_SCRIPT ^ 1;
+    other = (s16)(SUG_CURRENT_SCRIPT ^ 1);
     if (switchModel) {
         playModelAnimation(SUG_ACTIVE_MODEL, 0);
         SCENE_3D->modelState[SUG_ACTIVE_MODEL] = 1;

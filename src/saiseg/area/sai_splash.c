@@ -110,9 +110,11 @@ void SAI_holdSplash(void) {
 }
 
 void SAI_fadeOutSplash(void) {
-    s32 value = SAI_SPLASH->brightness[0] - 8;
+    s16 value;
     s32 i;
 
+    value = SAI_SPLASH->brightness[0];
+    value -= 8;
     if (value < 0) {
         SAI_SPLASH->state = 3;
         value = 0;
