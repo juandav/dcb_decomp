@@ -129,17 +129,12 @@ void SUB_initPrimBuffers(s8 keepBuffers) {
     }
 }
 
-#if VERSION_EU
-/* eu: one register fewer for the icon's position; no C form found yet */
-INCLUDE_ASM("subseg/nonmatchings/deck/sub_deck_editor", SUB_drawCardIcon);
-#elif VERSION_US
 void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
-    s32 specialty = ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr >> 4;
+    s16 specialty = ((DigimonCardData *)DIGIMON_CARDS)[cardId].attr >> 4;
     s32 u;
     s32 v;
     s32 clutY;
-    s16 page;
-    s16 column;
+    s32 column;
     s16 row;
     s32 pageU;
     s32 columnU;
@@ -148,8 +143,10 @@ void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
         u = 0x230;
         v = 0x1E0;
     } else {
-        page = cardId / 50;
-        pageU = page << 6;
+        /* u holds the card's page (50 icons each) before its column is
+           added: the European version's registers need it that way */
+        u = cardId / 50;
+        pageU = u << 6;
         column = cardId % 5;
         columnU = column * 12 + 0x240;
         u = pageU + columnU;
@@ -159,16 +156,13 @@ void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
     }
     if (cardId >= 0x11D || cardId == 200) {
         clutY = 0x1FE;
-    } else if (cardId < 0xBF) {
-        clutY = specialty + 0x1F8;
-    } else {
+    } else if (cardId >= 0xBF) {
         clutY = 0x1FD;
+    } else {
+        clutY = specialty + 0x1F8;
     }
     SUB_drawSprite(x, y, getClut(0x240, clutY), u, v, 24, 24, 1, brightness, -1, otIndex);
 }
-#else
-#error "subseg/deck/sub_deck_editor: version not checked"
-#endif
 
 void SUB_drawSprite(s16 x, s16 y, s16 clut, s32 u, s32 v, s16 w, s16 h, s8 tp, u8 brightness, s8 abr, s32 otIndex) {
     u16 tpage = ((tp & 3) << 7) | ((abr & 3) << 5) | ((v & 0x100) >> 4) | ((u & 0x3C0) >> 6) | ((v & 0x200) << 2);

@@ -266,17 +266,16 @@ void SAI_setSpriteSize(Sprite3D *sprite, s16 width, s16 height) {
     sprite->corners[2].vy = halfHeight;
 }
 
-#if VERSION_EU
-/* eu: masks the tpage with -0x61 in a register; no C form found yet */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_sprite", SAI_setSpriteBlendMode);
-#elif VERSION_US
 void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
+    /* clears the tpage's blend rate (bits 5 and 6); the European version
+       only matches with the mask in a variable, set apart from its use */
+    s16 clearAbr = ~(3 << 5);
     s16 tpage;
 
     if (abr >= 0) {
         SetSemiTrans(&sprite->quads[0], 1);
         SetSemiTrans(&sprite->quads[1], 1);
-        tpage = sprite->quads[0].tpage & ~0x60;
+        tpage = sprite->quads[0].tpage & clearAbr;
         tpage |= (abr & 3) << 5;
         sprite->quads[1].tpage = tpage;
         sprite->quads[0].tpage = tpage;
@@ -285,6 +284,3 @@ void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
         SetSemiTrans(&sprite->quads[1], 0);
     }
 }
-#else
-#error "saiseg/ui/sai_sprite: version not checked"
-#endif
