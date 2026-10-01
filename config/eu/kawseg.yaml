@@ -56,7 +56,7 @@ segments:
       # us's modules, each with its rodata and data (tools/split_version.py)
       - [0x0, .rodata, cpu/kaw_cpu]
       - [0x44, .rodata, cpu/kaw_cpu_digivolve]
-      - [0x84, rodata, cpu/kaw_battle_sim]
+      - [0x84, .rodata, cpu/kaw_battle_sim]
       - [0x264, .rodata, duel/kaw_tutorial]
       - [0x2C0, .rodata, duel/kaw_hand]
       - [0x2D8, .rodata, ui/kaw_match_intro]
@@ -72,7 +72,7 @@ segments:
       - [0x3F70, c, cpu/kaw_cpu_placement]
       - [0x599C, c, cpu/kaw_cpu_digivolve]
       - [0x6BB8, c, cpu/kaw_cpu_attack]
-      - [0x879C, asm, cpu/kaw_battle_sim]
+      - [0x879C, c, cpu/kaw_battle_sim]
       - [0xC328, c, duel/kaw_tutorial]
       - [0xCF04, c, duel/kaw_hand]
       - [0xF36C, c, ui/kaw_match_intro]
