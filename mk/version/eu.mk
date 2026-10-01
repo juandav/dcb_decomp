@@ -21,5 +21,10 @@ GCC_VERSION := 2.8.1
 # us's. The rest of each binary is splat's assembly, one asm segment per us
 # module (config/eu/*.yaml, tools/split_version.py), except VSSVER: not
 # code but a Visual SourceSafe file, it stays one blob, splat's databin.
+MAIN_C_SRC := \
+	$(addprefix src/main/system/, memcard.c)
+EVOSEG_C_SRC := \
+	src/evoseg/effect/evo_effect.c \
+	$(addprefix src/evoseg/fusion/, evo_card_list.c)
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/duel/, kaw_effect.c)

@@ -38,8 +38,9 @@ options:
 
   ld_bss_is_noload: True
 
+  migrate_rodata_to_functions: True
   create_data_pads: False
-  # no C yet: the game's code is still splat's assembly
+  # the C files in src/main/ exist; mk/version/eu.mk lists those eu builds
   create_c_files: False
 
 segments:
@@ -71,7 +72,7 @@ segments:
       - [0xD68, rodata, ui/str_util]
       - [0xD9C, rodata, system/sound]
       - [0xDBC, rodata, system/opening_movie]
-      - [0xDDC, rodata, system/memcard]
+      - [0xDDC, .rodata, system/memcard]
       - [0xFB8, rodata, card/player_rank]
       - [0x1014, rodata, card/player_data]
       - [0x1034, rodata, model/stage]
@@ -131,7 +132,7 @@ segments:
       - [0x1B0E0, asm, system/sound]
       - [0x1B6E8, asm, system/opening_movie]
       - [0x1B794, asm, system/sound_play]
-      - [0x1BE14, asm, system/memcard]
+      - [0x1BE14, c, system/memcard]
       - [0x1CE40, asm, system/save_checksum]
       - [0x1CEDC, asm, card/player_rank]
       - [0x1D690, asm, card/player_data]
@@ -166,7 +167,7 @@ segments:
       - [0x60FE0, data, model/wire_grid]
       - [0x60FF4, data, ui/text]
       - [0x61058, data, system/sound]
-      - [0x610AC, data, system/memcard]
+      - [0x610AC, .data, system/memcard]
       - [0x6111C, data, model/stage]
       - [0x612DC, data, gfx/scroll_bg]
       - [0x612F0, data, card/card_render]
