@@ -30,3 +30,5 @@ MAIN_C_SRC := \
 	src/main/script/script.c \
 	$(addprefix src/main/system/, cd_file.c heap.c sound.c sound_play.c \
 		task.c)
+SUGSEG_C_SRC := \
+	src/sugseg/effect/sug_history.c
