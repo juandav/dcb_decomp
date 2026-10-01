@@ -88,10 +88,7 @@ void KAW_runPrizeScreen(void);
 void KAW_freeEffectArchive(void);
 void KAW_freeTutorial(void);
 #if VERSION_JP
-/* jp's: opens the card select of a player's hand, and closes it */
 void KAW_pickCardArtSlot(void);
-void func_801F8E24(s32 player);
-void func_801F8E6C(s32 player);
 #endif
 
 /* OPENSEG: the title, movies and memory card screens */

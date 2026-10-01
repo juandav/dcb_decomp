@@ -335,13 +335,13 @@ void func_801F8D04(s32 x, s32 y, s32 page) {
     drawWindowFrame(&rect, 0, 0, 0, 0xFF, KAW_WINDOW_FRAME_COLORS, 0);
 }
 
-void func_801F8E24(s32 player) {
+void KAW_openCardSelect(s32 player) {
     HUD_PANEL(22)->state = 4;
     HUD_PANEL(3)->state = player * 3 + 5;
     HUD_PANEL(14)->state = player * 3 + 5;
 }
 
-void func_801F8E6C(s32 player) {
+void KAW_closeCardSelect(s32 player) {
     DUEL->cursorSlot = -1;
     HUD_PANEL(3)->state = 2;
     HUD_PANEL(14)->state = 2;
