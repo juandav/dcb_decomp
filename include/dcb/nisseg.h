@@ -26,12 +26,12 @@ typedef struct {
     /* 0x16 */ s16 h;
 } NisSprite;
 
-/* a window of jp's executable (func_8002A3E0's task opens it) */
+/* a window of jp's executable (runWindowTask's task opens it) */
 typedef struct NisWindow {
     /* 0x00 */ u8 unk0;
     /* 0x01 */ u8 state; /* 4 closes it */
     /* 0x02 */ u8 unk2[0x36];
-    /* 0x38 */ u8 frame[0x16]; /* what func_8001666C draws a frame with */
+    /* 0x38 */ u8 frame[0x16]; /* what drawWindowFrame draws a frame with */
     /* 0x4E */ s16 z;
 } NisWindow;
 
@@ -45,11 +45,16 @@ typedef struct {
     /* 0x1C */ void (*close)(NisWindow *window);
 } NisWindowDef;
 
-/* a menu of jp's executable (func_8002B65C sets it up from its items) */
+/* a menu of jp's executable (openChoiceMenuFromList sets it up) */
 typedef struct {
-    /* 0x000 */ u8 unk0[0x23C];
+    /* 0x000 */ u8 unk0[0x208];
+    /* 0x208 */ void (*handlers[13])(); /* what each item runs */
     /* 0x23C */ s32 choice;
-    /* 0x240 */ u8 unk240[0x10];
+    /* 0x240 */ s32 count; /* of items */
+    /* 0x244 */ s32 unk244;
+    /* 0x248 */ s8 unk248; /* nonzero while it opens or closes */
+    /* 0x249 */ u8 unk249[3];
+    /* 0x24C */ s32 unk24C;
 } NisMenu;
 
 /* jp's cards: 110 Digimon, then 43 option cards, then 6 others */
@@ -110,7 +115,8 @@ typedef struct {
     /* 0x010 */ CardSlot cards[30];
     /* 0x100 */ u16 wins;
     /* 0x102 */ u16 losses;
-    /* 0x104 */ u8 unk104[8];
+    /* 0x104 */ s16 unk104[3];
+    /* 0x10A */ u8 unk10A[2];
 } NisDeck;
 
 /* jp keeps a profile for each of the two players, PLAYER_PROFILES points to
@@ -123,7 +129,9 @@ typedef struct {
     /* 0x0022 */ u8 unk22[6];
     /* 0x0028 */ u32 unk28_0 : 10;
     /* 0x0029 */ u32 tradeUnlocked : 1; /* the player has 100 cards */
-    /* 0x0029 */ u32 unk28_11 : 21;
+    /* 0x0029 */ u32 unk28_11 : 1;
+    /* 0x0029 */ u32 showsRecords : 1; /* the deck screens show the records */
+    /* 0x0029 */ u32 unk28_13 : 19;
     /* 0x002C */ u8 unk2C[0x2C4 - 0x2C];
     /* 0x02C4 */ u16 cardWins[NIS_DIGIMON_COUNT];
     /* 0x03A0 */ u16 cardLosses[NIS_DIGIMON_COUNT];
@@ -136,8 +144,16 @@ typedef struct {
     /* 0x126C */ u8 unk126C[0x145C - 0x126C];
 } NisProfile;
 
+/* what started the deck screens, and where they go back to */
 typedef struct {
-    /* 0x000 */ u8 unk0[0x14C];
+    /* 0x00 */ u8 unk0[0x4F];
+    /* 0x4F */ s8 deckScreens; /* 1, 2 and 5: from a menu, 3: before a trade, 4: after it */
+} NisDeckCaller;
+
+typedef struct {
+    /* 0x000 */ u8 unk0[0x138];
+    /* 0x138 */ NisDeckCaller *caller;
+    /* 0x13C */ u8 unk13C[0x10];
     /* 0x14C */ u8 unk14C;
     /* 0x14D */ u8 unk14D;
     /* 0x14E */ s8 deckChoice[2]; /* the saved deck each player duels with in VS mode */
@@ -147,7 +163,8 @@ typedef struct {
 typedef struct {
     /* 0x000 */ u8 unk0[0x1BE];
     /* 0x1BE */ s16 unk1BE;
-    /* 0x1C0 */ u8 unk1C0[6];
+    /* 0x1C0 */ s16 unk1C0; /* the name entry help: 0x1A renaming, 0x39 a new name */
+    /* 0x1C2 */ u8 unk1C2[4];
     /* 0x1C6 */ s8 scrollMode; /* of the scrolling background */
     /* 0x1C7 */ u8 unk1C7;
     /* 0x1C8 */ u8 unk1C8;
@@ -168,26 +185,35 @@ typedef struct {
     /* 0x0E */ s16 h;
 } NisCursor;
 
-/* what NISSEG's deck screens share; the windows are kept as waitFrames
-   returns them */
+/* the windows NISSEG's deck screens keep open, as waitFrames returns them */
 typedef struct {
-    /* 0x00 */ s32 unk0;
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ s32 unk8;
-    /* 0x0C */ s32 helpWindow;
-    /* 0x10 */ s32 motionWindow;
-    /* 0x14 */ u8 unk14;
-    /* 0x15 */ u8 unk15;
-    /* 0x16 */ u8 unk16[2];
-    /* 0x18 */ NisCursor *cursor;
-    /* 0x1C */ s32 unk1C;
+    /* 0x00 */ s32 mainWindow; /* the summary, question or card grid */
+    /* 0x04 */ s32 nameWindow; /* the deck's name, or the auto deck's portrait */
+    /* 0x08 */ s32 lowerWindow; /* the copies menu or the name field */
+    /* 0x0C */ s32 helpWindow; /* the grid's or the viewer's help, or the name entry */
+    /* 0x10 */ s32 motionWindow; /* the viewer's motions, or the record */
 } NisDeckScreens;
+
+extern NisDeckScreens NIS_DECK_SCREENS;
+extern u8 NIS_GRID_CURSOR; /* where the card grid was left */
+extern u8 NIS_GRID_SCROLL;
+extern NisCursor *NIS_GRID_POINTER; /* the card grid's cursor */
+
+/* the deck screens' shared state */
+extern char NIS_TYPED_NAME[]; /* the name typed for a deck */
+extern s8 NIS_CARD_IN_VIEW; /* 1 while a card is in view */
+extern s8 NIS_AUTO_DECK_QUESTION; /* the auto deck's question */
+extern char NIS_KANA[5][18][11]; /* the name entry's pages of kana */
+extern s32 NIS_KANA_PAGE; /* the page of the name entry */
+extern NisCursor *NIS_NAME_CURSOR; /* the name entry's cursor */
+
 
 #define NIS_WINDOW(w) ((NisWindow *)(w))
 
 /* the buttons either player pressed this frame (the second one in VS mode) */
 #define NIS_PRESSED() (PAD_STATES[0]->rawPressed | PAD_STATES[NIS_STATE->otherPad]->rawPressed)
 #define NIS_HELD() (PAD_STATES[0]->rawHeld | PAD_STATES[NIS_STATE->otherPad]->rawHeld)
+#define NIS_REPEATED() (PAD_STATES[0]->rawRepeat | PAD_STATES[NIS_STATE->otherPad]->rawRepeat)
 
 /* where a card's picture is in VRAM, and its frame */
 typedef struct {
@@ -218,8 +244,8 @@ typedef struct {
 
 /* the deck being edited */
 typedef struct {
-    /* 0x00 */ s32 unk0;
-    /* 0x04 */ u8 unk4[4];
+    /* 0x00 */ NisDeck *saved; /* the saved deck the screens show */
+    /* 0x04 */ s32 kind; /* of the cards the grid lists */
     /* 0x08 */ s8 deck; /* the saved deck slot */
     /* 0x09 */ s8 copies; /* of the card in the details window */
     /* 0x0A */ s8 unkA; /* the auto deck's style: 0 attack, 1 defense */
@@ -227,8 +253,9 @@ typedef struct {
     /* 0x0C */ s8 cardType; /* the auto deck keeps its main element here */
     /* 0x0D */ u8 unkD;
     /* 0x0E */ s16 cardIndex; /* the auto deck: 0 many option cards, 1 few */
-    /* 0x10 */ s8 unk10;
-    /* 0x11 */ u8 unk11[2];
+    /* 0x10 */ s8 unk10; /* the question NIS_drawDeckQuestion asks */
+    /* 0x11 */ s8 fromViewer; /* back from the model viewer */
+    /* 0x12 */ s8 savedCopies; /* the copies before the viewer */
     /* 0x13 */ s8 maxCopies;
 } NisDeckEdit;
 
@@ -244,27 +271,28 @@ void NIS_buildAutoDeck(void);
 void NIS_closeDeckWindow(NisWindow *window);
 
 /* jp's executable */
-void func_8002C820(s32, s32);
-void func_8002C9DC(void);
+void loadScrollingBackground(s32, s32);
+void showScrollingBackground(void);
 void stopScreenFade(void);
-void func_8002B65C(NisMenu *menu, void *items, s32);
-s32 func_8002BD58(NisMenu *menu);
-void func_8002B06C(NisMenu *menu);
-void func_8002B508(NisMenu *menu, s32, s32, s32, s32);
-void func_8002B188(NisMenu *menu, s32, void (*)());
+void openChoiceMenuFromList(NisMenu *menu, void *items, s32);
+s32 runChoiceMenu(NisMenu *menu);
+void startChoiceMenuAction(NisMenu *menu);
+void openChoiceMenu(NisMenu *menu, s32 title, s32 x, void (*cancel)(), s32 *cursor);
+void addChoiceMenuItem(NisMenu *menu, s32, void (*)());
 void openKanjiPage(s32, s32);
 void closeKanjiPage(s32);
-void func_8002CACC(s32);
+void setBackgroundScrollMode(s32);
 char *formatSjisNumber(s32 value, s32 width, char *dst);
 void drawScrollArrow(s32 x, s32 y, s32 dir, s32 palette, s32 z);
 void uploadKanjiString(char *text, Rect16 *rect);
 /* jp keeps KAW_drawCursor in the executable */
 void KAW_drawCursor(NisCursor *cursor);
-extern void D_8002A3E0();
+void runWindowTask();
 extern s32 D_8008CD50;
 #define NIS_STATE ((NisGameState *)SESSION_DATA)
-extern NisUiState *D_801E4640;
-extern u8 *OPTION_CARDS; /* as dcb/card_db.h, whose obtainPartner is not jp's */
+extern NisUiState *SCROLLING_BACKGROUND;
+extern u8 D_801E46E8; /* 1 in the trade */
+extern u8 *OPTION_CARDS; /* as dcb/card_db.h */
 extern u8 *DIGIVOLVE_CARDS;
 #define NIS_DIGIMON_CARDS ((NisCardData *)DIGIMON_CARDS)
 #define NIS_OPTION_CARDS ((NisOptionData *)OPTION_CARDS)
@@ -288,7 +316,7 @@ typedef struct {
     /* 0x34 */ s16 turn;
     /* 0x36 */ s8 back;
     /* 0x37 */ s8 loaded;
-    /* 0x38 */ u8 delay;
+    /* 0x38 */ s8 delay;
 } NisCardImage;
 
 extern NisCardImage NIS_CARD_IMAGE;

@@ -21,7 +21,7 @@
 extern s32 KAW_RESULT_SCREEN_STATE;
 extern POLY_FT4 KAW_RESULT_WINNER_POLYS[2];
 
-void func_8002A9E8(void);
+void startAreaPakLoad(void);
 
 void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
     char path[64];
@@ -52,7 +52,7 @@ void KAW_runResultScreen(s32 mode, s32 winner, s32 deckId) {
         } else {
             loadMusicTrack(0, 0x30, 0x7F);
         }
-        func_8002A9E8();
+        startAreaPakLoad();
     } else {
         loadMusicTrack(0, 0x30, 0x7F);
     }

@@ -251,7 +251,7 @@ void func_8003F38C(s32 z) {
         }
     }
     *dst = 0;
-    drawIconText(HUD_PANEL(22)->unk44 + 0x41, HUD_PANEL(22)->unk46 + 0xB, 7, 1, z, (s32)text);
+    drawIconText(HUD_PANEL(22)->sx + 0x41, HUD_PANEL(22)->sy + 0xB, 7, 1, z, (s32)text);
 }
 
 void runDuel(s32 isCpuDuel, s32 parent) {

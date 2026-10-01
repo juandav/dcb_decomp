@@ -37,8 +37,8 @@ const s32 D_801EA3E8 = 7;
 s8 NIS_DEBUG_MODE[4] = { 3, 0x12, 0, 0x43 };
 
 void NIS_tickDebugModeSelect(s32 taskId) {
-    func_8002C820(0xE, 2);
-    func_8002C9DC();
+    loadScrollingBackground(0xE, 2);
+    showScrollingBackground();
     if (PAD_STATES[0]->rawHeld & PAD_R1) {
         NIS_DEBUG_MODE[0] = 2;
     }

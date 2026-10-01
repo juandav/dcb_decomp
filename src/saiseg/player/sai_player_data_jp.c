@@ -49,8 +49,8 @@ typedef struct {
 extern s8 SAI_OWNED_KEY_ITEMS[14];
 extern KeyItemScreen SAI_KEY_ITEMS;
 extern KeyItem SAI_KEY_ITEM_LIST[15];
-extern void D_8002A3E0();
-extern s32 *D_801E4640;
+void runWindowTask();
+extern s32 *SCROLLING_BACKGROUND;
 extern char *STR_TAMER_RANKS[8];
 extern char *STR_COLLECTOR_RANKS[8];
 extern char *STR_BATTLE_RANKS[8];
@@ -58,8 +58,8 @@ extern char *STR_BATTLE_RANKS[8];
 void openKanjiPage(s32, s32);
 void clearKanjiPage(s32);
 void closeKanjiPage(s32);
-void func_8002B508(void *, s32, s32, s32, s32);
-void func_8002CACC(s32);
+void openChoiceMenu(void *, s32, s32, s32, s32);
+void setBackgroundScrollMode(s32);
 JpIcon *func_80044334(s32, s32, s32, s32, s32);
 void func_80044758(JpIcon *);
 void KAW_drawCursor(JpIcon *);
@@ -197,14 +197,14 @@ void SAI_runKeyItems(void) {
     SAI_KEY_ITEMS.running = 1;
     openKanjiPage(0xF, 0x1E3);
     clearKanjiPage(0xF);
-    func_8002B508(buf, 0x3C, 0x32, 0, 0);
+    openChoiceMenu(buf, 0x3C, 0x32, 0, 0);
     SAI_findKeyItems();
     SAI_initKeyItemList();
     SAI_KEY_ITEMS.cursor = SAI_KEY_ITEMS.columns;
     SAI_KEY_ITEMS.icon = func_80044334(1, 0x20, 0x1C, 5, 1);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
     SAI_KEY_ITEMS.listWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_KEY_ITEM_TEXT_WINDOW_DEF, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_TEXT_WINDOW_DEF, getCurrentTaskId());
     SAI_KEY_ITEMS.textWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
     waitFrames(60);
     do {
@@ -214,10 +214,10 @@ void SAI_runKeyItems(void) {
             fn();
         }
     } while (SAI_KEY_ITEMS.running != 0);
-    *(s16 *)((u8 *)D_801E4640 + 0x1BE) = 2;
+    *(s16 *)((u8 *)SCROLLING_BACKGROUND + 0x1BE) = 2;
     SAI_KEY_ITEMS.listWindow->state = 4;
     SAI_KEY_ITEMS.textWindow->state = 4;
-    func_8002CACC(0);
+    setBackgroundScrollMode(0);
     waitFrames(60);
     func_80044758(SAI_KEY_ITEMS.icon);
     closeKanjiPage(0xF);
@@ -384,7 +384,7 @@ void SAI_tickKeyItemInput(void) {
 void SAI_openPlayerData(void) {
     if (++SAI_KEY_ITEMS.timer == 60) {
         clearKanjiPage(0xF);
-        spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_PLAYER_DATA_WINDOW_DEF, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_PLAYER_DATA_WINDOW_DEF, getCurrentTaskId());
         SAI_KEY_ITEMS.dataWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
     if (SAI_KEY_ITEMS.timer >= 120) {
@@ -421,9 +421,9 @@ void SAI_closePlayerData(void) {
         clearKanjiPage(0xF);
         SAI_KEY_ITEMS.timer = 0;
         SAI_KEY_ITEMS.state = 6;
-        spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_LIST_WINDOW_DEF, getCurrentTaskId());
         SAI_KEY_ITEMS.listWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
-        spawnTask(0, -1, 0, 0x800, D_8002A3E0, &SAI_KEY_ITEM_TEXT_WINDOW_DEF, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x800, runWindowTask, &SAI_KEY_ITEM_TEXT_WINDOW_DEF, getCurrentTaskId());
         SAI_KEY_ITEMS.textWindow = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
 }

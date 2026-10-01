@@ -43,6 +43,9 @@ void drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
 void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 z);
 /* forgets the kanji cached in VRAM */
 void resetKanjiPages(void);
+void openKanjiPage(s32 page, s32 capacity);
+void closeKanjiPage(s32 page);
+void clearKanjiPage(s32 page);
 #elif VERSION_US || VERSION_EU
 void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize);
 s32 measureText(u8 *);

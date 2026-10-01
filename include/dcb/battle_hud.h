@@ -45,8 +45,10 @@ typedef struct Panel {
     /* 0x41 */ u8 state;
     /* 0x42 */ u8 total; /* frames of the move */
     /* 0x43 */ u8 count; /* frames left */
-    /* 0x44 */ s16 unk44;
-    /* 0x46 */ s16 unk46;
+    /* where its first corner lands on screen, once projected (320, 256
+       before): drawHudPanelContents draws the panel's contents from there */
+    /* 0x44 */ s16 sx;
+    /* 0x46 */ s16 sy;
 } Panel;
 #elif VERSION_US || VERSION_EU
 #define PANEL(i) (((HudPanel *)HUD_PANELS)[i])

@@ -21,7 +21,7 @@
 
 extern s16 CAMERA_TARGET_MODEL;
 extern NisDeckScreens NIS_DECK_SCREENS;
-extern void D_8002C6F8();
+void renderScrollingBackground();
 void NIS_closeDeckWindow(NisWindow *window);
 void NIS_drawViewerCameraHelp(NisWindow *window);
 void NIS_drawViewerMotionHelp(NisWindow *window);
@@ -35,7 +35,7 @@ void NIS_drawViewerCameraHelp(NisWindow *window) {
     char text[0x40];
 
     /* " R1/R2 zoom in/out  L1/L2 raise/lower" */
-    sprintf(text, " \x82q\x82P\x81^\x82q\x82Q\x81@\x8Ag\x91\xE5\x81^\x8Fk\x8F\xAC\x81@\x81@\x82k\x82P\x81^\x82k\x82Q\x81@\x8F\xE3\x82\xB0\x82\xE9\x81^\x89\xBA\x82\xB0\x82\xE9");
+    sprintf(text, " Ｒ１／Ｒ２　拡大／縮小　　Ｌ１／Ｌ２　上げる／下げる");
     drawIconText(0x1A, 0x18, 7, 1, window->z, (s32)text);
 }
 
@@ -43,7 +43,7 @@ void NIS_drawViewerMotionHelp(NisWindow *window) {
     char text[0x40];
 
     /* " <Circle><Cross><Triangle> motion   <Square> back" */
-    sprintf(text, " b0b2b1\x81@\x83\x82\x81[\x83V\x83\x87\x83\x93\x81@\x81@\x81@b3\x81@\x96\xDF\x82\xE9");
+    sprintf(text, " b0b2b1　モーション　　　b3　戻る");
     drawIconText(0x1A, 0xD1, 7, 1, window->z, (s32)text);
 }
 
@@ -116,9 +116,9 @@ void NIS_playViewerMotion(void) {
 }
 
 void NIS_runViewerControls(s32 parentTask) {
-    spawnTask(0, -1, 0, 0x1000, D_8002A3E0, &NIS_VIEWER_CAMERA_HELP_WINDOW, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_VIEWER_CAMERA_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.helpWindow = waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x1000, D_8002A3E0, &NIS_VIEWER_MOTION_HELP_WINDOW, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_VIEWER_MOTION_HELP_WINDOW, getCurrentTaskId());
     NIS_DECK_SCREENS.motionWindow = waitFrames(0x7FFFFFFF);
     do {
         waitFrames(FRAME_INTERVAL);
@@ -152,16 +152,16 @@ void NIS_runModelViewer(s32 digimonId) {
     s32 scrollMode;
     s32 mode;
 
-    scrollMode = D_801E4640->scrollMode;
+    scrollMode = SCROLLING_BACKGROUND->scrollMode;
     mode = scrollMode + 1;
     if (mode >= 5) {
         mode = 2;
     }
-    func_8002CACC(mode);
+    setBackgroundScrollMode(mode);
     do {
         waitFrames(FRAME_INTERVAL);
-    } while (D_801E4640->unk1C8 != 0);
-    removeFrameCallback((s32)D_8002C6F8);
+    } while (SCROLLING_BACKGROUND->unk1C8 != 0);
+    removeFrameCallback((s32)renderScrollingBackground);
     loadSoundEffectBank(0);
     loadDigimonModelPak(0, digimonId);
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x10, 0);
@@ -175,9 +175,9 @@ void NIS_runModelViewer(s32 digimonId) {
     waitFrames(0xA);
     stopScreenFade();
     loadSoundEffectBank(1);
-    func_8002CACC(scrollMode);
-    addFrameCallback((s32)D_8002C6F8);
+    setBackgroundScrollMode(scrollMode);
+    addFrameCallback((s32)renderScrollingBackground);
     do {
         waitFrames(FRAME_INTERVAL);
-    } while (D_801E4640->unk1C8 != 0x80);
+    } while (SCROLLING_BACKGROUND->unk1C8 != 0x80);
 }

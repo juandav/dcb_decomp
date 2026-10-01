@@ -24,3 +24,12 @@ KAW_chooseSupportCard = 0x801F2C6C; // type:func
 NIS_runTitleScreen = 0x801EB2CC; // type:func version-only (NISSEG's title screen, which the executable starts)
 KAW_runResultScreen = 0x801FBFEC; // type:func
 KAW_RESULT_SCREEN_STATE = 0x801FFEB4;
+
+// the overlay functions jp's player_data starts, by their names in their
+// overlays (SUBSEG, SAISEG, NISSEG)
+SUB_runShop = 0x801F1B5C; // type:func version-only
+SUB_openSellShop = 0x801F2EF4; // type:func version-only
+SUB_openBuyShop = 0x801F2FFC; // type:func version-only
+func_801F35CC = 0x801F35CC; // type:func
+NIS_enterDeckName = 0x801F8230; // type:func version-only
+NIS_enterDeckList = 0x801FB1BC; // type:func version-only

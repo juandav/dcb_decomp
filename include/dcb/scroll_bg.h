@@ -7,7 +7,14 @@
 void resetScrollingBackground(void);
 void fadeOutScrollingBackground(void);
 void changeScrollingBackground(s32 image, s32 x, s32 y, s32 w, s32 h);
+#if VERSION_JP
+/* jp's (in its player_data) loads A:\ADVBG.PAK and sets up the panel */
+void loadScrollingBackground(s32 panelY, s8 image);
+#elif VERSION_US || VERSION_EU
 void loadScrollingBackground(void);
+#else
+#error "scroll_bg.h: version not checked"
+#endif
 void hideScrollingBackground(void);
 void setBackgroundScrollMode(s8 scrollMode);
 void freeScrollingBackground(void);
@@ -198,7 +205,14 @@ extern u8 PRIM_SIZES[];
 extern s16 ATTACK_ICON_ORIGIN_X[3];
 extern s16 ATTACK_ICON_ORIGIN_Y[2][3];
 
+#if VERSION_JP
+/* jp's is a frame callback (in its player_data) */
+void renderScrollingBackground(FrameBuffer *fb, s32 index);
+#elif VERSION_US || VERSION_EU
 void renderScrollingBackground(void);
+#else
+#error "scroll_bg.h: version not checked"
+#endif
 RingEffect *createRingEffect(s16 brightness, Bytes4 *innerColor, Bytes4 *midColor, Bytes4 *outerColor, EffectTemplate *template, s32 segments, u8 abr, u8 texDepth, s32 primType,
                      s16 innerRadius, s16 outerRadius, s16 midPercent, s16 innerZ, s16 outerZ, Bytes8 *texCoords, s32 tpage, s32 clut, s32 texAnimId, u8 u1, u8 u2,
                      s32 w, s32 x);

@@ -158,34 +158,36 @@ typedef struct {
     /* 0x137C */ JpShopRecord shops[8];
 } JpProfile;
 
-extern MusicState *D_801E4640;
+extern MusicState *SCROLLING_BACKGROUND;
 extern s16 CAMERA_TARGET_MODEL;
 extern JpGameState *D_8007E5F8;
-extern JpDigimonCard *D_801E4718;
-extern JpOptionCard *D_801E4710;
-extern JpDigivolveCard *D_801E4714;
-extern u8 D_8007ED60[];
-extern char *D_8007ED20[];
+extern u8 *OPTION_CARDS; /* as dcb/card_db.h */
+extern u8 *DIGIVOLVE_CARDS;
+#define SUB_DIGIMON_CARDS ((JpDigimonCard *)DIGIMON_CARDS)
+#define SUB_OPTION_CARDS ((JpOptionCard *)OPTION_CARDS)
+#define SUB_DIGIVOLVE_CARDS ((JpDigivolveCard *)DIGIVOLVE_CARDS)
+extern u8 CROSS_EFFECT_ICONS[];
+extern char *CROSS_EFFECT_NAMES[];
 extern JpPackData D_8007EAA0[];
 
 void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env);
-void func_800264BC(s32);
-void func_8002645C(s32);
-void func_80026318(s32, s32);
+void clearKanjiPage(s32);
+void closeKanjiPage(s32);
+void openKanjiPage(s32, s32);
 s32 func_80043374(u8 type, u8 index, s8 count);
 void func_80043740(u8 type, u8 index, s8 count);
 void func_80044758(JpCursor *cursor);
-void func_8002A3E0();
-void func_8002C6F8();
-void func_8002CACC(s32);
-void func_8001B6C8(void);
-void func_8001666C(Rect16 *rect, s32, s32, s32, s32, void *, s32 z);
+void runWindowTask();
+void renderScrollingBackground();
+void setBackgroundScrollMode(s32);
+void stopScreenFade(void);
+void drawWindowFrame(Rect16 *rect, s32, s32, s32, s32, void *, s32 z);
 void KAW_drawCursor();
-void func_80025750(s32 x, s32 y, s32 dir, s32 palette, s32 z);
-char *func_80025004(s32 value, s32 digits, char *buf);
-void func_80024D1C(char *text, Rect16 *rect);
+void drawScrollArrow(s32 x, s32 y, s32 dir, s32 palette, s32 z);
+char *formatSjisNumber(s32 value, s32 digits, char *buf);
+void uploadKanjiString(char *text, Rect16 *rect);
 JpCursor *func_80044334(s32, s32, s32, s32, s32);
-void func_8002A034(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s32 h);
+void initWindowSprite(POLY_FT4 *poly, s32 clut, s32 mode, s32 u, s32 v, s32 w, s32 h);
 
 /* sub_name_entry_jp.c */
 void func_801EA908(void);
@@ -287,9 +289,9 @@ void func_801EABC4(void) {
 }
 
 void func_801EAD68(s32 parentTask) {
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3460, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3460, getCurrentTaskId());
     D_801F3508[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3480, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3480, getCurrentTaskId());
     D_801F3508[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
     do {
         waitFrames(FRAME_INTERVAL);
@@ -323,16 +325,16 @@ void SUB_viewDigimonModel(s32 modelId) {
     s32 level;
     s32 next;
 
-    level = D_801E4640->unk1C6;
+    level = SCROLLING_BACKGROUND->unk1C6;
     next = level + 1;
     if (next >= 5) {
         next = 2;
     }
-    func_8002CACC(next);
+    setBackgroundScrollMode(next);
     do {
         waitFrames(FRAME_INTERVAL);
-    } while (D_801E4640->unk1C8 != 0);
-    removeFrameCallback((s32)func_8002C6F8);
+    } while (SCROLLING_BACKGROUND->unk1C8 != 0);
+    removeFrameCallback((s32)renderScrollingBackground);
     loadSoundEffectBank(0);
     loadDigimonModelPak(0, modelId);
     spawnTask(0, -1, 0, 0x200, screenFadeTask, 1, 2, 0x10, 0);
@@ -344,13 +346,13 @@ void SUB_viewDigimonModel(s32 modelId) {
     waitFrames(0x10);
     func_801EAB7C();
     waitFrames(10);
-    func_8001B6C8();
+    stopScreenFade();
     loadSoundEffectBank(1);
-    func_8002CACC(level);
-    addFrameCallback((s32)func_8002C6F8);
+    setBackgroundScrollMode(level);
+    addFrameCallback((s32)renderScrollingBackground);
     do {
         waitFrames(FRAME_INTERVAL);
-    } while (D_801E4640->unk1C8 != 0x80);
+    } while (SCROLLING_BACKGROUND->unk1C8 != 0x80);
 }
 
 s32 func_801EB21C(s32 type, s32 index) {
@@ -409,8 +411,8 @@ s32 func_801EB370(s32 specialty, s32 level) {
 
     for (i = 0; i < 110; i++) {
         if ((PROFILE->digimonCards[i] & 0xF)
-            && (specialty < 0 || D_801E4718[i].attr >> 4 == specialty)
-            && (level < 0 || (D_801E4718[i].attr & 0xF) == level)) {
+            && (specialty < 0 || SUB_DIGIMON_CARDS[i].attr >> 4 == specialty)
+            && (level < 0 || (SUB_DIGIMON_CARDS[i].attr & 0xF) == level)) {
             total += PROFILE->digimonCards[i] & 0xF;
         }
     }
@@ -423,8 +425,8 @@ s32 func_801EB42C(s32 deck, s32 specialty, s32 level) {
 
     for (i = 0; i < 30; i++) {
         if (PROFILE->decks[deck].slots[i].type == 0
-            && (specialty < 0 || D_801E4718[PROFILE->decks[deck].slots[i].index].attr >> 4 == specialty)
-            && (level < 0 || (D_801E4718[PROFILE->decks[deck].slots[i].index].attr & 0xF) == level)) {
+            && (specialty < 0 || SUB_DIGIMON_CARDS[PROFILE->decks[deck].slots[i].index].attr >> 4 == specialty)
+            && (level < 0 || (SUB_DIGIMON_CARDS[PROFILE->decks[deck].slots[i].index].attr & 0xF) == level)) {
             total++;
         }
     }
@@ -480,7 +482,7 @@ ItemIcon func_801EB618(s32 type, s32 index) {
         icon.v = ((id % 6) * 40) & 0xFF;
         icon.tpage = ((u & 0x380) >> 6) | 0x80;
         if (type == 0) {
-            icon.palette = D_801E4718[id].attr >> 4;
+            icon.palette = SUB_DIGIMON_CARDS[id].attr >> 4;
         } else {
             icon.palette = type + 4;
         }
@@ -651,8 +653,8 @@ void func_801EBEEC(ShopList *list, s32 specialty, s32 level) {
     s32 i;
 
     for (i = 0; i < 110; i++) {
-        if ((PROFILE->digimonCards[i] & 0xF) && D_801E4718[i].attr >> 4 == specialty
-            && (level < 0 || (D_801E4718[i].attr & 0xF) == level)) {
+        if ((PROFILE->digimonCards[i] & 0xF) && SUB_DIGIMON_CARDS[i].attr >> 4 == specialty
+            && (level < 0 || (SUB_DIGIMON_CARDS[i].attr & 0xF) == level)) {
             func_801EBD18(list, 0, i);
         }
     }
@@ -982,7 +984,7 @@ void func_801ED080(ShopList *list) {
             }
         }
         D_801F3700->digimonCards[i].stock -= most;
-        if (D_801E4718[i].price > 0) {
+        if (SUB_DIGIMON_CARDS[i].price > 0) {
             while (--D_801F3700->digimonCards[i].stock != 0xFF) {
                 func_801EBD18(list, 0, i);
             }
@@ -1004,7 +1006,7 @@ void func_801ED080(ShopList *list) {
             }
         }
         D_801F3700->optionCards[i].stock -= most;
-        if (D_801E4710[i].price > 0) {
+        if (SUB_OPTION_CARDS[i].price > 0) {
             while (--D_801F3700->optionCards[i].stock != 0xFF) {
                 func_801EBD18(list, 1, i);
             }
@@ -1026,7 +1028,7 @@ void func_801ED080(ShopList *list) {
             }
         }
         D_801F3700->digivolveCards[i].stock -= most;
-        if (D_801E4714[i].price > 0) {
+        if (SUB_DIGIVOLVE_CARDS[i].price > 0) {
             while (--D_801F3700->digivolveCards[i].stock != 0xFF) {
                 func_801EBD18(list, 2, i);
             }
@@ -1177,7 +1179,7 @@ void func_801ED84C(JpWindow *window) {
     }
     if (D_801F3700->flipBack == 1) {
         flip = D_801F3700->flip;
-        func_8002A034(poly, (D_801F3700->imageSlot->clutY << 6) | ((D_801F3700->imageSlot->clutX >> 4) & 0x3F), 1,
+        initWindowSprite(poly, (D_801F3700->imageSlot->clutY << 6) | ((D_801F3700->imageSlot->clutX >> 4) & 0x3F), 1,
                       D_801F3700->imageSlot->x, D_801F3700->imageSlot->y, 0x40, 0x40);
         dx = flip * 32 / 10;
         dy = D_801F3700->flip * 6 / 10;
@@ -1192,9 +1194,9 @@ void func_801ED84C(JpWindow *window) {
         AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)D_801F3700->polys[FRAME_BUFFER_INDEX]);
         poly++;
         if (D_801FC8C8.type == 3) {
-            func_8002A034(poly, 0x7F01, 0, 0x220, 0x180, 0x50, 0x74);
+            initWindowSprite(poly, 0x7F01, 0, 0x220, 0x180, 0x50, 0x74);
         } else {
-            func_8002A034(poly, 0x7F00, 0, 0x1A8, 0x100, 0x50, 0x74);
+            initWindowSprite(poly, 0x7F00, 0, 0x1A8, 0x100, 0x50, 0x74);
         }
         dx = flip * 4;
         dy = D_801F3700->flip * 6 / 10;
@@ -1209,7 +1211,7 @@ void func_801ED84C(JpWindow *window) {
         AddPrim((s32 *)&CURRENT_FRAME_BUFFER->ot[window->z], (s32)(D_801F3700->polys[FRAME_BUFFER_INDEX] + 1));
     } else {
         poly += 2;
-        func_8002A034(poly, 0x3DD8, 1, 0x180, 0x100, 0x50, 0x74);
+        initWindowSprite(poly, 0x3DD8, 1, 0x180, 0x100, 0x50, 0x74);
         dx = D_801F3700->flip * 4;
         dy = D_801F3700->flip * 6 / 10;
         poly->x0 = dx + 28;
@@ -1313,14 +1315,14 @@ void func_801EDEF4(JpWindow *window) {
     }
     KAW_drawCursor(D_801F353C);
     if (D_801FC8E8->top != 0) {
-        func_80025750(0x10E, 0x39, 4, 5, window->z);
+        drawScrollArrow(0x10E, 0x39, 4, 5, window->z);
     }
     if (D_801FC8E8->top + 10 < D_801FC8E8->count) {
-        func_80025750(0x10E, 0xAA, 6, 5, window->z);
+        drawScrollArrow(0x10E, 0xAA, 6, 5, window->z);
     }
     type = D_801FC8E8->items[D_801FC8E8->cursor].type;
     if (type == 0) {
-        card = &D_801E4718[D_801FC8E8->items[D_801FC8E8->cursor].index];
+        card = &SUB_DIGIMON_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index];
         /* Ｎｏ %d */
         sprintf(text, "\x82m\x82\x8F %d", D_801FC8E8->items[D_801FC8E8->cursor].index + 1);
         drawIconText(0x1E, 0xB8, 7, 1, window->z, (s32)text);
@@ -1330,7 +1332,7 @@ void func_801EDEF4(JpWindow *window) {
         sprintf(text, "\x82k\x82\x96" "e%d", (card->attr & 0xF) + 3);
         drawIconText(0xBA, 0xB8, 7, 1, window->z, (s32)text);
         /* ＨＰ%s */
-        sprintf(text, "\x82g\x82o%s", func_80025004(card->hp, 4, number));
+        sprintf(text, "\x82g\x82o%s", formatSjisNumber(card->hp, 4, number));
         drawIconText(0xEA, 0xB8, 7, 1, window->z, (s32)text);
     } else {
         if (type == 3) {
@@ -1342,9 +1344,9 @@ void func_801EDEF4(JpWindow *window) {
         } else {
             id = func_801EB21C(D_801FC8E8->items[D_801FC8E8->cursor].type, D_801FC8E8->items[D_801FC8E8->cursor].index) + 1;
             if (type == 1) {
-                name = D_801E4710[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+                name = SUB_OPTION_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
             } else {
-                name = D_801E4714[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+                name = SUB_DIGIVOLVE_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
             }
             /* Ｎｏ %ds0　s1a5オプションカードs0　s1%s */
             sprintf(text, "\x82m\x82\x8F %ds0\x81@s1a5\x83I\x83v\x83V\x83\x87\x83\x93\x83J\x81[\x83hs0\x81@s1%s", id, name);
@@ -1378,7 +1380,7 @@ void func_801EE5CC(JpWindow *window) {
         }
     }
     if (D_801FC8C8.type == 0) {
-        card = &D_801E4718[D_801FC8C8.index];
+        card = &SUB_DIGIMON_CARDS[D_801FC8C8.index];
         pos.x = 0x79;
         pos.y = 0x32;
         pos.w = 0;
@@ -1389,40 +1391,40 @@ void func_801EE5CC(JpWindow *window) {
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)title);
         pos.y += 16;
         /* 属性　%s　Ｎｏ%s */
-        sprintf(title, "  \x91\xAE\x90\xAB\x81@%s\x81@\x82m\x82\x8F%s", D_801F34D0[D_801E4718[D_801FC8C8.index].attr >> 4],
-                func_80025004(D_801FC8C8.index + 1, 3, number));
+        sprintf(title, "  \x91\xAE\x90\xAB\x81@%s\x81@\x82m\x82\x8F%s", D_801F34D0[SUB_DIGIMON_CARDS[D_801FC8C8.index].attr >> 4],
+                formatSjisNumber(D_801FC8C8.index + 1, 3, number));
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)title);
         pos.y += 12;
-        sprintf(text, "  %s", D_801E4718[D_801FC8C8.index].name);
+        sprintf(text, "  %s", SUB_DIGIMON_CARDS[D_801FC8C8.index].name);
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         /* ＨＰ */
         drawIconText(pos.x + 100, pos.y, 7, 1, window->z, (s32)" \x82g\x82o");
-        sprintf(text, " w-1%4d", D_801E4718[D_801FC8C8.index].hp);
+        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].hp);
         drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         pos.y += 12;
         /* 必進Ｐ */
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)" \x95K\x90i\x82o");
-        sprintf(text, " w-1%2d", D_801E4718[D_801FC8C8.index].dpCost);
+        sprintf(text, " w-1%2d", SUB_DIGIMON_CARDS[D_801FC8C8.index].dpCost);
         drawText(pos.x + 48, pos.y, (s32)text, 7, window->z);
         /* ＰＯＷ */
         drawIconText(pos.x + 100, pos.y, 7, 1, window->z, (s32)" \x82o\x82n\x82v");
-        sprintf(text, " w-1%4d", D_801E4718[D_801FC8C8.index].dpBonus);
+        sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].dpBonus);
         drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         pos.y += 12;
         for (i = 0; i < 3; i++, pos.y += 12) {
             /* b%d%s */
-            sprintf(text, " \x81@b%d%s", i, D_801E4718[D_801FC8C8.index].attacks[i].name);
+            sprintf(text, " \x81@b%d%s", i, SUB_DIGIMON_CARDS[D_801FC8C8.index].attacks[i].name);
             drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
-            sprintf(text, " w-1%4d", D_801E4718[D_801FC8C8.index].attacks[i].power);
+            sprintf(text, " w-1%4d", SUB_DIGIMON_CARDS[D_801FC8C8.index].attacks[i].power);
             drawText(pos.x + 120, pos.y, (s32)text, 7, window->z);
         }
-        level = D_8007ED60[card->support];
+        level = CROSS_EFFECT_ICONS[card->support];
         if (level != 0) {
             /* %s d%d */
-            sprintf(text, "  \x81@%s d%d", D_8007ED20[D_801E4718[D_801FC8C8.index].support], level);
+            sprintf(text, "  \x81@%s d%d", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[D_801FC8C8.index].support], level);
         } else {
             /* %s */
-            sprintf(text, "  \x81@%s", D_8007ED20[D_801E4718[D_801FC8C8.index].support]);
+            sprintf(text, "  \x81@%s", CROSS_EFFECT_NAMES[SUB_DIGIMON_CARDS[D_801FC8C8.index].support]);
         }
         drawIconText(pos.x + 1, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
@@ -1436,7 +1438,7 @@ void func_801EE5CC(JpWindow *window) {
         }
         pos.y += 12;
         for (i = 0; i < 4; i++, pos.y += 12) {
-            sprintf(text, " %s", D_801E4718[D_801FC8C8.index].supportText[i]);
+            sprintf(text, " %s", SUB_DIGIMON_CARDS[D_801FC8C8.index].supportText[i]);
             drawIconText(pos.x - 2, pos.y, 7, 1, window->z, (s32)text);
         }
     } else if (D_801FC8C8.type == 3) {
@@ -1500,7 +1502,7 @@ void func_801EE5CC(JpWindow *window) {
         pos.y = 0x36;
         pos.w = 0;
         pos.h = 0;
-        if (D_801FC8C8.type == 1 && (option = &D_801E4710[D_801FC8C8.index])->unk86 != 0) {
+        if (D_801FC8C8.type == 1 && (option = &SUB_OPTION_CARDS[D_801FC8C8.index])->unk86 != 0) {
             /* a%dオプションカード d%d */
             sprintf(text, " a%d\x83I\x83v\x83V\x83\x87\x83\x93\x83J\x81[\x83h d%d", palette, option->unk86);
         } else {
@@ -1510,15 +1512,15 @@ void func_801EE5CC(JpWindow *window) {
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
         /* %s　　Ｎｏ%s */
-        sprintf(text, "   %s\x81@\x81@\x82m\x82\x8F%s", D_801F34FC[D_801FC8C8.type - 1], func_80025004(id + 1, 3, number));
+        sprintf(text, "   %s\x81@\x81@\x82m\x82\x8F%s", D_801F34FC[D_801FC8C8.type - 1], formatSjisNumber(id + 1, 3, number));
         drawIconText(pos.x, pos.y, 7, 1, window->z, (s32)text);
         pos.y += 16;
         drawIconText(pos.x, pos.y, 7, 1, window->z,
-                     D_801FC8C8.type == 1 ? (s32)D_801E4710[D_801FC8C8.index].name : (s32)D_801E4714[D_801FC8C8.index].name);
+                     D_801FC8C8.type == 1 ? (s32)SUB_OPTION_CARDS[D_801FC8C8.index].name : (s32)SUB_DIGIVOLVE_CARDS[D_801FC8C8.index].name);
         pos.y += 24;
         for (i = 0; i < 4; i++, pos.y += 12) {
             drawIconText(pos.x + 24, pos.y, 7, 1, window->z,
-                         D_801FC8C8.type == 1 ? (s32)D_801E4710[D_801FC8C8.index].text[i] : (s32)D_801E4714[D_801FC8C8.index].text[i]);
+                         D_801FC8C8.type == 1 ? (s32)SUB_OPTION_CARDS[D_801FC8C8.index].text[i] : (s32)SUB_DIGIVOLVE_CARDS[D_801FC8C8.index].text[i]);
         }
     }
     if (D_801F3700->paid == 0) {
@@ -1541,7 +1543,7 @@ void func_801EE5CC(JpWindow *window) {
         pos.y = 0xA4;
         pos.w = 0x30;
         pos.h = 0x31;
-        func_8001666C(&pos, 0, 0, 1, 0xFF, window->unk2 + 0x36, window->z);
+        drawWindowFrame(&pos, 0, 0, 1, 0xFF, window->unk2 + 0x36, window->z);
     }
 }
 
@@ -1554,7 +1556,7 @@ void func_801EF51C(JpWindow *window) {
     if (D_801F3700->mode == 13) {
         total /= 5;
     }
-    func_80025004(total, 6, number);
+    formatSjisNumber(total, 6, number);
     /* 合計 s0w-4%s d0 */
     sprintf(text, " \x8D\x87\x8Cv s0w-4%s d0", number);
     drawIconText(0x1A, 0x17, 7, 1, window->z, (s32)text);
@@ -1571,7 +1573,7 @@ void func_801EF5C8(JpWindow *window) {
     for (i = 0; i < 13; i++) {
         number[i] = 0;
     }
-    func_80025004(PROFILE->money, 6, number);
+    formatSjisNumber(PROFILE->money, 6, number);
     /* 所持金 s0w-4%s d0 */
     sprintf(text, " \x8F\x8A\x8E\x9D\x8B\xE0 s0w-4%s d0", number);
     drawIconText(0xAA, 0x17, 7, 1, window->z, (s32)text);
@@ -1587,13 +1589,13 @@ void func_801EF6B0(JpWindow *window) {
     if (D_801FC8E8->count > 0) {
         switch (items[cur].type) {
         case 0:
-            price = D_801E4718[items[cur].index].price;
+            price = SUB_DIGIMON_CARDS[items[cur].index].price;
             break;
         case 1:
-            price = D_801E4710[items[cur].index].price;
+            price = SUB_OPTION_CARDS[items[cur].index].price;
             break;
         case 2:
-            price = D_801E4714[items[cur].index].price;
+            price = SUB_DIGIVOLVE_CARDS[items[cur].index].price;
             break;
         case 3:
             price = D_8007EAA0[items[cur].index].price;
@@ -1604,11 +1606,11 @@ void func_801EF6B0(JpWindow *window) {
         price = 0;
     }
     if (D_801F3700->mode == 13) {
-        func_80025004(price / 5, 4, number);
+        formatSjisNumber(price / 5, 4, number);
         /* b0見る b2戻る b1売る Ｌ１ − Ｒ１ ＋ 売値 s0w-4%s d0 */
         sprintf(text, "b0\x8C\xA9\x82\xE9 b2\x96\xDF\x82\xE9 b1\x94\x84\x82\xE9 \x82k\x82P \x81| \x82q\x82P \x81{ \x94\x84\x92l s0w-4%s d0", number);
     } else {
-        func_80025004(price, 4, number);
+        formatSjisNumber(price, 4, number);
         /* b0見る b2戻る b1買う Ｌ１ − Ｒ１ ＋ 買値 s0w-4%s d0 */
         sprintf(text, "b0\x8C\xA9\x82\xE9 b2\x96\xDF\x82\xE9 b1\x94\x83\x82\xA4 \x82k\x82P \x81| \x82q\x82P \x81{ \x94\x83\x92l s0w-4%s d0", number);
     }
@@ -1660,14 +1662,14 @@ void func_801EF950(JpWindow *window) {
     }
     KAW_drawCursor(D_801F353C);
     if (D_801FC8E8->top != 0) {
-        func_80025750(0x10E, 0x39, 4, 5, window->z);
+        drawScrollArrow(0x10E, 0x39, 4, 5, window->z);
     }
     if (D_801FC8E8->top + 10 < D_801FC8E8->count) {
-        func_80025750(0x10E, 0xAA, 6, 5, window->z);
+        drawScrollArrow(0x10E, 0xAA, 6, 5, window->z);
     }
     type = D_801FC8E8->items[D_801FC8E8->cursor].type;
     if (type == 0) {
-        card = &D_801E4718[D_801FC8E8->items[D_801FC8E8->cursor].index];
+        card = &SUB_DIGIMON_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index];
         /* Ｎｏ %d */
         sprintf(text, "\x82m\x82\x8F %d", D_801FC8E8->items[D_801FC8E8->cursor].index + 1);
         drawIconText(0x1E, 0xB8, 7, 1, window->z, (s32)text);
@@ -1677,14 +1679,14 @@ void func_801EF950(JpWindow *window) {
         sprintf(text, "\x82k\x82\x96" "e%d", (card->attr & 0xF) + 3);
         drawIconText(0xBA, 0xB8, 7, 1, window->z, (s32)text);
         /* ＨＰ%s */
-        sprintf(text, "\x82g\x82o%s", func_80025004(card->hp, 4, number));
+        sprintf(text, "\x82g\x82o%s", formatSjisNumber(card->hp, 4, number));
         drawIconText(0xEA, 0xB8, 7, 1, window->z, (s32)text);
     } else {
         id = func_801EB21C(D_801FC8E8->items[D_801FC8E8->cursor].type, D_801FC8E8->items[D_801FC8E8->cursor].index) + 1;
         if (type == 1) {
-            name = D_801E4710[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+            name = SUB_OPTION_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
         } else {
-            name = D_801E4714[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
+            name = SUB_DIGIVOLVE_CARDS[D_801FC8E8->items[D_801FC8E8->cursor].index].name;
         }
         /* Ｎｏ %ds0　s1a5オプションカードs0　s1%s */
         sprintf(text, "\x82m\x82\x8F %ds0\x81@s1a5\x83I\x83v\x83V\x83\x87\x83\x93\x83J\x81[\x83hs0\x81@s1%s", id, name);
@@ -1714,8 +1716,8 @@ void func_801F0010(s32 delta) {
     Rect16 rect = { 0x3D5, 0xF4, 0, 0 };
     char text[8];
 
-    func_80025004(D_801FC8C8.deckCount += delta, 2, text);
-    func_80024D1C(text, &rect);
+    formatSjisNumber(D_801FC8C8.deckCount += delta, 2, text);
+    uploadKanjiString(text, &rect);
 }
 
 void func_801F009C(s32 deck) {
@@ -1728,11 +1730,11 @@ void func_801F009C(s32 deck) {
     rect.y = 0xF4;
     rect.w = 0;
     rect.h = 0;
-    func_80024D1C(jpDeck->unk0 + 1, &rect);
+    uploadKanjiString(jpDeck->unk0 + 1, &rect);
     rect.x = 0x3D5;
     /* ／３０枚 */
     sprintf(text, "\x81@\x81@\x81^\x82R\x82O\x96\x87");
-    func_80024D1C(text, &rect);
+    uploadKanjiString(text, &rect);
     func_801F0010(0);
 }
 
@@ -1833,8 +1835,35 @@ void func_801F038C(void) {
     }
 }
 
-/* gcc folds the first loop's i = 0 into its entry test, after the count load; jp has it before */
-INCLUDE_ASM("subseg/nonmatchings/deck/sub_deck_screens_jp", func_801F0404);
+void func_801F0404(void) {
+    ShopList list = *D_801FC8E8;
+    s32 i = 0;
+    s32 bit = 0;
+
+    for (; i < list.count; i++) {
+        if (list.items[i].type != 3) {
+            break;
+        }
+    }
+    for (bit = 0; bit < 8; bit++) {
+        if (!((PROFILE->shops[D_801F3700->shopId].soldBits >> bit) & 1)) {
+            if (list.items[i].count != 0) {
+                PROFILE->shops[D_801F3700->shopId].soldBits |= 1 << bit;
+                list.items[i].count--;
+                list.items[i].max--;
+                if (list.items[i].max == 0) {
+                    if (++i >= list.count) {
+                        return;
+                    }
+                }
+            } else if (--list.items[i].max == 0) {
+                if (++i >= list.count) {
+                    return;
+                }
+            }
+        }
+    }
+}
 
 s32 SUB_getOwnedCount(s8 type, s8 index) {
     switch (type) {
@@ -1882,7 +1911,7 @@ void func_801F0670(s8 selling) {
 }
 
 void func_801F0824(s8 mode) {
-    func_8002CACC(1);
+    setBackgroundScrollMode(1);
     switch (mode) {
     case 0:
         D_801F3518[0]->state = 4;
@@ -1900,7 +1929,7 @@ void func_801F0824(s8 mode) {
     waitFrames(90);
     func_80044758(D_801F353C);
     D_801F3780 = 0;
-    func_8002645C(0xF);
+    closeKanjiPage(0xF);
     freeHeapBlocksByTag(0x195);
     freeHeapBlocksByTag(0x193);
     exitTask();
@@ -1911,13 +1940,13 @@ s32 SUB_getItemPrice(s8 type, s16 index) {
 
     switch (type) {
     case 0:
-        price = D_801E4718[index].price;
+        price = SUB_DIGIMON_CARDS[index].price;
         break;
     case 1:
-        price = D_801E4710[index].price;
+        price = SUB_OPTION_CARDS[index].price;
         break;
     case 2:
-        price = D_801E4714[index].price;
+        price = SUB_DIGIVOLVE_CARDS[index].price;
         break;
     case 3:
         price = D_8007EAA0[index].price;
@@ -1999,21 +2028,21 @@ void func_801F0BF0(void) {
 }
 
 void func_801F0D8C(s32 arg) {
-    func_800264BC(0xF);
-    func_8002645C(0xF);
-    func_80026318(0x15, 0x1B9);
-    func_800264BC(0x15);
+    clearKanjiPage(0xF);
+    closeKanjiPage(0xF);
+    openKanjiPage(0x15, 0x1B9);
+    clearKanjiPage(0x15);
     func_801EA9C8();
-    SUB_viewDigimonModel(D_801E4718[D_801FC8C8.index].unkD3);
+    SUB_viewDigimonModel(SUB_DIGIMON_CARDS[D_801FC8C8.index].unkD3);
     func_801EAA74();
     D_801F3518[1] = NULL;
     D_801F3518[7] = NULL;
     D_801F3518[4] = NULL;
     D_801F3518[3] = NULL;
-    func_800264BC(0x15);
-    func_8002645C(0x15);
-    func_80026318(0xF, 0x1B9);
-    func_800264BC(0xF);
+    clearKanjiPage(0x15);
+    closeKanjiPage(0x15);
+    openKanjiPage(0xF, 0x1B9);
+    clearKanjiPage(0xF);
     spawnTask(0, -1, 0, 0x1000, D_801F3700->fromOpened == 0 ? func_801F0EA0 : func_801F1CCC, arg);
     exitTask();
 }
@@ -2025,16 +2054,16 @@ void func_801F0EA0(s32 parent) {
     spawnTask(0, -1, 0, 0x1000, func_801F0BF0, parent);
     D_801F3700->fromOpened = 0;
     if (D_801F3518[3] == NULL) {
-        spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3380, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3380, getCurrentTaskId());
         D_801F3518[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
     if (D_801F3518[4] == NULL) {
-        spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F33A0, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
         D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3360, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3360, getCurrentTaskId());
     D_801F3518[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3440, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3440, getCurrentTaskId());
     D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
     waitFrames(90);
     viewing = 0;
@@ -2098,9 +2127,9 @@ void func_801F127C(s32 parent) {
     } else {
         list = D_801FC8E8;
     }
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3340, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3340, getCurrentTaskId());
     D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F33C0, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33C0, getCurrentTaskId());
     D_801F3518[1] = (JpWindow *)waitFrames(0x7FFFFFFF);
     if (list->count >= D_801F3538) {
         list->cursor = D_801F3538;
@@ -2175,7 +2204,7 @@ void func_801F127C(s32 parent) {
                 D_801FC8E8 = NULL;
                 D_801F3538 = D_801F3539 = 0;
             }
-            func_800264BC(0xF);
+            clearKanjiPage(0xF);
             exitTask();
         }
         count = D_801FC8E8->count;
@@ -2228,11 +2257,11 @@ void SUB_runShop(s32 unused, s32 parentTask) {
     D_801FC8C8.deckCount = 30;
     func_801EFF98();
     D_801F3518[7] = NULL;
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3380, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3380, getCurrentTaskId());
     D_801F3518[3] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F33A0, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
     D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    func_80026318(0xF, 0x1E3);
+    openKanjiPage(0xF, 0x1E3);
     D_801F3538 = D_801F3539 = 0;
     spawnTask(0, -1, 0, 0x1000, func_801F127C, 0, getCurrentTaskId(), 0, 0);
     do {
@@ -2247,18 +2276,18 @@ void func_801F1CCC(s32 parent) {
 
     spawnTask(0, -1, 0, 0x1000, func_801F0BF0, parent);
     D_801F3700->fromOpened = 1;
-    func_800264BC(0xF);
+    clearKanjiPage(0xF);
     if (D_801F3518[7] == NULL) {
-        spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3420, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3420, getCurrentTaskId());
         D_801F3518[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
     if (D_801F3518[4] == NULL) {
-        spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F33A0, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33A0, getCurrentTaskId());
         D_801F3518[4] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3360, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3360, getCurrentTaskId());
     D_801F3518[2] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3440, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3440, getCurrentTaskId());
     D_801F3518[0] = (JpWindow *)waitFrames(0x7FFFFFFF);
     waitFrames(90);
     while (1) {
@@ -2304,12 +2333,12 @@ void func_801F1FC4(s32 parent) {
         list->cursor = 0;
     }
     if (D_801F3518[7] == NULL) {
-        spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3420, getCurrentTaskId());
+        spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3420, getCurrentTaskId());
         D_801F3518[7] = (JpWindow *)waitFrames(0x7FFFFFFF);
     }
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F33E0, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F33E0, getCurrentTaskId());
     D_801F3518[5] = (JpWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x600, func_8002A3E0, &D_801F3400, getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x600, runWindowTask, &D_801F3400, getCurrentTaskId());
     D_801F3518[6] = (JpWindow *)waitFrames(0x7FFFFFFF);
     if (list->count >= D_801F3538) {
         list->cursor = D_801F3538;

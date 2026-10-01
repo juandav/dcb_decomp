@@ -24,12 +24,12 @@ void formatSjisNumber();
 void formatSjisNumberZeros();
 void openKanjiPage();
 void closeKanjiPage();
-void func_8002CF74();
+void freeScrollingBackground();
 s32 func_80044334();
 void func_800445FC();
 void func_80044758();
 void func_80044790();
-void D_8002A3E0();
+void runWindowTask();
 void D_800490B4();
 extern s16 CAMERA_TARGET_MODEL;
 extern s32 D_8008CD50;
@@ -376,7 +376,7 @@ s32 INT_initIntroScene(IntState *state) {
     pak = loadFileTagged((s32 *)"A:\\NIS.PAK", getCurrentTaskId(), 0x7F);
     uploadTimList(findPakChunk((Chunk *)pak, 5, 200));
     resetPlayerData();
-    func_8002CF74();
+    freeScrollingBackground();
     INT_startScene3D();
     loadModel(0, 0x84, -1, pak);
     loadModel(1, 0x85, -1, pak);
@@ -647,11 +647,11 @@ void INT_openNameEntry(IntState *state, u8 withDate) {
 
     INT_WINDOWS[0][1] = 4;
     waitFrames(30);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[1] = (u8 *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_BIRTHDAY_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_BIRTHDAY_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[2] = (u8 *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[3] = (u8 *)waitFrames(0x7FFFFFFF);
     state->keyX = 12;
     state->keyY = 7;
@@ -740,9 +740,9 @@ void INT_openNicknameEntry(IntState *state, u8 withDate) {
 
     INT_WINDOWS[0][1] = 4;
     waitFrames(30);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_NAME_FIELDS_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[1] = (u8 *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_KEYBOARD_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[3] = (u8 *)waitFrames(0x7FFFFFFF);
     state->keyX = 12;
     state->keyY = 7;
@@ -826,7 +826,7 @@ void INT_openBabamonWindow(void) {
     rect.w = 0;
     rect.h = 0;
     INT_waitAnimationEnd(3, 2, -2);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_SPEAKER_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_SPEAKER_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[4] = (u8 *)waitFrames(0x7FFFFFFF);
     waitFrames(10);
     uploadKanjiString("バ", &rect);
@@ -837,7 +837,7 @@ void INT_openBabamonWindow(void) {
     waitFrames(4);
     uploadKanjiString("ン", &rect);
     INT_waitAnimationEnd(3, 3, -2);
-    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
     INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
     *CURRENT_CALLBACK_SLOT = (void (*)(void *))INT_showNextPage;
 }
@@ -1062,7 +1062,7 @@ s32 INT_runNameEntry(void *arg) {
                         INT_WINDOWS[3][1] = 4;
                         waitFrames(30);
                         INT_advancePage(state);
-                        spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
+                        spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
                         INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
                         return 0;
                     }
@@ -1466,7 +1466,7 @@ s32 INT_runDayEntry(void *arg) {
                     INT_WINDOWS[3][1] = 4;
                     waitFrames(30);
                     INT_advancePage(state);
-                    spawnTask(0, -1, 0, 0x800, D_8002A3E0, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
+                    spawnTask(0, -1, 0, 0x800, runWindowTask, &INT_TEXT_WINDOW, getCurrentTaskId(), 0, 0);
                     INT_WINDOWS[0] = (u8 *)waitFrames(0x7FFFFFFF);
                     return 0;
                 }

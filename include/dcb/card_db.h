@@ -53,7 +53,14 @@ extern PartnerAbility PARTNER_ABILITIES[];
 extern u8 *PARTNER_ABILITY_TEXTS[];
 
 void loadCardDatabase();
+#if VERSION_JP
+/* jp's draws a serial no earlier copy of the card has, in the table given */
+void assignCardCopySerial(s32 cardId, s32 copy, u16 (*serials)[8]);
+#elif VERSION_US || VERSION_EU
 void assignCardCopySerial(s32 player, s32 cardId, s32 copy);
+#else
+#error "card_db.h: version not checked"
+#endif
 void clearCollectionNewFlags(s32 player);
 void clearCollectionFirstObtainedFlags(s32 player);
 s32 addCardToCollection(s32 player, s32 cardId, s32 count);

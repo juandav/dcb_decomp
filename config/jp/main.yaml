@@ -78,7 +78,7 @@ segments:
       - [0xA4C, rodata, system/memcard_data]
       - [0xBF4, .rodata, card/player_rank]
       # jp's player_data starts right after updatePlayerRanks
-      - [0xC50, rodata, card/player_data]
+      - [0xC50, .rodata, card/player_data_jp]
       - [0xD8C, .rodata, model/stage]
       - [0xDD4, .rodata, gfx/prim_desc]
       # OVERLAY_LOAD_ADDR (us has it in duel_util), then duel's strings
@@ -86,8 +86,8 @@ segments:
       - [0x1008, .rodata, duel/cpu_decision]
       # duel_util has no rodata: card_motion's (with battle_hud's
       # drawHudPanelContents) comes next
-      - [0x1028, rodata, duel/card_motion]
-      - [0x11D0, .rodata, duel/hud_panels_jp]
+      - [0x1028, .rodata, duel/card_motion_jp]
+      - [0x11CC, .rodata, duel/hud_panels_jp]
       - [0x1340, .rodata, duel/duel_session_jp]
       # the rodata of the asm modules after duel_session, up to duel_launch
       - [0x15A4, rodata, card/card_render]
@@ -147,7 +147,7 @@ segments:
       # scrolling background (A:\ADVBG.PAK, where us has scroll_bg) and, last,
       # findDigimonCardByModelId, loadSkill and loadSkillFromDisc, as in us.
       # jp has no decompress module (nor its LZ/Huffman code anywhere).
-      - [0x19E58, asm, card/player_data]
+      - [0x19E58, c, card/player_data_jp]
       - [0x1D860, c, model/stage]
       # jp's own: prim descriptors drawn into the frame's 17th prim slot (the
       # overlays use them), number digits, a callback table
@@ -157,9 +157,9 @@ segments:
       - [0x26D60, c, duel/cpu_decision]
       # with a function of jp's own before duel_util's
       - [0x26F5C, c, duel/duel_util_jp]
-      # jp's drawHudPanelContents (battle_hud's in us) comes right after
-      # duel_util
-      - [0x2751C, asm, duel/card_motion]
+      # card_motion_jp starts with jp's drawHudPanelContents (battle_hud's in
+      # us)
+      - [0x2751C, c, duel/card_motion_jp]
       # jp's hud_panels holds the eleven panels' functions and the shared one's
       - [0x2CA44, c, duel/hud_panels_jp]
       - [0x2F79C, c, duel/duel_session_jp]
@@ -196,10 +196,10 @@ segments:
       - [0x6EDA0, .data, system/sound]
       # PLAYER_PROFILES and COMPLETE_SET_CARD_COUNTS (us has them in
       # memcard), then the tables of jp's own code in player_data
-      - [0x6EDF4, data, card/player_data]
+      - [0x6EDF4, data, card/player_data_jp]
       - [0x6F094, .data, model/stage]
       - [0x6F114, .data, gfx/prim_desc]
-      - [0x6F144, data, duel/card_motion]
+      - [0x6F144, .data, duel/card_motion_jp]
       - [0x6F148, .data, duel/hud_panels_jp]
       - [0x6F14C, .data, duel/duel_session_jp]
       - [0x6F1B4, data, card/card_render]

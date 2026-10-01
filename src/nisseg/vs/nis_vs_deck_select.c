@@ -60,9 +60,9 @@ s32 NIS_chooseVsDecks(void) {
     s32 deck;
 
     openKanjiPage(0xF, 0x1E3);
-    spawnTask(0, -1, 0, 0x1000, D_8002A3E0, &defs[0], getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &defs[0], getCurrentTaskId());
     windows[0] = (NisWindow *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x1000, D_8002A3E0, &defs[1], getCurrentTaskId());
+    spawnTask(0, -1, 0, 0x1000, runWindowTask, &defs[1], getCurrentTaskId());
     windows[1] = (NisWindow *)waitFrames(0x7FFFFFFF);
     pads[0] = 0;
     pads[1] = 1;
@@ -74,7 +74,7 @@ s32 NIS_chooseVsDecks(void) {
         }
         deckCounts[player] = i;
     }
-    func_8002B508(&menu, 0x3B, 0x32, 0, 0);
+    openChoiceMenu(&menu, 0x3B, 0x32, 0, 0);
     do {
         waitFrames(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
@@ -117,7 +117,7 @@ s32 NIS_chooseVsDecks(void) {
             }
         }
     } while (done[0] != 1 || done[1] != 1);
-    D_801E4640->unk1BE = 2;
+    SCROLLING_BACKGROUND->unk1BE = 2;
     waitFrames(0x1E);
     closeKanjiPage(0xF);
     return 0;
