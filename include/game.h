@@ -583,7 +583,11 @@ typedef struct {
 } CardSlot;
 typedef struct {
     /* 0x000 */ u8 inUse;
+#if VERSION_JP
+    /* 0x001 */ char name[0xF]; /* jp: the fields below are 4 bytes lower */
+#elif VERSION_US || VERSION_EU
     /* 0x001 */ char name[0x13];
+#endif
     /* 0x014 */ CardSlot cards[30];
     /* 0x104 */ s32 unk104;
     /* 0x108 */ u16 saveCount; /* times the deck was saved in this slot */
@@ -591,6 +595,62 @@ typedef struct {
     /* 0x10C */ u16 losses;
     /* 0x10E */ u8 unk10E[2];
 } PlayerDeck;
+/* the slots of a player's DP pile */
+#if VERSION_JP
+#define DP_SLOT_COUNT 9
+#elif VERSION_US || VERSION_EU
+#define DP_SLOT_COUNT 8
+#endif
+
+#if VERSION_JP
+/* jp's Player has the same fields where it has them, in another layout: the
+   deck is a pointer to its PlayerDeck (PLAYER_CARDS), there are no stat
+   popups or armor CLUTs, and the flags take two more bits */
+typedef struct {
+    /* 0x00 */ PlayerDeck *deck;
+    /* 0x04 */ s8 *battleCard;
+    /* 0x08 */ s16 nameWidth;
+    /* 0x0A */ s16 shufflePasses;
+    /* 0x0C */ s16 stats[5];
+    /* 0x16 */ s16 displayedStats[5];
+    /* 0x20 */ s16 unk158;
+    /* 0x22 */ s16 hpAfterBattle;
+    /* 0x24 */ s16 baseAttackPowers[3];
+    /* 0x2A */ s16 damageTaken;
+    /* 0x2C */ s16 hpGain;
+    /* 0x2E */ s16 reviveHp;
+    /* 0x30 */ u8 unk168[6];
+    /* 0x36 */ s16 attackHighlightTimer;
+    /* 0x38 */ u32 usedAttack : 2;
+    /* 0x38 */ u32 attackChoice : 2;
+    /* 0x38 */ u32 shownAttack : 2;
+    /* 0x38 */ u32 counter : 1;
+    /* 0x38 */ u32 unk178_7 : 1;
+    /* 0x38 */ u32 unk178_8 : 1;
+    /* 0x38 */ u32 unk178_9 : 2;
+    /* 0x38 */ u32 crash : 1;
+    /* 0x38 */ u32 eatUpHp : 1;
+    /* 0x38 */ u32 unk178_13 : 2;
+    /* 0x38 */ u32 statPenalty : 2;
+    /* 0x38 */ u32 controller : 2;
+    /* 0x38 */ u32 unk38_19 : 2;
+    /* 0x38 */ u32 specialty : 3;
+    /* 0x38 */ u32 cpuPlaceStyle : 2;
+    /* 0x38 */ u32 cpuAttackStyle : 2;
+    /* 0x38 */ u32 cpuRedrawStyle : 2;
+    /* 0x38 */ u32 cpuSupportStyle : 2;
+    /* 0x3C */ u32 hasBattled : 1;
+    /* 0x3C */ u32 unk3C_1 : 7;
+    /* 0x3D */ s8 onlineDeck[30];
+    /* 0x5B */ s8 offlineDeck[30];
+    /* 0x79 */ s8 hand[4];
+    /* 0x7D */ u8 topCards[5];
+    /* 0x82 */ s8 dpSlots[DP_SLOT_COUNT];
+    /* 0x8B */ s8 digimonStack[3];
+    /* 0x8E */ s8 playedCard;
+    /* 0x8F */ char name[1];
+} Player;
+#elif VERSION_US || VERSION_EU
 typedef struct {
     /* 0x000 */ u8 unk0;
     /* 0x001 */ char deckName[0x13];
@@ -638,11 +698,18 @@ typedef struct {
     /* the top card of the Online Deck, the Offline Deck, the active Digimon,
        the played card and the DP slots, as KAWSEG last took them */
     /* 0x1BD */ u8 topCards[5];
-    /* 0x1C2 */ s8 dpSlots[8];
+    /* 0x1C2 */ s8 dpSlots[DP_SLOT_COUNT];
     /* 0x1CA */ s8 digimonStack[3];
     /* 0x1CD */ s8 playedCard;
     /* 0x1CE */ char name[1];
 } Player;
+#endif
+/* a player's 30 cards: jp's Player reaches them through its deck */
+#if VERSION_JP
+#define PLAYER_CARDS(p) ((p)->deck->cards)
+#elif VERSION_US || VERSION_EU
+#define PLAYER_CARDS(p) ((p)->cards)
+#endif
 typedef struct {
     /* 0x00 */ u8 unk0[0xE];
     /* 0x0E */ s16 value;
@@ -656,12 +723,20 @@ typedef struct {
 typedef struct {
     /* 0x00 */ s16 power;
     /* 0x02 */ s16 skills[2];
+#if VERSION_JP
+    /* 0x06 */ char name[0x12];
+#elif VERSION_US || VERSION_EU
     /* 0x06 */ char name[0x16];
+#endif
 } CardAttack;
 typedef struct {
     /* 0x000 */ s16 id;
     /* 0x002 */ u8 type;
+#if VERSION_JP
+    /* 0x003 */ char name[0x10]; /* jp: the fields below are 6 bytes lower */
+#elif VERSION_US || VERSION_EU
     /* 0x003 */ char name[0x16];
+#endif
     /* 0x019 */ u8 rewardRank; /* 0: never a reward; else matched against REWARD_CARD_RANGES */
     /* 0x01A */ u8 attr;
     /* 0x01B */ s8 dpCost;
