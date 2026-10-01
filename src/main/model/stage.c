@@ -58,7 +58,7 @@ ArenaStage ARENA_STAGES[32] = {
     { 0x10, 0, 0, 0 },
     { 0xE, 0x10, 0xF, 2 },
 };
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 ArenaStage ARENA_STAGES[56] = {
     { 0x50, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
     { 0x51, 8, 0xA, 0x40, { 0, 0, 0 }, 0xFF },
@@ -117,8 +117,6 @@ ArenaStage ARENA_STAGES[56] = {
     { 0x16, 7, 0, 0x3A, { 0, 0, 0 }, 0x80 },
     { 0x17, 7, 0, 0x38, { 0, 0, 0 }, 0x80 },
 };
-#else
-#error "untested version"
 #endif
 
 /* Heap tags: slot + 0x1F4 holds a model's PAK, slot + 0x84 its animation data,
@@ -152,7 +150,7 @@ s32 loadDigimonModelPak(s32 slot, s32 id) {
     truncatePakTextures((Chunk *)pak);
     return pak;
 }
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     char path[32];
     s32 pak;
@@ -186,8 +184,6 @@ s32 loadDigimonModelPak(s32 slot, s32 id, s8 format, s32 loadAllAnims) {
     truncatePakTextures((Chunk *)pak);
     return pak;
 }
-#else
-#error "untested version"
 #endif
 
 void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
@@ -212,20 +208,16 @@ void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
             unloadModel(player);
             freeHeapBlocksByTag(player + 0x1F4);
             /* jp keeps no animation blocks of its own (heap tag 0x84 + slot) */
-#if VERSION_US
+#if VERSION_US || VERSION_EU
             freeHeapBlocksByTag(player + 0x84);
-#elif VERSION_EU
-#error "untested version"
 #endif
         }
         if (modelId > 0) {
             cardData = findDigimonCardByModelId(modelId);
 #if VERSION_JP
             pak = loadDigimonModelPak(player, modelId);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             pak = loadDigimonModelPak(player, modelId, 0, 0);
-#else
-#error "untested version"
 #endif
             if (pak == 0) {
                 /* leaves loadBusy set */
@@ -247,10 +239,8 @@ void syncPlayerDigimonModel(s32 player, DigimonCardData *card) {
    battle cards until the duel sets stopStageTask. */
 #if VERSION_JP
 void runDuelStageTask(s32 stageId, s32 music) {
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 void runDuelStageTask(s32 stageId) {
-#else
-#error "untested version"
 #endif
     s32 pak;
     s32 i;
@@ -276,8 +266,6 @@ void runDuelStageTask(s32 stageId) {
         music = (rand() & 1) * 10 + 0x25;
     }
     loadMusicTrack(1, music, 100);
-#elif VERSION_EU
-#error "untested version"
 #endif
     loadArenaStage(stageId);
     DUEL_DIGIMON_MODELS[0].modelId = DUEL_DIGIMON_MODELS[1].modelId = -1;
@@ -302,14 +290,12 @@ void runDuelStageTask(s32 stageId) {
     freeHeapBlocksByTag(0x1F4);
     freeHeapBlocksByTag(0x1F5);
     freeHeapBlocksByTag(0x81);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     freeHeapBlocksByTag(0x1F4);
     freeHeapBlocksByTag(0x84);
     freeHeapBlocksByTag(0x1F5);
     freeHeapBlocksByTag(0x85);
     freeHeapBlocksByTag(0x81);
-#else
-#error "untested version"
 #endif
     DUEL->stopStageTask = 0;
 }
@@ -338,10 +324,8 @@ void playPolygonBattle(void) {
 /* jp's stage models are numbered from 950, us's from 900 */
 #if VERSION_JP
 #define STAGE_MODEL_BASE 950
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define STAGE_MODEL_BASE 900
-#else
-#error "untested version"
 #endif
 
 void loadArenaStage(s32 stageId) {
@@ -352,10 +336,8 @@ void loadArenaStage(s32 stageId) {
     if (stageId < 0) {
 #if VERSION_JP
         stageId = rand() % 32;
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
         stageId = rand() % 12 + 0x2C;
-#else
-#error "untested version"
 #endif
     }
     sprintf(path, "F:\\bg%d.pak", ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE);
@@ -364,10 +346,8 @@ void loadArenaStage(s32 stageId) {
     /* the stage is model slot 23 */
 #if VERSION_JP
     loadModel(0x17, ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE, 0, STAGE_PAK);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     loadModel(0x17, ARENA_STAGES[stageId].bg + STAGE_MODEL_BASE, 0, STAGE_PAK, 0);
-#else
-#error "untested version"
 #endif
     SCENE_3D->modelState[0x17] = -1;
     ((Model *)SCENE_3D->models[23])->tpageOffset = 0xA0000;
@@ -381,22 +361,18 @@ void loadArenaStage(s32 stageId) {
     SCENE_3D->texAnimDelay = ARENA_STAGES[stageId].texAnimDelay;
     SCENE_3D->texAnimFrames = ARENA_STAGES[stageId].texAnimFrames;
     SCENE_3D->stageFlags = ARENA_STAGES[stageId].flags;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     STAGE_CLEAR_COLOR[0] = ARENA_STAGES[stageId].rgb[0];
     STAGE_CLEAR_COLOR[1] = ARENA_STAGES[stageId].rgb[1];
     STAGE_CLEAR_COLOR[2] = ARENA_STAGES[stageId].rgb[2];
     STAGE_FADE_LEVEL = ARENA_STAGES[stageId].fadeLevel;
-#elif VERSION_EU
-#error "untested version"
 #endif
 }
 
 void showArenaStage(s16 rotX) {
     Scene3D *scene;
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     s32 tim;
-#elif VERSION_EU
-#error "untested version"
 #endif
 
     SCENE_3D_ENABLED = 1;
@@ -406,13 +382,11 @@ void showArenaStage(s16 rotX) {
 #if VERSION_JP
     uploadTim((u32 *)findPakChunk((Chunk *)STAGE_PAK, 5, ((Model *)scene->models[23])->id), 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
     tim = decompressForTask((s32)findPakChunk((Chunk *)STAGE_PAK, 5, ((Model *)scene->models[23])->id));
     uploadTim((u32 *)tim, 0x3C0, 0, 0x3F0, 0x70);
     DrawSync(0);
     freeHeapBlock((void *)tim);
-#else
-#error "untested version"
 #endif
     if (rotX != 0 && (SCENE_3D->stageFlags & 2)) {
         endTask(0x1B);
@@ -421,12 +395,10 @@ void showArenaStage(s16 rotX) {
         startModelAnimation(0x17, 0, -2, 0);
     }
     /* us clears the background to the stage's colour */
-#if VERSION_US
+#if VERSION_US || VERSION_EU
     DB(0).draw.r0 = DB(1).draw.r0 = STAGE_CLEAR_COLOR[0];
     DB(0).draw.g0 = DB(1).draw.g0 = STAGE_CLEAR_COLOR[1];
     DB(0).draw.b0 = DB(1).draw.b0 = STAGE_CLEAR_COLOR[2];
-#elif VERSION_EU
-#error "untested version"
 #endif
 }
 
@@ -443,11 +415,9 @@ void unloadArenaStage(void) {
 #if VERSION_JP
 #define STAGE_TEX_ANIMATED() (SCENE_3D->texAnimFrames > 0)
 #define STAGE_TEX_FRAMES() SCENE_3D->texAnimFrames
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
 #define STAGE_TEX_ANIMATED() (SCENE_3D->texAnimDelay != 0)
 #define STAGE_TEX_FRAMES() ((u8)SCENE_3D->stageFlags >> 3)
-#else
-#error "untested version"
 #endif
 
 void animateStageTexture(Model *model) {

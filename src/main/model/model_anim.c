@@ -44,9 +44,9 @@ void applyRootMotion(Model *model) {
  * the mean of this key's slope and the next one's (towards `next`), and the
  * velocity changes at a constant rate in each half of the key.
  */
-#if VERSION_JP
-/* jp: the quotient of the second division lands in a2 instead of v0, a
-   register-allocation difference no C form tried reproduces */
+#if VERSION_JP || VERSION_EU
+/* jp and eu: the quotient of the second division lands in a2 instead of
+   v0, a register-allocation difference no C form tried reproduces */
 INCLUDE_ASM("main/nonmatchings/model/model_anim", setupRotationCurve);
 #elif VERSION_US
 void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLength, s32 from, s32 to, s32 next) {
@@ -66,8 +66,6 @@ void setupRotationCurve(AnimChan *chan, s32 length, s32 nextLength, s32 halfLeng
     chan->accel0 = (midVelocity - chan->velocity) / halfLength;
     chan->accel1 = (endVelocity - midVelocity) / halfLength;
 }
-#else
-#error "untested version"
 #endif
 
 /* setupRotationCurve for the channels kept << 16 */
@@ -139,8 +137,6 @@ s32 updateModelBoneMatrices(Model *model) {
         /* jp also clears the flag before rebuilding the matrix */
 #if VERSION_JP
         coord->flg = 0;
-#elif VERSION_EU
-#error "untested version"
 #endif
         rot->vx = bone->rot[0].value / 0x100000;
         rot->vy = bone->rot[1].value / 0x100000;

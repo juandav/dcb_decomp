@@ -21,12 +21,10 @@
 #include "dcb/frame_callback.h"
 #include "dcb/window.h"
 
-#if VERSION_US
+#if VERSION_US || VERSION_EU
 s32 STAGE_FADE_LEVEL = 0xFF;
 #elif VERSION_JP
 /* jp's stages have no fade level */
-#else
-#error "main/model/scene3d: version not checked"
 #endif
 
 void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
@@ -59,13 +57,11 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 continue;
             }
             model = SCENE_3D->models[i];
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             model = SCENE_3D->models[i];
             if (SCENE_3D->modelState[i] <= 0 || model->tpageOffset < 0) {
                 continue;
             }
-#else
-#error "main/model/scene3d: version not checked"
 #endif
             lightMatrix = SCENE_LIGHT_MATRIX;
             gte_SetColorMatrix(&colorMatrix);
@@ -124,7 +120,7 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                     continue;
                 }
                 GsGetLws(obj->coord2, &model->lw[j], &localScreen);
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
                 if (obj->id == -1 || obj->tmd == NULL) {
                     continue;
                 }
@@ -132,8 +128,6 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
                 if (obj->attribute != 0) {
                     continue;
                 }
-#else
-#error "main/model/scene3d: version not checked"
 #endif
                 gte_SetLightMatrix(&lightMatrix);
                 gte_SetRotMatrix(&localScreen);
@@ -195,10 +189,8 @@ void initScene3D(s32 allocBuffers) {
 #if VERSION_JP
             /* jp's two lights come from the other sides */
             { { { 0, 0x1000, -0x5DC }, { 0, -0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             { { { 0, -0x1000, -0x5DC }, { 0, 0x1000, -0x7D0 }, { 0, 0, 0 } }, { 0, 0, 0 } },
-#else
-#error "main/model/scene3d: version not checked"
 #endif
         };
         MATRIX colorMatrices[2] = {
@@ -206,10 +198,8 @@ void initScene3D(s32 allocBuffers) {
 #if VERSION_JP
             /* and the first light has a little less green */
             { { { 0x1000, 0x5DC, 0 }, { 0xFF5, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } },
-#elif VERSION_US
+#elif VERSION_US || VERSION_EU
             { { { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 }, { 0x1000, 0x5DC, 0 } }, { 0, 0, 0 } },
-#else
-#error "main/model/scene3d: version not checked"
 #endif
         };
 
