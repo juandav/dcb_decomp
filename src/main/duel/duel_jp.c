@@ -199,7 +199,7 @@ void runDuelTurnLoop(void) {
             if (PAD_PRESSED(ME) & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
             case 0x1C:
-                func_801F8E24(ME);
+                KAW_openCardSelect(ME);
                 DUEL->step++;
                 break;
             }
@@ -222,7 +222,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 5;
             }
             if (DUEL->step != 0xC) {
-                func_801F8E6C(ME);
+                KAW_closeCardSelect(ME);
             }
             break;
         case 0xD:
@@ -287,7 +287,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0x13;
                 break;
             }
-            func_801F8E24(ME);
+            KAW_openCardSelect(ME);
             DUEL->step++;
             break;
         case 0x12:
@@ -307,7 +307,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0xF;
             }
             if (DUEL->step != 0x12) {
-                func_801F8E6C(ME);
+                KAW_closeCardSelect(ME);
             }
             break;
         case 0x13:
@@ -339,7 +339,7 @@ void runDuelTurnLoop(void) {
             DUEL->unk481 = 8;
             if (PAD_PRESSED(ME) & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                func_801F8E24(ME);
+                KAW_openCardSelect(ME);
                 PLAYER_PANEL(ME, 2)->state = 1;
                 DUEL->step++;
                 waitDuelFrames(0x1E);
@@ -449,7 +449,7 @@ void runDuelTurnLoop(void) {
             if (PLAYER_PANEL(ME, 2)->state < 4) {
                 PLAYER_PANEL(ME, 2)->state = 4;
             }
-            func_801F8E6C(ME);
+            KAW_closeCardSelect(ME);
             if (PLAYER(ME)->controller == 2) {
                 DUEL->step = 0x20;
                 waitDuelFrames(0x78);
@@ -461,7 +461,7 @@ void runDuelTurnLoop(void) {
             break;
         case 0x18:
             if (PLAYER(ME)->controller != 2) {
-                func_801F8E24(ME);
+                KAW_openCardSelect(ME);
             }
             DUEL->step = 0x19;
             break;
@@ -528,7 +528,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0x20;
             }
             if (DUEL->step != 0x19) {
-                func_801F8E6C(ME);
+                KAW_closeCardSelect(ME);
                 if (DUEL->step != 0x13 && DUEL->step != 0x1A) {
                     i = takePlayedCard(ME);
                     SPRITE_KIND(i) = 6;
@@ -595,7 +595,7 @@ void runDuelTurnLoop(void) {
                 KAW_undoDigivolve();
             }
             if (DUEL->step != 0x1D) {
-                func_801F8E6C(ME);
+                KAW_closeCardSelect(ME);
             }
             break;
         case 0x1E:
@@ -732,7 +732,7 @@ void runDuelTurnLoop(void) {
             DUEL->unk482 = 7;
             if (PAD_PRESSED(OPP) & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                func_801F8E24(OPP);
+                KAW_openCardSelect(OPP);
                 DUEL->step++;
                 break;
             }
@@ -772,7 +772,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0x24;
             }
             if (DUEL->step != 0x25) {
-                func_801F8E6C(OPP);
+                KAW_closeCardSelect(OPP);
             }
             break;
         case 0x26:
@@ -820,7 +820,7 @@ void runDuelTurnLoop(void) {
             DUEL->unk481 = 2;
             if (PAD_PRESSED(ME) & PAD_CIRCLE) {
                 playSoundEffect(0xA0);
-                func_801F8E24(ME);
+                KAW_openCardSelect(ME);
                 DUEL->step++;
                 break;
             }
@@ -860,7 +860,7 @@ void runDuelTurnLoop(void) {
                 DUEL->step = 0x28;
             }
             if (DUEL->step != 0x29) {
-                func_801F8E6C(ME);
+                KAW_closeCardSelect(ME);
             }
             break;
         case 0x2A:
