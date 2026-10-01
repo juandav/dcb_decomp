@@ -30,57 +30,54 @@
 #include "dcb/window.h"
 #include "dcb/overlay_calls.h"
 
-/* clears the request and waits a frame for the next one */
-#define WAIT_FOR_CPU_REQUEST()           \
-    do {                                 \
-        DUEL->cpuRequest = 0;            \
-        waitFrames(FRAME_INTERVAL);   \
-    } while (0)
-
+/* answers the duel's requests for the CPU's decisions, one per frame, until
+   the duel stops it */
 void runCpuDecisionTask(void) {
     s32 r;
 
     DUEL->stopCpuTask = 0;
-    WAIT_FOR_CPU_REQUEST();
-    if (DUEL->stopCpuTask == 0) {
-        do {
-            switch (DUEL->cpuRequest) {
-            case 0:
-                break;
-            case 1:
-                DUEL->cpuResult = KAW_decideRedraw(DUEL->cpuPlayer);
-                break;
-            case 2:
-                DUEL->cpuResult = KAW_chooseDigimonToPlace(DUEL->cpuPlayer);
-                break;
-            case 3:
-                r = KAW_planDigivolves(DUEL->cpuPlayer);
-                KAW_planDigivolveOptions(DUEL->cpuPlayer);
-                KAW_selectDigivolvePlan(r);
-                DUEL->cpuResult = KAW_chooseDpCard(DUEL->cpuPlayer);
-                break;
-            case 4:
-                if (KAW_countHandDigivolves(DUEL->cpuPlayer)) {
-                    DUEL->cpuResult = KAW_chooseDigivolveOption(DUEL->cpuPlayer);
-                } else {
-                    DUEL->cpuResult = -1;
-                }
-                break;
-            case 5:
-                DUEL->cpuResult = KAW_chooseDigivolveTarget(DUEL->cpuPlayer);
-                break;
-            case 6:
-                KAW_simulateBattles(DUEL->cpuPlayer);
-                KAW_chooseAttack(DUEL->cpuPlayer);
-                waitFrames(60);
-                break;
-            case 7:
-                KAW_simulateBattles(DUEL->cpuPlayer);
-                KAW_chooseSupportCard();
-                break;
+    DUEL->cpuRequest = 0;
+    while (1) {
+        waitFrames(FRAME_INTERVAL);
+        if (DUEL->stopCpuTask != 0) {
+            break;
+        }
+        switch (DUEL->cpuRequest) {
+        case 0:
+            break;
+        case 1:
+            DUEL->cpuResult = KAW_decideRedraw(DUEL->cpuPlayer);
+            break;
+        case 2:
+            DUEL->cpuResult = KAW_chooseDigimonToPlace(DUEL->cpuPlayer);
+            break;
+        case 3:
+            r = KAW_planDigivolves(DUEL->cpuPlayer);
+            KAW_planDigivolveOptions(DUEL->cpuPlayer);
+            KAW_selectDigivolvePlan(r);
+            DUEL->cpuResult = KAW_chooseDpCard(DUEL->cpuPlayer);
+            break;
+        case 4:
+            if (KAW_countHandDigivolves(DUEL->cpuPlayer)) {
+                DUEL->cpuResult = KAW_chooseDigivolveOption(DUEL->cpuPlayer);
+            } else {
+                DUEL->cpuResult = -1;
             }
-            WAIT_FOR_CPU_REQUEST();
-        } while (DUEL->stopCpuTask == 0);
+            break;
+        case 5:
+            DUEL->cpuResult = KAW_chooseDigivolveTarget(DUEL->cpuPlayer);
+            break;
+        case 6:
+            KAW_simulateBattles(DUEL->cpuPlayer);
+            KAW_chooseAttack(DUEL->cpuPlayer);
+            waitFrames(60);
+            break;
+        case 7:
+            KAW_simulateBattles(DUEL->cpuPlayer);
+            KAW_chooseSupportCard();
+            break;
+        }
+        DUEL->cpuRequest = 0;
     }
     DUEL->stopCpuTask = 0;
 }

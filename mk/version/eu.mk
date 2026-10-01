@@ -25,7 +25,8 @@ MAIN_C_SRC := \
 	$(addprefix src/main/card/, card_render.c partner_level.c \
 		player_data.c player_rank.c) \
 	$(addprefix src/main/duel/, battle_hud.c card_motion.c card_zones.c \
-		duel_launch.c duel_session.c duel_setup.c duel_util.c hud_panels.c) \
+		cpu_decision.c duel.c duel_launch.c duel_session.c duel_setup.c \
+		duel_util.c hud_panels.c) \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
 		decompress.c frame_callback.c game_exit.c game_flow.c heap.c loader.c \
 		memcard.c opening_movie.c pad.c render_loop.c save_checksum.c sort.c \
