@@ -381,7 +381,11 @@ typedef struct {
 } ModelEffect;
 
 typedef struct {
+#if VERSION_JP
+    u8 unk0[0x9C]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     u8 unk0[0x98];
+#endif
     void *parent;
     u8 unk9C[0x10];
     s32 scale[3];

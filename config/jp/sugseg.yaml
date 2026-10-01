@@ -83,10 +83,10 @@ segments:
       - [0x110FC, c, battle/sug_battle]
       - [0x124D8, .data, effect/sug_light_motion]
       # the effect script's tables, then data us keeps in sug_bss, in
-      # another order around sug_battle's and sug_screen_copy's
+      # another order: jp has no screen copy effect, so neither sug_battle's
+      # SUG_SCREEN_FX_PHASE nor sug_screen_copy's data, and its effect root
+      # follows SUG_TAM_CACHE
       - [0x12518, data, effect/sug_effect_script]
-      - [0x12698, .data, battle/sug_battle]
-      - [0x1269C, data, effect/sug_screen_copy]
-      - [0x126A0, data, sug_bss]
+      - [0x12698, data, sug_bss]
 
   - [0x1281C]
