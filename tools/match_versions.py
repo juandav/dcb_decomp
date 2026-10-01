@@ -931,6 +931,7 @@ def seed(version, p, data_pairs):
     # the names the files already give by hand (outside the block, or marked
     # manual inside it)
     manual = {}
+    named_at = set()  # (binary, address) of the names given by hand
     kept = defaultdict(list)  # binary -> [(addr, line)] of the manual lines in the block
     for b in bins:
         path = symbol_file(version, b)
@@ -944,6 +945,7 @@ def seed(version, p, data_pairs):
             text = text[:text.index(BEGIN)] + "\n".join(line for _, line in kept[b]) + text[text.index(END) + len(END):]
         for m in re.finditer(r"^\s*(\S+)\s*=\s*(0x[0-9A-Fa-f]+)", text, re.M):
             manual[m[1]] = (b, int(m[2], 16))
+            named_at.add((b, int(m[2], 16)))
     # every name splat gives now, with its address: a name we write must not
     # be one of them somewhere else
     taken = defaultdict(dict)
@@ -959,6 +961,10 @@ def seed(version, p, data_pairs):
         if name in manual:
             if manual[name] != (binary, addr):
                 skipped.append(name)
+            return False
+        # an address named by hand keeps that name (a pairing corrected by
+        # hand: the version's own function where us has another)
+        if (binary, addr) in named_at:
             return False
         for b in {binary, "main"}:
             if taken[b].get(name, addr) != addr:
