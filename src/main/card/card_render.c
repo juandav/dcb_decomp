@@ -36,7 +36,11 @@ void uploadStringGlyphs(u8 *string, s32 row, s32 parentTask) {
     DUEL_VRAM_READY = 0;
     spawnTask(0, -1, 0, 0x800, &loadFile, "B:\\FONT.ARC", getCurrentTaskId());
     fontArchive = (u8 *)waitFrames(0x7FFFFFFF);
-    for (i = 0; *string != 0;) {
+    i = 0;
+    while (1) {
+        if (*string == 0) {
+            break;
+        }
         uploadTim((u32 *)(fontArchive + ((s32 *)fontArchive)[*string - 0x20]), i * 4 + 0x2C0, (row << 5) + 0x1C0, 0x2F0,
                       row + 0x1D7);
         DrawSync(0);
@@ -120,6 +124,10 @@ void runCardArtLoader(void) {
 /* Uploads the duel's card graphics to VRAM: the CBTL_SYS.ARC images, the art
    of both players' 30 cards (setting up their card sprites) and their partners'
    cards, plus the extra archive users when withExtras is set. */
+#if VERSION_EU
+/* eu: keeps nextAnim in a register where us keeps the array on the stack */
+INCLUDE_ASM("main/nonmatchings/card/card_render", loadDuelCardGraphics);
+#elif VERSION_US
 void loadDuelCardGraphics(s32 withExtras) {
     /* Only nextAnim[0] is used. The rest is unused in the original; it sizes
        the frame, and the array keeps the cursor in memory like the ROM does. */
@@ -204,6 +212,9 @@ void loadDuelCardGraphics(s32 withExtras) {
     waitFrames(10);
     DUEL_VRAM_READY = 1;
 }
+#else
+#error "main/card/card_render: version not checked"
+#endif
 
 /* the message on the top bar */
 u8 * STATUS_MESSAGE_TEXTS[18] = {
@@ -427,8 +438,8 @@ void renderPhaseBanner(void) {
     s32 i;
     s32 age;
     s32 brightness;
-    s8 step;
-    s8 phase;
+    s32 step;
+    s32 phase;
     u8 playerLabel;
 
     phase = DUEL_MSG_BAR.phase;

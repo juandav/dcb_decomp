@@ -41,3 +41,6 @@ OPEN_findMovieFile = 0x801E2504; // type:func
 OPEN_playMovie = 0x801E2EAC; // type:func
 KAW_startTutorial = 0x801ECBB8; // type:func
 END_runPlayerRecords = 0x801E1DC4; // type:func
+KAW_rollPrizeCards = 0x801F7CF8; // type:func
+KAW_uploadPartnerPortraits = 0x801F68D4; // type:func
+KAW_renderCursor = 0x801FAD18; // type:func

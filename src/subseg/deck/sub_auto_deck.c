@@ -56,7 +56,15 @@ u8 SUB_OPTION_CARD_LEVELS[108] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1,
     0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1,
     1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+    /* leftovers after the last option card, not the same in every version */
+#if VERSION_US
+    0, 0, 0, 0, 0, 0,
+#elif VERSION_EU
+    0x27, 0x18, 0x00, 0xB0, 0xAF, 0x21,
+#else
+#error "subseg/deck/sub_auto_deck: version not checked"
+#endif
 };
 
 void SUB_drawAutoDeckOptions(UiWindow *window) {
@@ -232,7 +240,7 @@ void SUB_drawAutoDeckMenu(void) {
 
 void SUB_runAutoDeckMenu(void) {
     u8 dialog[0xB8];
-    s8 result;
+    s32 result;
 
     playMenuSound(3);
     SUB_openAutoDeckMenu();
@@ -252,7 +260,7 @@ void SUB_runAutoDeckMenu(void) {
             PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse = 0;
             initDialog(dialog, "Do you want to choose from a Base Deck?", 1);
             runDialogForPad((s32 *)dialog, SUB_EDITOR.player);
-            result = dialog[0xA5];
+            result = (s8)dialog[0xA5];
             if (result == 1 && SUB_chooseBaseDeck(&PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot], SUB_EDITOR.player) >= 0) {
                 PLAYER_DATA(SUB_EDITOR.player).savedDecks[SUB_DECK_MENU.slot].inUse = result;
             }
@@ -277,6 +285,11 @@ s32 SUB_takePoolCards(CardSlot *slots, s32 row, s32 count) {
     return i;
 }
 
+#if VERSION_EU
+/* eu: comes out laid out differently throughout; not worked out yet */
+INCLUDE_RODATA("subseg/nonmatchings/deck/sub_auto_deck", D_801E22F4);
+INCLUDE_ASM("subseg/nonmatchings/deck/sub_auto_deck", SUB_buildAutoDeck);
+#elif VERSION_US
 void SUB_buildAutoDeck(PlayerDeck *deck) {
     u8 counts[8] = { 10, 10, 6, 4, 5, 12, 8, 5 };
     s16 specialty = 0;
@@ -400,3 +413,6 @@ void SUB_buildAutoDeck(PlayerDeck *deck) {
     }
     linkDeckCardData(SUB_EDITOR.player, deck);
 }
+#else
+#error "subseg/deck/sub_auto_deck: version not checked"
+#endif

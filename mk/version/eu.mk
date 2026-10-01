@@ -22,8 +22,8 @@ GCC_VERSION := 2.8.1
 # module (config/eu/*.yaml, tools/split_version.py), except VSSVER: not
 # code but a Visual SourceSafe file, it stays one blob, splat's databin.
 MAIN_C_SRC := \
-	$(addprefix src/main/card/, partner_level.c player_data.c \
-		player_rank.c) \
+	$(addprefix src/main/card/, card_render.c partner_level.c \
+		player_data.c player_rank.c) \
 	$(addprefix src/main/duel/, battle_hud.c card_zones.c duel_launch.c \
 		duel_session.c duel_setup.c duel_util.c hud_panels.c) \
 	$(addprefix src/main/system/, angle.c archive.c boot.c cd_file.c \
@@ -38,7 +38,7 @@ EVOSEG_C_SRC := \
 	$(addprefix src/evoseg/fusion/, evo_banners.c evo_card_list.c \
 		evo_data.c evo_fusion.c evo_fusion_result.c evo_fusion_script.c \
 		evo_lists.c evo_partner_status.c evo_rewards.c evo_screen_flash.c \
-		evo_trays.c evo_type_choice.c)
+		evo_text.c evo_trays.c evo_type_choice.c)
 KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/duel/, kaw_bonus.c kaw_effect.c kaw_hand.c) \
 	src/kawseg/kaw_bss.c \
@@ -54,15 +54,16 @@ SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area.c sai_opponent_info.c \
 		sai_splash.c) \
 	$(addprefix src/saiseg/hacking/, sai_hacking.c sai_word_input.c) \
+	src/saiseg/map/sai_world_map.c \
 	$(addprefix src/saiseg/player/, sai_digi_parts.c sai_partner_get.c \
 		sai_player_data.c sai_reward.c) \
 	$(addprefix src/saiseg/, sai_bss.c sai_data.c) \
-	src/saiseg/script/sai_flags.c \
+	$(addprefix src/saiseg/script/, sai_area_script.c sai_flags.c) \
 	$(addprefix src/saiseg/ui/, sai_choice.c sai_labels.c sai_panel.c \
 		sai_text.c)
 SUBSEG_C_SRC := \
-	$(addprefix src/subseg/deck/, sub_base_deck.c sub_deck_editor.c \
-		sub_name_entry.c sub_sort.c) \
+	$(addprefix src/subseg/deck/, sub_auto_deck.c sub_base_deck.c \
+		sub_deck_editor.c sub_name_entry.c sub_sort.c) \
 	src/subseg/sub_bss.c
 SUGSEG_C_SRC := \
 	$(addprefix src/sugseg/battle/, sug_battle.c sug_camera.c) \
