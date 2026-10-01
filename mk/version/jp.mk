@@ -27,4 +27,5 @@ MAIN_C_SRC := \
 	$(addprefix src/main/gfx/, prim3d.c prim_util.c transform.c \
 		vram_upload.c) \
 	$(addprefix src/main/model/, anim_control.c model_load.c) \
+	src/main/script/script.c \
 	$(addprefix src/main/system/, cd_file.c heap.c sound_play.c task.c)
