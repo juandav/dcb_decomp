@@ -62,8 +62,8 @@ KAWSEG_C_SRC := \
 	$(addprefix src/kawseg/ui/, kaw_exp_jp.c kaw_hud_jp.c \
 		kaw_match_intro_jp.c kaw_prize_jp.c kaw_result_jp.c)
 SUBSEG_C_SRC := \
-	$(addprefix src/subseg/deck/, sub_deck_screens_jp.c \
-		sub_name_entry_jp.c) \
+	src/subseg/deck/sub_name_entry_jp.c \
+	src/subseg/shop/sub_shop.c \
 	src/subseg/sub_bss_jp.c
 SAISEG_C_SRC := \
 	$(addprefix src/saiseg/area/, sai_area_jp.c sai_opponent_select_jp.c \

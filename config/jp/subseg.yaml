@@ -57,13 +57,13 @@ segments:
       # bytes in, where its jump tables' 8-byte alignment puts the start of
       # an object; the strings of the shop's data tables sit between those
       # of its functions, so its data is its own. Nothing shows a further
-      # object boundary. Named after us's units (us's first module holds
-      # its overlay number too).
+      # object boundary. The first is named after us's unit (us's first
+      # module holds its overlay number too); the shop is jp's own module.
       - [0x0, .rodata, deck/sub_name_entry_jp]
-      - [0x4, .rodata, deck/sub_deck_screens_jp]
+      - [0x4, .rodata, shop/sub_shop]
       - [0x520, c, deck/sub_name_entry_jp]
-      - [0x530, c, deck/sub_deck_screens_jp]
-      - [0x8EE8, .data, deck/sub_deck_screens_jp]
+      - [0x530, c, shop/sub_shop]
+      - [0x8EE8, .data, shop/sub_shop]
       - [0x9120, .data, sub_bss_jp]
 
   - [0x93A0]
