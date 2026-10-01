@@ -79,6 +79,7 @@ KAW_createCursor = 0x8004B154; // type:func
 KAW_initCursorShape = 0x8004B43C; // type:func
 KAW_freeCursor = 0x8004B598; // type:func
 DrawSync = 0x800683F8; // type:func
+ClearImage = 0x8006857C; // type:func
 SetDrawEnv = 0x80069244; // type:func
 SetDefDrawEnv = 0x8006C82C; // type:func
 GetTPage = 0x8006C92C; // type:func

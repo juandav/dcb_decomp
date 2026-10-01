@@ -14,9 +14,7 @@ extern u8 *NIS_OPTIONS_LEFT;
 extern u8 *NIS_OTHERS_LEFT;
 
 #if JP_DEBUG_BUILD
-/* the debug build names what it allocates (NIS_STR_DECK_EDIT, which
-   NIS_buildAutoDeck's asm reads too) */
-extern const char NIS_STR_DECK_EDIT[];
+/* the debug build names what it allocates */
 #define allocTaskHeapBlock(size) allocNamedTaskHeapBlock(size, NIS_STR_DECK_EDIT, 7)
 #endif
 
@@ -487,11 +485,54 @@ s32 NIS_takeAllListCopies(s32 deck, NisCardList *list) {
 }
 
 /* puts count random copies from the list in the deck (at most 4 of each
-   card, all of them if the list offers no more than count). Matching it
-   needs the copies taken in the register of deck and the loop counter in
-   that of the extra copies; GCC swaps them, and only a do-while around the
-   first loop (from the permuter) gives the original's */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_auto_deck", NIS_takeListCopies);
+   card, all of them if the list offers no more than count). i also holds
+   the copies over count, as the original's registers show */
+s32 NIS_takeListCopies(s32 deck, NisCardList *list, s32 count) {
+    s32 taken;
+    s32 i;
+    s32 k;
+
+    if (count <= 0 || NIS_DECK_EDIT.cardCount >= 30) {
+        return 0;
+    }
+    for (i = 0; i < list->count; i++) {
+        if (list->entries[i].count >= 5) {
+            list->entries[i].count = 4;
+        }
+    }
+    i = NIS_countListCopies(list) - count;
+    if (i > 0) {
+        if (count < i) {
+            taken = 0;
+            for (i = 0; i < count; i++) {
+                while (1) {
+                    k = rand() % list->count;
+                    if (list->entries[k].count != 0) {
+                        list->entries[k].count--;
+                        NIS_addCardsToDeck(list->entries[k].type, list->entries[k].index, 1);
+                        taken++;
+                        break;
+                    }
+                }
+                if (++NIS_DECK_EDIT.cardCount >= 30) {
+                    break;
+                }
+            }
+            return taken;
+        }
+        while (i > 0) {
+            while (1) {
+                k = rand() % list->count;
+                if (list->entries[k].count != 0) {
+                    i--;
+                    list->entries[k].count--;
+                    break;
+                }
+            }
+        }
+    }
+    return NIS_takeAllListCopies(deck, list);
+}
 
 /* the Digimon cards of an element and a level in a saved deck */
 s32 NIS_countDeckDigimonOfLevel(s32 deck, s32 element, s32 level) {
@@ -588,14 +629,176 @@ s32 NIS_takeDigimonOfLevel(s32 deck, s32 element, s32 level, s32 count) {
 
 /* fills the deck being edited with 30 cards: options of the style, the
    main element's Digimon of each level, a second element's, and whatever
-   is left. Matching it needs registers allocated as the original's,
-   which only do-whiles around its parts (from the permuter) come near */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_auto_deck", NIS_buildAutoDeck);
+   is left */
+void NIS_buildAutoDeck(void) {
+    /* the cards of each kind, for an attack deck (0) and a defense deck
+       (1): options and Digimon of level R, C and U */
+    s8 counts[2][4] = { { 10, 10, 6, 4 }, { 5, 12, 8, 6 } };
+    NisCardList *list;
+    s32 total;
+    s32 taken;
+    s32 i;
+    s32 count;
+    s32 deck;
+    s8 second;
+    CardSlot *slot;
 
-/* NIS_buildAutoDeck's cards of each kind, for an attack deck (0) and a
-   defense deck (1): options and Digimon of level R, C and U
-   (defined after it, so that GCC switches back to .rodata after the asm) */
-const s8 NIS_AUTO_DECK_COUNTS[2][4] = { { 10, 10, 6, 4 }, { 5, 12, 8, 6 } };
+    deck = NIS_DECK_EDIT.deck;
+    slot = NIS_PROFILE(0)->savedDecks[deck].cards;
+    for (i = 0; i < 30; i++, slot++) {
+        slot->type = 0xFF;
+    }
+    NIS_DECK_EDIT.cardCount = 0;
+    /* i now holds the copies wanted of each kind */
+    i = counts[NIS_DECK_EDIT.unkA][0];
+    list = NIS_buildCardList(deck, 9, NIS_DECK_EDIT.cardIndex);
+    total = NIS_takeListCopies(deck, list, i);
+    if (total < i) {
+        freeHeapBlock(list);
+        list = NIS_buildCardList(deck, 9, (s16)(NIS_DECK_EDIT.cardIndex ^ 1));
+        total += NIS_takeListCopies(deck, list, i - total);
+    }
+    freeHeapBlock(list);
+    i = counts[NIS_DECK_EDIT.unkA][1];
+    second = NIS_pickSecondElement(deck, NIS_DECK_EDIT.cardType, NIS_DECK_EDIT.cardIndex, (i / 2) & 0xE);
+    list = NIS_buildCardList(deck, NIS_DECK_EDIT.cardType + 1, 0);
+    taken = NIS_takeListCopies(deck, list, i);
+    if (taken < i) {
+        freeHeapBlock(list);
+        list = NIS_buildCardList(deck, second + 1, 0);
+        taken += NIS_takeListCopies(deck, list, i - taken);
+    }
+    freeHeapBlock(list);
+    total += taken;
+    i = counts[NIS_DECK_EDIT.unkA][2];
+    list = NIS_buildCardList(deck, NIS_DECK_EDIT.cardType + 1, 1);
+    taken = NIS_takeListCopies(deck, list, i);
+    if (taken < i) {
+        if (NIS_countDeckDigimonOfLevel(deck, second, 0) >= 3) {
+            goto second_level1;
+        }
+    } else {
+        count = NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 0);
+        if (NIS_DECK_EDIT.unkA == 0) {
+            count -= 2;
+        } else {
+            count = count * 3 / 4;
+        }
+        taken += NIS_takeDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 1, count - taken);
+        if (taken < 6) {
+        second_level1:
+            freeHeapBlock(list);
+            list = NIS_buildCardList(deck, second + 1, 1);
+            if (NIS_countListCopies(list) < 2) {
+                taken += NIS_takeListCopies(deck, list, i - taken);
+            } else {
+                taken += NIS_takeListCopies(deck, list, 2);
+            }
+        }
+    }
+    freeHeapBlock(list);
+    taken += NIS_takeDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 0, i - taken);
+    taken += NIS_takeDigimonOfLevel(deck, second, 0, i - taken);
+    total += taken;
+    i = counts[NIS_DECK_EDIT.unkA][3];
+    list = NIS_buildCardList(deck, NIS_DECK_EDIT.cardType + 1, 2);
+    if (NIS_countListCopies(list) < i) {
+        taken = NIS_takeListCopies(deck, list, i);
+        freeHeapBlock(list);
+        list = NIS_buildCardList(deck, second + 1, 2);
+        if (NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 1) >= i) {
+            if (NIS_countDeckDigimonOfLevel(deck, second, 1) >= 2) {
+                taken += NIS_takeListCopies(deck, list, i - taken);
+            }
+        } else if (NIS_countDeckDigimonOfLevel(deck, second, 1) >= i / 6 + 1) {
+            taken += NIS_takeListCopies(deck, list, i / 6 + 1);
+        }
+    } else if (NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 1) >= i) {
+        taken = NIS_takeListCopies(deck, list, i);
+    } else {
+        taken = NIS_takeListCopies(deck, list, NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 1) / 2);
+        freeHeapBlock(list);
+        list = NIS_buildCardList(deck, second + 1, 2);
+        taken += NIS_takeListCopies(deck, list, NIS_countDeckDigimonOfLevel(deck, second, 1) / 2);
+    }
+    freeHeapBlock(list);
+    total += taken;
+    taken = 0;
+    count = NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 2) + NIS_countDeckDigimonOfLevel(deck, second, 2);
+    list = NIS_buildCardList(deck, 10, -1);
+    if (count < 4) {
+        if (NIS_countDeckDigimonOfLevel(deck, NIS_DECK_EDIT.cardType, 1) != 0 && NIS_countDeckDigimonOfLevel(deck, second, 1) != 0) {
+            taken = NIS_takeListCopies(deck, list, 30 - total);
+        }
+    } else if (NIS_countDeckFreeSlots(deck) >= 3) {
+        taken = NIS_takeListCopies(deck, list, 2);
+    } else {
+        taken = NIS_takeListCopies(deck, list, 30 - total);
+    }
+    freeHeapBlock(list);
+    total += taken;
+    taken = 0;
+    if (total < 30) {
+        list = allocTaskHeapBlock(sizeof(NisCardList));
+        bzero((void *)list, sizeof(NisCardList));
+        for (i = 0; i < 5; i++) {
+            if (i != NIS_DECK_EDIT.cardType && i != second) {
+                NIS_listOwnedDigimon(list, i, 0);
+            }
+        }
+        NIS_countListOwned(list);
+        taken = NIS_takeListCopies(deck, list, 30 - total);
+        freeHeapBlock(list);
+    }
+    total += taken;
+    taken = 0;
+    if (total < 30) {
+        list = allocTaskHeapBlock(sizeof(NisCardList));
+        bzero((void *)list, sizeof(NisCardList));
+        for (i = 0; i < 5; i++) {
+            if (i != NIS_DECK_EDIT.cardType && i != second) {
+                NIS_listOwnedDigimon(list, i, 1);
+            }
+        }
+        NIS_countListOwned(list);
+        taken = NIS_takeListCopies(deck, list, 30 - total);
+        freeHeapBlock(list);
+    }
+    total += taken;
+    taken = 0;
+    if (total < 30) {
+        list = allocTaskHeapBlock(sizeof(NisCardList));
+        bzero((void *)list, sizeof(NisCardList));
+        for (i = 0; i < 5; i++) {
+            if (i != NIS_DECK_EDIT.cardType && i != second) {
+                NIS_listOwnedDigimon(list, i, 2);
+            }
+        }
+        NIS_countListOwned(list);
+        taken = NIS_takeListCopies(deck, list, 30 - total);
+        freeHeapBlock(list);
+    }
+    total += taken;
+    if (total < 30) {
+        list = allocTaskHeapBlock(sizeof(NisCardList));
+        bzero((void *)list, sizeof(NisCardList));
+        for (i = 0; i < 5; i++) {
+            NIS_listOwnedDigimon(list, i, 0);
+        }
+        for (i = 0; i < 5; i++) {
+            NIS_listOwnedDigimon(list, i, 1);
+        }
+        for (i = 0; i < 5; i++) {
+            NIS_listOwnedDigimon(list, i, 2);
+        }
+        NIS_listOwnedOptionsAndOthers(list);
+        NIS_countListOwned(list);
+        NIS_dropDeckCopiesFromList(deck, list, total);
+        NIS_takeListCopies(deck, list, 30 - total);
+        freeHeapBlock(list);
+    }
+    NIS_fixDeckCards(deck);
+}
 
 /* takes out of the deck the cards the player doesn't have enough copies
    of, and fills its empty slots with cards that are left */
