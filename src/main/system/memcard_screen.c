@@ -121,62 +121,62 @@ typedef struct {
     /* 0x8 */ void (*next)();
 } MemcardMode;
 
-extern WindowTaskHead *D_801E49D8[2];
-extern MemcardSlot D_801E4A00;
-extern MemcardScreen D_801E4A08;
-extern s32 D_801E4CC0; /* the save's or the load's progress, in sectors */
-extern u8 D_801E4CC4; /* set once a name's glyphs are uploaded */
-extern char D_801E4CC8[0x10]; /* the name whose glyphs are uploaded */
+extern WindowTaskHead *MEMCARD_WINDOWS[2];
+extern MemcardSlot MEMCARD_SLOT;
+extern MemcardScreen MEMCARD_SCREEN;
+extern s32 MEMCARD_PROGRESS; /* the save's or the load's progress, in sectors */
+extern u8 NAME_GLYPHS_UPLOADED; /* set once a name's glyphs are uploaded */
+extern char NAME_GLYPHS_TEXT[0x10]; /* the name whose glyphs are uploaded */
 
-void func_800482A8(u8 *header, char *title, u8 *tim, u8 blocks);
-void func_80047B44(void);
-void func_80047B4C(void);
-void func_80047B54(void);
-void func_80047B5C(UiWindow *window);
-void func_80047C04(UiWindow *window);
-void func_80047F9C(UiWindow *window);
-void func_80048124(UiWindow *window);
-void func_800481DC(UiWindow *window);
-s32 func_80048A88(MemcardScreen *screen);
-void func_8004858C(MemcardScreen *screen);
-void func_80048EFC(void);
-void func_800492A0(void);
-void func_80049418(void);
-void func_8004A2E4(void);
-s32 func_8004A744(u8 file, MemcardScreen *screen);
-s16 func_8004A834(void);
-s16 func_8004A870(void);
-s16 func_8004A8E4(void);
-void func_8004A970(MemcardScreen *screen);
-u8 func_8004A9E8(u8 player, u8 bothPorts);
-s16 func_8004AC5C(void);
-s16 func_8004AD28(MemcardScreen *screen);
-void func_8004AE78(MemcardScreen *screen);
-void func_8004AF6C(MemcardScreen *screen);
-void func_8004B01C(MemcardScreen *screen);
-void func_8004B084(MemcardScreen *screen);
-void func_8004B0EC(MemcardScreen *screen);
-void func_8004B2C0(MemcardScreen *screen);
-void func_8004B314(MemcardScreen *screen);
-void func_8004B3BC(MemcardScreen *screen);
-void func_8004B568(MemcardScreen *screen);
+void fillSaveHeader(u8 *header, char *title, u8 *tim, u8 blocks);
+void ignoreMemcardWindowClose(void);
+void drawNothingInMemcardScreen(void);
+void doNothingInMemcardScreen(void);
+void drawMemcardMessage(UiWindow *window);
+void drawSavePreview(UiWindow *window);
+void drawMemcardSlotMessage(UiWindow *window);
+void drawMemcardSlotWindow(UiWindow *window);
+void drawMissingCardMessage(UiWindow *window);
+s32 applyLoadedSave(MemcardScreen *screen);
+void prepareSaveData(MemcardScreen *screen);
+void runNewLoadMenu(void);
+void openMemcardScreen(void);
+void runMemcardScreen(void);
+void runMemcardAccess(void);
+s32 readSavePreview(u8 file, MemcardScreen *screen);
+s16 countFreeBlocks(void);
+s16 waitMemoryCardSave(void);
+s16 waitMemoryCardLoad(void);
+void closeMemcardScreen(MemcardScreen *screen);
+u8 checkSaveIsCurrent(u8 player, u8 bothPorts);
+s16 findMissingSaves(void);
+s16 saveBothProfiles(MemcardScreen *screen);
+void selectMemcardSlot(MemcardScreen *screen);
+void runNoCardPrompt(MemcardScreen *screen);
+void confirmFormat(MemcardScreen *screen);
+void confirmNewFile(MemcardScreen *screen);
+void selectSaveFile(MemcardScreen *screen);
+void runNoFreeBlockPrompt(MemcardScreen *screen);
+void confirmOverwriteOrLoad(MemcardScreen *screen);
+void runDonePrompt(MemcardScreen *screen);
+void confirmPlayWithoutCard(MemcardScreen *screen);
 void func_8004B5D8(MemcardScreen *screen);
-void func_8004B62C(MemcardScreen *screen);
-void func_8004B680(MemcardScreen *screen);
-void func_8004B740(MemcardScreen *screen);
-void func_8004B794(MemcardScreen *screen);
+void runNoSavePrompt(MemcardScreen *screen);
+void confirmSave(MemcardScreen *screen);
+void runMissingCardPrompt(MemcardScreen *screen);
+void runFailurePrompt(MemcardScreen *screen);
 void func_8004B830(MemcardScreen *screen);
-void func_8004B884(MemcardScreen *screen);
-void func_8004B8EC(void);
-void func_8004B978(void);
-u8 func_8004BA08(void);
+void confirmPlayer2Load(MemcardScreen *screen);
+void uploadPlayer1NameGlyphs(void);
+void uploadPlayer2NameGlyphs(void);
+u8 hasDigimonWorldSave(void);
 
 /* the message window and the window of the card slot */
-WindowSpec D_8007ED7C = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 10, 0, func_80047B4C, func_80047B44 };
-WindowSpec D_8007ED9C = { { 0x128, 0x7C, 0, 0xE }, { 0x88, 0x7C, 0xA0, 0xE }, 10, 1, func_80048124, func_80047B44 };
+WindowSpec MEMCARD_MESSAGE_WINDOW = { { 0x17, 0x98, 0, 0xC }, { 0x17, 0x98, 0x112, 0x43 }, 10, 0, drawNothingInMemcardScreen, ignoreMemcardWindowClose };
+WindowSpec MEMCARD_SLOT_WINDOW = { { 0x128, 0x7C, 0, 0xE }, { 0x88, 0x7C, 0xA0, 0xE }, 10, 1, drawMemcardSlotWindow, ignoreMemcardWindowClose };
 
 /* the areas, where the player is (PlayerProfile.area) */
-char *D_8007EDBC[15] = {
+char *AREA_NAMES[15] = {
     "はじまりの街",
     "迷わずの森",
     "ドリルトンネル",
@@ -195,7 +195,7 @@ char *D_8007EDBC[15] = {
 };
 
 /* the screen's messages (MemcardScreen.message) */
-char *D_8007EDF8[47] = {
+char *MEMCARD_MESSAGES[47] = {
     "",
     "h2このままゲームを始めるとデータのセーブを\nすることができません。よろしいですか？",
     "h2メモリーカードをチェック中……\nメモリーカードおよびコントローラを\n抜き差ししないでください！",
@@ -245,13 +245,13 @@ char *D_8007EDF8[47] = {
     "",
 };
 
-MemcardMode D_8007EEB4[10] = {
+MemcardMode MEMCARD_MODES[10] = {
     { 2, NULL, func_80046464 },
-    { 3, func_80048EFC, func_80046464 },
+    { 3, runNewLoadMenu, func_80046464 },
     { 0, func_80046464, func_80046464 },
     { 1, func_801F117C, NIS_enterDeckListFromMenu },
     { 0, NIS_enterDeckListFromMenu, func_801F117C },
-    { 0x37, func_801F117C, func_80047B54 },
+    { 0x37, func_801F117C, doNothingInMemcardScreen },
     { 0x38, NULL, D_801F0820 },
     { 0, D_801F0820, func_801F117C },
     { 0, NULL, func_801F117C },
@@ -259,22 +259,22 @@ MemcardMode D_8007EEB4[10] = {
 };
 
 /* the frame of the progress bars */
-SpriteDesc D_8007EF2C = { 0, 0x80, 0x80, 0x80, 0x64, 0, 0xD0, 0x7CBF, 0, 0x1F, 0x50, 0x64, 0xA0, 0x10 };
+SpriteDesc MEMCARD_PROGRESS_FRAME = { 0, 0x80, 0x80, 0x80, 0x64, 0, 0xD0, 0x7CBF, 0, 0x1F, 0x50, 0x64, 0xA0, 0x10 };
 
 /* Makes the save header with the D:\MC_A.TIM icon */
-void func_80047650(void) {
+void buildGameSaveHeader(void) {
     u8 *tim;
 
     spawnTask(0, -1, 0, 0x800, loadFile, "D:\\MC_A.TIM", getCurrentTaskId());
     tim = (u8 *)waitFrames(0x7FFFFFFF);
-    func_800482A8(MEMORY_CARD_SAVE_HEADER, "デジモンワールドカードバトル", tim, 1);
+    fillSaveHeader(MEMORY_CARD_SAVE_HEADER, "デジモンワールドカードバトル", tim, 1);
     freeHeapBlock(tim);
 }
 
 /* Makes the save header of player's profile: its title says the file, the
    play time and the area, its icon is taken from VRAM (one of three, as far
    as the player got) */
-void func_800476D4(u8 player) {
+void buildSaveHeader(u8 player) {
     McSaveHeader *header = (McSaveHeader *)MEMORY_CARD_SAVE_HEADER;
     McIconImage image;
     McIconClut clut;
@@ -318,7 +318,7 @@ void func_800476D4(u8 player) {
     formatSjisNumber(((SessionData *)SESSION_DATA)->saves[player].file + 1, 1, file);
     formatSjisNumber(h, 3, hours);
     formatSjisNumberZeros(m, 2, minutes);
-    sprintf(title, "デジモンカード［%s］　%s：%s　%s", file, hours, minutes, D_8007EDBC[profile->area]);
+    sprintf(title, "デジモンカード［%s］　%s：%s　%s", file, hours, minutes, AREA_NAMES[profile->area]);
     header->magic[0] = 'S';
     header->magic[1] = 'C';
     header->type = 0x13;
@@ -335,7 +335,7 @@ void func_800476D4(u8 player) {
 }
 
 /* Uploads the TIMs of a file */
-void func_80047AD8(char *path) {
+void uploadTimFile(char *path) {
     u32 *tims;
 
     spawnTask(0, -1, 0, 0x800, loadFile, path, getCurrentTaskId());
@@ -344,30 +344,30 @@ void func_80047AD8(char *path) {
     freeHeapBlock(tims);
 }
 
-void func_80047B44(void) {
+void ignoreMemcardWindowClose(void) {
 }
 
-void func_80047B4C(void) {
+void drawNothingInMemcardScreen(void) {
 }
 
-void func_80047B54(void) {
+void doNothingInMemcardScreen(void) {
 }
 
 /* draws the message */
-void func_80047B5C(UiWindow *window) {
+void drawMemcardMessage(UiWindow *window) {
     char text[0xA0];
     s16 x;
     s16 y;
 
-    x = D_8007ED7C.to.x + 15;
-    y = D_8007ED7C.to.y + 5;
-    sprintf(text, D_8007EDF8[D_801E4A08.message]);
+    x = MEMCARD_MESSAGE_WINDOW.to.x + 15;
+    y = MEMCARD_MESSAGE_WINDOW.to.y + 5;
+    sprintf(text, MEMCARD_MESSAGES[MEMCARD_SCREEN.message]);
     drawIconText(x, y, 7, 0, window->z, (s32)text);
 }
 
 /* draws a file's preview: the player, the wins, the play time and the area,
    or "new file" */
-void func_80047C04(UiWindow *window) {
+void drawSavePreview(UiWindow *window) {
     char lines[4][0x2E];
     char trade[0x20];
     u8 wins[0x10];
@@ -383,9 +383,9 @@ void func_80047C04(UiWindow *window) {
     u16 i;
     u8 count;
 
-    x = D_8007ED7C.to.x + 15;
-    y = D_8007ED7C.to.y + 5;
-    screen = &D_801E4A08;
+    x = MEMCARD_MESSAGE_WINDOW.to.x + 15;
+    y = MEMCARD_MESSAGE_WINDOW.to.y + 5;
+    screen = &MEMCARD_SCREEN;
     if (screen->mode != 0) {
         count = 0;
         for (i = 0; i < 3; i++) {
@@ -421,7 +421,7 @@ void func_80047C04(UiWindow *window) {
     sprintf(lines[0], "プレイヤー：%s", preview->name);
     sprintf(lines[1], "戦績　　　：%s勝%s敗", wins, losses);
     sprintf(lines[2], "タイム　　：%s時間%s分", hours, minutes);
-    sprintf(lines[3], "現在位置　：%s", D_8007EDBC[preview->area]);
+    sprintf(lines[3], "現在位置　：%s", AREA_NAMES[preview->area]);
     drawIconText(x, y, 7, 0, window->z, (s32)lines[0]);
     drawIconText(x + 0xB4, y, 7, 0, window->z, (s32)trade);
     y += 14;
@@ -433,7 +433,7 @@ void func_80047C04(UiWindow *window) {
 }
 
 /* draws the message with the card slot (both players' in versus mode) */
-void func_80047F9C(UiWindow *window) {
+void drawMemcardSlotMessage(UiWindow *window) {
     char text[0xB8];
     u8 slot1[0x10];
     u8 slot2[0x10];
@@ -442,43 +442,43 @@ void func_80047F9C(UiWindow *window) {
     MemcardScreen *screen;
     SessionData *session;
 
-    x = D_8007ED7C.to.x + 15;
-    y = D_8007ED7C.to.y + 5;
-    screen = &D_801E4A08;
+    x = MEMCARD_MESSAGE_WINDOW.to.x + 15;
+    y = MEMCARD_MESSAGE_WINDOW.to.y + 5;
+    screen = &MEMCARD_SCREEN;
     session = (SessionData *)SESSION_DATA;
     if (screen->mode == 7) {
         formatSjisNumber(session->saves[0].port + 1, 1, slot1);
         formatSjisNumber(session->saves[1].port + 1, 1, slot2);
         sprintf(text, "h2１Ｐ：メモリーカードスロット%sと\n２Ｐ：メモリーカードスロット%sの\n%s", slot1, slot2,
-                D_8007EDF8[screen->message]);
+                MEMCARD_MESSAGES[screen->message]);
         drawIconText(x, y, 7, 0, window->z, (s32)text);
     } else {
         formatSjisNumber(session->saves[0].port + 1, 1, slot1);
-        sprintf(text, "h2メモリーカードスロット%sの\n%s", slot1, D_8007EDF8[D_801E4A08.message]);
+        sprintf(text, "h2メモリーカードスロット%sの\n%s", slot1, MEMCARD_MESSAGES[MEMCARD_SCREEN.message]);
         drawIconText(x, y, 7, 0, window->z, (s32)text);
     }
 }
 
 /* draws the card slot's window */
-void func_80048124(UiWindow *window) {
+void drawMemcardSlotWindow(UiWindow *window) {
     char text[0x30];
     u8 slot[0x10];
     s16 x;
     s16 y;
 
-    x = D_8007ED9C.to.x + 4;
-    y = D_8007ED9C.to.y + 2;
-    formatSjisNumber(D_801E4A00.port + 1, 1, slot);
+    x = MEMCARD_SLOT_WINDOW.to.x + 4;
+    y = MEMCARD_SLOT_WINDOW.to.y + 2;
+    formatSjisNumber(MEMCARD_SLOT.port + 1, 1, slot);
     sprintf(text, "メモリーカードスロット%s", slot);
     drawIconText(x, y, 7, 0, window->z, (s32)text);
 }
 
 /* draws whose card with the current data is missing */
-void func_800481DC(UiWindow *window) {
+void drawMissingCardMessage(UiWindow *window) {
     char text[0xB8];
-    s16 x = D_8007ED7C.to.x + 15;
-    s16 y = D_8007ED7C.to.y + 5;
-    u8 *missing = &D_801E4A08.missingPlayers;
+    s16 x = MEMCARD_MESSAGE_WINDOW.to.x + 15;
+    s16 y = MEMCARD_MESSAGE_WINDOW.to.y + 5;
+    u8 *missing = &MEMCARD_SCREEN.missingPlayers;
     char *players[3] = { "１Ｐ", "２Ｐ", "１Ｐと２Ｐ" };
 
     sprintf(text, "h2メモリーカードスロットに\n%sの現在のゲームデータが入った\nメモリーカードが差さっていません！",
@@ -487,7 +487,7 @@ void func_800481DC(UiWindow *window) {
 }
 
 /* Fills a save header: its title and a TIM's icon */
-void func_800482A8(u8 *header, char *title, u8 *tim, u8 blocks) {
+void fillSaveHeader(u8 *header, char *title, u8 *tim, u8 blocks) {
     McSaveHeader *h;
     McIconClut *clut;
     McIconImage *image;
@@ -512,7 +512,7 @@ void func_800482A8(u8 *header, char *title, u8 *tim, u8 blocks) {
 }
 
 /* the file names of the three files */
-void func_80048454(s32 file, char *name) {
+void getSaveFileName(s32 file, char *name) {
     switch (file) {
     case 1:
         strcpy(name, "BISLPS-02506_A");
@@ -527,7 +527,7 @@ void func_80048454(s32 file, char *name) {
 }
 
 /* Puts the profile to save in the buffer */
-void func_8004858C(MemcardScreen *screen) {
+void prepareSaveData(MemcardScreen *screen) {
     PlayerProfile *profiles;
     PlayerProfile *buffer;
     SessionData *session;
@@ -537,8 +537,8 @@ void func_8004858C(MemcardScreen *screen) {
     session = (SessionData *)SESSION_DATA;
     if (screen->mode == 0) {
         profiles[0].unk28_13 = screen->hasOldSave;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = profiles[0].playTime;
         *buffer = profiles[0];
     } else if (screen->mode == 1) {
@@ -548,15 +548,15 @@ void func_8004858C(MemcardScreen *screen) {
             profiles[0].saveCount++;
         }
         screen->saved = 1;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = profiles[0].playTime;
         *buffer = profiles[0];
     } else if (screen->mode == 3) {
         *buffer = profiles[0];
     } else if (screen->mode == 4) {
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = profiles[0].playTime;
         *buffer = profiles[0];
     } else if (screen->mode == 5) {
@@ -571,15 +571,15 @@ void func_8004858C(MemcardScreen *screen) {
         *buffer = profiles[1];
     } else if (screen->mode == 9) {
         screen->saved = 1;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = profiles[0].playTime;
         *buffer = profiles[0];
     }
 }
 
 /* Takes the loaded profile */
-s32 func_80048A88(MemcardScreen *screen) {
+s32 applyLoadedSave(MemcardScreen *screen) {
     PlayerProfile *buffer;
     SessionData *session;
 
@@ -590,8 +590,8 @@ s32 func_80048A88(MemcardScreen *screen) {
         screen->scrollMode = 1;
     } else if (screen->mode == 1) {
         PLAYER_DATA(0) = *buffer;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = buffer->playTime;
         uploadTimList(findPakChunk(SCROLLING_BACKGROUND->pak, 5, 6));
         if (!PLAYER_DATA(0).unk28_9) {
@@ -602,30 +602,30 @@ s32 func_80048A88(MemcardScreen *screen) {
     } else if (screen->mode == 2) {
     } else if (screen->mode == 3) {
         PLAYER_DATA(0) = *buffer;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = buffer->playTime;
     } else if (screen->mode == 4) {
     } else if (screen->mode == 5) {
         PLAYER_DATA(0) = *buffer;
-        session->saves[0].port = D_801E4A00.port;
-        session->saves[0].file = D_801E4A00.file;
+        session->saves[0].port = MEMCARD_SLOT.port;
+        session->saves[0].file = MEMCARD_SLOT.file;
         session->saves[0].playTime = buffer->playTime;
     } else if (screen->mode == 6) {
         PLAYER_DATA(1) = *buffer;
-        session->saves[1].port = D_801E4A00.port;
-        session->saves[1].file = D_801E4A00.file;
+        session->saves[1].port = MEMCARD_SLOT.port;
+        session->saves[1].file = MEMCARD_SLOT.file;
         session->saves[1].playTime = buffer->playTime;
         session->versusWins[1] = 0;
         session->versusWins[0] = 0;
-        D_801E4CC4 = 0;
-        spawnTask(0, -1, 0, 0x800, func_8004B8EC, 0, 0, 0, 0);
-        while (D_801E4CC4 == 0) {
+        NAME_GLYPHS_UPLOADED = 0;
+        spawnTask(0, -1, 0, 0x800, uploadPlayer1NameGlyphs, 0, 0, 0, 0);
+        while (NAME_GLYPHS_UPLOADED == 0) {
             waitFrames(FRAME_INTERVAL);
         }
-        D_801E4CC4 = 0;
-        spawnTask(0, -1, 0, 0x800, func_8004B978, 0, 0, 0, 0);
-        while (D_801E4CC4 == 0) {
+        NAME_GLYPHS_UPLOADED = 0;
+        spawnTask(0, -1, 0, 0x800, uploadPlayer2NameGlyphs, 0, 0, 0, 0);
+        while (NAME_GLYPHS_UPLOADED == 0) {
             waitFrames(FRAME_INTERVAL);
         }
     } else if (screen->mode == 7) {
@@ -641,12 +641,12 @@ s32 func_80048A88(MemcardScreen *screen) {
 
 /* the title screen's debug menu (L1 at the title): the memory card screen or
    INTSEG */
-void func_80048EFC(void) {
+void runNewLoadMenu(void) {
     ChoiceMenu menu;
 
     openChoiceMenu(&menu, 0x36, 0x32, func_801F117C, 0);
-    addChoiceMenuItem(&menu, 5, func_80047B54);
-    addChoiceMenuItem(&menu, 4, func_80047B54);
+    addChoiceMenuItem(&menu, 5, doNothingInMemcardScreen);
+    addChoiceMenuItem(&menu, 4, doNothingInMemcardScreen);
     while (1) {
         waitFrames(FRAME_INTERVAL);
         if (runChoiceMenu(&menu) == 0) {
@@ -657,9 +657,9 @@ void func_80048EFC(void) {
         }
         switch (menu.choice) {
         case 0:
-            D_801E4A08.step = 3;
-            D_801E4A08.mode = 1;
-            func_800492A0();
+            MEMCARD_SCREEN.step = 3;
+            MEMCARD_SCREEN.mode = 1;
+            openMemcardScreen();
             break;
         case 1:
             SCROLLING_BACKGROUND->state = 3;
@@ -677,102 +677,102 @@ void func_80048EFC(void) {
 }
 
 /* the screen at the start of the game (mode 0) */
-void func_800490B4(void) {
-    D_801E4A08.step = 3;
-    D_801E4A08.mode = 0;
+void openMemcardScreenForNewGame(void) {
+    MEMCARD_SCREEN.step = 3;
+    MEMCARD_SCREEN.mode = 0;
     loadScrollingBackground(0xE, 2);
     showScrollingBackground();
     setScreenFadeParams(1, 2, 0x10);
-    func_800492A0();
+    openMemcardScreen();
 }
 
 /* saving from the world map (mode 2) */
-void func_8004910C(void) {
-    D_801E4A08.saved = 0;
+void openMemcardScreenForWorldMap(void) {
+    MEMCARD_SCREEN.saved = 0;
     if (((SessionData *)SESSION_DATA)->noMemoryCard != 1) {
-        D_801E4A08.step = 0x2A;
+        MEMCARD_SCREEN.step = 0x2A;
     } else {
-        D_801E4A08.step = 0x16;
+        MEMCARD_SCREEN.step = 0x16;
     }
-    D_801E4A08.mode = 2;
-    func_800492A0();
+    MEMCARD_SCREEN.mode = 2;
+    openMemcardScreen();
 }
 
-void func_80049170(void) {
-    D_801E4A08.step = 3;
-    D_801E4A08.mode = 3;
-    func_800492A0();
+void openMemcardScreenToEditDecks(void) {
+    MEMCARD_SCREEN.step = 3;
+    MEMCARD_SCREEN.mode = 3;
+    openMemcardScreen();
 }
 
 /* from the deck editor (mode 4) */
-void func_800491A0(void) {
-    D_801E4A08.step = 0x2A;
-    D_801E4A08.mode = 4;
-    func_800492A0();
+void openMemcardScreenAfterDeckEdit(void) {
+    MEMCARD_SCREEN.step = 0x2A;
+    MEMCARD_SCREEN.mode = 4;
+    openMemcardScreen();
 }
 
-void func_800491D4(void) {
-    D_801E4A08.step = 3;
-    D_801E4A08.mode = 5;
-    func_800492A0();
+void openMemcardScreenForVersus(void) {
+    MEMCARD_SCREEN.step = 3;
+    MEMCARD_SCREEN.mode = 5;
+    openMemcardScreen();
 }
 
 /* after a versus duel (mode 7) */
-void func_80049208(void) {
-    D_801E4A08.step = 0x2A;
-    D_801E4A08.mode = 7;
-    func_800492A0();
+void openMemcardScreenAfterVersus(void) {
+    MEMCARD_SCREEN.step = 0x2A;
+    MEMCARD_SCREEN.mode = 7;
+    openMemcardScreen();
 }
 
 /* before going back to the title (mode 9) */
-void func_8004923C(void) {
-    D_801E4A08.saved = 0;
+void openMemcardScreenBeforeTitle(void) {
+    MEMCARD_SCREEN.saved = 0;
     if (((SessionData *)SESSION_DATA)->noMemoryCard != 1) {
-        D_801E4A08.step = 0x2A;
+        MEMCARD_SCREEN.step = 0x2A;
     } else {
-        D_801E4A08.step = 0x16;
+        MEMCARD_SCREEN.step = 0x16;
     }
-    D_801E4A08.mode = 9;
-    func_800492A0();
+    MEMCARD_SCREEN.mode = 9;
+    openMemcardScreen();
 }
 
 /* Opens the screen: its two windows and its two tasks */
-void func_800492A0(void) {
+void openMemcardScreen(void) {
     openKanjiPage(0xF, 0x1B9);
-    D_801E4A08.buffer = allocHeapBlock(0x2000, 0x25A);
+    MEMCARD_SCREEN.buffer = allocHeapBlock(0x2000, 0x25A);
     if (D_8008CD50 == 0) {
         allocPrimDescPackets(0x40);
     }
     playMusic(0, 4, 0x7F);
-    spawnTask(0, -1, 0, 0x800, runWindowTask, &D_8007ED7C, getCurrentTaskId(), 0, 0);
-    D_801E49D8[0] = (WindowTaskHead *)waitFrames(0x7FFFFFFF);
-    spawnTask(0, -1, 0, 0x800, runWindowTask, &D_8007ED9C, getCurrentTaskId(), 0, 0);
-    D_801E49D8[1] = (WindowTaskHead *)waitFrames(0x7FFFFFFF);
-    D_801E49D8[1]->state = 2;
-    spawnTask(0, -1, 0, 0x1000, func_80049418, 0, 0, 0, 0);
-    spawnTask(0, -1, 4, 0x1000, func_8004A2E4, 0, 0, 0, 0);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &MEMCARD_MESSAGE_WINDOW, getCurrentTaskId(), 0, 0);
+    MEMCARD_WINDOWS[0] = (WindowTaskHead *)waitFrames(0x7FFFFFFF);
+    spawnTask(0, -1, 0, 0x800, runWindowTask, &MEMCARD_SLOT_WINDOW, getCurrentTaskId(), 0, 0);
+    MEMCARD_WINDOWS[1] = (WindowTaskHead *)waitFrames(0x7FFFFFFF);
+    MEMCARD_WINDOWS[1]->state = 2;
+    spawnTask(0, -1, 0, 0x1000, runMemcardScreen, 0, 0, 0, 0);
+    spawnTask(0, -1, 4, 0x1000, runMemcardAccess, 0, 0, 0, 0);
     exitTask();
 }
 
 /* the screen's task: each step opens its menu and its message, and the step's
    handler runs the menu; the progress bars of the saves and loads */
-/* GCC's loop.c doesn't hoist D_801E4A00's address out of its loop, which the original's does; no C form found yet */
+/* GCC's loop.c doesn't hoist MEMCARD_SLOT's address out of its loop, which the original's does; no C form found yet */
 INCLUDE_RODATA("main/nonmatchings/system/memcard_screen", D_80011D2C);
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", func_80049418);
+INCLUDE_ASM("main/nonmatchings/system/memcard_screen", runMemcardScreen);
 
 /* the screen's other task: the memory card's work for the steps */
 /* its loop keeps the step 14 in a register; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", func_8004A2E4);
+INCLUDE_ASM("main/nonmatchings/system/memcard_screen", runMemcardAccess);
 
 /* Reads file's preview (1 to 3), trying five times: 0 when it is there */
-s32 func_8004A744(u8 file, MemcardScreen *screen) {
+s32 readSavePreview(u8 file, MemcardScreen *screen) {
     s16 tries;
     u8 i;
 
     i = file - 1;
     screen->fileStatus[i] = 1;
     for (tries = 0; tries < 5; tries++) {
-        if ((screen->fileStatus[i] = readMemoryCardSavePreview(D_801E4A00.port, screen->buffer + i * 0x80,
+        if ((screen->fileStatus[i] = readMemoryCardSavePreview(MEMCARD_SLOT.port, screen->buffer + i * 0x80,
                                                                (s32)screen->fileNames[i])) == 0) {
             return 0;
         }
@@ -782,14 +782,14 @@ s32 func_8004A744(u8 file, MemcardScreen *screen) {
 }
 
 /* the card's free blocks */
-s16 func_8004A834(void) {
-    return 15 - MEMORY_CARD_DIRECTORIES[D_801E4A00.port]->blocks;
+s16 countFreeBlocks(void) {
+    return 15 - MEMORY_CARD_DIRECTORIES[MEMCARD_SLOT.port]->blocks;
 }
 
 /* Writes the save: 0 when it is done, -1 when it failed */
-s16 func_8004A870(void) {
+s16 waitMemoryCardSave(void) {
     do {
-        if ((D_801E4CC0 = stepMemoryCardSave()) == -1) {
+        if ((MEMCARD_PROGRESS = stepMemoryCardSave()) == -1) {
             return -1;
         }
     } while (MEMORY_CARD_SECTORS_DONE != MEMORY_CARD_SECTORS_TOTAL);
@@ -797,10 +797,10 @@ s16 func_8004A870(void) {
 }
 
 /* Reads the save: 0 when it is done, -1 when it failed */
-s16 func_8004A8E4(void) {
+s16 waitMemoryCardLoad(void) {
     do {
         waitFrames(FRAME_INTERVAL);
-        if ((D_801E4CC0 = stepMemoryCardLoad()) == -1) {
+        if ((MEMCARD_PROGRESS = stepMemoryCardLoad()) == -1) {
             return -1;
         }
     } while (MEMORY_CARD_SECTORS_DONE != MEMORY_CARD_SECTORS_TOTAL);
@@ -808,9 +808,9 @@ s16 func_8004A8E4(void) {
 }
 
 /* Closes the screen and goes on to the menu's task */
-void func_8004A970(MemcardScreen *screen) {
-    D_801E49D8[0]->state = 4;
-    D_801E49D8[1]->state = 4;
+void closeMemcardScreen(MemcardScreen *screen) {
+    MEMCARD_WINDOWS[0]->state = 4;
+    MEMCARD_WINDOWS[1]->state = 4;
     waitFrames(30);
     closeKanjiPage(0xF);
     freeHeapBlocksByTag(0x25A);
@@ -824,20 +824,20 @@ void func_8004A970(MemcardScreen *screen) {
    bothPorts): 1 when it is still there, the same profile at the same play
    time */
 /* its registers for found, playTime and the profile are allocated in another order; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", func_8004A9E8);
+INCLUDE_ASM("main/nonmatchings/system/memcard_screen", checkSaveIsCurrent);
 
 /* Finds both players' saves: which are missing (1: 1P, 2: 2P, 3: both) */
-s16 func_8004AC5C(void) {
+s16 findMissingSaves(void) {
     s16 missing;
     s16 i;
 
     missing = 0;
     for (i = 0; i < 2; i++) {
-        if (func_8004A9E8(i, 1) == 0) {
+        if (checkSaveIsCurrent(i, 1) == 0) {
             missing += i + 1;
         } else {
-            ((SessionData *)SESSION_DATA)->saves[i].port = D_801E4A00.port;
-            ((SessionData *)SESSION_DATA)->saves[i].file = D_801E4A00.file;
+            ((SessionData *)SESSION_DATA)->saves[i].port = MEMCARD_SLOT.port;
+            ((SessionData *)SESSION_DATA)->saves[i].file = MEMCARD_SLOT.file;
         }
     }
     return missing;
@@ -846,31 +846,31 @@ s16 func_8004AC5C(void) {
 /* Saves both players' profiles after a versus duel: 0 when done, else the
    player whose save failed (1 or 2) */
 /* two temporaries swap registers in its first statement; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", func_8004AD28);
+INCLUDE_ASM("main/nonmatchings/system/memcard_screen", saveBothProfiles);
 
 /* step 4: the first menu (slot 1, slot 2, or no card at the start) */
-void func_8004AE78(MemcardScreen *screen) {
+void selectMemcardSlot(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->scrollMode = 2;
-            func_8004A970(screen);
+            closeMemcardScreen(screen);
         }
         switch (screen->menu.choice) {
         case 0:
-            D_801E49D8[1]->state = 1;
-            D_801E4A00.port = 0;
+            MEMCARD_WINDOWS[1]->state = 1;
+            MEMCARD_SLOT.port = 0;
             screen->step = 14;
             ((SessionData *)SESSION_DATA)->noMemoryCard = 0;
             break;
         case 1:
-            D_801E49D8[1]->state = 1;
-            D_801E4A00.port = 1;
+            MEMCARD_WINDOWS[1]->state = 1;
+            MEMCARD_SLOT.port = 1;
             screen->step = 14;
             ((SessionData *)SESSION_DATA)->noMemoryCard = 0;
             break;
         case 2:
-            D_801E4A00.port = 0;
-            D_801E4A00.file = 0;
+            MEMCARD_SLOT.port = 0;
+            MEMCARD_SLOT.file = 0;
             screen->step = 1;
             ((SessionData *)SESSION_DATA)->noMemoryCard = 1;
             break;
@@ -880,7 +880,7 @@ void func_8004AE78(MemcardScreen *screen) {
 }
 
 /* step 8: no card */
-void func_8004AF6C(MemcardScreen *screen) {
+void runNoCardPrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             if (screen->mode == 2 || screen->mode == 4 || screen->mode == 7 || screen->mode == 9) {
@@ -900,7 +900,7 @@ void func_8004AF6C(MemcardScreen *screen) {
 }
 
 /* step 10: format the card? */
-void func_8004B01C(MemcardScreen *screen) {
+void confirmFormat(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->step = 3;
@@ -919,7 +919,7 @@ void func_8004B01C(MemcardScreen *screen) {
 }
 
 /* step 21: make a new file? */
-void func_8004B084(MemcardScreen *screen) {
+void confirmNewFile(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->step = 5;
@@ -938,7 +938,7 @@ void func_8004B084(MemcardScreen *screen) {
 }
 
 /* step 6: the file list */
-void func_8004B0EC(MemcardScreen *screen) {
+void selectSaveFile(MemcardScreen *screen) {
     s16 file;
     u8 count;
 
@@ -956,7 +956,7 @@ void func_8004B0EC(MemcardScreen *screen) {
                         if (screen->fileStatus[file] == 0) {
                             count++;
                             if (screen->menu.choice + 1 == count) {
-                                D_801E4A00.file = file;
+                                MEMCARD_SLOT.file = file;
                                 break;
                             }
                         }
@@ -972,7 +972,7 @@ void func_8004B0EC(MemcardScreen *screen) {
                             screen->step = 0x18;
                         }
                     } else if (screen->mode == 0) {
-                        if (func_8004A834() == 0) {
+                        if (countFreeBlocks() == 0) {
                             screen->step = 0x10;
                         } else {
                             screen->step = 0x14;
@@ -980,7 +980,7 @@ void func_8004B0EC(MemcardScreen *screen) {
                     } else if (screen->mode == 1 || screen->mode == 3 || screen->mode == 5 || screen->mode == 6) {
                         screen->step = 0x1F;
                     }
-                    D_801E4A00.file = screen->menu.choice;
+                    MEMCARD_SLOT.file = screen->menu.choice;
                 }
                 break;
             }
@@ -990,7 +990,7 @@ void func_8004B0EC(MemcardScreen *screen) {
 }
 
 /* step 17: no free block */
-void func_8004B2C0(MemcardScreen *screen) {
+void runNoFreeBlockPrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0 || screen->menu.choice == 0) {
             screen->step = 3;
@@ -1000,7 +1000,7 @@ void func_8004B2C0(MemcardScreen *screen) {
 }
 
 /* step 25: overwrite or load this file? */
-void func_8004B314(MemcardScreen *screen) {
+void confirmOverwriteOrLoad(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->step = 5;
@@ -1023,17 +1023,17 @@ void func_8004B314(MemcardScreen *screen) {
 }
 
 /* step 23: done; go on, or back to the title */
-void func_8004B3BC(MemcardScreen *screen) {
+void runDonePrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         switch (screen->menu.choice) {
         case 0:
             if (screen->mode == 5) {
-                func_80048A88(screen);
+                applyLoadedSave(screen);
                 screen->mode = 6;
                 screen->step = 3;
             } else {
-                func_80048A88(screen);
-                func_8004A970(screen);
+                applyLoadedSave(screen);
+                closeMemcardScreen(screen);
             }
             break;
         case 1:
@@ -1042,8 +1042,8 @@ void func_8004B3BC(MemcardScreen *screen) {
             waitFrames(0x7FFFFFFF);
             waitFrames(2);
             SCROLLING_BACKGROUND->state = 3;
-            D_801E49D8[0]->state = 4;
-            D_801E49D8[1]->state = 4;
+            MEMCARD_WINDOWS[0]->state = 4;
+            MEMCARD_WINDOWS[1]->state = 4;
             waitFrames(0x1B);
             spawnTask(0, -1, 0, 0x200, screenFadeTask, 0, 2, 8, 0);
             waitFrames(0x21);
@@ -1062,14 +1062,14 @@ void func_8004B3BC(MemcardScreen *screen) {
 }
 
 /* step 2: start without a card? */
-void func_8004B568(MemcardScreen *screen) {
+void confirmPlayWithoutCard(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->step = 3;
         } else {
             switch (screen->menu.choice) {
             case 0:
-                func_8004858C(screen);
+                prepareSaveData(screen);
                 screen->step = 0x16;
                 break;
             case 1:
@@ -1092,7 +1092,7 @@ void func_8004B5D8(MemcardScreen *screen) {
 }
 
 /* step 32: no save on the card */
-void func_8004B62C(MemcardScreen *screen) {
+void runNoSavePrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0 || screen->menu.choice == 0) {
             screen->step = 3;
@@ -1102,27 +1102,27 @@ void func_8004B62C(MemcardScreen *screen) {
 }
 
 /* step 43: save? */
-void func_8004B680(MemcardScreen *screen) {
+void confirmSave(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             if (screen->mode == 7) {
                 screen->scrollMode = 4;
             }
-            func_8004A970(screen);
+            closeMemcardScreen(screen);
         } else {
             switch (screen->menu.choice) {
             case 0:
-                if (D_801E4A08.message != 0x25) {
+                if (MEMCARD_SCREEN.message != 0x25) {
                     screen->step = 0x2C;
                 } else {
-                    func_8004A970(screen);
+                    closeMemcardScreen(screen);
                 }
                 break;
             case 1:
                 if (screen->mode == 2 || screen->mode == 9) {
                     screen->step = 0x16;
                 } else {
-                    func_8004A970(screen);
+                    closeMemcardScreen(screen);
                 }
                 break;
             }
@@ -1132,7 +1132,7 @@ void func_8004B680(MemcardScreen *screen) {
 }
 
 /* step 47: the card with the current data is missing */
-void func_8004B740(MemcardScreen *screen) {
+void runMissingCardPrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0 || screen->menu.choice == 0) {
             screen->step = 0x2A;
@@ -1142,7 +1142,7 @@ void func_8004B740(MemcardScreen *screen) {
 }
 
 /* step 37: the save or the load failed */
-void func_8004B794(MemcardScreen *screen) {
+void runFailurePrompt(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.choice == 0) {
             if (screen->mode == 0) {
@@ -1172,7 +1172,7 @@ void func_8004B830(MemcardScreen *screen) {
 }
 
 /* step 49: load player 2's data? */
-void func_8004B884(MemcardScreen *screen) {
+void confirmPlayer2Load(MemcardScreen *screen) {
     if (runChoiceMenu(&screen->menu) != 0) {
         if (screen->menu.result < 0) {
             screen->step = 0x2A;
@@ -1191,25 +1191,25 @@ void func_8004B884(MemcardScreen *screen) {
 }
 
 /* uploads player 1's name glyphs */
-void func_8004B8EC(void) {
-    strcpy(D_801E4CC8, PLAYER_DATA(0).name);
-    D_801E4CC4 = 0;
-    spawnTask(0, -1, 0, 0x800, uploadStringGlyphs, D_801E4CC8, 0, getCurrentTaskId(), 0);
+void uploadPlayer1NameGlyphs(void) {
+    strcpy(NAME_GLYPHS_TEXT, PLAYER_DATA(0).name);
+    NAME_GLYPHS_UPLOADED = 0;
+    spawnTask(0, -1, 0, 0x800, uploadStringGlyphs, NAME_GLYPHS_TEXT, 0, getCurrentTaskId(), 0);
     waitFrames(0x7FFFFFFF);
-    D_801E4CC4 = 1;
+    NAME_GLYPHS_UPLOADED = 1;
 }
 
 /* uploads player 2's name glyphs */
-void func_8004B978(void) {
-    strcpy(D_801E4CC8, PLAYER_DATA(1).name);
-    D_801E4CC4 = 0;
-    spawnTask(0, -1, 0, 0x800, uploadStringGlyphs, D_801E4CC8, 1, getCurrentTaskId(), 0);
+void uploadPlayer2NameGlyphs(void) {
+    strcpy(NAME_GLYPHS_TEXT, PLAYER_DATA(1).name);
+    NAME_GLYPHS_UPLOADED = 0;
+    spawnTask(0, -1, 0, 0x800, uploadStringGlyphs, NAME_GLYPHS_TEXT, 1, getCurrentTaskId(), 0);
     waitFrames(0x7FFFFFFF);
-    D_801E4CC4 = 1;
+    NAME_GLYPHS_UPLOADED = 1;
 }
 
 /* Looks for a Digimon World save (BISLPS-01797DMR0 to E): 1 when there is one */
-u8 func_8004BA08(void) {
+u8 hasDigimonWorldSave(void) {
     char name[0x20];
     u8 preview[0x88];
     s16 i;
@@ -1219,7 +1219,7 @@ u8 func_8004BA08(void) {
     for (i = 0; i < 15; i++) {
         sprintf(name, "BISLPS-01797DMR%X", i);
         for (tries = 0; tries < 3; tries++) {
-            if (readMemoryCardSavePreview(D_801E4A00.port, preview, (s32)name) == 0) {
+            if (readMemoryCardSavePreview(MEMCARD_SLOT.port, preview, (s32)name) == 0) {
                 return 1;
             }
         }
