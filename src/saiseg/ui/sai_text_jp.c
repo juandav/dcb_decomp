@@ -35,8 +35,8 @@ extern MsgBox SAI_MESSAGE_BOX;
 extern TypedLine SAI_TYPED_LINES[4];
 
 void func_8006689C(char *, char *, s32);
-char *func_80025004(s32, s32, char *);
-u32 func_80024D1C(u8 *, Rect16 *);
+char *formatSjisNumber(s32, s32, char *);
+u32 uploadKanjiString(u8 *, Rect16 *);
 
 MsgLine *SAI_allocTextLine(MsgBox *box);
 s32 SAI_isLetter(s8 c);

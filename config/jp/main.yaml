@@ -68,7 +68,7 @@ segments:
       - [0x8DC, .rodata, model/model_load]
       - [0x900, .rodata, model/scene3d]
       - [0x984, .rodata, model/camera]
-      - [0x9B4, rodata, ui/text]
+      - [0x9B4, .rodata, ui/text_jp]
       - [0x9D8, .rodata, ui/str_util]
       - [0xA0C, .rodata, system/sound]
       - [0xA2C, .rodata, system/opening_movie]
@@ -132,7 +132,7 @@ segments:
       - [0x1146C, c, model/wire_grid]
       - [0x11C28, c, model/camera]
       - [0x12778, asm, libmath]
-      - [0x13DCC, asm, ui/text]
+      - [0x13DCC, c, ui/text_jp]
       - [0x17C80, c, ui/str_util]
       - [0x188D0, c, system/sound]
       - [0x18EF0, c, system/opening_movie]
@@ -180,7 +180,7 @@ segments:
       - [0x5BFB4, .data, gfx/prim_util]
       - [0x5C020, .data, gfx/tmd_sort]
       - [0x5C040, .data, model/wire_grid]
-      - [0x5C054, data, ui/text]
+      - [0x5C054, data, ui/text_jp]
       - [0x6EDA0, .data, system/sound]
       # PLAYER_PROFILES and COMPLETE_SET_CARD_COUNTS (us has them in
       # memcard), then duel_launch's and effect_object's tables

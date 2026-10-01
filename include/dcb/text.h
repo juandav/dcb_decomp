@@ -13,10 +13,8 @@ extern u8 FONT_GLYPH_METRICS[];
 
 s32 isSpritePoolFull(void);
 void resetSpritePool(void);
-void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize);
 void drawSmallText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 void drawVerticalText(s32 x, s32 y, s32 text, s32 palette, s32 z);
-s32 measureText(u8 *);
 void drawText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 void initSpritePoolPackets(void);
 void drawPageSpriteColored(s32 x, s32 y, Rect16 *uvRect, u8 *rgb, u16 tpage, s32 palette, s32 z);
@@ -35,10 +33,21 @@ void drawMediumTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 void drawMediumText(s32 x, s32 y, s32 text, s32 palette, s32 z);
 void drawLargeTextColored(s32 x, s32 y, u8 *text, s32 palette, u8 *rgb, s32 z);
 void drawLargeText(s32 x, s32 y, s32 text, s32 palette, s32 z);
-s32 drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
 void drawIcon(s32 x, s32 y, s32 iconSet, s32 icon, s32 z);
 s32 drawIconTextColored(s32 x, s32 y, s32 palette, s32 unused, u8 *rgb, s32 z, u8 *text);
 void drawIconText(s32 x, s32 y, s32 palette, s32 unused, s32 z, s32 text);
+#if VERSION_JP
+void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize, s32 kanjiBuffers);
+s32 measureText(s32 proportional, u8 *text);
+void drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
+void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 z);
+#elif VERSION_US || VERSION_EU
+void initSystemSprites(s32 vramX, s32 vramY, s32 poolSize);
+s32 measureText(u8 *);
+s32 drawTextColored(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
 void drawBigDigits(s32 x, s32 y, u8 *text, u8 *rgb, s32 palette, s32 z);
+#else
+#error "main/ui/text: version not checked"
+#endif
 
 #endif /* DCB_TEXT_H */
