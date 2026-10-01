@@ -360,7 +360,11 @@ typedef struct {
 } ClutFade;
 
 typedef struct {
+#if VERSION_JP
+    u8 unk0[0x13D]; /* jp's EffectObject: the fields below are 4 bytes further */
+#elif VERSION_US || VERSION_EU
     u8 unk0[0x139];
+#endif
     u8 suspended;
     u8 unk13A[2];
     ModelData *model;
@@ -371,7 +375,9 @@ typedef struct {
     u8 flags;
     s8 texAnimActive;
     s8 active;
+#if VERSION_US || VERSION_EU
     s32 clutBank; /* 0 takes the model's CLUT (and .tam texture) from the lower row */
+#endif
 } ModelEffect;
 
 typedef struct {
