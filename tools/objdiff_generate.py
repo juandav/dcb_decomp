@@ -258,6 +258,13 @@ def relocate_by_section(path: str, section: str) -> None:
     (ROOT / path).write_bytes(blob)
 
 
+def unit_name(module: str) -> str:
+    """The report's name for MODULE: a module one version builds from its
+    own copy (src/<binary>/<module>_jp.c, CONTRIBUTING.md) is the same unit
+    as the shared file's in the other versions."""
+    return re.sub(r"_(us|jp|eu)$", "", module)
+
+
 def unit(module: str, data: list) -> dict:
     """The objdiff unit of MODULE, with the data objects DATA in its target."""
     target = f"{EXPECTED}/asm/{module}.s.o"
@@ -276,7 +283,7 @@ def unit(module: str, data: list) -> dict:
         for section in (".data", ".rodata"):
             relocate_by_section(path, section)
     return {
-        "name": module,
+        "name": unit_name(module),
         "target_path": target,
         "base_path": base,
         "metadata": {"progress_categories": ["game", "executable" if module.startswith("main/") else "overlays"],
@@ -294,7 +301,7 @@ def asm_unit(module: str, data: list) -> dict:
     link(target, [p for p in [code] if (ROOT / p).exists()]
          + data_objects(name, binary, ("rodata", "data", "bss")) + data)
     return {
-        "name": module,
+        "name": unit_name(module),
         "target_path": target,
         "metadata": {"progress_categories": ["game", "executable" if binary == "main" else "overlays"]},
     }

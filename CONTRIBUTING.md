@@ -44,7 +44,9 @@ defined, each 0 or 1; the assembly gets the same names from `--defsym`.
   builds nothing else: a new file goes in the list of every version that
   has it. A file only one version has is listed only there, and a file
   whose contents differ throughout gets one copy per version instead of an
-  `#if` around all of it.
+  `#if` around all of it: `<module>_jp.c` next to `<module>.c`, which that
+  version's config names as its segment (`effect/sug_model_effect_jp`); the
+  report counts it as the same unit (`sugseg/effect/sug_model_effect`).
 - A version that is still splat's assembly is split into us's modules by
   `tools/split_version.py <version>` (after `tools/match_versions.py
   <version>`): each module is an asm segment with its rodata and data,
