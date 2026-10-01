@@ -335,10 +335,28 @@ s32 NIS_kanaRowOf(s32 row) {
     return 7;
 }
 
-/* 1 if the name is empty or only full-width spaces. Matching it needs the
-   "return 1" of a name ending early kept apart from the one after the loop:
-   GCC merges the two, whatever the form of the loop (permuter included) */
-INCLUDE_ASM("nisseg/nonmatchings/deck/nis_deck_editor", NIS_isNameBlank);
+/* 1 if the name is empty or only full-width spaces */
+s8 NIS_isNameBlank(char *name) {
+    char *c;
+    s8 i;
+
+    if (strlen(name) == 0) {
+        return 1;
+    }
+    for (i = 0; i < 12; i += 2) {
+        c = &name[i];
+        /* a full-width space: 0x81 0x40 in Shift JIS */
+        if ((u8)c[0] == 0x81 && (u8)c[1] == 0x40) {
+            if (((s8 *)c)[2] == 0) {
+                return 1;
+            }
+        } else {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /* the deck name entry: the cursor moves over a page of kana (columns 0-9)
    and the commands (column 10: the pages, back and done). Returns 0 for
    back and 1 for done */
