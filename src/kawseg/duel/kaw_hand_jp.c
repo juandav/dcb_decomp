@@ -165,89 +165,54 @@ s8 KAW_CURSOR_NEIGHBOURS[2][9][4] = {
 
 /* the help pages on the special attacks, the last first */
 char *KAW_HELP_PAGES[4] = {
-    /* zc6      b2特殊攻撃の説明\nh-6\nzc7h0c5d3「ぼうがい」\nc7 相手の援護効果を無効化する。\n
-       オプションの効果は無効化できない。\nc5d2「先制（せんせい）」\nc7 自分が後攻なら、先攻になる。\n
-       自分が先攻なら、相手の先制を無効化する。\nc5d2「すいとる」\nc7 相手に与えたダメージと同じ数だけ、自分の\n
-       ＨＰを回復する。\nc5d1「自爆（じばく）」\nc7 自分の攻撃力は自分のＨＰと同じになり、\n
-       自分のＨＰは１０になる。\n 自分の攻撃寸前まで効果は現れない。 */
-    "zc6      b2特殊攻撃の説明\nh-6\nzc7h0c5d3「ぼうが"
-    "い」\nc7 相手の援護効果を無効化"
-    "\x82\xB7\x82\xE9\x81"
-    "B\n オプションの効果は無効化でき"
-    "\x82\xC8\x82\xA2\x81"
-    "B\nc5d2\x81u\x90\xE6\x90\xA7\x81i\x82\xB9\x82\xF1\x82\xB9\x82\xA2\x81j\x81v\nc7 \x8E\xA9\x95\xAA\x82\xAA\x8C"
-    "\xE3\x8DU\x82\xC8\x82\xE7\x81"
-    "A\x90\xE6\x8DU\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\n \x8E\xA9\x95\xAA\x82\xAA\x90\xE6\x8DU\x82\xC8\x82\xE7\x81"
-    "A\x91\x8A\x8E\xE8\x82\xCC\x90\xE6\x90\xA7\x82\xF0\x96\xB3\x8C\xF8\x89\xBB\x82\xB7\x82\xE9\x81"
-    "B\nc5d2\x81u\x82\xB7\x82\xA2\x82\xC6\x82\xE9\x81v\nc7 \x91\x8A\x8E\xE8\x82\xC9\x97^\x82\xA6\x82\xBD\x83_\x83"
-    "\x81\x81[\x83W\x82\xC6\x93\xAF\x82\xB6\x90\x94\x82\xBE\x82\xAF\x81"
-    "A\x8E\xA9\x95\xAA\x82\xCC\n \x82g\x82o\x82\xF0\x89\xF1\x95\x9C\x82\xB7\x82\xE9\x81"
-    "B\nc5d1「自爆（じばく）」\nc7 自分の攻撃"
-    "\x97\xCD\x82\xCD\x8E\xA9\x95\xAA\x82\xCC\x82g\x82o\x82\xC6\x93\xAF\x82\xB6\x82\xC9\x82\xC8\x82\xE8\x81"
-    "A\n \x8E\xA9\x95\xAA\x82\xCC\x82g\x82o\x82\xCD\x82P\x82O\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\n 自分の攻撃寸前まで効果は現れ"
-    "\x82\xC8\x82\xA2\x81"
-    "B",
-    /* c5d1「対a0×３」\nc7 相手の属性がa0なら、自分のb2攻撃力は\n ３倍になる。\n... (a1 to a4 alike) */
-    "c5d1「対"
-    "a0×３」\nc7 相手の属性が"
-    "a0\x82\xC8\x82\xE7\x81"
-    "A自分の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xCD\n \x82R\x94{\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\nc5d1「対"
-    "a1×３」\nc7 相手の属性が"
-    "a1\x82\xC8\x82\xE7\x81"
-    "A自分の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xCD\n \x82R\x94{\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\nc5d1「対"
-    "a2×３」\nc7 相手の属性が"
-    "a2\x82\xC8\x82\xE7\x81"
-    "A自分の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xCD\n \x82R\x94{\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\nc5d1「対"
-    "a3×３」\nc7 相手の属性が"
-    "a3\x82\xC8\x82\xE7\x81"
-    "A自分の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xCD\n \x82R\x94{\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B\nc5d1「対"
-    "a4×３」\nc7 相手の属性が"
-    "a4\x82\xC8\x82\xE7\x81"
-    "A自分の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xCD\n \x82R\x94{\x82\xC9\x82\xC8\x82\xE9\x81"
-    "B",
-    /* c5d1「b0カウンター」\nc7 相手の攻撃ボタンがb0なら、自分は後攻に\n なり、相手のb0攻撃はミスになり、相手の\n
-       b0攻撃力で反撃する。\n... (b1 and b2 alike) */
-    "c5d1\x81ub0\x83J\x83"
-    "Eンター」\nc7 相手の攻撃ボタンが"
-    "b0\x82\xC8\x82\xE7\x81"
-    "A\x8E\xA9\x95\xAA\x82\xCD\x8C\xE3\x8DU\x82\xC9\n \x82\xC8\x82\xE8\x81"
-    "A相手の"
-    "b0\x8DU\x8C\x82\x82\xCD\x83~\x83X\x82\xC9\x82\xC8\x82\xE8\x81"
-    "A\x91\x8A\x8E\xE8\x82\xCC\n b0\x8DU\x8C\x82\x97\xCD\x82\xC5\x94\xBD\x8C\x82\x82\xB7\x82\xE9\x81"
-    "B\nc5d1\x81ub1\x83J\x83"
-    "Eンター」\nc7 相手の攻撃ボタンが"
-    "b1\x82\xC8\x82\xE7\x81"
-    "A\x8E\xA9\x95\xAA\x82\xCD\x8C\xE3\x8DU\x82\xC9\n \x82\xC8\x82\xE8\x81"
-    "A相手の"
-    "b1\x8DU\x8C\x82\x82\xCD\x83~\x83X\x82\xC9\x82\xC8\x82\xE8\x81"
-    "A\x91\x8A\x8E\xE8\x82\xCC\n b1\x8DU\x8C\x82\x97\xCD\x82\xC5\x94\xBD\x8C\x82\x82\xB7\x82\xE9\x81"
-    "B\nc5d1\x81ub2\x83J\x83"
-    "Eンター」\nc7 相手の攻撃ボタンが"
-    "b2\x82\xC8\x82\xE7\x81"
-    "A\x8E\xA9\x95\xAA\x82\xCD\x8C\xE3\x8DU\x82\xC9\n \x82\xC8\x82\xE8\x81"
-    "A相手の"
-    "b2\x8DU\x8C\x82\x82\xCD\x83~\x83X\x82\xC9\x82\xC8\x82\xE8\x81"
-    "A\x91\x8A\x8E\xE8\x82\xCC\n b2\x8DU\x8C\x82\x97\xCD\x82\xC5\x94\xBD\x8C\x82\x82\xB7\x82\xE9\x81"
-    "B",
-    /* c5d1「b0を０に」\nc7 相手のb0攻撃力を０に変える。\n... (b1 and b2 alike) */
-    "c5d1「b0を０に」\nc7 相手の"
-    "b0\x8DU\x8C\x82\x97\xCD\x82\xF0\x82O\x82\xC9\x95\xCF\x82\xA6\x82\xE9\x81"
-    "B\nc5d1「b1を０に」\nc7 相手の"
-    "b1\x8DU\x8C\x82\x97\xCD\x82\xF0\x82O\x82\xC9\x95\xCF\x82\xA6\x82\xE9\x81"
-    "B\nc5d1「b2を０に」\nc7 相手の"
-    "b2\x8DU\x8C\x82\x97\xCD\x82\xF0\x82O\x82\xC9\x95\xCF\x82\xA6\x82\xE9\x81"
-    "B",
+    "zc6      b2特殊攻撃の説明\n"
+    "h-6\n"
+    "zc7h0c5d3「ぼうがい」\n"
+    "c7 相手の援護効果を無効化する。\n"
+    " オプションの効果は無効化できない。\n"
+    "c5d2「先制（せんせい）」\n"
+    "c7 自分が後攻なら、先攻になる。\n"
+    " 自分が先攻なら、相手の先制を無効化する。\n"
+    "c5d2「すいとる」\n"
+    "c7 相手に与えたダメージと同じ数だけ、自分の\n"
+    " ＨＰを回復する。\n"
+    "c5d1「自爆（じばく）」\n"
+    "c7 自分の攻撃力は自分のＨＰと同じになり、\n"
+    " 自分のＨＰは１０になる。\n"
+    " 自分の攻撃寸前まで効果は現れない。",
+    "c5d1「対a0×３」\n"
+    "c7 相手の属性がa0なら、自分のb2攻撃力は\n"
+    " ３倍になる。\n"
+    "c5d1「対a1×３」\n"
+    "c7 相手の属性がa1なら、自分のb2攻撃力は\n"
+    " ３倍になる。\n"
+    "c5d1「対a2×３」\n"
+    "c7 相手の属性がa2なら、自分のb2攻撃力は\n"
+    " ３倍になる。\n"
+    "c5d1「対a3×３」\n"
+    "c7 相手の属性がa3なら、自分のb2攻撃力は\n"
+    " ３倍になる。\n"
+    "c5d1「対a4×３」\n"
+    "c7 相手の属性がa4なら、自分のb2攻撃力は\n"
+    " ３倍になる。",
+    "c5d1「b0カウンター」\n"
+    "c7 相手の攻撃ボタンがb0なら、自分は後攻に\n"
+    " なり、相手のb0攻撃はミスになり、相手の\n"
+    " b0攻撃力で反撃する。\n"
+    "c5d1「b1カウンター」\n"
+    "c7 相手の攻撃ボタンがb1なら、自分は後攻に\n"
+    " なり、相手のb1攻撃はミスになり、相手の\n"
+    " b1攻撃力で反撃する。\n"
+    "c5d1「b2カウンター」\n"
+    "c7 相手の攻撃ボタンがb2なら、自分は後攻に\n"
+    " なり、相手のb2攻撃はミスになり、相手の\n"
+    " b2攻撃力で反撃する。",
+    "c5d1「b0を０に」\n"
+    "c7 相手のb0攻撃力を０に変える。\n"
+    "c5d1「b1を０に」\n"
+    "c7 相手のb1攻撃力を０に変える。\n"
+    "c5d1「b2を０に」\n"
+    "c7 相手のb2攻撃力を０に変える。",
 };
 
 s32 KAW_tickCardCursor(s32 player, s32 mode) {
@@ -366,7 +331,6 @@ void func_801F8D04(s32 x, s32 y, s32 page) {
     rect.y = y - 2;
     rect.w = 0x36;
     rect.h = 0x1C;
-    /* b0次の頁\nb2前の頁\n */
     drawIconText(x, y, 7, 1, 0, (s32) "b0次の頁\nb2前の頁\n");
     drawWindowFrame(&rect, 0, 0, 0, 0xFF, D_801FF6D8, 0);
 }
@@ -421,10 +385,8 @@ void func_801F8F68(void) {
     }
 }
 
-/* "  降参しますか？\nc7b0する  b2しない\n": the last three bytes are leftovers
-   in the original, not zero padding */
-const char KAW_STR_GIVE_UP[40] = "  降参しますか？\nc7b0する  b2"
-                                 "\x82\xB5\x82\xC8\x82\xA2\n\0\xA2\xF0\xA3";
+/* the last three bytes are leftovers in the original, not zero padding */
+const char KAW_STR_GIVE_UP[40] = "  降参しますか？\n" "c7b0する  b2しない\n" "\0\xA2\xF0\xA3";
 
 /* start opens the Give Up prompt: circle gives up, cross or start closes it */
 void func_801F9144(void) {

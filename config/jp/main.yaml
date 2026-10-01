@@ -84,12 +84,16 @@ segments:
       # OVERLAY_LOAD_ADDR (us has it in duel_util), then duel's strings
       - [0xDF8, rodata, duel/duel]
       - [0x1008, .rodata, duel/cpu_decision]
-      # the rodata of the asm modules after duel_util (which has none), up to
-      # duel_launch
+      # duel_util has no rodata: card_motion's (with battle_hud's
+      # drawHudPanelContents) comes next
       - [0x1028, rodata, duel/card_motion]
+      - [0x11D0, .rodata, duel/hud_panels_jp]
+      # the rodata of the asm modules after hud_panels, up to duel_launch
+      - [0x1340, rodata, duel/duel_session]
       - [0x1738, .rodata, duel/duel_launch_jp]
       # the rodata of the asm modules after duel_launch, up to memcard
       - [0x1768, rodata, system/game_flow]
+      - [0x17B4, .rodata, card/partner_level_jp]
       - [0x1864, .rodata, system/memcard]
       # the rodata of the asm modules after memcard, up to battle_hud
       - [0x1884, rodata, ui/dialog]
@@ -97,8 +101,6 @@ segments:
       - [0x2768, rodata, card/card_db]
       - [0x2768, rodata, card/card_render]
       - [0x2768, rodata, duel/battle_hud]
-      - [0x2768, rodata, duel/duel_session]
-      - [0x2768, rodata, duel/hud_panels]
       - [0x2768, rodata, psyq]
       - [0x2768, rodata, ui/hacking_shell]
       - [0x3628, c, main]
@@ -158,7 +160,8 @@ segments:
       # jp's waitForStatCountersToSettle and drawHudPanelContents (battle_hud's
       # in us) come right after duel_util
       - [0x27478, asm, duel/card_motion]
-      - [0x2EDF8, asm, duel/hud_panels]
+      # jp's hud_panels holds the eleven panels' functions and the shared one's
+      - [0x2CA44, c, duel/hud_panels_jp]
       - [0x2F79C, asm, duel/duel_session]
       - [0x30D10, c, duel/duel_setup_jp]
       - [0x31114, c, duel/card_zones]
@@ -170,7 +173,8 @@ segments:
       # launchers are in player_data and in the object after this one)
       - [0x35A4C, c, duel/duel_launch_jp]
       - [0x35CD8, asm, system/game_flow]
-      - [0x365B4, asm, card/partner_level]
+      # jp's option screen and the end of a versus duel
+      - [0x365B4, c, card/partner_level_jp]
       # jp's memcard object holds only the memory card functions, and all of
       # them (from formatMemoryCard on, they were hacking_shell's range)
       - [0x36F24, c, system/memcard]

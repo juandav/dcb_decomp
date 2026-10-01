@@ -35,7 +35,7 @@ void initDuelPlayers(s32 isCpuDuel) {
         for (j = 0; j < 3; j++) {
             PLAYER(i)->digimonStack[j] = -1;
         }
-        PLAYER(i)->unkA0 = 0;
+        PLAYER(i)->dpGainTimer = 0;
         PLAYER(i)->playedCard = -1;
         PLAYER(i)->wins = 0;
         PLAYER(i)->battleCard = 0;

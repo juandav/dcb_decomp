@@ -28,8 +28,8 @@ void NIS_pulsePressStart(TitleScreen *title, u8 step);
 void NIS_startTrade(void);
 void NIS_startVsDeckSelect(void);
 void NIS_runMainMenu(s32 arg);
-extern void D_80045E40();
-extern void D_80046464();
+extern void func_80045E40();
+extern void func_80046464();
 extern void D_80048EFC();
 
 const s32 D_801EA3E8 = 7;
@@ -53,13 +53,13 @@ void NIS_tickDebugModeSelect(s32 taskId) {
     }
     switch (NIS_DEBUG_MODE[0]) {
     case 1:
-        spawnTask(0, -1, 0, 0x800, D_80045E40, 1, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, func_80045E40, 1, 0, 0, 0);
         break;
     case 2:
         spawnTask(0, -1, 0, 0x800, NIS_startTrade, 1, 0, 0, 0);
         break;
     case 3:
-        spawnTask(0, -1, 0, 0x800, D_80046464, 1, 0, 0, 0);
+        spawnTask(0, -1, 0, 0x800, func_80046464, 1, 0, 0, 0);
         break;
     case 4:
         spawnTask(0, -1, 0, 0x800, D_80048EFC, 1, 0, 0, 0);
