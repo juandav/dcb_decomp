@@ -13,8 +13,6 @@
 #include "dcb/pad.h"
 #include "dcb/kaw_battle_sim.h"
 
-double intToDouble(s32 x); /* the __floatsidf stub at the end of __cmpdf2 */
-
 void KAW_pickCardArtSlot(void) {
     s32 id;
     s32 i;
@@ -195,7 +193,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (y < cy) {
-                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
+                        dist = sqrtDouble((double)((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -217,7 +215,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (cy < y) {
-                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
+                        dist = sqrtDouble((double)((abs(x - cx) ^ 2) + (abs(y - cy) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -239,7 +237,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (x < cx) {
-                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
+                        dist = sqrtDouble((double)((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
@@ -261,7 +259,7 @@ s32 KAW_tickCardCursor(s32 player, s32 mode) {
                     x = CARD_SPR(card)->pos.vx;
                     y = CARD_SPR(card)->pos.vy;
                     if (cx < x) {
-                        dist = sqrtDouble(intToDouble((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
+                        dist = sqrtDouble((double)((abs(x - cx) ^ 2) + ((abs(y - cy) / 48 * 480) ^ 2)));
                         if (dist <= best) {
                             best = dist;
                             ((CardCursor *)DUEL->cursor)->id = card;
