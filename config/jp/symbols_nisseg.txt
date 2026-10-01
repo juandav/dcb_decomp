@@ -1,0 +1,20 @@
+// NISSEG's own symbols, which only its splat config reads. us has no NISSEG:
+// every name here is jp's own (version-only).
+
+// functions splat can't see: each follows a task that never returns
+func_801EBB64 = 0x801EBB64; // type:func
+func_801EFADC = 0x801EFADC; // type:func
+func_801F0ECC = 0x801F0ECC; // type:func
+func_801F112C = 0x801F112C; // type:func
+func_801F117C = 0x801F117C; // type:func
+func_801F11CC = 0x801F11CC; // type:func
+func_801F790C = 0x801F790C; // type:func
+func_801F79D4 = 0x801F79D4; // type:func
+func_801F7C00 = 0x801F7C00; // type:func
+func_801F7EC0 = 0x801F7EC0; // type:func
+func_801F8D20 = 0x801F8D20; // type:func
+func_801F9074 = 0x801F9074; // type:func
+func_801F92F8 = 0x801F92F8; // type:func
+func_801F9448 = 0x801F9448; // type:func
+func_801FAB84 = 0x801FAB84; // type:func
+func_801FB1BC = 0x801FB1BC; // type:func

@@ -27,6 +27,8 @@ options:
   # the executable's symbols, which the overlay calls and reads
   symbol_addrs_path:
     - config/jp/symbols.txt
+    # and its own
+    - config/jp/symbols_nisseg.txt
   undefined_funcs_auto_path: build/jp/generated/undefined_funcs_auto_nisseg.txt
   undefined_syms_auto_path: build/jp/generated/undefined_syms_auto_nisseg.txt
 
@@ -50,8 +52,32 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      - [0x0, rodata, nisseg]
-      - [0xCB4, asm, nisseg]
-      - [0x11984, data, nisseg]
+      # the modules, each with its rodata and data; the .data of the deck
+      # screens' windows, tables and kana sits apart from its code
+      - [0x0, rodata, title/nis_title]
+      - [0x34, rodata, trade/nis_trade]
+      - [0x270, rodata, vs/nis_vs_deck_select]
+      - [0x310, rodata, vs/nis_vs_mode]
+      - [0x48C, rodata, deck/nis_auto_deck]
+      - [0x4CC, rodata, deck/nis_deck_windows]
+      - [0xC24, rodata, deck/nis_deck_scene]
+      - [0xC2C, rodata, deck/nis_deck_editor]
+      - [0xC58, rodata, viewer/nis_model_viewer]
+      - [0xCB4, asm, title/nis_title]
+      - [0x1434, asm, trade/nis_trade]
+      - [0x5A80, asm, vs/nis_vs_deck_select]
+      - [0x63C4, asm, vs/nis_vs_mode]
+      - [0x6E30, asm, deck/nis_auto_deck]
+      - [0x980C, asm, deck/nis_deck_windows]
+      - [0xD080, asm, deck/nis_deck_scene]
+      - [0xD440, asm, deck/nis_deck_editor]
+      - [0x10EBC, asm, viewer/nis_model_viewer]
+      - [0x11984, data, title/nis_title]
+      - [0x11988, data, trade/nis_trade]
+      - [0x11A7C, data, deck/nis_deck_editor]
+      - [0x11C3C, data, deck/nis_auto_deck]
+      - [0x11C6C, data, deck/nis_deck_windows]
+      - [0x1207C, data, viewer/nis_model_viewer]
+      - [0x120C0, data, nis_bss]
 
   - [0x125DC]
