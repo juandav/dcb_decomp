@@ -1421,10 +1421,40 @@ s16 findMissingSaves(void) {
 
 /* Saves both players' profiles after a versus duel: 0 when done, else the
    player whose save failed (1 or 2) */
-/* local-alloc's order in its first statement: the original allocates the
-   SESSION_DATA base and the sum (v0) before the index's shift (v1), as if
-   the shift were not local to the block; no C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", saveBothProfiles);
+s16 saveBothProfiles(MemcardScreen *screen) {
+    s16 i;
+    s32 blocks; /* a save takes one block */
+    SessionData *session;
+    s32 save;
+
+    blocks = 1;
+    for (i = 0; i < 2; i++) {
+        /* fake match: the save's offset is built in `save` in two steps, and
+           `save` is reused below for the save's address. That makes it a
+           global pseudo, so global-alloc gives it v1 after local-alloc has
+           put the SESSION_DATA base in v0, as in the original */
+        MEMCARD_SLOT.port = (session = (SessionData *)SESSION_DATA, save = i << 16, save >>= 13,
+                             ((SessionData *)((u8 *)session + save))->saves[0].port);
+        if (checkSaveIsCurrent(i, 0) == 0) {
+            return i + 1;
+        }
+        prepareSaveData(screen);
+        buildSaveHeader(i);
+        writeSaveChecksum(0x145C, screen->buffer);
+        save = (s32)SESSION_DATA;
+        save += i * sizeof(SaveLocation);
+        if (startMemoryCardSave(((SessionData *)save)->saves[0].port, blocks, (s32)screen->buffer,
+                                (s32)screen->fileNames[((SessionData *)save)->saves[0].file],
+                                MEMORY_CARD_SAVE_HEADER) == -1) {
+            return i + 1;
+        }
+        if (waitMemoryCardSave() == -1) {
+            return i + 1;
+        }
+        screen->mode = 8;
+    }
+    return 0;
+}
 
 /* step 4: the first menu (slot 1, slot 2, or no card at the start) */
 void selectMemcardSlot(MemcardScreen *screen) {
