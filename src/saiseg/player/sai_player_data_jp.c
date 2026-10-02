@@ -141,14 +141,42 @@ void (*SAI_KEY_ITEM_STATES[])(void) = {
     SAI_closePlayerData, SAI_waitForKeyItems, SAI_scrollPlayerDataDown, SAI_scrollPlayerDataUp, NULL,
 };
 
-/* the ids of the events that give each item */
-const s16 SAI_KEY_ITEM_EVENTS[14] = { 0x22, 0x85, 0x27, 0x36, 0x3D, 0xBE, -1, 0x4E, 0x87, 0x74, 0xB1, 0x99, -1, 0xD5 };
+void SAI_findKeyItems(void) {
+    /* the ids of the events that give each item */
+    s16 events[14] = { 0x22, 0x85, 0x27, 0x36, 0x3D, 0xBE, -1, 0x4E, 0x87, 0x74, 0xB1, 0x99, -1, 0xD5 };
+    s8 i;
+    s32 n;
+    s32 word;
+    s32 bit;
 
-/* its second loop sign-extends i anew for the i == 13 test, where our C's
-   CSE reuses the index it read the item with: the original has a CSE
-   barrier there (an empty loop statement before the test matches, which
-   is a loop note and no code); no plain C form found yet */
-INCLUDE_ASM("saiseg/nonmatchings/player/sai_player_data_jp", SAI_findKeyItems);
+    for (i = 0; i < 14; i++) {
+        if (events[i] != -1) {
+            n = events[i] - 0x22;
+            bit = 0;
+            if (n == 0) {
+                word = bit;
+            } else {
+                word = n / 32;
+                bit = n % 32;
+            }
+            if (PLAYER_DATA(0).eventFlags[word] & (1 << bit)) {
+                SAI_OWNED_KEY_ITEMS[i] = 1;
+            } else {
+                SAI_OWNED_KEY_ITEMS[i] = 0;
+            }
+        }
+    }
+    SAI_KEY_ITEMS.noItems = 0;
+    for (i = 0; i < 14 && SAI_OWNED_KEY_ITEMS[i] != 1; i++) {
+        /* fake match: the empty loop ends a CSE block, so i is sign-extended
+           again for the test below instead of reusing the index, as in the original */
+        do {
+        } while (0);
+        if (i == 13) {
+            SAI_KEY_ITEMS.noItems = 1;
+        }
+    }
+}
 
 void SAI_runKeyItems(void) {
     u8 buf[0x250];
