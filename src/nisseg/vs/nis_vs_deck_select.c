@@ -20,85 +20,73 @@ void NIS_closeDeckChoice(NisWindow *window) {
 }
 
 /* each player's window: "<Triangle> <name> deck" (or "none") for the three
-   saved decks, "<Square> random" and "each button chooses" */
+   saved decks, "<Square> random" and "each button chooses". x and y are
+   s16 set at the top, as in drawOptionWindow: the match depends on it, since
+   x then reaches the draws as a register rather than a constant */
 void NIS_drawDeckChoice1(NisWindow *window) {
     u8 rgb[4] = { 0x80, 0x80, 0x80 };
     char lines[5][0x16];
-    u8 *color;
-    s32 x;
-    s32 y;
+    NisProfile *profile;
+    s16 x;
+    s16 y;
 
-    /* fake match: x keeps the profile pointer as an integer before it becomes
-       the text's x, so that x gets its register ahead of the colour's address */
-    x = (s32)NIS_PROFILE(0);
+    x = 0x19;
     y = 0x45;
-    if (((NisProfile *)x)->savedDecks[0].inUse) {
-        sprintf(lines[0], "b1%sデック", ((NisProfile *)x)->savedDecks[0].name);
+    profile = NIS_PROFILE(0);
+    if (profile->savedDecks[0].inUse) {
+        sprintf(lines[0], "b1%sデック", profile->savedDecks[0].name);
     } else {
         sprintf(lines[0], "b1無し");
     }
-    if (((NisProfile *)x)->savedDecks[1].inUse) {
-        sprintf(lines[1], "b0%sデック", ((NisProfile *)x)->savedDecks[1].name);
+    if (profile->savedDecks[1].inUse) {
+        sprintf(lines[1], "b0%sデック", profile->savedDecks[1].name);
     } else {
         sprintf(lines[1], "b0無し");
     }
-    if (((NisProfile *)x)->savedDecks[2].inUse) {
-        sprintf(lines[2], "b2%sデック", ((NisProfile *)x)->savedDecks[2].name);
-        /* fake match: x and the colour are set in both branches, which gives x
-           its register ahead of the colour's CSE'd address in local-alloc */
-        x = 0x19;
-        color = rgb;
+    if (profile->savedDecks[2].inUse) {
+        sprintf(lines[2], "b2%sデック", profile->savedDecks[2].name);
     } else {
         sprintf(lines[2], "b2無し");
-        x = 0x19;
-        color = rgb;
     }
-    drawIconTextColored(x, y, 7, 0, color, 0, lines[0]);
+    drawIconTextColored(x, y, 7, 0, rgb, 0, lines[0]);
     y += 0xE;
-    drawIconTextColored(x, y, 7, 0, color, 0, lines[1]);
-    drawIconTextColored(x, y + 0xE, 7, 0, color, 0, lines[2]);
-    drawIconTextColored(x, y + 0x1C, 7, 0, color, 0, "b3ランダム");
-    drawIconTextColored(x, y + 0x38, 7, 0, color, 0, "　各ボタンで決定");
+    drawIconTextColored(x, y, 7, 0, rgb, 0, lines[1]);
+    drawIconTextColored(x, y + 0xE, 7, 0, rgb, 0, lines[2]);
+    drawIconTextColored(x, y + 0x1C, 7, 0, rgb, 0, "b3ランダム");
+    drawIconTextColored(x, y + 0x38, 7, 0, rgb, 0, "　各ボタンで決定");
 }
 
 void NIS_drawDeckChoice2(NisWindow *window) {
     u8 rgb[4] = { 0x80, 0x80, 0x80 };
     char lines[5][0x16];
-    u8 *color;
-    s32 x;
-    s32 y;
+    NisProfile *profile;
+    s16 x;
+    s16 y;
 
-    /* fake match: x keeps the profile pointer as an integer before it becomes
-       the text's x, so that x gets its register ahead of the colour's address */
-    x = (s32)NIS_PROFILE(1);
+    x = 0xA6;
     y = 0x45;
-    if (((NisProfile *)x)->savedDecks[0].inUse) {
-        sprintf(lines[0], "b1%sデック", ((NisProfile *)x)->savedDecks[0].name);
+    profile = NIS_PROFILE(1);
+    if (profile->savedDecks[0].inUse) {
+        sprintf(lines[0], "b1%sデック", profile->savedDecks[0].name);
     } else {
         sprintf(lines[0], "b1無し");
     }
-    if (((NisProfile *)x)->savedDecks[1].inUse) {
-        sprintf(lines[1], "b0%sデック", ((NisProfile *)x)->savedDecks[1].name);
+    if (profile->savedDecks[1].inUse) {
+        sprintf(lines[1], "b0%sデック", profile->savedDecks[1].name);
     } else {
         sprintf(lines[1], "b0無し");
     }
-    if (((NisProfile *)x)->savedDecks[2].inUse) {
-        sprintf(lines[2], "b2%sデック", ((NisProfile *)x)->savedDecks[2].name);
-        /* fake match: x and the colour are set in both branches, which gives x
-           its register ahead of the colour's CSE'd address in local-alloc */
-        x = 0xA6;
-        color = rgb;
+    if (profile->savedDecks[2].inUse) {
+        sprintf(lines[2], "b2%sデック", profile->savedDecks[2].name);
     } else {
         sprintf(lines[2], "b2無し");
-        x = 0xA6;
-        color = rgb;
     }
-    drawIconTextColored(x, y, 7, 0, color, 0, lines[0]);
+    drawIconTextColored(x, y, 7, 0, rgb, 0, lines[0]);
     y += 0xE;
-    drawIconTextColored(x, y, 7, 0, color, 0, lines[1]);
-    drawIconTextColored(x, y + 0xE, 7, 0, color, 0, lines[2]);
-    drawIconTextColored(x, y + 0x1C, 7, 0, color, 0, "b3ランダム");
-    drawIconTextColored(x, y + 0x38, 7, 0, color, 0, "　各ボタンで決定");
+    drawIconTextColored(x, y, 7, 0, rgb, 0, lines[1]);
+    drawIconTextColored(x, y + 0xE, 7, 0, rgb, 0, lines[2]);
+    drawIconTextColored(x, y + 0x1C, 7, 0, rgb, 0, "b3ランダム");
+    drawIconTextColored(x, y + 0x38, 7, 0, rgb, 0, "　各ボタンで決定");
 }
 
 void NIS_startVsDeckSelect(void) {
