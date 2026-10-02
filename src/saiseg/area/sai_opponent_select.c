@@ -184,9 +184,9 @@ void SAI_freeOpponentSelect(void) {
 #if VERSION_US
 #define PORTRAIT_HEIGHT 0x24
 #elif VERSION_EU
-/* fake match: eu keeps the height 0x24 in s3 for the whole loop. height is
-   set at the top of the loop, so loop.c moves it out; us stores the
-   constant */
+/* eu's source keeps the portraits' height in a local, set at the top of
+   each pass (loop.c then keeps 0x24 in s3 for the whole loop); us's stores
+   the constant */
 #define PORTRAIT_HEIGHT height
 #else
 #error "saiseg/area/sai_opponent_select: version not checked"
