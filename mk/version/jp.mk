@@ -13,8 +13,10 @@ DISK_DIR := disks/jp
 OVERLAYS := endseg intseg kawseg nisseg saiseg subseg sugseg
 
 # The game's code was built with GCC 2.8.1 -O1, the same flags as us's
-# 2.95.2 (2.8.0 gives the same code): it copies a register that already
-# holds a constant where 2.95.2 loads the constant again
+# 2.95.2: it copies a register that already holds a constant where 2.95.2
+# loads the constant again. PsyQ 4.4's own CC1PSX.EXE (GCC 2.8.1 SN32 build
+# 4.0.0010) gives the same code as bin's 2.8.1 on every object; 2.8.0
+# (PsyQ 4.3's) doesn't
 GCC_VERSION := 2.8.1
 # and assembled with an ASPSX that expands div and rem with their checks for
 # a zero divisor and for overflow, as PsyQ's libraries are
