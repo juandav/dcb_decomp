@@ -1032,16 +1032,8 @@ void OPEN_drawCardInfo(PlayerWindow *window) {
 
 /* the labels of the trade windows; GCC keeps one copy of each, emitted
    with OPEN_drawTradeScreen, the first function that uses them */
-#if VERSION_EU
-/* eu: OPEN_runCardTrade is still assembly and reads them by name */
-const char OPEN_STR_WARNING[] = "WARNING";
-const char OPEN_STR_TRADE_OK[] = "TRADE OK?";
-#elif VERSION_US
 #define OPEN_STR_WARNING "WARNING"
 #define OPEN_STR_TRADE_OK "TRADE OK?"
-#else
-#error "openseg/friend/open_trade: version not checked"
-#endif
 
 void OPEN_drawTradeScreen(void) {
     s32 count;
@@ -1074,10 +1066,7 @@ void OPEN_drawTradeScreen(void) {
     }
 }
 
-#if VERSION_EU
-/* eu: keeps its loop's addresses in other registers; no C form found yet */
-INCLUDE_ASM("openseg/nonmatchings/friend/open_trade", OPEN_runCardTrade);
-#elif VERSION_US
+#if VERSION_US || VERSION_EU
 void OPEN_runCardTrade(s32 parentTask) {
     s32 open[2];
     Rect16 rect;
@@ -1085,6 +1074,7 @@ void OPEN_runCardTrade(s32 parentTask) {
     s32 i;
     s32 j;
     s16 card;
+    u32 *arc;
 
     OPEN_TRADE_BANNER_SHOWN = 1;
     OPEN_TRADE_BANNER_Y = -32;
@@ -1162,6 +1152,11 @@ void OPEN_runCardTrade(s32 parentTask) {
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawTradeScreen);
     do {
+        /* fake match: arc exists only for loop.c. This dead store is moved
+           out of the loop (flow deletes it later), and the extra move lowers
+           loop.c's threshold, so eu keeps &open inside the loop as the
+           original does. The use after the loop keeps cse from deleting it. */
+        arc = 0;
         waitFrames(FRAME_INTERVAL);
         for (i = 0; i < 2; i++) {
             if (OPEN_TRADE_PLAYER_READY[i] == 0) {
@@ -1235,7 +1230,8 @@ void OPEN_runCardTrade(s32 parentTask) {
     waitFrames(20);
     removeFrameCallback((s32)OPEN_drawTradeScreen);
     waitFrames(2);
-    freeHeapBlock(OPEN_CARD_IMAGE_ARC);
+    arc = OPEN_CARD_IMAGE_ARC; /* fake match: see arc = 0 above */
+    freeHeapBlock(arc);
     resumeTask(parentTask);
 }
 #else
