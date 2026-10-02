@@ -81,12 +81,109 @@ void SAI_drawMessageWindow(JpWindow *win) {
 /* c6(%s)c7(Ｂｉｔを手に入れた！) */
 const char SAI_FMT_GOT_BITS[] = "c6(%s)c7(Ｂｉｔを手に入れた！)";
 
-/* it reads SESSION_DATA's state again for the Bits, where our C's CSE
-   reuses the registers it read the text with: the original has a CSE
-   barrier right after the two register reads (an empty loop statement
-   there matches, which is a loop note and no code); no plain C form found
-   yet */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_addTextLine);
+void SAI_addTextLine(s8 withBits) {
+    Rect16 rect;
+    char buf[0x40];
+    u8 digits[0x10];
+    u8 *src;
+    u8 *eventName;
+    u8 *playerName;
+    MsgLine *line;
+    u8 *dst;
+    s8 *palettes;
+    s8 palette;
+    s32 n;
+    u32 i;
+
+    src = (u8 *)SAI_STATE->regs[16];
+    eventName = (u8 *)SAI_STATE->regs[6];
+    /* fake match: the empty loop ends a CSE block, so SAI_STATE is loaded
+       again for the Bits instead of reusing the register, as in the original */
+    do {
+    } while (0);
+    if (withBits) {
+        sprintf(buf, SAI_FMT_GOT_BITS, formatSjisNumber(SAI_STATE->bits, 6, digits));
+        src = buf;
+    }
+    line = SAI_allocTextLine(&SAI_UI);
+    palettes = line->palettes;
+    if (line != NULL) {
+        palette = 7;
+        playerName = (u8 *)PLAYER_DATA(0).name;
+        dst = line->text;
+        n = 0;
+        while (*src != 0) {
+            if (*src < 0x81 || *src >= 0x99) {
+                switch (*src) {
+                case 'c':
+                    src++;
+                    if (SAI_isLetter(*src)) {
+                        if (*src == 'n') {
+                            src++;
+                            for (i = 0; i < 12; i++) {
+                                if (*playerName == 0) {
+                                    break;
+                                }
+                                *dst++ = *playerName++;
+                                *palettes = palette;
+                                if (n & 1) {
+                                    palettes++;
+                                }
+                                n++;
+                            }
+                        } else if (*src == 'e') {
+                            src++;
+                            for (i = 0; i < 10; i++) {
+                                if (*eventName == 0) {
+                                    break;
+                                }
+                                *dst++ = *eventName++;
+                                *palettes = palette;
+                                if (n & 1) {
+                                    palettes++;
+                                }
+                                n++;
+                            }
+                        }
+                    } else {
+                        palette = *src - '0';
+                        src++;
+                    }
+                    break;
+                case '(':
+                    src++;
+                    break;
+                case ')':
+                    src++;
+                    palette = 7;
+                    break;
+                default:
+                    src++;
+                    break;
+                }
+            } else {
+                *dst++ = *src++;
+                *palettes = palette;
+                if (n & 1) {
+                    palettes++;
+                }
+                n++;
+                *dst++ = *src++;
+                *palettes = palette;
+                if (n & 1) {
+                    palettes++;
+                }
+                n++;
+            }
+        }
+        *dst = 0;
+        rect.x = 0x3C0;
+        rect.y = line->vramY;
+        rect.w = 0;
+        rect.h = 0;
+        line->width = uploadKanjiString(line->text, &rect);
+    }
+}
 
 MsgLine *SAI_allocTextLine(SaiUi *ui) {
     MsgLine *line;

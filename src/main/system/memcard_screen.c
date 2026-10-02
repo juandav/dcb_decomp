@@ -1347,11 +1347,60 @@ void closeMemcardScreen(MemcardScreen *screen) {
 /* Finds player's save where it was loaded from (on either card when
    bothPorts): 1 when it is still there, the same profile at the same play
    time */
-/* global-alloc gives found s5 before playTime and the profile in the
-   original: found needs more weighted uses than our C's (only the second
-   loop's `found = 1; break;` stays inside its loop's notes in the original,
-   while in ours both end up outside them); no plain C form found yet */
-INCLUDE_ASM("main/nonmatchings/system/memcard_screen", checkSaveIsCurrent);
+u8 checkSaveIsCurrent(u8 player, u8 bothPorts) {
+    MemcardScreen *screen;
+    PlayerProfile *profiles;
+    SessionData *session;
+    PlayerProfile *preview;
+    s32 playTime;
+    s16 i;
+    u8 found;
+
+    screen = &MEMCARD_SCREEN;
+    profiles = (PlayerProfile *)PLAYER_PROFILES;
+    session = (SessionData *)SESSION_DATA;
+    found = 0;
+    MEMCARD_SLOT.port = session->saves[player].port;
+    MEMCARD_SLOT.file = session->saves[player].file;
+    playTime = session->saves[player].playTime;
+    preview = (PlayerProfile *)(screen->buffer + MEMCARD_SLOT.file * 0x80);
+    if (bothPorts) {
+        i = 0;
+        do {
+            if (getMemoryCardStatus(MEMCARD_SLOT.port) == 0) {
+                scanMemoryCardFiles(MEMCARD_SLOT.port);
+                readSavePreview(MEMCARD_SLOT.file + 1, screen);
+                if (screen->fileStatus[MEMCARD_SLOT.file] == 0 && profiles[player].profileId == preview->profileId &&
+                    playTime == preview->playTime) {
+                    found = 1;
+                    break;
+                }
+            }
+            i++;
+            MEMCARD_SLOT.port ^= 1;
+        } while (i < 2);
+    } else {
+        i = 0;
+        do {
+            if (getMemoryCardStatus(MEMCARD_SLOT.port) == 0) {
+                scanMemoryCardFiles(MEMCARD_SLOT.port);
+                readSavePreview(MEMCARD_SLOT.file + 1, screen);
+                if (screen->fileStatus[MEMCARD_SLOT.file] == 0 && profiles[player].profileId == preview->profileId &&
+                    playTime == preview->playTime) {
+                    /* fake match: the empty loop keeps this found = 1 inside the
+                       loop's notes, which gives found the weighted uses that win it s5
+                       in global-alloc, as in the original */
+                    do {
+                        found = 1;
+                    } while (0);
+                    break;
+                }
+            }
+            i++;
+        } while (i < 1);
+    }
+    return found;
+}
 
 /* Finds both players' saves: which are missing (1: 1P, 2: 2P, 3: both) */
 s16 findMissingSaves(void) {
