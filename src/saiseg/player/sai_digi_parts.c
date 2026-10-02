@@ -237,8 +237,10 @@ void SAI_drawDigiPartsWindow(void) {
  * until Cross is pressed.
  */
 void SAI_grantDigiPart(s32 ability, s32 task) {
-    /* fake match: never used; it gives the frame the original's size */
-    Rect16 unused;
+    /* the window's scroll view, which openWindow takes with the rect (as
+       KAW_tickDuelMenu's help window does); this window passes none, so it is
+       unused here */
+    Rect16 view;
     Rect16 rect;
     s32 i;
     UiWindow *win;
