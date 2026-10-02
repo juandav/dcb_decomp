@@ -456,7 +456,7 @@ void EVO_drawSortMenu(UiWindow *w) {
     s32 x = w->originX;
     s32 z = w->z;
     s32 i;
-    u8 unused[0x48]; /* stack space the original reserves but never touches */
+    u8 unused[0x48]; /* unused, but it is in the original stack frame */
 
     for (i = 0; i < EVO_SORT_MENU.nrows; i++) {
         if (i < w->view.y / EVO_SORT_MENU.rowH) {

@@ -1239,8 +1239,8 @@ s32 updatePartnerStats(s32 player, s32 slot) {
     }
     for (i = 0; i < 3; i++) {
         ability = PLAYER_DATA(player).partners[slot].equippedAbilities[i];
-        /* kept on one line: GCC 2.8.1's line notes decide where slot*83 is
-           computed */
+        /* kept on one line: the match depends on it, since GCC 2.8.1's line
+           notes decide where slot*83 is computed */
         if (ability == -1) continue;
         switch (PARTNER_ABILITIES[ability].type) {
         case 0:

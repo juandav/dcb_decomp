@@ -621,7 +621,7 @@ void KAW_runDeckSelect(s32 isVersus, s32 match) {
     (p)->v2 = (_v0) + (_h), (p)->u3 = (_u0) + (_w), (p)->v3 = (_v0) + (_h)
 
 void KAW_renderVersusScreen(void) {
-    char buf[64];
+    char buf[64]; /* unused, but it is in the original stack frame */
     VersusPrims *prims;
     s32 i;
 
@@ -734,7 +734,7 @@ void KAW_runVersusIntro(s32 mode, s32 deckId) {
     s32 frame;
     s32 step;
     s32 k;
-    char buf[64];
+    char buf[64]; /* unused, but it is in the original stack frame */
 
     KAW_MATCH_SCREEN = allocTaskHeapBlock(sizeof(DeckScreen));
     waitForMusicChange();

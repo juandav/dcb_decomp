@@ -486,7 +486,8 @@ s32 NIS_takeAllListCopies(s32 deck, NisCardList *list) {
 
 /* puts count random copies from the list in the deck (at most 4 of each
    card, all of them if the list offers no more than count). i also holds
-   the copies over count, as the original's registers show */
+   the copies over count, as the original's registers show: the match
+   depends on it */
 s32 NIS_takeListCopies(s32 deck, NisCardList *list, s32 count) {
     s32 taken;
     s32 i;

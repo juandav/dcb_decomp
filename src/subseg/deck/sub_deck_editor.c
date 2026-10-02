@@ -144,7 +144,8 @@ void SUB_drawCardIcon(s16 cardId, s16 x, s16 y, u8 brightness, s32 otIndex) {
         v = 0x1E0;
     } else {
         /* u holds the card's page (50 icons each) before its column is
-           added: the European version's registers need it that way */
+           added: the European version's match depends on it, for its
+           registers */
         u = cardId / 50;
         pageU = u << 6;
         column = cardId % 5;

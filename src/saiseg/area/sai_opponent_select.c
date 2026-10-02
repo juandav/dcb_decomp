@@ -167,8 +167,8 @@ void SAI_freeOpponentSelect(void) {
 }
 
 /* points portrait i's sprite at one of its 4-bit images, the blinking frame
-   or a locked opponent: its rect (the caller sets rect.x) and CLUT row. The
-   do-while matters to eu: its loop notes raise flow's reference count for
+   or a locked opponent: its rect (the caller sets rect.x) and CLUT row. eu's
+   match depends on the do-while: its loop notes raise flow's reference count for
    height, so global-alloc gives height its register before SAI_AREA's
    address, as in the original */
 #define SET_PORTRAIT_IMAGE(top, width, clutY)                         \
@@ -185,8 +185,8 @@ void SAI_freeOpponentSelect(void) {
 #define PORTRAIT_HEIGHT 0x24
 #elif VERSION_EU
 /* eu's source keeps the portraits' height in a local, set at the top of
-   each pass (loop.c then keeps 0x24 in s3 for the whole loop); us's stores
-   the constant */
+   each pass, and its match depends on it (loop.c then keeps 0x24 in s3 for
+   the whole loop); us's stores the constant */
 #define PORTRAIT_HEIGHT height
 #else
 #error "saiseg/area/sai_opponent_select: version not checked"
@@ -251,7 +251,7 @@ void SAI_updateOpponentPortraits(void) {
 }
 
 void SAI_zoomOpponentPortrait(void) {
-    Rect16 rect;
+    Rect16 rect; /* unused, but it is in the original stack frame */
     s32 i;
     s16 w;
     s16 h;

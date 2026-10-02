@@ -17,7 +17,8 @@ s16 UNUSED_WINDOW_RECT[4] = { 0x100, -1, -1, 0 };
 void initWindowPrimPool(s32 count) {
     WindowPrims *pool;
     WindowPrims *prims;
-    s16 texWindow[4]; /* unused: us's windows set a texture window with it */
+    /* us's windows set a texture window with it */
+    s16 texWindow[4]; /* unused, but it is in the original stack frame */
     s32 i;
     s32 j;
 
@@ -147,7 +148,8 @@ s32 drawWindow(UiWindow *win, void (*drawContents)(), s32 z) {
     DISPENV env;
     Rect16 frameClip;
     Rect16 contentClip;
-    Rect16 labelClip; /* unused: jp's windows have no labels */
+    /* jp's windows have no labels */
+    Rect16 labelClip; /* unused, but it is in the original stack frame */
     s32 semiTrans;
     s32 ret;
 

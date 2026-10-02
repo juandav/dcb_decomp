@@ -95,8 +95,8 @@ SpriteTemplate SAI_SPRITE_TEMPLATES[66] = {
     { 0x328, 0, 0x210, 0xF2, 0, 0x58, 0x50, 0, 0 },
 };
 
-/* the same walk over the pack; each version's compiler needs its own form of
-   the loop to lay it out as the original does */
+/* the same walk over the pack; the match depends on the form of the loop:
+   each version's compiler needs its own to lay it out as the original does */
 #if VERSION_US
 void SAI_uploadPakTextures(u8 *pack) {
     PackEntry *entry;
@@ -267,8 +267,8 @@ void SAI_setSpriteSize(Sprite3D *sprite, s16 width, s16 height) {
 }
 
 void SAI_setSpriteBlendMode(Sprite3D *sprite, s32 abr) {
-    /* clears the tpage's blend rate (bits 5 and 6); the European version
-       only matches with the mask in a variable, set apart from its use */
+    /* clears the tpage's blend rate (bits 5 and 6); the European version's
+       match depends on the mask being in a variable, set apart from its use */
     s16 clearAbr = ~(3 << 5);
     s16 tpage;
 

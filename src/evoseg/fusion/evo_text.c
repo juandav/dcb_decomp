@@ -140,8 +140,8 @@ s32 EVO_typeTextLine(s32 x, s32 y, EvoText *t, s32 z) {
     s8 i;
     s32 c;
 
-    /* the same pointers; each version's compiler needs its own order to
-       give them the original's registers */
+    /* the same pointers; the match depends on their order: each version's
+       compiler needs its own to give them the original's registers */
 #if VERSION_US
     dst = buf;
 #elif VERSION_EU
@@ -214,7 +214,7 @@ void EVO_drawMessageWindow(UiWindow *w) {
     s32 x = w->originX;
     s32 y = w->originY;
     s32 z = w->z;
-    u8 unused[0x48]; /* stack space the original reserves but never touches */
+    u8 unused[0x48]; /* unused, but it is in the original stack frame */
 
     EVO_FUSION.textTyping = EVO_typeTextLines(x, y, z);
     if (EVO_FUSION.textTyping == 0 && ((u8)EVO_FUSION.scriptState == 2 || (u8)EVO_FUSION.scriptState == 3)) {

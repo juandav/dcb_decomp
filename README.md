@@ -13,6 +13,7 @@
 [![Platform](https://img.shields.io/badge/platform-PlayStation-003791)](#the-games-binaries)
 [![Versions](https://img.shields.io/badge/versions-USA%20%7C%20Japan%20%7C%20Europe-blue)](#how-the-versions-are-organised)
 [![Compiler](https://img.shields.io/badge/compiler-GCC%202.95.2%20%7C%202.8.1-orange)](#toolchain)
+[![Fake matches | hacks](https://img.shields.io/badge/fake%20matches%20%7C%20hacks-8%20%7C%20132-yellow)](#fake-matches-and-hacks)
 [![License](https://img.shields.io/github/license/juandav/dcb_decomp)](LICENSE)
 
 A matching decompilation of **Digimon Digital Card Battle** for the
@@ -63,18 +64,47 @@ unit per module. It is tracked on
 [decomp.dev](https://decomp.dev/juandav/dcb_decomp), which comments on every
 pull request with what it changes.
 
-### Fake matches
+### Fake matches and hacks
 
-A handful of functions only match through a forced form, such as an empty
-`do {} while (0)` that ends a CSE block or a variable that exists only to
-shape the code. Each spot is marked with a comment that starts with
-`/* fake match:` and says what is forced and why:
-```
-grep -rn "fake match:" src/
-```
-[CONTRIBUTING.md](CONTRIBUTING.md#matching) has the rules for them. Work to
-replace them with natural C is ongoing: a pull request that matches one of
-them without the forced form is welcome.
+The matched C is meant to read as natural C, but some spots only match
+through a form that natural C wouldn't take for granted. Each one carries a
+comment that says so, in one of three standard forms
+([CONTRIBUTING.md](CONTRIBUTING.md#matching) has the rules), and the badge
+above counts them: fake matches, then the other two kinds together.
+
+| Kind | Count | Marker |
+|---|---|---|
+| Fake matches | 8 | a comment that starts with `/* fake match:` and says what is forced and why |
+| Unused frame locals | 96 | `/* unused, but it is in the original stack frame */` |
+| Form-dependent matches | 36 | a comment that says the `match depends on` the form |
+| Functions still in assembly | 71 | `INCLUDE_ASM` |
+
+- A fake match is the last resort: a form forced only for the code it makes,
+  such as an empty `do {} while (0)` that ends a CSE block or a variable
+  that exists only to shape the code.
+- An unused frame local, such as the `char buf[72]` of several window draw
+  functions, is a local that the code never touches, kept because the
+  original's stack frame has room for it: without it, the frame is smaller
+  than the original's.
+- A form-dependent match is C that matches in one of several equivalent
+  forms only: a statement macro whose `do {} while (0)` weighs a variable's
+  uses, an extra block, an `if` kept on one line or without braces, a copy
+  of a variable, a type, or the form of a loop that each version's compiler
+  needs.
+- The functions still in assembly are not in the badge. They are all PsyQ's,
+  in `src/main/psyq/`, and out of the progress.
+
+`tools/hacks.py --list` lists every one with its file, line and function,
+and also the code that was written in assembly, which is not a hack
+(`src/main/startup.s`, `src/main/libmath.s` and some PsyQ objects, as `.s`
+files), and the padding that some objects have after their data, written as
+a top-level `__asm__`.
+
+The CI checks with `tools/hacks.py --check README.md` that the badge and the
+table above are up to date. Work to replace them with natural C is ongoing:
+a pull request that matches one of them without the forced form is
+welcome. [TODO.md](TODO.md) lists them with the rest of what is left to
+polish.
 
 ## The game's binaries
 
@@ -334,7 +364,7 @@ built.
 | `include/` | common headers, PsyQ and GTE helpers (`gte.h`), assembler macros |
 | `config/<version>/` | the version's splat configs (`main.yaml`, `<overlay>.yaml`), symbols (`symbols.txt`, `symbols_<overlay>.txt`), checksums; `us`'s PsyQ object list, `jp`'s font tables |
 | `mk/version/` | each version's settings for the Makefile: the executable's name, the disc directory, the overlays, the compiler, the source files |
-| `tools/` | build helpers, `try_match.py`, `asm_source.py`, `extract_drv.py`, the report generator |
+| `tools/` | build helpers, `try_match.py`, `asm_source.py`, `extract_drv.py`, `hacks.py`, the report generator |
 | `Dockerfile`, `tools/docker.sh` | the build environment as a Docker image, and the script that runs a command in it |
 | `asm/<version>/`, `expected/<version>/`, `build/<version>/` | generated; not in git |
 | `assets/<version>/` | the version's graphics as PNG (`jp`'s font), extracted from the disc by `make generate`; not in git |
@@ -343,6 +373,8 @@ built.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for the rules on matching, layout,
 names and pull requests.
+[TODO.md](TODO.md) lists what is left to polish: the fake matches and
+hacks, the names still missing, PsyQ, readability and tooling.
 
 Some helpers, for the PsyQ functions that are still assembly or for checking a
 change to matched code:

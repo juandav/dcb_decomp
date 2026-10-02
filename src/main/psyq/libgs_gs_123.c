@@ -60,7 +60,7 @@ int GsSetRefView2(GsRVIEW2 *pv) {
     GsRVIEW2 rv;
     MATRIX m;
     MATRIX tm;
-    MATRIX lw;
+    MATRIX lw; /* unused, but it is in the original stack frame */
     VECTOR vec;
     long r;
     long t;

@@ -334,7 +334,7 @@ s32 placeActiveDigimon(s32 cardIndex, s32 player) {
 #if VERSION_US || VERSION_EU
 s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     DigimonCardData *armorCard;
     s32 cardIndex;
     s32 stackSlot;
@@ -376,7 +376,7 @@ s32 armorDigivolvePartner(s32 player, s32 partnerSlot) {
 #if VERSION_US || VERSION_EU
 s32 armorDevolvePartner(s32 player, s32 partnerSlot) {
     Rect16 artRect;
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     DigimonCardData *baseCard;
     s32 cardIndex;
     s32 stackSlot;

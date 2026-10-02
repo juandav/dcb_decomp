@@ -13,7 +13,7 @@ void func_800629C0(MATRIX *m);
 int GsSetFlatLight(int id, GsF_LIGHT *lt) {
     MATRIX lm;
     MATRIX cm;
-    long unused[10]; /* never used, but the ROM's frame has room for it */
+    long unused[10]; /* unused, but it is in the original stack frame */
     long r;
     u_char cr;
     u_char cg;

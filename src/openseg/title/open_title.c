@@ -247,7 +247,8 @@ void OPEN_drawTitleScreen(void) {
 
 #if VERSION_US || VERSION_EU
 void OPEN_runTitleScreen(s32 parentTask) {
-    u8 dialog[0xC0]; /* a dialog buffer, declared as SUB_tickDeckSlots does; unused here */
+    /* a dialog buffer, declared as SUB_tickDeckSlots does */
+    u8 dialog[0xC0]; /* unused, but it is in the original stack frame */
     /* never read: only its empty string is left in .rodata. It is written
        "\0" so that it stays apart from the "" of the arena table
        OPEN_ARENA_NAMES, which the original built in another file */

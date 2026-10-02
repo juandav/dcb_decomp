@@ -372,7 +372,7 @@ s32 *SAI_allocScriptRegisters(s32 count) {
 }
 
 ScriptRunner *SAI_createAreaScript(void) {
-    u8 unused[0x18];
+    u8 unused[0x18]; /* unused, but it is in the original stack frame */
     ScriptRunner *obj = allocHeapBlock(sizeof(ScriptRunner), 0x31);
 
     obj->unk0 = *(s32 *)&((SessionData *)SESSION_DATA)->areaSession->unk0[0x190];

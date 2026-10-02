@@ -211,8 +211,9 @@ void SAI_runBitsReward(s32 unused, s32 parent) {
     SAI_STATE->unk49 = 0;
     waitFrames(3);
     addFrameCallback((s32)func_801F1130);
-    /* no Bits to give: the guard returns early, which starts the rest at a
-       label, so CSE loads SESSION_DATA's address anew as jp's does */
+    /* no Bits to give: the guard returns early, and the match depends on
+       it: the rest then starts at a label, so CSE loads SESSION_DATA's
+       address anew as jp's does */
     if (SAI_STATE->regs[1] == 0) {
         resumeTask(parent);
         return;

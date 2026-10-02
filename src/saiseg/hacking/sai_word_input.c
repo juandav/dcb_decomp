@@ -303,7 +303,7 @@ void SAI_drawWordInputHelp(UiWindow *window) {
     s32 x = window->originX + 1;
     s32 y = window->originY + 1;
     s32 z = window->z;
-    s32 unused[2];
+    s32 unused[2]; /* unused, but it is in the original stack frame */
 
     drawText(x, y, (s32)"*b0 Insert", 7, z);
     drawText(x + 8, y + 13, (s32)"*b2 OK", 7, z);

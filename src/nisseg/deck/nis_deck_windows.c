@@ -65,15 +65,15 @@ void NIS_drawCardPicture(NisCardPicture picture, s32 x, s32 y, s32 z, u8 brightn
 }
 
 void NIS_drawDeckSummaryWindow(NisWindow *window) {
-    Rect16 unused = { 0, 0, 0x90, 0x9E };
+    Rect16 unused = { 0, 0, 0x90, 0x9E }; /* unused, but it is in the original stack frame */
 
     NIS_drawDeckSummary(NIS_DECK_EDIT.deck, window->z);
 }
 
 void NIS_drawDeckQuestion(NisWindow *window) {
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     char lines[2][0x30];
-    char unused2[0x28];
+    char unused2[0x28]; /* unused, but it is in the original stack frame */
     s32 i;
 
     switch (NIS_DECK_EDIT.unk10) {
@@ -313,7 +313,7 @@ void NIS_drawCardDetails(NisWindow *window) {
    and the card's big picture, turning over */
 void NIS_drawCardCountMenu(NisWindow *window) {
     char text[0x90];
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     POLY_FT4 *poly;
     s16 turn;
     s16 dx;
@@ -447,7 +447,7 @@ void NIS_drawDeckName(NisWindow *window) {
 
 /* "A deck must have 30 cards" */
 void NIS_drawDeckNotFull(NisWindow *window) {
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
 
     drawIconText(0x2D, 0x9E, 7, 1, window->z, (s32)"s0デックには、必ずカードを３０枚");
     drawIconText(0x2D, 0xAC, 7, 1, window->z, (s32)"s0入れてください。");
@@ -455,7 +455,7 @@ void NIS_drawDeckNotFull(NisWindow *window) {
 
 /* Betamon's questions for the auto deck */
 void NIS_drawAutoDeckQuestion(NisWindow *window) {
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     char lines[2][0x30];
     char elements[5][5] = { "火炎", "氷水", "自然", "暗黒", "珍種" };
     char styles[2][5] = { "攻撃", "防御" };
@@ -515,7 +515,7 @@ void NIS_drawAutoDeckPortrait(NisWindow *window) {
 
 /* the name being typed, with a mark under the next letter */
 void NIS_drawNameField(NisWindow *window) {
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     char text[0x30];
 
     sprintf(text, "s0%s", NIS_TYPED_NAME);
@@ -527,7 +527,7 @@ void NIS_drawNameField(NisWindow *window) {
 
 /* the kana table: rows of five letters, the cursor moving over them */
 void NIS_drawNameEntry(NisWindow *window) {
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     u8 rgb[4] = { 0 };
 
     rgb[1] = 0x40;
@@ -603,7 +603,7 @@ void NIS_drawNameEntry(NisWindow *window) {
 /* "Copy of the "%s" deck" / "Make the "%s" deck?" */
 void NIS_drawDeckCopyQuestion(NisWindow *window) {
     char lines[2][0x30];
-    char unused2[0x28];
+    char unused2[0x28]; /* unused, but it is in the original stack frame */
     s32 i;
 
     sprintf(lines[0], "「%s」デックのコピー", NIS_PROFILE(0)->savedDecks[NIS_DECK_EDIT.deck].name);

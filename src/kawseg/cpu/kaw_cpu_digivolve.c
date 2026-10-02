@@ -52,7 +52,7 @@ s32 KAW_chooseDigivolveTarget(s32 player) {
 #error "untested version"
 #endif
 
-    /* a copy of player: it only changes the register allocation */
+    /* a copy of player: the match depends on it, for the register allocation */
     self = player;
     if (getActiveDigimonCard(self) == -1) {
         return -1;

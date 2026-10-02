@@ -313,7 +313,7 @@ void SAI_drawPlayerData(UiWindow *win) {
 }
 
 void SAI_drawCompleteStatsHint(UiWindow *window) {
-    char buf[0x48];
+    char buf[0x48]; /* unused, but it is in the original stack frame */
 
     drawText(window->originX + 6, window->originY + 1, (s32)"*b0:Player's Complete Stats", 7, window->z);
 }

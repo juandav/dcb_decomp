@@ -82,7 +82,7 @@ s32 SUG_startTexAnim(s32 id, s32 kind, RingEffect *owner, TexAnim *anim, s32 pak
 
     uv = NULL;
     slot = 0;
-    /* the extra block is needed for the register allocation to match */
+    /* the match depends on the extra block, for the register allocation */
     do {
         y = 0;
         dx = 0;

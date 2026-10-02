@@ -34,7 +34,7 @@ void SAI_openErrorWindow(UiWindow *window, WindowDef *def) {
 }
 
 void SAI_drawErrorText(UiWindow *window) {
-    char buf[0x48];
+    char buf[0x48]; /* unused, but it is in the original stack frame */
 
     drawText(window->originX, window->originY, (s32)SAI_STR_SYSTEM_ERROR, 0, window->z);
 }

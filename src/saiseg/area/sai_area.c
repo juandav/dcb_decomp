@@ -112,7 +112,7 @@ void SAI_reopenPlayerData(void) {
    sound between steps when animate is 1. */
 void SAI_glitchVram(s8 animate) {
     Rect16 rect = { 0x220, 0xE1, 0x20, 1 };
-    Rect16 unused[3];
+    Rect16 unused[3]; /* unused, but it is in the original stack frame */
     s32 delay;
     s8 i;
 

@@ -90,7 +90,7 @@ void KAW_drawEffectHelp(UiWindow *w) {
     s32 y;
     s32 z;
     s32 i;
-    char unused[8];
+    char unused[8]; /* unused, but it is in the original stack frame */
 
     x = w->originX;
     y = w->originY;
@@ -124,7 +124,7 @@ void KAW_drawDuelMenu(UiWindow *window) {
     s32 z;
     s32 i;
     char *text;
-    char unused[8];
+    char unused[8]; /* unused, but it is in the original stack frame */
 
     x = window->originX;
     y = window->originY;

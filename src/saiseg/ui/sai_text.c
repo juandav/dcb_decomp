@@ -15,7 +15,7 @@ void SAI_drawMessageWindow(UiWindow *window) {
     s32 y;
     s32 z;
     s32 found;
-    char buf[0x48];
+    char buf[0x48]; /* unused, but it is in the original stack frame */
 
     x = window->originX;
     y = window->originY;
@@ -125,8 +125,8 @@ s32 SAI_typeTextLine(s32 x, s32 y, TextLine *line, s32 z) {
     s8 i;
     s32 c;
 
-    /* the same pointers; each version's compiler needs its own order to
-       give them the original's registers */
+    /* the same pointers; the match depends on their order: each version's
+       compiler needs its own to give them the original's registers */
 #if VERSION_US
     dst = buf;
 #elif VERSION_EU

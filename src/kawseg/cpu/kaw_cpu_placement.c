@@ -66,7 +66,7 @@ s32 KAW_chooseDigimonToPlace(s32 player) {
 #error "untested version"
 #endif
 
-    /* a copy of player: it only changes the register allocation */
+    /* a copy of player: the match depends on it, for the register allocation */
     self = player;
     /* jp's Digimon levels go from 0 to 2, us's from 0 to 3 */
 #if VERSION_JP
@@ -583,7 +583,8 @@ s32 KAW_chooseDpCard(s32 player) {
             need = KAW_DUEL->selected->need;
         }
     }
-    /* a copy of player for the rest: it only changes the register allocation */
+    /* a copy of player for the rest: the match depends on it, for the
+       register allocation */
     self = player;
     if (need <= 0) {
         return -1;

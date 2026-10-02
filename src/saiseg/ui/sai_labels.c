@@ -8,7 +8,7 @@
 
 void SAI_openCenteredWindow(UiWindow *window, Rect16 pos, s32 label, s32 style, s32 brightness) {
     Rect16 rect;
-    Rect16 unused; /* never used, but the original frame has room for it */
+    Rect16 unused; /* unused, but it is in the original stack frame */
     Rect16 view;
 
     rect.x = pos.x - pos.w / 2;
@@ -77,7 +77,7 @@ void SAI_createAreaName(void) {
 }
 
 void SAI_createLocationLabel(void) {
-    s32 unused[2];
+    s32 unused[2]; /* unused, but it is in the original stack frame */
 
     SAI_AREA.location = -1;
     SAI_AREA.shownLocation = -1;

@@ -32,7 +32,7 @@ void renderSceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     SVECTOR position;
     MATRIX lightMatrix;
     MATRIX colorMatrix;
-    MATRIX unused;
+    MATRIX unused; /* unused, but it is in the original stack frame */
     SVECTOR rot;
     s32 flag;
     u32 *ot;

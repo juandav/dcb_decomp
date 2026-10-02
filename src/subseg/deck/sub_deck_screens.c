@@ -1035,7 +1035,7 @@ const char SUB_STR_SUM[] = "SUM";
 const char SUB_STR_DECK_TITLE[] = "DECK";
 
 void SUB_uploadArchiveTim(s16 index) {
-    u8 unused[0x40];
+    u8 unused[0x40]; /* unused, but it is in the original stack frame */
 
     uploadTim((u32 *)(SUB_CARD_ARCHIVE + ((s32 *)SUB_CARD_ARCHIVE)[index + 1]), 0x220, 0x100, 0x240, 0x1F5);
 }
@@ -1196,7 +1196,7 @@ void SUB_initDeckEdit(PlayerDeck *deck) {
 
 s32 SUB_canAddCardToDeck(s32 cardId) {
     s16 unused[6] = { 0xAF, 0xB6, 0xB7, 0xB8, 0xBB, 0xBE }; /* unused, but it is in the original stack frame */
-    s32 unused2[2];
+    s32 unused2[2]; /* unused, but it is in the original stack frame */
     s32 count;
     s32 i;
 
@@ -1515,7 +1515,8 @@ void SUB_tickCardPicker(PlayerDeck *deck) {
 }
 
 void SUB_editDeck(PlayerDeck *deck) {
-    u8 dialog[0xC0]; /* a dialog buffer, declared as SUB_tickDeckSlots does; unused here */
+    /* a dialog buffer, declared as SUB_tickDeckSlots does */
+    u8 dialog[0xC0]; /* unused, but it is in the original stack frame */
     s32 i;
 
     SUB_initDeckEdit(deck);

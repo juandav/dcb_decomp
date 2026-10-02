@@ -244,7 +244,7 @@ void NIS_runDeckEditor(s32 openWindows) {
 void NIS_askAutoDeckForNew(void) {
     NisMenu menu;
     s32 cursor = 1;
-    Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
+    Rect16 unused = { 0x3C0, 0xD0, 0, 0 }; /* unused, but it is in the original stack frame */
 
     NIS_DECK_EDIT.unk10 = 3;
     spawnTask(0, -1, 0, 0x1000, runWindowTask, &NIS_DECK_QUESTION_WINDOW, getCurrentTaskId());
@@ -270,7 +270,7 @@ void NIS_askAutoDeckForNew(void) {
 
 void NIS_showKanaPage(s32 page) {
     s32 i;
-    u8 unused[8];
+    u8 unused[8]; /* unused, but it is in the original stack frame */
 
     /* what it did is gone: an empty loop is left */
     for (i = 0; i < 0; i++) {
@@ -278,7 +278,7 @@ void NIS_showKanaPage(s32 page) {
 }
 
 void NIS_doNothing(void) {
-    u8 unused[8];
+    u8 unused[8]; /* unused, but it is in the original stack frame */
 
     return;
 }
@@ -523,8 +523,8 @@ void NIS_copyDeck(void) {
 /* keep the copy? */
 void NIS_confirmDeckCopy(void) {
     NisMenu menu;
-    Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
-    char unused2[0x30];
+    Rect16 unused = { 0x3C0, 0xD0, 0, 0 }; /* unused, but it is in the original stack frame */
+    char unused2[0x30]; /* unused, but it is in the original stack frame */
     s32 cursor;
 
     cursor = -1;
@@ -570,8 +570,8 @@ void NIS_nameNewDeck(void) {
 /* a new deck, empty: make it with the auto deck? */
 void NIS_askNewDeckAuto(void) {
     NisMenu menu;
-    Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
-    char unused2[0x30];
+    Rect16 unused = { 0x3C0, 0xD0, 0, 0 }; /* unused, but it is in the original stack frame */
+    char unused2[0x30]; /* unused, but it is in the original stack frame */
     s32 cursor;
     s32 i;
 
@@ -614,8 +614,8 @@ const char NIS_FMT_COMMAND_TAKEN[] = "コマンド受理 %d\n";
 
 void NIS_deleteDeck(void) {
     NisMenu menu;
-    Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
-    char unused2[0x30];
+    Rect16 unused = { 0x3C0, 0xD0, 0, 0 }; /* unused, but it is in the original stack frame */
+    char unused2[0x30]; /* unused, but it is in the original stack frame */
     s32 result;
     s32 i;
 
@@ -657,7 +657,7 @@ void NIS_startDeckKinds(void) {
 /* "the deck isn't full" */
 void NIS_showDeckNotFull(void) {
     NisMenu menu;
-    Rect16 unused = { 0x3C0, 0xD0, 0, 0 };
+    Rect16 unused = { 0x3C0, 0xD0, 0, 0 }; /* unused, but it is in the original stack frame */
     s32 cursor;
 
     cursor = -1;

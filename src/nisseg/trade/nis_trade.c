@@ -171,7 +171,7 @@ void NIS_runTradeMenu(void) {
 /* the grid of the cards the player can trade: L1 and R1 choose the copies,
    Circle shows a card, Triangle keeps the offer, Cross drops it */
 void NIS_runTradeGrid(s32 arg) {
-    NisMenu unused;
+    NisMenu unused; /* unused, but it is in the original stack frame */
     s32 kind;
     s32 cursor;
     s32 rowStart;

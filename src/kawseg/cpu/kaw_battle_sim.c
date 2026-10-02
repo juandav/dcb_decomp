@@ -420,7 +420,7 @@ s32 KAW_resolveBattle(s32 quiet) {
 #elif VERSION_US || VERSION_EU
 s32 KAW_resolveBattle(s32 quiet) {
     BattleEffect effects[6];
-    u8 unused[0x88];
+    u8 unused[0x88]; /* unused, but it is in the original stack frame */
     s32 i;
     s32 k;
     s32 player;
@@ -1332,7 +1332,7 @@ s32 KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s
 #elif VERSION_US || VERSION_EU
 void KAW_applySupportAction(s32 self, s32 other, s32 kind, s32 value, s32 slot, s32 quiet) {
     s32 cards[4];
-    u8 unused[0x90];
+    u8 unused[0x90]; /* unused, but it is in the original stack frame */
     s32 i;
     s32 j;
     s32 n;
@@ -1885,7 +1885,7 @@ void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 qu
 }
 #elif VERSION_US || VERSION_EU
 void KAW_applyCrossEffect(s32 self, s32 other, DigimonCardData *cardData, s32 quiet) {
-    u8 unused[0xB0];
+    u8 unused[0xB0]; /* unused, but it is in the original stack frame */
     s32 card;
     s32 value;
 

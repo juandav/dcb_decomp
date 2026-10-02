@@ -37,8 +37,8 @@ void SAI_initPanelCover(void) {
 void SAI_drawPanelCover(void) {
     MATRIX matrix;
     SVECTOR corners[4];
-    s16 xs[2] = { -0x8E, 0xB2 };
-    s16 ys[2] = { -0x4D, 0x48 };
+    s16 xs[2] = { -0x8E, 0xB2 }; /* unused, but it is in the original stack frame */
+    s16 ys[2] = { -0x4D, 0x48 }; /* unused, but it is in the original stack frame */
     s32 sxy[4];
     s32 depthCue;
     s32 flag;

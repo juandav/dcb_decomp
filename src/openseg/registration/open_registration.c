@@ -181,7 +181,7 @@ void OPEN_drawTitlePart(s32 x, s32 y, s32 part) {
 #undef PRIM
 
 void OPEN_drawIntroImage(s32 x, s32 y, s32 z) {
-    Rect16 rect; /* unused, but it sizes the frame */
+    Rect16 rect; /* unused, but it is in the original stack frame */
     s32 next;
     s32 cur;
     s32 semiTrans;

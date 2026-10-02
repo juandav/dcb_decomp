@@ -505,7 +505,7 @@ s32 slideWindowSpritesIn(WindowTask *task) {
 void runWindowTask(WindowSpec *spec, s32 parent) {
     WindowTask *task;
     s32 moving;
-    Rect16 unused; /* the original's frame has room for a Rect16 it never uses */
+    Rect16 unused; /* unused, but it is in the original stack frame */
 
     task = allocTaskHeapBlock(sizeof(WindowTask));
     task->spec = spec;

@@ -290,7 +290,7 @@ void SUG_showAttackLabel(s32 side) {
 
 void SUG_showAttackBanner(s32 side) {
     HudSlide banners[5];
-    Rect16 unused; /* unused, but it sizes the frame */
+    Rect16 unused; /* unused, but it is in the original stack frame */
     Rect16 uv0;
     Rect16 uv1;
     s32 alt;
@@ -320,7 +320,8 @@ void SUG_showAttackBanner(s32 side) {
         banners[0].uv.y = 0x58;
         banners[0].uv.w = 0x80;
         banners[0].uv.h = 0x20;
-        /* -side - 1 rather than ~side: jp's register allocation needs it */
+        /* -side - 1 rather than ~side: jp's match depends on it, for its
+           register allocation */
         side = -side - 1;
         flipped = 1;
     }
@@ -399,7 +400,7 @@ void SUG_showHpBanner(s32 side) {
 #endif
     HudSlide num;
 #if VERSION_US || VERSION_EU
-    s32 unused[8];
+    s32 unused[8]; /* unused, but it is in the original stack frame */
 #endif
     s32 state;
 
@@ -478,7 +479,7 @@ void SUG_showWinnerBanner(s32 side) {
 
 void SUG_showEatUpHpBanner(void) {
     HudSlide obj;
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     s32 state;
 
     state = 0;

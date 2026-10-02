@@ -34,8 +34,8 @@ loop_1:
     }
 }
 
-/* the same search and shift; each version's compiler needs its own form of
-   the loops to lay them out as the original does */
+/* the same search and shift; the match depends on the form of the loops:
+   each version's compiler needs its own to lay them out as the original does */
 #if VERSION_US
 void removeFrameCallback(s32 callback) {
     s32 *slot;
