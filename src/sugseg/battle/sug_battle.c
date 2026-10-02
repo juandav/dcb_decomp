@@ -50,7 +50,7 @@ void SUG_placeBattleModels(void) {
 }
 
 void SUG_initBattleScene(void) {
-    s32 unused[8];
+    s32 unused[8]; /* unused, but it is in the original stack frame */
 
     SUG_CURRENT_SCRIPT = 0;
     addFrameCallback((s32)renderSceneModels);

@@ -71,7 +71,7 @@ void EVO_startShatter(s32 model) {
     s32 i;
     s32 j;
     s32 tmp;
-    u8 unused[0x50]; /* stack space the original reserves but never touches */
+    u8 unused[0x50]; /* unused, but it is in the original stack frame */
 
     EVO_SHATTER.total = -1;
     EVO_SHATTER.next = 0;
@@ -202,7 +202,7 @@ void EVO_drawShardTG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
-    SVECTOR v3;
+    SVECTOR v3; /* unused, but it is in the original stack frame */
     SVECTOR offset;
     SVECTOR *vert;
     s32 depthCue;
@@ -258,7 +258,7 @@ void EVO_drawShardTF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
-    SVECTOR v3;
+    SVECTOR v3; /* unused, but it is in the original stack frame */
     SVECTOR offset;
     SVECTOR *vert;
     s32 depthCue;
@@ -438,7 +438,7 @@ void EVO_drawShardTNF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
-    SVECTOR v3;
+    SVECTOR v3; /* unused, but it is in the original stack frame */
     SVECTOR offset;
     SVECTOR *vert;
     s32 depthCue;
@@ -561,7 +561,7 @@ s32 EVO_addShard(s32 part, s32 arg) {
     SVECTOR n2;
     SVECTOR n3;
     SVECTOR center;
-    MATRIX unused;
+    MATRIX unused; /* unused, but it is in the original stack frame */
     TmdObject *obj;
     SVECTOR *vert;
     SVECTOR *verts;
@@ -897,7 +897,7 @@ void EVO_drawShardG3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
-    SVECTOR v3;
+    SVECTOR v3; /* unused, but it is in the original stack frame */
     SVECTOR offset;
     SVECTOR *vert;
     s32 depthCue;
@@ -999,7 +999,7 @@ void EVO_drawShardF3(SVECTOR *pos, s32 unused, s16 div, s16 mul) {
     SVECTOR v0;
     SVECTOR v1;
     SVECTOR v2;
-    SVECTOR v3;
+    SVECTOR v3; /* unused, but it is in the original stack frame */
     SVECTOR offset;
     SVECTOR *vert;
     s32 depthCue;

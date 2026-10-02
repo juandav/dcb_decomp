@@ -240,7 +240,7 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
     /* the window's scroll view, which openWindow takes with the rect (as
        KAW_tickDuelMenu's help window does); this window passes none, so it is
        unused here */
-    Rect16 view;
+    Rect16 view; /* unused, but it is in the original stack frame */
     Rect16 rect;
     s32 i;
     UiWindow *win;

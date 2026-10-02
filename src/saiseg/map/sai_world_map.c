@@ -1423,7 +1423,7 @@ void SAI_createMapMenuTab(s8 keepTabState) {
 }
 
 void SAI_drawMapMenuTab(void) {
-    char buf[0x48];
+    char buf[0x48]; /* unused, but it is in the original stack frame */
     s32 x;
     s32 state;
 

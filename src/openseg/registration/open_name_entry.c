@@ -297,7 +297,7 @@ void OPEN_drawNameEntryHelp(UiWindow *window) {
     s32 x;
     s32 y;
     s32 z;
-    Rect16 rect; /* unused, but it sizes the frame */
+    Rect16 rect; /* unused, but it is in the original stack frame */
 
     x = window->originX + 1;
     y = window->originY + 1;
@@ -367,8 +367,8 @@ void OPEN_runNameEntry(char *name, s32 parentTask) {
     initCursorHighlight(&OPEN_NAME_CARET, &rect, (Bytes4 *)-1);
     playMenuSound(3);
     addFrameCallback((s32)OPEN_drawNameEntry);
-    /* the same loop in both: each version's compiler only lays it out as the
-       original from its own form */
+    /* the same loop in both; the match depends on its form: each version's
+       compiler only lays it out as the original from its own */
 #if VERSION_US
     while (1) {
 #elif VERSION_EU

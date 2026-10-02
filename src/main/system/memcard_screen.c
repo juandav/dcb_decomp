@@ -900,8 +900,9 @@ void runMemcardScreen(void) {
                 MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0xB;
                 MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
             } else if (screen->mode == 1 || screen->mode == 3) {
-                /* one block per mode, as the icons above: the loop then has
-                   enough uses of MEMCARD_SLOT for loop.c to hoist its address */
+                /* one block per mode, as the icons above: the match depends on
+                   it, since the loop then has enough uses of MEMCARD_SLOT for
+                   loop.c to hoist its address */
                 MEMCARD_SCREEN.message = MEMCARD_SLOT.file + 0x13;
                 MEMCARD_MESSAGE_WINDOW.draw = drawMemcardMessage;
             } else if (screen->mode == 5) {

@@ -261,8 +261,9 @@ void OPEN_runStarterSelect(s32 parentTask) {
             OPEN_INTRO_TEXT.page = 6;
         }
         if (OPEN_STARTER_SELECT.chosen == 0) {
-            /* both go back to the wait; each version's compiler needs its
-               own form to lay the loop out as the original does */
+            /* both go back to the wait; the match depends on the form: each
+               version's compiler needs its own to lay the loop out as the
+               original does */
 #if VERSION_US
             goto wait;
 #elif VERSION_EU

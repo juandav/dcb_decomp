@@ -81,7 +81,8 @@ ScriptRunner *SAI_loadMapScript(void) {
 }
 
 ScriptRunner *SAI_loadAreaScript(void) {
-    char path[0x18]; /* unused: the map scripts are in the PAK */
+    /* the map scripts are in the PAK */
+    char path[0x18]; /* unused, but it is in the original stack frame */
     Chunk *pak;
     s32 size;
     ScriptRunner *runner;

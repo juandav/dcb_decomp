@@ -253,8 +253,8 @@ void SUG_detachEffectToWorld(EffectSlots *slots, s32 id, EffectParams *cmd) {
         xform = (Xform *)slots->slots[id].value;
         saved = *(Xform *)slots->xform;
         initTransform(slots->xform, 0, 0, 0, 0, 0, 0, 0);
-        /* the chain up to the slots' own transform; each version's
-           compiler needs its own form of the loop */
+        /* the chain up to the slots' own transform; the match depends on
+           the form of the loop: each version's compiler needs its own */
 #if VERSION_US
         n = 0;
         p = chain;
@@ -883,7 +883,8 @@ void SUG_createScrollTextureFromParams(EffectParams *params, EffectSlots *ctx) {
 #define EFFECT_CLUT_Y(cmd, ctx) (((ctx)->modelSlots[0] << 8) + (cmd)->clutY)
 #endif
 
-/* (u16)(v) << n, written as the two shifts GCC 2.8.1 keeps */
+/* (u16)(v) << n, written as the two shifts GCC 2.8.1 keeps: the match
+   depends on this form */
 #define U16_SHL(v, n) ((u32)((v) << 16) >> (16 - (n)))
 
 void SUG_createSphereFromParams(EffectParams *cmd, EffectSlots *ctx) {
@@ -1058,7 +1059,7 @@ void SUG_createModelEffectFromParams(EffectParams *params, EffectSlots *ctx) {
 void SUG_createSpriteEffectFromParams(EffectParams *params, EffectSlots *ctx) {
     EffectTemplate buf;
     EffectTemplate *template;
-    SVECTOR unused;
+    SVECTOR unused; /* unused, but it is in the original stack frame */
 
     template = NULL;
     if (params->vramEntries != 0) {
@@ -1249,7 +1250,7 @@ void SUG_runEffectScriptTask(void *script, s32 slot, s32 a2, s32 *state) {
     s32 prev;
     s32 running;
 
-    /* the extra block is needed for the register allocation to match */
+    /* the match depends on the extra block, for the register allocation */
     do {
         prev = *state;
         obj = SUG_createEffectScript(script, slot, a2, state);

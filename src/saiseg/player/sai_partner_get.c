@@ -218,8 +218,9 @@ void SAI_runPartnerGet(s32 task) {
             SAI_PARTNER_LIST.state = 6;
         }
         if (SAI_PARTNER_CURSOR.done == 0) {
-            /* both go back to the wait; each version's compiler needs its
-               own form to lay the loop out as the original does */
+            /* both go back to the wait; the match depends on the form: each
+               version's compiler needs its own to lay the loop out as the
+               original does */
 #if VERSION_US
             goto wait;
 #elif VERSION_EU

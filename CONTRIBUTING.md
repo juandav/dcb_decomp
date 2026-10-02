@@ -24,6 +24,24 @@ so that the Digimon decomps read the same way.
   address is loaded again, as in the original */`. A forced form without
   its reason doesn't pass review, and the rest of the function stays
   readable C.
+- Two lesser workarounds have a standard marker of their own, so that
+  `tools/hacks.py` can count them (the README's badge, which the CI keeps
+  up to date):
+  - a local that nothing reads or writes, kept because the original's
+    stack frame has room for it, ends its declaration with exactly
+    `/* unused, but it is in the original stack frame */`. Anything more
+    to say about it goes in a comment of its own above it. A local that
+    makes no difference to the output is deleted instead.
+  - C that only matches in one of several equivalent forms (a statement
+    macro's `do {} while (0)`, an extra block, an `if` kept on one line or
+    without braces, a copy of a variable, a type, each version's own form
+    of a loop) has a comment that says the `match depends on` that form,
+    and why: `/* kept on one line: the match depends on it, since GCC
+    2.8.1's line notes decide where slot*83 is computed */`.
+
+  After adding or removing a fake match or one of these, run
+  `tools/hacks.py` and update the README's badge and table to its counts;
+  `tools/hacks.py --list` lists them all.
 - Code that was written in assembly, not compiled, is kept as assembly
   source instead: a comment at the top of the `.s` says what shows it is
   hand-written (things no compiler emits, such as `$at` used as a

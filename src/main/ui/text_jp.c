@@ -1274,9 +1274,9 @@ s32 measureText(s32 proportional, u8 *text) {
                 break;
             case '\n':
                 text++;
-                /* no braces: they would add a note to the loop that makes
-                   GCC's loop.c hoist TEXT_WIDTH's address, which jp's
-                   doesn't */
+                /* no braces: the match depends on it. They would add a note to
+                   the loop that makes GCC's loop.c hoist TEXT_WIDTH's
+                   address, which jp's doesn't */
                 if (TEXT_WIDTH < x - startX)
                     TEXT_WIDTH = x - startX;
                 x = startX;

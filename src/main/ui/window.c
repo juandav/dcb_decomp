@@ -251,7 +251,7 @@ s32 drawWindow(UiWindow *win, void (*drawContents)(), s32 z) {
     Rect16 frameClip;
     Rect16 contentClip;
     Rect16 labelClip;
-    Rect16 unused;
+    Rect16 unused; /* unused, but it is in the original stack frame */
     s32 ret;
     s32 labelKind;
     s32 y;

@@ -12,7 +12,7 @@ void EVO_drawFusionTypeTitle(EvoWindow *w) {
     s32 x = w->win.originX;
     s32 y = w->win.originY;
     s32 z = w->win.z;
-    u8 unused[0x48]; /* stack space the original reserves but never touches */
+    u8 unused[0x48]; /* unused, but it is in the original stack frame */
 
     if (w->isPartner == 0) {
         drawTextColored(x + 0x4B, y, "Card Fusion", EVO_TEXT_COLORS[EVO_TYPE_CHOICE.side].b, 6, z);
@@ -25,7 +25,7 @@ void EVO_drawFusionTypeHelp(EvoWindow *w) {
     s32 x = w->win.originX;
     s32 y = w->win.originY;
     s32 z = w->win.z;
-    u8 unused[0x48]; /* stack space the original reserves but never touches */
+    u8 unused[0x48]; /* unused, but it is in the original stack frame */
 
     if (w->isPartner == 0) {
         x += 2;
@@ -52,7 +52,8 @@ void EVO_drawTray(EvoTray *tray) {
         player = 1;
     }
 #if VERSION_US
-    /* the index is added before the field offset in the original */
+    /* the match depends on adding the index before the field offset, as the
+       original does */
     if (((EvoFusion *)((u8 *)&EVO_FUSION + player))->busy[0] == 0) {
 #elif VERSION_EU
     if (EVO_FUSION.busy[player] == 0) {

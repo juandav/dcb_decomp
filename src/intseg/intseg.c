@@ -2146,8 +2146,9 @@ void INT_loadKeyboardPage(u8 page) {
 
 /* the hero's first deck: 10 to 15 cards drawn from the birth date and the
    names, the last ones random cards of the chosen stone's colour; returns
-   how many. The tables are statement macros: their do-while lays the
-   copies out as the original's (the bodies after the colour cases) */
+   how many. The tables are statement macros, and the match depends on
+   their do-while, which lays the copies out as the original's (the bodies
+   after the colour cases) */
 u8 INT_makeHeroDeck(IntState *state, u8 *deck, u8 color) {
     u8 cards[15] = { 0x00, 0x01, 0x02, 0x14, 0x15, 0x16, 0x2A, 0x2B, 0x2C, 0x45, 0x46, 0x47, 0x5B, 0x5C, 0x5D };
     s16 i;

@@ -803,7 +803,7 @@ void sortEnvMappedPrimitives(SortWork *w) {
     /*
      * The group's texture word and each primitive's nclip result share one
      * variable, as in the original: both are tested by their sign, and the
-     * shared lifetime is what puts the nclip result in a0.
+     * match depends on the shared lifetime, which puts the nclip result in a0.
      */
     s32 value;
     u32 code;

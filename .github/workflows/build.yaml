@@ -6,8 +6,10 @@ on:
 permissions:
   contents: read
 jobs:
-  # Every version names its symbols as us does (tools/check_names.py). It
-  # only reads config/, so it needs no disc and runs for forks too.
+  # Every version names its symbols as us does (tools/check_names.py), and
+  # the README's count of fake matches and hacks is the source's
+  # (tools/hacks.py). They only read config/, src/ and include/, so they need
+  # no disc and run for forks too.
   names:
     runs-on: ubuntu-24.04
     steps:
@@ -16,6 +18,8 @@ jobs:
         persist-credentials: false
 
     - run: python3 tools/check_names.py
+
+    - run: python3 tools/hacks.py --check README.md
 
   build:
     # The original executable lives in a private repository that only this

@@ -144,8 +144,8 @@ void KAW_resetBonusFlags(s32 player) {
     }
 }
 
-/* the same count; each version's compiler needs its own form to give the
-   original's registers */
+/* the same count; the match depends on the form: each version's compiler
+   needs its own to give the original's registers */
 #if VERSION_US
 void KAW_countEarnedBonuses(void) {
     s32 i;

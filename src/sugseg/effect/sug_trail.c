@@ -111,7 +111,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
         }
         obj->level -= obj->speed;
         if (obj->level < 0) {
-            /* the extra block is needed for the register allocation to match */
+            /* the match depends on the extra block, for the register allocation */
             do {
                 obj->level = 0;
             } while (0);
@@ -162,7 +162,7 @@ void SUG_tickTrailEffect(TrailEffect *obj) {
             }
         } else {
             moved = 1;
-            /* the extra block is needed for the delay slots to match */
+            /* the match depends on the extra block, for the delay slots */
             do {
                 if (obj->prevPos[i].vx != obj->pos.vx || obj->prevPos[i].vy != obj->pos.vy || obj->prevPos[i].vz != obj->pos.vz ||
                     obj->prevRot[i].vx != obj->rot.vx || obj->prevRot[i].vy != obj->rot.vy || obj->prevRot[i].vz != obj->rot.vz) {

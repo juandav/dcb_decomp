@@ -381,7 +381,7 @@ CompareFunc OPEN_SORT_COMPARES[11] = {
 };
 
 void OPEN_drawSortMenu(PlayerWindow *window) {
-    char text[72]; /* unused, but it sizes the frame */
+    char text[72]; /* unused, but it is in the original stack frame */
     Menu *menu;
     s32 player;
     s32 i;

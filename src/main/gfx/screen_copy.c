@@ -60,7 +60,7 @@ void initScreenCopyEffect(void) {
 
 void renderScreenCopyEffect(void) {
     s32 i;
-    s32 unused[2];
+    s32 unused[2]; /* unused, but it is in the original stack frame */
 
     if (SCREEN_COPY_EFFECT.mode == 0) {
         return;
@@ -118,7 +118,7 @@ void initScreenCopyEffect(void) {
 void renderScreenCopyEffect(void) {
     s32 i;
     POLY_FT4 *poly;
-    s32 unused[4];
+    s32 unused[4]; /* unused, but it is in the original stack frame */
 
     if (SCREEN_COPY_MODE == 0) {
         return;

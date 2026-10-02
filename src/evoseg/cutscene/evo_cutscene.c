@@ -515,7 +515,7 @@ void EVO_setGteMatrix(MATRIX *m) {
 void EVO_renderCutsceneModels(FrameBuffer *buffer, s32 bufferIndex) {
     MATRIX localScreen;
     SVECTOR position;
-    MATRIX unused;
+    MATRIX unused; /* unused, but it is in the original stack frame */
     MATRIX lightMatrix;
     MATRIX colorMatrix;
     s32 flag;
@@ -783,7 +783,8 @@ void EVO_renderDissolvingObject(GsDOBJ4 *obj, s32 mode) {
         TMD_P_TG4 *tg4;
         TMD_P_TNF4 *tnf4;
     } op;
-    /* the type that gives code its register in each version */
+    /* the match depends on code's type, which gives it its register in each
+       version */
 #if VERSION_US
     s32 code;
 #elif VERSION_EU

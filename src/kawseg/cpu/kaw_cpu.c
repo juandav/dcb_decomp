@@ -30,7 +30,7 @@ s32 KAW_simulateBattles(s32 self) {
     s32 oppAttack;
     s8 handCard;
 
-    /* a copy of self: it only changes the register allocation */
+    /* a copy of self: the match depends on it, for the register allocation */
     player = self;
     opponent = self ^ 1;
     for (i = 0; i < 2; i++) {
