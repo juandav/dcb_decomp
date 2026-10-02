@@ -390,11 +390,85 @@ void SAI_drawDeckInfo(JpWindow *win) {
     }
 }
 
-/* the original keeps an empty loop over the deck's cards with the addresses
-   loop.c hoisted for its body: its body survived flow's dead-code pass and
-   went away later, which no C form we tried does (a dead load in the loop
-   is deleted by flow together with what loop.c hoisted) */
-INCLUDE_ASM("saiseg/nonmatchings/ui/sai_text_jp", SAI_summarizeDeck);
+void SAI_summarizeDeck(DeckSummary *summary, s8 deck) {
+    s32 i;
+    s32 sevens;
+    s32 id;
+    u8 *card;
+
+    if ((u8)deck < 30) {
+        if ((summary->inUse = PLAYER_DATA(0).savedDecks[deck].inUse) != 0) {
+            summary->specialties[2] = 0;
+            summary->specialties[1] = 0;
+            summary->specialties[0] = 0;
+            summary->options = 0;
+            summary->specialties[4] = 0;
+            summary->specialties[3] = 0;
+            summary->sevens = 0;
+            summary->sevensHeld = 0;
+            for (i = 0; i < 3; i++) {
+                summary->levels[i] = 0;
+            }
+            strcpy(summary->name, PLAYER_DATA(0).savedDecks[deck].name);
+            /* fake match: the original keeps an empty loop with the deck's
+               address hoisted out of it. A u8 is never 0x100, but only
+               combine finds that out, after loop.c has hoisted the body's
+               addresses; jump then drops the body */
+            for (i = 0; i < 30; i++) {
+                if (((u8)i & 0x100) != 0) {
+                    if (PLAYER_DATA(0).savedDecks[deck].cards[i].index) {
+                        summary->sevens++;
+                    }
+                }
+            }
+            for (i = 0; i < 30; i++) {
+                switch (PLAYER_DATA(0).savedDecks[deck].cards[i].type) {
+                case 0:
+                    /* fake match: `id` and `card` are statements of their
+                       own, so that the card's address is built in fresh
+                       registers (loop.c then hoists the deck's whole offset,
+                       not the jump table's address) and DIGIMON_CARDS is
+                       loaded where the original loads it */
+                    id = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
+                    switch (((DigimonCardData *)(DIGIMON_CARDS + id * 0x122))->attr >> 4) {
+                    case 0:
+                        summary->specialties[0]++;
+                        break;
+                    case 1:
+                        summary->specialties[1]++;
+                        break;
+                    case 2:
+                        summary->specialties[2]++;
+                        break;
+                    case 3:
+                        summary->specialties[3]++;
+                        break;
+                    case 4:
+                        summary->specialties[4]++;
+                        break;
+                    }
+                    card = DIGIMON_CARDS + PLAYER_DATA(0).savedDecks[deck].cards[i].index * 0x122;
+                    summary->levels[((DigimonCardData *)card)->attr & 0xF]++;
+                    break;
+                case 1: {
+                    /* fake match: the index goes through its own register
+                       before `sevens`, as in the original */
+                    s32 index = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
+
+                    sevens = index - 0x23;
+                    if ((u8)sevens < 7) {
+                        summary->sevensHeld |= 1 << sevens;
+                        summary->sevens++;
+                    }
+                }
+                case 2:
+                    summary->options++;
+                    break;
+                }
+            }
+        }
+    }
+}
 
 void SAI_summarizeOwnedCards(DeckSummary *owned) {
     s32 i;
