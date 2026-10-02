@@ -123,24 +123,22 @@ extern const char NIS_FMT_DRAWS[];
 extern const char NIS_FMT_PLAYER1_RECORD[];
 extern const char NIS_FMT_PLAYER2_RECORD[];
 
-/* the players' names, the stars to win and both records */
+/* the players' names, the stars to win and both records, a row of 0xE pixels
+   apart. x and y are s16 set at the top, as in drawOptionWindow, and y moves
+   down one row at a time: the match depends on both */
 void NIS_drawVsRecords(NisWindow *window) {
     char lines[6][0x30];
     char numbers[8][0xC];
     NisProfile *profiles;
     u16 starCount;
-    const char *format;
     u16 drawCount;
     s16 width;
-    s32 x;
-    s32 y;
-    s32 row;
+    s16 x;
+    s16 y;
 
+    x = 0x26;
+    y = 0xA4;
     profiles = (NisProfile *)PLAYER_PROFILES;
-    /* fake match: player 2's format goes through `format`, set here, which
-       makes the RTL one insn shorter until reload puts the address back;
-       that is what tips local-alloc's choice of the line pointer it spills */
-    format = NIS_FMT_PLAYER2;
     starCount = NIS_STATE->unk14C;
     drawCount = NIS_STATE->unk14D;
     width = splitDigits(drawCount, D_801E46D8);
@@ -154,27 +152,20 @@ void NIS_drawVsRecords(NisWindow *window) {
     formatSjisNumber(starCount, 3, numbers[6]);
     formatSjisNumber(drawCount, width, numbers[7]);
     sprintf(lines[0], NIS_FMT_PLAYER1, profiles[0].name);
-    sprintf(lines[1], format, profiles[1].name);
+    sprintf(lines[1], NIS_FMT_PLAYER2, profiles[1].name);
     sprintf(lines[2], NIS_FMT_STARS, numbers[6]);
     sprintf(lines[3], NIS_FMT_DRAWS, numbers[7]);
     sprintf(lines[4], NIS_FMT_PLAYER1_RECORD, numbers[1], numbers[2]);
     sprintf(lines[5], NIS_FMT_PLAYER2_RECORD, numbers[4], numbers[5]);
-    /* fake match: x and y stay registers in the original. starCount is a
-       byte, so `starCount & 0x100` is always 0, but only combine knows it:
-       CSE has already left x and y as registers */
-    x = (starCount & 0x100) | 0x26;
-    y = (starCount & 0x100) | 0xA4;
     drawIconText(x, y, 7, 0, window->z, (s32)lines[0]);
     drawIconText(x + 0x78, y, 7, 0, window->z, (s32)lines[1]);
     y += 0xE;
-    /* fake match: the original draws the second pair from a copy of y. The
-       same trick (a u8 is never 0x100) keeps CSE from merging `row` into y,
-       and its read of x lifts x's local-alloc priority above y's */
-    row = y + ((u8)x & 0x100);
-    drawIconText(x, row, 7, 0, window->z, (s32)lines[2]);
-    drawIconText(x + 0x6C, row, 7, 0, window->z, (s32)lines[3]);
-    drawIconText(x, y + 0xE, 7, 0, window->z, (s32)lines[4]);
-    drawIconText(x, y + 0x1C, 7, 0, window->z, (s32)lines[5]);
+    drawIconText(x, y, 7, 0, window->z, (s32)lines[2]);
+    drawIconText(x + 0x6C, y, 7, 0, window->z, (s32)lines[3]);
+    y += 0xE;
+    drawIconText(x, y, 7, 0, window->z, (s32)lines[4]);
+    y += 0xE;
+    drawIconText(x, y, 7, 0, window->z, (s32)lines[5]);
 }
 
 /* what NIS_drawVsRecords draws */
