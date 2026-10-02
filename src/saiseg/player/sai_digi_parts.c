@@ -236,12 +236,9 @@ void SAI_drawDigiPartsWindow(void) {
  * Task that grants a partner ability (a Digi-Part) and shows the parts list
  * until Cross is pressed.
  */
-#if VERSION_EU
-/* eu: keeps the loads of a loop with no effect; no C form found yet */
-INCLUDE_ASM("saiseg/nonmatchings/player/sai_digi_parts", SAI_grantDigiPart);
-#elif VERSION_US
 void SAI_grantDigiPart(s32 ability, s32 task) {
-    Rect16 unused; /* never used, but the original frame has room for it */
+    /* fake match: never used; it gives the frame the original's size */
+    Rect16 unused;
     Rect16 rect;
     s32 i;
     UiWindow *win;
@@ -258,7 +255,15 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
      * counter sits in a0; without it the code differs.
      */
     for (i = 0; i < 16; i++) {
+#if VERSION_US
         if ((SAI_OWNED_DIGI_PARTS[i] >> (ability % 8)) & 1) {
+#elif VERSION_EU
+        /* fake match: the second test of the byte only keeps its load alive,
+           as eu's dead loop still has it */
+        if ((SAI_OWNED_DIGI_PARTS[i] >> ability) & 1 && SAI_OWNED_DIGI_PARTS[i] != 0) {
+#else
+#error "saiseg/player/sai_digi_parts: version not checked"
+#endif
             win = &SAI_DIGI_PARTS_WINDOW;
         }
     }
@@ -279,6 +284,3 @@ void SAI_grantDigiPart(s32 ability, s32 task) {
     SAI_AREA_MODE = AREA_MODE_SCRIPT;
     resumeTask(task);
 }
-#else
-#error "saiseg/player/sai_digi_parts: version not checked"
-#endif
