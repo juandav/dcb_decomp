@@ -32,7 +32,11 @@ extern u8 *SCROLLING_BACKGROUND;
 extern s32 OPTION_WINDOW; /* the option window */
 extern u8 OPTION_MENU_LEFT; /* set when the option menu is left */
 extern u8 OPTION_FROM_WORLD_MAP;
-extern void (*OPTION_EXIT_TASKS[])();
+void NIS_runMainMenuTask();
+
+/* where leaving the options goes: back to the main menu, or to the world
+   map when they were opened from it (OPTION_FROM_WORLD_MAP) */
+void (*OPTION_EXIT_TASKS[2])() = { NIS_runMainMenuTask, SAI_runWorldMap };
 
 void runOptionMenu(void);
 void runSoundMenu(void);
