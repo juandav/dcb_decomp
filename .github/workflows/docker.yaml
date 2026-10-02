@@ -1,0 +1,58 @@
+name: docker
+# Builds the Dockerfile's image and checks that the USA version builds and
+# matches inside it, whenever the image or what it installs changes.
+on:
+  push:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - tools/docker.sh
+      - tools/dl_deps.sh
+      - tools/deps.sha256
+      - requirements.txt
+      - Makefile
+      - .github/workflows/docker.yaml
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - tools/docker.sh
+      - tools/dl_deps.sh
+      - tools/deps.sha256
+      - requirements.txt
+      - Makefile
+      - .github/workflows/docker.yaml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  docker:
+    # it needs the original executable, as build.yaml's build job does
+    if: >-
+      github.repository == 'juandav/dcb_decomp' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: us
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        submodules: recursive
+        persist-credentials: false
+
+    - uses: actions/checkout@v5
+      with:
+        repository: juandav/dcb_decomp_dependencies
+        ssh-key: ${{ secrets.DCB_DEPENDENCIES_SSH_KEY }}
+        path: dependencies
+        persist-credentials: false
+
+    - run: |
+        mkdir -p disks/us
+        cp dependencies/SLUS_013.28 dependencies/P.DRV disks/us/
+        rm -rf dependencies
+
+    - run: tools/docker.sh make generate
+    - run: tools/docker.sh sh -c 'make -j$(nproc)'
+    - run: tools/docker.sh make compare

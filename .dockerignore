@@ -1,0 +1,6 @@
+# The image only needs what its Dockerfile copies: never the disc files in
+# disks/, the generated asm/, build/ and assets/, or anything else
+*
+!requirements.txt
+!tools/dl_deps.sh
+!tools/deps.sha256

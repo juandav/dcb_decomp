@@ -28,6 +28,8 @@ for i,a in enumerate(sys.argv):
     if a.startswith('--version='): os.environ['VERSION']=a.split('=',1)[1]; del sys.argv[i]; break
 from version import ASM_DIR, BUILD_DIR, CONFIG_DIR, DISK_DIR, EXE_NAME, GCC_VERSION, MASPSX_EXTRA, TEXT_ENCODING, VERSION
 D=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# the prebuilt compilers (tools/dl_deps.sh), or the Docker image's (BIN_DIR)
+B=os.path.join(D,os.environ.get('BIN_DIR','bin'))
 exe=open(f'{DISK_DIR}/{EXE_NAME}','rb').read()[0x800:]
 def original(binary):
     """(bytes, vram) of a binary: the executable or an overlay (config/<version>/<binary>.yaml)."""
@@ -47,8 +49,8 @@ pre=""
 if gcc28:
     # the cc1 without `return` insns that the Makefile uses (tools/sn_cc1.py)
     sn=f"{D}/build/tools/cc1-2.8.1-sn"
-    if not os.path.exists(sn) or os.path.getmtime(sn)<max(os.path.getmtime(f"{D}/bin/gcc-2.8.1-psx/cc1"),os.path.getmtime(f"{D}/tools/sn_cc1.py")):
-        subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{D}/bin/gcc-2.8.1-psx/cc1",sn],check=True)
+    if not os.path.exists(sn) or os.path.getmtime(sn)<max(os.path.getmtime(f"{B}/gcc-2.8.1-psx/cc1"),os.path.getmtime(f"{D}/tools/sn_cc1.py")):
+        subprocess.run([sys.executable,f"{D}/tools/sn_cc1.py",f"{B}/gcc-2.8.1-psx/cc1",sn],check=True)
     cc1=f"{sn} -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float -fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused -mno-split-addresses"
     pre=f"python3 {D}/tools/unfill_epilogue.py < {w}.s |"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
@@ -59,7 +61,7 @@ elif psyq:
     if nocse: cc1+=" -fno-rerun-cse-after-loop"
     post=f"| python3 {D}/tools/aspsx_reorder.py"
 else:
-    cc1=f"{D}/bin/gcc-{GCC_VERSION}-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
+    cc1=f"{B}/gcc-{GCC_VERSION}-psx/cc1 -quiet -O1 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -Wall -Wno-unused "+os.environ.get("CC1FLAGS_EXTRA","")
     post=""
 cmd=f"mipsel-linux-gnu-cpp -P -undef -nostdinc -I{D}/include -I{D}/external/psyq_headers/psyq_lib47/include -D_LANGUAGE_C -DLANGUAGE_C -D__GNUC__=2 -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D_MIPSEL -DVERSION_{VERSION.upper()} -I{BUILD_DIR} -DSKIP_ASM {src} > {w}.i && {f'python3 {D}/tools/sjis_escape.py {w}.i {w}.i && ' if TEXT_ENCODING else ''}{cc1} -o {w}.s {w}.i && {pre or f'cat {w}.s |'} python3 {D}/external/maspsx/maspsx.py --aspsx-version=2.86{" --expand-div" if psyq else " "+MASPSX_EXTRA} {post} > {w}.ms.s && mipsel-linux-gnu-as -EL -march=r3000 -no-pad-sections -O1 -G0 -I{D} -I{D}/include -o {w}.o {D}/include/gte_macros.inc {w}.ms.s"
 r=subprocess.run(cmd,shell=True,capture_output=True,text=True)

@@ -44,10 +44,14 @@ OBJCOPY := $(TOOLCHAIN)objcopy
 PYTHON := python3
 SPLAT := $(PYTHON) -m splat split
 
+# the prebuilt compilers and tools that tools/dl_deps.sh downloads; the
+# Docker image keeps its own outside the repository and sets BIN_DIR
+BIN_DIR ?= bin
+
 GCC_VERSION ?= 2.95.2
-CC1 ?= bin/gcc-$(GCC_VERSION)-psx/cc1
+CC1 ?= $(BIN_DIR)/gcc-$(GCC_VERSION)-psx/cc1
 MASPSX := $(PYTHON) external/maspsx/maspsx.py
-OBJDIFF ?= bin/objdiff-cli-linux-x86_64
+OBJDIFF ?= $(BIN_DIR)/objdiff-cli-linux-x86_64
 
 INC := -Iinclude -Iexternal/psyq_headers/psyq_lib47/include
 
@@ -87,7 +91,7 @@ $(PSYQ_OBJ): GCC_VERSION := 2.7.2
 PSYQ_CC1 := $(TOOLS_BUILDDIR)/gcc-2.7.2-psx/cc1
 $(PSYQ_OBJ): CC1 := $(PSYQ_CC1)
 $(PSYQ_OBJ): $(PSYQ_CC1)
-$(PSYQ_CC1): bin/gcc-2.7.2-psx/cc1 tools/patch_cc1.py
+$(PSYQ_CC1): $(BIN_DIR)/gcc-2.7.2-psx/cc1 tools/patch_cc1.py
 	$(PYTHON) tools/patch_cc1.py $< $@
 $(PSYQ_OBJ): CC1FLAGS := -quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -mhard-float \
 	-fgnu-linker -fsigned-char -fno-builtin -fdollars-in-identifiers -Wall -Wno-unused
@@ -111,7 +115,7 @@ $(BUILDDIR)/src/main/psyq/libc2_putchar.c.s: CC1FLAGS += -finline-functions
 $(BUILDDIR)/src/main/psyq/libcd_bios_1_2.c.s: CC1FLAGS += -fno-strength-reduce
 $(PSYQ_GCC28_OBJ): CC1_POST := $(PYTHON) tools/unfill_epilogue.py
 $(PSYQ_GCC28_OBJ): $(SN_CC1)
-$(SN_CC1): bin/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
+$(SN_CC1): $(BIN_DIR)/gcc-2.8.1-psx/cc1 tools/sn_cc1.py
 	$(PYTHON) tools/sn_cc1.py $< $@
 
 # Others come from GCC 2.7.2 run without the second CSE pass, as all of
