@@ -392,9 +392,9 @@ void SAI_drawDeckInfo(JpWindow *win) {
 
 void SAI_summarizeDeck(DeckSummary *summary, s8 deck) {
     s32 i;
-    s32 sevens;
-    s32 id;
-    u8 *card;
+    s32 optionId;
+    s32 digimonId;
+    DigimonCardData *card;
 
     if ((u8)deck < 30) {
         if ((summary->inUse = PLAYER_DATA(0).savedDecks[deck].inUse) != 0) {
@@ -424,13 +424,8 @@ void SAI_summarizeDeck(DeckSummary *summary, s8 deck) {
             for (i = 0; i < 30; i++) {
                 switch (PLAYER_DATA(0).savedDecks[deck].cards[i].type) {
                 case 0:
-                    /* fake match: `id` and `card` are statements of their
-                       own, so that the card's address is built in fresh
-                       registers (loop.c then hoists the deck's whole offset,
-                       not the jump table's address) and DIGIMON_CARDS is
-                       loaded where the original loads it */
-                    id = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
-                    switch (((DigimonCardData *)(DIGIMON_CARDS + id * 0x122))->attr >> 4) {
+                    digimonId = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
+                    switch (((DigimonCardData *)(DIGIMON_CARDS + digimonId * 0x122))->attr >> 4) {
                     case 0:
                         summary->specialties[0]++;
                         break;
@@ -447,20 +442,16 @@ void SAI_summarizeDeck(DeckSummary *summary, s8 deck) {
                         summary->specialties[4]++;
                         break;
                     }
-                    card = DIGIMON_CARDS + PLAYER_DATA(0).savedDecks[deck].cards[i].index * 0x122;
-                    summary->levels[((DigimonCardData *)card)->attr & 0xF]++;
+                    card = (DigimonCardData *)(DIGIMON_CARDS + PLAYER_DATA(0).savedDecks[deck].cards[i].index * 0x122);
+                    summary->levels[card->attr & 0xF]++;
                     break;
-                case 1: {
-                    /* fake match: the index goes through its own register
-                       before `sevens`, as in the original */
-                    s32 index = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
-
-                    sevens = index - 0x23;
-                    if ((u8)sevens < 7) {
-                        summary->sevensHeld |= 1 << sevens;
+                case 1:
+                    /* the Seven cards are the options 0x23 to 0x29 */
+                    optionId = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
+                    if ((u8)(optionId - 0x23) < 7) {
+                        summary->sevensHeld |= 1 << (optionId - 0x23);
                         summary->sevens++;
                     }
-                }
                 case 2:
                     summary->options++;
                     break;
