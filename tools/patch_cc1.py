@@ -91,7 +91,8 @@ import struct
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STOCK = f"{ROOT}/bin/gcc-2.7.2-psx/cc1"
+# the prebuilt compilers (tools/dl_deps.sh), or the Docker image's (BIN_DIR)
+STOCK = os.path.join(ROOT, os.environ.get("BIN_DIR", "bin"), "gcc-2.7.2-psx", "cc1")
 PATCHED = f"{ROOT}/build/tools/gcc-2.7.2-psx/cc1"
 
 
