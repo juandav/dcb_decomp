@@ -133,10 +133,8 @@ void loadDuelCardGraphics(s32 withExtras) {
     CardAnim *nextAnims[3];
 #define nextAnim nextAnims[0]
 #elif VERSION_EU
+    char path[16]; /* unused, but it is in the original stack frame */
     CardAnim *nextAnim;
-    /* fake match: never used; it gives the frame the original's size (0x50),
-       where reload left spill slots that no C shape reproduces */
-    CardAnim *unused[3];
 #endif
     CardAnim *anim;
     u32 *arc;
