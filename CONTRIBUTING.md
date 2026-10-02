@@ -10,6 +10,20 @@ so that the Digimon decomps read the same way.
 - No `NON_MATCHING` code, no inline assembly in place of C, and no tricks that
   wouldn't pass review. A function that doesn't match yet stays behind its
   `INCLUDE_ASM`.
+- A fake match is the last resort, not a shortcut: only for a function that
+  natural C has failed to match after a real search (other source shapes,
+  types, statement order, the permuter's legitimate finds), a forced form is
+  allowed: an empty `do {} while (0)` used as a CSE or loop barrier, a
+  variable reused for an unrelated job or a pointer kept in an integer, an
+  array of which only one element is used or a local that only shapes the
+  stack frame, a condition or statement that exists only for codegen, or what
+  the permuter found, cleaned up as far as it still matches. Mark the exact
+  spot with a comment that starts with `/* fake match:` and gives, in one or
+  two lines, what is forced and why: the compiler decision it reproduces.
+  Example: `/* fake match: the empty loop ends a CSE block, so SESSION_DATA's
+  address is loaded again, as in the original */`. A forced form without
+  its reason doesn't pass review, and the rest of the function stays
+  readable C.
 - Code that was written in assembly, not compiled, is kept as assembly
   source instead: a comment at the top of the `.s` says what shows it is
   hand-written (things no compiler emits, such as `$at` used as a
