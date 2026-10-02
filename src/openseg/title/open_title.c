@@ -233,12 +233,10 @@ void OPEN_drawTitleScreen(void) {
     }
 }
 
-#if VERSION_EU
-/* eu: swaps the registers of choice and idle; no C form found yet */
-INCLUDE_ASM("openseg/nonmatchings/title/open_title", OPEN_runTitleScreen);
-#elif VERSION_US
+#if VERSION_US || VERSION_EU
 void OPEN_runTitleScreen(s32 parentTask) {
-    char text[192]; /* unused, but it sizes the frame */
+    /* fake match: never used; it gives the frame the original's size */
+    char text[192];
     /* never read: only its empty string is left in .rodata. It is written
        "\0" so that it stays apart from the "" of the arena table
        OPEN_ARENA_NAMES, which the original built in another file */
@@ -258,7 +256,11 @@ void OPEN_runTitleScreen(s32 parentTask) {
     arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        waitFrames(FRAME_INTERVAL);
+        /* fake match: choice holds the frame interval for a moment, which
+           gives choice more uses than idle, so global-alloc gives it its
+           register first, as in the original */
+        choice = FRAME_INTERVAL;
+        waitFrames(choice);
         DrawSync(0);
     }
     freeHeapBlock(arc);
