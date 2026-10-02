@@ -410,15 +410,12 @@ void SAI_summarizeDeck(DeckSummary *summary, s8 deck) {
                 summary->levels[i] = 0;
             }
             strcpy(summary->name, PLAYER_DATA(0).savedDecks[deck].name);
-            /* fake match: the original keeps an empty loop with the deck's
-               address hoisted out of it. A u8 is never 0x100, but only
-               combine finds that out, after loop.c has hoisted the body's
-               addresses; jump then drops the body */
+            /* finds the deck's last Digimon card, but the loop below sets
+               digimonId again before anything reads it: the original keeps
+               this loop emptied, with the deck's address hoisted out of it */
             for (i = 0; i < 30; i++) {
-                if (((u8)i & 0x100) != 0) {
-                    if (PLAYER_DATA(0).savedDecks[deck].cards[i].index) {
-                        summary->sevens++;
-                    }
+                if (PLAYER_DATA(0).savedDecks[deck].cards[i].type == 0) {
+                    digimonId = PLAYER_DATA(0).savedDecks[deck].cards[i].index;
                 }
             }
             for (i = 0; i < 30; i++) {
