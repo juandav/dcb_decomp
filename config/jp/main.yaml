@@ -218,7 +218,7 @@ segments:
       - [0x6F14C, .data, duel/duel_session_jp]
       - [0x6F1B4, .data, card/card_render_jp]
       # partner_level_jp's OPTION_EXIT_TASKS
-      - [0x6F574, data, card/partner_level_jp]
+      - [0x6F574, .data, card/partner_level_jp]
       - [0x6F57C, .data, system/memcard_screen]
       - [0x6F744, data, psyq]
       # the game's code, from main() on: one asm range for now
