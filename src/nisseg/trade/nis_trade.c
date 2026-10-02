@@ -1213,11 +1213,67 @@ void NIS_drawTradeQuestion(NisWindow *window) {
 #if JP_DEBUG_BUILD
 /* the debug build's test profile for a player (unused): its name, the
    copies of every card, each with a random serial number the card's other
-   copies don't have, and a first deck of 30 random Digimon. Matching it
-   needs its last loop to work out the deck slot's address again after
-   rand(), where the C written for it keeps the one from before the call */
-/* the test profiles' names */
-const char NIS_STR_DEBUG_NAME1[] = "後藤豪太";
-const char NIS_STR_DEBUG_NAME2[] = "菅野刺激";
-INCLUDE_ASM("nisseg/nonmatchings/trade/nis_trade", NIS_makeDebugProfile);
+   copies don't have, and a first deck of 30 random Digimon */
+void NIS_makeDebugProfile(u8 player, u8 copies) {
+    PlayerProfile *profile;
+    u16 serial;
+    s16 i;
+    s16 j;
+    s16 k;
+
+    profile = &PLAYER_DATA(player);
+    if (player == 0) {
+        strcpy(profile->name, "後藤豪太");
+    } else {
+        strcpy(profile->name, "菅野刺激");
+    }
+    for (i = 0; i < NIS_DIGIMON_COUNT; i++) {
+        profile->cardCollection[i] = copies;
+    digimon:
+        for (j = 0; j < 8; j++) {
+            serial = rand();
+            for (k = 0; k < j; k++) {
+                if (profile->cardSerials[0][i * 8 + k] == serial) {
+                    goto digimon;
+                }
+            }
+            profile->cardSerials[0][i * 8 + j] = serial;
+        }
+    }
+    for (i = 0; i < NIS_OPTION_COUNT; i++) {
+        profile->optionCollection[i] = copies;
+    option:
+        for (j = 0; j < 8; j++) {
+            serial = rand();
+            for (k = 0; k < j; k++) {
+                if (profile->optionSerials[0][i * 8 + k] == serial) {
+                    goto option;
+                }
+            }
+            profile->optionSerials[0][i * 8 + j] = serial;
+        }
+    }
+    for (i = 0; i < NIS_OTHER_COUNT; i++) {
+        profile->digivolveCollection[i] = copies;
+    other:
+        for (j = 0; j < 8; j++) {
+            serial = rand();
+            for (k = 0; k < j; k++) {
+                if (profile->digivolveSerials[0][i * 8 + k] == serial) {
+                    goto other;
+                }
+            }
+            profile->digivolveSerials[0][i * 8 + j] = serial;
+        }
+    }
+    profile->savedDecks[0].inUse = 1;
+    for (i = 0; i < 30; i++) {
+        profile->savedDecks[0].cards[i].type = 0;
+        /* fake match: the empty loop ends a CSE block, so the deck slot's
+           address is worked out again after rand(), as in the original */
+        do {
+        } while (0);
+        profile->savedDecks[0].cards[i].index = rand() % NIS_DIGIMON_COUNT;
+    }
+}
 #endif
