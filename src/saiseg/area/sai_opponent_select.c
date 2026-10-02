@@ -166,23 +166,44 @@ void SAI_freeOpponentSelect(void) {
     SAI_clearOpponents();
 }
 
-#if VERSION_EU
-/* eu: keeps the portraits' height 0x24 in a register; no C form found yet */
-INCLUDE_ASM("saiseg/nonmatchings/area/sai_opponent_select", SAI_updateOpponentPortraits);
-#elif VERSION_US
+/* fake match: eu keeps the portraits' height 0x24 in s3 for the whole loop.
+   height is set at the top of the loop, so loop.c moves it out, and each
+   store sits in an empty do-while: its loop notes raise flow's reference
+   count for height, so global-alloc gives height its register before
+   SAI_AREA's address, as in the original. us stores the constant. */
+#if VERSION_US
+#define SET_PORTRAIT_HEIGHT(r) ((r).h = 0x24)
+#elif VERSION_EU
+#define SET_PORTRAIT_HEIGHT(r) do { (r).h = height; } while (0)
+#else
+#error "saiseg/area/sai_opponent_select: version not checked"
+#endif
+
 void SAI_updateOpponentPortraits(void) {
     Rect16 rect;
     s32 i;
+#if VERSION_US
     s8 *cards;
     s8 page;
+#endif
     s8 card;
     s16 w;
     s16 h;
+#if VERSION_EU
+    s16 height;
+#endif
 
     for (i = 0; i < 6; i++) {
+#if VERSION_US
         page = SAI_AREA.select.page;
         cards = SAI_OPPONENTS.ids;
         card = cards[page * 6 + i];
+#elif VERSION_EU
+        card = SAI_OPPONENTS.ids[SAI_AREA.select.page * 6 + i];
+        height = 0x24;
+#else
+#error "saiseg/area/sai_opponent_select: version not checked"
+#endif
         if (card != -1) {
             if (SAI_AREA.select.blink[i] > 0) {
                 if (SAI_AREA.select.blink[i] & 4) {
@@ -192,7 +213,7 @@ void SAI_updateOpponentPortraits(void) {
                 }
                 rect.y = 0xA4;
                 rect.w = 0x2C;
-                rect.h = 0x24;
+                SET_PORTRAIT_HEIGHT(rect);
                 SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
                 SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEB);
                 SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEB);
@@ -200,7 +221,7 @@ void SAI_updateOpponentPortraits(void) {
                 rect.x = 0x2EB;
                 rect.y = 0x90;
                 rect.w = 0x2A;
-                rect.h = 0x24;
+                SET_PORTRAIT_HEIGHT(rect);
                 SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
                 SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
                 SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
@@ -208,7 +229,7 @@ void SAI_updateOpponentPortraits(void) {
                 rect.x = 0x2E0;
                 rect.y = 0x90;
                 rect.w = 0x2A;
-                rect.h = 0x24;
+                SET_PORTRAIT_HEIGHT(rect);
                 SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
                 SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
                 SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
@@ -230,9 +251,6 @@ void SAI_updateOpponentPortraits(void) {
         SAI_SPRITES[i + 37]->pos.vy = SAI_SPRITES[i + 31]->pos.vy - 1;
     }
 }
-#else
-#error "saiseg/area/sai_opponent_select: version not checked"
-#endif
 
 void SAI_zoomOpponentPortrait(void) {
     Rect16 rect;
