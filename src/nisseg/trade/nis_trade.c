@@ -1267,13 +1267,22 @@ void NIS_makeDebugProfile(u8 player, u8 copies) {
         }
     }
     profile->savedDecks[0].inUse = 1;
+    /* NIS_fillRandomDeck's loop with every card a Digimon: the switch on the
+       type it has just set stays, and its case labels make the slot's
+       address be worked out again after rand() */
     for (i = 0; i < 30; i++) {
         profile->savedDecks[0].cards[i].type = 0;
-        /* fake match: the empty loop ends a CSE block, so the deck slot's
-           address is worked out again after rand(), as in the original */
-        do {
-        } while (0);
-        profile->savedDecks[0].cards[i].index = rand() % NIS_DIGIMON_COUNT;
+        switch (profile->savedDecks[0].cards[i].type) {
+        case 0:
+            profile->savedDecks[0].cards[i].index = rand() % NIS_DIGIMON_COUNT;
+            break;
+        case 1:
+            profile->savedDecks[0].cards[i].index = rand() % NIS_OPTION_COUNT;
+            break;
+        case 2:
+            profile->savedDecks[0].cards[i].index = rand() % NIS_OTHER_COUNT;
+            break;
+        }
     }
 }
 #endif
