@@ -233,6 +233,18 @@ void OPEN_drawTitleScreen(void) {
     }
 }
 
+/* moves the title menu's cursor through its three options, wrapping around:
+   step 2 goes to the previous one (Left), 4 to the next (Right). The match
+   depends on the macro: in eu, its do-while's loop notes weigh choice's uses
+   more, so choice gets its register before idle, as in the original */
+#define STEP_TITLE_CURSOR(step) \
+    do {                        \
+        idle = 0;               \
+        playMenuSound(2);       \
+        choice += (step);       \
+        choice %= 3;            \
+    } while (0)
+
 #if VERSION_US || VERSION_EU
 void OPEN_runTitleScreen(s32 parentTask) {
     /* fake match: never used; it gives the frame the original's size */
@@ -256,11 +268,7 @@ void OPEN_runTitleScreen(s32 parentTask) {
     arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (; i < (s32)(arc[0] / 4); i++) {
         uploadTim((u32 *)((u8 *)arc + arc[i]), -1, -1, -1, -1);
-        /* fake match: choice holds the frame interval for a moment, which
-           gives choice more uses than idle, so global-alloc gives it its
-           register first, as in the original */
-        choice = FRAME_INTERVAL;
-        waitFrames(choice);
+        waitFrames(FRAME_INTERVAL);
         DrawSync(0);
     }
     freeHeapBlock(arc);
@@ -341,13 +349,9 @@ void OPEN_runTitleScreen(s32 parentTask) {
             if (isScreenFadeActive() == 0) {
                 idle++;
                 if ((u16)PAD_STATES[0]->pressed & 0x8000) {
-                    idle = 0;
-                    playMenuSound(2);
-                    choice = (choice + 2) % 3;
+                    STEP_TITLE_CURSOR(2);
                 } else if (PAD_STATES[0]->pressed & 0x2000) {
-                    idle = 0;
-                    playMenuSound(2);
-                    choice = (choice + 4) % 3;
+                    STEP_TITLE_CURSOR(4);
                 }
                 for (i = 0; i < 3; i++) {
                     OPEN_TITLE_OPTION_DIMMED[i] = 1;

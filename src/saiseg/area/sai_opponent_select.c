@@ -166,15 +166,28 @@ void SAI_freeOpponentSelect(void) {
     SAI_clearOpponents();
 }
 
-/* fake match: eu keeps the portraits' height 0x24 in s3 for the whole loop.
-   height is set at the top of the loop, so loop.c moves it out, and each
-   store sits in an empty do-while: its loop notes raise flow's reference
-   count for height, so global-alloc gives height its register before
-   SAI_AREA's address, as in the original. us stores the constant. */
+/* points portrait i's sprite at one of its 4-bit images, the blinking frame
+   or a locked opponent: its rect (the caller sets rect.x) and CLUT row. The
+   do-while matters to eu: its loop notes raise flow's reference count for
+   height, so global-alloc gives height its register before SAI_AREA's
+   address, as in the original */
+#define SET_PORTRAIT_IMAGE(top, width, clutY)                         \
+    do {                                                              \
+        rect.y = (top);                                               \
+        rect.w = (width);                                             \
+        rect.h = PORTRAIT_HEIGHT;                                     \
+        SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);           \
+        SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, clutY);   \
+        SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, clutY);   \
+    } while (0)
+
 #if VERSION_US
-#define SET_PORTRAIT_HEIGHT(r) ((r).h = 0x24)
+#define PORTRAIT_HEIGHT 0x24
 #elif VERSION_EU
-#define SET_PORTRAIT_HEIGHT(r) do { (r).h = height; } while (0)
+/* fake match: eu keeps the height 0x24 in s3 for the whole loop. height is
+   set at the top of the loop, so loop.c moves it out; us stores the
+   constant */
+#define PORTRAIT_HEIGHT height
 #else
 #error "saiseg/area/sai_opponent_select: version not checked"
 #endif
@@ -211,28 +224,13 @@ void SAI_updateOpponentPortraits(void) {
                 } else {
                     rect.x = 0x323;
                 }
-                rect.y = 0xA4;
-                rect.w = 0x2C;
-                SET_PORTRAIT_HEIGHT(rect);
-                SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
-                SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEB);
-                SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEB);
+                SET_PORTRAIT_IMAGE(0xA4, 0x2C, 0xEB);
             } else if (card == 16) {
                 rect.x = 0x2EB;
-                rect.y = 0x90;
-                rect.w = 0x2A;
-                SET_PORTRAIT_HEIGHT(rect);
-                SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
-                SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
-                SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
+                SET_PORTRAIT_IMAGE(0x90, 0x2A, 0xEE);
             } else if (card == 17) {
                 rect.x = 0x2E0;
-                rect.y = 0x90;
-                rect.w = 0x2A;
-                SET_PORTRAIT_HEIGHT(rect);
-                SAI_setSpriteImage4Bit(SAI_SPRITES[i + 37], &rect);
-                SAI_SPRITES[i + 37]->quads[0].clut = getClut(0x200, 0xEE);
-                SAI_SPRITES[i + 37]->quads[1].clut = getClut(0x200, 0xEE);
+                SET_PORTRAIT_IMAGE(0x90, 0x2A, 0xEE);
             } else {
                 rect.x = card % 4 * 32 + 0x280;
                 rect.y = card / 4 * 56 + 0x100;
