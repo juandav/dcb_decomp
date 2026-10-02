@@ -1515,7 +1515,7 @@ void SUB_tickCardPicker(PlayerDeck *deck) {
 }
 
 void SUB_editDeck(PlayerDeck *deck) {
-    u8 unused[0xC0]; /* unused, but it is in the original stack frame */
+    u8 dialog[0xC0]; /* a dialog buffer, declared as SUB_tickDeckSlots does; unused here */
     s32 i;
 
     SUB_initDeckEdit(deck);

@@ -247,8 +247,7 @@ void OPEN_drawTitleScreen(void) {
 
 #if VERSION_US || VERSION_EU
 void OPEN_runTitleScreen(s32 parentTask) {
-    /* fake match: never used; it gives the frame the original's size */
-    char text[192];
+    u8 dialog[0xC0]; /* a dialog buffer, declared as SUB_tickDeckSlots does; unused here */
     /* never read: only its empty string is left in .rodata. It is written
        "\0" so that it stays apart from the "" of the arena table
        OPEN_ARENA_NAMES, which the original built in another file */
