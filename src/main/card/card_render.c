@@ -124,14 +124,20 @@ void runCardArtLoader(void) {
 /* Uploads the duel's card graphics to VRAM: the CBTL_SYS.ARC images, the art
    of both players' 30 cards (setting up their card sprites) and their partners'
    cards, plus the extra archive users when withExtras is set. */
-#if VERSION_EU
-/* eu: keeps nextAnim in a register where us keeps the array on the stack */
-INCLUDE_ASM("main/nonmatchings/card/card_render", loadDuelCardGraphics);
-#elif VERSION_US
+#if VERSION_US || VERSION_EU
 void loadDuelCardGraphics(s32 withExtras) {
-    /* Only nextAnim[0] is used. The rest is unused in the original; it sizes
-       the frame, and the array keeps the cursor in memory like the ROM does. */
-    CardAnim *nextAnim[3];
+#if VERSION_US
+    /* fake match: only nextAnims[0] is used; the array keeps the cursor in
+       memory and gives the frame the original's size (0x58), where reload
+       left two spill slots that no C shape reproduces */
+    CardAnim *nextAnims[3];
+#define nextAnim nextAnims[0]
+#elif VERSION_EU
+    CardAnim *nextAnim;
+    /* fake match: never used; it gives the frame the original's size (0x50),
+       where reload left spill slots that no C shape reproduces */
+    CardAnim *unused[3];
+#endif
     CardAnim *anim;
     u32 *arc;
     s32 i;
@@ -153,7 +159,7 @@ void loadDuelCardGraphics(s32 withExtras) {
     freeHeapBlock(arc);
 
     sprite = DUEL->sprites;
-    nextAnim[0] = (CardAnim *)CARD_ANIMS;
+    nextAnim = (CardAnim *)CARD_ANIMS;
     spawnTask(0, -1, 0, 0x800, loadFile, "B:\\M_CARD.ARC", getCurrentTaskId());
     arc = (u32 *)waitFrames(0x7FFFFFFF);
     for (i = 0; i < 2; i++) {
@@ -161,7 +167,7 @@ void loadDuelCardGraphics(s32 withExtras) {
         for (j = 0; j < 30; j++) {
             uploadTim((u32 *)((u8 *)arc + arc[PLAYER(i)->cards[j].id]), (((i << 8) + (j % 6) * 40) >> 1) + 0x2C0,
                       (j / 6) * 40, -1, -1);
-            anim = nextAnim[0];
+            anim = nextAnim;
             anim->spr = sprite;
             anim->state = 0;
             sprite->flags = 0;
@@ -184,8 +190,8 @@ void loadDuelCardGraphics(s32 withExtras) {
             sprite->pal = level;
             sprite->u = (j % 6) * 40;
             sprite->v = (j / 6) * 40;
-            nextAnim[0]++;
             sprite++;
+            nextAnim++;
         }
         /* the partners' cards and their armor cards, in the row below */
         for (j = 0; j < 3; j++) {
@@ -212,6 +218,7 @@ void loadDuelCardGraphics(s32 withExtras) {
     waitFrames(10);
     DUEL_VRAM_READY = 1;
 }
+#undef nextAnim
 #else
 #error "main/card/card_render: version not checked"
 #endif

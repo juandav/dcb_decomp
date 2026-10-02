@@ -20,24 +20,86 @@ void NIS_closeDeckChoice(NisWindow *window) {
 }
 
 /* each player's window: "<Triangle> <name> deck" (or "none") for the three
-   saved decks, "<Square> random" and "each button chooses". Matching them
-   needs the x position allocated before the colour's address, and no
-   form of the C tried (nor the permuter) gets GCC to do that */
-INCLUDE_ASM("nisseg/nonmatchings/vs/nis_vs_deck_select", NIS_drawDeckChoice1);
+   saved decks, "<Square> random" and "each button chooses" */
+void NIS_drawDeckChoice1(NisWindow *window) {
+    u8 rgb[4] = { 0x80, 0x80, 0x80 };
+    char lines[5][0x16];
+    u8 *color;
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("nisseg/nonmatchings/vs/nis_vs_deck_select", NIS_drawDeckChoice2);
+    /* fake match: x keeps the profile pointer as an integer before it becomes
+       the text's x, so that x gets its register ahead of the colour's address */
+    x = (s32)NIS_PROFILE(0);
+    y = 0x45;
+    if (((NisProfile *)x)->savedDecks[0].inUse) {
+        sprintf(lines[0], "b1%sデック", ((NisProfile *)x)->savedDecks[0].name);
+    } else {
+        sprintf(lines[0], "b1無し");
+    }
+    if (((NisProfile *)x)->savedDecks[1].inUse) {
+        sprintf(lines[1], "b0%sデック", ((NisProfile *)x)->savedDecks[1].name);
+    } else {
+        sprintf(lines[1], "b0無し");
+    }
+    if (((NisProfile *)x)->savedDecks[2].inUse) {
+        sprintf(lines[2], "b2%sデック", ((NisProfile *)x)->savedDecks[2].name);
+        /* fake match: x and the colour are set in both branches, which gives x
+           its register ahead of the colour's CSE'd address in local-alloc */
+        x = 0x19;
+        color = rgb;
+    } else {
+        sprintf(lines[2], "b2無し");
+        x = 0x19;
+        color = rgb;
+    }
+    drawIconTextColored(x, y, 7, 0, color, 0, lines[0]);
+    y += 0xE;
+    drawIconTextColored(x, y, 7, 0, color, 0, lines[1]);
+    drawIconTextColored(x, y + 0xE, 7, 0, color, 0, lines[2]);
+    drawIconTextColored(x, y + 0x1C, 7, 0, color, 0, "b3ランダム");
+    drawIconTextColored(x, y + 0x38, 7, 0, color, 0, "　各ボタンで決定");
+}
 
-/* what the deck choice windows draw (defined after them, so that GCC
-   switches back to .rodata after the asm) */
-const u8 NIS_DECK_CHOICE_RGB[4] = { 0x80, 0x80, 0x80 };
-const char NIS_FMT_TRIANGLE_DECK[] = "b1%sデック";
-const char NIS_STR_TRIANGLE_NONE[] = "b1無し";
-const char NIS_FMT_CIRCLE_DECK[] = "b0%sデック";
-const char NIS_STR_CIRCLE_NONE[] = "b0無し";
-const char NIS_FMT_CROSS_DECK[] = "b2%sデック";
-const char NIS_STR_CROSS_NONE[] = "b2無し";
-const char NIS_STR_SQUARE_RANDOM[] = "b3ランダム";
-const char NIS_STR_CHOOSE_BY_BUTTON[] = "　各ボタンで決定";
+void NIS_drawDeckChoice2(NisWindow *window) {
+    u8 rgb[4] = { 0x80, 0x80, 0x80 };
+    char lines[5][0x16];
+    u8 *color;
+    s32 x;
+    s32 y;
+
+    /* fake match: x keeps the profile pointer as an integer before it becomes
+       the text's x, so that x gets its register ahead of the colour's address */
+    x = (s32)NIS_PROFILE(1);
+    y = 0x45;
+    if (((NisProfile *)x)->savedDecks[0].inUse) {
+        sprintf(lines[0], "b1%sデック", ((NisProfile *)x)->savedDecks[0].name);
+    } else {
+        sprintf(lines[0], "b1無し");
+    }
+    if (((NisProfile *)x)->savedDecks[1].inUse) {
+        sprintf(lines[1], "b0%sデック", ((NisProfile *)x)->savedDecks[1].name);
+    } else {
+        sprintf(lines[1], "b0無し");
+    }
+    if (((NisProfile *)x)->savedDecks[2].inUse) {
+        sprintf(lines[2], "b2%sデック", ((NisProfile *)x)->savedDecks[2].name);
+        /* fake match: x and the colour are set in both branches, which gives x
+           its register ahead of the colour's CSE'd address in local-alloc */
+        x = 0xA6;
+        color = rgb;
+    } else {
+        sprintf(lines[2], "b2無し");
+        x = 0xA6;
+        color = rgb;
+    }
+    drawIconTextColored(x, y, 7, 0, color, 0, lines[0]);
+    y += 0xE;
+    drawIconTextColored(x, y, 7, 0, color, 0, lines[1]);
+    drawIconTextColored(x, y + 0xE, 7, 0, color, 0, lines[2]);
+    drawIconTextColored(x, y + 0x1C, 7, 0, color, 0, "b3ランダム");
+    drawIconTextColored(x, y + 0x38, 7, 0, color, 0, "　各ボタンで決定");
+}
 
 void NIS_startVsDeckSelect(void) {
     NIS_chooseVsDecks();
